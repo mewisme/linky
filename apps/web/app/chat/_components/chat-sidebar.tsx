@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
 import type { ChatMessage, ConnectionStatus } from "@/hooks/use-video-chat";
 import {
   Drawer,
@@ -136,9 +137,15 @@ function ChatContent({
               >
                 {/* Avatar (peer only, left side) */}
                 {!msg.isOwn && !sameAsPrev ? (
-                  <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                    {msg.senderId.slice(0, 2).toUpperCase()}
-                  </div>
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarImage
+                      src={msg.senderImageUrl}
+                      alt={msg.senderName || "User"}
+                    />
+                    <AvatarFallback className="text-xs font-medium">
+                      {(msg.senderName || msg.senderId).slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                 ) : (
                   !msg.isOwn && <div className="size-8 shrink-0" />
                 )}

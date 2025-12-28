@@ -214,11 +214,13 @@ export function setupVideoChatHandlers(
         return;
       }
 
-      // Relay message to peer
+      // Relay message to peer with sender's profile info
       io.to(peerId).emit("chat-message", {
         message: data.message,
         timestamp: data.timestamp || Date.now(),
         senderId: socket.id,
+        senderName: socket.data.userName || "Anonymous",
+        senderImageUrl: socket.data.userImageUrl,
       });
       logger.info("Chat message relayed from", socket.id, "to", peerId, "in room", room.id);
     });

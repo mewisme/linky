@@ -9,6 +9,8 @@ export interface ChatMessage {
   message: string;
   timestamp: number;
   senderId: string;
+  senderName?: string;
+  senderImageUrl?: string;
   isOwn: boolean;
 }
 

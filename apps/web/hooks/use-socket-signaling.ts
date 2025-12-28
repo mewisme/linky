@@ -12,7 +12,7 @@ export interface SocketCallbacks {
   onPeerSkipped: (data: { message: string; queueSize: number }) => void;
   onSkipped: (data: { message: string; queueSize: number }) => void;
   onEndCall: (data: { message: string }) => void;
-  onChatMessage: (data: { message: string; timestamp: number; senderId: string }) => void;
+  onChatMessage: (data: { message: string; timestamp: number; senderId: string; senderName?: string; senderImageUrl?: string }) => void;
   onMuteToggle: (data: { muted: boolean }) => void;
   onQueueTimeout: (data: { message: string }) => void;
   onError: (data: { message: string }) => void;
@@ -280,19 +280,9 @@ export function useSocketSignaling() {
       socketRef,
       currentSocketIdRef,
     }),
-    [
-      initializeSocket,
-      sendSignal,
-      joinQueue,
-      skipPeer,
-      sendEndCall,
-      sendChatMessage,
-      sendMuteToggle,
-      removeAllListeners,
-      disconnectSocket,
-      getSocket,
-      getSocketId,
-    ]
+    // Empty deps - functions are stable because they use refs internally
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 }
 

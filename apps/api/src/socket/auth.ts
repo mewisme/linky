@@ -1,11 +1,16 @@
+import { createClerkClient, verifyToken } from "@clerk/backend";
+
 import type { Socket } from "socket.io";
 import { config } from "../config/index.js";
 import { logger } from "../utils/logger.js";
-import { verifyToken } from "@clerk/backend";
+
+const clerk = createClerkClient({ secretKey: config.clerkSecretKey });
 
 export interface AuthenticatedSocket extends Socket {
   data: {
     userId?: string;
+    userName?: string;
+    userImageUrl?: string;
     auth?: Awaited<ReturnType<typeof verifyToken>>;
   };
 }
@@ -39,15 +44,33 @@ export async function socketAuthMiddleware(
       secretKey: config.clerkSecretKey,
     });
 
+    // Fetch user profile from Clerk to get image URL and name
+    let userName = "Anonymous";
+    let userImageUrl: string | undefined;
+
+    try {
+      const user = await clerk.users.getUser(payload.sub);
+      userName = user.firstName || user.username || "Anonymous";
+      userImageUrl = user.imageUrl;
+    } catch (err) {
+      logger.warn("Failed to fetch user profile from Clerk", {
+        userId: payload.sub,
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+
     // Attach auth data to socket
     (socket as AuthenticatedSocket).data = {
       userId: payload.sub,
+      userName,
+      userImageUrl,
       auth: payload,
     };
 
     logger.info("Socket authenticated", {
       socketId: socket.id,
       userId: payload.sub,
+      userName,
     });
 
     next();

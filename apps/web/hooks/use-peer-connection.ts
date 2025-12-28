@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
-import { createPeerConnection, closePeerConnection } from "@/lib/webrtc";
+import { closePeerConnection, createPeerConnection } from "@/lib/webrtc";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 export interface PeerConnectionCallbacks {
   onTrack: (stream: MediaStream) => void;
@@ -191,16 +191,21 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     };
   }, [closePeer]);
 
-  return {
-    initializePeerConnection,
-    createOffer,
-    handleOffer,
-    handleAnswer,
-    addIceCandidate,
-    closePeer,
-    isConnectionValid,
-    getPeerConnection,
-    pcRef,
-  };
+  return useMemo(
+    () => ({
+      initializePeerConnection,
+      createOffer,
+      handleOffer,
+      handleAnswer,
+      addIceCandidate,
+      closePeer,
+      isConnectionValid,
+      getPeerConnection,
+      pcRef,
+    }),
+    // Empty deps - functions are stable because they use refs internally
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 }
 

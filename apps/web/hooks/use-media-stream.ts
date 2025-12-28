@@ -1,7 +1,7 @@
 "use client";
 
 import { getUserMedia, stopMediaStream } from "@/lib/webrtc";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 /**
  * Hook for managing local media stream (camera/microphone)
@@ -95,16 +95,21 @@ export function useMediaStream() {
     };
   }, [releaseMedia]);
 
-  return {
-    acquireMedia,
-    toggleMute,
-    toggleVideo,
-    getStream,
-    releaseMedia,
-    // Expose refs for direct access when needed
-    streamRef,
-    isMutedRef,
-    isVideoOffRef,
-  };
+  return useMemo(
+    () => ({
+      acquireMedia,
+      toggleMute,
+      toggleVideo,
+      getStream,
+      releaseMedia,
+      // Expose refs for direct access when needed
+      streamRef,
+      isMutedRef,
+      isVideoOffRef,
+    }),
+    // Empty deps - functions are stable because they use refs internally
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 }
 

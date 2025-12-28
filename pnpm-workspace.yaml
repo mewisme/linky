@@ -1,3 +1,10 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - apps/*
+  - packages/*
+
+onlyBuiltDependencies:
+  - '@clerk/shared'
+  - esbuild
+  - sharp
+  - supabase
+  - unrs-resolver

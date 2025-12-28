@@ -1,102 +1,141 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+"use client";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@repo/ui/components/ui/card";
+import {
+  Globe,
+  Shield,
+  Zap,
+} from "lucide-react";
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+import { Badge } from "@repo/ui/components/ui/badge";
+import { Header } from "@/components/header";
+import { RainbowButton } from "@repo/ui/components/ui/rainbow-button";
+import { Separator } from "@repo/ui/components/ui/separator";
+import { SocialProof } from "@/components/landing/social-proof";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+
+export default function Home() {
+  const { isSignedIn } = useUser();
+  const router = useRouter();
+
+  const handleStartChat = () => {
+    router.push(isSignedIn ? "/chat" : "/sign-in");
+  };
 
   return (
     <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+      <Header />
+      <main className="flex min-h-screen flex-col">
+        {/* Hero Section */}
+        <section className="relative flex flex-1 items-center justify-center overflow-hidden px-4">
+          {/* Decorative background elements */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -top-20 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl sm:-top-32 sm:h-64 sm:w-64 md:-top-40 md:h-80 md:w-80" />
+            <div className="absolute bottom-0 right-0 h-36 w-36 rounded-full bg-purple-500/20 blur-3xl sm:h-56 sm:w-56 md:h-72 md:w-72" />
+            <div className="absolute top-1/2 left-0 h-32 w-32 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl sm:h-48 sm:w-48 md:h-64 md:w-64" />
+          </div>
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+          <div className="relative z-10 w-full max-w-4xl py-6 md:py-0">
+            <Card className="border-none bg-transparent backdrop-blur-xl">
+              <CardHeader className="space-y-4 px-4 py-6 text-center sm:space-y-5 sm:px-6 sm:py-8 md:space-y-6 md:px-8">
+                {/* Badge */}
+                <div className="flex items-center justify-center gap-2">
+                  <Badge variant="secondary" className="gap-1 px-2.5 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm">
+                    Live · Global · Instant
+                  </Badge>
+                </div>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.com/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
+                {/* Title */}
+                <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+                  Connect with the World
+                </CardTitle>
+
+                {/* Description */}
+                <CardDescription className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-lg">
+                  Instantly connect with people around the world through secure,
+                  real-time video conversations. No registration required to start.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="flex flex-col gap-6 px-4 pb-6 sm:gap-7 sm:px-6 sm:pb-8 md:gap-8 md:px-8">
+                {/* CTA Button */}
+                <RainbowButton
+                  size={'lg'}
+                  variant={'outline'}
+                  onClick={handleStartChat}
+                  className="w-full mx-auto font-semibold text-sm sm:w-fit sm:text-base md:text-md"
+                >
+                  Start Chatting Now
+                </RainbowButton>
+
+                {/* Helper text */}
+                <p className="text-center text-xs text-muted-foreground sm:text-sm">
+                  {isSignedIn
+                    ? "Jump into a new random video session"
+                    : "Sign in to start chatting instantly"}
+                </p>
+
+                <Separator className="my-2 sm:my-4" />
+
+                {/* Feature Grid */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 md:gap-6">
+                  <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
+                    <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
+                      <Globe className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold sm:text-base">Global Reach</h3>
+                      <p className="text-xs text-muted-foreground sm:text-sm">
+                        Connect with people worldwide
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
+                    <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
+                      <Zap className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold sm:text-base">Instant Connection</h3>
+                      <p className="text-xs text-muted-foreground sm:text-sm">
+                        Start chatting in seconds
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
+                    <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
+                      <Shield className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold sm:text-base">Secure & Private</h3>
+                      <p className="text-xs text-muted-foreground sm:text-sm">
+                        Your conversations are protected
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Proof */}
+                <div className="flex flex-col items-center gap-3 pt-2 sm:gap-4 sm:pt-4">
+                  <SocialProof />
+                  <p className="text-xs text-muted-foreground sm:text-sm">
+                    Join <span className="font-semibold text-foreground">1,000+</span> people
+                    chatting right now
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.com?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.com →
-        </a>
-      </footer>
-    </div>
+    </>
   );
 }

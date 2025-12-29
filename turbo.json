@@ -3,6 +3,9 @@
   "ui": "tui",
   "tasks": {
     "build": {
+      "env": [
+        "CLERK_SECRET_KEY"
+      ],
       "dependsOn": [
         "^build"
       ],

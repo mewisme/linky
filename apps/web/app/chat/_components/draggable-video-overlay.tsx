@@ -1,6 +1,5 @@
 "use client";
 
-import { Card, CardContent } from "@repo/ui/components/ui/card";
 import { useEffect, useRef, useState } from "react";
 
 import { VideoOff } from "lucide-react";
@@ -185,31 +184,27 @@ export function DraggableVideoOverlay({
     <div
       ref={overlayRef}
       onMouseDown={handleMouseDown}
-      className={`absolute z-10 cursor-move transition-transform outline-none ring-0 ${isDragging ? "scale-105" : "scale-100"}`}
+      className={`absolute z-10 cursor-move transition-transform outline-none ring-0 ${isDragging ? "scale-105" : "scale-100"} rounded-lg p-1 bg-accent`}
       style={{
         left: `${localVideoPosition.x}px`,
         top: `${localVideoPosition.y}px`,
-        width: "240px",
-        height: "180px",
+        width: "200px",
+        height: "150px",
       }}
     >
-      <Card className="h-full w-full overflow-hidden bg-black">
-        <CardContent className="relative h-full w-full p-0">
-          <VideoPlayer
-            stream={localStream}
-            muted
-            playsInline
-            className="h-full w-full"
-            objectFit="cover"
-            isMobile={false}
-          />
-          {isVideoOff && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <VideoOff className="size-8 text-muted-foreground" />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <VideoPlayer
+        stream={localStream}
+        muted
+        playsInline
+        className="h-full w-full"
+        objectFit="cover"
+        isMobile={false}
+      />
+      {isVideoOff && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <VideoOff className="size-8 text-muted-foreground" />
+        </div>
+      )}
     </div>
   );
 }

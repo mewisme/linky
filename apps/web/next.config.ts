@@ -5,7 +5,19 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@repo/ui"],
   },
-  allowedDevOrigins: ["*.mewis.me"]
+  allowedDevOrigins: ["*.mewis.me"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

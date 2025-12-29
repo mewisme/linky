@@ -262,13 +262,22 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
 
-      onPeerLeft: (data: { message: string }) => {
+      onPeerLeft: (data: { message: string; queueSize?: number }) => {
         peerConnection.closePeer();
-        actionsRef.current.setConnectionStatus("peer-disconnected");
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
-        toast.error(`Peer disconnected - ${data.message}`);
+        
+        // If queueSize is provided, peer was automatically re-queued
+        if (data.queueSize !== undefined) {
+          actionsRef.current.setConnectionStatus("searching");
+          actionsRef.current.setError(null);
+          toast(`Peer disconnected - ${data.message}`);
+        } else {
+          // Fallback: peer disconnected but not re-queued
+          actionsRef.current.setConnectionStatus("peer-disconnected");
+          toast.error(`Peer disconnected - ${data.message}`);
+        }
       },
 
       onPeerSkipped: (data: { message: string; queueSize: number }) => {

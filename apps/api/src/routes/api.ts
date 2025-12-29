@@ -1,7 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { supabase } from "../lib/supabase/client.js";
 import { logger } from "../utils/logger.js";
-import locketsRouter from "./lockets.js";
 
 const router: ExpressRouter = Router();
 
@@ -74,8 +73,6 @@ router.get("/me", async (req: Request, res: Response) => {
   }
 });
 
-// Mount lockets routes
-router.use("/lockets", locketsRouter);
 
 export default router;
 

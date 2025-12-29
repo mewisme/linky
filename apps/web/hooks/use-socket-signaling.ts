@@ -8,7 +8,7 @@ export interface SocketCallbacks {
   onJoinedQueue: (data: { message: string; queueSize: number }) => void;
   onMatched: (data: { roomId: string; peerId: string; isOfferer: boolean }) => void;
   onSignal: (data: SignalData) => void;
-  onPeerLeft: (data: { message: string }) => void;
+  onPeerLeft: (data: { message: string; queueSize?: number }) => void;
   onPeerSkipped: (data: { message: string; queueSize: number }) => void;
   onSkipped: (data: { message: string; queueSize: number }) => void;
   onEndCall: (data: { message: string }) => void;

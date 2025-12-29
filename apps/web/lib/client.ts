@@ -1,58 +1,25 @@
-import axios, { type AxiosInstance } from "axios";
 import type { User } from "@/stores/user-store";
+import axios from 'axios';
+import { useAuthStore } from '@/stores/auth-store';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-// Token getter function type
-type TokenGetter = () => Promise<string | null>;
+export const client = axios.create({
+  baseURL: API_URL,
+});
 
-// Global token getter that can be set from components
-let tokenGetter: TokenGetter | null = null;
+client.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token;
 
-/**
- * Sets the token getter function for authentication
- * Call this from a component using useAuth().getToken
- * @param getter - Function that returns the Clerk token
- */
-export function setTokenGetter(getter: TokenGetter): void {
-  tokenGetter = getter;
-}
+  console.log('[client.ts] request with token', token);
 
-/**
- * Creates an axios instance with authentication interceptor
- */
-function createClient(): AxiosInstance {
-  const instance = axios.create({
-    baseURL: API_URL,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-  // Request interceptor to add Authorization header with Clerk token
-  instance.interceptors.request.use(
-    async (config) => {
-      if (tokenGetter) {
-        try {
-          const token = await tokenGetter();
-          if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-          }
-        } catch (error) {
-          console.error("Failed to get authentication token:", error);
-        }
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
+  return config;
+});
 
-  return instance;
-}
-
-export const client = createClient();
 
 export const getMe = async (): Promise<User> => {
   const response = await client.get<User>("/api/v1/me");

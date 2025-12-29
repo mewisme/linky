@@ -42,10 +42,10 @@ function isSameGroup(
 }
 
 function ownBubbleRadius(isFirst: boolean, isMiddle: boolean, isLast: boolean) {
-  if (isFirst) return "rounded-2xl rounded-br-sm";
-  if (isMiddle) return "rounded-2xl rounded-tr-sm rounded-br-sm";
-  if (isLast) return "rounded-2xl rounded-tr-sm";
-  return "rounded-2xl";
+  if (isFirst) return "rounded-xl rounded-br-sm";
+  if (isMiddle) return "rounded-xl rounded-tr-sm rounded-br-sm";
+  if (isLast) return "rounded-xl rounded-tr-sm";
+  return "rounded-xl";
 }
 
 function peerBubbleRadius(
@@ -53,10 +53,10 @@ function peerBubbleRadius(
   isMiddle: boolean,
   isLast: boolean
 ) {
-  if (isFirst) return "rounded-2xl rounded-bl-sm";
-  if (isMiddle) return "rounded-2xl rounded-tl-sm rounded-bl-sm";
-  if (isLast) return "rounded-2xl rounded-tl-sm";
-  return "rounded-2xl";
+  if (isFirst) return "rounded-xl rounded-bl-sm";
+  if (isMiddle) return "rounded-xl rounded-tl-sm rounded-bl-sm";
+  if (isLast) return "rounded-xl rounded-tl-sm";
+  return "rounded-xl";
 }
 
 /* ------------------------------------------------------------------ */
@@ -108,7 +108,7 @@ function ChatContent({
       {/* Messages */}
       <ScrollArea
         ref={scrollAreaRef}
-        className="flex-1 bg-muted/30 px-4 py-3"
+        className="flex-1 bg-muted/30 px-4 py-3 h-96"
       >
         <div className="flex flex-col">
           {chatMessages.map((msg, index) => {
@@ -162,9 +162,11 @@ function ChatContent({
                   <div
                     className={cn(
                       "px-4 py-2 text-base shadow-sm",
+                      "whitespace-pre-wrap break-all",
+                      "max-w-full",
                       msg.isOwn
                         ? "bg-primary text-primary-foreground"
-                        : "bg-background text-foreground",
+                        : "bg-background/60 text-foreground",
                       msg.isOwn
                         ? ownBubbleRadius(isFirst, isMiddle, isLast)
                         : peerBubbleRadius(isFirst, isMiddle, isLast)
@@ -270,7 +272,7 @@ export function ChatSidebar({
         side="right"
         className="top-12 bottom-0 h-[calc(100vh-3rem)] w-80 p-0 [&>button]:hidden"
       >
-        <SheetHeader className="border-b p-4">
+        <SheetHeader className="border-t border-b p-4">
           <SheetTitle>Chat</SheetTitle>
         </SheetHeader>
         <ChatContent

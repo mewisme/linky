@@ -2,6 +2,7 @@ import "@repo/ui/globals.css";
 
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { ApiClientProvider } from "@/components/providers/api-client";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/providers/theme";
@@ -40,10 +41,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <UserProvider>
-              {children}
-              <ToasterProvider />
-            </UserProvider>
+            <ApiClientProvider>
+              <UserProvider>
+                {children}
+                <ToasterProvider />
+              </UserProvider>
+            </ApiClientProvider>
           </ThemeProvider>
         </body>
       </html>

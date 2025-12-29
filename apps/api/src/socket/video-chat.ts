@@ -314,12 +314,36 @@ export function setupVideoChatHandlers(
       if (room) {
         const peerId = rooms.getPeer(socket.id);
 
-        // Notify peer
+        // Notify peer and re-queue them
         if (peerId) {
           logger.info("Notifying peer of disconnect:", peerId, "from", socket.id);
-          io.to(peerId).emit("peer-left", {
-            message: "Peer disconnected",
-          });
+
+          // Get peer socket to check if they're still connected
+          const peerSocket = io.sockets.sockets.get(peerId);
+          if (peerSocket) {
+            // Remove peer from queue if they're in it
+            if (matchmaking.isInQueue(peerId)) {
+              matchmaking.removeUser(peerId);
+            }
+
+            // Re-enter peer into queue automatically
+            const peerAdded = matchmaking.enqueue(peerSocket);
+            if (peerAdded) {
+              const peerQueueSize = matchmaking.getQueueSize();
+              io.to(peerId).emit("peer-left", {
+                message: "Peer disconnected. Re-entering queue for next match...",
+                queueSize: peerQueueSize,
+              });
+              logger.info("Peer re-queued after disconnect:", peerId, `(Queue size: ${peerQueueSize})`);
+            } else {
+              logger.warn("Disconnect: Failed to re-queue peer:", peerId);
+              io.to(peerId).emit("peer-left", {
+                message: "Peer disconnected",
+              });
+            }
+          } else {
+            logger.warn("Disconnect: Peer socket not found:", peerId);
+          }
         } else {
           logger.warn("Disconnect: Peer not found for user:", socket.id, "in room:", room.id);
         }

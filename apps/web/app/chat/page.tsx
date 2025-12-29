@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 
 import { ChatSidebar } from "./_components/chat-sidebar";
-import { Header } from "@/components/header";
 import { VideoContainer } from "./_components/video-container";
+import { WithHeader } from "@/components/layouts/with-header";
 import { useVideoChat } from "@/hooks/use-video-chat";
 
 export default function ChatPage() {
@@ -64,11 +64,9 @@ export default function ChatPage() {
   }, [chatMessages.length]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-linear-to-br from-background to-muted">
-      <Header connectionStatus={connectionStatus} />
-
+    <WithHeader>
       {/* Main Content */}
-      <main className="relative flex flex-1 flex-col overflow-hidden">
+      <main className="relative flex flex-1 flex-col overflow-hidden h-full">
         {/* Error Message */}
         {error && (
           <p className="text-md text-destructive debug-red p-4 text-center w-full">{error}</p>
@@ -101,6 +99,6 @@ export default function ChatPage() {
         connectionStatus={connectionStatus}
         onSendMessage={sendMessage}
       />
-    </div>
+    </WithHeader>
   );
 }

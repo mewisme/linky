@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useEffect, useMemo } from "react";
+import { useRef, useCallback, useEffect, useMemo, type MutableRefObject } from "react";
 import { createSocket, type SignalData } from "@/lib/socket";
 import type { Socket } from "socket.io-client";
 
@@ -23,11 +23,27 @@ export interface SocketCallbacks {
   onSessionActivated: (data: { message: string }) => void;
 }
 
+export interface UseSocketSignalingReturn {
+  initializeSocket: (token: string, callbacks: SocketCallbacks) => Socket;
+  sendSignal: (data: SignalData) => void;
+  joinQueue: () => void;
+  skipPeer: () => void;
+  sendEndCall: () => void;
+  sendChatMessage: (message: string, timestamp: number) => void;
+  sendMuteToggle: (muted: boolean) => void;
+  removeAllListeners: () => void;
+  disconnectSocket: () => void;
+  getSocket: () => Socket | null;
+  getSocketId: () => string | null;
+  socketRef: MutableRefObject<Socket | null>;
+  currentSocketIdRef: MutableRefObject<string | null>;
+}
+
 /**
  * Hook for managing Socket.IO signaling connection
  * Handles socket lifecycle, event registration, and message sending
  */
-export function useSocketSignaling() {
+export function useSocketSignaling(): UseSocketSignalingReturn {
   const socketRef = useRef<Socket | null>(null);
   const callbacksRef = useRef<SocketCallbacks | null>(null);
   const currentSocketIdRef = useRef<string | null>(null);

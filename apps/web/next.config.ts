@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@repo/ui"],
   },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
+  },
   allowedDevOrigins: ["*.mewis.me"],
   images: {
     remotePatterns: [

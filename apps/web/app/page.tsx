@@ -47,14 +47,14 @@ const BACKGROUND_VARIANTS: Variants = {
 };
 
 export default function Home() {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
   const [transition, setTransition] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoadedTransition, setIsLoadedTransition] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setTransition(true), 2000);
-    const timer2 = setTimeout(() => setIsLoaded(true), 3000);
+    const timer2 = setTimeout(() => setIsLoadedTransition(true), 3000);
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
@@ -62,12 +62,12 @@ export default function Home() {
   }, []);
 
   const handleStartChat = () => {
-    router.push(isSignedIn ? "/chat" : "/sign-in");
+    router.push(isSignedIn && isLoaded ? "/chat" : "/sign-in");
   };
 
   return (
     <>
-      <main className={cn('relative h-dvh', !isLoaded && 'overflow-y-hidden')}>
+      <main className={cn('relative h-dvh', !isLoadedTransition && 'overflow-y-hidden')}>
         <Header transition={transition} />
         {/* Hero Section */}
         <div className="h-dvh w-full flex items-center mt-20 md:mt-0">
@@ -123,7 +123,7 @@ export default function Home() {
 
                   {/* Helper text */}
                   <p className="text-center text-xs text-muted-foreground sm:text-sm">
-                    {isSignedIn
+                    {isSignedIn && isLoaded
                       ? "Jump into a new random video session"
                       : "Sign in to start chatting instantly"}
                   </p>

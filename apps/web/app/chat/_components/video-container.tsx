@@ -53,10 +53,8 @@ export function VideoContainer({
       style={{ height: "calc(100dvh - 6rem)" }}
     >
       {isMobile ? (
-        /* Mobile: Overlay view - Peer full screen, User overlay at top-right */
         hasPeer ? (
           <>
-            {/* Peer Video - Main (Full Screen) */}
             <div className="relative h-full w-full">
               <VideoPlayer
                 stream={remoteStream}
@@ -66,7 +64,6 @@ export function VideoContainer({
                 objectFit="contain"
                 isMobile={isMobile}
               />
-              {/* Remote Mute Indicator */}
               {remoteMuted && (
                 <div className="absolute top-4 left-4 z-10 flex items-center justify-center rounded-full bg-black/60 p-2">
                   <MicOff className="size-5 text-white" />
@@ -74,7 +71,6 @@ export function VideoContainer({
               )}
             </div>
 
-            {/* Local Video Overlay - Fixed at top-right corner */}
             {localStream && (
               <div className="absolute top-4 right-4 z-20 w-32 overflow-hidden rounded-lg border-2 border-background shadow-lg">
                 <div
@@ -101,7 +97,6 @@ export function VideoContainer({
             )}
           </>
         ) : (
-          /* Mobile: No peer - Show local video full screen */
           <>
             {localStream ? (
               <div className="relative h-full w-full">
@@ -127,10 +122,8 @@ export function VideoContainer({
           </>
         )
       ) : (
-        /* Desktop: Draggable overlay behavior */
         hasPeer ? (
           <>
-            {/* Peer Video - Main */}
             <div className="relative h-full w-full">
               <VideoPlayer
                 stream={remoteStream}
@@ -140,7 +133,6 @@ export function VideoContainer({
                 objectFit="contain"
                 isMobile={isMobile}
               />
-              {/* Remote Mute Indicator */}
               {remoteMuted && (
                 <div className="absolute top-4 right-4 z-10 flex items-center justify-center rounded-full bg-black/60 p-2">
                   <MicOff className="size-5 text-white" />
@@ -148,7 +140,6 @@ export function VideoContainer({
               )}
             </div>
 
-            {/* Local Video Overlay - Draggable */}
             <DraggableVideoOverlay
               localStream={localStream}
               isVideoOff={isVideoOff}
@@ -156,7 +147,6 @@ export function VideoContainer({
             />
           </>
         ) : (
-          /* Desktop: No peer - Show local video in main */
           <>
             {localStream ? (
               <div className="relative h-full w-full">
@@ -183,7 +173,6 @@ export function VideoContainer({
         )
       )}
 
-      {/* Controls Overlay */}
       <VideoControls
         connectionStatus={connectionStatus}
         isMuted={isMuted}

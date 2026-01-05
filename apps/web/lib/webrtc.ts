@@ -1,20 +1,16 @@
-/**
- * WebRTC utilities for managing peer connections and media streams
- */
-
 import { client } from "@/lib/client";
 
 export interface IceServersResponse {
   iceServers: RTCIceServer[];
 }
 
-/**
- * Fetches ICE server configuration from the backend
- * Uses the axios client which automatically includes Clerk authentication token
- */
-export async function fetchIceServers(): Promise<RTCIceServer[]> {
+export async function fetchIceServers(token: string | null): Promise<RTCIceServer[]> {
   try {
-    const response = await client.get<IceServersResponse>("/api/ice-servers");
+    const response = await client.get<IceServersResponse>("/api/ice-servers", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data.iceServers;
   } catch (error) {
     if (error instanceof Error) {
@@ -24,9 +20,6 @@ export async function fetchIceServers(): Promise<RTCIceServer[]> {
   }
 }
 
-/**
- * Creates a new RTCPeerConnection with ICE servers
- */
 export function createPeerConnection(iceServers: RTCIceServer[]): RTCPeerConnection {
   return new RTCPeerConnection({
     iceServers,
@@ -34,9 +27,6 @@ export function createPeerConnection(iceServers: RTCIceServer[]): RTCPeerConnect
   });
 }
 
-/**
- * Gets user media (camera and microphone)
- */
 export async function getUserMedia(
   video: boolean = true,
   audio: boolean = true
@@ -51,9 +41,6 @@ export async function getUserMedia(
   }
 }
 
-/**
- * Stops all tracks in a media stream
- */
 export function stopMediaStream(stream: MediaStream | null): void {
   if (stream) {
     stream.getTracks().forEach((track) => {
@@ -62,18 +49,13 @@ export function stopMediaStream(stream: MediaStream | null): void {
   }
 }
 
-/**
- * Closes a peer connection and cleans up
- */
 export function closePeerConnection(pc: RTCPeerConnection | null): void {
   if (pc) {
-    // Remove all event handlers to prevent stale handlers from firing
     pc.ontrack = null;
     pc.onicecandidate = null;
     pc.onconnectionstatechange = null;
     pc.oniceconnectionstatechange = null;
     pc.onicegatheringstatechange = null;
-    // Close the connection
     pc.close();
   }
 }

@@ -3,19 +3,15 @@
 import { useRef, useEffect, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useAuthClient } from "@/hooks/use-auth-client";
 import { fetchIceServers } from "@/lib/webrtc";
 import type { SignalData } from "@/lib/socket";
+import { logger } from "@/utils/logger";
 
-// Sub-hooks
 import { useMediaStream } from "./use-media-stream";
 import { usePeerConnection } from "./use-peer-connection";
 import { useSocketSignaling } from "./use-socket-signaling";
 import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./use-video-chat-state";
 
-/**
- * Public API interface for the video chat hook
- */
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
@@ -31,50 +27,43 @@ export interface UseVideoChatReturn {
   toggleMute: () => void;
   toggleVideo: () => void;
   error: string | null;
+  clearError: () => void;
 }
 
-/**
- * Main video chat hook - orchestrates all sub-hooks
- * Optimized for performance with minimal re-renders
- */
 export function useVideoChat(): UseVideoChatReturn {
   const { getToken, isLoaded } = useAuth();
   const { user } = useUser();
-  useAuthClient(); // Set up axios client with Clerk authentication
 
-  // Initialize all sub-hooks
   const { state, actions } = useVideoChatState();
   const iceServersRef = useRef<RTCIceServer[]>([]);
 
-  // Store actions in ref to avoid recreating callbacks
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
 
-  // Media stream management
   const mediaStream = useMediaStream();
 
-  // Peer connection management
   const peerConnection = usePeerConnection(iceServersRef.current);
 
-  // Socket signaling management
   const socketSignaling = useSocketSignaling();
 
-  /**
-   * Initialize ICE servers on mount
-   */
   useEffect(() => {
     let mounted = true;
 
     async function initIceServers() {
       if (!isLoaded) return;
 
+      const token = await getToken();
+      if (!token) {
+        throw new Error("No token found");
+      }
+
       try {
-        const servers = await fetchIceServers();
+        const servers = await fetchIceServers(token);
         if (mounted) {
           iceServersRef.current = servers;
         }
       } catch (err) {
-        console.error("Failed to fetch ICE servers:", err);
+        logger.error("Failed to fetch ICE servers:", err);
         if (mounted) {
           actionsRef.current.setError("Failed to initialize connection. Please refresh the page.");
         }
@@ -86,11 +75,32 @@ export function useVideoChat(): UseVideoChatReturn {
     return () => {
       mounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
-  /**
-   * Reset peer state without disconnecting socket
-   */
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const updateToken = async () => {
+      try {
+        const token = await getToken();
+        if (token) {
+          socketSignaling.updateSocketToken(token);
+          logger.info("Socket token updated");
+        }
+      } catch (error) {
+        logger.error("Failed to update socket token:", error);
+      }
+    };
+
+    updateToken();
+    const interval = setInterval(updateToken, 60_000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isLoaded, getToken, socketSignaling]);
+
   const resetPeerState = useCallback(() => {
     mediaStream.releaseMedia();
     peerConnection.closePeer();
@@ -98,40 +108,29 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setLocalStream(null);
   }, [mediaStream, peerConnection]);
 
-  /**
-   * Full cleanup - disconnects everything
-   */
   const cleanup = useCallback(() => {
     resetPeerState();
     socketSignaling.disconnectSocket();
   }, [resetPeerState, socketSignaling]);
 
-  /**
-   * Cleanup on unmount
-   */
   useEffect(() => {
     return () => {
       cleanup();
     };
   }, [cleanup]);
 
-  // Track if we've already shown the connected toast
   const hasShownConnectedToastRef = useRef(false);
 
-  /**
-   * Handle peer connection callbacks
-   */
   const peerCallbacks = useMemo(
     () => ({
       onTrack: (stream: MediaStream) => {
         actionsRef.current.setRemoteStream(stream);
         actionsRef.current.setConnectionStatus("connected");
-        console.log("Received remote track:", stream.getTracks().length, "tracks");
+        logger.info("Received remote track:", stream.getTracks().length, "tracks");
 
-        // Only show toast once when first track arrives
         if (!hasShownConnectedToastRef.current) {
           hasShownConnectedToastRef.current = true;
-          toast.success("Connected! You are now connected with your peer.");
+          toast.success("You are now connected with your peer.");
         }
       },
       onIceCandidate: (candidate: RTCIceCandidate) => {
@@ -143,7 +142,7 @@ export function useVideoChat(): UseVideoChatReturn {
       onConnectionStateChange: (connectionState: RTCPeerConnectionState) => {
         if (connectionState === "disconnected" || connectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
-          hasShownConnectedToastRef.current = false; // Reset for next connection
+          hasShownConnectedToastRef.current = false;
         } else if (connectionState === "connected") {
           actionsRef.current.setConnectionStatus("connected");
         }
@@ -151,30 +150,24 @@ export function useVideoChat(): UseVideoChatReturn {
       onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => {
         if (iceConnectionState === "failed" || iceConnectionState === "disconnected") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
-          hasShownConnectedToastRef.current = false; // Reset for next connection
+          hasShownConnectedToastRef.current = false;
         }
       },
     }),
     [socketSignaling]
   );
 
-  /**
-   * Handle socket signaling callbacks
-   */
   const socketCallbacks = useMemo(
     () => ({
-      onConnect: () => {
-        // Socket connected successfully
-      },
+      onConnect: () => { },
 
       onDisconnect: () => {
-        // Use ref to avoid dependency on state
         actionsRef.current.setConnectionStatus("peer-disconnected");
       },
 
       onConnectError: () => {
         actionsRef.current.setError("Failed to connect to server. Please refresh the page.");
-        toast.error("Connection failed - Failed to connect to server. Please refresh the page.");
+        toast.error("Failed to connect. Please refresh the page.");
       },
 
       onSessionWaiting: (data: { message: string; positionInQueue: number; queueSize: number }) => {
@@ -189,7 +182,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onJoinedQueue: (data: { message: string; queueSize: number }) => {
-        console.log("[SUCCESS] Joined queue:", data);
+        logger.done("Joined queue:", data);
         actionsRef.current.setConnectionStatus("searching");
       },
 
@@ -200,64 +193,62 @@ export function useVideoChat(): UseVideoChatReturn {
 
         const localStream = mediaStream.getStream();
         if (!localStream) {
-          console.error("No local stream available for match");
+          logger.error("No local stream available for match");
           return;
         }
 
-        // Initialize peer connection
         peerConnection.initializePeerConnection(localStream, peerCallbacks);
 
-        // If we're the offerer, create and send offer
         if (data.isOfferer) {
           try {
-            console.log("Creating offer as offerer...");
+            logger.info("Creating offer as offerer...");
             const offer = await peerConnection.createOffer();
             socketSignaling.sendSignal({
               type: "offer",
               sdp: offer,
             });
-            console.log("[SUCCESS] Offer created and sent to peer");
+            logger.done("Offer created and sent to peer");
           } catch (err) {
-            console.error("[ERROR] Error creating offer:", err);
+            logger.error("Error creating offer:", err);
             actionsRef.current.setError("Failed to establish connection. Please try again.");
             actionsRef.current.setConnectionStatus("peer-disconnected");
           }
         } else {
-          console.log("[WAITING] Waiting for offer from peer as answerer...");
+          logger.load("Waiting for offer from peer as answerer...");
         }
       },
 
       onSignal: async (data: SignalData) => {
         if (!peerConnection.isConnectionValid()) {
-          console.warn("Signal received but peer connection not ready");
+          logger.warn("Signal received but peer connection not ready");
           return;
         }
 
         try {
           if (data.type === "offer") {
-            console.log("[RECEIVED] Received offer, creating answer...");
+            logger.info("Received offer, creating answer...");
             const answer = await peerConnection.handleOffer(data.sdp as RTCSessionDescriptionInit);
             socketSignaling.sendSignal({
               type: "answer",
               sdp: answer,
             });
-            console.log("[SUCCESS] Answer created and sent to peer");
+            logger.done("Answer created and sent to peer");
             actionsRef.current.setConnectionStatus("connecting");
           } else if (data.type === "answer") {
-            console.log("[RECEIVED] Received answer, setting remote description...");
+            logger.info("Received answer, setting remote description...");
             await peerConnection.handleAnswer(data.sdp as RTCSessionDescriptionInit);
-            console.log("[SUCCESS] Remote description set successfully");
+            logger.done("Remote description set successfully");
             actionsRef.current.setConnectionStatus("connecting");
           } else if (data.type === "ice-candidate" && data.candidate) {
-            console.log("[ICE] Received ICE candidate, adding...");
+            logger.info("Received ICE candidate, adding...");
             await peerConnection.addIceCandidate(data.candidate);
           }
         } catch (err) {
           if (peerConnection.isConnectionValid()) {
-            console.error("Error handling signal:", err);
+            logger.error("Error handling signal:", err);
             actionsRef.current.setError("Failed to process connection signal. Please try again.");
           } else {
-            console.warn("Signal processing error but connection is closed, ignoring:", err);
+            logger.warn("Signal processing error but connection is closed, ignoring:", err);
           }
         }
       },
@@ -267,14 +258,12 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
-        
-        // If queueSize is provided, peer was automatically re-queued
+
         if (data.queueSize !== undefined) {
           actionsRef.current.setConnectionStatus("searching");
           actionsRef.current.setError(null);
           toast(`Peer disconnected - ${data.message}`);
         } else {
-          // Fallback: peer disconnected but not re-queued
           actionsRef.current.setConnectionStatus("peer-disconnected");
           toast.error(`Peer disconnected - ${data.message}`);
         }
@@ -291,7 +280,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onSkipped: (data: { message: string; queueSize: number }) => {
-        console.log("Skipped:", data.message, "Queue size:", data.queueSize);
+        logger.info("Skipped:", data.message, "Queue size:", data.queueSize);
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
         peerConnection.closePeer();
@@ -300,7 +289,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onEndCall: (data: { message: string }) => {
-        console.log("End call received from peer:", data.message);
+        logger.info("End call received from peer:", data.message);
         toast(`Call ended - ${data.message}`);
         resetPeerState();
       },
@@ -337,15 +326,11 @@ export function useVideoChat(): UseVideoChatReturn {
     [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState]
   );
 
-  /**
-   * Start video chat
-   */
   const start = useCallback(async () => {
     try {
       actionsRef.current.setError(null);
       actionsRef.current.setConnectionStatus("searching");
 
-      // Check authentication
       if (!isLoaded) {
         actionsRef.current.setError("Authentication not ready. Please wait...");
         return;
@@ -357,25 +342,20 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
-      // Fetch ICE servers if needed
       if (iceServersRef.current.length === 0) {
-        iceServersRef.current = await fetchIceServers();
+        iceServersRef.current = await fetchIceServers(token);
       }
 
-      // Acquire media stream
       const stream = await mediaStream.acquireMedia();
       actionsRef.current.setLocalStream(stream);
 
-      // Initialize peer connection
       peerConnection.initializePeerConnection(stream, peerCallbacks);
 
-      // Initialize socket connection
-      socketSignaling.initializeSocket(token, socketCallbacks);
+      await socketSignaling.initializeSocket(socketCallbacks, token);
 
-      // Join matchmaking queue
       socketSignaling.joinQueue();
     } catch (err) {
-      console.error("Error starting video chat:", err);
+      logger.error("Error starting video chat:", err);
       actionsRef.current.setError(err instanceof Error ? err.message : "Failed to start video chat");
       actionsRef.current.setConnectionStatus("idle");
       cleanup();
@@ -391,9 +371,6 @@ export function useVideoChat(): UseVideoChatReturn {
     cleanup,
   ]);
 
-  /**
-   * Skip current peer
-   */
   const skip = useCallback(() => {
     peerConnection.closePeer();
     actionsRef.current.setRemoteStream(null);
@@ -402,26 +379,17 @@ export function useVideoChat(): UseVideoChatReturn {
     socketSignaling.skipPeer();
   }, [peerConnection, socketSignaling]);
 
-  /**
-   * Toggle mute state
-   */
   const toggleMute = useCallback(() => {
     const newMutedState = mediaStream.toggleMute();
     actionsRef.current.setMuted(newMutedState);
     socketSignaling.sendMuteToggle(newMutedState);
   }, [mediaStream, socketSignaling]);
 
-  /**
-   * Toggle video on/off
-   */
   const toggleVideo = useCallback(() => {
     const newVideoOffState = mediaStream.toggleVideo();
     actionsRef.current.setVideoOff(newVideoOffState);
   }, [mediaStream]);
 
-  /**
-   * Send chat message
-   */
   const sendMessage = useCallback(
     (message: string) => {
       if (!message.trim()) return;
@@ -429,7 +397,6 @@ export function useVideoChat(): UseVideoChatReturn {
       const timestamp = Date.now();
       const socketId = socketSignaling.getSocketId();
 
-      // Optimistic update with user's own profile info
       const newMessage: ChatMessage = {
         id: `${socketId}-${timestamp}`,
         message: message.trim(),
@@ -441,22 +408,21 @@ export function useVideoChat(): UseVideoChatReturn {
       };
       actionsRef.current.addChatMessage(newMessage);
 
-      // Send to server
       socketSignaling.sendChatMessage(message.trim(), timestamp);
     },
     [socketSignaling, user]
   );
 
-  /**
-   * End call
-   */
   const endCall = useCallback(() => {
     socketSignaling.sendEndCall();
     toast("Call ended - You have ended the call.");
     resetPeerState();
   }, [socketSignaling, resetPeerState]);
 
-  // Return public API
+  const clearError = useCallback(() => {
+    actionsRef.current.setError(null);
+  }, []);
+
   return {
     localStream: state.localStream,
     remoteStream: state.remoteStream,
@@ -472,8 +438,8 @@ export function useVideoChat(): UseVideoChatReturn {
     toggleMute,
     toggleVideo,
     error: state.error,
+    clearError,
   };
 }
 
-// Re-export types for convenience
 export type { ConnectionStatus, ChatMessage };

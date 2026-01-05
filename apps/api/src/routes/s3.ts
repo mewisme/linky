@@ -185,7 +185,6 @@ router.delete("/objects/:key", async (req: Request, res: Response) => {
       });
     }
 
-    // Decode the key in case it's URL encoded
     const decodedKey = decodeURIComponent(key);
 
     logger.info(`Deleting object: ${decodedKey}`, {

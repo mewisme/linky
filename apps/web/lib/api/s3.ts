@@ -69,13 +69,10 @@ export async function uploadToS3(presignedUrl: string, file: File | Blob): Promi
  * Complete upload flow: get presigned URL and upload file
  */
 export async function uploadFile(file: File | Blob, key: string): Promise<string> {
-  // Get presigned URL
   const { url } = await getUploadUrl({ key, expires: 300 });
 
-  // Upload to S3
   await uploadToS3(url, file);
 
-  // Return the key for database storage
   return key;
 }
 

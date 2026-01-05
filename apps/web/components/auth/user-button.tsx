@@ -12,21 +12,29 @@ export function UserButton() {
   const { user } = useUserStore();
 
   return (
-    <UserButtonPrimative appearance={{
-      baseTheme: dark
-    }}
-      userProfileMode="navigation"
-      userProfileUrl="/user-profile"
-    >
-      <UserButtonPrimative.MenuItems>
-        {user?.role === "admin" && (
-          <UserButtonPrimative.Action
-            label="Admin Dashboard"
-            labelIcon={<Shield className="size-4" />}
-            onClick={() => router.push("/admin")}
-          />
-        )}
-      </UserButtonPrimative.MenuItems>
-    </UserButtonPrimative>
+    <>
+      {/* eslint-disable-next-line react/no-unknown-property */}
+      <style jsx global>{`
+        .cl-userButtonPopoverFooter {
+          display: none !important;
+        }
+      `}</style>
+      <UserButtonPrimative appearance={{
+        baseTheme: dark
+      }}
+        userProfileMode="navigation"
+        userProfileUrl="/user-profile"
+      >
+        <UserButtonPrimative.MenuItems>
+          {user?.role === "admin" && (
+            <UserButtonPrimative.Action
+              label="Admin Dashboard"
+              labelIcon={<Shield className="size-4" />}
+              onClick={() => router.push("/admin")}
+            />
+          )}
+        </UserButtonPrimative.MenuItems>
+      </UserButtonPrimative>
+    </>
   )
 }

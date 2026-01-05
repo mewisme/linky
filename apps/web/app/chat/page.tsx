@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@repo/ui/components/ui/alert-dialog"
 import { useEffect, useRef, useState } from "react";
 
 import { ChatSidebar } from "./_components/chat-sidebar";
@@ -23,6 +32,7 @@ export default function ChatPage() {
     toggleMute,
     toggleVideo,
     error,
+    clearError,
   } = useVideoChat();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -30,16 +40,12 @@ export default function ChatPage() {
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const isInitialMountRef = useRef(true);
 
-  // Track unread messages when sidebar is closed
   useEffect(() => {
     if (isChatOpen) {
-      // When sidebar opens, mark all messages as read
       lastReadMessageCountRef.current = chatMessages.length;
       setHasUnreadMessages(false);
       isInitialMountRef.current = false;
     } else {
-      // When sidebar is closed, check if there are new messages
-      // On initial mount with sidebar closed, initialize the read count
       if (isInitialMountRef.current) {
         lastReadMessageCountRef.current = chatMessages.length;
         setHasUnreadMessages(false);
@@ -48,14 +54,12 @@ export default function ChatPage() {
       }
 
       const unreadCount = chatMessages.length - lastReadMessageCountRef.current;
-      // Only show badge for messages from others (not own messages)
       const newMessages = chatMessages.slice(lastReadMessageCountRef.current);
       const hasNewMessagesFromOthers = newMessages.some((msg) => !msg.isOwn);
       setHasUnreadMessages(unreadCount > 0 && hasNewMessagesFromOthers);
     }
   }, [isChatOpen, chatMessages]);
 
-  // Reset unread count when messages are cleared (e.g., peer disconnect)
   useEffect(() => {
     if (chatMessages.length === 0) {
       lastReadMessageCountRef.current = 0;
@@ -64,15 +68,20 @@ export default function ChatPage() {
   }, [chatMessages.length]);
 
   return (
-    <WithHeader>
-      {/* Main Content */}
+    <WithHeader connectionStatus={connectionStatus}>
       <main className="relative flex flex-1 flex-col overflow-hidden h-full">
-        {/* Error Message */}
-        {error && (
-          <p className="text-md text-destructive debug-red p-4 text-center w-full">{error}</p>
-        )}
+        <AlertDialog open={!!error} onOpenChange={(open) => !open && clearError()}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Error</AlertDialogTitle>
+              <AlertDialogDescription>{error}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={clearError}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-        {/* Video Container */}
         <VideoContainer
           localStream={localStream}
           remoteStream={remoteStream}
@@ -91,7 +100,6 @@ export default function ChatPage() {
         />
       </main>
 
-      {/* Chat Sidebar */}
       <ChatSidebar
         isOpen={isChatOpen}
         onClose={() => setIsChatOpen(false)}

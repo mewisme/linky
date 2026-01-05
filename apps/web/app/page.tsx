@@ -23,6 +23,8 @@ import { cn } from "@repo/ui/lib/utils";
 import { motion, type Variants } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { BorderBeam } from "@repo/ui/components/ui/border-beam"
+import { LandingFooter } from "@/components/landing/footer";
 
 const CONTENT_VARIANTS: Variants = {
   hidden: {
@@ -67,17 +69,18 @@ export default function Home() {
 
   return (
     <>
-      <main className={cn('relative h-dvh', !isLoadedTransition && 'overflow-y-hidden')}>
+      <main className={cn('relative min-h-dvh', !isLoadedTransition && 'overflow-y-hidden')}>
         <Header transition={transition} />
-        {/* Hero Section */}
-        <div className="h-dvh w-full flex items-center mt-20 md:mt-0">
+        <div className="min-h-dvh w-full flex items-center pt-0">
           <motion.div
             variants={CONTENT_VARIANTS}
             initial="hidden"
             animate={transition ? 'visible' : 'hidden'}
-            className="w-full relative flex flex-1 items-center justify-center overflow-hidden px-4 h-full"
+            className={cn(
+              "w-full relative flex flex-1 items-center justify-center overflow-hidden px-4 h-full",
+              !transition && 'fixed inset-0'
+            )}
           >
-            {/* Decorative background elements */}
             <motion.div
               variants={BACKGROUND_VARIANTS}
               initial="hidden"
@@ -88,22 +91,19 @@ export default function Home() {
               <div className="absolute top-1/2 left-0 h-32 w-32 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl sm:h-48 sm:w-48 md:h-64 md:w-64" />
             </motion.div>
 
-            <div className="relative z-10 w-full max-w-4xl py-6 md:py-0">
+            <div className="relative z-10 w-full max-w-4xl py-6 mt-10">
               <Card className="border-none bg-transparent backdrop-blur-xl">
-                <CardHeader className="space-y-4 px-4 py-10 text-center sm:space-y-5 sm:px-6 sm:py-8 md:space-y-6 md:px-8">
-                  {/* Badge */}
+                <CardHeader className="space-y-4 px-4 text-center sm:space-y-5 sm:px-6 sm:py-8 md:space-y-6 md:px-8">
                   <div className="flex items-center justify-center gap-2 mt-4 md:mt-0">
                     <Badge variant="secondary" className="gap-1 px-2.5 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm">
                       Live · Global · Instant
                     </Badge>
                   </div>
 
-                  {/* Title */}
                   <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
                     Connect with the World
                   </CardTitle>
 
-                  {/* Description */}
                   <CardDescription className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-lg">
                     Instantly connect with people around the world through secure,
                     real-time video conversations. No registration required to start.
@@ -111,7 +111,6 @@ export default function Home() {
                 </CardHeader>
 
                 <CardContent className="flex flex-col gap-6 px-4 pb-6 sm:gap-7 sm:px-6 sm:pb-8 md:gap-8 md:px-8">
-                  {/* CTA Button */}
                   <RainbowButton
                     size={'lg'}
                     variant={'outline'}
@@ -121,7 +120,6 @@ export default function Home() {
                     Start Chatting Now
                   </RainbowButton>
 
-                  {/* Helper text */}
                   <p className="text-center text-xs text-muted-foreground sm:text-sm">
                     {isSignedIn && isLoaded
                       ? "Jump into a new random video session"
@@ -130,7 +128,6 @@ export default function Home() {
 
                   <Separator className="my-2 sm:my-4" />
 
-                  {/* Feature Grid */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 md:gap-6">
                     <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
                       <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
@@ -169,7 +166,6 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Social Proof */}
                   <div className="flex flex-col items-center gap-3 pt-2 sm:gap-4 sm:pt-4">
                     <SocialProof />
                     <p className="text-xs text-muted-foreground sm:text-sm">
@@ -178,7 +174,9 @@ export default function Home() {
                     </p>
                   </div>
                 </CardContent>
+                <BorderBeam duration={8} size={100} />
               </Card>
+              <LandingFooter />
             </div>
           </motion.div>
         </div>

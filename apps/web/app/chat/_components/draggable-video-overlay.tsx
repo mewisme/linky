@@ -32,7 +32,6 @@ export function DraggableVideoOverlay({
     y: 0,
   });
 
-  // Initialize local video position to bottom-right corner
   useEffect(() => {
     if (containerRef.current && overlayRef.current) {
       const container = containerRef.current;
@@ -49,7 +48,6 @@ export function DraggableVideoOverlay({
     }
   }, [containerRef, onPositionChange]);
 
-  // Calculate corner positions
   const getCornerPosition = (
     corner: CornerPosition,
     containerWidth: number,
@@ -73,7 +71,6 @@ export function DraggableVideoOverlay({
     }
   };
 
-  // Check if position is near a corner (magnetic snap)
   const checkMagneticSnap = (
     pos: Position,
     containerWidth: number,
@@ -126,7 +123,6 @@ export function DraggableVideoOverlay({
       const newX = moveEvent.clientX - containerRect.left - startX;
       const newY = moveEvent.clientY - containerRect.top - startY;
 
-      // Constrain within container bounds
       const constrainedX = Math.max(
         0,
         Math.min(newX, containerRect.width - overlayRect.width)
@@ -143,7 +139,6 @@ export function DraggableVideoOverlay({
     const handleMouseUp = () => {
       setIsDragging(false);
 
-      // Check for magnetic snap using current position
       const containerRect = container.getBoundingClientRect();
       const overlayRect = overlayRef.current?.getBoundingClientRect();
       if (!overlayRect) return;

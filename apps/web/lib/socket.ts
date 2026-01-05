@@ -1,20 +1,9 @@
-/**
- * Socket.IO client configuration and utilities
- */
-
 import { Socket, io } from "socket.io-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { API_URL } from "@/lib/client";
+import { logger } from "@/utils/logger";
 
-/**
- * Creates a Socket.IO connection to the signaling server with Clerk authentication
- * @param token - Clerk session token (from useAuth().getToken())
- */
-export function createSocket(token: string | null): Socket {
-  if (!token) {
-    throw new Error("Authentication token is required to create socket connection");
-  }
-
+export async function createSocket(token?: string | null): Promise<Socket> {
   return io(API_URL, {
     transports: ["websocket"],
     reconnection: true,
@@ -23,23 +12,39 @@ export function createSocket(token: string | null): Socket {
     auth: {
       token,
     },
-    // Also include token in query as fallback
     query: {
       token,
     },
   });
 }
 
-/**
- * Socket event types for type safety
- */
+export function updateToken(socket: Socket, token: string | null): void {
+  if (!token) {
+    logger.warn("Attempted to update socket with null token");
+    return;
+  }
+
+  if (socket.auth && typeof socket.auth === 'object') {
+    socket.auth.token = token;
+  } else {
+    socket.auth = { token };
+  }
+
+  if (socket.io && socket.io.opts) {
+    socket.io.opts.query = { ...socket.io.opts.query, token };
+  }
+
+  if (socket.connected) {
+    logger.info("Token updated, reconnecting socket with new token...");
+    socket.disconnect();
+    socket.connect();
+  }
+}
+
 export interface SocketEvents {
-  // Client → Server
   join: () => void;
   skip: () => void;
   disconnect: () => void;
-
-  // Server → Client
   "joined-queue": (data: { message: string; queueSize: number }) => void;
   "session-waiting": (data: { message: string; positionInQueue: number; queueSize: number }) => void;
   "session-activated": (data: { message: string }) => void;

@@ -24,11 +24,7 @@ import { cn } from "@repo/ui/lib/utils";
 import { motion } from "motion/react";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 
-/* ------------------------------------------------------------------ */
-/* Constants & helpers */
-/* ------------------------------------------------------------------ */
-
-const GROUP_TIME_GAP = 2 * 60 * 1000; // 2 minutes
+const GROUP_TIME_GAP = 2 * 60 * 1000;
 
 function isSameGroup(
   a: ChatMessage | undefined,
@@ -59,10 +55,6 @@ function peerBubbleRadius(
   return "rounded-xl";
 }
 
-/* ------------------------------------------------------------------ */
-/* Chat Content */
-/* ------------------------------------------------------------------ */
-
 function ChatContent({
   chatMessages,
   connectionStatus,
@@ -77,7 +69,6 @@ function ChatContent({
   const inputRef = useRef<HTMLDivElement>(null);
   const [isComposing, setIsComposing] = useState(false);
 
-  /* Auto scroll */
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector(
       '[data-slot="scroll-area-viewport"]'
@@ -105,7 +96,6 @@ function ChatContent({
 
   return (
     <div className="flex h-full min-h-0 flex-col text-base">
-      {/* Messages */}
       <ScrollArea
         ref={scrollAreaRef}
         className="flex-1 bg-muted/30 px-4 py-3 h-96"
@@ -135,7 +125,6 @@ function ChatContent({
                   sameAsPrev ? "mt-0.5" : "mt-4"
                 )}
               >
-                {/* Avatar (peer only, left side) */}
                 {!msg.isOwn && !sameAsPrev ? (
                   <Avatar className="size-8 shrink-0">
                     <AvatarImage
@@ -150,7 +139,6 @@ function ChatContent({
                   !msg.isOwn && <div className="size-8 shrink-0" />
                 )}
 
-                {/* Bubble wrapper */}
                 <div
                   className={cn(
                     "flex max-w-[75%] flex-col",
@@ -195,7 +183,6 @@ function ChatContent({
         </div>
       </ScrollArea>
 
-      {/* Input */}
       <div className="flex items-end gap-2 border-t bg-background/80 backdrop-blur px-3 py-2 pb-safe">
         <div
           ref={inputRef}
@@ -227,10 +214,6 @@ function ChatContent({
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Sidebar wrapper */
-/* ------------------------------------------------------------------ */
 
 export function ChatSidebar({
   isOpen,

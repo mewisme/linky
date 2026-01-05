@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { logger } from "@/utils/logger";
 
 interface VideoPlayerProps {
   stream: MediaStream | null;
@@ -28,7 +29,6 @@ export function VideoPlayer({
   useEffect(() => {
     if (videoRef.current && stream) {
       const video = videoRef.current;
-      // Only set if different to avoid unnecessary updates
       if (video.srcObject !== stream) {
         video.srcObject = stream;
 
@@ -40,22 +40,18 @@ export function VideoPlayer({
               if (onError) {
                 onError(error);
               } else {
-                console.error("Error playing video:", error);
+                logger.error("Error playing video:", error);
               }
 
-              // Retry after a short delay on mobile
               if (isMobile) {
                 setTimeout(() => {
-                  video.play().catch(() => {
-                    // Silently fail on retry
-                  });
+                  video.play().catch(() => {});
                 }, 100);
               }
             });
           }
         };
 
-        // Try immediately and also after a short delay for mobile
         attemptPlay();
         if (isMobile) {
           const timeoutId = setTimeout(attemptPlay, 100);

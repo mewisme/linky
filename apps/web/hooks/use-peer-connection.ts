@@ -3,6 +3,8 @@
 import { closePeerConnection, createPeerConnection } from "@/lib/webrtc";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { logger } from "@/utils/logger";
+
 export interface PeerConnectionCallbacks {
   onTrack: (stream: MediaStream) => void;
   onIceCandidate: (candidate: RTCIceCandidate) => void;
@@ -10,17 +12,10 @@ export interface PeerConnectionCallbacks {
   onIceConnectionStateChange: (state: RTCIceConnectionState) => void;
 }
 
-/**
- * Hook for managing RTCPeerConnection lifecycle
- * Handles peer connection creation, signaling, and cleanup
- */
 export function usePeerConnection(iceServers: RTCIceServer[]) {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const callbacksRef = useRef<PeerConnectionCallbacks | null>(null);
 
-  /**
-   * Check if peer connection is in a valid state
-   */
   const isConnectionValid = useCallback((): boolean => {
     const pc = pcRef.current;
     if (!pc) return false;
@@ -36,29 +31,22 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     );
   }, []);
 
-  /**
-   * Initialize peer connection with local stream
-   */
   const initializePeerConnection = useCallback(
     (localStream: MediaStream, callbacks: PeerConnectionCallbacks): RTCPeerConnection => {
-      // Clean up existing connection
       if (pcRef.current) {
         closePeerConnection(pcRef.current);
       }
 
-      // Create new peer connection
       const pc = createPeerConnection(iceServers);
       pcRef.current = pc;
       callbacksRef.current = callbacks;
 
-      // Add local tracks
       localStream.getTracks().forEach((track) => {
         pc.addTrack(track, localStream);
       });
 
-      // Set up event handlers
       pc.ontrack = (event) => {
-        console.log("Received remote track:", event.track.kind);
+        logger.info("Received remote track:", event.track.kind);
         const [remoteStream] = event.streams;
         if (remoteStream && callbacksRef.current) {
           callbacksRef.current.onTrack(remoteStream);
@@ -72,20 +60,18 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       };
 
       pc.onconnectionstatechange = () => {
-        // Ensure this is still the current connection
         if (pcRef.current !== pc) return;
 
-        console.log("Peer connection state changed:", pc.connectionState);
+        logger.info("Peer connection state changed:", pc.connectionState);
         if (callbacksRef.current) {
           callbacksRef.current.onConnectionStateChange(pc.connectionState);
         }
       };
 
       pc.oniceconnectionstatechange = () => {
-        // Ensure this is still the current connection
         if (pcRef.current !== pc) return;
 
-        console.log("ICE connection state changed:", pc.iceConnectionState);
+        logger.info("ICE connection state changed:", pc.iceConnectionState);
         if (callbacksRef.current) {
           callbacksRef.current.onIceConnectionStateChange(pc.iceConnectionState);
         }
@@ -93,7 +79,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
 
       pc.onicegatheringstatechange = () => {
         if (pcRef.current !== pc) return;
-        console.log("ICE gathering state changed:", pc.iceGatheringState);
+        logger.info("ICE gathering state changed:", pc.iceGatheringState);
       };
 
       return pc;
@@ -101,9 +87,6 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     [iceServers]
   );
 
-  /**
-   * Create and send SDP offer
-   */
   const createOffer = useCallback(async (): Promise<RTCSessionDescriptionInit> => {
     const pc = pcRef.current;
     if (!pc) {
@@ -119,9 +102,6 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     return offer;
   }, []);
 
-  /**
-   * Handle incoming SDP offer and create answer
-   */
   const handleOffer = useCallback(async (offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit> => {
     const pc = pcRef.current;
     if (!pc || !isConnectionValid()) {
@@ -135,9 +115,6 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     return answer;
   }, [isConnectionValid]);
 
-  /**
-   * Handle incoming SDP answer
-   */
   const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit): Promise<void> => {
     const pc = pcRef.current;
     if (!pc || !isConnectionValid()) {
@@ -147,44 +124,33 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     await pc.setRemoteDescription(new RTCSessionDescription(answer));
   }, [isConnectionValid]);
 
-  /**
-   * Add ICE candidate received from peer
-   */
   const addIceCandidate = useCallback(async (candidate: RTCIceCandidateInit): Promise<void> => {
     const pc = pcRef.current;
     if (!pc || !isConnectionValid()) {
-      console.warn("ICE candidate received but connection is not valid, ignoring");
+      logger.warn("ICE candidate received but connection is not valid, ignoring");
       return;
     }
 
     try {
       await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      console.log("ICE candidate added successfully");
+      logger.info("ICE candidate added successfully");
     } catch (err) {
-      // Only log if connection is still valid
       if (isConnectionValid()) {
-        console.warn("Failed to add ICE candidate:", err);
+        logger.warn("Failed to add ICE candidate:", err);
       }
     }
   }, [isConnectionValid]);
 
-  /**
-   * Close peer connection and clean up
-   */
   const closePeer = useCallback(() => {
     closePeerConnection(pcRef.current);
     pcRef.current = null;
     callbacksRef.current = null;
   }, []);
 
-  /**
-   * Get current peer connection
-   */
   const getPeerConnection = useCallback((): RTCPeerConnection | null => {
     return pcRef.current;
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       closePeer();
@@ -203,7 +169,6 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       getPeerConnection,
       pcRef,
     }),
-    // Empty deps - functions are stable because they use refs internally
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );

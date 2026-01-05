@@ -1,13 +1,19 @@
 'use client'
 
 import { useEffect, useState } from "react"
+import dynamic from "next/dynamic";
 
 import { Logo } from "./logo";
-import { UserButton } from "../auth/user-button";
 import { motion, type Variants } from "motion/react"
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import Link from "next/link";
 import { ModeToggle } from "./mode-toggle";
+import { ConnectionStatus, getConnectionStatusMessage } from "@/hooks/use-video-chat-state";
+import { Badge } from "@repo/ui/components/ui/badge";
+
+const UserButton = dynamic(() => import("../auth/user-button").then(mod => ({ default: mod.UserButton })), {
+  ssr: false,
+});
 
 const LOGO_WRAPPER_VARIANTS: Variants = {
   center: {
@@ -43,7 +49,7 @@ const logoVariants = (isScroll: boolean, isMobile: boolean) => ({
   },
 });
 
-export const Header = ({ transition }: { transition: boolean }) => {
+export const Header = ({ transition, connectionStatus }: { transition: boolean, connectionStatus?: ConnectionStatus }) => {
   const isMobile = useIsMobile();
   const [isScroll, setIsScroll] = useState(false);
 
@@ -74,6 +80,25 @@ export const Header = ({ transition }: { transition: boolean }) => {
             <Logo size={isMobile ? 'lg' : 'xl'} draw />
           </Link>
         </motion.div>
+
+        {connectionStatus && (
+          <motion.div
+            initial={{
+              top: isScroll ? (isMobile ? 10 : 7.5) : 18,
+              opacity: 0,
+            }}
+            animate={{
+              top: isScroll ? (isMobile ? 10 : 7.5) : 18,
+              opacity: 1,
+            }}
+            transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+            className="absolute left-1/2 -translate-x-1/2 z-110"
+          >
+            <Badge variant="outline">
+              {getConnectionStatusMessage(connectionStatus)}
+            </Badge>
+          </motion.div>
+        )}
 
         <motion.div
           initial={{

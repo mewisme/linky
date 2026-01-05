@@ -16,7 +16,6 @@ export function useMediaStream() {
    * Acquire user media (camera + microphone)
    */
   const acquireMedia = useCallback(async (): Promise<MediaStream> => {
-    // Clean up existing stream before acquiring new one
     if (streamRef.current) {
       stopMediaStream(streamRef.current);
     }
@@ -24,14 +23,12 @@ export function useMediaStream() {
     const stream = await getUserMedia(true, true);
     streamRef.current = stream;
 
-    // Apply mute state if previously muted
     if (isMutedRef.current) {
       stream.getAudioTracks().forEach((track) => {
         track.enabled = false;
       });
     }
 
-    // Apply video off state if previously disabled
     if (isVideoOffRef.current) {
       stream.getVideoTracks().forEach((track) => {
         track.enabled = false;
@@ -102,12 +99,10 @@ export function useMediaStream() {
       toggleVideo,
       getStream,
       releaseMedia,
-      // Expose refs for direct access when needed
       streamRef,
       isMutedRef,
       isVideoOffRef,
     }),
-    // Empty deps - functions are stable because they use refs internally
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );

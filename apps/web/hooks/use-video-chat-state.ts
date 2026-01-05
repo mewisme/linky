@@ -4,6 +4,17 @@ import { useMemo, useReducer } from "react";
 
 export type ConnectionStatus = "idle" | "searching" | "connecting" | "connected" | "peer-disconnected";
 
+export function getConnectionStatusMessage(status: ConnectionStatus): string {
+  const statusMessages: Record<ConnectionStatus, string> = {
+    idle: "Ready",
+    searching: "Searching...",
+    connecting: "Connecting...",
+    connected: "Connected",
+    "peer-disconnected": "Disconnected",
+  };
+  return statusMessages[status];
+}
+
 export interface ChatMessage {
   id: string;
   message: string;
@@ -15,20 +26,13 @@ export interface ChatMessage {
 }
 
 interface VideoChatState {
-  // Media state
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
   isMuted: boolean;
   isVideoOff: boolean;
   remoteMuted: boolean;
-
-  // Connection state
   connectionStatus: ConnectionStatus;
-
-  // Chat state
   chatMessages: ChatMessage[];
-
-  // Error state
   error: string | null;
 }
 
@@ -43,7 +47,7 @@ type VideoChatAction =
   | { type: "CLEAR_CHAT_MESSAGES" }
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "RESET_STATE" }
-  | { type: "RESET_PEER_STATE" }; // Reset without clearing local stream
+  | { type: "RESET_PEER_STATE" };
 
 const initialState: VideoChatState = {
   localStream: null,
@@ -93,7 +97,6 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
       return initialState;
 
     case "RESET_PEER_STATE":
-      // Reset peer-related state but keep local stream and settings
       return {
         ...state,
         remoteStream: null,
@@ -115,7 +118,6 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
 export function useVideoChatState() {
   const [state, dispatch] = useReducer(videoChatReducer, initialState);
 
-  // Memoized action creators
   const actions = useMemo(
     () => ({
       setLocalStream: (stream: MediaStream | null) => {

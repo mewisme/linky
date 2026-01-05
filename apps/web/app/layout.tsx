@@ -2,6 +2,7 @@ import "@repo/ui/globals.css";
 
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { Analytics } from "@vercel/analytics/next"
 import { ApiClientProvider } from "@/components/providers/api-client";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
@@ -30,11 +31,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ClerkProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -48,8 +49,9 @@ export default function RootLayout({
               </UserProvider>
             </ApiClientProvider>
           </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+        <Analytics />
+      </body>
+    </html>
   );
 }

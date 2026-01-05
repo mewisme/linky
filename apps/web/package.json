@@ -12,6 +12,7 @@
     "@clerk/nextjs": "^6.7.0",
     "@clerk/themes": "^2.4.46",
     "@repo/ui": "workspace:*",
+    "@vercel/analytics": "^1.6.1",
     "axios": "^1.13.2",
     "lucide-react": "^0.562.0",
     "motion": "^12.23.26",

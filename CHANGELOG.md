@@ -2,11 +2,11 @@
 
 ✨ Features
 
-- Implement client-side rendering and enhance sign-in, sign-up, and user profile pages with improved layout and styling ([64629cf](../../commit/64629cf))
+- Integrate @vercel/analytics for enhanced analytics tracking ([981c222](../../commit/981c222))
 
 🔨 Other Changes
 
-- Update package versions to 0.3.0 across all packages and update version lock ([796ced1](../../commit/796ced1))
+- Update package versions to 0.4.0 across all packages and update version lock ([69d4fde](../../commit/69d4fde))
 
 
-📋 Full Changelog: [796ced1...64629cf](../../compare/796ced1...64629cf)
+📋 Full Changelog: [69d4fde...981c222](../../compare/69d4fde...981c222)

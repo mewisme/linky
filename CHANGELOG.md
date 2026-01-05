@@ -2,11 +2,11 @@
 
 ✨ Features
 
-- Hide specific navbar element in user profile page for improved UI ([e2b63c6](../../commit/e2b63c6))
+- Implement client-side rendering and enhance sign-in, sign-up, and user profile pages with improved layout and styling ([64629cf](../../commit/64629cf))
 
 🔨 Other Changes
 
-- Update package versions to 0.2.1 across all packages and update version lock ([816777f](../../commit/816777f))
+- Update package versions to 0.3.0 across all packages and update version lock ([796ced1](../../commit/796ced1))
 
 
-📋 Full Changelog: [816777f...e2b63c6](../../compare/816777f...e2b63c6)
+📋 Full Changelog: [796ced1...64629cf](../../compare/796ced1...64629cf)

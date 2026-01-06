@@ -1,12 +1,17 @@
 ## What's Changed
 
-⚡️ Performance
+♻️ Refactoring
 
-- Add ecosystem configuration for application deployment ([5747c03](../../commit/5747c03))
+- Migrate configuration to environment variables ([c524aab](../../commit/c524aab))
+- Enhance MQTT client configuration with environment variable validation ([68ce171](../../commit/68ce171))
+- Convert ecosystem configuration to ES module syntax ([27253f6](../../commit/27253f6))
 
 🔨 Other Changes
 
-- Update package versions to 0.6.0 across all packages and update version lock ([9949d12](../../commit/9949d12))
+- Update environment variables in turbo.json for improved configuration ([e286f9c](../../commit/e286f9c))
+- Remove ecosystem.config.js file as it is no longer needed ([3f27f97](../../commit/3f27f97))
+- Remove ecosystem configuration file as it is no longer needed ([00f40f0](../../commit/00f40f0))
+- Update package versions to 0.6.1 across all packages and update version lock ([f828adf](../../commit/f828adf))
 
 
-📋 Full Changelog: [9949d12...5747c03](../../compare/9949d12...5747c03)
+📋 Full Changelog: [f828adf...c524aab](../../compare/f828adf...c524aab)

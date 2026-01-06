@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+⚡️ Performance
 
-- Integrate MQTT and Redis for real-time presence tracking and improve server error handling ([338fd23](../../commit/338fd23))
+- Add ecosystem configuration for application deployment ([5747c03](../../commit/5747c03))
 
 🔨 Other Changes
 
-- Update package versions to 0.5.0 across all packages and update version lock ([d315110](../../commit/d315110))
+- Update package versions to 0.6.0 across all packages and update version lock ([9949d12](../../commit/9949d12))
 
 
-📋 Full Changelog: [d315110...338fd23](../../compare/d315110...338fd23)
+📋 Full Changelog: [9949d12...5747c03](../../compare/9949d12...5747c03)

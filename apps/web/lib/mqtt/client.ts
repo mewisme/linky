@@ -1,6 +1,5 @@
 import mqtt, { MqttClient } from 'mqtt'
 
-import { config } from '@/shared/config'
 import { logger } from '@/utils/logger';
 
 let client: MqttClient | null = null
@@ -9,25 +8,10 @@ export function createMqttClient(userId: string): MqttClient {
   if (client) return client;
 
   // Validate MQTT configuration
-  const mqttUrl = config.mqttUrl;
-  const mqttPort = config.mqttPort;
-  const mqttUsername = config.mqttUsername;
-  const mqttPassword = config.mqttPassword;
-
-  if (!mqttUrl || !mqttPort || !mqttUsername || !mqttPassword) {
-    const missing = [];
-    if (!mqttUrl) missing.push('NEXT_PUBLIC_MQTT_CLIENT_URL');
-    if (!mqttPort) missing.push('NEXT_PUBLIC_MQTT_CLIENT_PORT');
-    if (!mqttUsername) missing.push('NEXT_PUBLIC_MQTT_CLIENT_USERNAME');
-    if (!mqttPassword) missing.push('NEXT_PUBLIC_MQTT_CLIENT_PASSWORD');
-
-    const error = new Error(
-      `Missing MQTT environment variables: ${missing.join(', ')}. ` +
-      `Please ensure these are set in Vercel project settings and rebuild the application.`
-    );
-    logger.error(error.message);
-    throw error;
-  }
+  const mqttUrl = process.env.NEXT_PUBLIC_MQTT_CLIENT_URL;
+  const mqttPort = process.env.NEXT_PUBLIC_MQTT_CLIENT_PORT;
+  const mqttUsername = process.env.NEXT_PUBLIC_MQTT_CLIENT_USERNAME;
+  const mqttPassword = process.env.NEXT_PUBLIC_MQTT_CLIENT_PASSWORD;
 
   const mqttFullUrl = `wss://${mqttUrl}:${mqttPort}/mqtt`
 

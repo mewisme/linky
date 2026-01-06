@@ -1,10 +1,9 @@
 import { Socket, io } from "socket.io-client";
 
-import { config } from "@/shared/config";
 import { logger } from "@/utils/logger";
 
 export async function createSocket(token?: string | null): Promise<Socket> {
-  return io(config.apiUrl, {
+  return io(process.env.NEXT_PUBLIC_API_URL, {
     transports: ["websocket"],
     reconnection: true,
     reconnectionAttempts: 5,

@@ -52,7 +52,7 @@ export function useVideoChat(): UseVideoChatReturn {
     async function initIceServers() {
       if (!isLoaded) return;
 
-      const token = await getToken();
+      const token = await getToken({ template: 'custom', skipCache: true });
       if (!token) {
         throw new Error("No token found");
       }
@@ -83,10 +83,9 @@ export function useVideoChat(): UseVideoChatReturn {
 
     const updateToken = async () => {
       try {
-        const token = await getToken();
+        const token = await getToken({ template: 'custom', skipCache: true });
         if (token) {
           socketSignaling.updateSocketToken(token);
-          logger.info("Socket token updated");
         }
       } catch (error) {
         logger.error("Failed to update socket token:", error);
@@ -94,7 +93,7 @@ export function useVideoChat(): UseVideoChatReturn {
     };
 
     updateToken();
-    const interval = setInterval(updateToken, 60_000);
+    const interval = setInterval(updateToken, 300_000);
 
     return () => {
       clearInterval(interval);
@@ -336,7 +335,7 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
-      const token = await getToken();
+      const token = await getToken({ template: 'custom', skipCache: true });
       if (!token) {
         actionsRef.current.setError("Authentication required. Please sign in.");
         return;

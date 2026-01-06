@@ -14,112 +14,9 @@ export type Database = {
   }
   public: {
     Tables: {
-      locket_comments: {
-        Row: {
-          content: string
-          created_at: string | null
-          id: string
-          locket_id: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string | null
-          id?: string
-          locket_id: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string | null
-          id?: string
-          locket_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "locket_comments_locket_id_fkey"
-            columns: ["locket_id"]
-            isOneToOne: false
-            referencedRelation: "lockets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "locket_comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      locket_likes: {
-        Row: {
-          created_at: string | null
-          locket_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          locket_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          locket_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "locket_likes_locket_id_fkey"
-            columns: ["locket_id"]
-            isOneToOne: false
-            referencedRelation: "lockets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "locket_likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lockets: {
-        Row: {
-          caption: string | null
-          created_at: string
-          id: string
-          image_path: string
-          user_id: string
-        }
-        Insert: {
-          caption?: string | null
-          created_at?: string
-          id?: string
-          image_path: string
-          user_id: string
-        }
-        Update: {
-          caption?: string | null
-          created_at?: string
-          id?: string
-          image_path?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lockets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       users: {
         Row: {
+          allow: boolean
           avatar_url: string | null
           clerk_user_id: string
           created_at: string
@@ -131,6 +28,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allow?: boolean
           avatar_url?: string | null
           clerk_user_id: string
           created_at?: string
@@ -142,6 +40,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allow?: boolean
           avatar_url?: string | null
           clerk_user_id?: string
           created_at?: string

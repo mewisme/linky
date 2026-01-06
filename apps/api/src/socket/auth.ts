@@ -67,18 +67,11 @@ export async function socketAuthMiddleware(
       auth: payload,
     };
 
-    logger.info("Socket authenticated", {
-      socketId: socket.id,
-      userId: payload.sub,
-      userName,
-    });
+    logger.info("Socket authenticated:", userName);
 
     next();
   } catch (error) {
-    logger.error("Socket authentication failed", {
-      socketId: socket.id,
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
+    logger.error("Socket authentication failed:", error instanceof Error ? error.message : "Unknown error");
     next(new Error("Authentication failed"));
   }
 }

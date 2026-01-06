@@ -1,10 +1,10 @@
 import { Socket, io } from "socket.io-client";
 
-import { API_URL } from "@/lib/client";
+import { config } from "@/shared/config";
 import { logger } from "@/utils/logger";
 
 export async function createSocket(token?: string | null): Promise<Socket> {
-  return io(API_URL, {
+  return io(config.apiUrl, {
     transports: ["websocket"],
     reconnection: true,
     reconnectionAttempts: 5,
@@ -36,8 +36,10 @@ export function updateToken(socket: Socket, token: string | null): void {
 
   if (socket.connected) {
     logger.info("Token updated, reconnecting socket with new token...");
+    socket.once("disconnect", () => {
+      socket.connect();
+    });
     socket.disconnect();
-    socket.connect();
   }
 }
 

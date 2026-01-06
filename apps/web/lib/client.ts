@@ -1,9 +1,9 @@
 import type { User } from "@/stores/user-store";
 import axios from 'axios';
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { config } from '@/shared/config';
 
 export const client = axios.create({
-  baseURL: API_URL,
+  baseURL: config.apiUrl,
 });
 
 export const getMe = async (token: string | null): Promise<User> => {

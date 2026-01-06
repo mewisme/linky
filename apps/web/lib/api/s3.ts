@@ -1,15 +1,7 @@
-/**
- * S3 API Client
- * Type-safe API calls for S3 operations
- */
-
 import type { S3API } from "@/types/api.types";
 import axios from "axios";
 import { client } from "../client";
 
-/**
- * Get presigned URL for uploading a file
- */
 export async function getUploadUrl(
   params: S3API.GetUploadUrl.QueryParams
 ): Promise<S3API.GetUploadUrl.Response> {
@@ -19,9 +11,6 @@ export async function getUploadUrl(
   return response.data;
 }
 
-/**
- * Get presigned URL for downloading a file
- */
 export async function getDownloadUrl(
   params: S3API.GetDownloadUrl.QueryParams
 ): Promise<S3API.GetDownloadUrl.Response> {
@@ -31,9 +20,6 @@ export async function getDownloadUrl(
   return response.data;
 }
 
-/**
- * List objects in S3 bucket
- */
 export async function listObjects(
   params?: S3API.ListObjects.QueryParams
 ): Promise<S3API.ListObjects.Response> {
@@ -43,9 +29,6 @@ export async function listObjects(
   return response.data;
 }
 
-/**
- * Delete an object from S3 bucket
- */
 export async function deleteObject(key: string): Promise<S3API.DeleteObject.Response> {
   const encodedKey = encodeURIComponent(key);
   const response = await client.delete<S3API.DeleteObject.Response>(
@@ -54,9 +37,6 @@ export async function deleteObject(key: string): Promise<S3API.DeleteObject.Resp
   return response.data;
 }
 
-/**
- * Upload file directly to S3 using presigned URL
- */
 export async function uploadToS3(presignedUrl: string, file: File | Blob): Promise<void> {
   await axios.put(presignedUrl, file, {
     headers: {
@@ -65,9 +45,6 @@ export async function uploadToS3(presignedUrl: string, file: File | Blob): Promi
   });
 }
 
-/**
- * Complete upload flow: get presigned URL and upload file
- */
 export async function uploadFile(file: File | Blob, key: string): Promise<string> {
   const { url } = await getUploadUrl({ key, expires: 300 });
 
@@ -76,13 +53,6 @@ export async function uploadFile(file: File | Blob, key: string): Promise<string
   return key;
 }
 
-// ============================================================================
-// Multipart Upload (for large files)
-// ============================================================================
-
-/**
- * Start a multipart upload
- */
 export async function startMultipartUpload(
   body: S3API.StartMultipart.Body
 ): Promise<S3API.StartMultipart.Response> {
@@ -93,9 +63,6 @@ export async function startMultipartUpload(
   return response.data;
 }
 
-/**
- * Get presigned URL for uploading a part
- */
 export async function getPartUploadUrl(
   uploadId: string,
   partNumber: number,
@@ -108,9 +75,6 @@ export async function getPartUploadUrl(
   return response.data;
 }
 
-/**
- * Complete a multipart upload
- */
 export async function completeMultipartUpload(
   body: S3API.CompleteMultipart.Body
 ): Promise<S3API.CompleteMultipart.Response> {
@@ -121,9 +85,6 @@ export async function completeMultipartUpload(
   return response.data;
 }
 
-/**
- * Abort a multipart upload
- */
 export async function abortMultipartUpload(
   body: S3API.AbortMultipart.Body
 ): Promise<S3API.AbortMultipart.Response> {

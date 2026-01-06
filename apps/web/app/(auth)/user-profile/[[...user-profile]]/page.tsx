@@ -2,8 +2,6 @@
 
 import { SignedIn, UserProfile } from '@clerk/nextjs'
 
-import { DotIcon } from "lucide-react"
-import { TermPageContent } from './_components/term-page-content';
 import { WithHeader } from '@/components/layouts/with-header';
 import { dark } from '@clerk/themes'
 
@@ -22,9 +20,6 @@ export default function UserProfilePage() {
             <UserProfile path="/user-profile" routing="path" appearance={{
               baseTheme: dark
             }}>
-              <UserProfile.Page label="Terms" labelIcon={<DotIcon />} url="terms">
-                <TermPageContent />
-              </UserProfile.Page>
             </UserProfile>
           </SignedIn>
         </main>

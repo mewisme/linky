@@ -3,7 +3,9 @@ import apiRouter from "./api.js";
 import iceServersRouter from "./ice-servers.js";
 import s3Router from "./s3.js";
 import webhookRouter from "./webhook.js";
+import adminRouter from "./admin.js";
 import { clerkMiddleware } from "../middleware/clerk.js";
+import { adminMiddleware } from "../middleware/admin.js";
 
 export function setupRoutes(app: Express): void {
   // Webhook route must be BEFORE clerkMiddleware (webhooks are verified by signature, not token)
@@ -32,5 +34,8 @@ export function setupRoutes(app: Express): void {
 
   // Mount ICE servers route
   app.use("/api", iceServersRouter);
+
+  // Mount admin routes (protected by clerkMiddleware + adminMiddleware)
+  app.use("/api/v1/admin", adminMiddleware, adminRouter);
 }
 

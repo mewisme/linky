@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useEffect, useMemo, type MutableRefObject } from "react";
+import { publishPresence } from "@/lib/mqtt/client";
 import { createSocket, updateToken, type SignalData } from "@/lib/socket";
 import type { Socket } from "socket.io-client";
 import { logger } from "@/utils/logger";
@@ -50,6 +51,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     socket.on("connect", () => {
       logger.done("Socket connected:", socket.id);
       currentSocketIdRef.current = socket.id || null;
+      publishPresence('online');
       callbacks.onConnect();
     });
 
@@ -81,6 +83,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     socket.on("matched", (data) => {
       logger.done("Matched with peer:", data.peerId, "Room:", data.roomId, "Is offerer:", data.isOfferer);
       callbacks.onMatched(data);
+      publishPresence('in_call');
     });
 
     socket.on("signal", (data) => {
@@ -90,21 +93,25 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     socket.on("peer-left", (data) => {
       logger.info("Peer left:", data.message);
       callbacks.onPeerLeft(data);
+      publishPresence('online');
     });
 
     socket.on("peer-skipped", (data) => {
       logger.info("Peer skipped:", data.message, "Queue size:", data.queueSize);
       callbacks.onPeerSkipped(data);
+      publishPresence('online');
     });
 
     socket.on("skipped", (data) => {
       logger.info("Skipped:", data.message, "Queue size:", data.queueSize);
       callbacks.onSkipped(data);
+      publishPresence('online');
     });
 
     socket.on("end-call", (data) => {
       logger.info("End call received from peer:", data.message);
       callbacks.onEndCall(data);
+      publishPresence('online');
     });
 
     socket.on("chat-message", (data) => {
@@ -167,11 +174,13 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       if (socketRef.current.connected) {
         logger.done("Socket already connected, joining queue...");
         socketRef.current.emit("join");
+        publishPresence('available');
       } else {
         logger.load("Waiting for socket connection before joining queue...");
         socketRef.current.once("connect", () => {
           logger.done("Socket connected, joining queue...");
           socketRef.current!.emit("join");
+          publishPresence('available');
         });
       }
     }
@@ -180,12 +189,14 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const skipPeer = useCallback(() => {
     if (socketRef.current) {
       socketRef.current.emit("skip");
+      publishPresence('available');
     }
   }, []);
 
   const sendEndCall = useCallback(() => {
     if (socketRef.current) {
       socketRef.current.emit("end-call");
+      publishPresence('online');
     }
   }, []);
 
@@ -225,12 +236,14 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   }, []);
 
   const updateSocketToken = useCallback((token: string) => {
-    if (socketRef.current) {
-      updateToken(socketRef.current, token);
-      logger.info("Socket token updated");
-    } else {
+    if (!socketRef.current) {
       logger.warn("Cannot update token: socket not initialized");
+      return;
     }
+
+    // Update token - updateToken function handles socket state internally
+    updateToken(socketRef.current, token);
+    logger.info("Socket token updated");
   }, []);
 
   useEffect(() => {

@@ -3,11 +3,11 @@ import "@repo/ui/globals.css";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { Analytics } from "@vercel/analytics/next"
-import { ApiClientProvider } from "@/components/providers/api-client";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import { MqttProvider } from "@/components/providers/mqtt";
 import { ThemeProvider } from "@/components/providers/theme";
-import { ToasterProvider } from "@/components/providers/toaster";
+import { Toaster } from "react-hot-toast";
 import { UserProvider } from "@/components/providers/user-provider";
 
 const geistSans = Geist({
@@ -36,19 +36,19 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <ApiClientProvider>
-              <UserProvider>
+          <UserProvider>
+            <MqttProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
                 {children}
-                <ToasterProvider />
-              </UserProvider>
-            </ApiClientProvider>
-          </ThemeProvider>
+                <Toaster />
+              </ThemeProvider>
+            </MqttProvider>
+          </UserProvider>
         </ClerkProvider>
         <Analytics />
       </body>

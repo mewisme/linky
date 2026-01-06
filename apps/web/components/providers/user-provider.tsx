@@ -25,7 +25,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setError(null);
 
       try {
-        const token = await getToken();
+        const token = await getToken({ template: 'custom', skipCache: true });
         if (!token) {
           throw new Error("No token found");
         }

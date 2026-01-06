@@ -25,7 +25,7 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Fetching user data", { clerkUserId });
+    logger.info("Fetching user data:", clerkUserId);
 
     // Query user from database by clerk_user_id
     const { data: user, error } = await supabase
@@ -35,7 +35,7 @@ router.get("/me", async (req: Request, res: Response) => {
       .single();
 
     if (error) {
-      logger.error("Error fetching user from database", { error, clerkUserId });
+      logger.error("Error fetching user from database:", error.message);
 
       // If user not found, return 404
       if (error.code === "PGRST116") {
@@ -58,14 +58,11 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("User data fetched successfully", { userId: user.id, clerkUserId });
+    logger.info("User data fetched successfully:", user.id);
 
     return res.json(user);
   } catch (error) {
-    logger.error("Unexpected error in /me endpoint", {
-      error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+    logger.error("Unexpected error in /me endpoint:", error instanceof Error ? error.message : "Unknown error");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",

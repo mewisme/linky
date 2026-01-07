@@ -1,11 +1,11 @@
-import * as dotenv from "dotenv";
+import 'dotenv/config';
 
-dotenv.config();
+import { parseCorsOrigin } from '../utils/cors.js';
 
 export const config = {
   port: Number(process.env.PORT) || 3001,
   nodeEnv: process.env.NODE_ENV || "development",
-  corsOrigin: process.env.CORS_ORIGIN || "*",
+  corsOrigin: parseCorsOrigin(process.env.CORS_ORIGIN),
   // Cloudflare TURN
   cloudflareTurnApiToken: process.env.CLOUDFLARE_TURN_API_TOKEN as string,
   cloudflareTurnKeyId: process.env.CLOUDFLARE_TURN_KEY_ID as string,

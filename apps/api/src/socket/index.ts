@@ -17,15 +17,12 @@ export function createSocketServer(httpServer: HTTPServer): SocketIOServer {
     },
   });
 
-  // Apply authentication middleware
   io.use(socketAuthMiddleware);
 
-  // Initialize services
   const matchmaking = new MatchmakingService();
   const rooms = new RoomService();
   const userSessions = new UserSessionService();
 
-  // Setup handlers
   setupSocketHandlers(io);
   setupVideoChatHandlers(io, matchmaking, rooms, userSessions);
 

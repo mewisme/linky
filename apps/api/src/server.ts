@@ -32,10 +32,8 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   const io = createSocketServer(httpServer);
   logger.done("Socket.IO server created");
 
-  // Attach Socket.IO to MQTT module for admin tracking and presence handling
   attachSocketIO(io);
 
-  // Initialize Redis connection
   logger.load("Connecting to Redis...");
   try {
     await connectRedis();
@@ -43,7 +41,6 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
     logger.error("Failed to connect to Redis, continuing without Redis:", error);
   }
 
-  // Initialize MQTT client
   initializeMqttClient();
 
   httpServer.listen(config.port, () => {
@@ -52,11 +49,13 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
     logger.info("HTTP server running on", `http://localhost:${config.port}`);
     logger.info("Socket.IO server ready for connections");
     logger.info("Environment:", config.nodeEnv);
-    logger.info("CORS origin:", config.corsOrigin);
+    const corsOriginDisplay = Array.isArray(config.corsOrigin)
+      ? config.corsOrigin.join(", ")
+      : config.corsOrigin;
+    logger.info("CORS origin:", corsOriginDisplay);
     logger.info("=".repeat(50));
   });
 
-  // Handle server errors
   httpServer.on("error", (error: Error) => {
     logger.error("HTTP server error:", error.message);
   });

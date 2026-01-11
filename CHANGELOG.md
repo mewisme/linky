@@ -1,12 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Improve page view tracking with Suspense integration ([4f346a3](../../commit/4f346a3))
+- Enhance user button component with dropdown menu and keyboard shortcuts ([a98e5b5](../../commit/a98e5b5))
 
 🔨 Other Changes
 
-- Update package versions to 0.7.2 across all packages and update version lock ([a1e8a7b](../../commit/a1e8a7b))
+- Update package versions to 0.7.3 across all packages and update version lock ([81f9c3c](../../commit/81f9c3c))
 
 
-📋 Full Changelog: [a1e8a7b...4f346a3](../../compare/a1e8a7b...4f346a3)
+📋 Full Changelog: [81f9c3c...a98e5b5](../../compare/81f9c3c...a98e5b5)

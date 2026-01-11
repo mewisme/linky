@@ -21,12 +21,13 @@ const geistMono = Geist_Mono({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   return {
     title: "Linky",
     description: "Connect with the world",
     keywords: ["linky", "chat", "video", "call", "connect", "world"],
     authors: [{ name: "Mew", url: "https://mewis.me" }],
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL as string),
+    metadataBase: new URL(appUrl),
     icons: [
       {
         rel: 'icon',
@@ -51,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "Linky",
       description: "Connect with the world",
-      url: process.env.NEXT_PUBLIC_APP_URL as string,
+      url: appUrl,
       images: [
         {
           url: '/og',

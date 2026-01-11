@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Add analytics tracking for visits and visitors ([95f35dd](../../commit/95f35dd))
+- Enhance visitor tracking integration in AppLayout ([d85cb3e](../../commit/d85cb3e))
 
 🔨 Other Changes
 
-- Update package versions to 0.6.5 across all packages and update version lock ([9a0d124](../../commit/9a0d124))
+- Update package versions to 0.7.0 across all packages and update version lock ([d54812f](../../commit/d54812f))
 
 
-📋 Full Changelog: [9a0d124...95f35dd](../../compare/9a0d124...95f35dd)
+📋 Full Changelog: [d54812f...d85cb3e](../../compare/d54812f...d85cb3e)

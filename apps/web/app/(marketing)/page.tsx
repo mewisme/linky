@@ -12,7 +12,7 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Header } from "@/components/header/landing/index";
@@ -50,6 +50,11 @@ const BACKGROUND_VARIANTS: Variants = {
   },
 };
 
+function PageTracker() {
+  usePageView();
+  return null;
+}
+
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
@@ -58,8 +63,6 @@ export default function Home() {
 
   // Track visitor on session start
   useVisitorTracking();
-  // Track page views automatically
-  usePageView();
 
   useEffect(() => {
     const timer = setTimeout(() => setTransition(true), 2000);
@@ -76,6 +79,9 @@ export default function Home() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <PageTracker />
+      </Suspense>
       <main className={cn('relative min-h-dvh', !isLoadedTransition && 'overflow-y-hidden')}>
         <Header transition={transition} />
         <div className="min-h-dvh w-full flex items-center pt-0">

@@ -1,12 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Streamline server and middleware setup ([aab9215](../../commit/aab9215))
+- Add analytics tracking for visits and visitors ([95f35dd](../../commit/95f35dd))
 
 🔨 Other Changes
 
-- Update package versions to 0.6.4 across all packages and update version lock ([165137b](../../commit/165137b))
+- Update package versions to 0.6.5 across all packages and update version lock ([9a0d124](../../commit/9a0d124))
 
 
-📋 Full Changelog: [165137b...aab9215](../../compare/165137b...aab9215)
+📋 Full Changelog: [9a0d124...95f35dd](../../compare/9a0d124...95f35dd)

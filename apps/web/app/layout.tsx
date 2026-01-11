@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/mqtt";
 import { ThemeProvider } from "@/components/providers/theme";
 import { Toaster } from "react-hot-toast";
-import { UserProvider } from "@/components/providers/user-provider";
+import { UserProvider } from "@/components/providers/user";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,10 +20,58 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Linky",
-  description: "Connect with the world",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Linky",
+    description: "Connect with the world",
+    keywords: ["linky", "chat", "video", "call", "connect", "world"],
+    authors: [{ name: "Mew", url: "https://mewis.me" }],
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL as string),
+    icons: [
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        url: '/favicon-32x32.png',
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        url: '/favicon-16x16.png',
+      },
+      {
+        rel: 'apple-touch-icon',
+        sizes: '180x180',
+        url: '/apple-touch-icon.png',
+      },
+    ],
+    creator: "Mew",
+    publisher: "Mew",
+    openGraph: {
+      title: "Linky",
+      description: "Connect with the world",
+      url: process.env.NEXT_PUBLIC_APP_URL as string,
+      images: [
+        {
+          url: '/og',
+          width: 192,
+          height: 192,
+        },
+      ],
+      type: "website",
+      siteName: "Linky",
+      locale: "vi_VN",
+      countryName: "Vietnam",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Linky",
+      description: "Connect with the world",
+      images: ["/og"],
+    },
+  }
+}
 
 export default function RootLayout({
   children,
@@ -31,11 +79,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ClerkProvider>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
           <UserProvider>
             <MqttProvider>
               <ThemeProvider
@@ -49,9 +97,9 @@ export default function RootLayout({
               </ThemeProvider>
             </MqttProvider>
           </UserProvider>
-        </ClerkProvider>
-        <Analytics />
-      </body>
-    </html>
+          <Analytics />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

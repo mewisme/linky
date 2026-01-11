@@ -20,7 +20,7 @@ export const config = {
   s3SecretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
   // Supabase
   supabaseUrl: process.env.SUPABASE_URL as string,
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY as string,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
   // MQTT
   mqttUrl: process.env.MQTT_CLIENT_URL as string,
   mqttPort: process.env.MQTT_CLIENT_PORT as string,

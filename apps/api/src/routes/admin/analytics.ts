@@ -1,0 +1,155 @@
+import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { logger } from "../../utils/logger.js";
+import {
+  getAllPageViews,
+  getAllVisitors,
+  getPageViewsTimeseries,
+  getVisitorsTimeseries,
+  getVisitors,
+  getPageViews,
+  getTopPages,
+  getVisitorStats,
+} from "../../lib/supabase/queries/index.js";
+
+const router: ExpressRouter = Router();
+
+/**
+ * GET /api/v1/admin/analytics
+ * Get overview analytics (total views, visitors, and recent timeseries data)
+ * Query params: days (default: 30) - number of days for timeseries data
+ */
+router.get("/", async (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string) || 30;
+
+    const [totalPageViews, totalVisitors, pageViewsTimeseries, visitorsTimeseries] = await Promise.all([
+      getAllPageViews(),
+      getAllVisitors(),
+      getPageViewsTimeseries(days),
+      getVisitorsTimeseries(days),
+    ]);
+
+    return res.json({
+      overview: {
+        totalPageViews,
+        totalVisitors,
+      },
+      timeseries: {
+        pageViews: pageViewsTimeseries,
+        visitors: visitorsTimeseries,
+        days,
+      },
+    });
+  } catch (error) {
+    logger.error("Unexpected error in GET /admin/analytics:", error instanceof Error ? error.message : "Unknown error");
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to fetch analytics",
+    });
+  }
+});
+
+/**
+ * GET /api/v1/admin/analytics/page-views
+ * Get page views data
+ * Query params: days (default: 30), page, limit
+ */
+router.get("/page-views", async (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string) || 30;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+
+    if (req.query.timeseries === "true" || req.query.timeseries === "1") {
+      // Return timeseries data
+      const timeseries = await getPageViewsTimeseries(days);
+      return res.json({
+        timeseries,
+        days,
+      });
+    }
+
+    // Return paginated page views
+    const result = await getPageViews({ page, limit });
+    return res.json(result);
+  } catch (error) {
+    logger.error("Unexpected error in GET /admin/analytics/page-views:", error instanceof Error ? error.message : "Unknown error");
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to fetch page views",
+    });
+  }
+});
+
+/**
+ * GET /api/v1/admin/analytics/visitors
+ * Get visitors data
+ * Query params: days (default: 30), page, limit
+ */
+router.get("/visitors", async (req: Request, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string) || 30;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+
+    if (req.query.timeseries === "true" || req.query.timeseries === "1") {
+      // Return timeseries data
+      const timeseries = await getVisitorsTimeseries(days);
+      return res.json({
+        timeseries,
+        days,
+      });
+    }
+
+    // Return paginated visitors
+    const result = await getVisitors({ page, limit });
+    return res.json(result);
+  } catch (error) {
+    logger.error("Unexpected error in GET /admin/analytics/visitors:", error instanceof Error ? error.message : "Unknown error");
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to fetch visitors",
+    });
+  }
+});
+
+/**
+ * GET /api/v1/admin/analytics/top-pages
+ * Get top pages by view count
+ * Query params: limit (default: 10)
+ */
+router.get("/top-pages", async (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
+    const topPages = await getTopPages(limit);
+    return res.json({
+      data: topPages,
+    });
+  } catch (error) {
+    logger.error("Unexpected error in GET /admin/analytics/top-pages:", error instanceof Error ? error.message : "Unknown error");
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to fetch top pages",
+    });
+  }
+});
+
+/**
+ * GET /api/v1/admin/analytics/visitor-stats
+ * Get visitor statistics (unique visitors, returning visitors, etc.)
+ */
+router.get("/visitor-stats", async (req: Request, res: Response) => {
+  try {
+    const stats = await getVisitorStats();
+    return res.json(stats);
+  } catch (error) {
+    logger.error("Unexpected error in GET /admin/analytics/visitor-stats:", error instanceof Error ? error.message : "Unknown error");
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to fetch visitor stats",
+    });
+  }
+});
+
+export default router;
+

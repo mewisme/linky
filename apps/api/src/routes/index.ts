@@ -1,5 +1,6 @@
 import { type Express, type Request, type Response } from "express";
 import apiRouter from "./api.js";
+import analyticsRouter from "./analytics.js";
 import iceServersRouter from "./ice-servers.js";
 import s3Router from "./s3.js";
 import webhookRouter from "./webhook.js";
@@ -23,6 +24,9 @@ export function setupRoutes(app: Express): void {
   app.get("/api", (_req: Request, res: Response) => {
     res.json({ message: "API is running" });
   });
+
+  // Public analytics route (no authentication required)
+  app.use("/api/v1/analytics", analyticsRouter);
 
   app.use(clerkMiddleware);
 

@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          ip: string
+          path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip: string
+          path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip?: string
+          path?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           allow: boolean
@@ -53,12 +74,50 @@ export type Database = {
         }
         Relationships: []
       }
+      visitors: {
+        Row: {
+          first_visit: string
+          id: string
+          ip: string
+          last_visit: string
+          visit_count: number
+        }
+        Insert: {
+          first_visit?: string
+          id?: string
+          ip: string
+          last_visit?: string
+          visit_count?: number
+        }
+        Update: {
+          first_visit?: string
+          id?: string
+          ip?: string
+          last_visit?: string
+          visit_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_visitor: { Args: { ip: string }; Returns: undefined }
+      page_views_timeseries: {
+        Args: { days: number }
+        Returns: {
+          day: string
+          views: number
+        }[]
+      }
+      visitors_timeseries: {
+        Args: { days: number }
+        Returns: {
+          day: string
+          visitors: number
+        }[]
+      }
     }
     Enums: {
       user_role: "admin" | "member"

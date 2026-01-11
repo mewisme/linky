@@ -20,7 +20,7 @@ import {
   type SheetFooterProps as SheetFooterPrimitiveProps,
   type SheetTitleProps as SheetTitlePrimitiveProps,
   type SheetDescriptionProps as SheetDescriptionPrimitiveProps,
-} from '@repo/components/animate-ui/primitives/radix/sheet';
+} from '@repo/ui/components/animate-ui/primitives/radix/sheet';
 import { cn } from '@repo/ui/lib/utils';
 import { XIcon } from 'lucide-react';
 

@@ -3,6 +3,7 @@ import express, { type Express, type Request, type Response, type NextFunction }
 import morgan from "morgan";
 import { config } from "../config/index.js";
 import { logger } from "../utils/logger.js";
+import { clientIpMiddleware } from "./client-ip.js";
 
 /**
  * Custom morgan token to use our logger
@@ -19,13 +20,19 @@ const morganFormat = config.nodeEnv === "production"
   : ":method :url :status :response-time ms";
 
 export function setupMiddleware(app: Express): void {
+  app.enable("trust proxy");
+
+  // Client IP middleware - extract IP from request
+  // Must be early in the middleware chain
+  app.use(clientIpMiddleware);
+
+  app.use("/webhook", express.raw({ type: "application/json" }));
+
   // CORS
   app.use(cors({
     origin: config.corsOrigin,
     credentials: true,
   }));
-
-  app.use("/webhook", express.raw({ type: "application/json" }));
 
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
@@ -40,6 +47,7 @@ export function setupMiddleware(app: Express): void {
       },
     },
   }));
+
 }
 
 export function setupErrorHandlers(app: Express): void {

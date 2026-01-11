@@ -5,6 +5,7 @@ declare global {
   namespace Express {
     interface Request {
       auth?: Awaited<ReturnType<typeof verifyToken>>;
+      clientIp?: string;
     }
   }
 }

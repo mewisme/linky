@@ -4,5 +4,5 @@ import { createClient } from "@supabase/supabase-js";
 
 export const supabase = createClient<Database>(
   config.supabaseUrl,
-  config.supabaseAnonKey
+  config.supabaseServiceRoleKey
 );

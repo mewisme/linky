@@ -57,80 +57,90 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("disconnect", (reason) => {
       logger.info("Socket disconnected:", reason);
+      publishPresence('offline');
       callbacks.onDisconnect(reason);
     });
 
     socket.on("connect_error", (error) => {
       logger.error("Socket connection error:", error);
+      publishPresence('offline');
       callbacks.onConnectError(error);
     });
 
     socket.on("session-waiting", (data) => {
       logger.info("Session queued:", data.message, "Position:", data.positionInQueue);
+      publishPresence('available');
       callbacks.onSessionWaiting(data);
     });
 
     socket.on("session-activated", (data) => {
       logger.info("Session activated:", data.message);
+      publishPresence('available');
       callbacks.onSessionActivated(data);
     });
 
     socket.on("joined-queue", (data) => {
       logger.done("Joined queue:", data);
+      publishPresence('available');
       callbacks.onJoinedQueue(data);
     });
 
     socket.on("matched", (data) => {
       logger.done("Matched with peer:", data.peerId, "Room:", data.roomId, "Is offerer:", data.isOfferer);
-      callbacks.onMatched(data);
       publishPresence('in_call');
+      callbacks.onMatched(data);
     });
 
     socket.on("signal", (data) => {
+      publishPresence('in_call');
       callbacks.onSignal(data);
     });
 
     socket.on("peer-left", (data) => {
       logger.info("Peer left:", data.message);
-      callbacks.onPeerLeft(data);
       publishPresence('online');
+      callbacks.onPeerLeft(data);
     });
 
     socket.on("peer-skipped", (data) => {
       logger.info("Peer skipped:", data.message, "Queue size:", data.queueSize);
-      callbacks.onPeerSkipped(data);
       publishPresence('online');
+      callbacks.onPeerSkipped(data);
     });
 
     socket.on("skipped", (data) => {
       logger.info("Skipped:", data.message, "Queue size:", data.queueSize);
-      callbacks.onSkipped(data);
       publishPresence('online');
+      callbacks.onSkipped(data);
     });
 
     socket.on("end-call", (data) => {
       logger.info("End call received from peer:", data.message);
-      callbacks.onEndCall(data);
       publishPresence('online');
+      callbacks.onEndCall(data);
     });
 
     socket.on("chat-message", (data) => {
       logger.info("Chat message received:", data.message);
+      publishPresence('in_call');
       callbacks.onChatMessage(data);
     });
 
     socket.on("mute-toggle", (data) => {
       logger.info("Peer mute state changed:", data.muted);
+      publishPresence('in_call');
       callbacks.onMuteToggle(data);
     });
 
     socket.on("queue-timeout", (data) => {
       logger.info("Queue timeout:", data.message);
+      publishPresence('online');
       callbacks.onQueueTimeout(data);
     });
 
     socket.on("error", (data) => {
       logger.error("Socket error:", data.message);
+      publishPresence('offline');
       callbacks.onError(data);
     });
   }, []);

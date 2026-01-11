@@ -1,12 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+🐛 Bug Fixes
 
-- Enhance visitor tracking integration in AppLayout ([d85cb3e](../../commit/d85cb3e))
+- Update metadata generation to use environment variable for app URL ([a8a2f4b](../../commit/a8a2f4b))
 
 🔨 Other Changes
 
-- Update package versions to 0.7.0 across all packages and update version lock ([d54812f](../../commit/d54812f))
+- Update package versions to 0.7.1 across all packages and update version lock ([60d8d8d](../../commit/60d8d8d))
 
 
-📋 Full Changelog: [d54812f...d85cb3e](../../compare/d54812f...d85cb3e)
+📋 Full Changelog: [60d8d8d...a8a2f4b](../../compare/60d8d8d...a8a2f4b)

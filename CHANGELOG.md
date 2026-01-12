@@ -1,13 +1,12 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Implement call history feature and enhance presence management ([6777c1d](../../commit/6777c1d))
-- Enhance user country management in API ([e65fcda](../../commit/e65fcda))
+- Improve type annotations in call history route ([a19d07b](../../commit/a19d07b))
 
 🔨 Other Changes
 
-- Update package versions to 0.9.0 across all packages and update version lock ([3d09886](../../commit/3d09886))
+- Update package versions to 0.10.0 across all packages and update version lock ([c517531](../../commit/c517531))
 
 
-📋 Full Changelog: [3d09886...6777c1d](../../compare/3d09886...6777c1d)
+📋 Full Changelog: [c517531...a19d07b](../../compare/c517531...a19d07b)

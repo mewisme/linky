@@ -1,4 +1,4 @@
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { supabase } from "../lib/supabase/client.js";
 import {
   createCallHistory,
@@ -9,7 +9,7 @@ import {
 } from "../lib/supabase/queries/call-history.js";
 import { logger } from "../utils/logger.js";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 /**
  * GET /api/v1/call-history
@@ -60,11 +60,11 @@ router.get("/", async (req: Request, res: Response) => {
           ...call,
           other_user: otherUser
             ? {
-                id: otherUser.id,
-                name: `${otherUser.first_name || ""} ${otherUser.last_name || ""}`.trim() || "Anonymous",
-                avatar_url: otherUser.avatar_url,
-                country: otherUser.country,
-              }
+              id: otherUser.id,
+              name: `${otherUser.first_name || ""} ${otherUser.last_name || ""}`.trim() || "Anonymous",
+              avatar_url: otherUser.avatar_url,
+              country: otherUser.country,
+            }
             : null,
           is_caller: isCaller,
         };
@@ -155,11 +155,11 @@ router.get("/:id", async (req: Request, res: Response) => {
       ...callHistory,
       other_user: otherUser
         ? {
-            id: otherUser.id,
-            name: `${otherUser.first_name || ""} ${otherUser.last_name || ""}`.trim() || "Anonymous",
-            avatar_url: otherUser.avatar_url,
-            country: otherUser.country,
-          }
+          id: otherUser.id,
+          name: `${otherUser.first_name || ""} ${otherUser.last_name || ""}`.trim() || "Anonymous",
+          avatar_url: otherUser.avatar_url,
+          country: otherUser.country,
+        }
         : null,
       is_caller: isCaller,
     };

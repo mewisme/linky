@@ -52,7 +52,7 @@ export function setupMiddleware(app: Express): void {
 
 export function setupErrorHandlers(app: Express): void {
   app.use((_req: Request, res: Response) => {
-    res.status(404).json({ error: "Not found" });
+    res.status(404).json({ error: "Route not found" });
   });
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
@@ -61,7 +61,7 @@ export function setupErrorHandlers(app: Express): void {
       logger.error("Stack trace:", err.stack);
     }
     res.status(500).json({
-      error: "Internal server error",
+      error: "An unexpected error occurred",
       ...(config.nodeEnv === "development" && { message: err.message }),
     });
   });

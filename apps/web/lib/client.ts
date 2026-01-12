@@ -6,7 +6,8 @@ export const client = axios.create({
 });
 
 export const getMe = async (token: string | null): Promise<User> => {
-  const response = await client.get<User>("/api/v1/me", {
+  const response = await axios.get<User>("/api/me", {
+    baseURL: typeof window !== "undefined" ? window.location.origin : undefined,
     headers: {
       Authorization: `Bearer ${token}`,
     },

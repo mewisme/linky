@@ -40,6 +40,7 @@ export type Database = {
           allow: boolean
           avatar_url: string | null
           clerk_user_id: string
+          country: string | null
           created_at: string
           email: string | null
           first_name: string | null
@@ -52,6 +53,7 @@ export type Database = {
           allow?: boolean
           avatar_url?: string | null
           clerk_user_id: string
+          country?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
@@ -64,6 +66,7 @@ export type Database = {
           allow?: boolean
           avatar_url?: string | null
           clerk_user_id?: string
+          country?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null

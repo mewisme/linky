@@ -10,6 +10,7 @@ import Link from "next/link";
 import { ModeToggle } from "../mode-toggle";
 import { ConnectionStatus, getConnectionStatusMessage } from "@/hooks/use-video-chat-state";
 import { Badge } from "@repo/ui/components/ui/badge";
+import { useAuth } from "@clerk/nextjs";
 
 const UserButton = dynamic(() => import("../../auth/user-button").then(mod => ({ default: mod.UserButton })), {
   ssr: false,
@@ -52,6 +53,7 @@ const logoVariants = (isScroll: boolean, isMobile: boolean) => ({
 export const Header = ({ transition, connectionStatus }: { transition: boolean, connectionStatus?: ConnectionStatus }) => {
   const isMobile = useIsMobile();
   const [isScroll, setIsScroll] = useState(false);
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScroll(window.scrollY > 10);
@@ -123,7 +125,7 @@ export const Header = ({ transition, connectionStatus }: { transition: boolean, 
           className="absolute z-110 flex items-center gap-x-4"
         >
           <ModeToggle />
-          <UserButton />
+          {isSignedIn && <UserButton />}
         </motion.div>
       </div>
     </motion.div>

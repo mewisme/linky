@@ -3,7 +3,7 @@ import { logger } from "@/utils/logger";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -15,7 +15,7 @@ export async function DELETE(
       );
     }
 
-    const { key } = params;
+    const { key } = await params;
 
     if (!key) {
       return NextResponse.json(

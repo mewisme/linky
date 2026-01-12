@@ -3,7 +3,7 @@ import { logger } from "@/utils/logger";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {
       method: "GET",
@@ -43,7 +43,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -55,7 +55,7 @@ export async function PUT(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {

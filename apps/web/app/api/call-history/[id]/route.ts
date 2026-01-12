@@ -3,7 +3,7 @@ import { logger } from "@/utils/logger";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

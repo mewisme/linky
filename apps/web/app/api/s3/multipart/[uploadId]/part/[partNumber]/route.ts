@@ -3,7 +3,7 @@ import { logger } from "@/utils/logger";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uploadId: string; partNumber: string } }
+  { params }: { params: Promise<{ uploadId: string; partNumber: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const { uploadId, partNumber } = params;
+    const { uploadId, partNumber } = await params;
     const { searchParams } = new URL(request.url);
 
     if (!uploadId || !partNumber) {

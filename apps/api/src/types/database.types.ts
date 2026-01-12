@@ -101,6 +101,60 @@ export type Database = {
         }
         Relationships: []
       }
+      call_history: {
+        Row: {
+          id: string
+          caller_id: string
+          callee_id: string
+          caller_country: string | null
+          callee_country: string | null
+          started_at: string
+          ended_at: string | null
+          duration_seconds: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          caller_id: string
+          callee_id: string
+          caller_country?: string | null
+          callee_country?: string | null
+          started_at?: string
+          ended_at?: string | null
+          duration_seconds?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          caller_id?: string
+          callee_id?: string
+          caller_country?: string | null
+          callee_country?: string | null
+          started_at?: string
+          ended_at?: string | null
+          duration_seconds?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_history_caller_id_fkey"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_history_callee_id_fkey"
+            columns: ["callee_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

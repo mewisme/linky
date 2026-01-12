@@ -26,16 +26,17 @@ export async function handlePresenceMessage(
   await redisClient.hSet('presence', clientId, state)
   await redisClient.hSet('presence:ts', clientId, now.toString())
 
-  // Update matchmaking availability
-  if (state === 'available') {
+  if (state === 'available' || state === 'matching') {
     await redisClient.sAdd('match:available', clientId)
     await redisClient.sRem('match:in_call', clientId)
   } else if (state === 'in_call') {
     await redisClient.sRem('match:available', clientId)
     await redisClient.sAdd('match:in_call', clientId)
+  } else if (state === 'online' || state === 'idle') {
+    await redisClient.sRem('match:available', clientId)
+    await redisClient.sRem('match:in_call', clientId)
   }
 
-  // Clean up on offline
   if (state === 'offline') {
     await redisClient.hDel('presence', clientId)
     await redisClient.hDel('presence:ts', clientId)

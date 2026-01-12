@@ -2,7 +2,7 @@ import type { User } from "@/stores/user-store";
 import axios from 'axios';
 
 export const client = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: typeof window !== "undefined" ? window.location.origin : undefined,
 });
 
 export const getMe = async (token: string | null): Promise<User> => {

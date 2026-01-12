@@ -69,7 +69,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("session-waiting", (data) => {
       logger.info("Session queued:", data.message, "Position:", data.positionInQueue);
-      publishPresence('available');
+      publishPresence('online');
       callbacks.onSessionWaiting(data);
     });
 
@@ -81,7 +81,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("joined-queue", (data) => {
       logger.done("Joined queue:", data);
-      publishPresence('available');
+      publishPresence('matching');
       callbacks.onJoinedQueue(data);
     });
 
@@ -98,25 +98,25 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("peer-left", (data) => {
       logger.info("Peer left:", data.message);
-      publishPresence('online');
+      publishPresence('matching');
       callbacks.onPeerLeft(data);
     });
 
     socket.on("peer-skipped", (data) => {
       logger.info("Peer skipped:", data.message, "Queue size:", data.queueSize);
-      publishPresence('online');
+      publishPresence('matching');
       callbacks.onPeerSkipped(data);
     });
 
     socket.on("skipped", (data) => {
       logger.info("Skipped:", data.message, "Queue size:", data.queueSize);
-      publishPresence('online');
+      publishPresence('matching');
       callbacks.onSkipped(data);
     });
 
     socket.on("end-call", (data) => {
       logger.info("End call received from peer:", data.message);
-      publishPresence('online');
+      publishPresence('available');
       callbacks.onEndCall(data);
     });
 
@@ -134,7 +134,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("queue-timeout", (data) => {
       logger.info("Queue timeout:", data.message);
-      publishPresence('online');
+      publishPresence('available');
       callbacks.onQueueTimeout(data);
     });
 
@@ -184,13 +184,13 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       if (socketRef.current.connected) {
         logger.done("Socket already connected, joining queue...");
         socketRef.current.emit("join");
-        publishPresence('available');
+        publishPresence('matching');
       } else {
         logger.load("Waiting for socket connection before joining queue...");
         socketRef.current.once("connect", () => {
           logger.done("Socket connected, joining queue...");
           socketRef.current!.emit("join");
-          publishPresence('available');
+          publishPresence('matching');
         });
       }
     }
@@ -199,14 +199,14 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const skipPeer = useCallback(() => {
     if (socketRef.current) {
       socketRef.current.emit("skip");
-      publishPresence('available');
+      publishPresence('matching');
     }
   }, []);
 
   const sendEndCall = useCallback(() => {
     if (socketRef.current) {
       socketRef.current.emit("end-call");
-      publishPresence('online');
+      publishPresence('available');
     }
   }, []);
 

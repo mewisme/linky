@@ -2,7 +2,7 @@ import { Server as SocketIOServer } from "socket.io";
 import { type Server as HTTPServer } from "http";
 import { config } from "../config/index.js";
 import { setupSocketHandlers } from "./handlers.js";
-import { setupVideoChatHandlers } from "./video-chat.js";
+import { setupVideoChatHandlers } from "./video-chat/index.js";
 import { socketAuthMiddleware } from "./auth.js";
 import { MatchmakingService } from "../services/matchmaking.js";
 import { RoomService } from "../services/rooms.js";

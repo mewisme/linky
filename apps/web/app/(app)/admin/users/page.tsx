@@ -30,7 +30,7 @@ export default function ListUsersPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!token || !isLoaded) return
-      const response = await client.get<AdminAPI.GetUsers.Response>('/api/v1/admin/users', {
+      const response = await client.get<AdminAPI.GetUsers.Response>('/api/admin/users', {
         params: {
           all: true,
         },
@@ -109,7 +109,7 @@ export default function ListUsersPage() {
     try {
       if (!token || !isLoaded) return
       const message = allow ? 'Allow state set to true' : 'Allow state set to false'
-      await client.put<AdminAPI.UpdateUser.Response>(`/api/v1/admin/users/${userId}`,
+      await client.put<AdminAPI.UpdateUser.Response>(`/api/admin/users/${userId}`,
         {
           allow,
         },
@@ -129,7 +129,7 @@ export default function ListUsersPage() {
   const handleSelectRole = async (userId: string, role: AdminAPI.UserRole) => {
     try {
       if (!token || !isLoaded) return
-      await client.put<AdminAPI.UpdateUser.Response>(`/api/v1/admin/users/${userId}`,
+      await client.put<AdminAPI.UpdateUser.Response>(`/api/admin/users/${userId}`,
         { role },
         {
           headers: {

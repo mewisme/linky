@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { supabase } from "../lib/supabase/client.js";
 import { logger } from "../utils/logger.js";
+import callHistoryRouter from "./call-history.js";
 
 const router: ExpressRouter = Router();
 
@@ -166,6 +167,8 @@ router.patch("/me/country", async (req: Request, res: Response) => {
   }
 });
 
+// Mount call history routes
+router.use("/call-history", callHistoryRouter);
 
 export default router;
 

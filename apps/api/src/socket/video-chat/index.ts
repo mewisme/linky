@@ -1,0 +1,28 @@
+import { type Server as SocketIOServer } from "socket.io";
+import { MatchmakingService } from "../../services/matchmaking.js";
+import { RoomService } from "../../services/rooms.js";
+import { UserSessionService } from "../../services/user-sessions.js";
+import { type AuthenticatedSocket } from "../auth.js";
+import { setupSocketHandlers } from "./handlers.js";
+import { setupMatchmakingInterval } from "./matchmaking.js";
+import type { VideoChatContext } from "./types.js";
+
+export function setupVideoChatHandlers(
+  io: SocketIOServer,
+  matchmaking: MatchmakingService,
+  rooms: RoomService,
+  userSessions: UserSessionService
+): void {
+  const context: VideoChatContext = {
+    io,
+    matchmaking,
+    rooms,
+    userSessions,
+  };
+
+  io.on("connection", (socket: AuthenticatedSocket) => {
+    setupSocketHandlers(socket, context);
+  });
+
+  setupMatchmakingInterval(io, matchmaking, rooms);
+}

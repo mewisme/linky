@@ -31,7 +31,7 @@ export default function VisitorsPage() {
 
   const { data: analytics } = useQuery({
     queryKey: ['analytics', days],
-    queryFn: () => fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/admin/analytics?days=${days}`, {
+    queryFn: () => fetch(`/api/admin/analytics?days=${days}`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,

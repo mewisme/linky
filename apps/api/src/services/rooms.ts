@@ -6,6 +6,7 @@ interface Room {
   user1: string; // socketId
   user2: string; // socketId
   createdAt: Date;
+  startedAt: Date; // When the call actually started (after match)
 }
 
 /**
@@ -26,6 +27,7 @@ export class RoomService {
       user1: user1SocketId,
       user2: user2SocketId,
       createdAt: new Date(),
+      startedAt: new Date(),
     };
 
     this.rooms.set(roomId, room);

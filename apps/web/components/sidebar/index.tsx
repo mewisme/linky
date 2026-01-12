@@ -33,6 +33,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { ActivityIcon } from '@repo/ui/components/animate-ui/icons/activity';
 import { AnimateIcon } from '@repo/ui/components/animate-ui/icons/icon';
 import { AudioLines } from '@repo/ui/components/animate-ui/icons/audio-lines'
+import { ChartLineIcon } from '@repo/ui/components/animate-ui/icons/chart-line'
 import { CogIcon } from '@repo/ui/components/animate-ui/icons/cog'
 import { Kbd } from '@repo/ui/components/ui/kbd';
 import { Separator } from '@repo/ui/components/ui/separator';
@@ -64,6 +65,11 @@ const menuItems: MenuItem[] = [
     href: '/chat',
   },
   {
+    label: 'Call History',
+    icon: ActivityIcon,
+    href: '/call-history',
+  },
+  {
     label: 'User',
     icon: UserIcon,
     subItems: [
@@ -87,7 +93,7 @@ const menuItems: MenuItem[] = [
       },
       {
         label: 'Visitors',
-        icon: ActivityIcon,
+        icon: ChartLineIcon,
         href: '/admin/visitors',
       },
     ],

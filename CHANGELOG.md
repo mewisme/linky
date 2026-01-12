@@ -1,12 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Conditionally render UserButton based on authentication status ([7ae30b9](../../commit/7ae30b9))
+- Add Privacy Policy and Terms of Service pages with animations ([63bdc5b](../../commit/63bdc5b))
 
 🔨 Other Changes
 
-- Update package versions to 0.8.0 across all packages and update version lock ([08112c2](../../commit/08112c2))
+- Update package versions to 0.8.1 across all packages and update version lock ([b95c2df](../../commit/b95c2df))
 
 
-📋 Full Changelog: [08112c2...7ae30b9](../../compare/08112c2...7ae30b9)
+📋 Full Changelog: [b95c2df...63bdc5b](../../compare/b95c2df...63bdc5b)

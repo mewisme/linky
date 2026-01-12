@@ -5,17 +5,6 @@ import callHistoryRouter from "./call-history.js";
 
 const router: ExpressRouter = Router();
 
-// Example API routes
-router.get("/", (_req: Request, res: Response) => {
-  res.json({ message: "API routes" });
-});
-
-/**
- * GET /api/v1/me
- * Get current user information from database
- * Requires authentication via clerkMiddleware
- * Automatically updates country from cf-ipcountry header if country is null
- */
 router.get("/me", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -29,7 +18,6 @@ router.get("/me", async (req: Request, res: Response) => {
 
     logger.info("Fetching user data:", clerkUserId);
 
-    // Query user from database by clerk_user_id
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
@@ -39,7 +27,6 @@ router.get("/me", async (req: Request, res: Response) => {
     if (error) {
       logger.error("Error fetching user from database:", error.message);
 
-      // If user not found, return 404
       if (error.code === "PGRST116") {
         return res.status(404).json({
           error: "Not Found",
@@ -60,7 +47,6 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    // Check if country is null and cf-ipcountry header is present
     if (!user.country) {
       const countryHeader = req.headers["cf-ipcountry"] || req.headers["x-cf-ipcountry"];
 
@@ -78,7 +64,6 @@ router.get("/me", async (req: Request, res: Response) => {
         if (updateError) {
           logger.error("Error updating user country:", updateError.message);
         } else {
-          // Fetch updated user data
           const { data: updatedUser } = await supabase
             .from("users")
             .select("*")
@@ -105,11 +90,6 @@ router.get("/me", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PATCH /api/v1/me/country
- * Update user's country
- * Requires authentication via clerkMiddleware
- */
 router.patch("/me/country", async (req: Request, res: Response) => {
   try {
     const { country, clerk_user_id } = req.body;
@@ -167,7 +147,6 @@ router.patch("/me/country", async (req: Request, res: Response) => {
   }
 });
 
-// Mount call history routes
 router.use("/call-history", callHistoryRouter);
 
 export default router;

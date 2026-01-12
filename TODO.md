@@ -4,7 +4,7 @@
 
 ### 1. Call History
 
-- [ ] Store call history with timestamps and country flags
+- [x] Store call history with timestamps and country flags
 - [ ] Allow users to view short profile of callers
 - [ ] Allow users to add callers to favorite list
 

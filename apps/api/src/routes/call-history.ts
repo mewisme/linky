@@ -11,11 +11,6 @@ import { logger } from "../utils/logger.js";
 
 const router: ExpressRouter = Router();
 
-/**
- * GET /api/v1/call-history
- * Get call history for the current authenticated user
- * Requires authentication via clerkMiddleware
- */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -27,7 +22,6 @@ router.get("/", async (req: Request, res: Response) => {
       });
     }
 
-    // Get database user ID from Clerk user ID
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
       return res.status(404).json({
@@ -36,20 +30,15 @@ router.get("/", async (req: Request, res: Response) => {
       });
     }
 
-    // Parse query parameters
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    // Fetch call history
     const { data, count } = await getCallHistoryByUserId(userId, { limit, offset });
 
-    // Enrich with caller/callee user information
     const enrichedData = await Promise.all(
       data.map(async (call) => {
         const isCaller = call.caller_id === userId;
         const otherUserId = isCaller ? call.callee_id : call.caller_id;
-
-        // Get other user's information
         const { data: otherUser } = await supabase
           .from("users")
           .select("id, first_name, last_name, avatar_url, country")
@@ -91,11 +80,7 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/call-history/:id
- * Get a specific call history record by ID
- * Requires authentication via clerkMiddleware
- */
+
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -115,7 +100,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    // Get database user ID from Clerk user ID
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
       return res.status(404).json({
@@ -124,7 +108,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    // Fetch call history record
     const callHistory = await getCallHistoryById(id);
     if (!callHistory) {
       return res.status(404).json({
@@ -133,7 +116,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    // Verify user has access to this record (must be caller or callee)
     if (callHistory.caller_id !== userId && callHistory.callee_id !== userId) {
       return res.status(403).json({
         error: "Forbidden",
@@ -141,7 +123,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    // Enrich with user information
     const isCaller = callHistory.caller_id === userId;
     const otherUserId = isCaller ? callHistory.callee_id : callHistory.caller_id;
 
@@ -179,12 +160,6 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/v1/call-history
- * Create a new call history record
- * Requires authentication via clerkMiddleware
- * This endpoint is typically called internally by the socket handler
- */
 router.post("/", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -197,7 +172,6 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    // Get database user ID from Clerk user ID
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
       return res.status(404).json({
@@ -206,7 +180,6 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    // Validate required fields
     if (!caller_id || !callee_id) {
       return res.status(400).json({
         error: "Bad Request",
@@ -214,7 +187,6 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    // Verify user is either caller or callee
     if (caller_id !== userId && callee_id !== userId) {
       return res.status(403).json({
         error: "Forbidden",
@@ -222,11 +194,9 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    // Get countries for both users
     const callerCountry = await getUserCountry(caller_id);
     const calleeCountry = await getUserCountry(callee_id);
 
-    // Create call history record
     const callHistory = await createCallHistory({
       callerId: caller_id,
       calleeId: callee_id,

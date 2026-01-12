@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_history: {
+        Row: {
+          callee_country: string | null
+          callee_id: string
+          caller_country: string | null
+          caller_id: string
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          id: string
+          started_at: string
+          updated_at: string
+        }
+        Insert: {
+          callee_country?: string | null
+          callee_id: string
+          caller_country?: string | null
+          caller_id: string
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          updated_at?: string
+        }
+        Update: {
+          callee_country?: string | null
+          callee_id?: string
+          caller_country?: string | null
+          caller_id?: string
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_call_history_callee"
+            columns: ["callee_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_call_history_caller"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_views: {
         Row: {
           created_at: string
@@ -100,60 +154,6 @@ export type Database = {
           visit_count?: number
         }
         Relationships: []
-      }
-      call_history: {
-        Row: {
-          id: string
-          caller_id: string
-          callee_id: string
-          caller_country: string | null
-          callee_country: string | null
-          started_at: string
-          ended_at: string | null
-          duration_seconds: number | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          caller_id: string
-          callee_id: string
-          caller_country?: string | null
-          callee_country?: string | null
-          started_at?: string
-          ended_at?: string | null
-          duration_seconds?: number | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          caller_id?: string
-          callee_id?: string
-          caller_country?: string | null
-          callee_country?: string | null
-          started_at?: string
-          ended_at?: string | null
-          duration_seconds?: number | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "call_history_caller_id_fkey"
-            columns: ["caller_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "call_history_callee_id_fkey"
-            columns: ["callee_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
       }
     }
     Views: {

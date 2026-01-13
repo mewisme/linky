@@ -47,6 +47,6 @@ export default function AdminLayout({
     return null;
   }
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return children;
 }
 

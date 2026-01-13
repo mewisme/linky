@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 
 import type { AdminAPI } from '@/types/api.types'
 import { AppLayout } from '@/components/layouts/app-layout'
-import { VisitorChart } from './components/visitor-chart'
+import { VisitorChart } from '../components/visitor-chart'
 import { useAuth } from '@clerk/nextjs'
 import { useQuery } from '@tanstack/react-query'
 

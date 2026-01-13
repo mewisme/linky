@@ -27,7 +27,7 @@ import { cn } from "@repo/ui/lib/utils"
 
 interface DataTableProps<TData> {
   initialData: TData[]
-  filterColumn: string
+  filterColumn?: string
   filterPlaceholder?: string
   initialColumnVisibility: VisibilityState
   columns: ColumnDef<TData>[]
@@ -69,18 +69,20 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
   return (
     <div className={cn('w-full', className)}>
       <div className="flex items-center py-4 space-x-2">
-        <InputGroup className="max-w-sm">
-          <InputGroupInput
-            placeholder={filterPlaceholder || `Filter ${filterColumn}...`}
-            value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-            }
-          />
-          <InputGroupAddon>
-            <IconSearch />
-          </InputGroupAddon>
-        </InputGroup>
+        {filterColumn ? (
+          <InputGroup className="max-w-sm">
+            <InputGroupInput
+              placeholder={filterPlaceholder || `Filter ${filterColumn}...`}
+              value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn(filterColumn)?.setFilterValue(event.target.value)
+              }
+            />
+            <InputGroupAddon>
+              <IconSearch />
+            </InputGroupAddon>
+          </InputGroup>
+        ) : <div className="max-w-sm" />}
         <div className="flex items-center gap-2 ml-auto">
           {leftColumnVisibilityContent && (
             leftColumnVisibilityContent

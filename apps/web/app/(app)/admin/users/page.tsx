@@ -8,7 +8,7 @@ import { AppLayout } from '@/components/layouts/app-layout';
 import { Button } from '@repo/ui/components/ui/button';
 import { IconRefresh } from '@tabler/icons-react';
 import type { Socket } from 'socket.io-client';
-import { UsersDataTable } from '../components/users/data-table'
+import { UsersDataTable } from '@/components/data-table/users/data-table'
 import { createSocket } from '@/lib/socket';
 import { logger } from '@/utils/logger';
 import toast from 'react-hot-toast';

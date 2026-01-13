@@ -20,7 +20,7 @@ import { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
-import { InterestTagsDataTable } from "../components/interest-tags/data-table";
+import { InterestTagsDataTable } from '@/components/data-table/interest-tags/data-table';
 import { Label } from "@repo/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@repo/ui/components/ui/switch";

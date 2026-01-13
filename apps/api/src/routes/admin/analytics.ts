@@ -13,11 +13,6 @@ import {
 
 const router: ExpressRouter = Router();
 
-/**
- * GET /api/v1/admin/analytics
- * Get overview analytics (total views, visitors, and recent timeseries data)
- * Query params: days (default: 30) - number of days for timeseries data
- */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const days = parseInt(req.query.days as string) || 30;
@@ -49,11 +44,6 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/admin/analytics/page-views
- * Get page views data
- * Query params: days (default: 30), page, limit
- */
 router.get("/page-views", async (req: Request, res: Response) => {
   try {
     const days = parseInt(req.query.days as string) || 30;
@@ -61,7 +51,6 @@ router.get("/page-views", async (req: Request, res: Response) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
 
     if (req.query.timeseries === "true" || req.query.timeseries === "1") {
-      // Return timeseries data
       const timeseries = await getPageViewsTimeseries(days);
       return res.json({
         timeseries,
@@ -69,7 +58,6 @@ router.get("/page-views", async (req: Request, res: Response) => {
       });
     }
 
-    // Return paginated page views
     const result = await getPageViews({ page, limit });
     return res.json(result);
   } catch (error) {
@@ -81,11 +69,6 @@ router.get("/page-views", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/admin/analytics/visitors
- * Get visitors data
- * Query params: days (default: 30), page, limit
- */
 router.get("/visitors", async (req: Request, res: Response) => {
   try {
     const days = parseInt(req.query.days as string) || 30;
@@ -93,7 +76,6 @@ router.get("/visitors", async (req: Request, res: Response) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
 
     if (req.query.timeseries === "true" || req.query.timeseries === "1") {
-      // Return timeseries data
       const timeseries = await getVisitorsTimeseries(days);
       return res.json({
         timeseries,
@@ -101,7 +83,6 @@ router.get("/visitors", async (req: Request, res: Response) => {
       });
     }
 
-    // Return paginated visitors
     const result = await getVisitors({ page, limit });
     return res.json(result);
   } catch (error) {
@@ -113,11 +94,6 @@ router.get("/visitors", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/admin/analytics/top-pages
- * Get top pages by view count
- * Query params: limit (default: 10)
- */
 router.get("/top-pages", async (req: Request, res: Response) => {
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 10, 50);
@@ -134,10 +110,6 @@ router.get("/top-pages", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/admin/analytics/visitor-stats
- * Get visitor statistics (unique visitors, returning visitors, etc.)
- */
 router.get("/visitor-stats", async (req: Request, res: Response) => {
   try {
     const stats = await getVisitorStats();

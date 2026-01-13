@@ -2,8 +2,8 @@ import { logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
 
 export interface CreateCallHistoryParams {
-  callerId: string; // Database user ID
-  calleeId: string; // Database user ID
+  callerId: string;
+  calleeId: string;
   callerCountry: string | null;
   calleeCountry: string | null;
   startedAt: Date;
@@ -24,9 +24,6 @@ export interface CallHistoryRecord {
   updated_at: string;
 }
 
-/**
- * Create a call history record
- */
 export async function createCallHistory(params: CreateCallHistoryParams): Promise<CallHistoryRecord> {
   const { callerId, calleeId, callerCountry, calleeCountry, startedAt, endedAt, durationSeconds } = params;
 
@@ -52,9 +49,6 @@ export async function createCallHistory(params: CreateCallHistoryParams): Promis
   return data;
 }
 
-/**
- * Get call history for a user (as caller or callee)
- */
 export async function getCallHistoryByUserId(
   userId: string,
   options: { limit?: number; offset?: number } = {}
@@ -76,9 +70,6 @@ export async function getCallHistoryByUserId(
   return { data: data || [], count };
 }
 
-/**
- * Get a specific call history record by ID
- */
 export async function getCallHistoryById(id: string): Promise<CallHistoryRecord | null> {
   const { data, error } = await supabase
     .from("call_history")
@@ -88,7 +79,7 @@ export async function getCallHistoryById(id: string): Promise<CallHistoryRecord 
 
   if (error) {
     if (error.code === "PGRST116") {
-      return null; // Not found
+      return null;
     }
     logger.error("Error fetching call history by ID:", error.message);
     throw error;
@@ -97,9 +88,6 @@ export async function getCallHistoryById(id: string): Promise<CallHistoryRecord 
   return data;
 }
 
-/**
- * Get user database ID from Clerk user ID
- */
 export async function getUserIdByClerkId(clerkUserId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("users")
@@ -109,7 +97,7 @@ export async function getUserIdByClerkId(clerkUserId: string): Promise<string | 
 
   if (error) {
     if (error.code === "PGRST116") {
-      return null; // User not found
+      return null;
     }
     logger.error("Error fetching user by Clerk ID:", error.message);
     throw error;
@@ -118,9 +106,6 @@ export async function getUserIdByClerkId(clerkUserId: string): Promise<string | 
   return data?.id || null;
 }
 
-/**
- * Get user country from database user ID
- */
 export async function getUserCountry(userId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("users")

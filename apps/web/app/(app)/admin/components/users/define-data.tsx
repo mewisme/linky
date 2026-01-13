@@ -7,7 +7,7 @@ import { Badge } from '@repo/ui/components/ui/badge';
 import {
   type ColumnDef,
 } from "@tanstack/react-table"
-import { IconCircleCheckFilled, IconCircleXFilled, IconDotsVertical, IconGripVertical } from '@tabler/icons-react';
+import { IconCircleCheckFilled, IconCircleXFilled, IconDotsVertical } from '@tabler/icons-react';
 import {
   DropdownMenu,
   DropdownMenuSeparator,
@@ -20,13 +20,11 @@ import {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
-  DropdownMenuPortal
-} from '@repo/ui/components/ui/dropdown-menu';
+} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
 import toast from 'react-hot-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar';
 import { Status, StatusIndicator, StatusLabel } from "@repo/ui/components/kibo-ui/status";
 import { memo } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
 
 type User = AdminAPI.User;
 
@@ -45,36 +43,12 @@ const AvatarCell = memo(({ avatarUrl, firstName, lastName }: { avatarUrl: string
 
 AvatarCell.displayName = 'AvatarCell'
 
-export interface TableCallbacks {
-  onSelectAllowState?: (userId: string, allow: boolean) => void
-  onSelectRole?: (userId: string, role: AdminAPI.UserRole) => void
+export interface RowCallbacks {
+  onSelectAllowState?: (user: AdminAPI.User, allow: boolean) => void
+  onSelectRole?: (user: AdminAPI.User, role: AdminAPI.UserRole) => void
 }
 
-function DragHandle({ id }: { id: string }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  })
-
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  )
-}
-
-export const columns = (callbacks?: TableCallbacks): ColumnDef<User>[] => [
-  {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
-  },
+export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -188,66 +162,64 @@ export const columns = (callbacks?: TableCallbacks): ColumnDef<User>[] => [
     cell: ({ row }) => {
       const user = row.original
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon">
-              <span className="sr-only">Open menu</span>
-              <IconDotsVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(user.id)
-                toast.success('User ID copied to clipboard')
-              }}
-            >
-              Copy user ID
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(user.clerk_user_id)
-                toast.success('Clerk user ID copied to clipboard')
-              }}
-            >
-              Copy Clerk user ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                Select allow state
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
+        <div className="flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost"
+                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                size="icon">
+                <span className="sr-only">Open menu</span>
+                <IconDotsVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className='overflow-hidden'>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(user.id)
+                  toast.success('User ID copied to clipboard')
+                }}
+              >
+                Copy user ID
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(user.clerk_user_id)
+                  toast.success('Clerk user ID copied to clipboard')
+                }}
+              >
+                Copy Clerk user ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  Select allow state
+                </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   <DropdownMenuRadioGroup value={user.allow ? "true" : "false"} onValueChange={(value) => {
-                    callbacks?.onSelectAllowState?.(user.id, value === "true")
+                    callbacks?.onSelectAllowState?.(user, value === "true")
                   }}>
                     <DropdownMenuRadioItem value="true">Allow</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="false">Block</DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                Select role
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  Select role
+                </DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   <DropdownMenuRadioGroup value={user.role} onValueChange={(value) => {
-                    callbacks?.onSelectRole?.(user.id, value as AdminAPI.UserRole)
+                    callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole)
                   }}>
                     <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="member">Member</DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              </DropdownMenuSub>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )
     },
     enableHiding: false,

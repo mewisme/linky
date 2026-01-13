@@ -4,10 +4,6 @@ import { logger } from "../../utils/logger.js";
 
 const router: ExpressRouter = Router();
 
-/**
- * GET /api/v1/users/me
- * Get current user
- */
 router.get("/me", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -50,7 +46,6 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    // Auto-update country from header if not set
     if (!user.country) {
       const countryHeader = req.headers["cf-ipcountry"] || req.headers["x-cf-ipcountry"];
 
@@ -94,10 +89,6 @@ router.get("/me", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PATCH /api/v1/users/me/country
- * Update current user's country
- */
 router.patch("/me/country", async (req: Request, res: Response) => {
   try {
     const { country, clerk_user_id } = req.body;

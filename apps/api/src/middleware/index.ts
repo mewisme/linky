@@ -5,16 +5,10 @@ import { config } from "../config/index.js";
 import { logger } from "../utils/logger.js";
 import { clientIpMiddleware } from "./client-ip.js";
 
-/**
- * Custom morgan token to use our logger
- */
 morgan.token("custom", () => {
   return "";
 });
 
-/**
- * Custom morgan format that integrates with our logger
- */
 const morganFormat = config.nodeEnv === "production"
   ? ":method :url :status :res[content-length] - :response-time ms"
   : ":method :url :status :response-time ms";
@@ -22,13 +16,10 @@ const morganFormat = config.nodeEnv === "production"
 export function setupMiddleware(app: Express): void {
   app.enable("trust proxy");
 
-  // Client IP middleware - extract IP from request
-  // Must be early in the middleware chain
   app.use(clientIpMiddleware);
 
   app.use("/webhook", express.raw({ type: "application/json" }));
 
-  // CORS
   app.use(cors({
     origin: config.corsOrigin,
     credentials: true,

@@ -15,19 +15,13 @@ export interface AuthenticatedSocket extends Socket {
   };
 }
 
-/**
- * Clerk authentication middleware for Socket.IO
- * Verifies the Clerk token from handshake auth or query params
- */
 export async function socketAuthMiddleware(
   socket: Socket,
   next: (err?: Error) => void
 ): Promise<void> {
   try {
-    // Try to get token from handshake auth first (recommended)
     const tokenFromAuth = socket.handshake.auth?.token as string | undefined;
 
-    // Fallback to query params (for compatibility)
     const tokenFromQuery = socket.handshake.query?.token as string | undefined;
 
     const token = tokenFromAuth || tokenFromQuery;
@@ -39,12 +33,10 @@ export async function socketAuthMiddleware(
       return next(new Error("Authentication required"));
     }
 
-    // Verify token with Clerk
     const payload = await verifyToken(token, {
       secretKey: config.clerkSecretKey,
     });
 
-    // Fetch user profile from Clerk to get image URL and name
     let userName = "Anonymous";
     let userImageUrl: string | undefined;
 
@@ -59,7 +51,6 @@ export async function socketAuthMiddleware(
       });
     }
 
-    // Attach auth data to socket
     (socket as AuthenticatedSocket).data = {
       userId: payload.sub,
       userName,

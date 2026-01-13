@@ -27,27 +27,22 @@ export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersR
     .from("users")
     .select("*", { count: "exact" });
 
-  // Filter by role
   if (role === "admin" || role === "member") {
     query = query.eq("role", role);
   }
 
-  // Filter by allow status
   if (allow !== undefined) {
     query = query.eq("allow", allow);
   }
 
-  // Search by email, first_name, or last_name
   if (search) {
     query = query.or(
       `email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`
     );
   }
 
-  // Order by created_at descending (newest first)
   query = query.order("created_at", { ascending: false });
 
-  // Apply pagination only if not getting all
   if (!getAll) {
     query = query.range(offset, offset + maxLimit - 1);
   }
@@ -78,7 +73,6 @@ export async function getUserById(id: string) {
 }
 
 export async function updateUser(id: string, userData: UserUpdate) {
-  // Check if user exists
   const { data: existingUser } = await supabase
     .from("users")
     .select("id")
@@ -89,7 +83,6 @@ export async function updateUser(id: string, userData: UserUpdate) {
     throw new Error("User not found");
   }
 
-  // If clerk_user_id is being updated, check for conflicts
   if (userData.clerk_user_id) {
     const { data: conflictUser } = await supabase
       .from("users")
@@ -119,7 +112,6 @@ export async function updateUser(id: string, userData: UserUpdate) {
 }
 
 export async function patchUser(id: string, userData: Partial<UserUpdate>) {
-  // Check if user exists
   const { data: existingUser } = await supabase
     .from("users")
     .select("id")
@@ -130,7 +122,6 @@ export async function patchUser(id: string, userData: Partial<UserUpdate>) {
     throw new Error("User not found");
   }
 
-  // If clerk_user_id is being updated, check for conflicts
   if (userData.clerk_user_id) {
     const { data: conflictUser } = await supabase
       .from("users")

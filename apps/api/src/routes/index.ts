@@ -10,10 +10,8 @@ import { clerkMiddleware } from "../middleware/clerk.js";
 import { adminMiddleware } from "../middleware/admin.js";
 
 export function setupRoutes(app: Express): void {
-  // Webhook route must be BEFORE clerkMiddleware (webhooks are verified by signature, not token)
   app.use("/webhook", webhookRouter);
 
-  // Health check endpoint
   app.get("/health", (_req: Request, res: Response) => {
     res.json({
       status: "ok",
@@ -21,27 +19,21 @@ export function setupRoutes(app: Express): void {
     });
   });
 
-  // API root endpoint
   app.get("/api", (_req: Request, res: Response) => {
     res.json({ message: "API is running" });
   });
 
-  // Public routes (no authentication required)
   app.use("/api/v1/analytics", analyticsRouter);
   app.use("/api/v1/interest-tags", interestTagsRouter);
 
   app.use(clerkMiddleware);
 
-  // Mount API routes (protected by clerkMiddleware)
   app.use("/api/v1", apiRouter);
 
-  // Mount S3 routes (protected by clerkMiddleware)
   app.use("/api/v1/s3", s3Router);
 
-  // Mount ICE servers route
   app.use("/api", iceServersRouter);
 
-  // Mount admin routes (protected by clerkMiddleware + adminMiddleware)
   app.use("/api/v1/admin", adminMiddleware, adminRouter);
 }
 

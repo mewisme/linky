@@ -1,6 +1,7 @@
+import type { TablesInsert, TablesUpdate } from "../../../types/database.types.js";
+
 import { logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
-import type { TablesInsert, TablesUpdate } from "../../../types/database.types.js";
 
 export interface GetInterestTagsOptions {
   category?: string;
@@ -10,35 +11,27 @@ export interface GetInterestTagsOptions {
   offset?: number;
 }
 
-/**
- * Get interest tags with optional filtering
- */
 export async function getInterestTags(options: GetInterestTagsOptions = {}) {
-  const { category, isActive = true, search, limit = 100, offset = 0 } = options;
+  const { category, isActive, search, limit = 100, offset = 0 } = options;
 
   let query = supabase
     .from("interest_tags")
     .select("*", { count: "exact" });
 
-  // Filter by active status
   if (isActive !== undefined) {
     query = query.eq("is_active", isActive);
   }
 
-  // Filter by category
   if (category) {
     query = query.eq("category", category);
   }
 
-  // Search by name or description
   if (search) {
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
   }
 
-  // Order by name
   query = query.order("name", { ascending: true });
 
-  // Apply pagination
   query = query.range(offset, offset + limit - 1);
 
   const { data, error, count } = await query;
@@ -51,9 +44,6 @@ export async function getInterestTags(options: GetInterestTagsOptions = {}) {
   return { data: data || [], count: count || 0 };
 }
 
-/**
- * Get interest tag by ID
- */
 export async function getInterestTagById(id: string) {
   const { data, error } = await supabase
     .from("interest_tags")
@@ -63,7 +53,7 @@ export async function getInterestTagById(id: string) {
 
   if (error) {
     if (error.code === "PGRST116") {
-      return null; // Not found
+      return null;
     }
     logger.error("Error fetching interest tag:", error.message);
     throw error;
@@ -72,9 +62,6 @@ export async function getInterestTagById(id: string) {
   return data;
 }
 
-/**
- * Get multiple interest tags by IDs (for validation)
- */
 export async function getInterestTagsByIds(ids: string[]) {
   if (ids.length === 0) {
     return [];
@@ -84,7 +71,7 @@ export async function getInterestTagsByIds(ids: string[]) {
     .from("interest_tags")
     .select("*")
     .in("id", ids)
-    .eq("is_active", true); // Only get active tags
+    .eq("is_active", true);
 
   if (error) {
     logger.error("Error fetching interest tags by IDs:", error.message);
@@ -97,9 +84,6 @@ export async function getInterestTagsByIds(ids: string[]) {
 type InterestTagInsert = TablesInsert<"interest_tags">;
 type InterestTagUpdate = TablesUpdate<"interest_tags">;
 
-/**
- * Create a new interest tag (admin only)
- */
 export async function createInterestTag(data: InterestTagInsert) {
   const { data: created, error } = await supabase
     .from("interest_tags")
@@ -115,9 +99,6 @@ export async function createInterestTag(data: InterestTagInsert) {
   return created;
 }
 
-/**
- * Update an interest tag (admin only)
- */
 export async function updateInterestTag(id: string, data: InterestTagUpdate) {
   const { data: updated, error } = await supabase
     .from("interest_tags")
@@ -137,11 +118,6 @@ export async function updateInterestTag(id: string, data: InterestTagUpdate) {
   return updated;
 }
 
-/**
- * Delete an interest tag (admin only)
- * Note: This is a soft delete by setting is_active to false
- * For hard delete, use deleteInterestTagHard
- */
 export async function deleteInterestTag(id: string) {
   const { data: updated, error } = await supabase
     .from("interest_tags")
@@ -161,10 +137,6 @@ export async function deleteInterestTag(id: string) {
   return updated;
 }
 
-/**
- * Hard delete an interest tag (admin only)
- * WARNING: This permanently deletes the tag. Use with caution.
- */
 export async function deleteInterestTagHard(id: string) {
   const { error } = await supabase
     .from("interest_tags")

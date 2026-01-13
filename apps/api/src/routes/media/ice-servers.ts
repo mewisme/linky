@@ -12,7 +12,6 @@ interface CloudflareTurnResponse {
   }>;
 }
 
-// In-memory cache for ICE servers
 interface CachedIceServers {
   data: CloudflareTurnResponse;
   expiresAt: number;
@@ -20,22 +19,16 @@ interface CachedIceServers {
 
 let iceServersCache: CachedIceServers | null = null;
 
-/**
- * GET /api/ice-servers
- * Fetches ICE server configuration from Cloudflare TURN API
- */
 router.get("/ice-servers", async (_req: Request, res: Response) => {
   logger.info("ICE servers request received");
-  
+
   try {
-    // Check cache first
     if (iceServersCache && iceServersCache.expiresAt > Date.now()) {
       const cacheAge = Math.round((Date.now() - (iceServersCache.expiresAt - 3600000)) / 1000);
       logger.info("Returning cached ICE servers", `(Cache age: ${cacheAge}s)`);
       return res.json(iceServersCache.data);
     }
 
-    // Validate environment variables
     const apiToken = process.env.CLOUDFLARE_TURN_API_TOKEN;
     const keyId = process.env.CLOUDFLARE_TURN_KEY_ID;
 
@@ -49,11 +42,10 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
     logger.load("Fetching ICE servers from Cloudflare API...");
 
-    // Call Cloudflare TURN API
     const url = `https://rtc.live.cloudflare.com/v1/turn/keys/${keyId}/credentials/generate-ice-servers`;
-    
+
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     try {
       const response = await fetch(url, {
@@ -62,7 +54,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
           Authorization: `Bearer ${apiToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ttl: 86400 }), // 24 hours
+        body: JSON.stringify({ ttl: 86400 }),
         signal: controller.signal,
       });
 
@@ -79,8 +71,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
       const data = (await response.json()) as CloudflareTurnResponse;
 
-      // Cache the response (use TTL from response or default to 1 hour)
-      const ttl = 3600000; // 1 hour in milliseconds
+      const ttl = 3600000;
       iceServersCache = {
         data,
         expiresAt: Date.now() + ttl,
@@ -90,7 +81,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
       res.json(data);
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      
+
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
         logger.error("ICE servers request timeout");
         return res.status(504).json({

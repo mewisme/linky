@@ -14,10 +14,6 @@ import { supabase } from "../../lib/supabase/client.js";
 
 const router: ExpressRouter = Router();
 
-/**
- * GET /api/v1/admin/visits/visitor/:ip
- * Get detailed information about a specific visitor by IP
- */
 router.get("/visitor/:ip", async (req: Request, res: Response) => {
   try {
     const { ip } = req.params;
@@ -38,7 +34,6 @@ router.get("/visitor/:ip", async (req: Request, res: Response) => {
       });
     }
 
-    // Get page views for this visitor
     const { data: pageViews, error: pageViewsError } = await supabase
       .from("page_views")
       .select("*")
@@ -212,11 +207,6 @@ router.delete("/page-view/:id", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/admin/visits/recent
- * Get recent visits (page views) with optional filters
- * Query params: page, limit, path, ip
- */
 router.get("/recent", async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -231,7 +221,6 @@ router.get("/recent", async (req: Request, res: Response) => {
 
     const result = await getPageViews(options);
 
-    // Filter by IP if provided
     let filteredData = result.data;
     if (ip) {
       filteredData = (result.data as any[]).filter((view: any) => view.ip === ip);

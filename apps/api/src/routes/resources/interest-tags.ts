@@ -4,21 +4,16 @@ import { getInterestTags, getInterestTagById } from "../../lib/supabase/queries/
 
 const router: ExpressRouter = Router();
 
-/**
- * GET /api/v1/interest-tags
- * List all active interest tags (public endpoint)
- * Query params: category, search, limit, offset
- */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const category = req.query.category as string | undefined;
     const search = req.query.search as string | undefined;
-    const limit = Math.min(parseInt(req.query.limit as string) || 100, 200); // Max 200 per page
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
     const offset = parseInt(req.query.offset as string) || 0;
 
     const { data, count } = await getInterestTags({
       category,
-      isActive: true, // Only return active tags
+      isActive: true,
       search,
       limit,
       offset,
@@ -44,10 +39,6 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/interest-tags/:id
- * Get specific interest tag by ID (public endpoint)
- */
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -68,7 +59,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    // Only return if tag is active (or allow inactive for admin in future)
     if (!tag.is_active) {
       return res.status(404).json({
         error: "Not Found",

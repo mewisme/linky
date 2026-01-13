@@ -225,7 +225,7 @@ export function AppSidebar() {
             const isSubItemActive = item.subItems?.some(subItem => pathname === subItem.href);
 
             return (
-              <>
+              <div key={item.label ?? item.href}>
                 {item.subItems ? (
                   <Collapsible defaultOpen={item.open ?? false} className="group/collapsible">
                     <SidebarMenuItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && isSubItemActive ? 'bg-sidebar-accent text-primary' : '')}>
@@ -239,7 +239,7 @@ export function AppSidebar() {
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.subItems?.map((subItem) => (
-                            <SidebarMenuSubItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : '', state === 'collapsed' && pathname !== subItem.href ? 'text-muted-foreground' : '')}>
+                            <SidebarMenuSubItem key={subItem.label ?? subItem.href} className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : '', state === 'collapsed' && pathname !== subItem.href ? 'text-muted-foreground' : '')}>
                               <SidebarMenuSubButton className={cn(state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300', state === 'expanded' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : 'text-muted-foreground')} onClick={() => {
                                 if (subItem.href) {
                                   router.push(subItem.href)
@@ -266,7 +266,7 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
-              </>
+              </div>
             );
           })}
         </SidebarMenu>

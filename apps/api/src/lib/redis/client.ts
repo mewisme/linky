@@ -12,7 +12,6 @@ export const redisClient = createClient({
   }
 }) as RedisClientType<RedisModules, RedisFunctions, RedisScripts, RespVersions, TypeMapping>
 
-// Handle Redis connection events
 redisClient.on('error', (err) => {
   logger.error('Redis Client Error:', err)
 })
@@ -29,7 +28,6 @@ redisClient.on('reconnecting', () => {
   logger.load('Redis Client reconnecting...')
 })
 
-// Connect to Redis
 export async function connectRedis(): Promise<void> {
   try {
     await redisClient.connect()

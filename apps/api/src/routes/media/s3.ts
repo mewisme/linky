@@ -18,11 +18,6 @@ import {
 
 const router: ExpressRouter = Router();
 
-/**
- * GET /api/v1/s3/presigned/upload
- * Generate a presigned URL for uploading an object
- * Query params: key (required), expires (optional, default 300)
- */
 router.get("/presigned/upload", async (req: Request, res: Response) => {
   try {
     const { key, expires } = req.query;
@@ -67,11 +62,6 @@ router.get("/presigned/upload", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/s3/presigned/download
- * Generate a presigned URL for downloading an object
- * Query params: key (required), expires (optional, default 300)
- */
 router.get("/presigned/download", async (req: Request, res: Response) => {
   try {
     const { key, expires } = req.query;
@@ -116,11 +106,6 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/s3/objects
- * List objects in the bucket
- * Query params: prefix (optional)
- */
 router.get("/objects", async (req: Request, res: Response) => {
   try {
     const { prefix } = req.query;
@@ -160,10 +145,6 @@ router.get("/objects", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * DELETE /api/v1/s3/objects/:key
- * Delete an object from the bucket
- */
 router.delete("/objects/:key", async (req: Request, res: Response) => {
   try {
     const { key } = req.params;
@@ -207,11 +188,6 @@ router.delete("/objects/:key", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/v1/s3/multipart/start
- * Start a multipart upload
- * Body: { key: string }
- */
 router.post("/multipart/start", async (req: Request, res: Response) => {
   try {
     const { key } = req.body;
@@ -252,11 +228,6 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/s3/multipart/:uploadId/part/:partNumber
- * Get a presigned URL for uploading a part of a multipart upload
- * Query params: key (required)
- */
 router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Response) => {
   try {
     const { uploadId, partNumber } = req.params;
@@ -320,11 +291,6 @@ router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Re
   }
 });
 
-/**
- * POST /api/v1/s3/multipart/complete
- * Complete a multipart upload
- * Body: { key: string, uploadId: string, parts: Array<{ partNumber: number, etag: string }> }
- */
 router.post("/multipart/complete", async (req: Request, res: Response) => {
   try {
     const { key, uploadId, parts } = req.body;
@@ -392,11 +358,6 @@ router.post("/multipart/complete", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/v1/s3/multipart/abort
- * Abort a multipart upload
- * Body: { key: string, uploadId: string }
- */
 router.post("/multipart/abort", async (req: Request, res: Response) => {
   try {
     const { key, uploadId } = req.body;

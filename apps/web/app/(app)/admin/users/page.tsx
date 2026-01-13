@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { AdminAPI } from '@/types/api.types';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { DataTable } from '../components/data-table'
+import { Button } from '@repo/ui/components/ui/button';
+import { IconRefresh } from '@tabler/icons-react';
 import type { Socket } from 'socket.io-client';
-import { client } from '@/lib/client';
+import { UsersDataTable } from '../components/users/data-table'
 import { createSocket } from '@/lib/socket';
 import { logger } from '@/utils/logger';
 import toast from 'react-hot-toast';
@@ -17,6 +19,7 @@ export default function ListUsersPage() {
   const [token, setToken] = useState<string | null>(null)
   const [data, setData] = useState<AdminAPI.User[]>([])
   const socketRef = useRef<Socket | null>(null)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -26,53 +29,69 @@ export default function ListUsersPage() {
     fetchToken()
   }, [getToken])
 
+  const { data: users, isFetching, refetch } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/users?all=true`, {
+        headers: { Authorization: `Bearer ${token || ''}` }
+      });
+      if (!res.ok) throw new Error("Failed to load data");
+      return res.json() as Promise<AdminAPI.GetUsers.Response>;
+    },
+    enabled: !!token,
+  });
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!token || !isLoaded) return
-      const response = await client.get<AdminAPI.GetUsers.Response>('/api/admin/users', {
-        params: {
-          all: true,
-        },
-        headers: {
-          Authorization: `Bearer ${token || ''}`,
-        }
-      })
-      setData(response.data.data)
+    if (users) {
+      setData(users.data)
     }
-    fetchData()
-  }, [token, isLoaded])
+  }, [users])
 
-  // Set up socket connection to listen for presence updates
+  const updateMutation = useMutation({
+    mutationFn: async (payload: Pick<AdminAPI.User, 'id' | 'allow' | 'role'>) => {
+      if (!token || !isLoaded) return
+      const res = await fetch(`/api/admin/users/${payload.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: "Operation failed" }));
+        throw new Error(err.message || err.error || "Operation failed");
+      }
+      return res.json() as Promise<AdminAPI.User>;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['users'], refetchType: 'active' })
+      await refetch();
+      toast.success("User updated successfully")
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "An error occurred during update")
+    }
+  });
+
   useEffect(() => {
     if (!token || !isLoaded) return
-
     let mounted = true
 
     const setupSocket = async () => {
       try {
         const socket = await createSocket(token)
         socketRef.current = socket
-
-        socket.on('connect', () => {
-          logger.info('Admin socket connected')
-        })
-
+        socket.on('connect', () => logger.info('Admin socket connected'))
         socket.on('presence_update', (update: { userId: string; state: string; updatedAt: number }) => {
           if (!mounted) return
-
           logger.info('Presence update received', update)
-
           setData((prevData) => {
             const newState = update.state as AdminAPI.PresenceState
             const user = prevData.find(user => user.clerk_user_id === update.userId)
-
-            // Skip if user not found or presence hasn't changed
             if (!user || user.presence === newState) {
               return prevData
             }
-
-            // Only update if presence actually changed
             return prevData.map((item) =>
               item.clerk_user_id === update.userId
                 ? { ...item, presence: newState }
@@ -80,14 +99,8 @@ export default function ListUsersPage() {
             )
           })
         })
-
-        socket.on('disconnect', () => {
-          logger.info('Admin socket disconnected')
-        })
-
-        socket.on('connect_error', (error) => {
-          logger.error('Admin socket connection error', error)
-        })
+        socket.on('disconnect', () => logger.info('Admin socket disconnected'))
+        socket.on('connect_error', (error) => logger.error('Admin socket connection error', error))
       } catch (error) {
         logger.error('Failed to setup admin socket', error)
       }
@@ -105,53 +118,22 @@ export default function ListUsersPage() {
     }
   }, [token, isLoaded])
 
-  const handleSelectAllowState = async (userId: string, allow: boolean) => {
-    try {
-      if (!token || !isLoaded) return
-      const message = allow ? 'Allow state set to true' : 'Allow state set to false'
-      await client.put<AdminAPI.UpdateUser.Response>(`/api/admin/users/${userId}`,
-        {
-          allow,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token || ''}`,
-          },
-        }
-      )
-      setData(prevData => prevData.map(user => user.id === userId ? { ...user, allow } : user))
-      toast.success(message)
-    } catch (error) {
-      logger.error('Error toggling allow', { error })
-    }
-  }
-
-  const handleSelectRole = async (userId: string, role: AdminAPI.UserRole) => {
-    try {
-      if (!token || !isLoaded) return
-      await client.put<AdminAPI.UpdateUser.Response>(`/api/admin/users/${userId}`,
-        { role },
-        {
-          headers: {
-            Authorization: `Bearer ${token || ''}`,
-          },
-        }
-      )
-      setData(prevData => prevData.map(user => user.id === userId ? { ...user, role } : user))
-      toast.success(`Role updated to ${role}`)
-    } catch (error) {
-      logger.error('Error selecting role', { error })
-    }
-  }
-
   const tableCallbacks = {
-    onSelectAllowState: handleSelectAllowState,
-    onSelectRole: handleSelectRole,
+    onSelectAllowState: (user: AdminAPI.User, allow: boolean) => {
+      updateMutation.mutate({ ...user, allow })
+    },
+    onSelectRole: (user: AdminAPI.User, role: AdminAPI.UserRole) => {
+      updateMutation.mutate({ ...user, role })
+    },
   }
 
   return (
     <AppLayout label='Users' description='Manage users'>
-      <DataTable initialData={data} callbacks={tableCallbacks} />
+      <UsersDataTable initialData={data} callbacks={tableCallbacks} leftColumnVisibilityContent={
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+          <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+        </Button>
+      } />
     </AppLayout>
   );
 }

@@ -19,7 +19,7 @@ export namespace AdminAPI {
       export interface QueryParams {
         category?: string;
         search?: string;
-        isActive?: boolean;
+        isActive?: "true" | "false" | "all" | "1" | "0";
         limit?: number;
         offset?: number;
       }

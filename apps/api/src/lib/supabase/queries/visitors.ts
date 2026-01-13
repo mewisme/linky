@@ -75,8 +75,6 @@ export async function getVisitor(ip: string) {
   return data;
 }
 
-// Visitor and Page View query functions with enhanced features
-
 export interface GetVisitorsOptions {
   page?: number;
   limit?: number;
@@ -187,13 +185,11 @@ export async function getTopPages(limit: number = 10): Promise<TopPage[]> {
     throw error;
   }
 
-  // Count views per path
   const pathCounts: Record<string, number> = {};
   (data || []).forEach((view: any) => {
     pathCounts[view.path] = (pathCounts[view.path] || 0) + 1;
   });
 
-  // Convert to array and sort by views
   const topPages: TopPage[] = Object.entries(pathCounts)
     .map(([path, views]) => ({ path, views }))
     .sort((a, b) => b.views - a.views)
@@ -229,7 +225,6 @@ export async function getVisitorStats(): Promise<VisitorStats> {
   const totalVisitCount = visitors.reduce((sum: number, v: any) => sum + (v.visit_count || 0), 0);
   const averageVisitCount = totalVisitors > 0 ? totalVisitCount / totalVisitors : 0;
 
-  // Get date ranges
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

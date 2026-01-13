@@ -19,9 +19,6 @@ const router: ExpressRouter = Router();
 
 type UserDetailsUpdate = TablesUpdate<"user_details">;
 
-/**
- * Validate interest_tags IDs exist and are active
- */
 async function validateInterestTags(interestTags: string[] | null | undefined): Promise<void> {
   if (!interestTags || interestTags.length === 0) {
     return;
@@ -36,9 +33,6 @@ async function validateInterestTags(interestTags: string[] | null | undefined): 
   }
 }
 
-/**
- * Validate date_of_birth is not in the future
- */
 function validateDateOfBirth(dateOfBirth: string | null | undefined): void {
   if (!dateOfBirth) {
     return;
@@ -52,10 +46,6 @@ function validateDateOfBirth(dateOfBirth: string | null | undefined): void {
   }
 }
 
-/**
- * GET /api/v1/user-details/me
- * Get current user's details with expanded interest tags
- */
 router.get("/me", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -96,10 +86,6 @@ router.get("/me", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PUT /api/v1/user-details/me
- * Full update current user's details
- */
 router.put("/me", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -121,32 +107,25 @@ router.put("/me", async (req: Request, res: Response) => {
 
     const userData: UserDetailsUpdate = req.body;
 
-    // Remove user_id from update data (should not be changed)
     const { user_id, ...updateData } = userData;
 
-    // Validate interest_tags
     if (updateData.interest_tags !== undefined) {
       await validateInterestTags(updateData.interest_tags);
     }
 
-    // Validate date_of_birth
     if (updateData.date_of_birth !== undefined) {
       validateDateOfBirth(updateData.date_of_birth);
     }
 
-    // Check if user details exists, create if not
     const existing = await getUserDetailsByUserId(userId);
     let result;
 
     if (!existing) {
-      // Create new user details
       result = await createUserDetails(userId, updateData);
     } else {
-      // Update existing user details
       result = await updateUserDetails(userId, updateData);
     }
 
-    // Fetch with expanded tags
     const userDetails = await getUserDetailsWithTags(userId);
 
     logger.info("User details updated for user:", userId);
@@ -183,10 +162,6 @@ router.put("/me", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PATCH /api/v1/user-details/me
- * Partial update current user's details
- */
 router.patch("/me", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -208,32 +183,24 @@ router.patch("/me", async (req: Request, res: Response) => {
 
     const userData: Partial<UserDetailsUpdate> = req.body;
 
-    // Remove user_id from update data (should not be changed)
     const { user_id, ...updateData } = userData;
 
-    // Validate interest_tags if provided
     if (updateData.interest_tags !== undefined) {
       await validateInterestTags(updateData.interest_tags);
     }
 
-    // Validate date_of_birth if provided
     if (updateData.date_of_birth !== undefined) {
       validateDateOfBirth(updateData.date_of_birth);
     }
 
-    // Check if user details exists, create if not
     const existing = await getUserDetailsByUserId(userId);
-    let result;
 
     if (!existing) {
-      // Create new user details
-      result = await createUserDetails(userId, updateData);
+      await createUserDetails(userId, updateData);
     } else {
-      // Update existing user details
-      result = await patchUserDetails(userId, updateData);
+      await patchUserDetails(userId, updateData);
     }
 
-    // Fetch with expanded tags
     const userDetails = await getUserDetailsWithTags(userId);
 
     logger.info("User details patched for user:", userId);
@@ -270,10 +237,6 @@ router.patch("/me", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/v1/user-details/me/interest-tags
- * Add interest tags to user details
- */
 router.post("/me/interest-tags", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -304,7 +267,6 @@ router.post("/me/interest-tags", async (req: Request, res: Response) => {
 
     const result = await addInterestTags(userId, tagIds);
 
-    // Fetch with expanded tags
     const userDetails = await getUserDetailsWithTags(userId);
 
     logger.info("Interest tags added for user:", userId);
@@ -334,10 +296,6 @@ router.post("/me/interest-tags", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * DELETE /api/v1/user-details/me/interest-tags
- * Remove interest tags from user details
- */
 router.delete("/me/interest-tags", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -368,7 +326,6 @@ router.delete("/me/interest-tags", async (req: Request, res: Response) => {
 
     const result = await removeInterestTags(userId, tagIds);
 
-    // Fetch with expanded tags
     const userDetails = await getUserDetailsWithTags(userId);
 
     logger.info("Interest tags removed for user:", userId);
@@ -391,10 +348,6 @@ router.delete("/me/interest-tags", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PUT /api/v1/user-details/me/interest-tags
- * Replace all interest tags in user details
- */
 router.put("/me/interest-tags", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -425,7 +378,6 @@ router.put("/me/interest-tags", async (req: Request, res: Response) => {
 
     const result = await replaceInterestTags(userId, tagIds);
 
-    // Fetch with expanded tags
     const userDetails = await getUserDetailsWithTags(userId);
 
     logger.info("Interest tags replaced for user:", userId);
@@ -455,10 +407,6 @@ router.put("/me/interest-tags", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * DELETE /api/v1/user-details/me/interest-tags/all
- * Clear all interest tags from user details
- */
 router.delete("/me/interest-tags/all", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
@@ -480,7 +428,6 @@ router.delete("/me/interest-tags/all", async (req: Request, res: Response) => {
 
     const result = await clearInterestTags(userId);
 
-    // Fetch with expanded tags
     const userDetails = await getUserDetailsWithTags(userId);
 
     logger.info("Interest tags cleared for user:", userId);

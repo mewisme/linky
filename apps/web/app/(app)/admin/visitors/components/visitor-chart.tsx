@@ -27,7 +27,6 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@repo/ui/components/ui/toggle-group'
-import { useEffect } from 'react'
 
 type ChartItem = {
   date: string
@@ -54,10 +53,6 @@ interface VisitorChartProps {
 
 export function VisitorChart({ setDays, days, data = [] }: VisitorChartProps) {
   const isMobile = useIsMobile()
-
-  useEffect(() => {
-    console.log('data', data)
-  }, [data])
 
   return (
     <Card className="@container/card">

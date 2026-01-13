@@ -11,9 +11,6 @@ export function attachSocketIO(io: ReturnType<typeof createSocketServer>): void 
   logger.done('Socket.IO attached to MQTT presence handler')
 }
 
-/**
- * Handle presence message from MQTT
- */
 export async function handlePresenceMessage(
   clientId: string,
   state: string
@@ -22,7 +19,6 @@ export async function handlePresenceMessage(
 
   logger.info(`Handling presence message for ${clientId} with state ${state}`)
 
-  // Update Redis presence data
   await redisClient.hSet('presence', clientId, state)
   await redisClient.hSet('presence:ts', clientId, now.toString())
 
@@ -44,13 +40,9 @@ export async function handlePresenceMessage(
     await redisClient.sRem('match:in_call', clientId)
   }
 
-  // Emit to admin sockets
   emitToAdminSockets(clientId, state, now)
 }
 
-/**
- * Emit presence update to all admin sockets
- */
 function emitToAdminSockets(clientId: string, state: string, updatedAt: number): void {
   if (!ioRef) return
 
@@ -63,15 +55,12 @@ function emitToAdminSockets(clientId: string, state: string, updatedAt: number):
     updatedAt,
   }
 
-  // Emit to all admin sockets using the cached IDs
-  // Clean up disconnected sockets while iterating
   const socketIds = Array.from(adminSocketIds)
   for (const socketId of socketIds) {
     const socket = ioRef.sockets.sockets.get(socketId)
     if (socket) {
       socket.emit('presence_update', presenceUpdate)
     } else {
-      // Socket disconnected, remove from cache
       removeAdminSocket(socketId)
     }
   }

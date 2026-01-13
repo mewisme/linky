@@ -15,18 +15,21 @@ const router: ExpressRouter = Router();
 type InterestTagInsert = TablesInsert<"interest_tags">;
 type InterestTagUpdate = TablesUpdate<"interest_tags">;
 
-/**
- * GET /api/v1/admin/interest-tags
- * Get all interest tags (including inactive) with optional filtering
- * Query params: category, search, isActive, limit, offset
- */
 router.get("/", async (req: Request, res: Response) => {
   try {
     const category = req.query.category as string | undefined;
     const search = req.query.search as string | undefined;
-    const isActive = req.query.isActive !== undefined 
-      ? req.query.isActive === "true" || req.query.isActive === "1"
-      : undefined;
+
+    let isActive: boolean | undefined;
+    if (req.query.isActive !== undefined) {
+      const isActiveParam = req.query.isActive as string;
+      if (isActiveParam === "all") {
+        isActive = undefined;
+      } else {
+        isActive = isActiveParam === "true" || isActiveParam === "1";
+      }
+    }
+
     const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
     const offset = parseInt(req.query.offset as string) || 0;
 
@@ -58,10 +61,6 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * GET /api/v1/admin/interest-tags/:id
- * Get specific interest tag by ID (including inactive)
- */
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -94,15 +93,10 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * POST /api/v1/admin/interest-tags
- * Create a new interest tag
- */
 router.post("/", async (req: Request, res: Response) => {
   try {
     const tagData: InterestTagInsert = req.body;
 
-    // Validate required fields
     if (!tagData.name || typeof tagData.name !== "string" || tagData.name.trim().length === 0) {
       return res.status(400).json({
         error: "Bad Request",
@@ -110,7 +104,6 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    // Validate name length
     if (tagData.name.length > 100) {
       return res.status(400).json({
         error: "Bad Request",
@@ -126,7 +119,6 @@ router.post("/", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error("Unexpected error in POST /admin/interest-tags:", error instanceof Error ? error.message : "Unknown error");
 
-    // Handle unique constraint violation
     if (error instanceof Error && error.message.includes("duplicate") || error instanceof Error && error.message.includes("unique")) {
       return res.status(409).json({
         error: "Conflict",
@@ -141,10 +133,6 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PUT /api/v1/admin/interest-tags/:id
- * Full update an interest tag
- */
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -158,7 +146,6 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const tagData: InterestTagUpdate = req.body;
 
-    // Validate name if provided
     if (tagData.name !== undefined) {
       if (typeof tagData.name !== "string" || tagData.name.trim().length === 0) {
         return res.status(400).json({
@@ -204,10 +191,6 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * PATCH /api/v1/admin/interest-tags/:id
- * Partial update an interest tag
- */
 router.patch("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -221,7 +204,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const tagData: Partial<InterestTagUpdate> = req.body;
 
-    // Validate name if provided
     if (tagData.name !== undefined) {
       if (typeof tagData.name !== "string" || tagData.name.trim().length === 0) {
         return res.status(400).json({
@@ -267,10 +249,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * DELETE /api/v1/admin/interest-tags/:id
- * Soft delete an interest tag (sets is_active to false)
- */
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -307,11 +285,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
   }
 });
 
-/**
- * DELETE /api/v1/admin/interest-tags/:id/hard
- * Hard delete an interest tag (permanently removes from database)
- * WARNING: This will permanently delete the tag. Use with caution.
- */
 router.delete("/:id/hard", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

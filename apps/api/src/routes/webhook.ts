@@ -8,22 +8,12 @@ import { supabase } from "../lib/supabase/client.js";
 
 const router: ExpressRouter = Router();
 
-/**
- * POST /webhook/clerk
- * Clerk webhook endpoint for handling user events
- * Uses svix to verify webhook signatures
- * 
- * Note: The raw body parser (express.raw()) is applied at the app level in setupMiddleware
- * for all /webhook routes, so req.body will be a Buffer here
- */
 router.post("/clerk", async (req: Request, res: Response) => {
   try {
-    // Get the svix headers
     const svixId = req.headers["svix-id"] as string;
     const svixTimestamp = req.headers["svix-timestamp"] as string;
     const svixSignature = req.headers["svix-signature"] as string;
 
-    // If there are no headers, error out
     if (!svixId || !svixTimestamp || !svixSignature) {
       logger.warn("Webhook request missing svix headers");
       return res.status(400).json({
@@ -32,14 +22,10 @@ router.post("/clerk", async (req: Request, res: Response) => {
       });
     }
 
-    // Get the raw body as string (required for svix verification)
-    // req.body is a Buffer from express.raw() middleware applied in setupMiddleware
     const payload = req.body instanceof Buffer ? req.body.toString() : String(req.body);
 
-    // Create a new Svix instance with your webhook secret
     const wh = new Webhook(config.clerkWebhookSecret);
 
-    // Verify the webhook
     let evt: ClerkWebhookEvent;
     try {
       evt = wh.verify(payload, {
@@ -55,7 +41,6 @@ router.post("/clerk", async (req: Request, res: Response) => {
       });
     }
 
-    // Handle the event
     const eventType = evt.type;
 
     logger.info("Webhook event received: " + eventType);

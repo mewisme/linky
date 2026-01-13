@@ -9,16 +9,10 @@ interface Room {
   startedAt: Date; // When the call actually started (after match)
 }
 
-/**
- * Room management service for matched pairs
- */
 export class RoomService {
   private rooms: Map<string, Room> = new Map();
   private userToRoom: Map<string, string> = new Map(); // socketId -> roomId
 
-  /**
-   * Create a room for two matched users
-   */
   createRoom(user1SocketId: string, user2SocketId: string): string {
     const roomId = `room_${user1SocketId}_${user2SocketId}_${Date.now()}`;
 
@@ -39,9 +33,6 @@ export class RoomService {
     return roomId;
   }
 
-  /**
-   * Get room by ID
-   */
   getRoom(roomId: string): Room | undefined {
     const room = this.rooms.get(roomId);
     if (!room) {
@@ -50,9 +41,6 @@ export class RoomService {
     return room;
   }
 
-  /**
-   * Get room for a user
-   */
   getRoomByUser(socketId: string): Room | undefined {
     const roomId = this.userToRoom.get(socketId);
     if (!roomId) {
@@ -61,9 +49,6 @@ export class RoomService {
     return this.rooms.get(roomId);
   }
 
-  /**
-   * Get the peer socket ID for a user in a room
-   */
   getPeer(socketId: string): string | null {
     const room = this.getRoomByUser(socketId);
     if (!room) {
@@ -76,9 +61,6 @@ export class RoomService {
     return peerId;
   }
 
-  /**
-   * Delete a room and clean up mappings
-   */
   deleteRoom(roomId: string): void {
     const room = this.rooms.get(roomId);
     if (!room) {
@@ -94,9 +76,6 @@ export class RoomService {
     logger.info("Room deleted:", roomId, `(Users: ${room.user1}, ${room.user2}, Age: ${Math.round(roomAge / 1000)}s, Active rooms: ${this.rooms.size})`);
   }
 
-  /**
-   * Delete room by user socket ID
-   */
   deleteRoomByUser(socketId: string): Room | null {
     const room = this.getRoomByUser(socketId);
     if (!room) {
@@ -107,16 +86,10 @@ export class RoomService {
     return room;
   }
 
-  /**
-   * Check if a user is in a room
-   */
   isInRoom(socketId: string): boolean {
     return this.userToRoom.has(socketId);
   }
 
-  /**
-   * Get total number of active rooms
-   */
   getRoomCount(): number {
     return this.rooms.size;
   }

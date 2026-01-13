@@ -16,12 +16,10 @@ export function parseCorsOrigin(envValue: string | undefined): string | string[]
 
   const trimmed = envValue.trim();
 
-  // Handle wildcard cases
   if (trimmed === "*" || trimmed.toLowerCase() === "wildcard") {
     return "*";
   }
 
-  // Handle array-like format: [url1, url2] or [url1,url2]
   if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
     const content = trimmed.slice(1, -1).trim();
     if (!content) {
@@ -34,7 +32,6 @@ export function parseCorsOrigin(envValue: string | undefined): string | string[]
     return urls.length > 0 ? urls : "*";
   }
 
-  // Handle comma-separated URLs
   if (trimmed.includes(",")) {
     const urls = trimmed
       .split(",")
@@ -43,7 +40,6 @@ export function parseCorsOrigin(envValue: string | undefined): string | string[]
     return urls.length > 0 ? urls : "*";
   }
 
-  // Single URL
   return trimmed;
 }
 

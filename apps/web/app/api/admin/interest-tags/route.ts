@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { logger } from "@/utils/logger";
+
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
+import { logger } from "@/utils/logger";
 
 /**
  * GET /api/admin/interest-tags
  * Get all interest tags (admin only, including inactive)
+ * 
+ * Query params:
+ * - category?: string - Filter by category
+ * - search?: string - Search by name or description
+ * - isActive?: "true" | "false" | "all" | "1" | "0" - Filter by active status
+ *   - "true" or "1": only active tags (default when filter is used)
+ *   - "false" or "0": only inactive tags
+ *   - "all": all tags (active and inactive)
+ *   - undefined: get all tags (no filter applied)
+ * - limit?: number - Number of results per page (default: 100, max: 200)
+ * - offset?: number - Pagination offset (default: 0)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -20,6 +32,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+    // Forward all query params to backend
+    // Backend will handle isActive filter logic:
+    // - If isActive is provided, filter accordingly
+    // - If isActive is not provided, return all tags
     const response = await fetch(
       `${apiUrl}/api/v1/admin/interest-tags?${searchParams.toString()}`,
       {

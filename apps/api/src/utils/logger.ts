@@ -95,7 +95,6 @@ export const logger = {
     color: chalk.gray,
   }),
 
-  // Custom logger factory for custom labels (automatically truncated to 4 chars)
   custom: (label: string, color: (text: string) => string = chalk.white) => {
     return createLogger({
       level: "info",

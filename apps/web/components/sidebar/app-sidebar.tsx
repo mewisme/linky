@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar';
-import { ChevronDown, ChevronRight, HomeIcon, LogOutIcon, ShieldIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@repo/ui/components/animate-ui/primitives/radix/collapsible'
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import {
 } from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
 import {
   IconActivity,
+  IconContract,
   IconEyeCog,
   IconHome,
   IconLogout,
@@ -45,36 +46,43 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import { Kbd } from '@repo/ui/components/ui/kbd';
 import { Separator } from '@repo/ui/components/ui/separator';
-import { UserIcon } from '@repo/ui/components/animate-ui/icons/user'
 import { cn } from '@repo/ui/lib/utils';
 import { useIsMobile } from '@repo/ui/hooks/use-mobile';
 import { useUser } from '@clerk/nextjs';
 import { useUserStore } from '@/stores/user-store';
 
-interface MenuItem {
+export interface MenuItem {
   label: string;
   icon: React.ElementType;
+  description?: string;
+  category?: string;
   href?: string;
   isAdmin?: boolean;
   open?: boolean;
   subItems?: MenuItem[];
 }
 
-const menuItems: MenuItem[] = [
+export const menuItems: MenuItem[] = [
   {
     label: 'Home',
     icon: IconHome,
+    description: 'Go to the home page',
     href: '/',
+    category: 'Navigation',
   },
   {
     label: 'Video Chat',
     icon: IconView360,
+    description: 'Start a video chat',
     href: '/chat',
+    category: 'Navigation',
   },
   {
     label: 'Call History',
     icon: IconActivity,
+    description: 'View your call history',
     href: '/call-history',
+    category: 'Navigation',
   },
   {
     label: 'User',
@@ -83,37 +91,55 @@ const menuItems: MenuItem[] = [
       {
         label: 'Profile',
         icon: IconUserScan,
+        description: 'View your profile',
         href: '/user/profile',
+        category: 'Account',
       },
     ],
   },
   {
     label: 'Admin Panel',
     icon: IconUserShield,
+    description: 'View the admin dashboard',
     href: '/admin',
     isAdmin: true,
     subItems: [
       {
         label: 'Users',
         icon: IconUsers,
+        description: 'View the users list',
         href: '/admin/users',
+        category: 'Admin',
       },
       {
         label: 'Visitors',
         icon: IconEyeCog,
+        description: 'View the visitors list',
         href: '/admin/visitors',
+        category: 'Admin',
       },
       {
         label: 'Interest Tags',
         icon: IconTags,
+        description: 'View the interest tags list',
         href: '/admin/interest-tags',
+        category: 'Admin',
+      },
+      {
+        label: 'Change Logs',
+        icon: IconContract,
+        description: 'Manage the change logs',
+        href: '/admin/changelogs',
+        category: 'Admin',
       }
     ],
   },
   {
     label: 'Settings',
     icon: IconSettings,
+    description: 'View the settings',
     href: '/settings',
+    category: 'Settings',
   },
 ]
 
@@ -245,7 +271,7 @@ export function AppSidebar() {
                                   router.push(subItem.href)
                                 }
                               }}>
-                                <subItem.icon className={cn('size-6 mx-2 transition-colors duration-300', pathname === subItem.href ? 'text-primary' : 'text-muted-foreground')} />
+                                <subItem.icon className={cn('size-6 mx-2 transition-colors duration-300', pathname === subItem.href ? 'text-primary' : 'text-muted-foreground!')} />
                                 <span>{subItem.label}</span>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>

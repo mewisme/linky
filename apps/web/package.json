@@ -32,7 +32,9 @@
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.6.0",
     "react-image-crop": "^11.0.10",
+    "react-markdown": "^10.1.0",
     "recharts": "3.6.0",
+    "remark-gfm": "^4.0.1",
     "socket.io-client": "^4.8.1",
     "styled-jsx": "^5.1.7",
     "zustand": "^5.0.9"

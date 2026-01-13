@@ -99,7 +99,6 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<CallHistoryRecord>[
   },
   {
     id: "actions",
-    header: "Actions",
     cell: ({ row }) => {
       return (
         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

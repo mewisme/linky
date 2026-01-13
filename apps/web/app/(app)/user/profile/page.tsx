@@ -11,13 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/components/ui/card'
-import { CreateExternalAccountParams, ExternalAccountResource, OAuthStrategy } from '@clerk/types'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/ui/dropdown-menu'
 import {
   IconBrandApple,
   IconBrandFacebook,
@@ -25,11 +18,8 @@ import {
   IconCamera,
   IconCircleCheckFilled,
   IconCircleXFilled,
-  IconDotsVertical,
   IconLoader2,
   IconPencil,
-  IconPlus,
-  IconTrash,
 } from '@tabler/icons-react'
 import {
   Popover,
@@ -37,13 +27,6 @@ import {
   PopoverTrigger,
 } from '@repo/ui/components/ui/popover'
 import React, { useEffect, useState, useTransition } from 'react'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@repo/ui/components/ui/tabs'
-import { useReverification, useUser } from '@clerk/nextjs'
 
 import { AppLayout } from '@/components/layouts/app-layout'
 import { Badge } from '@repo/ui/components/ui/badge'
@@ -52,36 +35,16 @@ import { Input } from '@repo/ui/components/ui/input'
 import { Label } from '@repo/ui/components/ui/label'
 import { Separator } from '@repo/ui/components/ui/separator'
 import toast from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
-
-/* ---------------- helpers ---------------- */
-
-const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1)
-const normalizeProvider = (provider: string) => provider.split('_')[1]
-
-/* ---------------- page ---------------- */
+import { useUser } from '@clerk/nextjs'
 
 export default function UserProfilePage() {
-  const router = useRouter()
   const { isLoaded, user } = useUser()
   const [isPending, startTransition] = useTransition()
 
-  /* -------- name update state -------- */
   const [open, setOpen] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
 
-  /* -------- clerk wrappers -------- */
-  const createExternalAccount = useReverification(
-    (params: CreateExternalAccountParams) =>
-      user?.createExternalAccount(params),
-  )
-
-  const accountDestroy = useReverification(
-    (account: ExternalAccountResource) => account.destroy(),
-  )
-
-  /* -------- fill name when popover opens -------- */
   useEffect(() => {
     if (!open || !user) return
     setFirstName(user.firstName ?? '')
@@ -90,58 +53,14 @@ export default function UserProfilePage() {
 
   if (!isLoaded || !user) return null
 
-  /* -------- sso -------- */
-  const ssoOptions: OAuthStrategy[] = [
-    'oauth_google',
-    'oauth_facebook',
-    'oauth_apple',
-  ]
-
-  const unconnectedOptions = ssoOptions.filter(
-    (option) =>
-      !user.externalAccounts.some(
-        (acc) => acc.provider === normalizeProvider(option),
-      ),
-  )
-
-  /* ---------------- handlers ---------------- */
-
   const handleUpdateProfile = () => {
     startTransition(async () => {
       try {
         await user.update({ firstName, lastName })
         toast.success('Profile updated')
         setOpen(false)
-      } catch (err: any) {
-        toast.error(err.errors?.[0]?.message || 'Update failed')
-      }
-    })
-  }
-
-  const handleAddSSO = async (strategy: OAuthStrategy) => {
-    startTransition(async () => {
-      try {
-        const res = await createExternalAccount({
-          strategy,
-          redirectUrl: window.location.pathname,
-        })
-
-        if (res?.verification?.externalVerificationRedirectURL) {
-          router.push(res.verification.externalVerificationRedirectURL.href)
-        }
-      } catch (err: any) {
-        toast.error(err.errors?.[0]?.message || 'Failed to initiate SSO')
-      }
-    })
-  }
-
-  const handleRemoveSSO = async (account: ExternalAccountResource) => {
-    startTransition(async () => {
-      try {
-        await accountDestroy(account)
-        toast.success(`${capitalize(account.provider)} disconnected`)
-      } catch (err: any) {
-        toast.error(err.errors?.[0]?.message || 'Failed to disconnect')
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : 'Update failed')
       }
     })
   }
@@ -156,13 +75,11 @@ export default function UserProfilePage() {
       try {
         await user.setProfileImage({ file })
         toast.success('Avatar updated')
-      } catch {
-        toast.error('Upload failed')
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : 'Upload failed')
       }
     })
   }
-
-  /* ---------------- render ---------------- */
 
   return (
     <AppLayout
@@ -175,7 +92,6 @@ export default function UserProfilePage() {
         </CardHeader>
 
         <CardContent className="space-y-8">
-          {/* -------- profile -------- */}
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="relative group">
               <Avatar className="size-32 border-2 border-muted shadow-sm">
@@ -214,7 +130,6 @@ export default function UserProfilePage() {
                 </p>
               </div>
 
-              {/* -------- edit name popover -------- */}
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -284,7 +199,6 @@ export default function UserProfilePage() {
           </div>
           <Separator />
 
-          {/* Email Addresses */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Email Addresses</h3>
             <div className="grid gap-3">
@@ -305,7 +219,6 @@ export default function UserProfilePage() {
           </div>
           <Separator />
 
-          {/* -------- connected accounts -------- */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">

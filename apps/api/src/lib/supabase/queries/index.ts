@@ -9,3 +9,6 @@ export * from "./user-details.js";
 
 // Export all interest-tags related queries
 export * from "./interest-tags.js";
+
+// Export all changelogs related queries
+export * from "./changelogs.js";

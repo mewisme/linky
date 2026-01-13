@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SidebarInset, SidebarProvider } from "@repo/ui/components/animate-ui/components/radix/sidebar";
 
 import { AppHeader } from "@/components/header/app/app-header";
-import { AppSidebar } from "@/components/sidebar";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { Suspense } from "react";
 import { usePageView } from "@/hooks/use-page-view";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";

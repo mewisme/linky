@@ -1,5 +1,5 @@
-import { TextHoverEffect } from '@repo/ui/components/ui/text-hover-effect';
 import Link from 'next/link';
+import { TextHoverEffect } from '@repo/ui/components/ui/text-hover-effect';
 
 export const LandingFooter = () => {
   return (
@@ -24,6 +24,13 @@ export const LandingFooter = () => {
           className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Privacy Policy
+        </Link>
+        <span className="text-xs sm:text-sm text-muted-foreground">·</span>
+        <Link
+          href="/changelogs"
+          className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Changelogs
         </Link>
       </div>
     </footer>

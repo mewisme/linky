@@ -1,20 +1,20 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { config } from "../config/index.js";
-import { logger } from "../utils/logger.js";
+import { config } from "../../config/index.js";
+import { logger } from "../../utils/logger.js";
 import {
   getUploadUrl,
   getDownloadUrl,
-} from "../lib/s3/presigned.js";
+} from "../../lib/s3/presigned.js";
 import {
   deleteObject,
   listObjects,
-} from "../lib/s3/object.js";
+} from "../../lib/s3/object.js";
 import {
   startMultipart,
   getPartUploadUrl,
   completeMultipart,
   abortMultipart,
-} from "../lib/s3/multipart.js";
+} from "../../lib/s3/multipart.js";
 
 const router: ExpressRouter = Router();
 

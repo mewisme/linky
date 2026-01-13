@@ -1,13 +1,13 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { supabase } from "../lib/supabase/client.js";
+import { supabase } from "../../lib/supabase/client.js";
 import {
   createCallHistory,
   getCallHistoryByUserId,
   getCallHistoryById,
   getUserIdByClerkId,
   getUserCountry,
-} from "../lib/supabase/queries/call-history.js";
-import { logger } from "../utils/logger.js";
+} from "../../lib/supabase/queries/call-history.js";
+import { logger } from "../../utils/logger.js";
 
 const router: ExpressRouter = Router();
 

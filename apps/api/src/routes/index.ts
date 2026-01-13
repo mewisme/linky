@@ -1,8 +1,9 @@
 import { type Express, type Request, type Response } from "express";
 import apiRouter from "./api.js";
 import analyticsRouter from "./analytics.js";
-import iceServersRouter from "./ice-servers.js";
-import s3Router from "./s3.js";
+import interestTagsRouter from "./resources/interest-tags.js";
+import iceServersRouter from "./media/ice-servers.js";
+import s3Router from "./media/s3.js";
 import webhookRouter from "./webhook.js";
 import adminRouter from "./admin.js";
 import { clerkMiddleware } from "../middleware/clerk.js";
@@ -25,12 +26,13 @@ export function setupRoutes(app: Express): void {
     res.json({ message: "API is running" });
   });
 
-  // Public analytics route (no authentication required)
+  // Public routes (no authentication required)
   app.use("/api/v1/analytics", analyticsRouter);
+  app.use("/api/v1/interest-tags", interestTagsRouter);
 
   app.use(clerkMiddleware);
 
-  // Mount API routes
+  // Mount API routes (protected by clerkMiddleware)
   app.use("/api/v1", apiRouter);
 
   // Mount S3 routes (protected by clerkMiddleware)

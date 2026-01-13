@@ -1,14 +1,16 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Update parameter types in API routes to use Promises ([3b95ad0](../../commit/3b95ad0))
+- Integrate react-query and enhance admin layouts ([1ec13d2](../../commit/1ec13d2))
+- Add frimousse package and clean up comments in API code ([0df1fbe](../../commit/0df1fbe))
+- Implement interest tags management and user details enhancements ([42e6b1c](../../commit/42e6b1c))
+- Add user details and interest tags management ([4f6e419](../../commit/4f6e419))
 
 🔨 Other Changes
 
-- Update CHANGELOG for call history storage completion and package version bump to 0.10.1 ([fe6ff9e](../../commit/fe6ff9e))
-- Mark call history storage as complete and clean up API routes ([a4531bc](../../commit/a4531bc))
-- Update package versions to 0.10.1 across all packages and update version lock ([84089d0](../../commit/84089d0))
+- Bump turbo package version to 2.7.4 in package.json and pnpm-lock.yaml ([315d1dd](../../commit/315d1dd))
+- Bump package versions to 0.10.2 and update version lock ([26d7738](../../commit/26d7738))
 
 
-📋 Full Changelog: [84089d0...3b95ad0](../../compare/84089d0...3b95ad0)
+📋 Full Changelog: [26d7738...1ec13d2](../../compare/26d7738...1ec13d2)

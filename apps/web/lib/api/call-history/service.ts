@@ -8,7 +8,7 @@ export async function getCallHistory(
   const { limit = 50, offset = 0 } = options;
 
   const response = await axios.get<CallHistoryResponse>(
-    "/api/call-history",
+    "/api/resources/call-history",
     {
       params: { limit, offset },
       headers: {
@@ -26,7 +26,7 @@ export async function getCallHistoryById(
   id: string
 ): Promise<CallHistoryRecord> {
   const response = await axios.get<CallHistoryRecord>(
-    `/api/call-history/${id}`,
+    `/api/resources/call-history/${id}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

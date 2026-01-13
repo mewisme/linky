@@ -14,6 +14,19 @@ import {
   DropdownMenuTrigger,
 } from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
 import {
+  IconActivity,
+  IconEyeCog,
+  IconHome,
+  IconLogout,
+  IconSettings,
+  IconTags,
+  IconUser,
+  IconUserScan,
+  IconUserShield,
+  IconUsers,
+  IconView360
+} from '@tabler/icons-react'
+import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
@@ -30,15 +43,9 @@ import { SignOutButton, useAuth } from '@clerk/nextjs'
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation'
 
-import { ActivityIcon } from '@repo/ui/components/animate-ui/icons/activity';
-import { AnimateIcon } from '@repo/ui/components/animate-ui/icons/icon';
-import { AudioLines } from '@repo/ui/components/animate-ui/icons/audio-lines'
-import { ChartLineIcon } from '@repo/ui/components/animate-ui/icons/chart-line'
-import { CogIcon } from '@repo/ui/components/animate-ui/icons/cog'
 import { Kbd } from '@repo/ui/components/ui/kbd';
 import { Separator } from '@repo/ui/components/ui/separator';
 import { UserIcon } from '@repo/ui/components/animate-ui/icons/user'
-import { UsersIcon } from '@repo/ui/components/animate-ui/icons/users'
 import { cn } from '@repo/ui/lib/utils';
 import { useIsMobile } from '@repo/ui/hooks/use-mobile';
 import { useUser } from '@clerk/nextjs';
@@ -56,51 +63,56 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   {
     label: 'Home',
-    icon: HomeIcon,
+    icon: IconHome,
     href: '/',
   },
   {
     label: 'Video Chat',
-    icon: AudioLines,
+    icon: IconView360,
     href: '/chat',
   },
   {
     label: 'Call History',
-    icon: ActivityIcon,
+    icon: IconActivity,
     href: '/call-history',
   },
   {
     label: 'User',
-    icon: UserIcon,
+    icon: IconUser,
     subItems: [
       {
         label: 'Profile',
-        icon: UserIcon,
+        icon: IconUserScan,
         href: '/user/profile',
       },
     ],
   },
   {
     label: 'Admin Panel',
-    icon: ShieldIcon,
+    icon: IconUserShield,
     href: '/admin',
     isAdmin: true,
     subItems: [
       {
         label: 'Users',
-        icon: UsersIcon,
+        icon: IconUsers,
         href: '/admin/users',
       },
       {
         label: 'Visitors',
-        icon: ChartLineIcon,
+        icon: IconEyeCog,
         href: '/admin/visitors',
       },
+      {
+        label: 'Interest Tags',
+        icon: IconTags,
+        href: '/admin/interest-tags',
+      }
     ],
   },
   {
     label: 'Settings',
-    icon: CogIcon,
+    icon: IconSettings,
     href: '/settings',
   },
 ]
@@ -174,14 +186,14 @@ export function AppSidebar() {
                 <DropdownMenuGroup>
                   <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => router.push('/user/profile')}>
                     <div className="flex size-6 items-center justify-center rounded-sm border">
-                      <UserIcon className='size-4 shrink-0' />
+                      <IconUser className='size-4 shrink-0' />
                     </div>
                     <span>Manage Account</span>
                   </DropdownMenuItem>
                   {userStore?.role === 'admin' && (
                     <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => router.push('/admin')}>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
-                        <ShieldIcon className='size-4 shrink-0' />
+                        <IconUserShield className='size-4 shrink-0' />
                       </div>
                       <span>Admin Dashboard</span>
                     </DropdownMenuItem>
@@ -191,7 +203,7 @@ export function AppSidebar() {
                 <SignOutButton>
                   <DropdownMenuItem variant="destructive" className='cursor-pointer gap-2 p-2'>
                     <div className="flex size-6 items-center justify-center rounded-sm border">
-                      <LogOutIcon className='size-4 shrink-0 dark:text-red-400 text-red-500' />
+                      <IconLogout className='size-4 shrink-0 dark:text-red-400 text-red-500' />
                     </div>
                     <span className='dark:text-red-400'>Logout</span>
                     <DropdownMenuShortcut>
@@ -213,7 +225,7 @@ export function AppSidebar() {
             const isSubItemActive = item.subItems?.some(subItem => pathname === subItem.href);
 
             return (
-              <AnimateIcon animateOnHover key={item.href ?? item.label}>
+              <>
                 {item.subItems ? (
                   <Collapsible defaultOpen={item.open ?? false} className="group/collapsible">
                     <SidebarMenuItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && isSubItemActive ? 'bg-sidebar-accent text-primary' : '')}>
@@ -227,18 +239,16 @@ export function AppSidebar() {
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.subItems?.map((subItem) => (
-                            <AnimateIcon animateOnHover key={subItem.href ?? subItem.label}>
-                              <SidebarMenuSubItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : '', state === 'collapsed' && pathname !== subItem.href ? 'text-muted-foreground' : '')}>
-                                <SidebarMenuSubButton className={cn(state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300', state === 'expanded' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : 'text-muted-foreground')} onClick={() => {
-                                  if (subItem.href) {
-                                    router.push(subItem.href)
-                                  }
-                                }}>
-                                  <subItem.icon className='size-6 mx-2' />
-                                  <span>{subItem.label}</span>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            </AnimateIcon>
+                            <SidebarMenuSubItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : '', state === 'collapsed' && pathname !== subItem.href ? 'text-muted-foreground' : '')}>
+                              <SidebarMenuSubButton className={cn(state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300', state === 'expanded' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : 'text-muted-foreground')} onClick={() => {
+                                if (subItem.href) {
+                                  router.push(subItem.href)
+                                }
+                              }}>
+                                <subItem.icon className={cn('size-6 mx-2 transition-colors duration-300', pathname === subItem.href ? 'text-primary' : 'text-muted-foreground')} />
+                                <span>{subItem.label}</span>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
                           ))}
                         </SidebarMenuSub>
                       </CollapsibleContent>
@@ -256,7 +266,7 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
-              </AnimateIcon>
+              </>
             );
           })}
         </SidebarMenu>

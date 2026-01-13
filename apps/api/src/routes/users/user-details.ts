@@ -7,6 +7,10 @@ import {
   createUserDetails,
   updateUserDetails,
   patchUserDetails,
+  addInterestTags,
+  removeInterestTags,
+  replaceInterestTags,
+  clearInterestTags,
 } from "../../lib/supabase/queries/user-details.js";
 import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 import { getInterestTagsByIds } from "../../lib/supabase/queries/interest-tags.js";
@@ -262,6 +266,239 @@ router.patch("/me", async (req: Request, res: Response) => {
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to update user details",
+    });
+  }
+});
+
+/**
+ * POST /api/v1/user-details/me/interest-tags
+ * Add interest tags to user details
+ */
+router.post("/me/interest-tags", async (req: Request, res: Response) => {
+  try {
+    const clerkUserId = req.auth?.sub;
+
+    if (!clerkUserId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User ID not found in authentication token",
+      });
+    }
+
+    const userId = await getUserIdByClerkId(clerkUserId);
+    if (!userId) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found in database",
+      });
+    }
+
+    const { tagIds } = req.body;
+
+    if (!Array.isArray(tagIds) || tagIds.length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "tagIds must be a non-empty array",
+      });
+    }
+
+    const result = await addInterestTags(userId, tagIds);
+
+    // Fetch with expanded tags
+    const userDetails = await getUserDetailsWithTags(userId);
+
+    logger.info("Interest tags added for user:", userId);
+
+    return res.json(userDetails);
+  } catch (error) {
+    logger.error("Unexpected error in POST /user-details/me/interest-tags:", error instanceof Error ? error.message : "Unknown error");
+
+    if (error instanceof Error && error.message.includes("Invalid or inactive")) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: error.message,
+      });
+    }
+
+    if (error instanceof Error && error.message === "User details not found") {
+      return res.status(404).json({
+        error: "Not Found",
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to add interest tags",
+    });
+  }
+});
+
+/**
+ * DELETE /api/v1/user-details/me/interest-tags
+ * Remove interest tags from user details
+ */
+router.delete("/me/interest-tags", async (req: Request, res: Response) => {
+  try {
+    const clerkUserId = req.auth?.sub;
+
+    if (!clerkUserId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User ID not found in authentication token",
+      });
+    }
+
+    const userId = await getUserIdByClerkId(clerkUserId);
+    if (!userId) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found in database",
+      });
+    }
+
+    const { tagIds } = req.body;
+
+    if (!Array.isArray(tagIds) || tagIds.length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "tagIds must be a non-empty array",
+      });
+    }
+
+    const result = await removeInterestTags(userId, tagIds);
+
+    // Fetch with expanded tags
+    const userDetails = await getUserDetailsWithTags(userId);
+
+    logger.info("Interest tags removed for user:", userId);
+
+    return res.json(userDetails);
+  } catch (error) {
+    logger.error("Unexpected error in DELETE /user-details/me/interest-tags:", error instanceof Error ? error.message : "Unknown error");
+
+    if (error instanceof Error && error.message === "User details not found") {
+      return res.status(404).json({
+        error: "Not Found",
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to remove interest tags",
+    });
+  }
+});
+
+/**
+ * PUT /api/v1/user-details/me/interest-tags
+ * Replace all interest tags in user details
+ */
+router.put("/me/interest-tags", async (req: Request, res: Response) => {
+  try {
+    const clerkUserId = req.auth?.sub;
+
+    if (!clerkUserId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User ID not found in authentication token",
+      });
+    }
+
+    const userId = await getUserIdByClerkId(clerkUserId);
+    if (!userId) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found in database",
+      });
+    }
+
+    const { tagIds } = req.body;
+
+    if (!Array.isArray(tagIds)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "tagIds must be an array",
+      });
+    }
+
+    const result = await replaceInterestTags(userId, tagIds);
+
+    // Fetch with expanded tags
+    const userDetails = await getUserDetailsWithTags(userId);
+
+    logger.info("Interest tags replaced for user:", userId);
+
+    return res.json(userDetails);
+  } catch (error) {
+    logger.error("Unexpected error in PUT /user-details/me/interest-tags:", error instanceof Error ? error.message : "Unknown error");
+
+    if (error instanceof Error && error.message.includes("Invalid or inactive")) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: error.message,
+      });
+    }
+
+    if (error instanceof Error && error.message === "User details not found") {
+      return res.status(404).json({
+        error: "Not Found",
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to replace interest tags",
+    });
+  }
+});
+
+/**
+ * DELETE /api/v1/user-details/me/interest-tags/all
+ * Clear all interest tags from user details
+ */
+router.delete("/me/interest-tags/all", async (req: Request, res: Response) => {
+  try {
+    const clerkUserId = req.auth?.sub;
+
+    if (!clerkUserId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User ID not found in authentication token",
+      });
+    }
+
+    const userId = await getUserIdByClerkId(clerkUserId);
+    if (!userId) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found in database",
+      });
+    }
+
+    const result = await clearInterestTags(userId);
+
+    // Fetch with expanded tags
+    const userDetails = await getUserDetailsWithTags(userId);
+
+    logger.info("Interest tags cleared for user:", userId);
+
+    return res.json(userDetails);
+  } catch (error) {
+    logger.error("Unexpected error in DELETE /user-details/me/interest-tags/all:", error instanceof Error ? error.message : "Unknown error");
+
+    if (error instanceof Error && error.message === "User details not found") {
+      return res.status(404).json({
+        error: "Not Found",
+        message: error.message,
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to clear interest tags",
     });
   }
 });

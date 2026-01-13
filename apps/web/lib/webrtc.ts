@@ -6,7 +6,7 @@ export interface IceServersResponse {
 
 export async function fetchIceServers(token: string | null): Promise<RTCIceServer[]> {
   try {
-    const response = await client.get<IceServersResponse>("/api/ice-servers", {
+    const response = await client.get<IceServersResponse>("/api/media/ice-servers", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

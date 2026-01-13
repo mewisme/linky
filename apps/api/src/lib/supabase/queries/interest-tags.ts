@@ -1,5 +1,6 @@
 import { logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
+import type { TablesInsert, TablesUpdate } from "../../../types/database.types.js";
 
 export interface GetInterestTagsOptions {
   category?: string;
@@ -91,4 +92,89 @@ export async function getInterestTagsByIds(ids: string[]) {
   }
 
   return data || [];
+}
+
+type InterestTagInsert = TablesInsert<"interest_tags">;
+type InterestTagUpdate = TablesUpdate<"interest_tags">;
+
+/**
+ * Create a new interest tag (admin only)
+ */
+export async function createInterestTag(data: InterestTagInsert) {
+  const { data: created, error } = await supabase
+    .from("interest_tags")
+    .insert(data)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error creating interest tag:", error.message);
+    throw error;
+  }
+
+  return created;
+}
+
+/**
+ * Update an interest tag (admin only)
+ */
+export async function updateInterestTag(id: string, data: InterestTagUpdate) {
+  const { data: updated, error } = await supabase
+    .from("interest_tags")
+    .update(data)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      throw new Error("Interest tag not found");
+    }
+    logger.error("Error updating interest tag:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+/**
+ * Delete an interest tag (admin only)
+ * Note: This is a soft delete by setting is_active to false
+ * For hard delete, use deleteInterestTagHard
+ */
+export async function deleteInterestTag(id: string) {
+  const { data: updated, error } = await supabase
+    .from("interest_tags")
+    .update({ is_active: false })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      throw new Error("Interest tag not found");
+    }
+    logger.error("Error deleting interest tag:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+/**
+ * Hard delete an interest tag (admin only)
+ * WARNING: This permanently deletes the tag. Use with caution.
+ */
+export async function deleteInterestTagHard(id: string) {
+  const { error } = await supabase
+    .from("interest_tags")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    logger.error("Error hard deleting interest tag:", error.message);
+    throw error;
+  }
+
+  return { success: true };
 }

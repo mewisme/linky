@@ -2,11 +2,12 @@
 
 ✨ Features
 
-- Enhance S3 upload functionality and improve changelog creation ([10b24c5](../../commit/10b24c5))
+- Enable client-side rendering in AppLayout component ([399951e](../../commit/399951e))
+- Create changelogs_with_creator view and update changelog interfaces ([9e39d92](../../commit/9e39d92))
 
 🔨 Other Changes
 
-- Bump package versions to 0.13.0 and update version lock ([e34ec27](../../commit/e34ec27))
+- Bump package versions to 0.14.0 and update version lock ([1d2c7c3](../../commit/1d2c7c3))
 
 
-📋 Full Changelog: [e34ec27...10b24c5](../../compare/e34ec27...10b24c5)
+📋 Full Changelog: [1d2c7c3...399951e](../../compare/1d2c7c3...399951e)

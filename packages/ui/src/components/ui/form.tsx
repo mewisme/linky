@@ -15,6 +15,9 @@ import {
 
 import { cn } from "@repo/ui/lib/utils"
 import { Label } from "@repo/ui/components/ui/label"
+export * as ReactHookFormPrimitive from "react-hook-form"
+export * as HookFormZodPrimitive from "@hookform/resolvers/zod"
+export * as ZodPrimitive from "zod"
 
 const Form = FormProvider
 

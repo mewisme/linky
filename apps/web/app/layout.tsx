@@ -1,4 +1,4 @@
-import "@repo/ui/globals.css";
+import "../styles/globals.css";
 
 import { Geist, Geist_Mono } from "next/font/google";
 

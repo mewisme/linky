@@ -139,17 +139,24 @@ export function useVideoChat(): UseVideoChatReturn {
         });
       },
       onConnectionStateChange: (connectionState: RTCPeerConnectionState) => {
-        if (connectionState === "disconnected" || connectionState === "failed") {
+        if (connectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
         } else if (connectionState === "connected") {
           actionsRef.current.setConnectionStatus("connected");
+          hasShownConnectedToastRef.current = true;
+        } else if (connectionState === "disconnected") {
+          actionsRef.current.setConnectionStatus("connecting");
         }
       },
       onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => {
-        if (iceConnectionState === "failed" || iceConnectionState === "disconnected") {
+        if (iceConnectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
+        } else if (iceConnectionState === "connected" || iceConnectionState === "completed") {
+          actionsRef.current.setConnectionStatus("connected");
+        } else if (iceConnectionState === "disconnected") {
+          actionsRef.current.setConnectionStatus("connecting");
         }
       },
     }),
@@ -196,6 +203,12 @@ export function useVideoChat(): UseVideoChatReturn {
           return;
         }
 
+        if (iceServersRef.current.length === 0) {
+          logger.error("ICE servers not available for match");
+          actionsRef.current.setError("Connection configuration not ready. Please try again.");
+          return;
+        }
+
         peerConnection.initializePeerConnection(localStream, peerCallbacks);
 
         if (data.isOfferer) {
@@ -218,8 +231,9 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onSignal: async (data: SignalData) => {
-        if (!peerConnection.isConnectionValid()) {
-          logger.warn("Signal received but peer connection not ready");
+        const pc = peerConnection.getPeerConnection();
+        if (!pc || pc.signalingState === "closed") {
+          logger.warn("Signal received but peer connection not ready or closed");
           return;
         }
 
@@ -243,7 +257,8 @@ export function useVideoChat(): UseVideoChatReturn {
             await peerConnection.addIceCandidate(data.candidate);
           }
         } catch (err) {
-          if (peerConnection.isConnectionValid()) {
+          const currentPc = peerConnection.getPeerConnection();
+          if (currentPc && currentPc.signalingState !== "closed") {
             logger.error("Error handling signal:", err);
             actionsRef.current.setError("Failed to process connection signal. Please try again.");
           } else {
@@ -343,6 +358,10 @@ export function useVideoChat(): UseVideoChatReturn {
 
       if (iceServersRef.current.length === 0) {
         iceServersRef.current = await fetchIceServers(token);
+      }
+
+      if (iceServersRef.current.length === 0) {
+        throw new Error("Failed to obtain ICE servers");
       }
 
       const stream = await mediaStream.acquireMedia();

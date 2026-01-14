@@ -15,6 +15,16 @@ export interface PeerConnectionCallbacks {
 export function usePeerConnection(iceServers: RTCIceServer[]) {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const callbacksRef = useRef<PeerConnectionCallbacks | null>(null);
+  const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
+  const remoteDescriptionSetRef = useRef<boolean>(false);
+  const initializingRef = useRef<boolean>(false);
+  const iceServersRef = useRef<RTCIceServer[]>(iceServers);
+
+  useEffect(() => {
+    if (iceServers && iceServers.length > 0) {
+      iceServersRef.current = iceServers;
+    }
+  }, [iceServers]);
 
   const isConnectionValid = useCallback((): boolean => {
     const pc = pcRef.current;
@@ -26,18 +36,31 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     return (
       signalingState !== "closed" &&
       connectionState !== "closed" &&
-      connectionState !== "failed" &&
-      connectionState !== "disconnected"
+      connectionState !== "failed"
     );
   }, []);
 
   const initializePeerConnection = useCallback(
     (localStream: MediaStream, callbacks: PeerConnectionCallbacks): RTCPeerConnection => {
+      if (initializingRef.current) {
+        logger.warn("PeerConnection initialization already in progress, skipping");
+        return pcRef.current!;
+      }
+
       if (pcRef.current) {
         closePeerConnection(pcRef.current);
       }
 
-      const pc = createPeerConnection(iceServers);
+      const currentIceServers = iceServersRef.current;
+      if (!currentIceServers || currentIceServers.length === 0) {
+        throw new Error("ICE servers must be provided before initializing PeerConnection");
+      }
+
+      initializingRef.current = true;
+      pendingIceCandidatesRef.current = [];
+      remoteDescriptionSetRef.current = false;
+
+      const pc = createPeerConnection(currentIceServers);
       pcRef.current = pc;
       callbacksRef.current = callbacks;
 
@@ -82,9 +105,10 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
         logger.info("ICE gathering state changed:", pc.iceGatheringState);
       };
 
+      initializingRef.current = false;
       return pc;
     },
-    [iceServers]
+    []
   );
 
   const createOffer = useCallback(async (): Promise<RTCSessionDescriptionInit> => {
@@ -104,30 +128,73 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
 
   const handleOffer = useCallback(async (offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit> => {
     const pc = pcRef.current;
-    if (!pc || !isConnectionValid()) {
-      throw new Error("Peer connection not ready");
+    if (!pc) {
+      throw new Error("Peer connection not initialized");
+    }
+
+    if (pc.signalingState === "closed") {
+      throw new Error("Peer connection is closed");
     }
 
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
+    remoteDescriptionSetRef.current = true;
+
+    const pendingCandidates = pendingIceCandidatesRef.current.splice(0);
+    for (const candidate of pendingCandidates) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        logger.info("Added buffered ICE candidate");
+      } catch (err) {
+        logger.warn("Failed to add buffered ICE candidate:", err);
+      }
+    }
+
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
     return answer;
-  }, [isConnectionValid]);
+  }, []);
 
   const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit): Promise<void> => {
     const pc = pcRef.current;
-    if (!pc || !isConnectionValid()) {
-      throw new Error("Peer connection not ready");
+    if (!pc) {
+      throw new Error("Peer connection not initialized");
+    }
+
+    if (pc.signalingState === "closed") {
+      throw new Error("Peer connection is closed");
     }
 
     await pc.setRemoteDescription(new RTCSessionDescription(answer));
-  }, [isConnectionValid]);
+    remoteDescriptionSetRef.current = true;
+
+    const pendingCandidates = pendingIceCandidatesRef.current.splice(0);
+    for (const candidate of pendingCandidates) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        logger.info("Added buffered ICE candidate");
+      } catch (err) {
+        logger.warn("Failed to add buffered ICE candidate:", err);
+      }
+    }
+  }, []);
 
   const addIceCandidate = useCallback(async (candidate: RTCIceCandidateInit): Promise<void> => {
     const pc = pcRef.current;
-    if (!pc || !isConnectionValid()) {
-      logger.warn("ICE candidate received but connection is not valid, ignoring");
+    if (!pc) {
+      logger.warn("ICE candidate received but peer connection not initialized, buffering");
+      pendingIceCandidatesRef.current.push(candidate);
+      return;
+    }
+
+    if (pc.signalingState === "closed") {
+      logger.warn("ICE candidate received but peer connection is closed, ignoring");
+      return;
+    }
+
+    if (!remoteDescriptionSetRef.current) {
+      logger.info("ICE candidate received before remote description, buffering");
+      pendingIceCandidatesRef.current.push(candidate);
       return;
     }
 
@@ -135,16 +202,17 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       await pc.addIceCandidate(new RTCIceCandidate(candidate));
       logger.info("ICE candidate added successfully");
     } catch (err) {
-      if (isConnectionValid()) {
-        logger.warn("Failed to add ICE candidate:", err);
-      }
+      logger.warn("Failed to add ICE candidate:", err);
     }
-  }, [isConnectionValid]);
+  }, []);
 
   const closePeer = useCallback(() => {
     closePeerConnection(pcRef.current);
     pcRef.current = null;
     callbacksRef.current = null;
+    pendingIceCandidatesRef.current = [];
+    remoteDescriptionSetRef.current = false;
+    initializingRef.current = false;
   }, []);
 
   const getPeerConnection = useCallback((): RTCPeerConnection | null => {

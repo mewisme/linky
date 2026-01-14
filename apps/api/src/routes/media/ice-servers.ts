@@ -12,25 +12,13 @@ interface CloudflareTurnResponse {
   }>;
 }
 
-interface CachedIceServers {
-  data: CloudflareTurnResponse;
-  expiresAt: number;
-}
-
-let iceServersCache: CachedIceServers | null = null;
-
 router.get("/ice-servers", async (_req: Request, res: Response) => {
   logger.info("ICE servers request received");
 
   try {
-    if (iceServersCache && iceServersCache.expiresAt > Date.now()) {
-      const cacheAge = Math.round((Date.now() - (iceServersCache.expiresAt - 3600000)) / 1000);
-      logger.info("Returning cached ICE servers", `(Cache age: ${cacheAge}s)`);
-      return res.json(iceServersCache.data);
-    }
+    const apiToken = config.cloudflareTurnApiToken;
+    const keyId = config.cloudflareTurnKeyId;
 
-    const apiToken = process.env.CLOUDFLARE_TURN_API_TOKEN;
-    const keyId = process.env.CLOUDFLARE_TURN_KEY_ID;
 
     if (!apiToken || !keyId) {
       logger.error("Cloudflare TURN credentials not configured");
@@ -54,7 +42,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
           Authorization: `Bearer ${apiToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ttl: 86400 }),
+        body: JSON.stringify({ ttl: 300 }),
         signal: controller.signal,
       });
 
@@ -71,13 +59,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
       const data = (await response.json()) as CloudflareTurnResponse;
 
-      const ttl = 3600000;
-      iceServersCache = {
-        data,
-        expiresAt: Date.now() + ttl,
-      };
-
-      logger.done("ICE servers fetched and cached successfully", `(Expires in: ${Math.round(ttl / 1000)}s)`);
+      logger.done("ICE servers fetched successfully");
       res.json(data);
     } catch (fetchError) {
       clearTimeout(timeoutId);
@@ -102,4 +84,3 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 });
 
 export default router;
-

@@ -53,10 +53,6 @@ export function Editor({ className, value = '', onChange, editable = true }: Edi
 
   useEditorChange(
     (editor, ctx) => {
-      const changes = ctx.getChanges();
-      console.log(changes);
-
-      // Convert blocks to markdown and call onChange
       if (onChange && !isUpdatingRef.current) {
         const markdown = editor.blocksToMarkdownLossy(editor.document);
         onChange(markdown);
@@ -70,7 +66,6 @@ export function Editor({ className, value = '', onChange, editable = true }: Edi
       isUpdatingRef.current = true;
       const blocks = editor.tryParseMarkdownToBlocks(value);
       editor.replaceBlocks(editor.document, blocks);
-      // Reset flag after a short delay to allow the change handler to process
       setTimeout(() => {
         isUpdatingRef.current = false;
       }, 0);

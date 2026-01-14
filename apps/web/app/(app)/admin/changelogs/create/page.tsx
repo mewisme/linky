@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
-import { ChevronLeft, FileText, Save, Settings2 } from "lucide-react"; // Thêm icon cho trực quan
+import { FileText, Save, Settings2 } from "lucide-react"; // Thêm icon cho trực quan
 import {
   Form,
   FormControl,
@@ -80,9 +80,9 @@ export default function CreateChangelogPage() {
     setIsSubmitting(true);
     try {
       const s3Key = `changelogs/${data.version}.md`;
-      const { url } = await getUploadUrl({ key: s3Key, expires: 300 });
+      const { url } = await getUploadUrl({ key: s3Key, expires: 300 }, token);
       const markdownBlob = new Blob([markdownContent], { type: "text/markdown" });
-      await uploadToS3(url, markdownBlob);
+      await uploadToS3(url, markdownBlob, token);
 
       const response = await fetch("/api/admin/changelogs", {
         method: "POST",
@@ -111,7 +111,7 @@ export default function CreateChangelogPage() {
 
   return (
     <AppLayout label="New Release" description="Draft your next product update" backButton={true}>
-      <div className="flex flex-col space-y-6 max-w-6xl mx-auto">
+      <div className="flex flex-col space-y-6">
 
         <Tabs defaultValue="changelog" className="w-full">
           <div className="flex flex-row justify-between">

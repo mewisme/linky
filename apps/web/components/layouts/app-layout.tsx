@@ -1,3 +1,5 @@
+"use client";
+
 interface AppLayoutProps {
   label?: string;
   children: React.ReactNode;

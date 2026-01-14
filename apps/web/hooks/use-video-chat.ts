@@ -36,6 +36,9 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const { state, actions } = useVideoChatState();
   const iceServersRef = useRef<RTCIceServer[]>([]);
+  const iceServersFetchedAtRef = useRef<number>(0);
+  const turnCredentialRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isOffererRef = useRef<boolean>(false);
 
   const actionsRef = useRef(actions);
   actionsRef.current = actions;
@@ -61,6 +64,7 @@ export function useVideoChat(): UseVideoChatReturn {
         const servers = await fetchIceServers(token);
         if (mounted) {
           iceServersRef.current = servers;
+          iceServersFetchedAtRef.current = Date.now();
         }
       } catch (err) {
         logger.error("Failed to fetch ICE servers:", err);
@@ -103,6 +107,7 @@ export function useVideoChat(): UseVideoChatReturn {
   const resetPeerState = useCallback(() => {
     mediaStream.releaseMedia();
     peerConnection.closePeer();
+    isOffererRef.current = false;
     actionsRef.current.resetPeerState();
     actionsRef.current.setLocalStream(null);
   }, [mediaStream, peerConnection]);
@@ -112,9 +117,88 @@ export function useVideoChat(): UseVideoChatReturn {
     socketSignaling.disconnectSocket();
   }, [resetPeerState, socketSignaling]);
 
+  const refreshTurnCredentials = useCallback(async () => {
+    const pc = peerConnection.getPeerConnection();
+    if (!pc || pc.signalingState === "closed") {
+      return;
+    }
+
+    const timeSinceFetch = Date.now() - iceServersFetchedAtRef.current;
+    const turnCredentialLifetime = 300_000;
+    const refreshThreshold = turnCredentialLifetime * 0.8;
+
+    if (timeSinceFetch < refreshThreshold) {
+      return;
+    }
+
+    const isInActiveCall = state.connectionStatus === "connected" || state.connectionStatus === "connecting";
+
+    try {
+      const token = await getToken({ template: 'custom', skipCache: true });
+      if (!token) {
+        logger.warn("Cannot refresh TURN credentials: no token");
+        return;
+      }
+
+      logger.info("Refreshing TURN credentials before expiration");
+      const newServers = await fetchIceServers(token);
+
+      if (newServers.length === 0) {
+        logger.warn("Failed to fetch new TURN credentials");
+        return;
+      }
+
+      await peerConnection.updateIceServers(newServers);
+      iceServersRef.current = newServers;
+      iceServersFetchedAtRef.current = Date.now();
+
+      if (isInActiveCall && isOffererRef.current) {
+        logger.info("TURN credentials refreshed during active call, initiating ICE restart");
+        try {
+          const restartOffer = await peerConnection.restartIce();
+          socketSignaling.sendSignal({
+            type: "offer",
+            sdp: restartOffer,
+            iceRestart: true,
+          });
+          logger.info("ICE restart offer sent after TURN credential refresh");
+        } catch (err) {
+          logger.error("Failed to initiate ICE restart after credential refresh:", err);
+        }
+      } else {
+        logger.info("TURN credentials refreshed successfully");
+      }
+    } catch (err) {
+      logger.error("Error refreshing TURN credentials:", err);
+    }
+  }, [getToken, peerConnection, state.connectionStatus, socketSignaling]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const checkAndRefreshCredentials = () => {
+      const pc = peerConnection.getPeerConnection();
+      if (pc && pc.signalingState !== "closed" && state.connectionStatus === "connected") {
+        refreshTurnCredentials();
+      }
+    };
+
+    turnCredentialRefreshTimerRef.current = setInterval(checkAndRefreshCredentials, 60_000);
+
+    return () => {
+      if (turnCredentialRefreshTimerRef.current) {
+        clearInterval(turnCredentialRefreshTimerRef.current);
+        turnCredentialRefreshTimerRef.current = null;
+      }
+    };
+  }, [isLoaded, peerConnection, state.connectionStatus, refreshTurnCredentials]);
+
   useEffect(() => {
     return () => {
       cleanup();
+      if (turnCredentialRefreshTimerRef.current) {
+        clearInterval(turnCredentialRefreshTimerRef.current);
+      }
     };
   }, [cleanup]);
 
@@ -150,12 +234,13 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
       onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => {
+        logger.info("ICE connection state changed:", iceConnectionState);
         if (iceConnectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
         } else if (iceConnectionState === "connected" || iceConnectionState === "completed") {
           actionsRef.current.setConnectionStatus("connected");
-        } else if (iceConnectionState === "disconnected") {
+        } else if (iceConnectionState === "disconnected" || iceConnectionState === "checking") {
           actionsRef.current.setConnectionStatus("connecting");
         }
       },
@@ -210,6 +295,7 @@ export function useVideoChat(): UseVideoChatReturn {
         }
 
         peerConnection.initializePeerConnection(localStream, peerCallbacks);
+        isOffererRef.current = data.isOfferer;
 
         if (data.isOfferer) {
           try {
@@ -239,17 +325,23 @@ export function useVideoChat(): UseVideoChatReturn {
 
         try {
           if (data.type === "offer") {
-            logger.info("Received offer, creating answer...");
-            const answer = await peerConnection.handleOffer(data.sdp as RTCSessionDescriptionInit);
+            const isIceRestart = data.iceRestart === true;
+            if (isIceRestart) {
+              logger.info("Received ICE restart offer, creating answer...");
+            } else {
+              logger.info("Received offer, creating answer...");
+            }
+            const answer = await peerConnection.handleOffer(data.sdp as RTCSessionDescriptionInit, isIceRestart);
             socketSignaling.sendSignal({
               type: "answer",
               sdp: answer,
+              iceRestart: isIceRestart,
             });
             logger.done("Answer created and sent to peer");
             actionsRef.current.setConnectionStatus("connecting");
           } else if (data.type === "answer") {
             logger.info("Received answer, setting remote description...");
-            await peerConnection.handleAnswer(data.sdp as RTCSessionDescriptionInit);
+            await peerConnection.handleAnswer(data.sdp as RTCSessionDescriptionInit, data.iceRestart);
             logger.done("Remote description set successfully");
             actionsRef.current.setConnectionStatus("connecting");
           } else if (data.type === "ice-candidate" && data.candidate) {
@@ -269,6 +361,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onPeerLeft: (data: { message: string; queueSize?: number }) => {
         peerConnection.closePeer();
+        isOffererRef.current = false;
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
@@ -285,6 +378,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onPeerSkipped: (data: { message: string; queueSize: number }) => {
         peerConnection.closePeer();
+        isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
@@ -298,6 +392,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
         peerConnection.closePeer();
+        isOffererRef.current = false;
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
       },
@@ -305,6 +400,7 @@ export function useVideoChat(): UseVideoChatReturn {
       onEndCall: (data: { message: string }) => {
         logger.info("End call received from peer:", data.message);
         toast(`Call ended - ${data.message}`);
+        isOffererRef.current = false;
         resetPeerState();
       },
 
@@ -358,6 +454,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       if (iceServersRef.current.length === 0) {
         iceServersRef.current = await fetchIceServers(token);
+        iceServersFetchedAtRef.current = Date.now();
       }
 
       if (iceServersRef.current.length === 0) {

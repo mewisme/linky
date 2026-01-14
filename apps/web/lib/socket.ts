@@ -64,5 +64,6 @@ export interface SignalData {
   type: "offer" | "answer" | "ice-candidate";
   sdp?: RTCSessionDescriptionInit;
   candidate?: RTCIceCandidateInit;
+  iceRestart?: boolean;
 }
 

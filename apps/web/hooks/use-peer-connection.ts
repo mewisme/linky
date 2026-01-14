@@ -18,6 +18,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const remoteDescriptionSetRef = useRef<boolean>(false);
   const initializingRef = useRef<boolean>(false);
+  const iceRestartInProgressRef = useRef<boolean>(false);
   const iceServersRef = useRef<RTCIceServer[]>(iceServers);
 
   useEffect(() => {
@@ -111,22 +112,32 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     []
   );
 
-  const createOffer = useCallback(async (): Promise<RTCSessionDescriptionInit> => {
+  const createOffer = useCallback(async (options?: { iceRestart?: boolean }): Promise<RTCSessionDescriptionInit> => {
     const pc = pcRef.current;
     if (!pc) {
       throw new Error("Peer connection not initialized");
     }
 
+    if (pc.signalingState === "closed") {
+      throw new Error("Peer connection is closed");
+    }
+
     const offer = await pc.createOffer({
       offerToReceiveAudio: true,
       offerToReceiveVideo: true,
+      iceRestart: options?.iceRestart ?? false,
     });
     await pc.setLocalDescription(offer);
+
+    if (options?.iceRestart) {
+      logger.info("ICE restart offer created");
+      remoteDescriptionSetRef.current = false;
+    }
 
     return offer;
   }, []);
 
-  const handleOffer = useCallback(async (offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit> => {
+  const handleOffer = useCallback(async (offer: RTCSessionDescriptionInit, isIceRestart?: boolean): Promise<RTCSessionDescriptionInit> => {
     const pc = pcRef.current;
     if (!pc) {
       throw new Error("Peer connection not initialized");
@@ -138,6 +149,11 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
 
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
     remoteDescriptionSetRef.current = true;
+
+    if (isIceRestart) {
+      logger.info("Processing ICE restart offer - clearing old ICE candidates");
+      pendingIceCandidatesRef.current = [];
+    }
 
     const pendingCandidates = pendingIceCandidatesRef.current.splice(0);
     for (const candidate of pendingCandidates) {
@@ -155,7 +171,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     return answer;
   }, []);
 
-  const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit): Promise<void> => {
+  const handleAnswer = useCallback(async (answer: RTCSessionDescriptionInit, isIceRestart?: boolean): Promise<void> => {
     const pc = pcRef.current;
     if (!pc) {
       throw new Error("Peer connection not initialized");
@@ -167,6 +183,11 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
 
     await pc.setRemoteDescription(new RTCSessionDescription(answer));
     remoteDescriptionSetRef.current = true;
+
+    if (isIceRestart) {
+      logger.info("ICE restart answer processed");
+      iceRestartInProgressRef.current = false;
+    }
 
     const pendingCandidates = pendingIceCandidatesRef.current.splice(0);
     for (const candidate of pendingCandidates) {
@@ -206,6 +227,60 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     }
   }, []);
 
+  const updateIceServers = useCallback(async (newIceServers: RTCIceServer[]): Promise<void> => {
+    const pc = pcRef.current;
+    if (!pc) {
+      throw new Error("Peer connection not initialized");
+    }
+
+    if (pc.signalingState === "closed") {
+      throw new Error("Peer connection is closed");
+    }
+
+    if (!newIceServers || newIceServers.length === 0) {
+      throw new Error("ICE servers must be provided");
+    }
+
+    try {
+      pc.setConfiguration({
+        iceServers: newIceServers,
+        iceCandidatePoolSize: pc.getConfiguration().iceCandidatePoolSize,
+      });
+      iceServersRef.current = newIceServers;
+      logger.info("ICE servers updated via setConfiguration");
+    } catch (err) {
+      logger.error("Failed to update ICE servers:", err);
+      throw err;
+    }
+  }, []);
+
+  const restartIce = useCallback(async (): Promise<RTCSessionDescriptionInit> => {
+    const pc = pcRef.current;
+    if (!pc) {
+      throw new Error("Peer connection not initialized");
+    }
+
+    if (pc.signalingState === "closed") {
+      throw new Error("Peer connection is closed");
+    }
+
+    if (iceRestartInProgressRef.current) {
+      logger.warn("ICE restart already in progress, skipping");
+      throw new Error("ICE restart already in progress");
+    }
+
+    iceRestartInProgressRef.current = true;
+    logger.info("Starting ICE restart");
+
+    try {
+      const offer = await createOffer({ iceRestart: true });
+      return offer;
+    } catch (err) {
+      iceRestartInProgressRef.current = false;
+      throw err;
+    }
+  }, [createOffer]);
+
   const closePeer = useCallback(() => {
     closePeerConnection(pcRef.current);
     pcRef.current = null;
@@ -213,6 +288,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     pendingIceCandidatesRef.current = [];
     remoteDescriptionSetRef.current = false;
     initializingRef.current = false;
+    iceRestartInProgressRef.current = false;
   }, []);
 
   const getPeerConnection = useCallback((): RTCPeerConnection | null => {
@@ -232,6 +308,8 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       handleOffer,
       handleAnswer,
       addIceCandidate,
+      updateIceServers,
+      restartIce,
       closePeer,
       isConnectionValid,
       getPeerConnection,

@@ -2,11 +2,11 @@
 
 ✨ Features
 
-- Implement changelogs management and update related components ([02c3d49](../../commit/02c3d49))
+- Integrate @blocknote packages and enhance changelog creation ([4045c6e](../../commit/4045c6e))
 
 🔨 Other Changes
 
-- Bump package versions to 0.11.0 and update version lock ([e58ba74](../../commit/e58ba74))
+- Bump package versions to 0.12.0 and update version lock ([43b6694](../../commit/43b6694))
 
 
-📋 Full Changelog: [e58ba74...02c3d49](../../compare/e58ba74...02c3d49)
+📋 Full Changelog: [43b6694...4045c6e](../../compare/43b6694...4045c6e)

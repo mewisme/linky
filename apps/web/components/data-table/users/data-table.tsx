@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 
-import { AdminAPI } from '@/types/api.types'
+import type { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 

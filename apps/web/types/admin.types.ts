@@ -3,6 +3,122 @@
 import type { ApiError } from "./api.types";
 
 export namespace AdminAPI {
+  export type UserRole = "admin" | "member";
+  export type PresenceState = "offline" | "online" | "available" | "matching" | "in_call" | "idle";
+
+  export interface User {
+    id: string;
+    clerk_user_id: string;
+    email: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    avatar_url: string | null;
+    role: UserRole;
+    allow: boolean;
+    presence: PresenceState;
+    created_at: string;
+    updated_at: string;
+  }
+
+  export namespace GetAnalytics {
+    export interface QueryParams {
+      days?: number;
+    }
+
+    export interface TimeseriesDataPoint {
+      day: string;
+      views: number;
+    }
+
+    export interface VisitorsTimeseriesDataPoint {
+      day: string;
+      visitors: number;
+    }
+
+    export interface Response {
+      overview: {
+        totalPageViews: number;
+        totalVisitors: number;
+      };
+      timeseries: {
+        pageViews: TimeseriesDataPoint[];
+        visitors: VisitorsTimeseriesDataPoint[];
+        days: number;
+      };
+    }
+  }
+
+  export namespace GetUsers {
+    export interface QueryParams {
+      page?: number;
+      limit?: number;
+      role?: UserRole;
+      allow?: boolean | string;
+      search?: string;
+      all?: boolean | string;
+    }
+
+    export interface Pagination {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    }
+
+    export interface Response {
+      data: User[];
+      pagination?: Pagination;
+    }
+  }
+
+  export namespace GetUser {
+    export interface PathParams {
+      id: string;
+    }
+
+    export type Response = User;
+  }
+
+  export namespace UpdateUser {
+    export interface PathParams {
+      id: string;
+    }
+
+    export interface Body {
+      allow?: boolean;
+      avatar_url?: string | null;
+      clerk_user_id?: string;
+      created_at?: string;
+      email?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      role?: UserRole;
+      updated_at?: string;
+    }
+
+    export type Response = User;
+  }
+
+  export namespace PatchUser {
+    export interface PathParams {
+      id: string;
+    }
+
+    export interface Body {
+      allow?: boolean;
+      avatar_url?: string | null;
+      clerk_user_id?: string;
+      created_at?: string;
+      email?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      role?: UserRole;
+      updated_at?: string;
+    }
+
+    export type Response = User;
+  }
+
   export namespace InterestTags {
     export interface InterestTag {
       id: string;
@@ -112,13 +228,27 @@ export namespace AdminAPI {
   }
 
   export namespace Changelogs {
+    export interface ChangelogCreator {
+      id: string;
+      clerk_user_id: string;
+      email: string | null;
+      first_name: string | null;
+      last_name: string | null;
+      avatar_url: string | null;
+      country: string | null;
+      role: "admin" | "member";
+      allow: boolean;
+      created_at: string;
+      updated_at: string;
+    }
+
     export interface Changelog {
       id: string;
       version: string;
       title: string;
       release_date: string;
       s3_key: string;
-      created_by: string;
+      created_by: ChangelogCreator;
       is_published: boolean;
       order: number | null;
       created_at: string;

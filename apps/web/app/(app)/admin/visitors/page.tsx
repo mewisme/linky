@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import type { AdminAPI } from '@/types/api.types'
+import type { AdminAPI } from '@/types/admin.types'
 import { AppLayout } from '@/components/layouts/app-layout'
 import { VisitorChart } from '../components/visitor-chart'
 import { useAuth } from '@clerk/nextjs'

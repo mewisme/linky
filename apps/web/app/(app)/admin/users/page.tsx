@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { AdminAPI } from '@/types/api.types';
+import type { AdminAPI } from '@/types/admin.types';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { Button } from '@repo/ui/components/ui/button';
 import { IconRefresh } from '@tabler/icons-react';

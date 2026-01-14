@@ -50,6 +50,8 @@ const shadCNComponents: ShadCNComponents = {
 export function Editor({ className, value = '', onChange, editable = true }: EditorProps) {
   const editor = useCreateBlockNote();
   const isUpdatingRef = useRef(false);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const initialValueSetRef = useRef(false);
 
   useEditorChange(
     (editor, ctx) => {
@@ -62,7 +64,8 @@ export function Editor({ className, value = '', onChange, editable = true }: Edi
   );
 
   useEffect(() => {
-    if (value) {
+    if (value && !initialValueSetRef.current) {
+      initialValueSetRef.current = true;
       isUpdatingRef.current = true;
       const blocks = editor.tryParseMarkdownToBlocks(value);
       editor.replaceBlocks(editor.document, blocks);
@@ -72,14 +75,49 @@ export function Editor({ className, value = '', onChange, editable = true }: Edi
     }
   }, [value, editor]);
 
+  useEffect(() => {
+    const container = editorContainerRef.current;
+    if (!container || !editable) return;
+
+    const handlePaste = async (e: ClipboardEvent) => {
+      const clipboardText = e.clipboardData?.getData('text/plain');
+      if (!clipboardText) return;
+
+      try {
+        const blocks = editor.tryParseMarkdownToBlocks(clipboardText);
+        if (blocks.length > 0) {
+          e.preventDefault();
+          isUpdatingRef.current = true;
+          const currentSelection = editor.getSelection();
+          const targetBlockId = currentSelection?.blocks[0]?.id || editor.document[editor.document.length - 1]?.id;
+          if (targetBlockId) {
+            editor.insertBlocks(blocks, targetBlockId, 'after');
+          } else {
+            editor.replaceBlocks(editor.document, blocks);
+          }
+          setTimeout(() => {
+            isUpdatingRef.current = false;
+          }, 0);
+        }
+      } catch (error) {
+        console.error('Failed to parse markdown on paste:', error);
+      }
+    };
+
+    container.addEventListener('paste', handlePaste);
+    return () => {
+      container.removeEventListener('paste', handlePaste);
+    };
+  }, [editor, editable]);
+
   return (
-    <>
+    <div ref={editorContainerRef}>
       <BlockNoteView
         className={cn("max-w-none!", className)}
         editor={editor}
         editable={editable}
         shadCNComponents={shadCNComponents}
       />
-    </>
+    </div>
   );
 }

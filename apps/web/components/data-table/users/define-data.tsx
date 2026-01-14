@@ -1,6 +1,6 @@
 'use client';
 
-import { AdminAPI } from '@/types/api.types';
+import type { AdminAPI } from '@/types/admin.types';
 import { Button } from '@repo/ui/components/ui/button';
 import { Checkbox } from '@repo/ui/components/ui/checkbox';
 import { Badge } from '@repo/ui/components/ui/badge';

@@ -1,6 +1,6 @@
 'use client'
 
-import { ResourcesAPI } from '@/types/resources.types'
+import { AdminAPI } from '@/types/admin.types'
 import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@repo/ui/components/ui/badge'
 import { Button } from '@repo/ui/components/ui/button'
@@ -20,7 +20,7 @@ import toast from 'react-hot-toast'
 export interface RowCallbacks {
 }
 
-export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Changelogs.Changelog>[] => [
+export const columns = (callbacks?: RowCallbacks): ColumnDef<AdminAPI.Changelogs.Changelog>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -59,12 +59,12 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Change
   {
     accessorKey: 'release_date',
     header: 'Release Date',
-    cell: ({ row }) => <div>{row.getValue('release_date')}</div>,
+    cell: ({ row }) => <div>{new Date(row.original.release_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>,
   },
   {
     accessorKey: 'created_by',
     header: 'Created By',
-    cell: ({ row }) => <div>{row.getValue('created_by')}</div>,
+    cell: ({ row }) => <div>{row.original.created_by.first_name} {row.original.created_by.last_name}</div>,
   },
   {
     accessorKey: 'is_published',
@@ -91,27 +91,25 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Change
     cell: ({ row }) => {
       return (
         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="icon">
-                  <IconDotsVertical />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => {
-                    navigator.clipboard.writeText(row.original.id)
-                    toast.success('Changelog ID copied to clipboard')
-                  }}>
-                    <IconCopy />
-                    Copy changelog ID
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="sm">
+                <IconDotsVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={() => {
+                  navigator.clipboard.writeText(row.original.id)
+                  toast.success('Changelog ID copied to clipboard')
+                }}>
+                  <IconCopy />
+                  Copy changelog ID
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )
     }

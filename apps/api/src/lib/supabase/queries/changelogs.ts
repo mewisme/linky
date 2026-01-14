@@ -20,13 +20,42 @@ export interface UpdateChangelogParams {
   order?: number | null;
 }
 
+export interface ChangelogCreator {
+  id: string;
+  clerk_user_id: string;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  country: string | null;
+  role: "admin" | "member";
+  allow: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Admin changelog record with full creator info (from view)
 export interface ChangelogRecord {
   id: string;
   version: string;
   title: string;
   release_date: string;
   s3_key: string;
-  created_by: string;
+  created_by: ChangelogCreator;
+  is_published: boolean;
+  order: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Public changelog record with only creator ID (from table)
+export interface PublicChangelogRecord {
+  id: string;
+  version: string;
+  title: string;
+  release_date: string;
+  s3_key: string;
+  created_by: string; // Just the UUID
   is_published: boolean;
   order: number | null;
   created_at: string;
@@ -36,7 +65,8 @@ export interface ChangelogRecord {
 export async function createChangelog(params: CreateChangelogParams): Promise<ChangelogRecord> {
   const { version, title, releaseDate, s3Key, createdBy, isPublished = false, order = null } = params;
 
-  const { data, error } = await supabase
+  // Insert using table (views are read-only)
+  const { data: insertResult, error: insertError } = await supabase
     .from("changelogs")
     .insert({
       version,
@@ -50,17 +80,38 @@ export async function createChangelog(params: CreateChangelogParams): Promise<Ch
     .select()
     .single();
 
+  if (insertError) {
+    logger.error("Error creating changelog:", insertError.message);
+    throw insertError;
+  }
+
+  if (!insertResult) {
+    throw new Error("Failed to create changelog");
+  }
+
+  // Fetch created record from view to get creator info
+  const { data, error } = await supabase
+    .from("changelogs_with_creator")
+    .select("*")
+    .eq("id", insertResult.id)
+    .single();
+
   if (error) {
-    logger.error("Error creating changelog:", error.message);
+    logger.error("Error fetching created changelog:", error.message);
     throw error;
   }
 
-  return data;
+  if (!data) {
+    throw new Error("Changelog not found after creation");
+  }
+
+  return data as unknown as ChangelogRecord;
 }
 
+// Public functions - return created_by as UUID only
 export async function getChangelogs(
   options: { limit?: number; offset?: number; orderBy?: "release_date" | "order" } = {}
-): Promise<{ data: ChangelogRecord[]; count: number | null }> {
+): Promise<{ data: PublicChangelogRecord[]; count: number | null }> {
   const { limit = 50, offset = 0, orderBy = "release_date" } = options;
 
   let query = supabase
@@ -84,7 +135,7 @@ export async function getChangelogs(
   return { data: data || [], count };
 }
 
-export async function getChangelogByVersion(version: string): Promise<ChangelogRecord | null> {
+export async function getChangelogByVersion(version: string): Promise<PublicChangelogRecord | null> {
   const { data, error } = await supabase
     .from("changelogs")
     .select("*")
@@ -105,7 +156,7 @@ export async function getChangelogByVersion(version: string): Promise<ChangelogR
 
 export async function getChangelogById(id: string): Promise<ChangelogRecord | null> {
   const { data, error } = await supabase
-    .from("changelogs")
+    .from("changelogs_with_creator")
     .select("*")
     .eq("id", id)
     .single();
@@ -118,7 +169,7 @@ export async function getChangelogById(id: string): Promise<ChangelogRecord | nu
     throw error;
   }
 
-  return data;
+  return data as unknown as ChangelogRecord;
 }
 
 export async function updateChangelog(id: string, params: UpdateChangelogParams): Promise<ChangelogRecord> {
@@ -131,15 +182,32 @@ export async function updateChangelog(id: string, params: UpdateChangelogParams)
   if (params.isPublished !== undefined) updateData.is_published = params.isPublished;
   if (params.order !== undefined) updateData.order = params.order;
 
-  const { data, error } = await supabase
+  // Update using table (views are read-only)
+  const { data: updateResult, error: updateError } = await supabase
     .from("changelogs")
     .update(updateData)
     .eq("id", id)
     .select()
     .single();
 
+  if (updateError) {
+    logger.error("Error updating changelog:", updateError.message);
+    throw updateError;
+  }
+
+  if (!updateResult) {
+    throw new Error("Changelog not found");
+  }
+
+  // Fetch updated record from view to get creator info
+  const { data, error } = await supabase
+    .from("changelogs_with_creator")
+    .select("*")
+    .eq("id", id)
+    .single();
+
   if (error) {
-    logger.error("Error updating changelog:", error.message);
+    logger.error("Error fetching updated changelog:", error.message);
     throw error;
   }
 
@@ -147,7 +215,7 @@ export async function updateChangelog(id: string, params: UpdateChangelogParams)
     throw new Error("Changelog not found");
   }
 
-  return data;
+  return data as unknown as ChangelogRecord;
 }
 
 export async function deleteChangelog(id: string): Promise<void> {
@@ -164,7 +232,7 @@ export async function getAllChangelogsForAdmin(
 ): Promise<{ data: ChangelogRecord[]; count: number | null }> {
   const { limit = 50, offset = 0, orderBy = "release_date" } = options;
 
-  let query = supabase.from("changelogs").select("*", { count: "exact" });
+  let query = supabase.from("changelogs_with_creator").select("*", { count: "exact" });
 
   if (orderBy === "order") {
     query = query.order("order", { ascending: false, nullsFirst: false });
@@ -179,5 +247,5 @@ export async function getAllChangelogsForAdmin(
     throw error;
   }
 
-  return { data: data || [], count };
+  return { data: (data || []) as unknown as ChangelogRecord[], count };
 }

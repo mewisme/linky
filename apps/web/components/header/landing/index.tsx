@@ -43,7 +43,7 @@ const logoVariants = (isScroll: boolean, isMobile: boolean) => ({
   },
   topLeft: {
     top: isScroll ? (isMobile ? 3 : 0) : 10,
-    left: isScroll ? (isMobile ? -10 : -61) : isMobile ? -10 : -43,
+    left: isScroll ? (isMobile ? -10 : -61) : isMobile ? -10 : -10,
     x: 0,
     y: 0,
     scale: isScroll ? (isMobile ? 0.6 : 0.5) : 0.6,
@@ -53,7 +53,7 @@ const logoVariants = (isScroll: boolean, isMobile: boolean) => ({
 export const Header = ({ transition, connectionStatus }: { transition: boolean, connectionStatus?: ConnectionStatus }) => {
   const isMobile = useIsMobile();
   const [isScroll, setIsScroll] = useState(false);
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setIsScroll(window.scrollY > 10);
@@ -125,7 +125,7 @@ export const Header = ({ transition, connectionStatus }: { transition: boolean, 
           className="absolute z-110 flex items-center gap-x-4"
         >
           <ModeToggle />
-          {isSignedIn && <UserButton />}
+          {isLoaded && isSignedIn && <UserButton />}
         </motion.div>
       </div>
     </motion.div>

@@ -82,7 +82,7 @@ export default function CreateChangelogPage() {
       const s3Key = `changelogs/${data.version}.md`;
       const { url } = await getUploadUrl({ key: s3Key, expires: 300 }, token);
       const markdownBlob = new Blob([markdownContent], { type: "text/markdown" });
-      await uploadToS3(url, markdownBlob, token);
+      await uploadToS3(url, markdownBlob);
 
       const response = await fetch("/api/admin/changelogs", {
         method: "POST",

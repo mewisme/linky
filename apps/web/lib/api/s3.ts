@@ -49,11 +49,10 @@ export async function deleteObject(key: string, token: string): Promise<S3API.De
   return response.data;
 }
 
-export async function uploadToS3(presignedUrl: string, file: File | Blob, token: string): Promise<void> {
+export async function uploadToS3(presignedUrl: string, file: File | Blob): Promise<void> {
   await axios.put(presignedUrl, file, {
     headers: {
       "Content-Type": file.type || "application/octet-stream",
-      Authorization: `Bearer ${token}`,
     },
   });
 }
@@ -61,7 +60,7 @@ export async function uploadToS3(presignedUrl: string, file: File | Blob, token:
 export async function uploadFile(file: File | Blob, key: string, token: string): Promise<string> {
   const { url } = await getUploadUrl({ key, expires: 300 }, token);
 
-  await uploadToS3(url, file, token);
+  await uploadToS3(url, file);
 
   return key;
 }

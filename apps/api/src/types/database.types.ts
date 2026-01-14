@@ -309,6 +309,21 @@ export type Database = {
       }
     }
     Views: {
+      changelogs_with_creator: {
+        Row: {
+          created_at: string | null
+          created_by: Json | null
+          id: string | null
+          is_published: boolean | null
+          order: number | null
+          release_date: string | null
+          s3_key: string | null
+          title: string | null
+          updated_at: string | null
+          version: string | null
+        }
+        Relationships: []
+      }
       user_details_expanded: {
         Row: {
           bio: string | null

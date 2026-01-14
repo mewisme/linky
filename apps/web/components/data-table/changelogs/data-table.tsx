@@ -2,12 +2,12 @@
 
 import { useMemo } from 'react'
 
-import { ResourcesAPI } from '@/types/resources.types'
+import { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 
 interface ChangelogsDataTableProps {
-  initialData: ResourcesAPI.Changelogs.Changelog[]
+  initialData: AdminAPI.Changelogs.Changelog[]
   className?: string
   callbacks?: RowCallbacks
   leftColumnVisibilityContent?: React.ReactNode

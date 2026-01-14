@@ -1,13 +1,13 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Enable client-side rendering in AppLayout component ([399951e](../../commit/399951e))
-- Create changelogs_with_creator view and update changelog interfaces ([9e39d92](../../commit/9e39d92))
+- Improve ICE server handling and peer connection management ([693d92c](../../commit/693d92c))
 
 🔨 Other Changes
 
-- Bump package versions to 0.14.0 and update version lock ([1d2c7c3](../../commit/1d2c7c3))
+- Enable file watching for the linky application in ecosystem configuration ([f403d04](../../commit/f403d04))
+- Bump package versions to 0.15.0 and update version lock ([165513f](../../commit/165513f))
 
 
-📋 Full Changelog: [1d2c7c3...399951e](../../compare/1d2c7c3...399951e)
+📋 Full Changelog: [165513f...693d92c](../../compare/165513f...693d92c)

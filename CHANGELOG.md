@@ -2,12 +2,13 @@
 
 ✨ Features
 
-- Add health check endpoint with application metadata ([b653e42](../../commit/b653e42))
-- Add public user info view and enhance user detail queries ([1e5ec92](../../commit/1e5ec92))
+- Enhance video chat functionality and reporting features ([28f941a](../../commit/28f941a))
 
 🔨 Other Changes
 
-- Bump package versions to 0.16.5 and update version lock ([b707efd](../../commit/b707efd))
+- Remove unused dependencies from package.json and pnpm-lock.yaml ([873f2f7](../../commit/873f2f7))
+- Clean up Docker containers in Jenkins pipeline ([e587cd3](../../commit/e587cd3))
+- Bump package versions to 0.17.0 and update version lock ([a9ed0c5](../../commit/a9ed0c5))
 
 
-📋 Full Changelog: [b707efd...b653e42](../../compare/b707efd...b653e42)
+📋 Full Changelog: [a9ed0c5...28f941a](../../compare/a9ed0c5...28f941a)

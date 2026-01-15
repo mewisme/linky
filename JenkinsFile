@@ -31,14 +31,6 @@ pipeline {
       }
     }
 
-    stage('Build Backend (Express.js)') {
-      steps {
-        sh '''
-          pnpm build --filter=@repo/api
-        '''
-      }
-    }
-
     stage('Docker Build Backend (Express.js)') {
       steps {
         script {

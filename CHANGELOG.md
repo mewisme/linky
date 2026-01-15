@@ -2,11 +2,11 @@
 
 ⚡️ Performance
 
-- Add @vercel/speed-insights package and integrate into layout ([21c6fd2](../../commit/21c6fd2))
+- Add custom error and not found pages for improved user experience ([ecb1d7e](../../commit/ecb1d7e))
 
 🔨 Other Changes
 
-- Bump package versions to 0.18.0 and update version lock ([55d0414](../../commit/55d0414))
+- Bump package versions to 0.18.1 and update version lock ([4a253e3](../../commit/4a253e3))
 
 
-📋 Full Changelog: [55d0414...21c6fd2](../../compare/55d0414...21c6fd2)
+📋 Full Changelog: [4a253e3...ecb1d7e](../../compare/4a253e3...ecb1d7e)

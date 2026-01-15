@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import {
   createChangelog,
   getChangelogById,
@@ -12,6 +12,7 @@ import {
 import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("AdminChangelogsRoute");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

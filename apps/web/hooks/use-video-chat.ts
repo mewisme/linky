@@ -5,12 +5,15 @@ import toast from "react-hot-toast";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { fetchIceServers } from "@/lib/webrtc";
 import type { SignalData } from "@/lib/socket";
+import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
 
 import { useMediaStream } from "./use-media-stream";
 import { usePeerConnection } from "./use-peer-connection";
 import { useSocketSignaling } from "./use-socket-signaling";
 import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./use-video-chat-state";
+import { recoveryController } from "@/lib/webrtc-recovery";
+import { iceServerCache } from "@/lib/ice-servers-cache";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -20,6 +23,7 @@ export interface UseVideoChatReturn {
   isVideoOff: boolean;
   remoteMuted: boolean;
   chatMessages: ChatMessage[];
+  peerInfo: UsersAPI.PublicUserInfo | null;
   sendMessage: (message: string) => void;
   start: () => Promise<void>;
   skip: () => void;
@@ -36,7 +40,6 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const { state, actions } = useVideoChatState();
   const iceServersRef = useRef<RTCIceServer[]>([]);
-  const iceServersFetchedAtRef = useRef<number>(0);
   const turnCredentialRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isOffererRef = useRef<boolean>(false);
 
@@ -55,16 +58,13 @@ export function useVideoChat(): UseVideoChatReturn {
     async function initIceServers() {
       if (!isLoaded) return;
 
-      const token = await getToken({ template: 'custom', skipCache: true });
-      if (!token) {
-        throw new Error("No token found");
-      }
-
       try {
-        const servers = await fetchIceServers(token);
+        const servers = await iceServerCache.getIceServers(
+          async () => await getToken({ template: 'custom', skipCache: true }),
+          "initial"
+        );
         if (mounted) {
           iceServersRef.current = servers;
-          iceServersFetchedAtRef.current = Date.now();
         }
       } catch (err) {
         logger.error("Failed to fetch ICE servers:", err);
@@ -82,29 +82,9 @@ export function useVideoChat(): UseVideoChatReturn {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded]);
 
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    const updateToken = async () => {
-      try {
-        const token = await getToken({ template: 'custom', skipCache: true });
-        if (token) {
-          socketSignaling.updateSocketToken(token);
-        }
-      } catch (error) {
-        logger.error("Failed to update socket token:", error);
-      }
-    };
-
-    updateToken();
-    const interval = setInterval(updateToken, 300_000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isLoaded, getToken, socketSignaling]);
-
   const resetPeerState = useCallback(() => {
+    recoveryController.stop();
+    iceServerCache.resetSession();
     mediaStream.releaseMedia();
     peerConnection.closePeer();
     isOffererRef.current = false;
@@ -123,37 +103,34 @@ export function useVideoChat(): UseVideoChatReturn {
       return;
     }
 
-    const timeSinceFetch = Date.now() - iceServersFetchedAtRef.current;
-    const turnCredentialLifetime = 300_000;
-    const refreshThreshold = turnCredentialLifetime * 0.8;
-
-    if (timeSinceFetch < refreshThreshold) {
+    if (!iceServerCache.isExpired()) {
       return;
     }
 
     const isInActiveCall = state.connectionStatus === "connected" || state.connectionStatus === "connecting";
 
     try {
-      const token = await getToken({ template: 'custom', skipCache: true });
-      if (!token) {
-        logger.warn("Cannot refresh TURN credentials: no token");
-        return;
-      }
-
-      logger.info("Refreshing TURN credentials before expiration");
-      const newServers = await fetchIceServers(token);
+      logger.info("[IceServerCache] Refreshing TURN credentials before expiration");
+      const newServers = await iceServerCache.getIceServers(
+        async () => await getToken({ template: 'custom', skipCache: true }),
+        "expired"
+      );
 
       if (newServers.length === 0) {
-        logger.warn("Failed to fetch new TURN credentials");
+        logger.warn("[IceServerCache] Failed to fetch new TURN credentials");
         return;
       }
 
       await peerConnection.updateIceServers(newServers);
       iceServersRef.current = newServers;
-      iceServersFetchedAtRef.current = Date.now();
 
       if (isInActiveCall && isOffererRef.current) {
-        logger.info("TURN credentials refreshed during active call, initiating ICE restart");
+        if (!iceServerCache.recordIceRestart()) {
+          logger.warn("[IceServerCache] ICE restart limit exceeded, skipping restart after credential refresh");
+          return;
+        }
+
+        logger.info("[IceServerCache] TURN credentials refreshed during active call, initiating ICE restart");
         try {
           const restartOffer = await peerConnection.restartIce();
           socketSignaling.sendSignal({
@@ -161,15 +138,15 @@ export function useVideoChat(): UseVideoChatReturn {
             sdp: restartOffer,
             iceRestart: true,
           });
-          logger.info("ICE restart offer sent after TURN credential refresh");
+          logger.info("[IceServerCache] ICE restart offer sent after TURN credential refresh");
         } catch (err) {
-          logger.error("Failed to initiate ICE restart after credential refresh:", err);
+          logger.error("[IceServerCache] Failed to initiate ICE restart after credential refresh:", err);
         }
       } else {
-        logger.info("TURN credentials refreshed successfully");
+        logger.info("[IceServerCache] TURN credentials refreshed successfully");
       }
     } catch (err) {
-      logger.error("Error refreshing TURN credentials:", err);
+      logger.error("[IceServerCache] Error refreshing TURN credentials:", err);
     }
   }, [getToken, peerConnection, state.connectionStatus, socketSignaling]);
 
@@ -226,11 +203,22 @@ export function useVideoChat(): UseVideoChatReturn {
         if (connectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
+          recoveryController.stop();
         } else if (connectionState === "connected") {
-          actionsRef.current.setConnectionStatus("connected");
+          const currentTier = recoveryController.getCurrentTier();
+          if (currentTier === "none") {
+            actionsRef.current.setConnectionStatus("connected");
+          } else {
+            actionsRef.current.setConnectionStatus("reconnecting");
+          }
           hasShownConnectedToastRef.current = true;
         } else if (connectionState === "disconnected") {
-          actionsRef.current.setConnectionStatus("connecting");
+          const currentTier = recoveryController.getCurrentTier();
+          if (currentTier !== "none") {
+            actionsRef.current.setConnectionStatus("reconnecting");
+          } else {
+            actionsRef.current.setConnectionStatus("connecting");
+          }
         }
       },
       onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => {
@@ -238,10 +226,22 @@ export function useVideoChat(): UseVideoChatReturn {
         if (iceConnectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
+          recoveryController.stop();
         } else if (iceConnectionState === "connected" || iceConnectionState === "completed") {
-          actionsRef.current.setConnectionStatus("connected");
+          recoveryController.markIceRestartComplete();
+          const currentTier = recoveryController.getCurrentTier();
+          if (currentTier === "none") {
+            actionsRef.current.setConnectionStatus("connected");
+          } else {
+            actionsRef.current.setConnectionStatus("reconnecting");
+          }
         } else if (iceConnectionState === "disconnected" || iceConnectionState === "checking") {
-          actionsRef.current.setConnectionStatus("connecting");
+          const currentTier = recoveryController.getCurrentTier();
+          if (currentTier !== "none") {
+            actionsRef.current.setConnectionStatus("reconnecting");
+          } else {
+            actionsRef.current.setConnectionStatus("connecting");
+          }
         }
       },
     }),
@@ -252,7 +252,12 @@ export function useVideoChat(): UseVideoChatReturn {
     () => ({
       onConnect: () => { },
 
-      onDisconnect: () => {
+      onDisconnect: (reason: string) => {
+        logger.warn("[SocketHealth] Socket disconnected:", reason);
+        // Socket health: If disconnected during active call, mark for resync
+        if (state.connectionStatus === "connected" || state.connectionStatus === "reconnecting") {
+          logger.info("[SocketHealth] Disconnect during active call - will resync on reconnect");
+        }
         actionsRef.current.setConnectionStatus("peer-disconnected");
       },
 
@@ -277,9 +282,10 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setConnectionStatus("searching");
       },
 
-      onMatched: async (data: { roomId: string; peerId: string; isOfferer: boolean }) => {
+      onMatched: async (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => {
         actionsRef.current.setError(null);
         actionsRef.current.setConnectionStatus("connecting");
+        actionsRef.current.setPeerInfo(data.peerInfo);
         toast.success("Peer matched! Connecting to peer...");
 
         const localStream = mediaStream.getStream();
@@ -289,13 +295,86 @@ export function useVideoChat(): UseVideoChatReturn {
         }
 
         if (iceServersRef.current.length === 0) {
-          logger.error("ICE servers not available for match");
-          actionsRef.current.setError("Connection configuration not ready. Please try again.");
-          return;
+          try {
+            iceServersRef.current = await iceServerCache.getIceServers(
+              async () => await getToken({ template: 'custom', skipCache: true }),
+              "initial"
+            );
+          } catch (err) {
+            logger.error("ICE servers not available for match:", err);
+            actionsRef.current.setError("Connection configuration not ready. Please try again.");
+            return;
+          }
         }
 
         peerConnection.initializePeerConnection(localStream, peerCallbacks);
         isOffererRef.current = data.isOfferer;
+
+        const pc = peerConnection.getPeerConnection();
+        if (pc) {
+          recoveryController.start({
+            pc,
+            isOfferer: data.isOfferer,
+            onIceRestart: async (offer, useRelay) => {
+              if (!socketSignaling.isSocketHealthy()) {
+                logger.warn("[Recovery] Socket unhealthy, waiting for recovery before ICE restart");
+                await new Promise<void>((resolve) => {
+                  const checkInterval = setInterval(() => {
+                    if (socketSignaling.isSocketHealthy() || !socketSignaling.getSocket()?.connected) {
+                      clearInterval(checkInterval);
+                      resolve();
+                    }
+                  }, 500);
+                  setTimeout(() => {
+                    clearInterval(checkInterval);
+                    resolve();
+                  }, 5000);
+                });
+              }
+
+              if (socketSignaling.isSocketHealthy() && socketSignaling.getSocket()?.connected) {
+                socketSignaling.sendSignal({
+                  type: "offer",
+                  sdp: offer,
+                  iceRestart: true,
+                });
+                logger.info(`[Recovery] ICE restart offer sent (relay: ${useRelay})`);
+              } else {
+                logger.error("[Recovery] Cannot send ICE restart - socket not healthy");
+                throw new Error("Socket not healthy for ICE restart");
+              }
+            },
+            getIceServers: async () => {
+              const cached = iceServerCache.getCachedServers();
+              if (cached && !iceServerCache.isExpired()) {
+                logger.info("[IceServerCache] Reusing cached ICE servers for ICE restart");
+                return cached;
+              }
+
+              logger.info("[IceServerCache] Fetching ICE servers for ICE restart (cache expired)");
+              return await iceServerCache.getIceServers(
+                async () => await getToken({ template: 'custom', skipCache: true }),
+                "expired"
+              );
+            },
+            recordIceRestart: () => {
+              return iceServerCache.recordIceRestart();
+            },
+            onRecoveryStateChange: (tier) => {
+              if (tier === "none") {
+                const pcState = pc.connectionState;
+                const iceState = pc.iceConnectionState;
+                if (pcState === "connected" && (iceState === "connected" || iceState === "completed")) {
+                  actionsRef.current.setConnectionStatus("connected");
+                } else {
+                  actionsRef.current.setConnectionStatus("connecting");
+                }
+              } else {
+                actionsRef.current.setConnectionStatus("reconnecting");
+              }
+            },
+          });
+        }
 
         if (data.isOfferer) {
           try {
@@ -310,6 +389,7 @@ export function useVideoChat(): UseVideoChatReturn {
             logger.error("Error creating offer:", err);
             actionsRef.current.setError("Failed to establish connection. Please try again.");
             actionsRef.current.setConnectionStatus("peer-disconnected");
+            recoveryController.stop();
           }
         } else {
           logger.load("Waiting for offer from peer as answerer...");
@@ -343,7 +423,15 @@ export function useVideoChat(): UseVideoChatReturn {
             logger.info("Received answer, setting remote description...");
             await peerConnection.handleAnswer(data.sdp as RTCSessionDescriptionInit, data.iceRestart);
             logger.done("Remote description set successfully");
-            actionsRef.current.setConnectionStatus("connecting");
+            if (data.iceRestart) {
+              recoveryController.markIceRestartComplete();
+            }
+            const currentTier = recoveryController.getCurrentTier();
+            if (currentTier === "none") {
+              actionsRef.current.setConnectionStatus("connecting");
+            } else {
+              actionsRef.current.setConnectionStatus("reconnecting");
+            }
           } else if (data.type === "ice-candidate" && data.candidate) {
             logger.info("Received ICE candidate, adding...");
             await peerConnection.addIceCandidate(data.candidate);
@@ -360,6 +448,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onPeerLeft: (data: { message: string; queueSize?: number }) => {
+        recoveryController.stop();
         peerConnection.closePeer();
         isOffererRef.current = false;
         actionsRef.current.setRemoteStream(null);
@@ -377,6 +466,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onPeerSkipped: (data: { message: string; queueSize: number }) => {
+        recoveryController.stop();
         peerConnection.closePeer();
         isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("searching");
@@ -389,6 +479,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onSkipped: (data: { message: string; queueSize: number }) => {
         logger.info("Skipped:", data.message, "Queue size:", data.queueSize);
+        recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
         peerConnection.closePeer();
@@ -399,6 +490,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onEndCall: (data: { message: string }) => {
         logger.info("End call received from peer:", data.message);
+        recoveryController.stop();
         toast(`Call ended - ${data.message}`);
         isOffererRef.current = false;
         resetPeerState();
@@ -453,8 +545,10 @@ export function useVideoChat(): UseVideoChatReturn {
       }
 
       if (iceServersRef.current.length === 0) {
-        iceServersRef.current = await fetchIceServers(token);
-        iceServersFetchedAtRef.current = Date.now();
+        iceServersRef.current = await iceServerCache.getIceServers(
+          async () => await getToken({ template: 'custom', skipCache: true }),
+          "initial"
+        );
       }
 
       if (iceServersRef.current.length === 0) {
@@ -529,6 +623,7 @@ export function useVideoChat(): UseVideoChatReturn {
   );
 
   const endCall = useCallback(() => {
+    recoveryController.stop();
     socketSignaling.sendEndCall();
     toast("Call ended - You have ended the call.");
     resetPeerState();
@@ -546,6 +641,7 @@ export function useVideoChat(): UseVideoChatReturn {
     isVideoOff: state.isVideoOff,
     remoteMuted: state.remoteMuted,
     chatMessages: state.chatMessages,
+    peerInfo: state.peerInfo,
     sendMessage,
     start,
     skip,

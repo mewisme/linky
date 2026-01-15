@@ -1,5 +1,5 @@
 import { type Socket } from "socket.io";
-import { logger } from "../utils/logger.js";
+import { Logger } from "../utils/logger.js";
 
 interface WaitingSession {
   socketId: string;
@@ -13,6 +13,7 @@ export class UserSessionService {
 
   // Map of userId -> queue of waiting sessions
   private waitingQueues: Map<string, WaitingSession[]> = new Map();
+  private readonly logger = new Logger("UserSessionService");
 
   tryActivateSession(userId: string, socket: Socket): { activated: boolean; positionInQueue?: number } {
     const socketId = socket.id;
@@ -20,12 +21,12 @@ export class UserSessionService {
 
     if (!activeSocketId) {
       this.activeSessions.set(userId, socketId);
-      logger.info("Session activated for user:", userId, "socket:", socketId);
+      this.logger.info("Session activated for user:", userId, "socket:", socketId);
       return { activated: true };
     }
 
     if (activeSocketId === socketId) {
-      logger.info("Session already active for user:", userId, "socket:", socketId);
+      this.logger.info("Session already active for user:", userId, "socket:", socketId);
       return { activated: true };
     }
 
@@ -33,7 +34,7 @@ export class UserSessionService {
 
     if (queue.some((session) => session.socketId === socketId)) {
       const position = queue.findIndex((s) => s.socketId === socketId) + 1;
-      logger.warn("Session already in waiting queue:", userId, "socket:", socketId, "position:", position);
+      this.logger.warn("Session already in waiting queue:", userId, "socket:", socketId, "position:", position);
       return { activated: false, positionInQueue: position };
     }
 
@@ -47,7 +48,7 @@ export class UserSessionService {
     this.waitingQueues.set(userId, queue);
     const position = queue.length;
 
-    logger.info("Session queued for user:", userId, "socket:", socketId, "position in queue:", position);
+    this.logger.info("Session queued for user:", userId, "socket:", socketId, "position in queue:", position);
     return { activated: false, positionInQueue: position };
   }
 
@@ -64,13 +65,13 @@ export class UserSessionService {
         } else {
           this.waitingQueues.set(userId, queue);
         }
-        logger.info("Session removed from waiting queue:", userId, "socket:", socketId);
+        this.logger.info("Session removed from waiting queue:", userId, "socket:", socketId);
       }
       return;
     }
 
     this.activeSessions.delete(userId);
-    logger.info("Session deactivated for user:", userId, "socket:", socketId);
+    this.logger.info("Session deactivated for user:", userId, "socket:", socketId);
 
     const queue = this.waitingQueues.get(userId) || [];
     if (queue.length > 0) {
@@ -83,7 +84,7 @@ export class UserSessionService {
         this.waitingQueues.set(userId, queue);
       }
 
-      logger.info("Next session activated for user:", userId, "socket:", nextSession.socketId);
+      this.logger.info("Next session activated for user:", userId, "socket:", nextSession.socketId);
 
       nextSession.socket.emit("session-activated", {
         message: "Your session is now active. You can proceed.",
@@ -118,7 +119,7 @@ export class UserSessionService {
       });
     });
     this.waitingQueues.delete(userId);
-    logger.info("All sessions cleaned up for user:", userId);
+    this.logger.info("All sessions cleaned up for user:", userId);
   }
 }
 

@@ -1,105 +1,75 @@
 import chalk from "chalk";
 
-type LogLevel = "info" | "warn" | "error";
+type LogLevel = "info" | "warn" | "error" | "debug";
 
-interface LoggerConfig {
+interface LogOptions {
   level: LogLevel;
-  label: string;
   color: (text: string) => string;
+  scope?: string;
+  customLabel?: string;
 }
 
 const MAX_LABEL_LENGTH = 4;
+const DEBUG_ENABLED = process.env.DEBUG === "true" || process.env.NODE_ENV !== "production";
 
-const truncateLabel = (label: string): string => {
-  if (label.length <= MAX_LABEL_LENGTH) {
-    return label.toUpperCase();
-  }
-  return label.slice(0, MAX_LABEL_LENGTH).toUpperCase();
-};
+const truncate = (s: string) => s.length <= MAX_LABEL_LENGTH ? s.toUpperCase() : s.slice(0, 4).toUpperCase();
+const timestamp = () => chalk.underline(new Date().toISOString());
+const format = (args: unknown[]) => args.map(a => typeof a === "object" && a !== null ? JSON.stringify(a, null, 2) : String(a)).join(" ");
 
-const getTimestamp = (): string => {
-  const now = new Date();
-  const utcTime = now.toISOString();
-  return chalk.underline(utcTime);
-};
+const write = ({ level, color, scope, customLabel }: LogOptions) => {
+  return (...args: unknown[]) => {
+    if (level === "debug" && !DEBUG_ENABLED) return;
 
-const formatMessage = (args: unknown[]): string => {
-  if (args.length === 0) {
-    return "";
-  }
+    const scopePart = scope ? ` [${scope}]` : "";
+    const label = customLabel ?? level.toUpperCase();
+    const output = `${timestamp()} ${color(truncate(label))}${scopePart} ${format(args)}`;
 
-  return args
-    .map((arg) => {
-      if (typeof arg === "object" && arg !== null) {
-        try {
-          return JSON.stringify(arg, null, 2);
-        } catch {
-          return String(arg);
-        }
-      }
-      return String(arg);
-    })
-    .join(" ");
-};
+    const fn =
+      level === "error" ? console.error : level === "warn" ? console.warn : console.log;
 
-const createLogger = (config: LoggerConfig) => {
-  const truncatedLabel = truncateLabel(config.label);
-
-  return (...args: unknown[]): void => {
-    const timestamp = getTimestamp();
-    const label = config.color(`${truncatedLabel}`);
-    const message = formatMessage(args);
-    const output = `${timestamp} ${label} ${message}`;
-
-    switch (config.level) {
-      case "error":
-        console.error(output);
-        break;
-      case "warn":
-        console.warn(output);
-        break;
-      default:
-        console.log(output);
-    }
+    fn(output);
   };
 };
 
-export const logger = {
-  info: createLogger({
-    level: "info",
-    label: "INFO",
-    color: chalk.cyan,
-  }),
+export class Logger {
+  constructor(private readonly scope?: string) { }
 
-  warn: createLogger({
-    level: "warn",
-    label: "WARN",
-    color: chalk.yellow,
-  }),
-
-  error: createLogger({
-    level: "error",
-    label: "ERRO",
-    color: chalk.red,
-  }),
-
-  done: createLogger({
-    level: "info",
-    label: "DONE",
-    color: chalk.green,
-  }),
-
-  load: createLogger({
-    level: "info",
-    label: "LOAD",
-    color: chalk.gray,
-  }),
-
-  custom: (label: string, color: (text: string) => string = chalk.white) => {
-    return createLogger({
-      level: "info",
-      label,
+  private make(level: LogLevel, color: (t: string) => string, customLabel?: string) {
+    return write({
+      level,
+      scope: this.scope,
       color,
+      customLabel,
     });
-  },
-};
+  }
+
+  get info() {
+    return this.make("info", chalk.cyan);
+  }
+
+  get warn() {
+    return this.make("warn", chalk.yellow);
+  }
+
+  get error() {
+    return this.make("error", chalk.red);
+  }
+
+  get done() {
+    return this.make("info", chalk.green, "DONE");
+  }
+
+  get load() {
+    return this.make("info", chalk.gray, "LOAD");
+  }
+
+  get debug() {
+    return this.make("debug", chalk.magenta, "DEBUG");
+  }
+
+  custom(label: string, color: (t: string) => string = chalk.white) {
+    return this.make("info", color, label);
+  }
+}
+
+export const logger = new Logger();

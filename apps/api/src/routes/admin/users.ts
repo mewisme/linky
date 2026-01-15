@@ -1,10 +1,11 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import type { TablesUpdate } from "../../types/database.types.js";
 import { redisClient } from "../../lib/redis/client.js";
 import { getUsers, getUserById, updateUser as updateUserQuery, patchUser as patchUserQuery } from "../../lib/supabase/queries/index.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("AdminUsersRoute");
 
 type UserUpdate = TablesUpdate<"users">;
 

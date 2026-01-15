@@ -3,6 +3,7 @@
 import { MicOff, VideoOff } from "lucide-react";
 
 import type { ConnectionStatus } from "@/hooks/use-video-chat";
+import type { UsersAPI } from "@/types/users.types";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
@@ -18,6 +19,7 @@ interface VideoContainerProps {
   remoteMuted: boolean;
   isChatOpen: boolean;
   hasUnreadMessages: boolean;
+  peerInfo: UsersAPI.PublicUserInfo | null;
   onStart: () => void;
   onSkip: () => void;
   onEndCall: () => void;
@@ -35,6 +37,7 @@ export function VideoContainer({
   remoteMuted,
   isChatOpen,
   hasUnreadMessages,
+  peerInfo,
   onStart,
   onSkip,
   onEndCall,
@@ -179,6 +182,7 @@ export function VideoContainer({
         hasLocalStream={!!localStream}
         isChatOpen={isChatOpen}
         hasUnreadMessages={hasUnreadMessages}
+        peerInfo={peerInfo}
         onStart={onStart}
         onSkip={onSkip}
         onEndCall={onEndCall}

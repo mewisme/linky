@@ -1,5 +1,7 @@
-import { logger } from "../../../utils/logger.js";
+import { Logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
+
+const logger = new Logger("SupabaseChangelogsQueries");
 
 export interface CreateChangelogParams {
   version: string;

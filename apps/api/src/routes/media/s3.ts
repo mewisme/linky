@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "../../config/index.js";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import {
   getUploadUrl,
   getDownloadUrl,
@@ -17,6 +17,7 @@ import {
 } from "../../lib/s3/multipart.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("MediaS3Route");
 
 router.get("/presigned/upload", async (req: Request, res: Response) => {
   try {

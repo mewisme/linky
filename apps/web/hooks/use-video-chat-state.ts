@@ -2,7 +2,9 @@
 
 import { useMemo, useReducer } from "react";
 
-export type ConnectionStatus = "idle" | "searching" | "connecting" | "connected" | "peer-disconnected";
+import type { UsersAPI } from "@/types/users.types";
+
+export type ConnectionStatus = "idle" | "searching" | "connecting" | "connected" | "reconnecting" | "peer-disconnected";
 
 export function getConnectionStatusMessage(status: ConnectionStatus): string {
   const statusMessages: Record<ConnectionStatus, string> = {
@@ -10,6 +12,7 @@ export function getConnectionStatusMessage(status: ConnectionStatus): string {
     searching: "Searching...",
     connecting: "Connecting...",
     connected: "Connected",
+    reconnecting: "Reconnecting...",
     "peer-disconnected": "Disconnected",
   };
   return statusMessages[status];
@@ -34,6 +37,7 @@ interface VideoChatState {
   connectionStatus: ConnectionStatus;
   chatMessages: ChatMessage[];
   error: string | null;
+  peerInfo: UsersAPI.PublicUserInfo | null;
 }
 
 type VideoChatAction =
@@ -46,6 +50,7 @@ type VideoChatAction =
   | { type: "ADD_CHAT_MESSAGE"; payload: ChatMessage }
   | { type: "CLEAR_CHAT_MESSAGES" }
   | { type: "SET_ERROR"; payload: string | null }
+  | { type: "SET_PEER_INFO"; payload: UsersAPI.PublicUserInfo | null }
   | { type: "RESET_STATE" }
   | { type: "RESET_PEER_STATE" };
 
@@ -58,6 +63,7 @@ const initialState: VideoChatState = {
   connectionStatus: "idle",
   chatMessages: [],
   error: null,
+  peerInfo: null,
 };
 
 /**
@@ -93,6 +99,9 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
     case "SET_ERROR":
       return { ...state, error: action.payload };
 
+    case "SET_PEER_INFO":
+      return { ...state, peerInfo: action.payload };
+
     case "RESET_STATE":
       return initialState;
 
@@ -104,6 +113,7 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
         chatMessages: [],
         connectionStatus: "idle",
         error: null,
+        peerInfo: null,
       };
 
     default:
@@ -154,6 +164,10 @@ export function useVideoChatState() {
 
       setError: (error: string | null) => {
         dispatch({ type: "SET_ERROR", payload: error });
+      },
+
+      setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => {
+        dispatch({ type: "SET_PEER_INFO", payload: peerInfo });
       },
 
       resetState: () => {

@@ -4,7 +4,7 @@ import { RoomService } from "../../services/rooms.js";
 import { UserSessionService } from "../../services/user-sessions.js";
 import { type AuthenticatedSocket } from "../auth.js";
 import { setupSocketHandlers } from "./handlers.js";
-import { setupMatchmakingInterval } from "./matchmaking.js";
+import { setupMatchmakingInterval, setupRoomHeartbeat } from "./matchmaking.js";
 import type { VideoChatContext } from "./types.js";
 
 export function setupVideoChatHandlers(
@@ -25,4 +25,5 @@ export function setupVideoChatHandlers(
   });
 
   setupMatchmakingInterval(io, matchmaking, rooms);
+  setupRoomHeartbeat(io, rooms);
 }

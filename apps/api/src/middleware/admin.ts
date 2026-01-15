@@ -1,9 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
 
+import { Logger } from "../utils/logger.js";
 import { checkIfUserIsAdmin } from "../lib/admin-cache.js";
-import { logger } from "../utils/logger.js";
 
 export async function adminMiddleware(req: Request, res: Response, next: NextFunction) {
+  const logger = new Logger("AdminMiddleware");
   try {
     const clerkUserId = req.auth?.sub;
 

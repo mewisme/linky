@@ -1,8 +1,9 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { supabase } from "../../lib/supabase/client.js";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("UsersRoute");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {

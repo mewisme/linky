@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { logger } from "../utils/logger.js";
+import { Logger } from "../utils/logger.js";
 import {
   createPageView as createPageViewQuery,
   createVisitor as createVisitorQuery,
@@ -8,6 +8,7 @@ import {
 } from "../lib/supabase/queries/index.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("AnalyticsRoute");
 
 router.post("/visitor", async (req: Request, res: Response) => {
   try {

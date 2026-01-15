@@ -1,8 +1,9 @@
+import { Logger } from "../../../utils/logger.js";
 import type { TablesUpdate } from "../../../types/database.types.js";
-import { logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
 
 type UserUpdate = TablesUpdate<"users">;
+const logger = new Logger("SupabaseUsersQueries");
 
 export interface GetUsersOptions {
   page?: number;

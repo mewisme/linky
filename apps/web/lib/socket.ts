@@ -1,6 +1,7 @@
 import { Socket, io } from "socket.io-client";
 
 import { logger } from "@/utils/logger";
+import type { UsersAPI } from "@/types/users.types";
 
 export async function createSocket(token?: string | null): Promise<Socket> {
   return io(process.env.NEXT_PUBLIC_API_URL, {
@@ -49,7 +50,7 @@ export interface SocketEvents {
   "joined-queue": (data: { message: string; queueSize: number }) => void;
   "session-waiting": (data: { message: string; positionInQueue: number; queueSize: number }) => void;
   "session-activated": (data: { message: string }) => void;
-  matched: (data: { roomId: string; peerId: string; isOfferer: boolean }) => void;
+  matched: (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => void;
   signal: (data: SignalData) => void;
   "chat-message": (data: { message: string; timestamp: number; senderId: string }) => void;
   "peer-left": (data: { message: string }) => void;

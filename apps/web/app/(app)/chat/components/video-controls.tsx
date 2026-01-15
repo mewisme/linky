@@ -1,5 +1,13 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/components/ui/dialog";
 import {
   MessageSquare,
   Mic,
@@ -7,6 +15,7 @@ import {
   PhoneOff,
   Play,
   SkipForward,
+  User,
   Video,
   VideoOff,
 } from "lucide-react";
@@ -17,9 +26,12 @@ import {
   TooltipTrigger,
 } from "@repo/ui/components/ui/tooltip";
 
+import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
 import type { ConnectionStatus } from "@/hooks/use-video-chat";
+import type { UsersAPI } from "@/types/users.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { useState } from "react";
 
 interface VideoControlsProps {
   connectionStatus: ConnectionStatus;
@@ -28,6 +40,7 @@ interface VideoControlsProps {
   hasLocalStream: boolean;
   isChatOpen: boolean;
   hasUnreadMessages: boolean;
+  peerInfo: UsersAPI.PublicUserInfo | null;
   onStart: () => void;
   onSkip: () => void;
   onEndCall: () => void;
@@ -43,6 +56,7 @@ export function VideoControls({
   hasLocalStream,
   isChatOpen,
   hasUnreadMessages,
+  peerInfo,
   onStart,
   onSkip,
   onEndCall,
@@ -51,6 +65,7 @@ export function VideoControls({
   onToggleChat,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
+  const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
 
   return (
     <div
@@ -171,6 +186,24 @@ export function VideoControls({
           </TooltipContent>
         </Tooltip>
 
+        {connectionStatus === "connected" && peerInfo && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => setIsPeerInfoOpen(true)}
+                variant="outline"
+                size="icon"
+                className="h-12 w-12"
+              >
+                <User className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Peer Info</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+
         {(connectionStatus === "connected" ||
           connectionStatus === "searching" ||
           connectionStatus === "connecting" ||
@@ -192,6 +225,70 @@ export function VideoControls({
             </Tooltip>
           )}
       </TooltipProvider>
+
+      <Dialog open={isPeerInfoOpen} onOpenChange={setIsPeerInfoOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Peer Information</DialogTitle>
+            <DialogDescription>
+              Information about the person you are connected with
+            </DialogDescription>
+          </DialogHeader>
+          {peerInfo && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={peerInfo.avatar_url || undefined} alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()} />
+                  <AvatarFallback>
+                    {peerInfo.first_name?.[0] || ""}
+                    {peerInfo.last_name?.[0] || ""}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold">
+                    {peerInfo.first_name || ""} {peerInfo.last_name || ""}
+                  </h3>
+                  {peerInfo.gender && (
+                    <p className="text-sm text-muted-foreground capitalize">
+                      {peerInfo.gender}
+                    </p>
+                  )}
+                  {peerInfo.date_of_birth && (
+                    <p className="text-sm text-muted-foreground">
+                      Born: {new Date(peerInfo.date_of_birth).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {peerInfo.bio && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Bio</h4>
+                  <p className="text-sm text-muted-foreground">{peerInfo.bio}</p>
+                </div>
+              )}
+
+              {peerInfo.interest_tags && peerInfo.interest_tags.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Interests</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {peerInfo.interest_tags.map((tag) => (
+                      <Badge key={tag.id} variant="secondary">
+                        {tag.icon && <span className="mr-1">{tag.icon}</span>}
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

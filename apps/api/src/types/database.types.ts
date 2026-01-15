@@ -56,6 +56,13 @@ export type Database = {
             foreignKeyName: "fk_call_history_callee"
             columns: ["callee_id"]
             isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_call_history_callee"
+            columns: ["callee_id"]
+            isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -64,6 +71,13 @@ export type Database = {
             columns: ["callee_id"]
             isOneToOne: false
             referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_call_history_caller"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
           {
@@ -120,6 +134,13 @@ export type Database = {
           version?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_changelogs_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_changelogs_created_by"
             columns: ["created_by"]
@@ -229,6 +250,13 @@ export type Database = {
             foreignKeyName: "fk_user_details_user"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_details_user"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -324,6 +352,19 @@ export type Database = {
         }
         Relationships: []
       }
+      public_user_info: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          date_of_birth: string | null
+          first_name: string | null
+          gender: string | null
+          id: string | null
+          interest_tags: Json | null
+          last_name: string | null
+        }
+        Relationships: []
+      }
       user_details_expanded: {
         Row: {
           bio: string | null
@@ -359,6 +400,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_details_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_user_details_user"
             columns: ["user_id"]

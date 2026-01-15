@@ -1,10 +1,12 @@
 import { attachSocketIO as attachSocketIOToPresenceHandler, handlePresenceMessage } from './presence-handler.js'
 import { initializeAdminCache, setupAdminCacheTracking } from '../admin-cache.js'
 
+import { Logger } from '../../utils/logger.js'
 import { config } from '../../config/index.js'
 import { createSocketServer } from '@/socket/index.js'
-import { logger } from '../../utils/logger.js'
 import mqtt from 'mqtt'
+
+const logger = new Logger("MQTTClient");
 
 export const mqttClient = mqtt.connect(
   `mqtts://${config.mqttUrl}:${config.mqttPort}`,

@@ -1,5 +1,7 @@
-import { logger } from "../../../utils/logger.js";
+import { Logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
+
+const logger = new Logger("SupabaseVisitorsQueries");
 
 export async function getAllPageViews() {
   const { count: totalPageViews, error } = await supabase.from("page_views").select("*", { count: "exact", head: true });

@@ -1,12 +1,13 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { Webhook } from "svix";
 import { config } from "../config/index.js";
-import { logger } from "../utils/logger.js";
+import { Logger } from "../utils/logger.js";
 import type { ClerkWebhookEvent } from "../types/webhook.js";
 import { isUserCreatedEvent, isUserUpdatedEvent } from "../types/webhook.js";
 import { supabase } from "../lib/supabase/client.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("WebhookRoute");
 
 router.post("/clerk", async (req: Request, res: Response) => {
   try {

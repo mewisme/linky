@@ -1,7 +1,9 @@
 import type { TablesInsert, TablesUpdate } from "../../../types/database.types.js";
 
-import { logger } from "../../../utils/logger.js";
+import { Logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
+
+const logger = new Logger("SupabaseInterestTagsQueries");
 
 export interface GetInterestTagsOptions {
   category?: string;

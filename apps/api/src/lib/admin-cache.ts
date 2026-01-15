@@ -1,6 +1,8 @@
+import { Logger } from "../utils/logger.js";
 import { createSocketServer } from "../socket/index.js";
-import { logger } from "../utils/logger.js";
 import { supabase } from "./supabase/client.js";
+
+const logger = new Logger("AdminCache");
 
 const adminSocketIds = new Set<string>();
 const adminUserIds = new Set<string>();

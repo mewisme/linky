@@ -3,6 +3,17 @@
 import type { ApiError } from "./api.types";
 
 export namespace UsersAPI {
+  export interface PublicUserInfo {
+    id: string;
+    avatar_url: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    date_of_birth: string | null;
+    gender: string | null;
+    bio: string | null;
+    interest_tags: UserDetails.InterestTag[] | null;
+  }
+
   export namespace GetMe {
     export interface Response {
       id: string;

@@ -1,5 +1,5 @@
-import { type Socket } from "socket.io";
-import { logger } from "../utils/logger.js";
+import { Server, type Socket } from "socket.io";
+import { Logger } from "../utils/logger.js";
 
 interface QueuedUser {
   socketId: string;
@@ -16,12 +16,13 @@ export class MatchmakingService {
   private readonly maxQueueWaitTime = 5 * 60 * 1000; // 5 minutes
   private readonly skipCooldownTime = 3 * 1000; // 3 seconds
   private skipRecords: Map<string, SkipRecord> = new Map(); // Key: "socketId1:socketId2" (sorted)
+  private readonly logger = new Logger("MatchmakingService");
 
   enqueue(socket: Socket): boolean {
     const socketId = socket.id;
 
     if (this.queue.some((user) => user.socketId === socketId)) {
-      logger.warn("User already in queue:", socketId);
+      this.logger.warn("User already in queue:", socketId);
       return false;
     }
 
@@ -32,7 +33,7 @@ export class MatchmakingService {
     };
 
     this.queue.push(user);
-    logger.info("User added to queue:", socketId, `(Queue size: ${this.queue.length})`);
+    this.logger.info("User added to queue:", socketId, `(Queue size: ${this.queue.length})`);
 
     this.cleanupStaleEntries();
 
@@ -42,19 +43,19 @@ export class MatchmakingService {
   dequeue(socketId: string): boolean {
     const index = this.queue.findIndex((user) => user.socketId === socketId);
     if (index === -1) {
-      logger.warn("Attempted to remove user not in queue:", socketId);
+      this.logger.warn("Attempted to remove user not in queue:", socketId);
       return false;
     }
 
     const user = this.queue[index];
     if (!user) {
-      logger.warn("User data not found at index:", index);
+      this.logger.warn("User data not found at index:", index);
       return false;
     }
 
     const waitTime = Date.now() - user.joinedAt.getTime();
     this.queue.splice(index, 1);
-    logger.info("User removed from queue:", socketId, `(Queue size: ${this.queue.length}, waited: ${Math.round(waitTime / 1000)}s)`);
+    this.logger.info("User removed from queue:", socketId, `(Queue size: ${this.queue.length}, waited: ${Math.round(waitTime / 1000)}s)`);
     return true;
   }
 
@@ -71,7 +72,7 @@ export class MatchmakingService {
     this.skipRecords.set(key, {
       timestamp: Date.now(),
     });
-    logger.info("Skip recorded:", skipperId, "->", skippedId, "Cooldown: 3 seconds");
+    this.logger.info("Skip recorded:", skipperId, "->", skippedId, "Cooldown: 3 seconds");
 
     this.cleanupExpiredSkips();
   }
@@ -91,7 +92,7 @@ export class MatchmakingService {
     }
 
     const remainingCooldown = Math.ceil((this.skipCooldownTime - timeSinceSkip) / 1000);
-    logger.info("Skip cooldown active:", user1Id, "and", user2Id, `(${remainingCooldown}s remaining)`);
+    this.logger.info("Skip cooldown active:", user1Id, "and", user2Id, `(${remainingCooldown}s remaining)`);
     return false;
   }
 
@@ -114,19 +115,19 @@ export class MatchmakingService {
     });
 
     if (expiredKeys.length > 0) {
-      logger.info("Cleaned up", expiredKeys.length, "expired skip records");
+      this.logger.info("Cleaned up", expiredKeys.length, "expired skip records");
     }
   }
 
   tryMatch(): QueuedUser[] | null {
     if (this.queue.length < 2) {
       if (this.queue.length === 1) {
-        logger.info("Matchmaking attempt: Only 1 user in queue, waiting for more");
+        this.logger.info("Matchmaking attempt: Only 1 user in queue, waiting for more");
       }
       return null;
     }
 
-    logger.info("Attempting to match users, queue size:", this.queue.length);
+    this.logger.info("Attempting to match users, queue size:", this.queue.length);
 
     this.cleanupExpiredSkips();
 
@@ -153,7 +154,7 @@ export class MatchmakingService {
           (user) => user.socketId !== user1.socketId && user.socketId !== user2.socketId
         );
 
-        logger.info("Matched users:", user1.socketId, "and", user2.socketId);
+        this.logger.info("Matched users:", user1.socketId, "and", user2.socketId);
         return [user1, user2];
       }
 
@@ -176,12 +177,12 @@ export class MatchmakingService {
           (user) => user.socketId !== user1.socketId && user.socketId !== user2.socketId
         );
 
-        logger.warn("Matched users despite cooldown (no other options):", user1.socketId, "and", user2.socketId);
+        this.logger.warn("Matched users despite cooldown (no other options):", user1.socketId, "and", user2.socketId);
         return [user1, user2];
       }
     }
 
-    logger.info("Could not find a valid match after", attempts, "attempts");
+    this.logger.info("Could not find a valid match after", attempts, "attempts");
     return null;
   }
 
@@ -193,7 +194,7 @@ export class MatchmakingService {
     });
 
     staleUsers.forEach((user) => {
-      logger.warn("Removing stale user from queue:", user.socketId);
+      this.logger.warn("Removing stale user from queue:", user.socketId);
       this.dequeue(user.socketId);
       user.socket.emit("queue-timeout", {
         message: "Queue timeout. Please try again.",
@@ -203,6 +204,40 @@ export class MatchmakingService {
 
   removeUser(socketId: string): void {
     this.dequeue(socketId);
+  }
+
+  updateSocketReference(oldSocketId: string, newSocket: Socket): boolean {
+    const index = this.queue.findIndex((user) => user.socketId === oldSocketId);
+    if (index === -1) {
+      return false;
+    }
+
+    const user = this.queue[index];
+    if (!user) {
+      return false;
+    }
+
+    user.socketId = newSocket.id;
+    user.socket = newSocket;
+
+    this.logger.info("Updated socket reference:", oldSocketId, "->", newSocket.id);
+    return true;
+  }
+
+  cleanupStaleSockets(io: Server): void {
+    const staleUsers = this.queue.filter((user) => {
+      const socket = io.sockets.sockets.get(user.socketId);
+      return !socket || !socket.connected;
+    });
+
+    staleUsers.forEach((user) => {
+      this.logger.warn("Removing stale socket from queue:", user.socketId);
+      this.dequeue(user.socketId);
+    });
+
+    if (staleUsers.length > 0) {
+      this.logger.info("Cleaned up", staleUsers.length, "stale socket references");
+    }
   }
 }
 

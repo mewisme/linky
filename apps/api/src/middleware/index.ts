@@ -2,8 +2,10 @@ import cors from "cors";
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import morgan from "morgan";
 import { config } from "../config/index.js";
-import { logger } from "../utils/logger.js";
+import { Logger } from "../utils/logger.js";
 import { clientIpMiddleware } from "./client-ip.js";
+
+const logger = new Logger("Middleware");
 
 morgan.token("custom", () => {
   return "";

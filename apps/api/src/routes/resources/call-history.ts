@@ -7,9 +7,10 @@ import {
   getUserIdByClerkId,
   getUserCountry,
 } from "../../lib/supabase/queries/call-history.js";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("ResourcesCallHistoryRoute");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

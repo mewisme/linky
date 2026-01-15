@@ -1,11 +1,13 @@
 import type { TablesInsert, TablesUpdate } from "../../../types/database.types.js";
 
+import { Logger } from "../../../utils/logger.js";
 import { getInterestTagsByIds } from "./interest-tags.js";
-import { logger } from "../../../utils/logger.js";
 import { supabase } from "../client.js";
 
 type UserDetailsInsert = TablesInsert<"user_details">;
 type UserDetailsUpdate = TablesUpdate<"user_details">;
+
+const logger = new Logger("SupabaseUserDetailsQueries");
 
 export async function getUserDetailsByUserId(userId: string) {
   const { data, error } = await supabase
@@ -117,6 +119,24 @@ export async function getUserWithDetails(userId: string) {
       return null;
     }
     logger.error("Error fetching user with details:", error.message);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getPublicUserInfo(userId: string) {
+  const { data, error } = await supabase
+    .from("public_user_info")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    logger.error("Error fetching public user info:", error.message);
     throw error;
   }
 

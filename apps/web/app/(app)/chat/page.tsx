@@ -24,6 +24,7 @@ export default function ChatPage() {
     isVideoOff,
     remoteMuted,
     chatMessages,
+    peerInfo,
     sendMessage,
     start,
     skip,
@@ -90,6 +91,7 @@ export default function ChatPage() {
           remoteMuted={remoteMuted}
           isChatOpen={isChatOpen}
           hasUnreadMessages={hasUnreadMessages}
+          peerInfo={peerInfo}
           onStart={start}
           onSkip={skip}
           onEndCall={endCall}

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import type { TablesInsert, TablesUpdate } from "../../types/database.types.js";
 import {
   getInterestTags,
@@ -11,6 +11,7 @@ import {
 } from "../../lib/supabase/queries/interest-tags.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("AdminInterestTagsRoute");
 
 type InterestTagInsert = TablesInsert<"interest_tags">;
 type InterestTagUpdate = TablesUpdate<"interest_tags">;

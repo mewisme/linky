@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import {
   getVisitor,
   getPageViews,
@@ -13,6 +13,7 @@ import {
 import { supabase } from "../../lib/supabase/client.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("AdminVisitsRoute");
 
 router.get("/visitor/:ip", async (req: Request, res: Response) => {
   try {

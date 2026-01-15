@@ -1,7 +1,9 @@
 import { RedisClientType, RedisFunctions, RedisModules, RedisScripts, RespVersions, TypeMapping, createClient } from 'redis'
 
+import { Logger } from '../../utils/logger.js'
 import { config } from '../../config/index.js'
-import { logger } from '../../utils/logger.js'
+
+const logger = new Logger("RedisClient");
 
 const redisConfig = config.redisUrl && config.redisUrl.startsWith('redis://')
   ? {

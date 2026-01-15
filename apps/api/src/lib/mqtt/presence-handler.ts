@@ -1,8 +1,10 @@
 import { getAdminSocketIds, removeAdminSocket } from '../admin-cache.js'
 
+import { Logger } from '../../utils/logger.js'
 import { createSocketServer } from '@/socket/index.js'
-import { logger } from '../../utils/logger.js'
 import { redisClient } from '../redis/client.js'
+
+const logger = new Logger("MQTTPresenceHandler");
 
 let ioRef: ReturnType<typeof createSocketServer> | null = null
 

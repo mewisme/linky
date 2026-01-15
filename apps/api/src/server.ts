@@ -4,9 +4,11 @@ import { setupMiddleware, setupErrorHandlers } from "./middleware/index.js";
 import { setupRoutes } from "./routes/index.js";
 import { createSocketServer } from "./socket/index.js";
 import { config } from "./config/index.js";
-import { logger } from "./utils/logger.js";
+import { Logger } from "./utils/logger.js";
 import { connectRedis } from "./lib/redis/client.js";
 import { initializeMqttClient, attachSocketIO } from "./lib/mqtt/client.js";
+
+const logger = new Logger("Server");
 
 export function createApp(): Express {
   const app = express();

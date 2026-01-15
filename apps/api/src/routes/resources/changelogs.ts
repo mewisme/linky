@@ -1,10 +1,11 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import { getChangelogs, getChangelogByVersion } from "../../lib/supabase/queries/changelogs.js";
 import { getDownloadUrl } from "../../lib/s3/presigned.js";
 import { config } from "../../config/index.js";
 
 const router: ExpressRouter = Router();
+const logger = new Logger("ResourcesChangelogsRoute");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

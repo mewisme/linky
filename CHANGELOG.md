@@ -1,13 +1,13 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Improve ICE server handling and peer connection management ([693d92c](../../commit/693d92c))
+- Add Docker support and CI pipeline for backend and Redis services ([c4c01e9](../../commit/c4c01e9))
+- Enhance ICE handling and TURN credential management in video chat ([2215cbc](../../commit/2215cbc))
 
 🔨 Other Changes
 
-- Enable file watching for the linky application in ecosystem configuration ([f403d04](../../commit/f403d04))
-- Bump package versions to 0.15.0 and update version lock ([165513f](../../commit/165513f))
+- Bump package versions to 0.15.1 and update version lock ([f87cb09](../../commit/f87cb09))
 
 
-📋 Full Changelog: [165513f...693d92c](../../compare/165513f...693d92c)
+📋 Full Changelog: [f87cb09...c4c01e9](../../compare/f87cb09...c4c01e9)

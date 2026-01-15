@@ -3,14 +3,22 @@ import { RedisClientType, RedisFunctions, RedisModules, RedisScripts, RespVersio
 import { config } from '../../config/index.js'
 import { logger } from '../../utils/logger.js'
 
-export const redisClient = createClient({
-  username: config.redisUsername,
-  password: config.redisPassword,
-  socket: {
-    host: config.redisUrl,
-    port: Number(config.redisPort)
+const redisConfig = config.redisUrl && config.redisUrl.startsWith('redis://')
+  ? {
+    url: config.redisUrl,
+    username: config.redisUsername || undefined,
+    password: config.redisPassword || undefined,
   }
-}) as RedisClientType<RedisModules, RedisFunctions, RedisScripts, RespVersions, TypeMapping>
+  : {
+    username: config.redisUsername,
+    password: config.redisPassword,
+    socket: {
+      host: config.redisUrl || 'localhost',
+      port: Number(config.redisPort) || 6379
+    }
+  }
+
+export const redisClient = createClient(redisConfig) as RedisClientType<RedisModules, RedisFunctions, RedisScripts, RespVersions, TypeMapping>
 
 redisClient.on('error', (err) => {
   logger.error('Redis Client Error:', err)

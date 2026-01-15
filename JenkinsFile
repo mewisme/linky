@@ -14,6 +14,7 @@ pipeline {
     VERCEL_ORG_ID = 'team_p8JoMoWuBzx98Ha8qh75EmUg'
     VERCEL_PROJECT_ID = 'prj_1CQzR8T4N5qYR4OYaupZtVpizFL7'
     LINKY_API_ENV_FILE = '/var/jenkins_home/envs/linky/.env'
+    LINKY_WEB_ENV_FILE = 'apps/web/.env.production'
   }
 
   stages {
@@ -32,13 +33,20 @@ pipeline {
       }
     }
 
-    stage('Prepare Backend Env') {
+    stage('Prepare Env Files') {
       steps {
-        withCredentials([file(credentialsId: 'linky-env-file', variable: 'ENV_FILE')]) {
+        withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
           sh '''
             mkdir -p /var/jenkins_home/envs/linky
             cp "$ENV_FILE" "$LINKY_API_ENV_FILE"
             chmod 600 "$LINKY_API_ENV_FILE"
+          '''
+        }
+
+        withCredentials([file(credentialsId: 'linky-web-env-file', variable: 'ENV_FILE')]) {
+          sh '''
+            cp "$ENV_FILE" "$LINKY_WEB_ENV_FILE"
+            chmod 600 "$LINKY_WEB_ENV_FILE"
           '''
         }
       }

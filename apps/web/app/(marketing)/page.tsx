@@ -1,40 +1,23 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@repo/ui/components/ui/card";
-import {
-  Globe,
-  Shield,
-  Zap,
-} from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 
-import { Badge } from "@repo/ui/components/ui/badge";
 import { Header } from "@/components/header/landing/index";
-import { RainbowButton } from "@repo/ui/components/ui/rainbow-button";
-import { Separator } from "@repo/ui/components/ui/separator";
-import { SocialProof } from "@/components/landing/social-proof";
 import { cn } from "@repo/ui/lib/utils";
 import { motion, type Variants } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { BorderBeam } from "@repo/ui/components/ui/border-beam"
-import { LandingFooter } from "@/components/landing/footer";
 import { usePageView } from "@/hooks/use-page-view";
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking";
+import { Hero } from "./components/landing/hero";
+import { LandingFooter } from "@/components/landing/footer";
+import { HeroBackground } from "./components/landing/hero-background";
 
 const CONTENT_VARIANTS: Variants = {
   hidden: {
-    y: 2000,
     opacity: 0,
   },
   visible: {
-    y: 0,
     opacity: 1,
     transition: { type: 'spring', stiffness: 100, damping: 30 },
   },
@@ -65,8 +48,8 @@ export default function Home() {
   useVisitorTracking();
 
   useEffect(() => {
-    const timer = setTimeout(() => setTransition(true), 2000);
-    const timer2 = setTimeout(() => setIsLoadedTransition(true), 3000);
+    const timer = setTimeout(() => setTransition(true), 1250);
+    const timer2 = setTimeout(() => setIsLoadedTransition(true), 2500);
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
@@ -104,96 +87,14 @@ export default function Home() {
               <div className="absolute top-1/2 left-0 h-32 w-32 -translate-y-1/2 rounded-full bg-blue-500/10 blur-3xl sm:h-48 sm:w-48 md:h-64 md:w-64" />
             </motion.div>
 
-            <div className="relative z-10 w-full max-w-4xl py-6 mt-10">
-              <Card className="border-none bg-transparent backdrop-blur-xl">
-                <CardHeader className="space-y-4 px-4 text-center sm:space-y-5 sm:px-6 sm:py-8 md:space-y-6 md:px-8">
-                  <div className="flex items-center justify-center gap-2 mt-4 md:mt-0">
-                    <Badge variant="secondary" className="gap-1 px-2.5 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm">
-                      Live · Global · Instant
-                    </Badge>
-                  </div>
-
-                  <CardTitle className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-                    Connect with the World
-                  </CardTitle>
-
-                  <CardDescription className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-lg">
-                    Instantly connect with people around the world through secure,
-                    real-time video conversations. No registration required to start.
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="flex flex-col gap-6 px-4 pb-6 sm:gap-7 sm:px-6 sm:pb-8 md:gap-8 md:px-8">
-                  <RainbowButton
-                    size={'lg'}
-                    variant={'outline'}
-                    onClick={handleStartChat}
-                    className="w-full mx-auto font-semibold text-sm sm:w-fit sm:text-base md:text-md"
-                  >
-                    Start Chatting Now
-                  </RainbowButton>
-
-                  <p className="text-center text-xs text-muted-foreground sm:text-sm">
-                    {isSignedIn && isLoaded
-                      ? "Jump into a new random video session"
-                      : "Sign in to start chatting instantly"}
-                  </p>
-
-                  <Separator className="my-2 sm:my-4" />
-
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 md:gap-6">
-                    <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
-                      <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                        <Globe className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold sm:text-base">Global Reach</h3>
-                        <p className="text-xs text-muted-foreground sm:text-sm">
-                          Connect with people worldwide
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
-                      <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                        <Zap className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold sm:text-base">Instant Connection</h3>
-                        <p className="text-xs text-muted-foreground sm:text-sm">
-                          Start chatting in seconds
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
-                      <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                        <Shield className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-semibold sm:text-base">Secure & Private</h3>
-                        <p className="text-xs text-muted-foreground sm:text-sm">
-                          Your conversations are protected
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col items-center gap-3 pt-2 sm:gap-4 sm:pt-4">
-                    <SocialProof />
-                    <p className="text-xs text-muted-foreground sm:text-sm">
-                      Join <span className="font-semibold text-foreground">1,000+</span> people
-                      chatting right now
-                    </p>
-                  </div>
-                </CardContent>
-                <BorderBeam duration={8} size={100} />
-              </Card>
+            <div className={cn("relative z-10 w-full max-w-4xl py-6 mt-8 bg-transparent backdrop-blur-xl")}>
+              <Hero handleStartChat={handleStartChat} isSignedIn={isSignedIn} isLoaded={isLoaded} key={String(transition)} />
               <LandingFooter />
             </div>
+
           </motion.div>
-        </div>
-      </main>
+        </div >
+      </main >
     </>
   );
 }

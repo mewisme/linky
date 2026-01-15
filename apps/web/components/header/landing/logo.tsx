@@ -23,7 +23,7 @@ const pathVariants: Variants = {
     pathLength: 1,
     fillOpacity: 1,
     transition: {
-      duration: 2,
+      duration: 1.5,
       ease: 'easeInOut',
     },
   },
@@ -67,18 +67,15 @@ export const Logo = ({
         className={cn(sizes[size].svg, className)}
         {...props}
       >
-        {paths.map((path, index) =>
-          <motion.path
-            variants={draw ? pathVariants : undefined}
-            initial={draw ? 'hidden' : false}
-            animate={draw ? 'visible' : false}
-            stroke="currentColor"
-            strokeWidth={4}
-            className="fill-neutral-900 dark:fill-neutral-100"
-            d={path}
-            key={index}
-          />
-        )}
+        <motion.path
+          variants={draw ? pathVariants : undefined}
+          initial={draw ? 'hidden' : false}
+          animate={draw ? 'visible' : false}
+          stroke="currentColor"
+          strokeWidth={4}
+          className="fill-neutral-900 dark:fill-neutral-100"
+          d={paths.join("")}
+        />
       </motion.svg>
 
       <span className="sr-only">Linky</span>

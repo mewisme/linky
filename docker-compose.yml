@@ -8,7 +8,6 @@ services:
       - "${PORT:-3001}:3001"
     environment:
       NODE_ENV: production
-      PORT: ${PORT:-3001}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       REDIS_PORT: ${REDIS_PORT:-6379}
     restart: unless-stopped

@@ -1,15 +1,13 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Simplify landing page structure and improve performance ([028a182](../../commit/028a182))
+- Add health check endpoint with application metadata ([b653e42](../../commit/b653e42))
+- Add public user info view and enhance user detail queries ([1e5ec92](../../commit/1e5ec92))
 
 🔨 Other Changes
 
-- Update port mapping in docker-compose.yml ([f5f7f07](../../commit/f5f7f07))
-- Update CHANGELOG for recent changes ([8c0b6e4](../../commit/8c0b6e4))
-- Clean up environment variables in docker-compose.yml ([6ffbfa4](../../commit/6ffbfa4))
-- Bump package versions to 0.16.4 and update version lock ([4b29a5f](../../commit/4b29a5f))
+- Bump package versions to 0.16.5 and update version lock ([b707efd](../../commit/b707efd))
 
 
-📋 Full Changelog: [4b29a5f...028a182](../../compare/4b29a5f...028a182)
+📋 Full Changelog: [b707efd...b653e42](../../compare/b707efd...b653e42)

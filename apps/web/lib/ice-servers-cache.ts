@@ -73,7 +73,7 @@ class IceServerCacheManager {
   }
 
   async getIceServers(
-    getToken: () => Promise<string | null>,
+    getToken: (options: { template: 'custom', skipCache: boolean }) => Promise<string | null>,
     reason: "initial" | "expired" | "forced" = "initial"
   ): Promise<RTCIceServer[]> {
     if (this.isCacheValid() && reason !== "forced") {
@@ -100,7 +100,7 @@ class IceServerCacheManager {
 
     const fetchPromise = (async () => {
       try {
-        const token = await getToken();
+        const token = await getToken({ template: 'custom', skipCache: true });
         if (!token) {
           throw new Error("No token available for ICE servers");
         }

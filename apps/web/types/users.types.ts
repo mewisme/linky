@@ -119,4 +119,41 @@ export namespace UsersAPI {
       }
     }
   }
+
+  export namespace UserSettings {
+    export namespace GetMe {
+      export interface Response {
+        id: string;
+        user_id: string;
+        default_mute_mic: boolean;
+        default_disable_camera: boolean;
+        notification_sound_enabled: boolean;
+        notification_preferences: Record<string, unknown> | null;
+        created_at: string;
+        updated_at: string;
+      }
+    }
+
+    export namespace UpdateMe {
+      export interface Body {
+        default_mute_mic?: boolean;
+        default_disable_camera?: boolean;
+        notification_sound_enabled?: boolean;
+        notification_preferences?: Record<string, unknown> | null;
+      }
+
+      export type Response = GetMe.Response;
+    }
+
+    export namespace PatchMe {
+      export interface Body {
+        default_mute_mic?: boolean;
+        default_disable_camera?: boolean;
+        notification_sound_enabled?: boolean;
+        notification_preferences?: Record<string, unknown> | null;
+      }
+
+      export type Response = GetMe.Response;
+    }
+  }
 }

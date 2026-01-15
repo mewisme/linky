@@ -3,12 +3,14 @@
 import { MicOff, VideoOff } from "lucide-react";
 
 import type { ConnectionStatus } from "@/hooks/use-video-chat";
-import type { UsersAPI } from "@/types/users.types";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
+import type { UsersAPI } from "@/types/users.types";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useRef } from "react";
+import { useStreamAspectRatio } from "@/hooks/use-stream-aspect-ratio";
+import { useViewportHeight } from "@/hooks/use-viewport-height";
 
 interface VideoContainerProps {
   localStream: MediaStream | null;
@@ -48,39 +50,42 @@ export function VideoContainer({
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const hasPeer = !!remoteStream;
+  const remoteAspectRatio = useStreamAspectRatio(remoteStream);
+  const localAspectRatio = useStreamAspectRatio(localStream);
+  const containerHeight = useViewportHeight(64);
+
+  const displayAspectRatio = hasPeer ? remoteAspectRatio : localAspectRatio;
 
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full overflow-hidden bg-transparent max-h-[calc(100dvh-4rem)]"
+      className="relative w-full overflow-hidden bg-transparent"
+      style={{ height: `${containerHeight}px` }}
     >
-      {isMobile ? (
-        hasPeer ? (
-          <>
-            <div className="relative h-full w-full">
-              <VideoPlayer
-                stream={remoteStream}
-                playsInline
-                aspectRatio="16/9"
-                className="h-full w-full"
-                objectFit="contain"
-                isMobile={isMobile}
-              />
-              {remoteMuted && (
-                <div className="absolute top-4 left-4 z-10 flex items-center justify-center rounded-full bg-black/60 p-2">
-                  <MicOff className="size-5 text-white" />
-                </div>
-              )}
-            </div>
+      {hasPeer ? (
+        <>
+          <div className="relative flex h-full w-full items-center justify-center">
+            <VideoPlayer
+              stream={remoteStream}
+              playsInline
+              aspectRatio={displayAspectRatio ?? undefined}
+              className="max-h-full max-w-full"
+              objectFit="contain"
+              isMobile={isMobile}
+            />
+            {remoteMuted && (
+              <div
+                className={`absolute z-10 flex items-center justify-center rounded-full bg-black/60 p-2 ${isMobile ? "top-4 left-4" : "top-4 right-4"}`}
+              >
+                <MicOff className="size-5 text-white" />
+              </div>
+            )}
+          </div>
 
-            {localStream && (
+          {isMobile ? (
+            localStream && (
               <div className="absolute top-4 right-4 z-20 w-32 overflow-hidden rounded-lg border-2 border-background shadow-lg">
-                <div
-                  className="relative bg-black"
-                  style={{
-                    aspectRatio: "1/1",
-                  }}
-                >
+                <div className="relative bg-black" style={{ aspectRatio: localAspectRatio ?? 1 }}>
                   <VideoPlayer
                     stream={localStream}
                     muted
@@ -96,83 +101,38 @@ export function VideoContainer({
                   )}
                 </div>
               </div>
-            )}
-          </>
-        ) : (
-          <>
-            {localStream ? (
-              <div className="relative h-full w-full">
-                <VideoPlayer
-                  stream={localStream}
-                  muted
-                  playsInline
-                  aspectRatio="1/1"
-                  className="h-full w-full"
-                  objectFit="contain"
-                  isMobile={isMobile}
-                />
-              </div>
-            ) : (
-              <div className="flex h-[calc(100dvh-200px)]" />
-            )}
-
-            {isVideoOff && localStream && (
-              <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                <VideoOff className="size-12 text-muted-foreground" />
-              </div>
-            )}
-          </>
-        )
-      ) : (
-        hasPeer ? (
-          <>
-            <div className="relative h-full w-full">
-              <VideoPlayer
-                stream={remoteStream}
-                playsInline
-                aspectRatio="16/9"
-                className="h-full w-full"
-                objectFit="contain"
-                isMobile={isMobile}
-              />
-              {remoteMuted && (
-                <div className="absolute top-4 right-4 z-10 flex items-center justify-center rounded-full bg-black/60 p-2">
-                  <MicOff className="size-5 text-white" />
-                </div>
-              )}
-            </div>
-
+            )
+          ) : (
             <DraggableVideoOverlay
               localStream={localStream}
               isVideoOff={isVideoOff}
               containerRef={containerRef as React.RefObject<HTMLDivElement>}
             />
-          </>
-        ) : (
-          <>
-            {localStream ? (
-              <div className="relative h-full w-full">
-                <VideoPlayer
-                  stream={localStream}
-                  muted
-                  playsInline
-                  aspectRatio="16/9"
-                  className="h-full w-full"
-                  objectFit="contain"
-                  isMobile={isMobile}
-                />
-              </div>
-            ) : (
-              <div className="flex h-[calc(100dvh-200px)]" />
-            )}
-
-            {isVideoOff && localStream && (
-              <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                <VideoOff className="size-12 text-muted-foreground" />
-              </div>
-            )}
-          </>
-        )
+          )}
+        </>
+      ) : (
+        <>
+          {localStream ? (
+            <div className="relative flex h-full w-full items-center justify-center">
+              <VideoPlayer
+                stream={localStream}
+                muted
+                playsInline
+                aspectRatio={displayAspectRatio ?? undefined}
+                className="max-h-full max-w-full"
+                objectFit="contain"
+                isMobile={isMobile}
+              />
+              {isVideoOff && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                  <VideoOff className="size-12 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="h-full w-full" />
+          )}
+        </>
       )}
 
       <VideoControls

@@ -14,6 +14,7 @@ import { useSocketSignaling } from "./use-socket-signaling";
 import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./use-video-chat-state";
 import { recoveryController } from "@/lib/webrtc-recovery";
 import { iceServerCache } from "@/lib/ice-servers-cache";
+import { useUnloadEndCall } from "./use-unload-end-call";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -632,6 +633,15 @@ export function useVideoChat(): UseVideoChatReturn {
   const clearError = useCallback(() => {
     actionsRef.current.setError(null);
   }, []);
+
+  // CRITICAL: Detect page unload and send end-call signal when user is in active call
+  // This ensures peer is notified when user closes tab, reloads, or navigates away
+  useUnloadEndCall(
+    () => socketSignaling.isInActiveCallRef.current,
+    () => socketSignaling.sendEndCall(),
+    socketSignaling.getSocketId(),
+    socketSignaling.socketRef
+  );
 
   return {
     localStream: state.localStream,

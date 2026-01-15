@@ -1,7 +1,9 @@
 import { type Server as SocketIOServer } from "socket.io";
 import { type MessageData, type RoomData } from "../types/index.js";
-import { logger } from "../utils/logger.js";
+import { Logger } from "../utils/logger.js";
 import { type AuthenticatedSocket } from "./auth.js";
+
+const logger = new Logger("SocketHandlers");
 
 export function setupSocketHandlers(io: SocketIOServer): void {
   io.on("connection", (socket: AuthenticatedSocket) => {

@@ -1,8 +1,10 @@
 import { type Server as SocketIOServer } from "socket.io";
 import { MatchmakingService } from "../../services/matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import { type AuthenticatedSocket } from "../auth.js";
+
+const logger = new Logger("MatchmakingInterval");
 import { getPublicUserInfo } from "../../lib/supabase/queries/user-details.js";
 import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 

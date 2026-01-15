@@ -2,7 +2,9 @@ import { createClerkClient, verifyToken } from "@clerk/backend";
 
 import type { Socket } from "socket.io";
 import { config } from "../config/index.js";
-import { logger } from "../utils/logger.js";
+import { Logger } from "../utils/logger.js";
+
+const logger = new Logger("SocketAuth");
 
 const clerk = createClerkClient({ secretKey: config.clerkSecretKey });
 

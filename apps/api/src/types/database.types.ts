@@ -211,6 +211,109 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          reason: string
+          reported_user_id: string
+          reporter_user_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason: string
+          reported_user_id: string
+          reporter_user_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          reason?: string
+          reported_user_id?: string
+          reporter_user_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_details: {
         Row: {
           bio: string | null
@@ -262,6 +365,61 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_user_details_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          default_disable_camera: boolean
+          default_mute_mic: boolean
+          id: string
+          notification_preferences: Json | null
+          notification_sound_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_disable_camera?: boolean
+          default_mute_mic?: boolean
+          id?: string
+          notification_preferences?: Json | null
+          notification_sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_disable_camera?: boolean
+          default_mute_mic?: boolean
+          id?: string
+          notification_preferences?: Json | null
+          notification_sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_settings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_settings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_settings_user"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users_with_details"
@@ -416,6 +574,42 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_user_details_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings_v: {
+        Row: {
+          clerk_user_id: string | null
+          created_at: string | null
+          default_disable_camera: boolean | null
+          default_mute_mic: boolean | null
+          id: string | null
+          notification_preferences: Json | null
+          notification_sound_enabled: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_settings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_settings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_settings_user"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users_with_details"

@@ -44,6 +44,7 @@ export interface UseSocketSignalingReturn {
   requestResync: () => void;
   socketRef: MutableRefObject<Socket | null>;
   currentSocketIdRef: MutableRefObject<string | null>;
+  isInActiveCallRef: MutableRefObject<boolean>;
 }
 
 export function useSocketSignaling(): UseSocketSignalingReturn {
@@ -392,6 +393,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       requestResync,
       socketRef,
       currentSocketIdRef,
+      isInActiveCallRef,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [isSocketHealthy, requestResync]

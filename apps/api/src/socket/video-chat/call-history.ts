@@ -1,6 +1,8 @@
 import { type Server as SocketIOServer } from "socket.io";
-import { logger } from "../../utils/logger.js";
+import { Logger } from "../../utils/logger.js";
 import { type AuthenticatedSocket } from "../auth.js";
+
+const logger = new Logger("CallHistory");
 import {
   getUserIdByClerkId,
   getUserCountry,

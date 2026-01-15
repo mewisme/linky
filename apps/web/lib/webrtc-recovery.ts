@@ -38,6 +38,8 @@ class RecoveryController {
   private networkChangeDetected = false;
   private iceRestartCompletedAt = 0;
   private context: RecoveryContext | null = null;
+  private isBackgrounded = false;
+  private visibilityChangeHandler: (() => void) | null = null;
 
   private async getRtpStats(pc: RTCPeerConnection): Promise<RecoveryStats | null> {
     try {
@@ -184,6 +186,25 @@ class RecoveryController {
     const outboundStalled = (trackState.audioOutboundActive || trackState.videoOutboundActive) && hasNoOutbound;
     const inboundStalled = (trackState.audioInboundExpected || trackState.videoInboundExpected) && hasNoInbound;
 
+    // CRITICAL: During backgrounding, allow audio-only continuation
+    // Video may be paused by OS, but audio should continue
+    if (this.isBackgrounded) {
+      // If only video is stalled but audio is working, don't treat as unhealthy
+      if (videoOutboundStalled && !audioOutboundStalled && audioBytesSentDelta >= MIN_BYTES_THRESHOLD) {
+        logger.info("[Recovery] App backgrounded - video stalled but audio active (expected), suppressing recovery");
+        return false;
+      }
+      // If only video inbound is stalled but audio inbound is working, don't treat as unhealthy
+      if (videoInboundStalled && !audioInboundStalled && audioBytesReceivedDelta >= MIN_BYTES_THRESHOLD) {
+        logger.info("[Recovery] App backgrounded - video inbound stalled but audio inbound active (expected), suppressing recovery");
+        return false;
+      }
+      // Extend grace period for backgrounded apps (mobile may pause timers)
+      if (timeDelta < GRACE_PERIOD_MS * 2) {
+        return false;
+      }
+    }
+
     const isOneWay = (outboundStalled && !inboundStalled) || (!outboundStalled && inboundStalled);
 
     const iceState = pc.iceConnectionState;
@@ -209,6 +230,7 @@ class RecoveryController {
         videoOutboundStalled,
         audioInboundStalled,
         videoInboundStalled,
+        isBackgrounded: this.isBackgrounded,
       });
     }
 
@@ -474,9 +496,17 @@ class RecoveryController {
       }
 
       if (this.currentTier === "forced-relay") {
-        await this.tier3ForcedRelay();
-        this.currentTier = "none";
-        this.context?.onRecoveryStateChange?.("none");
+        // CRITICAL: Don't escalate to forced relay if app is backgrounded
+        // Backgrounded apps may have paused video, but audio should continue
+        if (this.isBackgrounded) {
+          logger.info("[Recovery] App backgrounded - skipping forced relay escalation (allowing audio-only continuation)");
+          this.currentTier = "none";
+          this.context?.onRecoveryStateChange?.("none");
+        } else {
+          await this.tier3ForcedRelay();
+          this.currentTier = "none";
+          this.context?.onRecoveryStateChange?.("none");
+        }
       }
     } catch (err) {
       logger.error("[Recovery] Recovery attempt failed:", err);
@@ -496,8 +526,25 @@ class RecoveryController {
     this.lastStats = null;
     this.networkChangeDetected = false;
     this.iceRestartCompletedAt = 0;
+    this.isBackgrounded = typeof document !== "undefined" && document.hidden;
 
     const pc = context.pc;
+
+    // Track visibility changes to handle backgrounding gracefully
+    this.visibilityChangeHandler = () => {
+      const wasBackgrounded = this.isBackgrounded;
+      this.isBackgrounded = typeof document !== "undefined" && document.hidden;
+
+      if (wasBackgrounded && !this.isBackgrounded) {
+        logger.info("[Recovery] App returned to foreground - resuming normal recovery checks");
+      } else if (!wasBackgrounded && this.isBackgrounded) {
+        logger.info("[Recovery] App backgrounded - allowing audio-only continuation, extending grace periods");
+      }
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", this.visibilityChangeHandler);
+    }
 
     // PATCH 1: Removed iceconnectionstatechange listener that set iceRestartCompletedAt
     // iceRestartCompletedAt is now set only when controller explicitly triggers ICE restart
@@ -533,8 +580,15 @@ class RecoveryController {
       clearInterval(this.statsInterval);
       this.statsInterval = null;
     }
+
+    if (this.visibilityChangeHandler && typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
+      this.visibilityChangeHandler = null;
+    }
+
     this.context = null;
     this.recoveryInProgress = false;
+    this.isBackgrounded = false;
     this.currentTier = "none";
     this.lastStats = null;
     this.networkChangeDetected = false;

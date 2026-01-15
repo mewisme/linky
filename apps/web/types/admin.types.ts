@@ -341,4 +341,59 @@ export namespace AdminAPI {
       }
     }
   }
+
+  export namespace Reports {
+    export type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
+
+    export interface Report {
+      id: string;
+      reporter_user_id: string;
+      reported_user_id: string;
+      reason: string;
+      status: ReportStatus;
+      admin_notes: string | null;
+      reviewed_by: string | null;
+      reviewed_at: string | null;
+      created_at: string;
+      updated_at: string;
+    }
+
+    export namespace Get {
+      export interface QueryParams {
+        limit?: number;
+        offset?: number;
+        status?: ReportStatus;
+        reporter_user_id?: string;
+        reported_user_id?: string;
+      }
+
+      export interface Response {
+        data: Report[];
+        count: number;
+        limit: number;
+        offset: number;
+      }
+    }
+
+    export namespace GetById {
+      export interface PathParams {
+        id: string;
+      }
+
+      export type Response = Report;
+    }
+
+    export namespace Update {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        status?: ReportStatus;
+        admin_notes?: string | null;
+      }
+
+      export type Response = Report;
+    }
+  }
 }

@@ -9,16 +9,24 @@ import {
   DialogTitle,
 } from "@repo/ui/components/ui/dialog";
 import {
-  MessageSquare,
-  Mic,
-  MicOff,
-  PhoneOff,
-  Play,
-  SkipForward,
-  User,
-  Video,
-  VideoOff,
-} from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/ui/dropdown-menu";
+import {
+  IconMessageCircle,
+  IconMicrophone,
+  IconMicrophoneOff,
+  IconDotsVertical,
+  IconPhoneOff,
+  IconPlayerPlay,
+  IconPlayerSkipForward,
+  IconUser,
+  IconVideo,
+  IconVideoOff,
+  IconFlag,
+} from "@tabler/icons-react";
 import {
   Tooltip,
   TooltipContent,
@@ -28,10 +36,42 @@ import {
 
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
+import { Textarea } from "@repo/ui/components/ui/textarea";
+import { Label } from "@repo/ui/components/ui/label";
+import { useAuth } from "@clerk/nextjs";
+import { toast } from "react-hot-toast";
 import type { ConnectionStatus } from "@/hooks/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
+import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
-import { useState } from "react";
+import React, { useState, useMemo, type ReactNode } from "react";
+
+type ControlPriority = "primary" | "secondary" | "overflow";
+
+interface ControlConfig {
+  id: string;
+  priority: ControlPriority;
+  icon: React.ElementType;
+  label: string;
+  variant?: "default" | "destructive" | "outline";
+  onClick: () => void;
+  disabled?: boolean | ((props: ControlContext) => boolean);
+  visible?: boolean | ((props: ControlContext) => boolean);
+  badge?: ReactNode;
+  dynamicIcon?: (props: ControlContext) => React.ElementType;
+  dynamicLabel?: (props: ControlContext) => string;
+  dynamicVariant?: (props: ControlContext) => "default" | "destructive" | "outline";
+}
+
+interface ControlContext {
+  connectionStatus: ConnectionStatus;
+  isMuted: boolean;
+  isVideoOff: boolean;
+  hasLocalStream: boolean;
+  isChatOpen: boolean;
+  hasUnreadMessages: boolean;
+  peerInfo: UsersAPI.PublicUserInfo | null;
+}
 
 interface VideoControlsProps {
   connectionStatus: ConnectionStatus;
@@ -47,6 +87,66 @@ interface VideoControlsProps {
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onToggleChat: () => void;
+}
+
+interface ControlButtonProps {
+  config: ControlConfig;
+  context: ControlContext;
+  onPeerInfoOpen: () => void;
+  onReportOpen: () => void;
+}
+
+function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: ControlButtonProps) {
+  const isVisible =
+    config.visible === undefined
+      ? true
+      : typeof config.visible === "boolean"
+        ? config.visible
+        : config.visible(context);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  const isDisabled =
+    typeof config.disabled === "boolean"
+      ? config.disabled
+      : config.disabled?.(context) ?? false;
+
+  const Icon = config.dynamicIcon?.(context) ?? config.icon;
+  const label = config.dynamicLabel?.(context) ?? config.label;
+  const variant =
+    config.dynamicVariant?.(context) ?? config.variant ?? "outline";
+
+  const handleClick = () => {
+    if (config.id === "peer-info") {
+      onPeerInfoOpen();
+    } else if (config.id === "report") {
+      onReportOpen();
+    } else {
+      config.onClick();
+    }
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          onClick={handleClick}
+          disabled={isDisabled}
+          variant={variant}
+          size="icon"
+          className={`h-12 w-12 ${config.badge ? "relative" : ""}`}
+        >
+          <Icon className="size-5" />
+          {config.badge}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{label}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export function VideoControls({
@@ -65,7 +165,136 @@ export function VideoControls({
   onToggleChat,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
+  const { getToken } = useAuth();
   const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  const context: ControlContext = {
+    connectionStatus,
+    isMuted,
+    isVideoOff,
+    hasLocalStream,
+    isChatOpen,
+    hasUnreadMessages,
+    peerInfo,
+  };
+
+  const controls: ControlConfig[] = useMemo(
+    () => [
+      {
+        id: "start",
+        priority: "primary",
+        icon: IconPlayerPlay,
+        label: "Start",
+        variant: "default",
+        onClick: onStart,
+        visible: connectionStatus === "idle",
+      },
+      {
+        id: "mute",
+        priority: "primary",
+        icon: IconMicrophone,
+        label: "Mute",
+        onClick: onToggleMute,
+        disabled: !hasLocalStream,
+        dynamicIcon: (ctx) => (ctx.isMuted ? IconMicrophoneOff : IconMicrophone),
+        dynamicLabel: (ctx) => (ctx.isMuted ? "Unmute" : "Mute"),
+        dynamicVariant: (ctx) => (ctx.isMuted ? "destructive" : "outline"),
+      },
+      {
+        id: "skip",
+        priority: "primary",
+        icon: IconPlayerSkipForward,
+        label: "Skip",
+        variant: "outline",
+        onClick: onSkip,
+        visible: connectionStatus === "connected",
+        disabled:
+          connectionStatus !== "connected" &&
+          connectionStatus !== "searching",
+      },
+      {
+        id: "video",
+        priority: "primary",
+        icon: IconVideo,
+        label: "Camera Off",
+        onClick: onToggleVideo,
+        disabled: !hasLocalStream,
+        dynamicIcon: (ctx) => (ctx.isVideoOff ? IconVideoOff : IconVideo),
+        dynamicLabel: (ctx) => (ctx.isVideoOff ? "Camera On" : "Camera Off"),
+        dynamicVariant: (ctx) => (ctx.isVideoOff ? "destructive" : "outline"),
+      },
+      {
+        id: "end-call",
+        priority: "primary",
+        icon: IconPhoneOff,
+        label: "End Call",
+        variant: "destructive",
+        onClick: onEndCall,
+        visible:
+          connectionStatus === "connected" ||
+          connectionStatus === "searching" ||
+          connectionStatus === "connecting" ||
+          hasLocalStream,
+      },
+      {
+        id: "chat",
+        priority: "overflow",
+        icon: IconMessageCircle,
+        label: "Show Chat",
+        variant: "outline",
+        onClick: onToggleChat,
+        dynamicLabel: (ctx) => (ctx.isChatOpen ? "Hide Chat" : "Show Chat"),
+      },
+      {
+        id: "peer-info",
+        priority: "overflow",
+        icon: IconUser,
+        label: "Peer Info",
+        variant: "outline",
+        onClick: () => { },
+        visible: connectionStatus === "connected" && !!peerInfo,
+      },
+      {
+        id: "report",
+        priority: "overflow",
+        icon: IconFlag,
+        label: "Report",
+        variant: "outline",
+        onClick: () => { },
+        visible: connectionStatus === "connected" && !!peerInfo,
+      },
+    ],
+    [
+      connectionStatus,
+      hasLocalStream,
+      onEndCall,
+      onSkip,
+      onStart,
+      onToggleChat,
+      onToggleMute,
+      onToggleVideo,
+      peerInfo,
+    ]
+  );
+
+  const primaryControls = controls.filter((c) => c.priority === "primary");
+  const overflowControls = controls.filter((c) => c.priority === "overflow");
+
+  const visibleOverflowControls = overflowControls.filter((c) => {
+    const isVisible =
+      c.visible === undefined
+        ? true
+        : typeof c.visible === "boolean"
+          ? c.visible
+          : c.visible(context);
+    return isVisible;
+  });
+
+  const showOverflowMenu = visibleOverflowControls.length > 0;
+  const hasUnreadMessagesIndicator = hasUnreadMessages && !isChatOpen;
 
   return (
     <div
@@ -82,148 +311,71 @@ export function VideoControls({
       }
     >
       <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {connectionStatus === "idle" && (
-              <Button
-                onClick={onStart}
-                variant="default"
-                size="icon"
-                className="h-12 w-12"
-              >
-                <Play className="size-5" />
-              </Button>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Start</p>
-          </TooltipContent>
-        </Tooltip>
+        {primaryControls.map((control) => (
+          <ControlButton
+            key={control.id}
+            config={control}
+            context={context}
+            onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
+            onReportOpen={() => setIsReportOpen(true)}
+          />
+        ))}
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {connectionStatus === "connected" && (
-              <Button
-                onClick={onSkip}
-                disabled={
-                  connectionStatus !== "connected" &&
-                  connectionStatus !== "searching"
-                }
-                variant="outline"
-                size="icon"
-                className="h-12 w-12"
-              >
-                <SkipForward className="size-5" />
-              </Button>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Skip</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={onToggleMute}
-              disabled={!hasLocalStream}
-              variant={isMuted ? "destructive" : "outline"}
-              size="icon"
-              className="h-12 w-12"
-            >
-              {isMuted ? (
-                <MicOff className="size-5" />
-              ) : (
-                <Mic className="size-5" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isMuted ? "Unmute" : "Mute"}</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={onToggleVideo}
-              disabled={!hasLocalStream}
-              variant={isVideoOff ? "destructive" : "outline"}
-              size="icon"
-              className="h-12 w-12"
-            >
-              {isVideoOff ? (
-                <VideoOff className="size-5" />
-              ) : (
-                <Video className="size-5" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isVideoOff ? "Camera On" : "Camera Off"}</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={onToggleChat}
-              variant="outline"
-              size="icon"
-              className="relative h-12 w-12"
-            >
-              <MessageSquare className="size-5" />
-              {hasUnreadMessages && !isChatOpen && (
-                <span className="absolute right-1 top-1 flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
-                </span>
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{isChatOpen ? "Hide Chat" : "Show Chat"}</p>
-          </TooltipContent>
-        </Tooltip>
-
-        {connectionStatus === "connected" && peerInfo && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={() => setIsPeerInfoOpen(true)}
-                variant="outline"
-                size="icon"
-                className="h-12 w-12"
-              >
-                <User className="size-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Peer Info</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-
-        {(connectionStatus === "connected" ||
-          connectionStatus === "searching" ||
-          connectionStatus === "connecting" ||
-          hasLocalStream) && (
+        {showOverflowMenu && (
+          <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  onClick={onEndCall}
-                  variant="destructive"
-                  size="icon"
-                  className="h-12 w-12"
-                >
-                  <PhoneOff className="size-5" />
-                </Button>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={`h-12 w-12 ${hasUnreadMessagesIndicator ? "relative" : ""}`}
+                  >
+                    <IconDotsVertical className="size-5" />
+                    {hasUnreadMessagesIndicator && (
+                      <span className="absolute right-1 top-1 flex h-3 w-3">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
+                        <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
+                      </span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>End Call</p>
+                <p>More options</p>
               </TooltipContent>
             </Tooltip>
-          )}
+            <DropdownMenuContent align="end" side="top" className="mb-2">
+              {visibleOverflowControls.map((control) => {
+                const Icon = control.dynamicIcon?.(context) ?? control.icon;
+                const label = control.dynamicLabel?.(context) ?? control.label;
+                const isDisabled =
+                  typeof control.disabled === "boolean"
+                    ? control.disabled
+                    : control.disabled?.(context) ?? false;
+
+                return (
+                  <DropdownMenuItem
+                    key={control.id}
+                    onClick={() => {
+                      if (control.id === "peer-info") {
+                        setIsPeerInfoOpen(true);
+                      } else if (control.id === "report") {
+                        setIsReportOpen(true);
+                      } else {
+                        control.onClick();
+                      }
+                    }}
+                    disabled={isDisabled}
+                  >
+                    <Icon className="size-4" />
+                    <span>{label}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </TooltipProvider>
 
       <Dialog open={isPeerInfoOpen} onOpenChange={setIsPeerInfoOpen}>
@@ -287,6 +439,105 @@ export function VideoControls({
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Report User</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for reporting this user. Our team will review your report.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {peerInfo && (
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={peerInfo.avatar_url || undefined} alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()} />
+                  <AvatarFallback>
+                    {peerInfo.first_name?.[0] || ""}
+                    {peerInfo.last_name?.[0] || ""}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium">
+                    {peerInfo.first_name || ""} {peerInfo.last_name || ""}
+                  </p>
+                </div>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="report-reason">Reason</Label>
+              <Textarea
+                id="report-reason"
+                placeholder="Please describe the issue..."
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                rows={4}
+                className="resize-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsReportOpen(false);
+                  setReportReason("");
+                }}
+                disabled={isSubmittingReport}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  if (!reportReason.trim() || !peerInfo) {
+                    toast.error("Please provide a reason for the report");
+                    return;
+                  }
+
+                  setIsSubmittingReport(true);
+                  try {
+                    const token = await getToken({ template: 'custom', skipCache: true });
+                    if (!token) {
+                      toast.error("Authentication required");
+                      return;
+                    }
+
+                    const response = await fetch("/api/resources/reports", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                      },
+                      body: JSON.stringify({
+                        reported_user_id: peerInfo.id,
+                        reason: reportReason.trim(),
+                      } as ResourcesAPI.Reports.Create.Body),
+                    });
+
+                    if (!response.ok) {
+                      const error = await response.json();
+                      toast.error(error.message || "Failed to submit report");
+                      return;
+                    }
+
+                    toast.success("Report submitted successfully");
+                    setIsReportOpen(false);
+                    setReportReason("");
+                  } catch {
+                    toast.error("Failed to submit report");
+                  } finally {
+                    setIsSubmittingReport(false);
+                  }
+                }}
+                disabled={isSubmittingReport || !reportReason.trim()}
+              >
+                {isSubmittingReport ? "Submitting..." : "Submit Report"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

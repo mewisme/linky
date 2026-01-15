@@ -37,8 +37,6 @@ services:
     restart: unless-stopped
     networks:
       - linky-network
-    profiles:
-      - redis
 
 volumes:
   redis-data:

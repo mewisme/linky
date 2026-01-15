@@ -1,0 +1,93 @@
+pipeline {
+  agent any
+
+  tools {
+    nodejs 'node-lts'
+  }
+
+  options {
+    timeout(time: 30, unit: 'MINUTES')
+  }
+
+  environment {
+    BACKEND_IMAGE = 'linky-api:latest'
+    VERCEL_ORG_ID = 'team_p8JoMoWuBzx98Ha8qh75EmUg'
+    VERCEL_PROJECT_ID = 'prj_1CQzR8T4N5qYR4OYaupZtVpizFL7'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Install Dependencies') {
+      steps {
+        sh '''
+          corepack enable
+          pnpm install --frozen-lockfile
+        '''
+      }
+    }
+
+    stage('Build Backend (Express.js)') {
+      steps {
+        sh '''
+          pnpm build --filter=@repo/api
+        '''
+      }
+    }
+
+    stage('Docker Build Backend (Express.js)') {
+      steps {
+        sh '''
+          docker build -t $BACKEND_IMAGE -f apps/api/Dockerfile .
+        '''
+      }
+    }
+    
+    stage('Deploy Backend (Express.js)') {
+      steps {
+        sh '''
+          docker compose down
+          docker compose up -d
+        '''
+      }
+    }
+
+    stage('Build Web (Next.js)') {
+      steps {
+        sh '''
+          pnpm turbo run build --filter=@repo/web
+        '''
+      }
+    }
+
+    stage('Deploy Web to Vercel') {
+      steps {
+        dir('apps/web') {
+          withCredentials([string(credentialsId: 'vercel-token', variable: 'VERCEL_TOKEN')]) {
+            sh '''
+              pnpm dlx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+              pnpm dlx vercel build --prod --token=$VERCEL_TOKEN
+              pnpm dlx vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+            '''
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs()
+    }
+    success {
+      echo 'Turbo monorepo deploy successfully (API + Web)'
+    }
+    failure {
+      echo 'Pipeline failed'
+    }
+  }
+}

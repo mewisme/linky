@@ -41,18 +41,26 @@ pipeline {
 
     stage('Docker Build Backend (Express.js)') {
       steps {
-        sh '''
-          docker build -t $BACKEND_IMAGE -f apps/api/Dockerfile .
-        '''
+        script {
+          sh 'which docker || (echo "Docker not found. Please install Docker or configure it as a tool in Jenkins." && exit 1)'
+          def backendImage = docker.build("${BACKEND_IMAGE}", "-f apps/api/Dockerfile .")
+          env.BACKEND_IMAGE_ID = backendImage.id
+        }
       }
     }
     
     stage('Deploy Backend (Express.js)') {
       steps {
-        sh '''
-          docker compose down
-          docker compose up -d
-        '''
+        script {
+          sh '''
+            which docker || (echo "Docker not found. Please install Docker or configure it as a tool in Jenkins." && exit 1)
+            which docker-compose || docker compose version || (echo "Docker Compose not found. Please install Docker Compose." && exit 1)
+          '''
+          sh '''
+            docker compose down || true
+            docker compose up -d
+          '''
+        }
       }
     }
 

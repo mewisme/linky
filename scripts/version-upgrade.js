@@ -53,26 +53,56 @@ function findAllPackageJsonFiles(rootDir = process.cwd(), packageJsonFiles = [])
   return packageJsonFiles;
 }
 
-// Function to update all package.json files with new version
-function updateAllPackageJsonFiles(version) {
+// Function to update package.json files for affected workspaces only
+function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
   const packageJsonFiles = findAllPackageJsonFiles();
   const updatedFiles = [];
 
-  console.log(`\nFound ${packageJsonFiles.length} package.json file(s):`);
+  console.log(`\nFound ${packageJsonFiles.length} package.json file(s)`);
+  console.log(`Affected workspaces: ${affectedWorkspaces.join(', ')}`);
 
   for (const filePath of packageJsonFiles) {
     try {
+      const relativePath = relative(process.cwd(), filePath);
       const packageJson = JSON.parse(readFileSync(filePath, 'utf8'));
 
       // Only update if the file has a version field
-      if (packageJson.version) {
+      if (!packageJson.version) {
+        continue;
+      }
+
+      // Check if this package.json belongs to an affected workspace
+      let shouldUpdate = false;
+
+      // Root package.json - always update if root is affected
+      if (relativePath === 'package.json' && affectedWorkspaces.includes('root')) {
+        shouldUpdate = true;
+      }
+      // Workspace package.json - check if workspace is affected
+      else {
+        for (const workspace of affectedWorkspaces) {
+          if (workspace === 'root') continue;
+
+          // Check if file path matches workspace pattern
+          // e.g., apps/api/package.json matches workspace "apps/api"
+          // Also handle nested paths like apps/api/src/package.json (should not match)
+          // We only want to match the direct package.json in the workspace root
+          if (relativePath === `${workspace}/package.json`) {
+            shouldUpdate = true;
+            break;
+          }
+        }
+      }
+
+      if (shouldUpdate) {
         const oldVersion = packageJson.version;
         packageJson.version = version;
         writeFileSync(filePath, JSON.stringify(packageJson, null, 2) + '\n');
 
-        const relativePath = relative(process.cwd(), filePath);
         console.log(`  ✓ Updated ${relativePath}: ${oldVersion} → ${version}`);
         updatedFiles.push(relativePath);
+      } else {
+        console.log(`  ⊘ Skipped ${relativePath} (not affected)`);
       }
     } catch (error) {
       const relativePath = relative(process.cwd(), filePath);
@@ -121,6 +151,60 @@ function getNewCommits() {
     console.error('Error getting git commits:', error.message);
     return [];
   }
+}
+
+// Get changed files since last processed commit
+function getChangedFiles() {
+  const lastProcessedCommit = getLastProcessedCommit();
+
+  try {
+    if (lastProcessedCommit) {
+      // Get files changed since last processed commit
+      return execSync(`git diff --name-only ${lastProcessedCommit}..HEAD`, { encoding: 'utf8' })
+        .split('\n')
+        .filter(Boolean);
+    } else {
+      // If no last processed commit, get all files in current commit
+      return execSync('git diff-tree --no-commit-id --name-only -r HEAD', { encoding: 'utf8' })
+        .split('\n')
+        .filter(Boolean);
+    }
+  } catch (error) {
+    console.error('Error getting changed files:', error.message);
+    return [];
+  }
+}
+
+// Determine which workspaces have changed files
+function getAffectedWorkspaces(changedFiles) {
+  const affectedWorkspaces = new Set();
+  const workspacePatterns = [
+    { pattern: /^apps\/([^\/]+)/, type: 'apps' },
+    { pattern: /^packages\/([^\/]+)/, type: 'packages' }
+  ];
+
+  for (const file of changedFiles) {
+    // Check if file is in root (not in any workspace)
+    const isRootFile = !file.includes('/') ||
+      (!file.startsWith('apps/') && !file.startsWith('packages/'));
+
+    if (isRootFile) {
+      affectedWorkspaces.add('root');
+      continue;
+    }
+
+    // Check workspace patterns
+    for (const { pattern, type } of workspacePatterns) {
+      const match = file.match(pattern);
+      if (match) {
+        const workspaceName = `${type}/${match[1]}`;
+        affectedWorkspaces.add(workspaceName);
+        break;
+      }
+    }
+  }
+
+  return Array.from(affectedWorkspaces);
 }
 
 // Analyze commits and determine version bump
@@ -252,8 +336,22 @@ function updateVersion() {
 const newVersion = updateVersion();
 
 if (newVersion) {
-  // Update all package.json files in monorepo
-  const updatedFiles = updateAllPackageJsonFiles(newVersion);
+  // Get changed files and determine affected workspaces
+  const changedFiles = getChangedFiles();
+  const affectedWorkspaces = getAffectedWorkspaces(changedFiles);
+
+  if (affectedWorkspaces.length === 0) {
+    console.log('\nNo affected workspaces found, skipping version update...');
+    process.exit(0);
+  }
+
+  // Update package.json files only for affected workspaces
+  const updatedFiles = updateAffectedPackageJsonFiles(newVersion, affectedWorkspaces);
+
+  if (updatedFiles.length === 0) {
+    console.log('\nNo package.json files to update');
+    process.exit(0);
+  }
 
   // Save the current commit as last processed
   saveLastProcessedCommit();

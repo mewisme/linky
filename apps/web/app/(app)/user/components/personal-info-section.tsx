@@ -1,7 +1,6 @@
 'use client'
 
 import { IconCalendar, IconCheck, IconLoader2, IconPencil, IconUser, IconX } from '@tabler/icons-react'
-import { Button } from '@repo/ui/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -9,10 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/ui/components/ui/select'
-import { useTransition, useState, useEffect } from 'react'
-import toast from 'react-hot-toast'
-import type { UserDetails } from '@/stores/user-store'
+import { useEffect, useState, useTransition } from 'react'
+
+import { Button } from '@repo/ui/components/ui/button'
 import { DatePicker } from '@/components/common/date-picker'
+import type { UserDetails } from '@/stores/user-store'
+import toast from 'react-hot-toast'
 
 interface PersonalInfoSectionProps {
   userDetails: UserDetails | null
@@ -43,7 +44,7 @@ export function PersonalInfoSection({
   const parseDateString = (dateString: string): Date => {
     // Parse YYYY-MM-DD format and create date in local timezone
     const [year, month, day] = dateString.split('-').map(Number)
-    return new Date(year, month - 1, day)
+    return new Date(year ?? 0, (month ?? 0) - 1, day ?? 0)
   }
 
   // Helper function to format date to YYYY-MM-DD string
@@ -58,7 +59,7 @@ export function PersonalInfoSection({
     if (!userDetails) return
     setDateOfBirth(
       userDetails.date_of_birth
-        ? parseDateString(userDetails.date_of_birth.split('T')[0])
+        ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
         : undefined
     )
     setGender(userDetails.gender || '')
@@ -129,7 +130,7 @@ export function PersonalInfoSection({
                   onClick={() => {
                     setDateOfBirth(
                       userDetails?.date_of_birth
-                        ? parseDateString(userDetails.date_of_birth.split('T')[0])
+                        ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
                         : undefined
                     )
                     setEditingDateOfBirth(false)
@@ -143,13 +144,13 @@ export function PersonalInfoSection({
                 <p className="text-sm font-medium text-muted-foreground">
                   {userDetails?.date_of_birth
                     ? new Date(userDetails.date_of_birth).toLocaleDateString(
-                        'en-US',
-                        {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        }
-                      )
+                      'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      }
+                    )
                     : 'Not provided'}
                 </p>
                 <Button
@@ -217,7 +218,7 @@ export function PersonalInfoSection({
                 <p className="text-sm font-medium text-muted-foreground capitalize">
                   {userDetails?.gender
                     ? genderOptions.find((g) => g.value === userDetails.gender)
-                        ?.label || userDetails.gender
+                      ?.label || userDetails.gender
                     : 'Not provided'}
                 </p>
                 <Button

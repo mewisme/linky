@@ -2,21 +2,21 @@
 
 import { getMe } from "@/lib/client";
 import { logger } from "@/utils/logger";
-import { useAuth } from "@clerk/nextjs";
 import { useEffect } from "react";
+import { useSupabase } from "@/components/providers/supabase";
 import { useUserStore } from "@/stores/user-store";
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const { user, session, loading } = useSupabase();
   const { setUser, setLoading, setError, clearUser } = useUserStore();
 
   useEffect(() => {
     async function fetchUserData() {
-      if (!isLoaded) {
+      if (loading) {
         return;
       }
 
-      if (!isSignedIn) {
+      if (!user) {
         clearUser();
         return;
       }
@@ -25,7 +25,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setError(null);
 
       try {
-        const token = await getToken({ template: 'custom', skipCache: true });
+        const token = session?.access_token;
         if (!token) {
           throw new Error("No token found");
         }
@@ -44,7 +44,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     fetchUserData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSignedIn, isLoaded]);
+  }, [user, session, loading]);
 
   return <>{children}</>;
 }

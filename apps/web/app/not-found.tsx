@@ -2,13 +2,11 @@
 
 import {
   IconArrowLeft,
-  IconCircleKey,
   IconError404,
   IconHomeLink,
 } from "@tabler/icons-react";
 
 import { Button } from "@repo/ui/components/ui/button";
-import Link from "next/link";
 import { Outfit } from "next/font/google";
 import { useRouter } from "next/navigation";
 

@@ -11,6 +11,7 @@ import s3Router from "./media/s3.js";
 import webhookRouter from "./webhook.js";
 import adminRouter from "./admin.js";
 import { clerkMiddleware } from "../middleware/clerk.js";
+import { supabaseMiddleware } from "../middleware/supabase.js";
 import { adminMiddleware } from "../middleware/admin.js";
 import { config } from "../config/index.js";
 
@@ -47,7 +48,7 @@ export function setupRoutes(app: Express): void {
   app.use("/api/v1/interest-tags", interestTagsRouter);
   app.use("/api/v1/changelogs", changelogsRouter);
 
-  app.use(clerkMiddleware);
+  app.use(supabaseMiddleware);
 
   app.use("/api/v1", apiRouter);
 

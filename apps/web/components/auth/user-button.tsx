@@ -12,41 +12,38 @@ import {
   DropdownMenuTrigger
 } from "@repo/ui/components/animate-ui/components/radix/dropdown-menu";
 import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
-import { SignOutButton, useAuth, useUser } from "@clerk/nextjs";
 
 import { Kbd } from "@repo/ui/components/ui/kbd";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSupabase } from "@/components/providers/supabase";
 import { useUserStore } from "@/stores/user-store";
 
 export function UserButton() {
   const router = useRouter();
-
-  const { user } = useUser();
-  const { signOut } = useAuth();
+  const { supabase, user } = useSupabase();
   const { user: userStore } = useUserStore();
+
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "q" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         console.log("Signing out")
         e.preventDefault()
-        signOut()
+        supabase.auth.signOut()
       }
     }
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [signOut])
+  }, [supabase.auth])
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="size-8 cursor-pointer">
-          <AvatarImage src={user?.imageUrl} />
+          <AvatarImage src={user?.user_metadata?.avatar_url} />
           <AvatarFallback>
-            {user?.firstName?.charAt(0) ||
-              user?.lastName?.charAt(0) ||
-              '?'}
+            {user?.user_metadata?.name?.charAt(0) || '?'}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
@@ -74,17 +71,15 @@ export function UserButton() {
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <SignOutButton>
-          <DropdownMenuItem variant="destructive" className='cursor-pointer gap-2 p-2'>
-            <div className="flex size-6 items-center justify-center rounded-sm border">
-              <LogOutIcon className='size-4 shrink-0 dark:text-red-400 text-red-500' />
-            </div>
-            <span className='dark:text-red-400'>Logout</span>
-            <DropdownMenuShortcut>
-              <Kbd>⇧⌘Q</Kbd>
-            </DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </SignOutButton>
+        <DropdownMenuItem variant="destructive" className='cursor-pointer gap-2 p-2' onClick={() => supabase.auth.signOut()}>
+          <div className="flex size-6 items-center justify-center rounded-sm border">
+            <LogOutIcon className='size-4 shrink-0 dark:text-red-400 text-red-500' />
+          </div>
+          <span className='dark:text-red-400'>Logout</span>
+          <DropdownMenuShortcut>
+            <Kbd>⇧⌘Q</Kbd>
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

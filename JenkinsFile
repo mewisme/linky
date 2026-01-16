@@ -12,7 +12,6 @@ pipeline {
   environment {
     BACKEND_IMAGE = 'linky-api:latest'
     LINKY_API_ENV_FILE = '/var/jenkins_home/envs/linky/.env'
-    SKIP_BUILD = 'false'
   }
 
   stages {
@@ -22,56 +21,7 @@ pipeline {
       }
     }
 
-    stage('Check Version') {
-      steps {
-        script {
-          withCredentials([string(credentialsId: 'linky-api-url', variable: 'API_URL')]) {
-            try {
-              // Fetch version from API
-              def apiResponse = sh(
-                script: "curl -s ${API_URL}",
-                returnStdout: true
-              ).trim()
-              
-              echo "API Response: ${apiResponse}"
-              
-              // Parse JSON response
-              def jsonSlurper = new groovy.json.JsonSlurper()
-              def apiData = jsonSlurper.parseText(apiResponse)
-              def deployedVersion = apiData.version
-              
-              echo "Deployed version: ${deployedVersion}"
-              
-              // Read version from package.json using readFile and JsonSlurper
-              def packageJsonContent = readFile(file: 'apps/api/package.json')
-              def packageJson = new groovy.json.JsonSlurper().parseText(packageJsonContent)
-              def currentVersion = packageJson.version
-              
-              echo "Current version: ${currentVersion}"
-              
-              // Compare versions
-              if (deployedVersion == currentVersion) {
-                echo "Versions match (${currentVersion}). Skipping build and deploy."
-                env.SKIP_BUILD = 'true'
-                currentBuild.result = 'SUCCESS'
-              } else {
-                echo "Versions differ. Deployed: ${deployedVersion}, Current: ${currentVersion}. Proceeding with build."
-                env.SKIP_BUILD = 'false'
-              }
-            } catch (Exception e) {
-              echo "Error checking version: ${e.getClass().getName()}: ${e.getMessage()}"
-              echo "Stack trace: ${e.getStackTrace().join('\\n')}"
-              env.SKIP_BUILD = 'false'
-            }
-          }
-        }
-      }
-    }
-
     stage('Install Dependencies') {
-      when {
-        expression { env.SKIP_BUILD == 'false' }
-      }
       steps {
         sh '''
           corepack enable
@@ -81,9 +31,6 @@ pipeline {
     }
 
     stage('Prepare Env Files') {
-      when {
-        expression { env.SKIP_BUILD == 'false' }
-      }
       steps {
         withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
           sh '''
@@ -96,9 +43,6 @@ pipeline {
     }
     
     stage('Docker Build Backend (Express.js)') {
-      when {
-        expression { env.SKIP_BUILD == 'false' }
-      }
       steps {
         script {
           def backendImage = docker.build("${BACKEND_IMAGE}", "-f apps/api/Dockerfile .")
@@ -108,9 +52,6 @@ pipeline {
     }
     
     stage('Deploy Backend (Express.js)') {
-      when {
-        expression { env.SKIP_BUILD == 'false' }
-      }
       steps {
         script {
           sh '''

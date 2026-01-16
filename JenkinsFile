@@ -42,9 +42,10 @@ pipeline {
               
               echo "Deployed version: ${deployedVersion}"
               
-              // Read package.json version
-              def packageJson = readJSON file: 'apps/api/package.json'
-              def currentVersion = packageJson.version
+              // Read version from package.json using Groovy (consistent with API response parsing)
+              def packageJson = readFile(file: 'apps/api/package.json')
+              def packageData = jsonSlurper.parseText(packageJson)
+              def currentVersion = packageData.version
               
               echo "Current version: ${currentVersion}"
               

@@ -153,22 +153,59 @@ function getNewCommits() {
   }
 }
 
-// Get changed files since last processed commit
+// Get changed files from the most recent commit(s) since last processed
 function getChangedFiles() {
   const lastProcessedCommit = getLastProcessedCommit();
 
   try {
-    if (lastProcessedCommit) {
-      // Get files changed since last processed commit
-      return execSync(`git diff --name-only ${lastProcessedCommit}..HEAD`, { encoding: 'utf8' })
+    // Priority 1: Get files from HEAD commit (most recent commit)
+    // This is the commit that was just made
+    try {
+      const headFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
-    } else {
-      // If no last processed commit, get all files in current commit
-      return execSync('git diff-tree --no-commit-id --name-only -r HEAD', { encoding: 'utf8' })
-        .split('\n')
-        .filter(Boolean);
+
+      if (headFiles.length > 0) {
+        console.log(`\nFound ${headFiles.length} changed file(s) in HEAD commit`);
+        return headFiles;
+      }
+    } catch (headError) {
+      // HEAD might not exist, continue to other methods
     }
+
+    // Priority 2: If HEAD has no files, try to get staged files (for pre-commit hooks)
+    try {
+      const stagedFiles = execSync('git diff --cached --name-only', { encoding: 'utf8' })
+        .split('\n')
+        .filter(Boolean);
+
+      if (stagedFiles.length > 0) {
+        console.log(`\nFound ${stagedFiles.length} staged file(s)`);
+        return stagedFiles;
+      }
+    } catch (stagedError) {
+      // No staged files, continue
+    }
+
+    // Priority 3: Fallback - get files from all commits since last processed
+    // Only use this if HEAD commit has no files (shouldn't happen normally)
+    if (lastProcessedCommit) {
+      try {
+        const diffFiles = execSync(`git diff --name-only ${lastProcessedCommit}..HEAD`, { encoding: 'utf8' })
+          .split('\n')
+          .filter(Boolean);
+
+        if (diffFiles.length > 0) {
+          console.log(`\nFound ${diffFiles.length} changed file(s) since last processed commit (fallback)`);
+          return diffFiles;
+        }
+      } catch (diffError) {
+        // Continue
+      }
+    }
+
+    console.log('\nNo changed files found');
+    return [];
   } catch (error) {
     console.error('Error getting changed files:', error.message);
     return [];
@@ -183,24 +220,40 @@ function getAffectedWorkspaces(changedFiles) {
     { pattern: /^packages\/([^\/]+)/, type: 'packages' }
   ];
 
+  console.log('\nAnalyzing changed files to determine affected workspaces:');
+
   for (const file of changedFiles) {
+    // Skip package.json files themselves to avoid circular detection
+    if (file === 'package.json' || file.endsWith('/package.json')) {
+      console.log(`  - ${file} (skipped - package.json file)`);
+      continue;
+    }
+
     // Check if file is in root (not in any workspace)
     const isRootFile = !file.includes('/') ||
       (!file.startsWith('apps/') && !file.startsWith('packages/'));
 
     if (isRootFile) {
+      console.log(`  - ${file} → root`);
       affectedWorkspaces.add('root');
       continue;
     }
 
     // Check workspace patterns
+    let matched = false;
     for (const { pattern, type } of workspacePatterns) {
       const match = file.match(pattern);
       if (match) {
         const workspaceName = `${type}/${match[1]}`;
+        console.log(`  - ${file} → ${workspaceName}`);
         affectedWorkspaces.add(workspaceName);
+        matched = true;
         break;
       }
+    }
+
+    if (!matched) {
+      console.log(`  - ${file} → (no workspace match)`);
     }
   }
 
@@ -338,6 +391,12 @@ const newVersion = updateVersion();
 if (newVersion) {
   // Get changed files and determine affected workspaces
   const changedFiles = getChangedFiles();
+
+  if (changedFiles.length === 0) {
+    console.log('\nNo changed files detected, skipping version update...');
+    process.exit(0);
+  }
+
   const affectedWorkspaces = getAffectedWorkspaces(changedFiles);
 
   if (affectedWorkspaces.length === 0) {

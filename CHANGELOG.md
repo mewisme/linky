@@ -1,12 +1,12 @@
 ## What's Changed
 
-⚡️ Performance
+♻️ Refactoring
 
-- Enhance Jenkins pipeline with version check and conditional build steps ([c4a9c92](../../commit/c4a9c92))
+- Remove unused import from user types file ([decc451](../../commit/decc451))
 
 🔨 Other Changes
 
-- Bump package versions to 0.19.0 and update version lock ([62ea9b1](../../commit/62ea9b1))
+- Bump package version to 0.19.1 and update version lock ([39e62eb](../../commit/39e62eb))
 
 
-📋 Full Changelog: [62ea9b1...c4a9c92](../../compare/62ea9b1...c4a9c92)
+📋 Full Changelog: [39e62eb...decc451](../../compare/39e62eb...decc451)

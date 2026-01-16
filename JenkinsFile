@@ -42,10 +42,17 @@ pipeline {
               
               echo "Deployed version: ${deployedVersion}"
               
-              // Read version from package.json using Groovy (consistent with API response parsing)
-              def packageJson = readFile(file: 'apps/api/package.json')
-              def packageData = jsonSlurper.parseText(packageJson)
-              def currentVersion = packageData.version
+              // Read version from package.json (works with both CommonJS and ES modules)
+              def currentVersion = sh(
+                script: '''
+                  node -e "
+                    const fs = require('fs');
+                    const pkg = JSON.parse(fs.readFileSync('./apps/api/package.json', 'utf8'));
+                    console.log(pkg.version);
+                  "
+                ''',
+                returnStdout: true
+              ).trim()
               
               echo "Current version: ${currentVersion}"
               

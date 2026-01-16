@@ -1,9 +1,10 @@
 "use client";
 
-import { SignIn, useAuth } from "@clerk/nextjs";
+import { SignIn, SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
 import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { Button } from "@repo/ui/components/ui/button";
 import { dark } from "@clerk/themes";
 
 export default function SignInPage() {
@@ -37,14 +38,22 @@ export default function SignInPage() {
           display: none !important;
         }
       `}</style>
-      <SignIn
-        routing="path"
-        path="/sign-in"
-        fallbackRedirectUrl={redirectUrl}
-        appearance={{
-          baseTheme: dark
-        }}
-      />
+      <SignedOut>
+        <SignIn
+          routing="path"
+          path="/sign-in"
+          fallbackRedirectUrl={redirectUrl}
+          appearance={{
+            baseTheme: dark
+          }}
+        />
+      </SignedOut>
+      <SignedIn>
+        <div className="flex flex-col items-center justify-center gap-4">
+          <p>You are already signed in</p>
+          <Button onClick={() => router.push(redirectUrl)} variant="outline">Go to the redirect url</Button>
+        </div>
+      </SignedIn>
     </div>
   );
 }

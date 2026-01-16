@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/mqtt";
+import ProgressBarProvider from "@/components/providers/progress-bar";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/providers/theme";
 import { Toaster } from "react-hot-toast";
@@ -94,8 +95,10 @@ export default function RootLayout({
                 enableSystem
                 disableTransitionOnChange
               >
-                {children}
-                <Toaster />
+                <ProgressBarProvider>
+                  {children}
+                  <Toaster />
+                </ProgressBarProvider>
               </ThemeProvider>
             </MqttProvider>
           </UserProvider>

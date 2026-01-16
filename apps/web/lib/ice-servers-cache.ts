@@ -26,7 +26,6 @@ class IceServerCacheManager {
     }
 
     const now = Date.now();
-    const age = now - this.cache.fetchedAt;
     const validUntil = this.cache.fetchedAt + (this.cache.ttl * ICE_SERVER_SAFETY_FACTOR);
 
     return now < validUntil;
@@ -46,12 +45,7 @@ class IceServerCacheManager {
 
   private canFetch(reason: "initial" | "expired" | "forced"): boolean {
     const now = Date.now();
-    const timeSinceLastFetch = now - this.lastFetchTimestamp;
-
-    if (this.inFlightFetch) {
-      logger.info("[IceServerCache] Fetch already in progress, reusing");
-      return false;
-    }
+    const timeSinceLastFetch = this.lastFetchTimestamp === 0 ? now : now - this.lastFetchTimestamp;
 
     if (reason === "forced") {
       return true;
@@ -82,17 +76,17 @@ class IceServerCacheManager {
       return this.cache!.servers;
     }
 
+    if (this.inFlightFetch) {
+      logger.info("[IceServerCache] Waiting for in-flight fetch");
+      return await this.inFlightFetch;
+    }
+
     if (!this.canFetch(reason)) {
       if (this.cache) {
         logger.warn(`[IceServerCache] Fetch skipped (reason: ${reason}), using cached servers`);
         return this.cache.servers;
       }
       throw new Error("No ICE servers available and fetch is rate-limited");
-    }
-
-    if (this.inFlightFetch) {
-      logger.info("[IceServerCache] Waiting for in-flight fetch");
-      return await this.inFlightFetch;
     }
 
     this.lastFetchTimestamp = Date.now();

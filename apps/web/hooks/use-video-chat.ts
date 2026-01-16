@@ -3,7 +3,6 @@
 import { useRef, useEffect, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { fetchIceServers } from "@/lib/webrtc";
 import type { SignalData } from "@/lib/socket";
 import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
@@ -15,6 +14,7 @@ import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./us
 import { recoveryController } from "@/lib/webrtc-recovery";
 import { iceServerCache } from "@/lib/ice-servers-cache";
 import { useUnloadEndCall } from "./use-unload-end-call";
+import { useUserContext } from "@/components/providers/user";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -38,6 +38,9 @@ export interface UseVideoChatReturn {
 export function useVideoChat(): UseVideoChatReturn {
   const { getToken, isLoaded } = useAuth();
   const { user } = useUser();
+  const {
+    store: { userSettings },
+  } = useUserContext();
 
   const { state, actions } = useVideoChatState();
   const iceServersRef = useRef<RTCIceServer[]>([]);
@@ -62,7 +65,7 @@ export function useVideoChat(): UseVideoChatReturn {
       try {
         const servers = await iceServerCache.getIceServers(
           async () => await getToken({ template: 'custom', skipCache: true }),
-          "initial"
+          "forced"
         );
         if (mounted) {
           iceServersRef.current = servers;
@@ -91,6 +94,8 @@ export function useVideoChat(): UseVideoChatReturn {
     isOffererRef.current = false;
     actionsRef.current.resetPeerState();
     actionsRef.current.setLocalStream(null);
+    actionsRef.current.setMuted(false);
+    actionsRef.current.setVideoOff(false);
   }, [mediaStream, peerConnection]);
 
   const cleanup = useCallback(() => {
@@ -526,6 +531,7 @@ export function useVideoChat(): UseVideoChatReturn {
         toast.error(`Error - ${data.message}`);
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState]
   );
 
@@ -556,7 +562,13 @@ export function useVideoChat(): UseVideoChatReturn {
         throw new Error("Failed to obtain ICE servers");
       }
 
-      const stream = await mediaStream.acquireMedia();
+      const initialMuted = userSettings?.default_mute_mic ?? false;
+      const initialVideoOff = userSettings?.default_disable_camera ?? false;
+
+      actionsRef.current.setMuted(initialMuted);
+      actionsRef.current.setVideoOff(initialVideoOff);
+
+      const stream = await mediaStream.acquireMedia(initialMuted, initialVideoOff);
       actionsRef.current.setLocalStream(stream);
 
       peerConnection.initializePeerConnection(stream, peerCallbacks);
@@ -573,6 +585,7 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [
     isLoaded,
     getToken,
+    userSettings,
     mediaStream,
     peerConnection,
     peerCallbacks,

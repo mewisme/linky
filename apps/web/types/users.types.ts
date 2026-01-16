@@ -2,6 +2,8 @@
 
 import type { ApiError } from "./api.types";
 
+export type UserRole = "admin" | "member";
+
 export namespace UsersAPI {
   export interface PublicUserInfo {
     id: string;
@@ -23,7 +25,7 @@ export namespace UsersAPI {
       last_name: string | null;
       avatar_url: string | null;
       country: string | null;
-      role: "admin" | "member";
+      role: UserRole;
       allow: boolean;
       created_at: string;
       updated_at: string;

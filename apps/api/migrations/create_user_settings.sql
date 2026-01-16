@@ -36,3 +36,43 @@ COMMENT ON COLUMN user_settings.default_mute_mic IS 'Default microphone mute sta
 COMMENT ON COLUMN user_settings.default_disable_camera IS 'Default camera disabled state for calls';
 COMMENT ON COLUMN user_settings.notification_sound_enabled IS 'Whether notification sounds are enabled';
 COMMENT ON COLUMN user_settings.notification_preferences IS 'JSON object for extensible notification preferences';
+
+-- Create function to automatically create user_settings and user_details when a new user is created
+CREATE OR REPLACE FUNCTION create_user_settings_and_details_on_user_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Insert a new user_settings record with the new user's ID
+  INSERT INTO user_settings (user_id)
+  VALUES (NEW.id)
+  ON CONFLICT (user_id) DO NOTHING; -- Prevent errors if user_settings already exists
+  
+  -- Insert a new user_details record with the new user's ID
+  INSERT INTO user_details (user_id)
+  VALUES (NEW.id)
+  ON CONFLICT (user_id) DO NOTHING; -- Prevent errors if user_details already exists
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to automatically create user_settings and user_details after user insert
+CREATE TRIGGER trigger_create_user_settings_and_details_on_user_insert
+  AFTER INSERT ON users
+  FOR EACH ROW
+  EXECUTE FUNCTION create_user_settings_and_details_on_user_insert();
+
+-- Add comment
+COMMENT ON FUNCTION create_user_settings_and_details_on_user_insert() IS 'Automatically creates user_settings and user_details records when a new user is inserted into the users table';
+
+-- Rename function
+ALTER FUNCTION create_user_settings_and_details_on_user_insert()
+RENAME TO fn_init_user_settings;
+
+-- Rename trigger
+ALTER TRIGGER trigger_create_user_settings_and_details_on_user_insert
+ON users
+RENAME TO trg_users_after_insert_init_settings;
+
+-- Update comment for renamed function
+COMMENT ON FUNCTION fn_init_user_settings()
+IS 'Initialize user_settings when a new user is inserted';

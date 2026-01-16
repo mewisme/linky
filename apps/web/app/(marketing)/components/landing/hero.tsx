@@ -144,7 +144,6 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
             }}
             fade
             zoom
-            inView
             delay={0.75}
           >
             <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
@@ -166,7 +165,6 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
             }}
             fade
             zoom
-            inView
             delay={0.75}
           >
             <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
@@ -188,7 +186,6 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
             }}
             fade
             zoom
-            inView
             delay={0.75}
           >
 

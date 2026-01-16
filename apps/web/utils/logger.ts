@@ -46,10 +46,8 @@ const createLogger = (config: LoggerConfig) => {
     const timestamp = getTimestamp();
     const message = formatMessage(args);
 
-    // Format: [timestamp] [LABEL] message
     const output = `[${timestamp}] [${truncatedLabel}] ${message}`;
 
-    // Sử dụng console styling cho browser
     const styles = config.color
       ? [`color: ${config.color}`, "font-weight: bold"]
       : [];

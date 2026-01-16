@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import type { ApiError } from "./api.types";
-
 export type UserRole = "admin" | "member";
 
 export namespace UsersAPI {

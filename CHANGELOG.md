@@ -1,12 +1,12 @@
 ## What's Changed
 
-⚡️ Performance
+✨ Features
 
-- Add custom error and not found pages for improved user experience ([ecb1d7e](../../commit/ecb1d7e))
+- Implement user settings and profile management features ([1a4b8ca](../../commit/1a4b8ca))
 
 🔨 Other Changes
 
-- Bump package versions to 0.18.1 and update version lock ([4a253e3](../../commit/4a253e3))
+- Bump package versions to 0.18.2 and update version lock ([5c52926](../../commit/5c52926))
 
 
-📋 Full Changelog: [4a253e3...ecb1d7e](../../compare/4a253e3...ecb1d7e)
+📋 Full Changelog: [5c52926...1a4b8ca](../../compare/5c52926...1a4b8ca)

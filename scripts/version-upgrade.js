@@ -74,8 +74,11 @@ function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
       // Check if this package.json belongs to an affected workspace
       let shouldUpdate = false;
 
+      // Normalize path separators for cross-platform compatibility
+      const normalizedPath = relativePath.replace(/\\/g, '/');
+
       // Root package.json - always update if root is affected
-      if (relativePath === 'package.json' && affectedWorkspaces.includes('root')) {
+      if (normalizedPath === 'package.json' && affectedWorkspaces.includes('root')) {
         shouldUpdate = true;
       }
       // Workspace package.json - check if workspace is affected
@@ -87,7 +90,9 @@ function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
           // e.g., apps/api/package.json matches workspace "apps/api"
           // Also handle nested paths like apps/api/src/package.json (should not match)
           // We only want to match the direct package.json in the workspace root
-          if (relativePath === `${workspace}/package.json`) {
+          // Normalize both paths to use forward slashes for comparison
+          const expectedPath = `${workspace}/package.json`;
+          if (normalizedPath === expectedPath) {
             shouldUpdate = true;
             break;
           }

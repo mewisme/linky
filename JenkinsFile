@@ -42,17 +42,10 @@ pipeline {
               
               echo "Deployed version: ${deployedVersion}"
               
-              // Read version from package.json (works with both CommonJS and ES modules)
-              def currentVersion = sh(
-                script: '''
-                  node -e "
-                    const fs = require('fs');
-                    const pkg = JSON.parse(fs.readFileSync('./apps/api/package.json', 'utf8'));
-                    console.log(pkg.version);
-                  "
-                ''',
-                returnStdout: true
-              ).trim()
+              // Read version from package.json using readFile and JsonSlurper
+              def packageJsonContent = readFile(file: 'apps/api/package.json')
+              def packageJson = new groovy.json.JsonSlurper().parseText(packageJsonContent)
+              def currentVersion = packageJson.version
               
               echo "Current version: ${currentVersion}"
               
@@ -66,7 +59,8 @@ pipeline {
                 env.SKIP_BUILD = 'false'
               }
             } catch (Exception e) {
-              echo "Error checking version: ${e.getMessage()}. Proceeding with build."
+              echo "Error checking version: ${e.getClass().getName()}: ${e.getMessage()}"
+              echo "Stack trace: ${e.getStackTrace().join('\\n')}"
               env.SKIP_BUILD = 'false'
             }
           }

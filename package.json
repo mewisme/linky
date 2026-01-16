@@ -1,6 +1,6 @@
 {
   "name": "linky",
-  "version": "0.19.4",
+  "version": "0.19.9",
   "private": true,
   "type": "module",
   "scripts": {

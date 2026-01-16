@@ -1,12 +1,8 @@
 ## What's Changed
 
-♻️ Refactoring
-
-- Remove unused import from user types file ([decc451](../../commit/decc451))
-
 🔨 Other Changes
 
-- Bump package version to 0.19.1 and update version lock ([39e62eb](../../commit/39e62eb))
+- Perf bump package version to 0.19.2 and update version lock ([8213c9a](../../commit/8213c9a))
 
 
-📋 Full Changelog: [39e62eb...decc451](../../compare/39e62eb...decc451)
+📋 Full Changelog: [8213c9a...8213c9a](../../compare/8213c9a...8213c9a)

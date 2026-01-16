@@ -379,42 +379,50 @@ function updateVersion() {
   const newVersion = `${newMajor}.${newMinor}.${newPatch}`;
   console.log(`\nFinal version change: ${currentVersion} → ${newVersion}`);
   if (newVersion === currentVersion) {
-    console.log('No version bump needed, skipping...');
-    process.exit(0);
+    return null; // Return null instead of exiting
   }
   return newVersion;
 }
 
 // Main execution
-const newVersion = updateVersion();
+// First, detect changed files and affected workspaces
+const changedFiles = getChangedFiles();
 
-if (newVersion) {
-  // Get changed files and determine affected workspaces
-  const changedFiles = getChangedFiles();
+if (changedFiles.length === 0) {
+  console.log('\nNo changed files detected, skipping version update...');
+  process.exit(0);
+}
 
-  if (changedFiles.length === 0) {
-    console.log('\nNo changed files detected, skipping version update...');
-    process.exit(0);
-  }
+const affectedWorkspaces = getAffectedWorkspaces(changedFiles);
 
-  const affectedWorkspaces = getAffectedWorkspaces(changedFiles);
+if (affectedWorkspaces.length === 0) {
+  console.log('\nNo affected workspaces found, skipping version update...');
+  process.exit(0);
+}
 
-  if (affectedWorkspaces.length === 0) {
-    console.log('\nNo affected workspaces found, skipping version update...');
-    process.exit(0);
-  }
+// Then, analyze commits to determine version bump
+let newVersion = updateVersion();
 
-  // Update package.json files only for affected workspaces
-  const updatedFiles = updateAffectedPackageJsonFiles(newVersion, affectedWorkspaces);
+// If no version bump from commit messages but we have affected workspaces,
+// automatically bump patch version
+if (!newVersion) {
+  const currentVersion = `${major}.${minor}.${patch}`;
+  const autoPatchVersion = `${major}.${minor}.${patch + 1}`;
+  console.log(`\nNo version bump detected from commit messages, but files changed in affected workspaces.`);
+  console.log(`Auto-bumping patch version: ${currentVersion} → ${autoPatchVersion}`);
+  newVersion = autoPatchVersion;
+}
 
-  if (updatedFiles.length === 0) {
-    console.log('\nNo package.json files to update');
-    process.exit(0);
-  }
+// Update package.json files only for affected workspaces
+const updatedFiles = updateAffectedPackageJsonFiles(newVersion, affectedWorkspaces);
 
-  // Save the current commit as last processed
-  saveLastProcessedCommit();
+if (updatedFiles.length === 0) {
+  console.log('\nNo package.json files to update');
+  process.exit(0);
+}
 
-  console.log(`\n✓ Version upgraded to ${newVersion} in ${updatedFiles.length} package(s)`);
-  console.log('✓ Last processed commit saved to .version-lock');
-} 
+// Save the current commit as last processed
+saveLastProcessedCommit();
+
+console.log(`\n✓ Version upgraded to ${newVersion} in ${updatedFiles.length} package(s)`);
+console.log('✓ Last processed commit saved to .version-lock'); 

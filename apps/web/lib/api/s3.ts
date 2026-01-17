@@ -1,6 +1,6 @@
 import type { S3API } from "@/types/api.types";
 import axios from "axios";
-import { client } from "../client";
+import { client } from "@/lib/client"
 
 export async function getUploadUrl(
   params: S3API.GetUploadUrl.QueryParams, token: string

@@ -12,6 +12,7 @@ pipeline {
   environment {
     BACKEND_IMAGE = 'linky-api:latest'
     LINKY_API_ENV_FILE = '/var/jenkins_home/envs/linky/.env'
+    SHOULD_BUILD = 'true'
   }
 
   stages {
@@ -60,26 +61,62 @@ pipeline {
                 v2: currentVersion
               )
 
+              def shouldBuild = 'true'
               if (compareResult == 0) {
                 echo "Versions match -> skip build and exit early"
-                currentBuild.result = 'SUCCESS'
-                return
+                shouldBuild = 'false'
               } else if (compareResult == 1) {
                 echo "New version -> run build"
+                shouldBuild = 'true'
               } else {
                 echo "Old version -> WTF happened?"
+                shouldBuild = 'false'
                 currentBuild.result = 'FAILURE'
-                return
+                error("Version mismatch: deployed version is newer than current version")
               }
+              
+              // Write flag to file for subsequent stages
+              writeFile file: 'should_build.flag', text: shouldBuild
+              env.SHOULD_BUILD = shouldBuild
+              echo "Set SHOULD_BUILD to: ${env.SHOULD_BUILD}"
             } catch (Exception e) {
               echo "Version check failed: ${e.message}"
+              // Default to build if version check fails
+              writeFile file: 'should_build.flag', text: 'true'
+              env.SHOULD_BUILD = 'true'
             }
           }
         }
       }
     }
 
+    stage('Check Build Flag') {
+      steps {
+        script {
+          try {
+            def shouldBuild = sh(
+              script: 'cat should_build.flag 2>/dev/null || echo "true"',
+              returnStdout: true
+            ).trim()
+            env.SHOULD_BUILD = shouldBuild
+            echo "Read SHOULD_BUILD from file: ${env.SHOULD_BUILD}"
+          } catch (Exception e) {
+            echo "Could not read should_build.flag, defaulting to build: ${e.message}"
+            env.SHOULD_BUILD = 'true'
+          }
+        }
+      }
+    }
+
     stage('Prepare Env Files') {
+      when {
+        beforeAgent true
+        expression { 
+          def shouldBuild = env.SHOULD_BUILD ?: 'true'
+          echo "SHOULD_BUILD value: ${shouldBuild}"
+          return shouldBuild == 'true'
+        }
+      }
       steps {
         withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
           sh '''
@@ -92,6 +129,14 @@ pipeline {
     }
     
     stage('Docker Build Backend (Express.js)') {
+      when {
+        beforeAgent true
+        expression { 
+          def shouldBuild = env.SHOULD_BUILD ?: 'true'
+          echo "SHOULD_BUILD value: ${shouldBuild}"
+          return shouldBuild == 'true'
+        }
+      }
       steps {
         script {
           def backendImage = docker.build("${BACKEND_IMAGE}", "-f apps/api/Dockerfile .")
@@ -101,6 +146,14 @@ pipeline {
     }
     
     stage('Deploy Backend (Express.js)') {
+      when {
+        beforeAgent true
+        expression { 
+          def shouldBuild = env.SHOULD_BUILD ?: 'true'
+          echo "SHOULD_BUILD value: ${shouldBuild}"
+          return shouldBuild == 'true'
+        }
+      }
       steps {
         script {
           sh '''

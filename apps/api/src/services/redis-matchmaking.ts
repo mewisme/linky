@@ -238,9 +238,6 @@ export class RedisMatchmakingService {
         return null;
       }
 
-      await this.dequeue(bestMatch.userA.userId);
-      await this.dequeue(bestMatch.userB.userId);
-
       const socketIdA = await redisClient.get(`match:socket:${bestMatch.userA.userId}`);
       const socketIdB = await redisClient.get(`match:socket:${bestMatch.userB.userId}`);
 
@@ -251,9 +248,12 @@ export class RedisMatchmakingService {
       const socketA = io.sockets.sockets.get(socketIdA);
       const socketB = io.sockets.sockets.get(socketIdB);
 
-      if (!socketA || !socketB) {
+      if (!socketA || !socketB || !socketA.connected || !socketB.connected) {
         return null;
       }
+
+      await this.dequeue(bestMatch.userA.userId);
+      await this.dequeue(bestMatch.userB.userId);
 
       this.logger.info(
         "Matched users:",
@@ -355,10 +355,11 @@ export class RedisMatchmakingService {
       pipeline.del(key);
       if (interestTags.length > 0) {
         pipeline.sAdd(key, interestTags);
+        pipeline.expire(key, INTEREST_TAGS_TTL);
       } else {
-        pipeline.sAdd(key, []);
+        pipeline.set(key, "__empty__");
+        pipeline.expire(key, INTEREST_TAGS_TTL);
       }
-      pipeline.expire(key, INTEREST_TAGS_TTL);
       await pipeline.exec();
 
     } catch (error) {
@@ -377,6 +378,8 @@ export class RedisMatchmakingService {
         if (type === "set") {
           const tags = await redisClient.sMembers(key);
           result.set(userId, tags);
+        } else if (type === "string") {
+          result.set(userId, []);
         } else {
           result.set(userId, []);
         }

@@ -1,12 +1,12 @@
 ## What's Changed
 
-🐛 Bug Fixes
+♻️ Refactoring
 
-- Improve matchmaking service logic and Redis interactions ([ba7c016](../../commit/ba7c016))
+- Reorganize hooks and components for improved structure ([feae303](../../commit/feae303))
 
 🔨 Other Changes
 
-- Bump package version to 0.21.0 and update version lock ([1359bc2](../../commit/1359bc2))
+- Bump package version to 0.20.3 and update version lock ([a789a5a](../../commit/a789a5a))
 
 
-📋 Full Changelog: [1359bc2...ba7c016](../../compare/1359bc2...ba7c016)
+📋 Full Changelog: [a789a5a...feae303](../../compare/a789a5a...feae303)

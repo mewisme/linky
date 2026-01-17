@@ -37,6 +37,8 @@ pipeline {
                 returnStdout: true
               ).trim()
 
+              echo "API Response: ${apiResponse}"
+
               def apiData = jsonSlurper.parseText(apiResponse)
               if (!apiData.version) {
                 error("API response missing version")
@@ -48,14 +50,17 @@ pipeline {
               def packageJsonRaw = sh(
                 script: '''
                   curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                      -H "Accept: application/vnd.github.raw" \
+                      -H "Accept: application/json" \
                       https://raw.githubusercontent.com/mewisme/linky/refs/heads/main/apps/api/package.json
                 ''',
                 returnStdout: true
               ).trim()
 
+              echo "Package JSON Raw: ${packageJsonRaw}"
+
               def packageJson = jsonSlurper.parseText(packageJsonRaw)
               def currentVersion = packageJson.version
+              echo "Package JSON: ${packageJson}"
               echo "Current version: ${currentVersion}"
 
               if (deployedVersion == currentVersion) {

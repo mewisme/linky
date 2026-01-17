@@ -17,8 +17,8 @@ import React, { useTransition } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import { Input } from '@repo/ui/components/ui/input'
 import type { UserResource } from '@clerk/types'
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
-import toast from 'react-hot-toast'
 
 interface ProfileNameFieldsProps {
   user: UserResource

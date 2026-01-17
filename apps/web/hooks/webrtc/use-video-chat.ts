@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useMemo } from "react";
-import toast from "react-hot-toast";
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useAuth, useUser } from "@clerk/nextjs";
 import type { SignalData } from "@/lib/socket/socket";
 import type { UsersAPI } from "@/types/users.types";

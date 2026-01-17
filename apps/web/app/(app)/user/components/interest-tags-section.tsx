@@ -1,8 +1,6 @@
 'use client'
 
 import { IconCheck, IconLoader2, IconPencil, IconTags, IconX } from '@tabler/icons-react'
-import { Badge } from '@repo/ui/components/ui/badge'
-import { Button } from '@repo/ui/components/ui/button'
 import {
   Tags,
   TagsContent,
@@ -20,12 +18,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@repo/ui/components/ui/tooltip'
-import { useTransition, useState, useEffect } from 'react'
-import toast from 'react-hot-toast'
-import type { UserDetails } from '@/stores/user-store'
+import { useEffect, useState, useTransition } from 'react'
+
+import { Badge } from '@repo/ui/components/ui/badge'
+import { Button } from '@repo/ui/components/ui/button'
 import type { ResourcesAPI } from '@/types/resources.types'
-import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
+import type { UserDetails } from '@/stores/user-store'
 import axios from 'axios'
+import { toast } from "@repo/ui/components/ui/sonner";
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
 interface InterestTagsSectionProps {
   userDetails: UserDetails | null

@@ -24,9 +24,9 @@ import { InterestTagsDataTable } from '@/components/data-table/interest-tags/dat
 import { Label } from "@repo/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@repo/ui/components/ui/switch";
-import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import toast from "react-hot-toast";
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useAuth } from "@clerk/nextjs";
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 
 export default function InterestTagsPage() {
   const { getToken } = useAuth();

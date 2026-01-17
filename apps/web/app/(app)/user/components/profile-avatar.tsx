@@ -5,11 +5,12 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@repo/ui/components/ui/avatar'
+
 import { IconCamera } from '@tabler/icons-react'
-import { useTransition } from 'react'
 import type { UserResource } from '@clerk/types'
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
-import toast from 'react-hot-toast'
+import { useTransition } from 'react'
 
 interface ProfileAvatarProps {
   user: UserResource

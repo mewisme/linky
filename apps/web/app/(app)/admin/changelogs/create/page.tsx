@@ -24,10 +24,10 @@ import { DatePicker } from "@/components/common/date-picker";
 import { Editor } from "@/components/editor/editor";
 import { Input } from "@repo/ui/components/ui/input";
 import { Switch } from "@repo/ui/components/ui/switch";
-import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import toast from "react-hot-toast";
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 
 const { z } = ZodPrimitive;
 const { zodResolver } = HookFormZodPrimitive;

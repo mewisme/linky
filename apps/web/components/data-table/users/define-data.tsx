@@ -21,7 +21,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
-import toast from 'react-hot-toast';
+import { toast } from "@repo/ui/components/ui/sonner";
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar';
 import { Status, StatusIndicator, StatusLabel } from "@repo/ui/components/kibo-ui/status";
 import { memo } from 'react';

@@ -11,9 +11,9 @@ import type { Socket } from 'socket.io-client';
 import { UsersDataTable } from '@/components/data-table/users/data-table'
 import { createSocket } from '@/lib/socket/socket';
 import { logger } from '@/utils/logger';
-import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import toast from 'react-hot-toast';
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useAuth } from '@clerk/nextjs';
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 
 export default function ListUsersPage() {
   const { getToken, isLoaded } = useAuth()

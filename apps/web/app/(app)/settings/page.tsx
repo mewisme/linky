@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
 import {
   Card,
   CardContent,
@@ -8,15 +7,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/components/ui/card'
+import { IconBell, IconLoader2, IconMicrophone, IconVideo } from '@tabler/icons-react'
+import { useEffect, useState, useTransition } from 'react'
+
+import { AppLayout } from '@/components/layouts/app-layout'
+import { Button } from '@repo/ui/components/ui/button'
+import { Label } from '@repo/ui/components/ui/label'
 import { Separator } from '@repo/ui/components/ui/separator'
 import { Switch } from '@repo/ui/components/ui/switch'
-import { Label } from '@repo/ui/components/ui/label'
-import { Button } from '@repo/ui/components/ui/button'
-import { IconLoader2, IconMicrophone, IconVideo, IconBell } from '@tabler/icons-react'
-import { AppLayout } from '@/components/layouts/app-layout'
-import { useUserContext } from '@/components/providers/user'
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
-import toast from 'react-hot-toast'
+import { useUserContext } from '@/components/providers/user'
 
 export default function SettingsPage() {
   const {

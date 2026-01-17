@@ -6,8 +6,8 @@ import { useEffect, useState, useTransition } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import { Textarea } from '@repo/ui/components/ui/textarea'
 import type { UserDetails } from '@/stores/user-store'
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
-import toast from 'react-hot-toast'
 
 interface BioSectionProps {
   userDetails: UserDetails | null

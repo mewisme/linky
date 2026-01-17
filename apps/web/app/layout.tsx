@@ -9,7 +9,7 @@ import { MqttProvider } from "@/components/providers/mqtt";
 import ProgressBarProvider from "@/components/providers/progress-bar";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/providers/theme";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@repo/ui/components/ui/sonner";
 import { UserProvider } from "@/components/providers/user";
 
 const geistSans = Geist({
@@ -98,6 +98,7 @@ export default function RootLayout({
                 <ProgressBarProvider>
                   {children}
                   <Toaster />
+
                 </ProgressBarProvider>
               </ThemeProvider>
             </MqttProvider>

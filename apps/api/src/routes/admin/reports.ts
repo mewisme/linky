@@ -3,6 +3,7 @@ import { Logger } from "../../utils/logger.js";
 import type { TablesUpdate } from "../../types/database.types.js";
 import { getReports, getReportById, updateReport } from "../../lib/supabase/queries/reports.js";
 import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
+import { getReportWithContext } from "../../lib/supabase/queries/report-contexts.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("AdminReportsRoute");
@@ -53,9 +54,9 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    const report = await getReportById(id);
+    const reportWithContext = await getReportWithContext(id);
 
-    if (!report) {
+    if (!reportWithContext) {
       return res.status(404).json({
         error: "Not Found",
         message: "Report not found",
@@ -64,7 +65,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     logger.info("Report fetched by admin:", id);
 
-    return res.json(report);
+    return res.json(reportWithContext);
   } catch (error) {
     logger.error("Unexpected error in GET /admin/reports/:id:", error instanceof Error ? error.message : "Unknown error");
     return res.status(500).json({
@@ -94,7 +95,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
-    
+
     if (!id) {
       return res.status(400).json({
         error: "Bad Request",

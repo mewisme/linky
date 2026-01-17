@@ -2,6 +2,8 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 import { Logger } from "../../utils/logger.js";
 import { createReport, getUserReports } from "../../lib/supabase/queries/reports.js";
 import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
+import { collectReportContext } from "../../services/report-context.js";
+import { createReportContext } from "../../lib/supabase/queries/report-contexts.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("ReportsRoute");
@@ -25,7 +27,7 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    const { reported_user_id, reason } = req.body;
+    const { reported_user_id, reason, call_id, room_id, behavior_flags } = req.body;
 
     if (!reported_user_id || !reason) {
       return res.status(400).json({
@@ -56,6 +58,25 @@ router.post("/", async (req: Request, res: Response) => {
     });
 
     logger.info("Report created:", report.id);
+
+    try {
+      const contextData = await collectReportContext({
+        reporterUserId,
+        reportedUserId: reported_user_id,
+        callId: call_id,
+        roomId: room_id,
+        behaviorFlags: behavior_flags,
+      });
+
+      await createReportContext({
+        report_id: report.id,
+        ...contextData,
+      });
+
+      logger.info("Report context created for report:", report.id);
+    } catch (error) {
+      logger.error("Error creating report context:", error instanceof Error ? error.message : "Unknown error");
+    }
 
     return res.status(201).json(report);
   } catch (error) {

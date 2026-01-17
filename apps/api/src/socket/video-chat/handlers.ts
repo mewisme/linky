@@ -1,13 +1,22 @@
 import { type Server as SocketIOServer } from "socket.io";
-import { MatchmakingService } from "../../services/matchmaking.js";
+import { RedisMatchmakingService } from "../../services/redis-matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
 import { UserSessionService } from "../../services/user-sessions.js";
 import { Logger } from "../../utils/logger.js";
 import { type AuthenticatedSocket } from "../auth.js";
 import { recordCallHistory } from "./call-history.js";
+import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 
 const logger = new Logger("VideoChatHandlers");
 import type { VideoChatContext } from "./types.js";
+
+async function getDbUserId(socket: AuthenticatedSocket): Promise<string | null> {
+  const clerkUserId = socket.data.userId;
+  if (!clerkUserId) {
+    return null;
+  }
+  return await getUserIdByClerkId(clerkUserId);
+}
 
 export function setupSocketHandlers(
   socket: AuthenticatedSocket,
@@ -17,7 +26,9 @@ export function setupSocketHandlers(
   const userId = socket.data.userId || "unknown";
   logger.info("Client connected:", socket.id, "User:", userId);
 
-  matchmaking.cleanupStaleSockets(io);
+  matchmaking.cleanupStaleSockets(io).catch((error) => {
+    logger.error("Failed to cleanup stale sockets:", error instanceof Error ? error.message : "Unknown error");
+  });
 
   const sessionResult = userSessions.tryActivateSession(userId, socket);
   if (!sessionResult.activated) {
@@ -56,10 +67,10 @@ export function setupSocketHandlers(
 function setupJoinHandler(
   socket: AuthenticatedSocket,
   checkActiveSession: () => boolean,
-  matchmaking: MatchmakingService,
+  matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
-  socket.on("join", () => {
+  socket.on("join", async () => {
     logger.info("Join request received from:", socket.id);
 
     if (!checkActiveSession()) {
@@ -74,7 +85,7 @@ function setupJoinHandler(
       return;
     }
 
-    const added = matchmaking.enqueue(socket);
+    const added = await matchmaking.enqueue(socket);
     if (!added) {
       logger.warn("User already in queue, duplicate join request:", socket.id);
       socket.emit("error", {
@@ -83,7 +94,7 @@ function setupJoinHandler(
       return;
     }
 
-    const queueSize = matchmaking.getQueueSize();
+    const queueSize = await matchmaking.getQueueSize();
     socket.emit("joined-queue", {
       message: "Waiting for a match...",
       queueSize,
@@ -97,13 +108,19 @@ function setupSkipHandler(
   socket: AuthenticatedSocket,
   checkActiveSession: () => boolean,
   io: SocketIOServer,
-  matchmaking: MatchmakingService,
+  matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
-  socket.on("skip", () => {
+  socket.on("skip", async () => {
     logger.info("Skip request received from:", socket.id);
 
     if (!checkActiveSession()) {
+      return;
+    }
+
+    const dbUserId = await getDbUserId(socket);
+    if (!dbUserId) {
+      logger.warn("Skip: Cannot resolve dbUserId for socket:", socket.id);
       return;
     }
 
@@ -112,29 +129,40 @@ function setupSkipHandler(
       const peerId = rooms.getPeer(socket.id);
 
       if (peerId) {
-        logger.info("Notifying peer of skip:", peerId, "from", socket.id);
-
-        matchmaking.recordSkip(socket.id, peerId);
-
-        const peerSocket = io.sockets.sockets.get(peerId);
+        const peerSocket = io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined;
         if (peerSocket) {
-          if (matchmaking.isInQueue(peerId)) {
-            matchmaking.removeUser(peerId);
+          const peerDbUserId = await getDbUserId(peerSocket);
+          if (peerDbUserId) {
+            await matchmaking.recordSkip(dbUserId, peerDbUserId);
+            await matchmaking.recordSkip(peerDbUserId, dbUserId);
           }
+        }
 
-          const peerAdded = matchmaking.enqueue(peerSocket);
-          if (peerAdded) {
-            const peerQueueSize = matchmaking.getQueueSize();
-            io.to(peerId).emit("peer-skipped", {
-              message: "Peer skipped. Re-entering queue for next match...",
-              queueSize: peerQueueSize,
-            });
-            logger.info("Peer re-queued after skip:", peerId, `(Queue size: ${peerQueueSize})`);
-          } else {
-            logger.warn("Skip: Failed to re-queue peer:", peerId);
-            io.to(peerId).emit("peer-left", {
-              message: "Peer skipped",
-            });
+        rooms.deleteRoom(room.id);
+        logger.info("Room cleaned up after skip:", socket.id);
+
+        if (peerSocket) {
+          const peerDbUserId = await getDbUserId(peerSocket);
+          if (peerDbUserId) {
+            const isPeerInQueue = await matchmaking.isInQueue(peerDbUserId);
+            if (isPeerInQueue) {
+              await matchmaking.removeUser(peerDbUserId);
+            }
+
+            const peerAdded = await matchmaking.enqueue(peerSocket);
+            if (peerAdded) {
+              const peerQueueSize = await matchmaking.getQueueSize();
+              io.to(peerId).emit("peer-skipped", {
+                message: "Peer skipped. Re-entering queue for next match...",
+                queueSize: peerQueueSize,
+              });
+              logger.info("Peer re-queued after skip:", peerId, `(Queue size: ${peerQueueSize})`);
+            } else {
+              logger.warn("Skip: Failed to re-queue peer:", peerId);
+              io.to(peerId).emit("peer-left", {
+                message: "Peer skipped",
+              });
+            }
           }
         } else {
           logger.warn("Skip: Peer socket not found:", peerId);
@@ -142,19 +170,21 @@ function setupSkipHandler(
       } else {
         logger.warn("Skip: Peer not found for user:", socket.id, "in room:", room.id);
       }
-
-      rooms.deleteRoom(room.id);
-      logger.info("Room cleaned up after skip:", socket.id);
     } else {
       logger.warn("Skip: User not in room:", socket.id);
     }
 
-    const added = matchmaking.enqueue(socket);
+    const isInQueue = await matchmaking.isInQueue(dbUserId);
+    if (isInQueue) {
+      await matchmaking.removeUser(dbUserId);
+    }
+
+    const added = await matchmaking.enqueue(socket);
     if (!added) {
       logger.warn("Skip: Failed to re-queue user:", socket.id);
     }
 
-    const queueSize = matchmaking.getQueueSize();
+    const queueSize = await matchmaking.getQueueSize();
     socket.emit("skipped", {
       message: "Skipped. Looking for new match...",
       queueSize,
@@ -289,20 +319,23 @@ function setupEndCallHandler(
   socket: AuthenticatedSocket,
   checkActiveSession: () => boolean,
   io: SocketIOServer,
-  matchmaking: MatchmakingService,
+  matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
-  socket.on("end-call", () => {
+  socket.on("end-call", async () => {
     logger.info("End call request received from:", socket.id);
 
     if (!checkActiveSession()) {
       return;
     }
 
-    const wasInQueue = matchmaking.isInQueue(socket.id);
-    if (wasInQueue) {
-      matchmaking.removeUser(socket.id);
-      logger.info("User removed from queue on end call:", socket.id);
+    const dbUserId = await getDbUserId(socket);
+    if (dbUserId) {
+      const wasInQueue = await matchmaking.isInQueue(dbUserId);
+      if (wasInQueue) {
+        await matchmaking.removeUser(dbUserId);
+        logger.info("User removed from queue on end call:", socket.id);
+      }
     }
 
     const room = rooms.getRoomByUser(socket.id);
@@ -328,7 +361,8 @@ function setupEndCallHandler(
       }
 
       rooms.deleteRoom(room.id);
-      logger.info("Room cleaned up after end call:", socket.id, `(Active rooms: ${rooms.getRoomCount()}, Queue size: ${matchmaking.getQueueSize()})`);
+      const queueSize = await matchmaking.getQueueSize();
+      logger.info("Room cleaned up after end call:", socket.id, `(Active rooms: ${rooms.getRoomCount()}, Queue size: ${queueSize})`);
     } else {
       logger.info("End call: User not in room:", socket.id);
     }
@@ -340,14 +374,14 @@ function setupResyncHandler(
   userId: string,
   checkActiveSession: () => boolean,
   io: SocketIOServer,
-  matchmaking: MatchmakingService,
+  matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
   socket.on("resync-room-state", () => {
     socket.emit("resync-session", { timestamp: Date.now() });
   });
 
-  socket.on("resync-session", (data: { timestamp?: number }) => {
+  socket.on("resync-session", async (data: { timestamp?: number }) => {
     logger.info("Resync request received from:", socket.id, "User:", userId, "Timestamp:", data.timestamp);
 
     if (!checkActiveSession()) {
@@ -425,11 +459,11 @@ function setupDisconnectHandler(
   socket: AuthenticatedSocket,
   userId: string,
   io: SocketIOServer,
-  matchmaking: MatchmakingService,
+  matchmaking: RedisMatchmakingService,
   rooms: RoomService,
   userSessions: UserSessionService
 ): void {
-  socket.on("disconnect", (reason: string) => {
+  socket.on("disconnect", async (reason: string) => {
     logger.warn("Client disconnected:", socket.id, "User:", userId, "Reason:", reason);
 
     const wasInRoom = rooms.isInRoom(socket.id);
@@ -437,51 +471,59 @@ function setupDisconnectHandler(
 
     userSessions.deactivateSession(userId, socket.id);
 
-    const wasInQueue = matchmaking.isInQueue(socket.id);
-    if (wasInQueue) {
-      matchmaking.removeUser(socket.id);
-      logger.info("User removed from queue on disconnect:", socket.id);
+    const dbUserId = await getDbUserId(socket);
+    if (dbUserId) {
+      const wasInQueue = await matchmaking.isInQueue(dbUserId);
+      if (wasInQueue) {
+        await matchmaking.removeUser(dbUserId);
+        logger.info("User removed from queue on disconnect:", socket.id);
+      }
     }
 
     if (room) {
       const peerId = rooms.getPeer(socket.id);
       const peerSocket = peerId ? io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined : undefined;
 
-      // CRITICAL: When socket disconnects during active call, immediately notify peer
-      // This ensures peer is notified even if unload signal didn't reach backend
-      logger.info("Socket disconnected during active call - immediately notifying peer");
-
-      // Record call history
       recordCallHistory(io, room, socket, peerSocket).catch((error) => {
         logger.error("Failed to record call history:", error instanceof Error ? error.message : "Unknown error");
       });
 
       if (peerId && peerSocket && peerSocket.connected) {
-        // Send end-call signal to peer immediately (more authoritative than peer-left)
         logger.info("Notifying peer of end-call due to disconnect:", peerId, "from", socket.id);
         io.to(peerId).emit("end-call", {
           message: "Call ended - peer disconnected",
         });
 
-        // Remove peer from queue if present and re-queue them
-        if (matchmaking.isInQueue(peerId)) {
-          matchmaking.removeUser(peerId);
+        const peerDbUserId = await getDbUserId(peerSocket);
+        if (peerDbUserId && dbUserId) {
+          await matchmaking.recordSkip(dbUserId, peerDbUserId);
+          await matchmaking.recordSkip(peerDbUserId, dbUserId);
         }
 
-        const peerAdded = matchmaking.enqueue(peerSocket);
-        if (peerAdded) {
-          const peerQueueSize = matchmaking.getQueueSize();
-          logger.info("Peer re-queued after disconnect:", peerId, `(Queue size: ${peerQueueSize})`);
-        } else {
-          logger.warn("Failed to re-queue peer:", peerId);
+        if (peerDbUserId) {
+          const isPeerInQueue = await matchmaking.isInQueue(peerDbUserId);
+          if (isPeerInQueue) {
+            await matchmaking.removeUser(peerDbUserId);
+          }
+
+          setTimeout(async () => {
+            const stillConnected = peerSocket.connected && io.sockets.sockets.get(peerId);
+            if (stillConnected) {
+              const peerAdded = await matchmaking.enqueue(peerSocket);
+              if (peerAdded) {
+                const peerQueueSize = await matchmaking.getQueueSize();
+                logger.info("Peer re-queued after disconnect cooldown:", peerId, `(Queue size: ${peerQueueSize})`);
+              }
+            }
+          }, 5000);
         }
       } else if (peerId) {
         logger.warn("Peer socket not found or disconnected:", peerId);
       }
 
-      // Clean up room immediately (no delay for unload scenarios)
       rooms.deleteRoom(room.id);
-      logger.info("Room cleaned up immediately after disconnect:", socket.id, `(Active rooms: ${rooms.getRoomCount()}, Queue size: ${matchmaking.getQueueSize()})`);
+      const queueSize = await matchmaking.getQueueSize();
+      logger.info("Room cleaned up immediately after disconnect:", socket.id, `(Active rooms: ${rooms.getRoomCount()}, Queue size: ${queueSize})`);
     } else {
       logger.info("User disconnected (not in room or queue):", socket.id);
     }

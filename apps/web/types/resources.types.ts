@@ -116,6 +116,23 @@ export namespace ResourcesAPI {
   export namespace Reports {
     export type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
 
+    export interface ReportContext {
+      id: string;
+      report_id: string;
+      call_id: string | null;
+      room_id: string | null;
+      call_started_at: string | null;
+      call_ended_at: string | null;
+      duration_seconds: number | null;
+      reporter_role: string | null;
+      reported_role: string | null;
+      ended_by: string | null;
+      reported_at_offset_seconds: number | null;
+      chat_snapshot: unknown | null;
+      behavior_flags: unknown | null;
+      created_at: string;
+    }
+
     export interface Report {
       id: string;
       reporter_user_id: string;
@@ -127,12 +144,26 @@ export namespace ResourcesAPI {
       reviewed_at: string | null;
       created_at: string;
       updated_at: string;
+      context?: ReportContext | null;
     }
 
     export namespace Create {
       export interface Body {
         reported_user_id: string;
         reason: string;
+        call_id?: string;
+        room_id?: string;
+        behavior_flags?: {
+          call_metadata?: {
+            reporter_muted?: boolean;
+            reported_muted?: boolean;
+            reporter_video_off?: boolean;
+            reported_video_off?: boolean;
+            call_ended_by?: "reporter" | "reported" | "system";
+            end_type?: "end-call" | "skip" | "disconnect";
+          };
+          reporter_flags?: string[];
+        };
       }
 
       export type Response = Report;

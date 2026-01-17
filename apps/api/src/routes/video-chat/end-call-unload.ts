@@ -3,6 +3,7 @@ import { getVideoChatContext } from "../../socket/video-chat/context.js";
 import { Logger } from "../../utils/logger.js";
 import { recordCallHistory } from "../../socket/video-chat/call-history.js";
 import { type AuthenticatedSocket } from "../../socket/auth.js";
+import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("UnloadEndCallRoute");
@@ -48,10 +49,16 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
       return res.status(200).json({ success: true, message: "Cleanup completed" });
     }
 
-    const wasInQueue = matchmaking.isInQueue(socketId);
-    if (wasInQueue) {
-      matchmaking.removeUser(socketId);
-      logger.info("User removed from queue:", socketId);
+    const clerkUserId = socket.data.userId;
+    if (clerkUserId) {
+      const dbUserId = await getUserIdByClerkId(clerkUserId);
+      if (dbUserId) {
+        const wasInQueue = await matchmaking.isInQueue(dbUserId);
+        if (wasInQueue) {
+          await matchmaking.removeUser(dbUserId);
+          logger.info("User removed from queue:", socketId);
+        }
+      }
     }
 
     const room = rooms.getRoomByUser(socketId);
@@ -76,7 +83,8 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
       }
 
       rooms.deleteRoom(room.id);
-      logger.info("Room cleaned up after unload end-call:", socketId, `(Active rooms: ${rooms.getRoomCount()}, Queue size: ${matchmaking.getQueueSize()})`);
+      const queueSize = await matchmaking.getQueueSize();
+      logger.info("Room cleaned up after unload end-call:", socketId, `(Active rooms: ${rooms.getRoomCount()}, Queue size: ${queueSize})`);
     } else {
       logger.info("Socket not in room:", socketId);
     }

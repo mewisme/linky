@@ -1,5 +1,5 @@
 import { type Server as SocketIOServer } from "socket.io";
-import { MatchmakingService } from "../../services/matchmaking.js";
+import { RedisMatchmakingService } from "../../services/redis-matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
 import { UserSessionService } from "../../services/user-sessions.js";
 import { type AuthenticatedSocket } from "../auth.js";
@@ -10,7 +10,7 @@ import type { VideoChatContext } from "./types.js";
 
 export function setupVideoChatHandlers(
   io: SocketIOServer,
-  matchmaking: MatchmakingService,
+  matchmaking: RedisMatchmakingService,
   rooms: RoomService,
   userSessions: UserSessionService
 ): void {

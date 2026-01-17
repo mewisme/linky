@@ -268,3 +268,22 @@ export async function clearInterestTags(userId: string) {
 
   return updated;
 }
+
+export async function getInterestTags(userId: string) {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  const { data, error } = await supabase
+    .from("user_details")
+    .select("interest_tags")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    logger.error("Error fetching interest tags:", error.message);
+    throw error;
+  }
+
+  return data?.interest_tags || [];
+}

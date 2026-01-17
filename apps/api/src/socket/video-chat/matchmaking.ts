@@ -1,5 +1,5 @@
 import { type Server as SocketIOServer } from "socket.io";
-import { MatchmakingService } from "../../services/matchmaking.js";
+import { RedisMatchmakingService } from "../../services/redis-matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
 import { Logger } from "../../utils/logger.js";
 import { type AuthenticatedSocket } from "../auth.js";
@@ -10,14 +10,20 @@ import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 
 export function setupMatchmakingInterval(
   io: SocketIOServer,
-  matchmaking: MatchmakingService,
+  matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
+  // Cleanup expired entries periodically
   setInterval(async () => {
-    const queueSize = matchmaking.getQueueSize();
+    await matchmaking.cleanupExpiredEntries(io);
+  }, 30 * 1000); // Every 30 seconds
+
+  // Main matching loop
+  setInterval(async () => {
+    const queueSize = await matchmaking.getQueueSize();
     if (queueSize >= 2) {
       logger.load(`Matching users (queue: ${queueSize})...`);
-      const matched = matchmaking.tryMatch();
+      const matched = await matchmaking.tryMatch(io);
       if (matched && matched.length === 2) {
         const [user1, user2] = matched;
 

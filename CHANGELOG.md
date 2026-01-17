@@ -2,11 +2,11 @@
 
 ✨ Features
 
-- Implement report context management and enhance Jenkins pipeline ([b17b96b](../../commit/b17b96b))
+- Bump package version to 0.20.1 and update version lock ([58adae9](../../commit/58adae9))
 
-⚡️ Performance
+🐛 Bug Fixes
 
-- Bump package version to 0.19.9 and update version lock ([4064202](../../commit/4064202))
+- Update opacity handling in data table action cells ([c3fe939](../../commit/c3fe939))
 
 
-📋 Full Changelog: [4064202...b17b96b](../../compare/4064202...b17b96b)
+📋 Full Changelog: [58adae9...c3fe939](../../compare/58adae9...c3fe939)

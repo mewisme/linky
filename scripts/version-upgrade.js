@@ -429,5 +429,13 @@ if (updatedFiles.length === 0) {
 // Save the current commit as last processed
 saveLastProcessedCommit();
 
+// Stage all changes (including updated package.json files)
+try {
+  execSync('git add .', { encoding: 'utf8', stdio: 'inherit' });
+  console.log('\n✓ Staged all changes with `git add .`');
+} catch (error) {
+  console.error('\n✗ Error staging changes:', error.message);
+}
+
 console.log(`\n✓ Version upgraded to ${newVersion} in ${updatedFiles.length} package(s)`);
 console.log('✓ Last processed commit saved to .version-lock'); 

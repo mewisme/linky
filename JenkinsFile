@@ -30,54 +30,52 @@ pipeline {
             string(credentialsId: 'linky-github-token', variable: 'GITHUB_TOKEN')
           ]) {
             try {
-              def jsonSlurper = new groovy.json.JsonSlurper()
-
+              // 1) Fetch API JSON
               def apiResponse = sh(
-                script: "curl -s ${API_URL}",
+                script: """
+                  curl -s "$API_URL"
+                """,
                 returnStdout: true
               ).trim()
 
-              echo "API Response: ${apiResponse}"
+              echo "Raw API response: ${apiResponse}"
 
-              def apiData = jsonSlurper.parseText(apiResponse)
-              if (!apiData.version) {
-                error("API response missing version")
-              }
-
+              // 2) Parse JSON
+              def apiData = readJSON text: apiResponse
               def deployedVersion = apiData.version
               echo "Deployed version: ${deployedVersion}"
 
-              def packageJsonRaw = sh(
-                script: '''
-                  curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                      -H "Accept: application/json" \
+              // 3) Fetch latest package.json from GitHub
+              def pkgJson = sh(
+                script: """
+                  curl -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                      -H "Accept: application/vnd.github.raw" \
                       https://raw.githubusercontent.com/mewisme/linky/refs/heads/main/apps/api/package.json
-                ''',
+                """,
                 returnStdout: true
               ).trim()
 
-              echo "Package JSON Raw: ${packageJsonRaw}"
-
-              def packageJson = jsonSlurper.parseText(packageJsonRaw)
-              def currentVersion = packageJson.version
-              echo "Package JSON: ${packageJson}"
+              def currentData = readJSON text: pkgJson
+              def currentVersion = currentData.version
               echo "Current version: ${currentVersion}"
 
+              // 4) Compare
               if (deployedVersion == currentVersion) {
-                echo "Versions match. Skipping build."
+                echo "Versions match -> skip build"
                 env.SKIP_BUILD = 'true'
               } else {
-                echo "Versions differ. Proceeding with build."
+                echo "New version -> run build"
                 env.SKIP_BUILD = 'false'
               }
             } catch (Exception e) {
-              echo "Version check failed: ${e.message}. Proceeding with build."
+              echo "Version check failed: ${e.message}"
               env.SKIP_BUILD = 'false'
             }
           }
         }
       }
     }
+
 
     stage('Install Dependencies') {
       when {

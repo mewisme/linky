@@ -20,7 +20,7 @@ type SocketEventCallback = {
   onSessionActivated?: (data: { message: string }) => void;
 };
 
-interface SocketContextValue {
+export interface SocketContextValue {
   socket: Socket | null;
   connectionState: ConnectionState;
   socketId: string | null;

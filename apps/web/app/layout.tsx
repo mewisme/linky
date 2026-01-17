@@ -97,8 +97,7 @@ export default function RootLayout({
               >
                 <ProgressBarProvider>
                   {children}
-                  <Toaster />
-
+                  <Toaster position="top-center" />
                 </ProgressBarProvider>
               </ThemeProvider>
             </MqttProvider>

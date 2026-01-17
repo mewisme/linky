@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+🐛 Bug Fixes
 
-- Enhance matchmaking logic with common interests calculation ([f8ecd69](../../commit/f8ecd69))
+- Improve matchmaking service logic and Redis interactions ([ba7c016](../../commit/ba7c016))
 
 🔨 Other Changes
 
-- Bump package version to 0.20.2 and update version lock ([c696488](../../commit/c696488))
+- Bump package version to 0.21.0 and update version lock ([1359bc2](../../commit/1359bc2))
 
 
-📋 Full Changelog: [c696488...f8ecd69](../../compare/c696488...f8ecd69)
+📋 Full Changelog: [1359bc2...ba7c016](../../compare/1359bc2...ba7c016)

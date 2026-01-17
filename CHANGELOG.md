@@ -1,8 +1,12 @@
 ## What's Changed
 
+♻️ Refactoring
+
+- Adjust z-index values and improve pointer event handling in chat components ([9f37b85](../../commit/9f37b85))
+
 🔨 Other Changes
 
-- Update package version to 0.21.0 and modify version lock ([508d4a6](../../commit/508d4a6))
+- Update package version to 0.20.5 and modify version lock ([c8ad8de](../../commit/c8ad8de))
 
 
-📋 Full Changelog: [508d4a6...508d4a6](../../compare/508d4a6...508d4a6)
+📋 Full Changelog: [c8ad8de...9f37b85](../../compare/c8ad8de...9f37b85)

@@ -1,12 +1,11 @@
 ## What's Changed
 
-✨ Features
+🔨 Other Changes
 
-- Bump package version to 0.20.1 and update version lock ([58adae9](../../commit/58adae9))
+- Simplify Jenkins pipeline by removing dependency installation stage ([bf1bb48](../../commit/bf1bb48))
+- Refine version check in Jenkins pipeline ([3ef3c27](../../commit/3ef3c27))
+- Enhance Jenkins pipeline and update package.json scripts ([7738637](../../commit/7738637))
+- Bump package version to 0.21.0 and update version lock ([4c0e7ec](../../commit/4c0e7ec))
 
-🐛 Bug Fixes
 
-- Update opacity handling in data table action cells ([c3fe939](../../commit/c3fe939))
-
-
-📋 Full Changelog: [58adae9...c3fe939](../../compare/58adae9...c3fe939)
+📋 Full Changelog: [4c0e7ec...bf1bb48](../../compare/4c0e7ec...bf1bb48)

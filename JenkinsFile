@@ -15,73 +15,20 @@ pipeline {
   }
 
   stages {
-
     stage('Checkout') {
       steps {
         checkout scm
       }
     }
 
-    stage('Check Version') {
-      steps {
-        script {
-          withCredentials([
-            string(credentialsId: 'linky-api-url', variable: 'API_URL'),
-            string(credentialsId: 'linky-github-token', variable: 'GITHUB_TOKEN')
-          ]) {
-            try {
-              echo "Checking deployed version..."
-              def apiResponse = sh(
-                script: "curl -s \"$API_URL\"",
-                returnStdout: true
-              ).trim()
-              def apiData = readJSON text: apiResponse
-              def deployedVersion = apiData.version
-
-              echo "Fetching current version from main branch..."
-              def pkgJson = sh(
-                script: """
-                  curl -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-                       -H "Accept: application/vnd.github.raw" \
-                       https://raw.githubusercontent.com/mewisme/linky/refs/heads/main/apps/api/package.json
-                """,
-                returnStdout: true
-              ).trim()
-              def currentData = readJSON text: pkgJson
-              def currentVersion = currentData.version
-
-              def compareResult = compareVersions(v1: deployedVersion, v2: currentVersion)
-              def shouldBuild = (compareResult != 0).toString()
-
-              writeFile file: 'should_build.flag', text: shouldBuild
-              echo "should_build.flag = ${shouldBuild}"
-            } catch (e) {
-              echo "Version check failed: ${e.message}"
-              writeFile file: 'should_build.flag', text: 'true'
-            }
-          }
-        }
-      }
-    }
-
     stage('Prepare Env Files') {
       steps {
-        script {
-          def shouldBuild = readFile('should_build.flag').trim()
-          withEnv(["SHOULD_BUILD=${shouldBuild}"]) {
-            echo "SHOULD_BUILD=${shouldBuild}"
-            if (SHOULD_BUILD.toBoolean()) {
-              withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
-                sh '''
-                  mkdir -p /var/jenkins_home/envs/linky
-                  cp "$ENV_FILE" "$LINKY_API_ENV_FILE"
-                  chmod 600 "$LINKY_API_ENV_FILE"
-                '''
-              }
-            } else {
-              echo "Skipping Prepare Env Files"
-            }
-          }
+        withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
+          sh '''
+            mkdir -p /var/jenkins_home/envs/linky
+            cp "$ENV_FILE" "$LINKY_API_ENV_FILE"
+            chmod 600 "$LINKY_API_ENV_FILE"
+          '''
         }
       }
     }
@@ -89,16 +36,8 @@ pipeline {
     stage('Docker Build Backend (Express.js)') {
       steps {
         script {
-          def shouldBuild = readFile('should_build.flag').trim()
-          withEnv(["SHOULD_BUILD=${shouldBuild}"]) {
-            echo "SHOULD_BUILD=${shouldBuild}"
-            if (SHOULD_BUILD.toBoolean()) {
-              def backendImage = docker.build("${BACKEND_IMAGE}", "-f apps/api/Dockerfile .")
-              env.BACKEND_IMAGE_ID = backendImage.id
-            } else {
-              echo "Skipping Docker build"
-            }
-          }
+          def backendImage = docker.build("${BACKEND_IMAGE}", "-f apps/api/Dockerfile .")
+          env.BACKEND_IMAGE_ID = backendImage.id
         }
       }
     }
@@ -106,19 +45,11 @@ pipeline {
     stage('Deploy Backend (Express.js)') {
       steps {
         script {
-          def shouldBuild = readFile('should_build.flag').trim()
-          withEnv(["SHOULD_BUILD=${shouldBuild}"]) {
-            echo "SHOULD_BUILD=${shouldBuild}"
-            if (SHOULD_BUILD.toBoolean()) {
-              sh '''
-                docker compose down || true
-                docker rm -f linky-api linky-redis || true
-                docker compose up -d
-              '''
-            } else {
-              echo "Skipping Deploy"
-            }
-          }
+          sh '''
+            docker compose down || true
+            docker rm -f linky-api linky-redis || true
+            docker compose up -d
+          '''
         }
       }
     }

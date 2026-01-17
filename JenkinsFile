@@ -59,7 +59,6 @@ pipeline {
               def currentVersion = currentData.version
               echo "Current version: ${currentVersion}"
 
-              // 4) Compare
               if (deployedVersion == currentVersion) {
                 echo "Versions match -> skip build"
                 env.SKIP_BUILD = 'true'
@@ -73,19 +72,6 @@ pipeline {
             }
           }
         }
-      }
-    }
-
-
-    stage('Install Dependencies') {
-      when {
-        expression { env.SKIP_BUILD == 'false' }
-      }
-      steps {
-        sh '''
-          corepack enable
-          pnpm install --frozen-lockfile
-        '''
       }
     }
 

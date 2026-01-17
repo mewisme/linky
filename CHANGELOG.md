@@ -2,11 +2,11 @@
 
 🐛 Bug Fixes
 
-- Update behavior flag check for null safety in AdminReportDetailPage ([337c237](../../commit/337c237))
+- Adjust Toaster position in RootLayout component ([aeb5796](../../commit/aeb5796))
 
 🔨 Other Changes
 
-- Bump package version to 0.20.5 and update version lock ([5ed785a](../../commit/5ed785a))
+- Update CHANGELOG and version lock for package version 0.20.5 ([d3b30e9](../../commit/d3b30e9))
 
 
-📋 Full Changelog: [5ed785a...337c237](../../compare/5ed785a...337c237)
+📋 Full Changelog: [d3b30e9...aeb5796](../../compare/d3b30e9...aeb5796)

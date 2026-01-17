@@ -1,11 +1,12 @@
 ## What's Changed
 
+✨ Features
+
+- Enhance matchmaking logic with common interests calculation ([f8ecd69](../../commit/f8ecd69))
+
 🔨 Other Changes
 
-- Simplify Jenkins pipeline by removing dependency installation stage ([bf1bb48](../../commit/bf1bb48))
-- Refine version check in Jenkins pipeline ([3ef3c27](../../commit/3ef3c27))
-- Enhance Jenkins pipeline and update package.json scripts ([7738637](../../commit/7738637))
-- Bump package version to 0.21.0 and update version lock ([4c0e7ec](../../commit/4c0e7ec))
+- Bump package version to 0.20.2 and update version lock ([c696488](../../commit/c696488))
 
 
-📋 Full Changelog: [4c0e7ec...bf1bb48](../../compare/4c0e7ec...bf1bb48)
+📋 Full Changelog: [c696488...f8ecd69](../../compare/c696488...f8ecd69)

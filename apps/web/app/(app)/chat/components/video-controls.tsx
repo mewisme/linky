@@ -299,7 +299,7 @@ export function VideoControls({
   return (
     <div
       className={`left-1/2 flex -translate-x-1/2 gap-2 ${isMobile
-        ? "fixed bottom-4 z-50"
+        ? "fixed bottom-4"
         : "absolute bottom-4"
         }`}
       style={

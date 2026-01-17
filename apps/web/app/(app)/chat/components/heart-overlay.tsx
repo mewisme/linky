@@ -126,7 +126,7 @@ export function HeartOverlay({ containerRef }: HeartOverlayProps) {
   });
 
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 9999 }}>
+    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 8888 }}>
       <AnimatePresence>
         {allInstances.map(({ heartId, instance, isLocal }) => {
           const remoteDistance = -(viewportHeight * 2 / 3);
@@ -178,16 +178,18 @@ export function HeartOverlay({ containerRef }: HeartOverlayProps) {
                   delay: instance.delay,
                   ease: "easeOut",
                 }}
+                className="pointer-events-none"
               >
                 <Image
                   src="/images/heart.png"
                   alt=""
                   width={32}
                   height={32}
-                  className="w-8 h-8"
+                  className="w-8 h-8 pointer-events-none"
                   style={{
                     width: `${32 * instance.scale}px`,
                     height: `${32 * instance.scale}px`,
+                    pointerEvents: "none",
                   }}
                 />
               </motion.div>

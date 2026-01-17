@@ -192,7 +192,7 @@ export function VideoContainer({
         </>
       )}
 
-      <div data-heart-exclude>
+      <div data-heart-exclude className="relative" style={{ zIndex: 9000 }}>
         <VideoControls
           connectionStatus={connectionStatus}
           isMuted={isMuted}

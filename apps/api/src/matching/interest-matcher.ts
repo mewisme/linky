@@ -22,15 +22,28 @@ const PENALTY_SKIP_COOLDOWN = -10000;
 const FAIRNESS_BONUS_PER_SECOND = 0.1;
 const MAX_FAIRNESS_BONUS = 20;
 
+function calculateCommonInterests(userA: QueueUser, userB: QueueUser): number {
+  const tagsA = new Set(userA.interestTags);
+  const tagsB = new Set(userB.interestTags);
+  let commonInterests = 0;
+  for (const tag of tagsA) {
+    if (tagsB.has(tag)) {
+      commonInterests++;
+    }
+  }
+  return commonInterests;
+}
+
 function calculateMatchScore(
   userA: QueueUser,
   userB: QueueUser,
-  options: MatchOptions
+  options: MatchOptions,
+  enforceSkipCooldown: boolean = true
 ): { score: number; commonInterests: number } {
   const skipSetA = options.skipSets.get(userA.userId);
   const skipSetB = options.skipSets.get(userB.userId);
 
-  if (skipSetA?.has(userB.userId) || skipSetB?.has(userA.userId)) {
+  if (enforceSkipCooldown && (skipSetA?.has(userB.userId) || skipSetB?.has(userA.userId))) {
     return { score: PENALTY_SKIP_COOLDOWN, commonInterests: 0 };
   }
 
@@ -76,6 +89,8 @@ export function findBestMatch(
   const matchesWithCommonInterests: MatchResult[] = [];
   const matchesWithoutCommonInterests: MatchResult[] = [];
 
+  const isDeadlockScenario = users.length === 2;
+
   for (let i = 0; i < users.length; i++) {
     for (let j = i + 1; j < users.length; j++) {
       const userA = users[i];
@@ -85,7 +100,11 @@ export function findBestMatch(
         continue;
       }
 
-      const { score, commonInterests } = calculateMatchScore(userA, userB, options);
+      const commonInterests = calculateCommonInterests(userA, userB);
+      const isPhase1 = commonInterests > 0;
+      const shouldEnforceCooldown = isPhase1 || !isDeadlockScenario;
+
+      const { score } = calculateMatchScore(userA, userB, options, shouldEnforceCooldown);
 
       if (score < PENALTY_SKIP_COOLDOWN / 2) {
         continue;
@@ -103,6 +122,20 @@ export function findBestMatch(
       } else {
         matchesWithoutCommonInterests.push(match);
       }
+    }
+  }
+
+  if (isDeadlockScenario && matchesWithCommonInterests.length === 0 && matchesWithoutCommonInterests.length === 0) {
+    const userA = users[0];
+    const userB = users[1];
+    if (userA && userB) {
+      const { score, commonInterests } = calculateMatchScore(userA, userB, options, false);
+      return {
+        userA,
+        userB,
+        score,
+        commonInterests,
+      };
     }
   }
 

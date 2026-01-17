@@ -587,7 +587,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       peerConnection.initializePeerConnection(stream, peerCallbacks);
 
-      await socketSignaling.initializeSocket(socketCallbacks, token);
+      await socketSignaling.initializeSocket(socketCallbacks);
 
       socketSignaling.joinQueue();
     } catch (err) {

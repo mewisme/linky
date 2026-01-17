@@ -59,6 +59,7 @@ export function setupSocketHandlers(
   setupSignalHandler(socket, checkActiveSession, io, rooms);
   setupChatMessageHandler(socket, checkActiveSession, io, rooms);
   setupMuteToggleHandler(socket, io, rooms);
+  setupReactionHandler(socket, io, rooms);
   setupEndCallHandler(socket, checkActiveSession, io, matchmaking, rooms);
   setupResyncHandler(socket, userId, checkActiveSession, io, matchmaking, rooms);
   setupDisconnectHandler(socket, userId, io, matchmaking, rooms, userSessions);
@@ -312,6 +313,40 @@ function setupMuteToggleHandler(
       muted: data.muted,
     });
     logger.info("Mute toggle relayed from", socket.id, "to", peerId, "muted:", data.muted);
+  });
+}
+
+function setupReactionHandler(
+  socket: AuthenticatedSocket,
+  io: SocketIOServer,
+  rooms: RoomService
+): void {
+  socket.on("reaction:heart", (data: { count: number; timestamp: number }) => {
+    logger.info("Heart reaction received from:", socket.id, "count:", data.count);
+
+    const room = rooms.getRoomByUser(socket.id);
+    if (!room) {
+      logger.warn("Heart reaction received from user not in room:", socket.id);
+      return;
+    }
+
+    const peerId = rooms.getPeer(socket.id);
+    if (!peerId) {
+      logger.error("No peer found for heart reaction:", socket.id, "in room:", room.id);
+      return;
+    }
+
+    const peerSocket = io.sockets.sockets.get(peerId);
+    if (!peerSocket || !peerSocket.connected) {
+      logger.warn("Peer socket not found or disconnected:", peerId, "- cannot relay heart reaction");
+      return;
+    }
+
+    io.to(peerId).emit("reaction:heart", {
+      count: data.count,
+      timestamp: data.timestamp || Date.now(),
+    });
+    logger.info("Heart reaction relayed from", socket.id, "to", peerId, "in room", room.id);
   });
 }
 

@@ -1,14 +1,17 @@
 "use client";
 
 import { MicOff, VideoOff } from "lucide-react";
+import { useCallback, useRef } from "react";
 
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
+import { HeartOverlay } from "./heart-overlay";
 import type { UsersAPI } from "@/types/users.types";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
+import { useHeartReaction } from "@/hooks/webrtc/use-heart-reaction";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
-import { useRef } from "react";
+import { useMousePosition } from "@/hooks/ui/use-mouse-move";
 import { useStreamAspectRatio } from "@/hooks/webrtc/use-stream-aspect-ratio";
 import { useViewportHeight } from "@/hooks/ui/use-viewport-height";
 
@@ -48,23 +51,76 @@ export function VideoContainer({
   onToggleChat,
 }: VideoContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const remoteVideoContainerRef = useRef<HTMLDivElement>(null);
+  const tapCaptureRef = useRef<HTMLDivElement>(null);
+  const [mousePosition, mousePositionRef] = useMousePosition<HTMLDivElement>();
   const isMobile = useIsMobile();
   const hasPeer = !!remoteStream;
   const remoteAspectRatio = useStreamAspectRatio(remoteStream);
   const localAspectRatio = useStreamAspectRatio(localStream);
   const containerHeight = useViewportHeight(64);
 
+  const isActive = hasPeer && connectionStatus === "connected";
+
+  const { handleTap } = useHeartReaction({
+    isActive,
+  });
+
+  const handleTapCapture = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isActive || !containerRef.current) return;
+
+      const target = e.target as HTMLElement;
+      if (
+        target.closest('[data-heart-exclude]') ||
+        target.closest('button') ||
+        target.closest('[role="button"]') ||
+        target.closest('[role="dialog"]')
+      ) {
+        return;
+      }
+
+      const x = mousePosition.elementX ?? 0;
+      const y = mousePosition.elementY ?? 0;
+
+      if (x > 0 && y > 0) {
+        handleTap(x, y);
+      }
+    },
+    [isActive, handleTap, mousePosition]
+  );
+
+  const setContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      if (typeof mousePositionRef === "function") {
+        mousePositionRef(node);
+      } else if (mousePositionRef) {
+        mousePositionRef.current = node;
+      }
+    },
+    [mousePositionRef]
+  );
+
   const displayAspectRatio = hasPeer ? remoteAspectRatio : localAspectRatio;
 
   return (
     <div
-      ref={containerRef}
+      ref={setContainerRef}
       className="relative w-full overflow-hidden bg-transparent"
       style={{ height: `${containerHeight}px` }}
     >
       {hasPeer ? (
         <>
-          <div className="relative flex h-full w-full items-center justify-center">
+          <div
+            ref={tapCaptureRef}
+            className="absolute inset-0 z-10 cursor-pointer"
+            onClick={handleTapCapture}
+          />
+          <div
+            ref={remoteVideoContainerRef}
+            className="relative flex h-full w-full items-center justify-center"
+          >
             <VideoPlayer
               stream={remoteStream}
               playsInline
@@ -81,6 +137,7 @@ export function VideoContainer({
               </div>
             )}
           </div>
+          <HeartOverlay containerRef={containerRef} />
 
           {isMobile ? (
             localStream && (
@@ -135,21 +192,23 @@ export function VideoContainer({
         </>
       )}
 
-      <VideoControls
-        connectionStatus={connectionStatus}
-        isMuted={isMuted}
-        isVideoOff={isVideoOff}
-        hasLocalStream={!!localStream}
-        isChatOpen={isChatOpen}
-        hasUnreadMessages={hasUnreadMessages}
-        peerInfo={peerInfo}
-        onStart={onStart}
-        onSkip={onSkip}
-        onEndCall={onEndCall}
-        onToggleMute={onToggleMute}
-        onToggleVideo={onToggleVideo}
-        onToggleChat={onToggleChat}
-      />
+      <div data-heart-exclude>
+        <VideoControls
+          connectionStatus={connectionStatus}
+          isMuted={isMuted}
+          isVideoOff={isVideoOff}
+          hasLocalStream={!!localStream}
+          isChatOpen={isChatOpen}
+          hasUnreadMessages={hasUnreadMessages}
+          peerInfo={peerInfo}
+          onStart={onStart}
+          onSkip={onSkip}
+          onEndCall={onEndCall}
+          onToggleMute={onToggleMute}
+          onToggleVideo={onToggleVideo}
+          onToggleChat={onToggleChat}
+        />
+      </div>
     </div>
   );
 }

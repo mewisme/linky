@@ -7,6 +7,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/mqtt";
 import ProgressBarProvider from "@/components/providers/progress-bar";
+import { SocketProvider } from "@/components/providers/socket-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/providers/theme";
 import { Toaster } from "@repo/ui/components/ui/sonner";
@@ -88,19 +89,21 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <UserProvider>
-            <MqttProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-              >
-                <ProgressBarProvider>
-                  {children}
-                  <Toaster position="top-center" />
-                </ProgressBarProvider>
-              </ThemeProvider>
-            </MqttProvider>
+            <SocketProvider>
+              <MqttProvider>
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme="system"
+                  enableSystem
+                  disableTransitionOnChange
+                >
+                  <ProgressBarProvider>
+                    {children}
+                    <Toaster position="top-center" />
+                  </ProgressBarProvider>
+                </ThemeProvider>
+              </MqttProvider>
+            </SocketProvider>
           </UserProvider>
           <Analytics />
           <SpeedInsights />

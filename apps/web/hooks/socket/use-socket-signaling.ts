@@ -2,12 +2,12 @@
 
 import { useRef, useCallback, useEffect, useMemo, type MutableRefObject } from "react";
 import { publishPresence } from "@/lib/mqtt/client";
-import { createSocket, updateToken, type SignalData } from "@/lib/socket/socket";
+import { type SignalData } from "@/lib/socket/socket";
 import { socketHealthMonitor } from "@/lib/socket/socket-health";
-import { backendRestartDetector } from "@/lib/socket/backend-restart-detector";
 import type { Socket } from "socket.io-client";
 import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
+import { useSocket } from "./use-socket";
 
 export interface SocketCallbacks {
   onJoinedQueue: (data: { message: string; queueSize: number }) => void;
@@ -30,14 +30,14 @@ export interface SocketCallbacks {
 }
 
 export interface UseSocketSignalingReturn {
-  initializeSocket: (callbacks: SocketCallbacks, token?: string) => Promise<Socket>;
-  updateSocketToken: (token: string) => void;
+  initializeSocket: (callbacks: SocketCallbacks) => Promise<void>;
   sendSignal: (data: SignalData) => void;
   joinQueue: () => void;
   skipPeer: () => void;
   sendEndCall: () => void;
   sendChatMessage: (message: string, timestamp: number) => void;
   sendMuteToggle: (muted: boolean) => void;
+  sendHeartReaction: (count: number) => void;
   removeAllListeners: () => void;
   disconnectSocket: () => void;
   getSocket: () => Socket | null;
@@ -50,66 +50,21 @@ export interface UseSocketSignalingReturn {
 }
 
 export function useSocketSignaling(): UseSocketSignalingReturn {
-  const socketRef = useRef<Socket | null>(null);
+  const { socket: globalSocket, registerCallbacks, unregisterCallbacks } = useSocket();
+  const socketRef = useRef<Socket | null>(globalSocket);
   const callbacksRef = useRef<SocketCallbacks | null>(null);
   const currentSocketIdRef = useRef<string | null>(null);
   const isInActiveCallRef = useRef<boolean>(false);
   const resyncPendingRef = useRef<boolean>(false);
 
+  useEffect(() => {
+    socketRef.current = globalSocket;
+    if (globalSocket) {
+      currentSocketIdRef.current = globalSocket.id || null;
+    }
+  }, [globalSocket]);
+
   const registerSocketListeners = useCallback((socket: Socket, callbacks: SocketCallbacks) => {
-    socket.on("connect", () => {
-      logger.done("Socket connected:", socket.id);
-      const wasConnected = currentSocketIdRef.current !== null;
-      const isBackendRestart = backendRestartDetector.recordConnect(socket);
-      currentSocketIdRef.current = socket.id || null;
-      publishPresence('online');
-
-      socketHealthMonitor.markEventReceived();
-
-      if (isBackendRestart) {
-        logger.warn("[BackendRestart] Backend restart detected - resetting runtime state");
-        isInActiveCallRef.current = false;
-        resyncPendingRef.current = false;
-        callbacks.onBackendRestart();
-      } else if (resyncPendingRef.current && isInActiveCallRef.current) {
-        logger.info("[SocketResync] Reconnecting socket - requesting resync");
-        resyncPendingRef.current = false;
-        if (socketRef.current && socketRef.current.connected) {
-          socketRef.current.emit("resync-session", {
-            timestamp: Date.now(),
-          });
-        }
-      }
-
-      callbacks.onConnect();
-    });
-
-    socket.on("disconnect", (reason) => {
-      logger.info("Socket disconnected:", reason);
-      const wasConnected = currentSocketIdRef.current !== null;
-      backendRestartDetector.recordDisconnect(reason, wasConnected);
-      publishPresence('offline');
-      callbacks.onDisconnect(reason);
-    });
-
-    socket.on("connect_error", (error) => {
-      logger.error("Socket connection error:", error);
-      publishPresence('offline');
-      callbacks.onConnectError(error);
-    });
-
-    socket.on("session-waiting", (data) => {
-      logger.info("Session queued:", data.message, "Position:", data.positionInQueue);
-      publishPresence('online');
-      callbacks.onSessionWaiting(data);
-    });
-
-    socket.on("session-activated", (data) => {
-      logger.info("Session activated:", data.message);
-      publishPresence('available');
-      callbacks.onSessionActivated(data);
-    });
-
     socket.on("joined-queue", (data) => {
       logger.done("Joined queue:", data);
       publishPresence('matching');
@@ -183,64 +138,43 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       publishPresence('offline');
       callbacks.onError(data);
     });
-
-    socket.on("room-ping", (data: { timestamp?: number; roomId?: string }) => {
-      logger.info("[SocketHealth] Room heartbeat received:", data.roomId);
-      socketHealthMonitor.markEventReceived();
-    });
   }, []);
 
   const initializeSocket = useCallback(
-    async (callbacks: SocketCallbacks, token?: string): Promise<Socket> => {
-      if (socketRef.current) {
-        if (!socketRef.current.connected) {
-          logger.warn("Existing socket not connected, cleaning up...");
-          socketRef.current.removeAllListeners();
-          socketRef.current.disconnect();
-        } else {
-          logger.info("Reusing existing socket connection:", socketRef.current.id);
-          socketRef.current.removeAllListeners();
-          callbacksRef.current = callbacks;
-          registerSocketListeners(socketRef.current, callbacks);
-          return socketRef.current;
-        }
+    async (callbacks: SocketCallbacks): Promise<void> => {
+      if (!socketRef.current) {
+        logger.error("Socket not available from provider");
+        throw new Error("Socket not available");
       }
 
-      logger.load("Creating new socket connection...");
-      const socket = await createSocket(token);
-      socketRef.current = socket;
-      callbacksRef.current = callbacks;
+      const socket = socketRef.current;
 
+      logger.info("Initializing socket signaling listeners...");
+      socket.removeAllListeners("joined-queue");
+      socket.removeAllListeners("matched");
+      socket.removeAllListeners("signal");
+      socket.removeAllListeners("peer-left");
+      socket.removeAllListeners("peer-skipped");
+      socket.removeAllListeners("skipped");
+      socket.removeAllListeners("end-call");
+      socket.removeAllListeners("chat-message");
+      socket.removeAllListeners("mute-toggle");
+      socket.removeAllListeners("queue-timeout");
+      socket.removeAllListeners("error");
+
+      callbacksRef.current = callbacks;
       registerSocketListeners(socket, callbacks);
 
-      socketHealthMonitor.start({
-        socket,
-        isInActiveCall: () => isInActiveCallRef.current,
-        getRoomInfo: () => {
-          return null;
-        },
-        onHalfDeadDetected: () => {
-          logger.warn("[SocketHealth] Half-dead socket detected - attempting resync");
-        },
-        onResyncRequired: () => {
-          logger.info("[SocketResync] Resync required - emitting explicit resync event");
-          resyncPendingRef.current = true;
-          if (socket.connected) {
-            socket.emit("resync-session", {
-              timestamp: Date.now(),
-            });
-          }
-        },
-        onForcedTeardown: () => {
-          logger.error("[SocketHealth] Forced teardown due to unrecoverable socket state");
-          isInActiveCallRef.current = false;
-          callbacks.onPeerLeft({ message: "Connection lost. Please try again." });
-        },
+      registerCallbacks({
+        onConnect: callbacks.onConnect,
+        onDisconnect: callbacks.onDisconnect,
+        onBackendRestart: callbacks.onBackendRestart,
+        onConnectError: callbacks.onConnectError,
+        onSessionWaiting: callbacks.onSessionWaiting,
+        onSessionActivated: callbacks.onSessionActivated,
       });
-
-      return socket;
     },
-    [registerSocketListeners]
+    [registerSocketListeners, registerCallbacks]
   );
 
   const sendSignal = useCallback((data: SignalData) => {
@@ -318,24 +252,34 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
+  const sendHeartReaction = useCallback((count: number) => {
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit("reaction:heart", { count, timestamp: Date.now() });
+    }
+  }, []);
+
   const removeAllListeners = useCallback(() => {
     if (socketRef.current) {
-      socketRef.current.removeAllListeners();
+      socketRef.current.removeAllListeners("joined-queue");
+      socketRef.current.removeAllListeners("matched");
+      socketRef.current.removeAllListeners("signal");
+      socketRef.current.removeAllListeners("peer-left");
+      socketRef.current.removeAllListeners("peer-skipped");
+      socketRef.current.removeAllListeners("skipped");
+      socketRef.current.removeAllListeners("end-call");
+      socketRef.current.removeAllListeners("chat-message");
+      socketRef.current.removeAllListeners("mute-toggle");
+      socketRef.current.removeAllListeners("queue-timeout");
+      socketRef.current.removeAllListeners("error");
     }
   }, []);
 
   const disconnectSocket = useCallback(() => {
-    socketHealthMonitor.stop();
     isInActiveCallRef.current = false;
     resyncPendingRef.current = false;
-    backendRestartDetector.reset();
-    if (socketRef.current) {
-      socketRef.current.removeAllListeners();
-      socketRef.current.disconnect();
-      socketRef.current = null;
-      currentSocketIdRef.current = null;
-    }
-  }, []);
+    removeAllListeners();
+    unregisterCallbacks();
+  }, [removeAllListeners, unregisterCallbacks]);
 
   const getSocket = useCallback((): Socket | null => {
     return socketRef.current;
@@ -359,16 +303,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
-  const updateSocketToken = useCallback((token: string) => {
-    if (!socketRef.current) {
-      logger.warn("Cannot update token: socket not initialized");
-      return;
-    }
-
-    updateToken(socketRef.current, token);
-    logger.info("Socket token updated");
-  }, []);
-
   useEffect(() => {
     return () => {
       disconnectSocket();
@@ -378,13 +312,13 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   return useMemo(
     () => ({
       initializeSocket,
-      updateSocketToken,
       sendSignal,
       joinQueue,
       skipPeer,
       sendEndCall,
       sendChatMessage,
       sendMuteToggle,
+      sendHeartReaction,
       removeAllListeners,
       disconnectSocket,
       getSocket,
@@ -395,7 +329,21 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       currentSocketIdRef,
       isInActiveCallRef,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isSocketHealthy, requestResync]
+    [
+      initializeSocket,
+      sendSignal,
+      joinQueue,
+      skipPeer,
+      sendEndCall,
+      sendChatMessage,
+      sendMuteToggle,
+      sendHeartReaction,
+      removeAllListeners,
+      disconnectSocket,
+      getSocket,
+      getSocketId,
+      isSocketHealthy,
+      requestResync,
+    ]
   );
 }

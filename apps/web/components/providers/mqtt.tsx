@@ -6,40 +6,32 @@ import { useEffect, useRef } from 'react'
 import { useAuth } from '@clerk/nextjs'
 
 export function MqttProvider({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, getToken, isLoaded, userId } = useAuth()
+  const { isSignedIn, isLoaded, userId } = useAuth()
   const connectedRef = useRef(false)
 
   useEffect(() => {
     if (!isLoaded) return
-    if (!isSignedIn) return
-    if (!userId) return
+
+    if (!isSignedIn || !userId) {
+      if (connectedRef.current) {
+        publishPresence('offline')
+        disconnectMqttClient()
+        connectedRef.current = false
+      }
+      return
+    }
+
     if (connectedRef.current) return
 
     connectedRef.current = true
-
-    let cancelled = false
-
-    async function initMqtt() {
-      if (cancelled || !userId) return
-
-      createMqttClient(userId)
-    }
-
-    initMqtt()
+    createMqttClient(userId)
 
     return () => {
-      publishPresence('offline')
-      cancelled = true
-    }
-  }, [isLoaded, isSignedIn, userId, getToken])
-
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
       publishPresence('offline')
       disconnectMqttClient()
       connectedRef.current = false
     }
-  }, [isLoaded, isSignedIn])
+  }, [isLoaded, isSignedIn, userId])
 
   return <>{children}</>
 }

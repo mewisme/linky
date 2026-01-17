@@ -9,23 +9,19 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Get the root package.json path
 const rootPackageJsonPath = join(process.cwd(), 'package.json');
 const versionLockPath = join(process.cwd(), '.version-lock');
 
-// Read current version from root package.json
 const rootPackageJson = process.env.CURRENT_VERSION
   ? { version: process.env.CURRENT_VERSION }
   : JSON.parse(readFileSync(rootPackageJsonPath, 'utf8'));
 let [major, minor, patch] = rootPackageJson.version.split('.').map(Number);
 
-// Function to find all package.json files in monorepo
 function findAllPackageJsonFiles(rootDir = process.cwd(), packageJsonFiles = []) {
   try {
     const items = readdirSync(rootDir);
 
     for (const item of items) {
-      // Skip node_modules, .git, and other common directories
       if (item === 'node_modules' || item === '.git' || item === 'dist' || item === 'build' || item === '.next') {
         continue;
       }
@@ -36,27 +32,33 @@ function findAllPackageJsonFiles(rootDir = process.cwd(), packageJsonFiles = [])
         const stat = statSync(itemPath);
 
         if (stat.isDirectory()) {
-          // Recursively search in subdirectories
           findAllPackageJsonFiles(itemPath, packageJsonFiles);
         } else if (item === 'package.json') {
           packageJsonFiles.push(itemPath);
         }
       } catch (error) {
-        // Skip files/directories that can't be accessed
         continue;
       }
     }
   } catch (error) {
-    // Skip directories that can't be read
   }
 
   return packageJsonFiles;
 }
 
-// Function to update package.json files for affected workspaces only
+function compareVersions(version1, version2) {
+  const [major1, minor1, patch1] = version1.split('.').map(Number);
+  const [major2, minor2, patch2] = version2.split('.').map(Number);
+
+  if (major1 !== major2) return major1 - major2;
+  if (minor1 !== minor2) return minor1 - minor2;
+  return patch1 - patch2;
+}
+
 function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
   const packageJsonFiles = findAllPackageJsonFiles();
   const updatedFiles = [];
+  let hasDowngradeIssue = false;
 
   console.log(`\nFound ${packageJsonFiles.length} package.json file(s)`);
   console.log(`Affected workspaces: ${affectedWorkspaces.join(', ')}`);
@@ -66,31 +68,21 @@ function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
       const relativePath = relative(process.cwd(), filePath);
       const packageJson = JSON.parse(readFileSync(filePath, 'utf8'));
 
-      // Only update if the file has a version field
       if (!packageJson.version) {
         continue;
       }
 
-      // Check if this package.json belongs to an affected workspace
       let shouldUpdate = false;
 
-      // Normalize path separators for cross-platform compatibility
       const normalizedPath = relativePath.replace(/\\/g, '/');
 
-      // Root package.json - always update if root is affected
       if (normalizedPath === 'package.json' && affectedWorkspaces.includes('root')) {
         shouldUpdate = true;
       }
-      // Workspace package.json - check if workspace is affected
       else {
         for (const workspace of affectedWorkspaces) {
           if (workspace === 'root') continue;
 
-          // Check if file path matches workspace pattern
-          // e.g., apps/api/package.json matches workspace "apps/api"
-          // Also handle nested paths like apps/api/src/package.json (should not match)
-          // We only want to match the direct package.json in the workspace root
-          // Normalize both paths to use forward slashes for comparison
           const expectedPath = `${workspace}/package.json`;
           if (normalizedPath === expectedPath) {
             shouldUpdate = true;
@@ -101,6 +93,18 @@ function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
 
       if (shouldUpdate) {
         const oldVersion = packageJson.version;
+
+        const comparison = compareVersions(version, oldVersion);
+
+        if (comparison < 0) {
+          console.log(`  ⚠ Skipped ${relativePath}: Cannot downgrade from ${oldVersion} to ${version}`);
+          hasDowngradeIssue = true;
+          continue;
+        } else if (comparison === 0) {
+          console.log(`  ⊘ Skipped ${relativePath}: Already at version ${version}`);
+          continue;
+        }
+
         packageJson.version = version;
         writeFileSync(filePath, JSON.stringify(packageJson, null, 2) + '\n');
 
@@ -115,10 +119,15 @@ function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
     }
   }
 
+  if (hasDowngradeIssue) {
+    console.log('\n⚠ WARNING: Some packages have versions higher than the calculated version.');
+    console.log('  This usually happens when workspaces were previously bumped independently.');
+    console.log('  Consider syncing all workspace versions or adjusting the root version.');
+  }
+
   return updatedFiles;
 }
 
-// Get the last processed commit hash
 function getLastProcessedCommit() {
   try {
     if (existsSync(versionLockPath)) {
@@ -130,24 +139,20 @@ function getLastProcessedCommit() {
   return null;
 }
 
-// Save the current HEAD as the last processed commit
 function saveLastProcessedCommit() {
   const currentCommit = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
   writeFileSync(versionLockPath, currentCommit);
 }
 
-// Get commits since last processed commit
 function getNewCommits() {
   const lastProcessedCommit = getLastProcessedCommit();
 
   try {
     if (lastProcessedCommit) {
-      // Get commits since last processed commit, excluding the last processed commit itself
       return execSync(`git log ${lastProcessedCommit}..HEAD --not ${lastProcessedCommit} --pretty=format:"%s"`, { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
     } else {
-      // If no last processed commit, get all commits
       return execSync('git log --pretty=format:"%s"', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
@@ -158,13 +163,10 @@ function getNewCommits() {
   }
 }
 
-// Get changed files from the most recent commit(s) since last processed
 function getChangedFiles() {
   const lastProcessedCommit = getLastProcessedCommit();
 
   try {
-    // Priority 1: Get files from HEAD commit (most recent commit)
-    // This is the commit that was just made
     try {
       const headFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD', { encoding: 'utf8' })
         .split('\n')
@@ -175,10 +177,8 @@ function getChangedFiles() {
         return headFiles;
       }
     } catch (headError) {
-      // HEAD might not exist, continue to other methods
     }
 
-    // Priority 2: If HEAD has no files, try to get staged files (for pre-commit hooks)
     try {
       const stagedFiles = execSync('git diff --cached --name-only', { encoding: 'utf8' })
         .split('\n')
@@ -189,11 +189,8 @@ function getChangedFiles() {
         return stagedFiles;
       }
     } catch (stagedError) {
-      // No staged files, continue
     }
 
-    // Priority 3: Fallback - get files from all commits since last processed
-    // Only use this if HEAD commit has no files (shouldn't happen normally)
     if (lastProcessedCommit) {
       try {
         const diffFiles = execSync(`git diff --name-only ${lastProcessedCommit}..HEAD`, { encoding: 'utf8' })
@@ -205,7 +202,6 @@ function getChangedFiles() {
           return diffFiles;
         }
       } catch (diffError) {
-        // Continue
       }
     }
 
@@ -217,7 +213,6 @@ function getChangedFiles() {
   }
 }
 
-// Determine which workspaces have changed files
 function getAffectedWorkspaces(changedFiles) {
   const affectedWorkspaces = new Set();
   const workspacePatterns = [
@@ -228,13 +223,11 @@ function getAffectedWorkspaces(changedFiles) {
   console.log('\nAnalyzing changed files to determine affected workspaces:');
 
   for (const file of changedFiles) {
-    // Skip package.json files themselves to avoid circular detection
     if (file === 'package.json' || file.endsWith('/package.json')) {
       console.log(`  - ${file} (skipped - package.json file)`);
       continue;
     }
 
-    // Check if file is in root (not in any workspace)
     const isRootFile = !file.includes('/') ||
       (!file.startsWith('apps/') && !file.startsWith('packages/'));
 
@@ -244,7 +237,6 @@ function getAffectedWorkspaces(changedFiles) {
       continue;
     }
 
-    // Check workspace patterns
     let matched = false;
     for (const { pattern, type } of workspacePatterns) {
       const match = file.match(pattern);
@@ -265,11 +257,9 @@ function getAffectedWorkspaces(changedFiles) {
   return Array.from(affectedWorkspaces);
 }
 
-// Analyze commits and determine version bump
 function analyzeCommits(commits) {
   let highestBumpType = 'none';
 
-  // Define verb patterns for different types of changes
   const featureVerbs = [
     'add',
     'create',
@@ -296,7 +286,6 @@ function analyzeCommits(commits) {
     'disable'
   ];
 
-  // Track version changes for logging
   let tempMajor = major;
   let tempMinor = minor;
   let tempPatch = patch;
@@ -311,7 +300,6 @@ function analyzeCommits(commits) {
       return;
     }
 
-    // Check for breaking changes - highest priority
     if (lowerCommit.includes('breaking change') || lowerCommit.includes('!:')) {
       commitBumpType = 'major';
       if (highestBumpType !== 'major') {
@@ -321,7 +309,6 @@ function analyzeCommits(commits) {
       }
       highestBumpType = 'major';
     }
-    // Check for features - medium priority
     else if (
       lowerCommit.startsWith('feat:') ||
       lowerCommit.startsWith('feature:') ||
@@ -336,7 +323,6 @@ function analyzeCommits(commits) {
         highestBumpType = 'minor';
       }
     }
-    // Check for patches - lowest priority
     else if (
       lowerCommit.startsWith('fix:') ||
       lowerCommit.startsWith('perf:') ||
@@ -350,7 +336,6 @@ function analyzeCommits(commits) {
       tempPatch++;
       highestBumpType = 'patch';
     }
-    // Default to patch for unmatched commit types
     else {
       commitBumpType = 'none';
     }
@@ -367,7 +352,6 @@ function analyzeCommits(commits) {
   };
 }
 
-// Update version based on commit analysis
 function updateVersion() {
   const commits = getNewCommits();
 
@@ -384,13 +368,11 @@ function updateVersion() {
   const newVersion = `${newMajor}.${newMinor}.${newPatch}`;
   console.log(`\nFinal version change: ${currentVersion} → ${newVersion}`);
   if (newVersion === currentVersion) {
-    return null; // Return null instead of exiting
+    return null;
   }
   return newVersion;
 }
 
-// Main execution
-// First, detect changed files and affected workspaces
 const changedFiles = getChangedFiles();
 
 if (changedFiles.length === 0) {
@@ -405,11 +387,8 @@ if (affectedWorkspaces.length === 0) {
   process.exit(0);
 }
 
-// Then, analyze commits to determine version bump
 let newVersion = updateVersion();
 
-// If no version bump from commit messages but we have affected workspaces,
-// automatically bump patch version
 if (!newVersion) {
   const currentVersion = `${major}.${minor}.${patch}`;
   const autoPatchVersion = `${major}.${minor}.${patch + 1}`;
@@ -418,7 +397,6 @@ if (!newVersion) {
   newVersion = autoPatchVersion;
 }
 
-// Update package.json files only for affected workspaces
 const updatedFiles = updateAffectedPackageJsonFiles(newVersion, affectedWorkspaces);
 
 if (updatedFiles.length === 0) {
@@ -426,10 +404,8 @@ if (updatedFiles.length === 0) {
   process.exit(0);
 }
 
-// Save the current commit as last processed
 saveLastProcessedCommit();
 
-// Stage all changes (including updated package.json files)
 try {
   execSync('git add .', { encoding: 'utf8', stdio: 'inherit' });
   console.log('\n✓ Staged all changes with `git add .`');

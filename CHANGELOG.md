@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Add heart reaction functionality to video chat ([4ed7a70](../../commit/4ed7a70))
+- Export SocketContextValue interface for improved type safety ([2de1e39](../../commit/2de1e39))
 
 🔨 Other Changes
 
-- Update CHANGELOG and version lock for package version 0.20.5 ([a17223c](../../commit/a17223c))
+- Bump package version to 0.21.0 and update CHANGELOG ([135f5cf](../../commit/135f5cf))
 
 
-📋 Full Changelog: [a17223c...4ed7a70](../../compare/a17223c...4ed7a70)
+📋 Full Changelog: [135f5cf...2de1e39](../../compare/135f5cf...2de1e39)

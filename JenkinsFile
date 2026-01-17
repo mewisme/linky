@@ -61,7 +61,7 @@ pipeline {
                 v2: currentVersion
               )
 
-              def shouldBuild = 'true'
+              def shouldBuild
               if (compareResult == 0) {
                 echo "Versions match -> skip build and exit early"
                 shouldBuild = 'false'
@@ -77,8 +77,16 @@ pipeline {
               
               // Write flag to file for subsequent stages
               writeFile file: 'should_build.flag', text: shouldBuild
-              env.SHOULD_BUILD = shouldBuild
+              
+              // Set environment variable directly with string literal to avoid any scope issues
+              if (compareResult == 0) {
+                env.SHOULD_BUILD = 'false'
+              } else {
+                env.SHOULD_BUILD = 'true'
+              }
+              
               echo "Set SHOULD_BUILD to: ${env.SHOULD_BUILD}"
+              echo "File content: ${sh(script: 'cat should_build.flag', returnStdout: true).trim()}"
             } catch (Exception e) {
               echo "Version check failed: ${e.message}"
               // Default to build if version check fails

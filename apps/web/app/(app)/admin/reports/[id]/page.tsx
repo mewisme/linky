@@ -287,7 +287,7 @@ export default function AdminReportDetailPage() {
                   </div>
                 )}
               </div>
-              {context.behavior_flags && (
+              {context.behavior_flags != null && (
                 <>
                   <Separator />
                   <div>

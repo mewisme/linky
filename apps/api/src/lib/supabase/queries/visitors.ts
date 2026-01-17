@@ -71,6 +71,11 @@ export async function incrementVisitor(ip: string) {
 export async function getVisitor(ip: string) {
   const { data, error } = await supabase.from("visitors").select("*").eq("ip", ip).single();
   if (error) {
+    // PGRST116 is the error code when no rows are found with .single()
+    // This is expected behavior when a visitor doesn't exist yet
+    if (error.code === "PGRST116" || error.message.includes("JSON object requested, multiple (or no) rows returned")) {
+      return null;
+    }
     logger.error("Error fetching visitor:", error.message);
     return null;
   }

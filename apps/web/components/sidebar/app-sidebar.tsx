@@ -25,7 +25,8 @@ import {
   IconUserScan,
   IconUserShield,
   IconUsers,
-  IconView360
+  IconView360,
+  IconFlag
 } from '@tabler/icons-react'
 import {
   Sidebar,
@@ -95,6 +96,13 @@ export const menuItems: MenuItem[] = [
         href: '/user/profile',
         category: 'Account',
       },
+      {
+        label: 'Reports',
+        icon: IconFlag,
+        description: 'View your reports',
+        href: '/user/reports',
+        category: 'Account',
+      },
     ],
   },
   {
@@ -130,6 +138,13 @@ export const menuItems: MenuItem[] = [
         icon: IconContract,
         description: 'Manage the change logs',
         href: '/admin/changelogs',
+        category: 'Admin',
+      },
+      {
+        label: 'Reports',
+        icon: IconFlag,
+        description: 'Manage reports',
+        href: '/admin/reports',
         category: 'Admin',
       }
     ],

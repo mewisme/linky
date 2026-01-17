@@ -51,7 +51,7 @@ function ActionsCell({ row, callbacks }: { row: { original: InterestTag }, callb
   const [alertOpen, setAlertOpen] = useState(false);
 
   return (
-    <div className="flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+    <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
       <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -162,7 +162,7 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
     cell: ({ row }) => {
       const user = row.original
       return (
-        <div className="flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost"

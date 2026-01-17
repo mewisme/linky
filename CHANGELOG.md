@@ -2,9 +2,12 @@
 
 🔨 Other Changes
 
-- Enhance Jenkins pipeline with build flag management and refactor client imports ([adb02ff](../../commit/adb02ff))
-- Simplify Jenkins pipeline by refining version comparison logic ([85e5bc1](../../commit/85e5bc1))
-- Bump package version to 0.20.3 and update version lock ([a61ad82](../../commit/a61ad82))
+- Update dependencies and refactor toast notifications ([13e7cff](../../commit/13e7cff))
+- Simplify Jenkins pipeline by removing version check and build flag logic ([02548e0](../../commit/02548e0))
+- Bump package version to 0.20.4 in package.json ([2e7e77a](../../commit/2e7e77a))
+- Streamline Jenkins pipeline by refining build flag handling ([19a80b9](../../commit/19a80b9))
+- Refine Jenkins pipeline build flag logic for clarity and reliability ([a9e9888](../../commit/a9e9888))
+- Update package version to 0.20.3 and refresh version lock ([bbb5108](../../commit/bbb5108))
 
 
-📋 Full Changelog: [a61ad82...adb02ff](../../compare/a61ad82...adb02ff)
+📋 Full Changelog: [bbb5108...13e7cff](../../compare/bbb5108...13e7cff)

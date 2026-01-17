@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { ChatSidebar } from "./components/chat-sidebar";
 import { VideoContainer } from "./components/video-container";
-import { useVideoChat } from "@/hooks/use-video-chat";
+import { useVideoChat } from "@/hooks/webrtc/use-video-chat";
 
 export default function ChatPage() {
   const {

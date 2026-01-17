@@ -2,8 +2,9 @@
 
 import { useRef, useCallback, useEffect, useMemo, type MutableRefObject } from "react";
 import { publishPresence } from "@/lib/mqtt/client";
-import { createSocket, updateToken, type SignalData } from "@/lib/socket";
-import { socketHealthMonitor } from "@/lib/socket-health";
+import { createSocket, updateToken, type SignalData } from "@/lib/socket/socket";
+import { socketHealthMonitor } from "@/lib/socket/socket-health";
+import { backendRestartDetector } from "@/lib/socket/backend-restart-detector";
 import type { Socket } from "socket.io-client";
 import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
@@ -25,6 +26,7 @@ export interface SocketCallbacks {
   onConnectError: (error: Error) => void;
   onSessionWaiting: (data: { message: string; positionInQueue: number; queueSize: number }) => void;
   onSessionActivated: (data: { message: string }) => void;
+  onBackendRestart: () => void;
 }
 
 export interface UseSocketSignalingReturn {
@@ -57,14 +59,19 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const registerSocketListeners = useCallback((socket: Socket, callbacks: SocketCallbacks) => {
     socket.on("connect", () => {
       logger.done("Socket connected:", socket.id);
+      const wasConnected = currentSocketIdRef.current !== null;
+      const isBackendRestart = backendRestartDetector.recordConnect(socket);
       currentSocketIdRef.current = socket.id || null;
       publishPresence('online');
 
-      // Socket health: Track connect event
       socketHealthMonitor.markEventReceived();
 
-      // Socket resync: If resync was pending, trigger it now
-      if (resyncPendingRef.current && isInActiveCallRef.current) {
+      if (isBackendRestart) {
+        logger.warn("[BackendRestart] Backend restart detected - resetting runtime state");
+        isInActiveCallRef.current = false;
+        resyncPendingRef.current = false;
+        callbacks.onBackendRestart();
+      } else if (resyncPendingRef.current && isInActiveCallRef.current) {
         logger.info("[SocketResync] Reconnecting socket - requesting resync");
         resyncPendingRef.current = false;
         if (socketRef.current && socketRef.current.connected) {
@@ -79,6 +86,8 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("disconnect", (reason) => {
       logger.info("Socket disconnected:", reason);
+      const wasConnected = currentSocketIdRef.current !== null;
+      backendRestartDetector.recordDisconnect(reason, wasConnected);
       publishPresence('offline');
       callbacks.onDisconnect(reason);
     });
@@ -111,14 +120,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       logger.done("Matched with peer:", data.peerId, "Room:", data.roomId, "Is offerer:", data.isOfferer);
       publishPresence('in_call');
       isInActiveCallRef.current = true;
-      // Socket health: Track matched event
       socketHealthMonitor.markEventReceived();
       callbacks.onMatched(data);
     });
 
     socket.on("signal", (data) => {
       publishPresence('in_call');
-      // Socket health: Track signal events
       socketHealthMonitor.markEventReceived();
       callbacks.onSignal(data);
     });
@@ -127,7 +134,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       logger.info("Peer left:", data.message);
       publishPresence('matching');
       isInActiveCallRef.current = false;
-      // Socket health: Track peer-left event
       socketHealthMonitor.markEventReceived();
       callbacks.onPeerLeft(data);
     });
@@ -148,7 +154,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       logger.info("End call received from peer:", data.message);
       publishPresence('available');
       isInActiveCallRef.current = false;
-      // Socket health: Track end-call event
       socketHealthMonitor.markEventReceived();
       callbacks.onEndCall(data);
     });
@@ -156,7 +161,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     socket.on("chat-message", (data) => {
       logger.info("Chat message received:", data.message);
       publishPresence('in_call');
-      // Socket health: Track chat-message event
       socketHealthMonitor.markEventReceived();
       callbacks.onChatMessage(data);
     });
@@ -164,7 +168,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     socket.on("mute-toggle", (data) => {
       logger.info("Peer mute state changed:", data.muted);
       publishPresence('in_call');
-      // Socket health: Track mute-toggle event
       socketHealthMonitor.markEventReceived();
       callbacks.onMuteToggle(data);
     });
@@ -210,7 +213,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
       registerSocketListeners(socket, callbacks);
 
-      // Socket health: Start monitoring after socket is ready
       socketHealthMonitor.start({
         socket,
         isInActiveCall: () => isInActiveCallRef.current,
@@ -243,7 +245,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const sendSignal = useCallback((data: SignalData) => {
     if (socketRef.current) {
-      // Socket health: Ensure socket is healthy before sending critical signals
       if (!socketHealthMonitor.isHealthy()) {
         logger.warn("[SocketHealth] Socket unhealthy, deferring signal send");
         if (socketRef.current.connected) {
@@ -284,7 +285,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const sendEndCall = useCallback(() => {
     if (socketRef.current) {
       isInActiveCallRef.current = false;
-      // Socket health: Retry end-call if socket was unhealthy
       const sendEndCallWithRetry = () => {
         if (socketRef.current && socketRef.current.connected) {
           socketRef.current.emit("end-call");
@@ -328,6 +328,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     socketHealthMonitor.stop();
     isInActiveCallRef.current = false;
     resyncPendingRef.current = false;
+    backendRestartDetector.reset();
     if (socketRef.current) {
       socketRef.current.removeAllListeners();
       socketRef.current.disconnect();
@@ -364,7 +365,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       return;
     }
 
-    // Update token - updateToken function handles socket state internally
     updateToken(socketRef.current, token);
     logger.info("Socket token updated");
   }, []);
@@ -399,4 +399,3 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     [isSocketHealthy, requestResync]
   );
 }
-

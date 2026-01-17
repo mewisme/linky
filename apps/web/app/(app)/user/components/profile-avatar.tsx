@@ -8,6 +8,7 @@ import {
 import { IconCamera } from '@tabler/icons-react'
 import { useTransition } from 'react'
 import type { UserResource } from '@clerk/types'
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import toast from 'react-hot-toast'
 
 interface ProfileAvatarProps {
@@ -15,6 +16,7 @@ interface ProfileAvatarProps {
 }
 
 export function ProfileAvatar({ user }: ProfileAvatarProps) {
+  const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
 
   const handleImageChange = async (
@@ -26,6 +28,7 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
     startTransition(async () => {
       try {
         await user.setProfileImage({ file })
+        playSound('success')
         toast.success('Avatar updated')
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : 'Upload failed')

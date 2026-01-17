@@ -52,7 +52,8 @@ type VideoChatAction =
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "SET_PEER_INFO"; payload: UsersAPI.PublicUserInfo | null }
   | { type: "RESET_STATE" }
-  | { type: "RESET_PEER_STATE" };
+  | { type: "RESET_PEER_STATE" }
+  | { type: "RESET_RUNTIME_STATE" };
 
 const initialState: VideoChatState = {
   localStream: null,
@@ -66,10 +67,6 @@ const initialState: VideoChatState = {
   peerInfo: null,
 };
 
-/**
- * Reducer for video chat UI state management
- * Centralizes all state updates to prevent unnecessary re-renders
- */
 function videoChatReducer(state: VideoChatState, action: VideoChatAction): VideoChatState {
   switch (action.type) {
     case "SET_LOCAL_STREAM":
@@ -116,15 +113,23 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
         peerInfo: null,
       };
 
+    case "RESET_RUNTIME_STATE":
+      return {
+        ...state,
+        localStream: null,
+        remoteStream: null,
+        remoteMuted: false,
+        chatMessages: [],
+        connectionStatus: "idle",
+        error: null,
+        peerInfo: null,
+      };
+
     default:
       return state;
   }
 }
 
-/**
- * Hook for managing video chat UI state with useReducer
- * Provides type-safe actions and memoized selectors
- */
 export function useVideoChatState() {
   const [state, dispatch] = useReducer(videoChatReducer, initialState);
 
@@ -177,6 +182,10 @@ export function useVideoChatState() {
       resetPeerState: () => {
         dispatch({ type: "RESET_PEER_STATE" });
       },
+
+      resetRuntimeState: () => {
+        dispatch({ type: "RESET_RUNTIME_STATE" });
+      },
     }),
     []
   );
@@ -186,4 +195,3 @@ export function useVideoChatState() {
     actions,
   };
 }
-

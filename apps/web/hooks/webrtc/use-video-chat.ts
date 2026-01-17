@@ -3,16 +3,16 @@
 import { useRef, useEffect, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { useAuth, useUser } from "@clerk/nextjs";
-import type { SignalData } from "@/lib/socket";
+import type { SignalData } from "@/lib/socket/socket";
 import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
 
 import { useMediaStream } from "./use-media-stream";
 import { usePeerConnection } from "./use-peer-connection";
-import { useSocketSignaling } from "./use-socket-signaling";
+import { useSocketSignaling } from "../socket/use-socket-signaling";
 import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./use-video-chat-state";
-import { recoveryController } from "@/lib/webrtc-recovery";
-import { iceServerCache } from "@/lib/ice-servers-cache";
+import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
+import { iceServerCache } from "@/lib/webrtc/ice-servers-cache";
 import { useUnloadEndCall } from "./use-unload-end-call";
 import { useUserContext } from "@/components/providers/user";
 
@@ -96,6 +96,16 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setLocalStream(null);
     actionsRef.current.setMuted(false);
     actionsRef.current.setVideoOff(false);
+  }, [mediaStream, peerConnection]);
+
+  const resetRuntimeState = useCallback(() => {
+    recoveryController.stop();
+    iceServerCache.resetSession();
+    mediaStream.releaseMedia();
+    peerConnection.closePeer();
+    isOffererRef.current = false;
+    actionsRef.current.resetRuntimeState();
+    hasShownConnectedToastRef.current = false;
   }, [mediaStream, peerConnection]);
 
   const cleanup = useCallback(() => {
@@ -260,11 +270,15 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onDisconnect: (reason: string) => {
         logger.warn("[SocketHealth] Socket disconnected:", reason);
-        // Socket health: If disconnected during active call, mark for resync
         if (state.connectionStatus === "connected" || state.connectionStatus === "reconnecting") {
           logger.info("[SocketHealth] Disconnect during active call - will resync on reconnect");
         }
         actionsRef.current.setConnectionStatus("peer-disconnected");
+      },
+
+      onBackendRestart: () => {
+        logger.warn("[BackendRestart] Resetting runtime state due to backend restart");
+        resetRuntimeState();
       },
 
       onConnectError: () => {
@@ -532,7 +546,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState]
+    [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState, resetRuntimeState, state.connectionStatus]
   );
 
   const start = useCallback(async () => {
@@ -647,8 +661,6 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setError(null);
   }, []);
 
-  // CRITICAL: Detect page unload and send end-call signal when user is in active call
-  // This ensures peer is notified when user closes tab, reloads, or navigates away
   useUnloadEndCall(
     () => socketSignaling.isInActiveCallRef.current,
     () => socketSignaling.sendEndCall(),

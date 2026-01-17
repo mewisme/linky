@@ -15,6 +15,7 @@ import { Button } from '@repo/ui/components/ui/button'
 import { IconLoader2, IconMicrophone, IconVideo, IconBell } from '@tabler/icons-react'
 import { AppLayout } from '@/components/layouts/app-layout'
 import { useUserContext } from '@/components/providers/user'
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import toast from 'react-hot-toast'
 
 export default function SettingsPage() {
@@ -23,6 +24,7 @@ export default function SettingsPage() {
     store: { userSettings },
     state: { updateUserSettings },
   } = useUserContext()
+  const { play: playSound } = useSoundWithSettings()
 
   const [isPending, startTransition] = useTransition()
   const [defaultMuteMic, setDefaultMuteMic] = useState(false)
@@ -47,6 +49,7 @@ export default function SettingsPage() {
           default_disable_camera: defaultDisableCamera,
           notification_sound_enabled: notificationSoundEnabled,
         })
+        playSound('success')
         toast.success('Settings updated successfully')
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : 'Failed to update settings')

@@ -67,4 +67,3 @@ export interface SignalData {
   candidate?: RTCIceCandidateInit;
   iceRestart?: boolean;
 }
-

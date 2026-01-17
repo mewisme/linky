@@ -24,6 +24,7 @@ import { DatePicker } from "@/components/common/date-picker";
 import { Editor } from "@/components/editor/editor";
 import { Input } from "@repo/ui/components/ui/input";
 import { Switch } from "@repo/ui/components/ui/switch";
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import toast from "react-hot-toast";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -42,6 +43,7 @@ const formSchema = z.object({
 
 export default function CreateChangelogPage() {
   const { getToken } = useAuth();
+  const { play: playSound } = useSoundWithSettings();
   const router = useRouter();
   const [markdownContent, setMarkdownContent] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,6 +102,7 @@ export default function CreateChangelogPage() {
       const result = await response.json() as AdminAPI.Changelogs.Create.Response | ApiError;
       if (!response.ok) throw new Error((result as ApiError).message || "Failed");
 
+      playSound('success');
       toast.success("Changelog created successfully!");
       router.push("/admin/changelogs");
     } catch (error) {

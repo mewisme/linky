@@ -8,7 +8,7 @@ import { motion, type Variants } from "motion/react"
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import Link from "next/link";
 import { ModeToggle } from "../mode-toggle";
-import { ConnectionStatus, getConnectionStatusMessage } from "@/hooks/use-video-chat-state";
+import { ConnectionStatus, getConnectionStatusMessage } from "@/hooks/webrtc/use-video-chat-state";
 import { Badge } from "@repo/ui/components/ui/badge";
 import { useAuth } from "@clerk/nextjs";
 

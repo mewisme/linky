@@ -1,6 +1,6 @@
 'use client';
 
-import { ConnectionStatus } from "@/hooks/use-video-chat-state";
+import { ConnectionStatus } from "@/hooks/webrtc/use-video-chat-state";
 import { Header } from "@/components/header/landing/index";
 import { cn } from "@repo/ui/lib/utils";
 

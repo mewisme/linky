@@ -40,7 +40,7 @@ import { Textarea } from "@repo/ui/components/ui/textarea";
 import { Label } from "@repo/ui/components/ui/label";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-hot-toast";
-import type { ConnectionStatus } from "@/hooks/use-video-chat";
+import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";

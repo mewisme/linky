@@ -17,6 +17,7 @@ import React, { useTransition } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import { Input } from '@repo/ui/components/ui/input'
 import type { UserResource } from '@clerk/types'
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import toast from 'react-hot-toast'
 
 interface ProfileNameFieldsProps {
@@ -30,6 +31,7 @@ export function ProfileNameFields({
   userStore,
   updateUserCountry,
 }: ProfileNameFieldsProps) {
+  const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [editingName, setEditingName] = React.useState(false)
   const [editingCountry, setEditingCountry] = React.useState(false)
@@ -51,6 +53,7 @@ export function ProfileNameFields({
     startTransition(async () => {
       try {
         await user.update({ firstName, lastName })
+        playSound('success')
         toast.success('Name updated')
         setEditingName(false)
       } catch (error: unknown) {
@@ -65,6 +68,7 @@ export function ProfileNameFields({
     startTransition(async () => {
       try {
         await updateUserCountry(country)
+        playSound('success')
         toast.success('Country updated')
         setEditingCountry(false)
       } catch (error: unknown) {

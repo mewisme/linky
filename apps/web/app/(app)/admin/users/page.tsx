@@ -9,13 +9,15 @@ import { Button } from '@repo/ui/components/ui/button';
 import { IconRefresh } from '@tabler/icons-react';
 import type { Socket } from 'socket.io-client';
 import { UsersDataTable } from '@/components/data-table/users/data-table'
-import { createSocket } from '@/lib/socket';
+import { createSocket } from '@/lib/socket/socket';
 import { logger } from '@/utils/logger';
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import toast from 'react-hot-toast';
 import { useAuth } from '@clerk/nextjs';
 
 export default function ListUsersPage() {
   const { getToken, isLoaded } = useAuth()
+  const { play: playSound } = useSoundWithSettings()
   const [token, setToken] = useState<string | null>(null)
   const [data, setData] = useState<AdminAPI.User[]>([])
   const socketRef = useRef<Socket | null>(null)
@@ -67,6 +69,7 @@ export default function ListUsersPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['users'], refetchType: 'active' })
       await refetch();
+      playSound('success');
       toast.success("User updated successfully")
     },
     onError: (error: Error) => {

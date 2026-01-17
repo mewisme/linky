@@ -1,6 +1,6 @@
 "use client";
 
-import { getUserMedia, stopMediaStream } from "@/lib/webrtc";
+import { getUserMedia, stopMediaStream } from "@/lib/webrtc/webrtc";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 export function useMediaStream() {
@@ -97,4 +97,3 @@ export function useMediaStream() {
     []
   );
 }
-

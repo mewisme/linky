@@ -9,6 +9,8 @@
     "build:web": "turbo run build --filter=@repo/web",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "lint:api": "turbo run lint --filter=@repo/api",
+    "lint:web": "turbo run lint --filter=@repo/web",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "upver": "node scripts/generate-changelog.js && node scripts/version-upgrade.js"

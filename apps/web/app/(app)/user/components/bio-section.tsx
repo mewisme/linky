@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import { Textarea } from '@repo/ui/components/ui/textarea'
 import type { UserDetails } from '@/stores/user-store'
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import toast from 'react-hot-toast'
 
 interface BioSectionProps {
@@ -17,6 +18,7 @@ export function BioSection({
   userDetails,
   updateUserDetails,
 }: BioSectionProps) {
+  const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [editingBio, setEditingBio] = useState(false)
   const [bio, setBio] = useState('')
@@ -29,6 +31,7 @@ export function BioSection({
     startTransition(async () => {
       try {
         await updateUserDetails({ bio: bio || null })
+        playSound('success')
         toast.success('Bio updated')
         setEditingBio(false)
       } catch (error: unknown) {

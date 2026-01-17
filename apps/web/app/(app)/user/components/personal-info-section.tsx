@@ -13,6 +13,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { Button } from '@repo/ui/components/ui/button'
 import { DatePicker } from '@/components/common/date-picker'
 import type { UserDetails } from '@/stores/user-store'
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import toast from 'react-hot-toast'
 
 interface PersonalInfoSectionProps {
@@ -34,6 +35,7 @@ export function PersonalInfoSection({
   userDetails,
   updateUserDetails,
 }: PersonalInfoSectionProps) {
+  const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [editingDateOfBirth, setEditingDateOfBirth] = useState(false)
   const [editingGender, setEditingGender] = useState(false)
@@ -72,6 +74,7 @@ export function PersonalInfoSection({
           ? formatDateString(dateOfBirth)
           : null
         await updateUserDetails({ date_of_birth: dateString })
+        playSound('success')
         toast.success('Date of birth updated')
         setEditingDateOfBirth(false)
       } catch (error: unknown) {
@@ -84,6 +87,7 @@ export function PersonalInfoSection({
     startTransition(async () => {
       try {
         await updateUserDetails({ gender: gender || null })
+        playSound('success')
         toast.success('Gender updated')
         setEditingGender(false)
       } catch (error: unknown) {

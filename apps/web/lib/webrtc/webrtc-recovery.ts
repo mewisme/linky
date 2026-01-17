@@ -186,20 +186,15 @@ class RecoveryController {
     const outboundStalled = (trackState.audioOutboundActive || trackState.videoOutboundActive) && hasNoOutbound;
     const inboundStalled = (trackState.audioInboundExpected || trackState.videoInboundExpected) && hasNoInbound;
 
-    // CRITICAL: During backgrounding, allow audio-only continuation
-    // Video may be paused by OS, but audio should continue
     if (this.isBackgrounded) {
-      // If only video is stalled but audio is working, don't treat as unhealthy
       if (videoOutboundStalled && !audioOutboundStalled && audioBytesSentDelta >= MIN_BYTES_THRESHOLD) {
         logger.info("[Recovery] App backgrounded - video stalled but audio active (expected), suppressing recovery");
         return false;
       }
-      // If only video inbound is stalled but audio inbound is working, don't treat as unhealthy
       if (videoInboundStalled && !audioInboundStalled && audioBytesReceivedDelta >= MIN_BYTES_THRESHOLD) {
         logger.info("[Recovery] App backgrounded - video inbound stalled but audio inbound active (expected), suppressing recovery");
         return false;
       }
-      // Extend grace period for backgrounded apps (mobile may pause timers)
       if (timeDelta < GRACE_PERIOD_MS * 2) {
         return false;
       }
@@ -256,7 +251,6 @@ class RecoveryController {
         logger.info("[Recovery] Tier 1: Media resume attempted via replaceTrack");
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // PATCH 4: Safari/iOS replaceTrack reliability - perform second replaceTrack for Safari/iOS
         const isSafariIOS = typeof navigator !== "undefined" &&
           (/^((?!chrome|android).)*safari/i.test(navigator.userAgent) ||
             /iPad|iPhone|iPod/.test(navigator.userAgent));
@@ -363,7 +357,6 @@ class RecoveryController {
       await new Promise((resolve) => setTimeout(resolve, GRACE_PERIOD_MS * 2));
       const verifyStats = await this.getRtpStats(this.context.pc);
 
-      // PATCH 3: Return true ONLY if media health verification passes
       if (verifyStats && !(await this.isMediaUnhealthy(verifyStats, this.lastStats))) {
         logger.info("[Recovery] Tier 3 succeeded, resetting transport policy");
         try {
@@ -416,7 +409,6 @@ class RecoveryController {
           this.currentTier = "none";
           this.networkChangeDetected = false;
           this.context?.onRecoveryStateChange?.("none");
-          // PATCH 5: Switch to slower interval when healthy
           this.updateStatsInterval();
         }
         this.lastStats = stats;
@@ -424,7 +416,6 @@ class RecoveryController {
         return;
       }
 
-      // PATCH 5: Switch to faster interval when recovery is needed
       if (this.currentTier === "none") {
         this.updateStatsInterval();
       }
@@ -461,7 +452,6 @@ class RecoveryController {
             this.networkChangeDetected = false;
             this.lastStats = verifyStats;
             this.context?.onRecoveryStateChange?.("none");
-            // PATCH 5: Switch to slower interval when recovery succeeds
             this.updateStatsInterval();
             this.recoveryInProgress = false;
             return;
@@ -496,8 +486,6 @@ class RecoveryController {
       }
 
       if (this.currentTier === "forced-relay") {
-        // CRITICAL: Don't escalate to forced relay if app is backgrounded
-        // Backgrounded apps may have paused video, but audio should continue
         if (this.isBackgrounded) {
           logger.info("[Recovery] App backgrounded - skipping forced relay escalation (allowing audio-only continuation)");
           this.currentTier = "none";
@@ -530,7 +518,6 @@ class RecoveryController {
 
     const pc = context.pc;
 
-    // Track visibility changes to handle backgrounding gracefully
     this.visibilityChangeHandler = () => {
       const wasBackgrounded = this.isBackgrounded;
       this.isBackgrounded = typeof document !== "undefined" && document.hidden;
@@ -546,9 +533,6 @@ class RecoveryController {
       document.addEventListener("visibilitychange", this.visibilityChangeHandler);
     }
 
-    // PATCH 1: Removed iceconnectionstatechange listener that set iceRestartCompletedAt
-    // iceRestartCompletedAt is now set only when controller explicitly triggers ICE restart
-
     if (typeof window !== "undefined" && "connection" in navigator) {
       const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
       if (connection) {
@@ -559,7 +543,6 @@ class RecoveryController {
       }
     }
 
-    // PATCH 5: Adaptive stats interval - faster when recovering, slower when healthy
     this.updateStatsInterval();
 
     logger.info("[Recovery] Recovery controller started");

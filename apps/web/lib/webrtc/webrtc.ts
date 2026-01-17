@@ -1,4 +1,4 @@
-import { client } from "@/lib/client";
+import { client } from "@/lib/client/client";
 
 export interface IceServersResponse {
   iceServers: RTCIceServer[];
@@ -59,4 +59,3 @@ export function closePeerConnection(pc: RTCPeerConnection | null): void {
     pc.close();
   }
 }
-

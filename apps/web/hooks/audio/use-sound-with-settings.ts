@@ -4,21 +4,6 @@ import { useCallback } from "react";
 import { useSound, type SoundName } from "./use-sound";
 import { useUserContext } from "@/components/providers/user";
 
-/**
- * Wrapper hook that combines useSound with userSettings
- * Automatically respects the user's notification_sound_enabled setting
- * 
- * @example
- * ```tsx
- * const { play } = useSoundWithSettings();
- * 
- * // Will only play if user has notification_sound_enabled = true
- * play('success');
- * 
- * // Force play even if user disabled sounds
- * play('success', { ignoreSettings: true });
- * ```
- */
 export function useSoundWithSettings() {
   const { play: basePlay, stop, stopAll, isPlaying } = useSound();
   const {
@@ -31,10 +16,9 @@ export function useSoundWithSettings() {
       options?: {
         volume?: number;
         loop?: boolean;
-        ignoreSettings?: boolean; // If true, play even if user disabled sounds
+        ignoreSettings?: boolean;
       }
     ) => {
-      // Check if sound is enabled in user settings (unless ignoreSettings is true)
       const soundEnabled =
         options?.ignoreSettings ||
         userSettings?.notification_sound_enabled !== false;

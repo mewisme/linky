@@ -2,15 +2,15 @@
 
 import { MicOff, VideoOff } from "lucide-react";
 
-import type { ConnectionStatus } from "@/hooks/use-video-chat";
+import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import type { UsersAPI } from "@/types/users.types";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useRef } from "react";
-import { useStreamAspectRatio } from "@/hooks/use-stream-aspect-ratio";
-import { useViewportHeight } from "@/hooks/use-viewport-height";
+import { useStreamAspectRatio } from "@/hooks/webrtc/use-stream-aspect-ratio";
+import { useViewportHeight } from "@/hooks/ui/use-viewport-height";
 
 interface VideoContainerProps {
   localStream: MediaStream | null;

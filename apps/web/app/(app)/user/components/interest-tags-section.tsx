@@ -24,6 +24,7 @@ import { useTransition, useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import type { UserDetails } from '@/stores/user-store'
 import type { ResourcesAPI } from '@/types/resources.types'
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import axios from 'axios'
 
 interface InterestTagsSectionProps {
@@ -37,6 +38,7 @@ export function InterestTagsSection({
   userDetails,
   updateUserDetails,
 }: InterestTagsSectionProps) {
+  const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [editingTags, setEditingTags] = useState(false)
   const [availableTags, setAvailableTags] = useState<ResourcesAPI.InterestTags.InterestTag[]>([])
@@ -74,6 +76,7 @@ export function InterestTagsSection({
     startTransition(async () => {
       try {
         await updateUserDetails({ interest_tags: selectedTagIds })
+        playSound('success')
         toast.success('Interest tags updated')
         setEditingTags(false)
       } catch (error: unknown) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
-import type { ChatMessage, ConnectionStatus } from "@/hooks/use-video-chat";
+import type { ChatMessage, ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import {
   Drawer,
   DrawerContent,

@@ -1,6 +1,6 @@
 "use client";
 
-import { closePeerConnection, createPeerConnection } from "@/lib/webrtc";
+import { closePeerConnection, createPeerConnection } from "@/lib/webrtc/webrtc";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { logger } from "@/utils/logger";
@@ -319,4 +319,3 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     []
   );
 }
-

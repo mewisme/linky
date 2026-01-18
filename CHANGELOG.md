@@ -1,13 +1,12 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Add API change detection stage to Jenkins pipeline ([bf23434](../../commit/bf23434))
+- Reorganize user context and update import paths for providers ([9dfe38f](../../commit/9dfe38f))
 
 🔨 Other Changes
 
-- Update Next.js and related package versions to 16.1.3 ([ca34fc5](../../commit/ca34fc5))
-- Update package versions to 0.22.0 and modify version lock ([b55537a](../../commit/b55537a))
+- Bump package versions to 0.23.0 and update version lock ([748fc00](../../commit/748fc00))
 
 
-📋 Full Changelog: [b55537a...bf23434](../../compare/b55537a...bf23434)
+📋 Full Changelog: [748fc00...9dfe38f](../../compare/748fc00...9dfe38f)

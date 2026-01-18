@@ -7,7 +7,7 @@ import { socketHealthMonitor } from "@/lib/socket/socket-health";
 import { backendRestartDetector } from "@/lib/socket/backend-restart-detector";
 import { publishPresence } from "@/lib/mqtt/client";
 import { logger } from "@/utils/logger";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 export type ConnectionState = "disconnected" | "connecting" | "connected" | "reconnecting";
 

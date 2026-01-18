@@ -3,7 +3,7 @@
 import { createMqttClient, disconnectMqttClient, publishPresence } from '@/lib/mqtt/client'
 import { useEffect, useRef } from 'react'
 
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 export function MqttProvider({ children }: { children: React.ReactNode }) {
   const { auth: { isSignedIn, isLoaded, userId } } = useUserContext();

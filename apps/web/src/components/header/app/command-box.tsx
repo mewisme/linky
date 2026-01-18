@@ -15,7 +15,7 @@ import { menuItems } from '@/components/sidebar/app-sidebar'
 import { transformMenuItems } from '@/utils/transform'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
-import { useUserContext } from '@/components/providers/user'
+import { useUserContext } from '@/components/providers/user/user-provider'
 
 export interface CommandAction {
   label: string

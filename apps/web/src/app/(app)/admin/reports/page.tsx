@@ -12,7 +12,7 @@ import { Input } from '@repo/ui/components/ui/input'
 import { Label } from '@repo/ui/components/ui/label'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useUserContext } from '@/components/providers/user'
+import { useUserContext } from '@/components/providers/user/user-provider'
 
 export default function AdminReportsPage() {
   const { state } = useUserContext()

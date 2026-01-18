@@ -10,7 +10,7 @@ import {
   IconRefresh
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 export default function CallHistoryPage() {
   const { state } = useUserContext();

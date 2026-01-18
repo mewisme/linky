@@ -4,14 +4,14 @@ import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@clerk/nextjs";
 import { ConsentManager } from "@/components/c15t/consent-manager";
 import type { Metadata } from "next";
-import { MqttProvider } from "@/components/providers/mqtt";
+import { MqttProvider } from "@/components/providers/realtime/mqtt-provider";
 import { Outfit } from "next/font/google";
-import ProgressBarProvider from "@/components/providers/progress-bar";
-import { SocketProvider } from "@/components/providers/socket-provider";
+import ProgressBarProvider from "@/components/providers/ui/progress-bar-provider";
+import { SocketProvider } from "@/components/providers/realtime/socket-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { ThemeProvider } from "@/components/providers/theme";
+import { ThemeProvider } from "@/components/providers/ui/theme-provider";
 import { Toaster } from "@repo/ui/components/ui/sonner";
-import { UserProvider } from "@/components/providers/user";
+import { UserProvider } from "@/components/providers/user/user-provider";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -82,25 +82,25 @@ export default function RootLayout({
         <body
           className={`${outfit.className} antialiased`}
         >
-          <ConsentManager>
-            <UserProvider>
-              <SocketProvider>
-                <MqttProvider>
-                  <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                  >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ConsentManager>
+              <UserProvider>
+                <SocketProvider>
+                  <MqttProvider>
                     <ProgressBarProvider>
                       {children}
                       <Toaster position="top-center" />
                     </ProgressBarProvider>
-                  </ThemeProvider>
-                </MqttProvider>
-              </SocketProvider>
-            </UserProvider>
-          </ConsentManager>
+                  </MqttProvider>
+                </SocketProvider>
+              </UserProvider>
+            </ConsentManager>
+          </ThemeProvider>
           <Analytics />
           <SpeedInsights />
         </body>

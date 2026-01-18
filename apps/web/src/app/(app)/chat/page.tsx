@@ -12,7 +12,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { ChatSidebar } from "./components/chat-sidebar";
-import { HeartReactionProvider } from "@/components/providers/heart-reaction-provider";
+import { HeartReactionProvider } from "@/components/providers/realtime/heart-reaction-provider";
 import { VideoContainer } from "./components/video-container";
 import { useVideoChat } from "@/hooks/webrtc/use-video-chat";
 

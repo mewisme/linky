@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useSound, type SoundName } from "./use-sound";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 export function useSoundWithSettings() {
   const { play: basePlay, stop, stopAll, isPlaying } = useSound();

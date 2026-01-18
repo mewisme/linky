@@ -5,7 +5,7 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { logger } from "@/utils/logger";
 import { toast } from "@repo/ui/components/ui/sonner";
 import { useState } from "react";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 interface FavoritesPageClientProps {
   initialData: ResourcesAPI.Favorites.FavoriteWithStats[];

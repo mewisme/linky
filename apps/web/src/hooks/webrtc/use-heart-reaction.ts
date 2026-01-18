@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from "react";
 
-import { useHeartReactionContext } from "@/components/providers/heart-reaction-provider";
+import { useHeartReactionContext } from "@/components/providers/realtime/heart-reaction-provider";
 
 interface UseHeartReactionOptions {
   isActive: boolean;

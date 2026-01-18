@@ -6,7 +6,7 @@ import type { AdminAPI } from '@/types/admin.types'
 import { AppLayout } from '@/components/layouts/app-layout'
 import { VisitorChart } from '../components/visitor-chart'
 import { useQuery } from '@tanstack/react-query'
-import { useUserContext } from '@/components/providers/user'
+import { useUserContext } from '@/components/providers/user/user-provider'
 
 type ChartItem = {
   date: string

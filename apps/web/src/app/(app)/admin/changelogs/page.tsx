@@ -9,7 +9,7 @@ import { Button } from "@repo/ui/components/ui/button";
 import { ChangelogsDataTable } from "@/components/data-table/changelogs/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 export default function ChangeLogsPage() {
   const router = useRouter();

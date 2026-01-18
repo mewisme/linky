@@ -5,7 +5,7 @@ import { toast } from "@repo/ui/components/ui/sonner";
 import type { SignalData } from "@/lib/socket/socket";
 import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 import { useMediaStream } from "./use-media-stream";
 import { usePeerConnection } from "./use-peer-connection";
 import { useSocketSignaling } from "../socket/use-socket-signaling";

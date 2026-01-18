@@ -27,7 +27,7 @@ import { Switch } from "@repo/ui/components/ui/switch";
 import { toast } from "@repo/ui/components/ui/sonner";
 import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 const { z } = ZodPrimitive;
 const { zodResolver } = HookFormZodPrimitive;

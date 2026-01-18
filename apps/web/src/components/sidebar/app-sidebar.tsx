@@ -50,7 +50,7 @@ import { Separator } from '@repo/ui/components/ui/separator';
 import { SignOutButton } from '@clerk/nextjs'
 import { cn } from '@repo/ui/lib/utils';
 import { useIsMobile } from '@repo/ui/hooks/use-mobile';
-import { useUserContext } from '@/components/providers/user';
+import { useUserContext } from '@/components/providers/user/user-provider';
 import { useUserStore } from '@/stores/user-store';
 
 export interface MenuItem {

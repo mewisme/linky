@@ -22,7 +22,7 @@ import { PersonalInfoSection } from '../components/personal-info-section'
 import { ProfileAvatar } from '../components/profile-avatar'
 import { ProfileNameFields } from '../components/profile-name-fields'
 import { Separator } from '@repo/ui/components/ui/separator'
-import { useUserContext } from '@/components/providers/user'
+import { useUserContext } from '@/components/providers/user/user-provider'
 
 export default function UserProfilePage() {
   const {

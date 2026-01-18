@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@repo/ui/components/ui/button";
 import { dark } from "@clerk/themes";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 export default function SignInPage() {
   const searchParams = useSearchParams();

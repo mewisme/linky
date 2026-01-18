@@ -17,7 +17,7 @@ import { Kbd } from "@repo/ui/components/ui/kbd";
 import { SignOutButton } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 import { useUserStore } from "@/stores/user-store";
 
 export function UserButton() {

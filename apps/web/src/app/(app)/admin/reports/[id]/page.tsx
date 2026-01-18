@@ -17,7 +17,7 @@ import { Textarea } from '@repo/ui/components/ui/textarea'
 import { formatDuration } from '@/utils/call-history'
 import { toast } from '@repo/ui/components/ui/sonner'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
-import { useUserContext } from '@/components/providers/user'
+import { useUserContext } from '@/components/providers/user/user-provider'
 
 const getStatusBadgeVariant = (status: AdminAPI.Reports.ReportStatus) => {
   switch (status) {

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
-import { useHeartReactionContext } from "@/components/providers/heart-reaction-provider";
+import { useHeartReactionContext } from "@/components/providers/realtime/heart-reaction-provider";
 
 interface HeartInstance {
   id: string;

@@ -11,7 +11,6 @@ import { usePageView } from "@/hooks/ui/use-page-view";
 import { useVisitorTracking } from "@/hooks/analytics/use-visitor-tracking";
 import { Hero } from "./components/landing/hero";
 import { LandingFooter } from "@/components/landing/footer";
-import { HeroBackground } from "./components/landing/hero-background";
 
 const CONTENT_VARIANTS: Variants = {
   hidden: {

@@ -13,7 +13,7 @@ import { createSocket } from '@/lib/socket/socket';
 import { logger } from '@/utils/logger';
 import { toast } from "@repo/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { useUserContext } from '@/components/providers/user';
+import { useUserContext } from '@/components/providers/user/user-provider';
 
 export default function ListUsersPage() {
   const { state } = useUserContext()

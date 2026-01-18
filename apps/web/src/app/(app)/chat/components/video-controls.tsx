@@ -46,7 +46,7 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import React, { useState, useMemo, useEffect, type ReactNode } from "react";
 import { logger } from "@/utils/logger";
-import { useUserContext } from "@/components/providers/user";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 

@@ -10,7 +10,7 @@ import type { ResourcesAPI } from '@/types/resources.types'
 import { logger } from '@/utils/logger'
 import { toast } from '@repo/ui/components/ui/sonner'
 import { useQuery } from '@tanstack/react-query'
-import { useUserContext } from '@/components/providers/user'
+import { useUserContext } from '@/components/providers/user/user-provider'
 
 export default function FavoritesPage() {
   const { state } = useUserContext()

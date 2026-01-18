@@ -4,20 +4,20 @@ import { FavoritesDataTable } from "@/components/data-table/favorites/data-table
 import type { ResourcesAPI } from "@/types/resources.types";
 import { logger } from "@/utils/logger";
 import { toast } from "@repo/ui/components/ui/sonner";
-import { useAuth } from "@clerk/nextjs";
 import { useState } from "react";
+import { useUserContext } from "@/components/providers/user";
 
 interface FavoritesPageClientProps {
   initialData: ResourcesAPI.Favorites.FavoriteWithStats[];
 }
 
 export function FavoritesPageClient({ initialData }: FavoritesPageClientProps) {
-  const { getToken } = useAuth();
+  const { state } = useUserContext();
   const [favorites, setFavorites] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>(initialData);
 
   const handleRemoveFavorite = async (favorite: ResourcesAPI.Favorites.FavoriteWithStats) => {
     try {
-      const token = await getToken({ template: "custom" });
+      const token = await state.getToken();
       if (!token) {
         toast.error("Authentication required");
         return;
@@ -28,8 +28,6 @@ export function FavoritesPageClient({ initialData }: FavoritesPageClientProps) {
         toast.error("Invalid favorite data");
         return;
       }
-
-      console.log("favorite.favorite_user_id:", favorite.favorite_user_id);
 
       const response = await fetch(`/api/resources/favorites/${favorite.favorite_user_id}`, {
         method: "DELETE",

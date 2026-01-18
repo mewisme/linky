@@ -2,6 +2,7 @@ import "../styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@clerk/nextjs";
+import { ConsentManager } from "@/components/c15t/consent-manager";
 import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/mqtt";
 import { Outfit } from "next/font/google";
@@ -81,23 +82,25 @@ export default function RootLayout({
         <body
           className={`${outfit.className} antialiased`}
         >
-          <UserProvider>
-            <SocketProvider>
-              <MqttProvider>
-                <ThemeProvider
-                  attribute="class"
-                  defaultTheme="system"
-                  enableSystem
-                  disableTransitionOnChange
-                >
-                  <ProgressBarProvider>
-                    {children}
-                    <Toaster position="top-center" />
-                  </ProgressBarProvider>
-                </ThemeProvider>
-              </MqttProvider>
-            </SocketProvider>
-          </UserProvider>
+          <ConsentManager>
+            <UserProvider>
+              <SocketProvider>
+                <MqttProvider>
+                  <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                    disableTransitionOnChange
+                  >
+                    <ProgressBarProvider>
+                      {children}
+                      <Toaster position="top-center" />
+                    </ProgressBarProvider>
+                  </ThemeProvider>
+                </MqttProvider>
+              </SocketProvider>
+            </UserProvider>
+          </ConsentManager>
           <Analytics />
           <SpeedInsights />
         </body>

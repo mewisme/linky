@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const title = searchParams.get("title");
 
   const robotoCondensedMedium = await readFile(
-    join(process.cwd(), "assets/fonts/RobotoCondensed-Medium.ttf")
+    join(process.cwd(), "src/assets/fonts/RobotoCondensed-Medium.ttf")
   );
 
   return new ImageResponse(

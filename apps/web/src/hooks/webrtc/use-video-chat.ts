@@ -2,11 +2,10 @@
 
 import { useRef, useEffect, useCallback, useMemo } from "react";
 import { toast } from "@repo/ui/components/ui/sonner";
-import { useAuth, useUser } from "@clerk/nextjs";
 import type { SignalData } from "@/lib/socket/socket";
 import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
-
+import { useUserContext } from "@/components/providers/user";
 import { useMediaStream } from "./use-media-stream";
 import { usePeerConnection } from "./use-peer-connection";
 import { useSocketSignaling } from "../socket/use-socket-signaling";
@@ -14,7 +13,6 @@ import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./us
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
 import { iceServerCache } from "@/lib/webrtc/ice-servers-cache";
 import { useUnloadEndCall } from "./use-unload-end-call";
-import { useUserContext } from "@/components/providers/user";
 import { useSocket } from "../socket/use-socket";
 
 export interface UseVideoChatReturn {
@@ -38,10 +36,11 @@ export interface UseVideoChatReturn {
 }
 
 export function useVideoChat(): UseVideoChatReturn {
-  const { getToken, isLoaded } = useAuth();
-  const { user } = useUser();
   const {
-    store: { userSettings },
+    state: { getToken },
+    auth: { isLoaded },
+    user: { user },
+    store: { userSettings }
   } = useUserContext();
   const { isHealthy: isSocketHealthy } = useSocket();
 
@@ -67,7 +66,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       try {
         const servers = await iceServerCache.getIceServers(
-          async () => await getToken({ template: 'custom', skipCache: true }),
+          getToken,
           "forced"
         );
         if (mounted) {
@@ -136,7 +135,7 @@ export function useVideoChat(): UseVideoChatReturn {
     try {
       logger.info("[IceServerCache] Refreshing TURN credentials before expiration");
       const newServers = await iceServerCache.getIceServers(
-        async () => await getToken({ template: 'custom', skipCache: true }),
+        async () => await getToken(),
         "expired"
       );
 
@@ -387,7 +386,7 @@ export function useVideoChat(): UseVideoChatReturn {
         if (iceServersRef.current.length === 0) {
           try {
             iceServersRef.current = await iceServerCache.getIceServers(
-              async () => await getToken({ template: 'custom', skipCache: true }),
+              async () => await getToken(),
               "initial"
             );
           } catch (err) {
@@ -443,7 +442,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
               logger.info("[IceServerCache] Fetching ICE servers for ICE restart (cache expired)");
               return await iceServerCache.getIceServers(
-                async () => await getToken({ template: 'custom', skipCache: true }),
+                getToken,
                 "expired"
               );
             },
@@ -642,7 +641,7 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
-      const token = await getToken({ template: 'custom', skipCache: true });
+      const token = await getToken();
       if (!token) {
         actionsRef.current.setError("Authentication required. Please sign in.");
         return;
@@ -650,7 +649,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       if (iceServersRef.current.length === 0) {
         iceServersRef.current = await iceServerCache.getIceServers(
-          async () => await getToken({ template: 'custom', skipCache: true }),
+          getToken,
           "initial"
         );
       }

@@ -2,12 +2,12 @@
 
 import { createContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Socket } from "socket.io-client";
-import { useAuth } from "@clerk/nextjs";
 import { createSocket, updateToken } from "@/lib/socket/socket";
 import { socketHealthMonitor } from "@/lib/socket/socket-health";
 import { backendRestartDetector } from "@/lib/socket/backend-restart-detector";
 import { publishPresence } from "@/lib/mqtt/client";
 import { logger } from "@/utils/logger";
+import { useUserContext } from "@/components/providers/user";
 
 export type ConnectionState = "disconnected" | "connecting" | "connected" | "reconnecting";
 
@@ -39,7 +39,7 @@ interface SocketProviderProps {
 }
 
 export function SocketProvider({ children }: SocketProviderProps) {
-  const { getToken, isLoaded } = useAuth();
+  const { state: { getToken }, auth: { isLoaded } } = useUserContext();
   const socketRef = useRef<Socket | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
@@ -83,7 +83,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     initializingRef.current = true;
 
     try {
-      const token = tokenOverride || await getToken({ template: 'custom', skipCache: true });
+      const token = tokenOverride || await getToken();
       logger.info("[SocketProvider] Initializing global socket...");
       setConnectionState("connecting");
       const newSocket = await createSocket(token);

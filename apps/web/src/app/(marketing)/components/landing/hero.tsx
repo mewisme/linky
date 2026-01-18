@@ -151,7 +151,7 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
                 <Globe className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold sm:text-base">Global Reach</h3>
+                <span className="text-sm font-semibold sm:text-base">Global Reach</span>
                 <p className="text-xs text-muted-foreground sm:text-sm">
                   Connect with people worldwide
                 </p>
@@ -172,7 +172,7 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
                 <Zap className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold sm:text-base">Instant Connection</h3>
+                <span className="text-sm font-semibold sm:text-base">Instant Connection</span>
                 <p className="text-xs text-muted-foreground sm:text-sm">
                   Start chatting in seconds
                 </p>
@@ -194,7 +194,7 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
                 <Shield className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold sm:text-base">Secure & Private</h3>
+                <span className="text-sm font-semibold sm:text-base">Secure & Private</span>
                 <p className="text-xs text-muted-foreground sm:text-sm">
                   Your conversations are protected
                 </p>

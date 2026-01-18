@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
-import { FileText, Save, Settings2 } from "lucide-react"; // Thêm icon cho trực quan
+import { FileText, Save, Settings2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -25,9 +25,9 @@ import { Editor } from "@/components/editor/editor";
 import { Input } from "@repo/ui/components/ui/input";
 import { Switch } from "@repo/ui/components/ui/switch";
 import { toast } from "@repo/ui/components/ui/sonner";
-import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
+import { useUserContext } from "@/components/providers/user";
 
 const { z } = ZodPrimitive;
 const { zodResolver } = HookFormZodPrimitive;
@@ -42,7 +42,7 @@ const formSchema = z.object({
 });
 
 export default function CreateChangelogPage() {
-  const { getToken } = useAuth();
+  const { state } = useUserContext();
   const { play: playSound } = useSoundWithSettings();
   const router = useRouter();
   const [markdownContent, setMarkdownContent] = useState<string>("");
@@ -50,7 +50,7 @@ export default function CreateChangelogPage() {
   const [token, setToken] = useState<string | null>(null);
 
   const form = useForm<ZodPrimitive.z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       version: "",
       title: "",
@@ -62,11 +62,11 @@ export default function CreateChangelogPage() {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true });
+      const token = await state.getToken();
       setToken(token);
     };
     fetchToken();
-  }, [getToken]);
+  }, [state]);
 
   const onSubmit = async (data: ZodPrimitive.z.infer<typeof formSchema>) => {
     if (!token) {

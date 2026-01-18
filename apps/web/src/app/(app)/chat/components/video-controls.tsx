@@ -39,7 +39,6 @@ import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
 import { Textarea } from "@repo/ui/components/ui/textarea";
 import { Label } from "@repo/ui/components/ui/label";
-import { useAuth, useUser } from "@clerk/nextjs";
 import { toast } from "@repo/ui/components/ui/sonner";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
@@ -47,6 +46,7 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import React, { useState, useMemo, useEffect, type ReactNode } from "react";
 import { logger } from "@/utils/logger";
+import { useUserContext } from "@/components/providers/user";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
@@ -170,8 +170,7 @@ export function VideoControls({
   sendFavoriteNotification,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
-  const { getToken } = useAuth();
-  const { user } = useUser();
+  const { state, user } = useUserContext();
   const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -189,7 +188,7 @@ export function VideoControls({
 
     const checkIfFavorited = async () => {
       try {
-        const token = await getToken({ template: 'custom', skipCache: true });
+        const token = await state.getToken();
         if (!token || !mounted) return;
 
         const response = await fetch("/api/resources/favorites", {
@@ -219,7 +218,7 @@ export function VideoControls({
     return () => {
       mounted = false;
     };
-  }, [peerInfo?.id, getToken]);
+  }, [peerInfo?.id, state]);
 
   const handleToggleFavorite = async () => {
     if (!peerInfo?.id || isFavoriteLoading) {
@@ -230,7 +229,7 @@ export function VideoControls({
     const isAdding = !isFavorite;
 
     try {
-      const token = await getToken({ template: 'custom', skipCache: true });
+      const token = await state.getToken();
 
       if (isAdding) {
         const response = await fetch("/api/resources/favorites", {
@@ -248,8 +247,8 @@ export function VideoControls({
           setIsFavorite(true);
           toast.success("Added to favorites ❤️");
 
-          const userName = user?.fullName || user?.firstName || "Someone";
-          sendFavoriteNotification("added", peerInfo.id, userName);
+          const userName = user.user?.fullName || user.user?.firstName || "Someone";
+          sendFavoriteNotification("added", peerInfo.id, userName || "Someone");
         } else {
           const error = await response.json();
           toast.error(error.message || "Failed to add favorite");
@@ -266,8 +265,8 @@ export function VideoControls({
           setIsFavorite(false);
           toast.success("Removed from favorites");
 
-          const userName = user?.fullName || user?.firstName || "Someone";
-          sendFavoriteNotification("removed", peerInfo.id, userName);
+          const userName = user.user?.fullName || user.user?.firstName || "Someone";
+          sendFavoriteNotification("removed", peerInfo.id, userName || "Someone");
         } else {
           const error = await response.json();
           toast.error(error.message || "Failed to remove favorite");
@@ -625,7 +624,7 @@ export function VideoControls({
 
                   setIsSubmittingReport(true);
                   try {
-                    const token = await getToken({ template: 'custom', skipCache: true });
+                    const token = await state.getToken();
                     if (!token) {
                       toast.error("Authentication required");
                       return;

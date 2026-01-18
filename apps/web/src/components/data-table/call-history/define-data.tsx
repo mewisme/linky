@@ -50,7 +50,7 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<CallHistoryRecord>[
       return (
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={row.original.other_user?.avatar_url || ""} />
+            <AvatarImage src={row.original.other_user?.avatar_url || ""} alt={row.original.other_user?.name || ""} />
             <AvatarFallback>{row.original.other_user?.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">

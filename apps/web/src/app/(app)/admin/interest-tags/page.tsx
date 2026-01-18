@@ -25,11 +25,11 @@ import { Label } from "@repo/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { Switch } from "@repo/ui/components/ui/switch";
 import { toast } from "@repo/ui/components/ui/sonner";
-import { useAuth } from "@clerk/nextjs";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
+import { useUserContext } from "@/components/providers/user";
 
 export default function InterestTagsPage() {
-  const { getToken } = useAuth();
+  const { state } = useUserContext();
   const { play: playSound } = useSoundWithSettings();
   const [token, setToken] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -44,14 +44,13 @@ export default function InterestTagsPage() {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true });
+      const token = await state.getToken();
       setToken(token);
     }
     fetchToken();
-  }, [getToken])
+  }, [state])
 
-  // --- 1. Fetching Data with React Query ---
-  const { data, isLoading, isFetching, refetch } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey: ["interest-tags"],
     queryFn: async () => {
       const res = await fetch(`/api/admin/interest-tags`, {
@@ -63,15 +62,14 @@ export default function InterestTagsPage() {
     enabled: !!token,
   });
 
-  // --- 2. Mutations (Create/Update/Delete) ---
   const upsertMutation = useMutation({
     mutationFn: async (payload: Partial<AdminAPI.InterestTags.Create.Body> & { id?: string }) => {
-      const tagId = (payload as any).id || editingTag?.id;
+      const tagId = payload.id || editingTag?.id;
       const isUpdate = !!tagId;
 
       const requestPayload = { ...payload };
       if ('id' in requestPayload) {
-        delete (requestPayload as any).id;
+        delete requestPayload.id;
       }
 
       const url = isUpdate ? `/api/admin/interest-tags/${tagId}` : `/api/admin/interest-tags`;
@@ -100,7 +98,7 @@ export default function InterestTagsPage() {
       });
       await refetch();
 
-      const isUpdate = !!(variables as any).id || !!editingTag?.id;
+      const isUpdate = !!variables.id || !!editingTag?.id;
       playSound('success');
       toast.success(isUpdate ? "Updated successfully!" : "Created successfully!");
 
@@ -140,7 +138,6 @@ export default function InterestTagsPage() {
     },
   });
 
-  // --- 3. Handlers ---
   const handleOpenCreate = () => {
     setEditingTag(null);
     setFormData({ name: "", description: "", category: "", is_active: true, icon: "" });

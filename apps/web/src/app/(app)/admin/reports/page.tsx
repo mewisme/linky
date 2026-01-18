@@ -10,12 +10,12 @@ import { Button } from '@repo/ui/components/ui/button'
 import { IconRefresh } from '@tabler/icons-react'
 import { Input } from '@repo/ui/components/ui/input'
 import { Label } from '@repo/ui/components/ui/label'
-import { useAuth } from '@clerk/nextjs'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import { useUserContext } from '@/components/providers/user'
 
 export default function AdminReportsPage() {
-  const { getToken } = useAuth()
+  const { state } = useUserContext()
   const router = useRouter()
   const [token, setToken] = useState<string | null>(null)
   const [data, setData] = useState<AdminAPI.Reports.Report[]>([])
@@ -25,11 +25,11 @@ export default function AdminReportsPage() {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true })
+      const token = await state.getToken()
       setToken(token)
     }
     fetchToken()
-  }, [getToken])
+  }, [state])
 
   const buildQueryParams = () => {
     const params = new URLSearchParams()

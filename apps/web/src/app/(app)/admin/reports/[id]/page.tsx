@@ -16,8 +16,8 @@ import { Separator } from '@repo/ui/components/ui/separator'
 import { Textarea } from '@repo/ui/components/ui/textarea'
 import { formatDuration } from '@/utils/call-history'
 import { toast } from '@repo/ui/components/ui/sonner'
-import { useAuth } from '@clerk/nextjs'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
+import { useUserContext } from '@/components/providers/user'
 
 const getStatusBadgeVariant = (status: AdminAPI.Reports.ReportStatus) => {
   switch (status) {
@@ -50,7 +50,7 @@ const getStatusColor = (status: AdminAPI.Reports.ReportStatus) => {
 }
 
 export default function AdminReportDetailPage() {
-  const { getToken } = useAuth()
+  const { state } = useUserContext()
   const { play: playSound } = useSoundWithSettings()
   const router = useRouter()
   const params = useParams()
@@ -63,11 +63,11 @@ export default function AdminReportDetailPage() {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true })
+      const token = await state.getToken()
       setToken(token)
     }
     fetchToken()
-  }, [getToken])
+  }, [state])
 
   const { data: report, isLoading } = useQuery({
     queryKey: ['admin-report', reportId],

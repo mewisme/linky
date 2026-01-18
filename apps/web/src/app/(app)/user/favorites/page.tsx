@@ -9,27 +9,27 @@ import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/types/resources.types'
 import { logger } from '@/utils/logger'
 import { toast } from '@repo/ui/components/ui/sonner'
-import { useAuth } from '@clerk/nextjs'
 import { useQuery } from '@tanstack/react-query'
+import { useUserContext } from '@/components/providers/user'
 
 export default function FavoritesPage() {
-  const { getToken } = useAuth()
+  const { state } = useUserContext()
   const [token, setToken] = useState<string | null>(null)
   const [data, setData] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>([])
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true })
+      const token = await state.getToken()
       setToken(token)
     }
     fetchToken()
-  }, [getToken])
+  }, [state])
 
   const { data: favorites, isFetching, refetch } = useQuery({
     queryKey: ['user-favorites'],
     queryFn: async () => {
       const res = await fetch(`/api/resources/favorites`, {
-        headers: { Authorization: `Bearer ${token || ''}` }
+        headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) throw new Error("Failed to load data")
       return res.json() as Promise<ResourcesAPI.Favorites.Get.Response>
@@ -45,7 +45,7 @@ export default function FavoritesPage() {
 
   const handleRemoveFavorite = async (favorite: ResourcesAPI.Favorites.FavoriteWithStats) => {
     try {
-      const currentToken = await getToken({ template: 'custom', skipCache: true })
+      const currentToken = await state.getToken();
       if (!currentToken) {
         toast.error("Authentication required")
         return

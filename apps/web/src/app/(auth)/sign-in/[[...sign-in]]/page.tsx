@@ -1,16 +1,17 @@
 "use client";
 
-import { SignIn, SignedIn, SignedOut, useAuth } from "@clerk/nextjs";
+import { SignIn, SignedIn, SignedOut } from "@clerk/nextjs";
 import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@repo/ui/components/ui/button";
 import { dark } from "@clerk/themes";
+import { useUserContext } from "@/components/providers/user";
 
 export default function SignInPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { isSignedIn } = useAuth();
+  const { auth: { isSignedIn } } = useUserContext();
 
   const redirectUrl = useMemo(() => {
     const redirect = searchParams.get("redirect_url");

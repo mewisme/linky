@@ -12,11 +12,11 @@ import { UsersDataTable } from '@/components/data-table/users/data-table'
 import { createSocket } from '@/lib/socket/socket';
 import { logger } from '@/utils/logger';
 import { toast } from "@repo/ui/components/ui/sonner";
-import { useAuth } from '@clerk/nextjs';
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
+import { useUserContext } from '@/components/providers/user';
 
 export default function ListUsersPage() {
-  const { getToken, isLoaded } = useAuth()
+  const { state } = useUserContext()
   const { play: playSound } = useSoundWithSettings()
   const [token, setToken] = useState<string | null>(null)
   const [data, setData] = useState<AdminAPI.User[]>([])
@@ -25,11 +25,11 @@ export default function ListUsersPage() {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true })
+      const token = await state.getToken()
       setToken(token)
     }
     fetchToken()
-  }, [getToken])
+  }, [state])
 
   const { data: users, isFetching, refetch } = useQuery({
     queryKey: ['users'],
@@ -51,7 +51,7 @@ export default function ListUsersPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (payload: Pick<AdminAPI.User, 'id' | 'allow' | 'role'>) => {
-      if (!token || !isLoaded) return
+      if (!token) return
       const res = await fetch(`/api/admin/users/${payload.id}`, {
         method: "PUT",
         headers: {
@@ -78,7 +78,7 @@ export default function ListUsersPage() {
   });
 
   useEffect(() => {
-    if (!token || !isLoaded) return
+    if (!token) return
     let mounted = true
 
     const setupSocket = async () => {
@@ -119,7 +119,7 @@ export default function ListUsersPage() {
         socketRef.current = null
       }
     }
-  }, [token, isLoaded])
+  }, [token])
 
   const tableCallbacks = {
     onSelectAllowState: (user: AdminAPI.User, allow: boolean) => {

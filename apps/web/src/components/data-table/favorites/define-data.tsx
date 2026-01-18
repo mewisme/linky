@@ -50,7 +50,7 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Favori
       return (
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={row.original.avatar_url || ""} />
+            <AvatarImage src={row.original.avatar_url || ""} alt={name} />
             <AvatarFallback>{name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">

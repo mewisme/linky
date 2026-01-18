@@ -42,15 +42,15 @@ import {
   SidebarRail,
   useSidebar
 } from '@repo/ui/components/animate-ui/components/radix/sidebar';
-import { SignOutButton, useAuth } from '@clerk/nextjs'
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation'
 
 import { Kbd } from '@repo/ui/components/ui/kbd';
 import { Separator } from '@repo/ui/components/ui/separator';
+import { SignOutButton } from '@clerk/nextjs'
 import { cn } from '@repo/ui/lib/utils';
 import { useIsMobile } from '@repo/ui/hooks/use-mobile';
-import { useUser } from '@clerk/nextjs';
+import { useUserContext } from '@/components/providers/user';
 import { useUserStore } from '@/stores/user-store';
 
 export interface MenuItem {
@@ -167,8 +167,7 @@ export const menuItems: MenuItem[] = [
 ]
 
 export function AppSidebar() {
-  const { user } = useUser()
-  const { signOut } = useAuth();
+  const { user: { user }, auth: { signOut } } = useUserContext();
   const { user: userStore } = useUserStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter()
@@ -209,7 +208,7 @@ export function AppSidebar() {
                 >
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                     <Avatar className="rounded-lg size-8">
-                      <AvatarImage src={user?.imageUrl} />
+                      <AvatarImage src={user?.imageUrl} alt={`${user?.firstName} ${user?.lastName}`} />
                       <AvatarFallback>
                         {user?.firstName?.charAt(0) ||
                           user?.lastName?.charAt(0) ||

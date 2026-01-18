@@ -7,22 +7,22 @@ import type { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@repo/ui/components/ui/button";
 import { ChangelogsDataTable } from "@/components/data-table/changelogs/data-table";
-import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useUserContext } from "@/components/providers/user";
 
 export default function ChangeLogsPage() {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { state } = useUserContext();
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true });
+      const token = await state.getToken();
       setToken(token);
     }
     fetchToken();
-  }, [getToken]);
+  }, [state]);
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['changelogs'],

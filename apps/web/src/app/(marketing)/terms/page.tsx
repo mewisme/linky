@@ -1,7 +1,24 @@
 import { LegalLayout } from "@/components/layouts/legal-layout";
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { Metadata } from "next";
 import { Separator } from "@repo/ui/components/ui/separator";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "Terms of Service";
+  const description = "Welcome to Linky. By accessing or using our website and services (&quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do not agree, please do not use the Service.";
+  const images = [`/og/simple?title=${encodeURIComponent(title)}`];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images,
+    },
+  }
+}
 
 export default function TermsPage() {
 

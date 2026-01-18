@@ -40,7 +40,7 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
   return (
     <div className="relative group">
       <Avatar className="size-32 border-2 border-muted shadow-sm">
-        <AvatarImage src={user.imageUrl} />
+        <AvatarImage src={user.imageUrl} alt={`${user.firstName} ${user.lastName}`} />
         <AvatarFallback className="text-2xl font-bold">
           {user.firstName?.charAt(0)}
         </AvatarFallback>

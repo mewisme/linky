@@ -12,18 +12,18 @@ import {
   DropdownMenuTrigger
 } from "@repo/ui/components/animate-ui/components/radix/dropdown-menu";
 import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
-import { SignOutButton, useAuth, useUser } from "@clerk/nextjs";
 
 import { Kbd } from "@repo/ui/components/ui/kbd";
+import { SignOutButton } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUserContext } from "@/components/providers/user";
 import { useUserStore } from "@/stores/user-store";
 
 export function UserButton() {
   const router = useRouter();
 
-  const { user } = useUser();
-  const { signOut } = useAuth();
+  const { user, auth: { signOut } } = useUserContext();
   const { user: userStore } = useUserStore();
 
   useEffect(() => {
@@ -42,10 +42,10 @@ export function UserButton() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="size-8 cursor-pointer">
-          <AvatarImage src={user?.imageUrl} />
+          <AvatarImage src={user.user?.imageUrl} alt={`${user.user?.firstName} ${user.user?.lastName}`} />
           <AvatarFallback>
-            {user?.firstName?.charAt(0) ||
-              user?.lastName?.charAt(0) ||
+            {user.user?.firstName?.charAt(0) ||
+              user.user?.lastName?.charAt(0) ||
               '?'}
           </AvatarFallback>
         </Avatar>

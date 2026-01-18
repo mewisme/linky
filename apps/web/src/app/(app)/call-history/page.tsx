@@ -9,20 +9,20 @@ import type { CallHistoryResponse } from "@/types/call-history.types";
 import {
   IconRefresh
 } from "@tabler/icons-react";
-import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
+import { useUserContext } from "@/components/providers/user";
 
 export default function CallHistoryPage() {
-  const { getToken } = useAuth();
+  const { state } = useUserContext();
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true });
+      const token = await state.getToken();
       setToken(token);
     }
     fetchToken();
-  }, [getToken]);
+  }, [state]);
 
   const { data: callHistory, isLoading, refetch } = useQuery({
     queryKey: ['call-history'],

@@ -1,7 +1,24 @@
 import { LegalLayout } from "@/components/layouts/legal-layout";
 import Link from "next/link";
 import { Mail } from "lucide-react";
+import { Metadata } from "next";
 import { Separator } from "@repo/ui/components/ui/separator";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const title = "Privacy Policy";
+  const description = "Your privacy is important to us. This Privacy Policy explains how Linky collects, uses, and protects your information.";
+  const images = [`/og/simple?title=${encodeURIComponent(title)}`];
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images,
+    },
+  }
+}
 
 export default function PrivacyPage() {
 

@@ -13,7 +13,11 @@ interface State {
   updateUserDetails: (data: UsersAPI.UserDetails.PatchMe.Body) => Promise<UserDetails>;
   updateUserSettings: (data: UsersAPI.UserSettings.PatchMe.Body) => Promise<UserSettings>;
   fetchUserDetails: () => Promise<void>;
+  fetchUserData: () => Promise<void>;
+  fetchUserSettings: () => Promise<void>;
+  getToken: () => Promise<string | null>;
 }
+
 interface UserContextData {
   user: ReturnType<typeof useUser>;
   auth: ReturnType<typeof useAuth>;
@@ -42,6 +46,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [getToken])
 
   const state = {
+    getToken: () => getToken({ template: 'custom', skipCache: true }),
     updateUserCountry: (country: string) => updateUserCountry({ token, country, clerk_user_id: user.user?.id }),
     updateUserDetails: async (data: UsersAPI.UserDetails.PatchMe.Body) => {
       const updated = await updateUserDetails({ token, data });
@@ -53,9 +58,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUserSettings(updated);
       return updated;
     },
-    fetchUserDetails: async () => {
-      await fetchUserDetails({ isLoaded, isSignedIn, token, setUserDetails, setError });
-    },
+    fetchUserDetails: () => fetchUserDetails({ isLoaded, isSignedIn, token, setUserDetails, setError }),
     fetchUserData: () => fetchUserData({ isLoaded, isSignedIn, token, clearUser, setUser, setError }),
     fetchUserSettings: () => fetchUserSettings({ isLoaded, isSignedIn, token, setUserSettings, setError }),
   }

@@ -13,6 +13,8 @@
     "@blocknote/react": "^0.46.1",
     "@blocknote/shadcn": "^0.46.1",
     "@bprogress/next": "^3.2.12",
+    "@c15t/nextjs": "^1.8.2",
+    "@c15t/scripts": "^1.0.1",
     "@clerk/nextjs": "^6.7.0",
     "@clerk/themes": "^2.4.46",
     "@clerk/types": "^4.101.10",

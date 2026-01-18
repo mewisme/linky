@@ -1,24 +1,19 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-import { useAuth } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUserStore } from "@/stores/user-store";
+import { useUserContext } from "@/components/providers/user";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const queryClient = new QueryClient();
   const router = useRouter();
-  const { user, isLoading } = useUserStore();
-  const { isSignedIn, isLoaded: clerkLoaded } = useAuth();
+  const { auth: { isSignedIn, isLoaded: clerkLoaded }, store: { user: userStore } } = useUserContext();
 
   useEffect(() => {
-    if (!clerkLoaded || isLoading) {
+    if (!clerkLoaded) {
       return;
     }
 
@@ -27,13 +22,13 @@ export default function AdminLayout({
       return;
     }
 
-    if (user && user.role !== "admin") {
+    if (userStore && userStore.role !== "admin") {
       router.push("/");
       return;
     }
-  }, [user, isLoading, isSignedIn, clerkLoaded, router]);
+  }, [userStore, isSignedIn, clerkLoaded, router]);
 
-  if (!clerkLoaded || isLoading || !user) {
+  if (!clerkLoaded || !userStore) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <div className="text-center">
@@ -43,10 +38,9 @@ export default function AdminLayout({
     );
   }
 
-  if (user.role !== "admin") {
+  if (userStore.role !== "admin") {
     return null;
   }
 
   return children;
 }
-

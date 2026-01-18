@@ -3,10 +3,10 @@
 import { createMqttClient, disconnectMqttClient, publishPresence } from '@/lib/mqtt/client'
 import { useEffect, useRef } from 'react'
 
-import { useAuth } from '@clerk/nextjs'
+import { useUserContext } from "@/components/providers/user";
 
 export function MqttProvider({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, isLoaded, userId } = useAuth()
+  const { auth: { isSignedIn, isLoaded, userId } } = useUserContext();
   const connectedRef = useRef(false)
 
   useEffect(() => {

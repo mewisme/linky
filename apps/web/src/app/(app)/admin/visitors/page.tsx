@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react'
 import type { AdminAPI } from '@/types/admin.types'
 import { AppLayout } from '@/components/layouts/app-layout'
 import { VisitorChart } from '../components/visitor-chart'
-import { useAuth } from '@clerk/nextjs'
 import { useQuery } from '@tanstack/react-query'
+import { useUserContext } from '@/components/providers/user'
 
 type ChartItem = {
   date: string
@@ -15,7 +15,7 @@ type ChartItem = {
 }
 
 export default function VisitorsPage() {
-  const { getToken } = useAuth()
+  const { state } = useUserContext()
 
   const [token, setToken] = useState<string | null>(null)
   const [days, setDays] = useState(90)
@@ -23,11 +23,11 @@ export default function VisitorsPage() {
 
   useEffect(() => {
     const fetchToken = async () => {
-      const token = await getToken({ template: 'custom', skipCache: true })
+      const token = await state.getToken()
       setToken(token)
     }
     fetchToken()
-  }, [getToken])
+  }, [state])
 
   const { data: analytics } = useQuery({
     queryKey: ['analytics', days],

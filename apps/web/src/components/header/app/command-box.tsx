@@ -7,16 +7,15 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@repo/ui/components/ui/command'
 import { IconLogout, IconPalette } from '@tabler/icons-react'
 import { useCallback, useMemo } from 'react'
 
 import { menuItems } from '@/components/sidebar/app-sidebar'
 import { transformMenuItems } from '@/utils/transform'
-import { useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
+import { useUserContext } from '@/components/providers/user'
 
 export interface CommandAction {
   label: string
@@ -30,7 +29,7 @@ export interface CommandAction {
 export function CommandBox({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
   const router = useRouter()
   const { setTheme, resolvedTheme } = useTheme()
-  const { signOut } = useAuth()
+  const { auth: { signOut } } = useUserContext()
   const allActions = useMemo(() => {
     const fromMenu = transformMenuItems(menuItems)
     const customActions: CommandAction[] = [

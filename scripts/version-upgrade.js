@@ -15,7 +15,6 @@ const versionLockPath = join(process.cwd(), '.version-lock');
 const rootPackageJson = process.env.CURRENT_VERSION
   ? { version: process.env.CURRENT_VERSION }
   : JSON.parse(readFileSync(rootPackageJsonPath, 'utf8'));
-let [major, minor, patch] = rootPackageJson.version.split('.').map(Number);
 
 function findAllPackageJsonFiles(rootDir = process.cwd(), packageJsonFiles = []) {
   try {
@@ -55,13 +54,68 @@ function compareVersions(version1, version2) {
   return patch1 - patch2;
 }
 
-function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
+function parseSemver(version) {
+  const match = String(version).trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!match) return null;
+  return { major: Number(match[1]), minor: Number(match[2]), patch: Number(match[3]) };
+}
+
+function formatSemver({ major, minor, patch }) {
+  return `${major}.${minor}.${patch}`;
+}
+
+function bumpSemver(version, bumpType) {
+  const parsed = parseSemver(version);
+  if (!parsed) return null;
+
+  const next = { ...parsed };
+  if (bumpType === 'major') {
+    next.major += 1;
+    next.minor = 0;
+    next.patch = 0;
+  } else if (bumpType === 'minor') {
+    next.minor += 1;
+    next.patch = 0;
+  } else if (bumpType === 'patch') {
+    next.patch += 1;
+  } else {
+    return formatSemver(next);
+  }
+
+  return formatSemver(next);
+}
+
+function getMaxRepoVersion(packageJsonFiles, fallbackVersion) {
+  let maxVersion = null;
+  const fallbackParsed = parseSemver(fallbackVersion);
+  if (fallbackParsed) maxVersion = formatSemver(fallbackParsed);
+
+  for (const filePath of packageJsonFiles) {
+    try {
+      const packageJson = JSON.parse(readFileSync(filePath, 'utf8'));
+      if (!packageJson.version) continue;
+      const parsed = parseSemver(packageJson.version);
+      if (!parsed) continue;
+
+      const version = formatSemver(parsed);
+      if (!maxVersion || compareVersions(version, maxVersion) > 0) {
+        maxVersion = version;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return maxVersion;
+}
+
+function updateAllPackageJsonFiles(version) {
   const packageJsonFiles = findAllPackageJsonFiles();
   const updatedFiles = [];
   let hasDowngradeIssue = false;
 
   console.log(`\nFound ${packageJsonFiles.length} package.json file(s)`);
-  console.log(`Affected workspaces: ${affectedWorkspaces.join(', ')}`);
+  console.log(`Updating all workspaces to version: ${version}`);
 
   for (const filePath of packageJsonFiles) {
     try {
@@ -72,47 +126,23 @@ function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
         continue;
       }
 
-      let shouldUpdate = false;
+      const oldVersion = packageJson.version;
+      const comparison = compareVersions(version, oldVersion);
 
-      const normalizedPath = relativePath.replace(/\\/g, '/');
-
-      if (normalizedPath === 'package.json' && affectedWorkspaces.includes('root')) {
-        shouldUpdate = true;
-      }
-      else {
-        for (const workspace of affectedWorkspaces) {
-          if (workspace === 'root') continue;
-
-          const expectedPath = `${workspace}/package.json`;
-          if (normalizedPath === expectedPath) {
-            shouldUpdate = true;
-            break;
-          }
-        }
+      if (comparison < 0) {
+        console.log(`  ⚠ Skipped ${relativePath}: Cannot downgrade from ${oldVersion} to ${version}`);
+        hasDowngradeIssue = true;
+        continue;
+      } else if (comparison === 0) {
+        console.log(`  ⊘ Skipped ${relativePath}: Already at version ${version}`);
+        continue;
       }
 
-      if (shouldUpdate) {
-        const oldVersion = packageJson.version;
+      packageJson.version = version;
+      writeFileSync(filePath, JSON.stringify(packageJson, null, 2) + '\n');
 
-        const comparison = compareVersions(version, oldVersion);
-
-        if (comparison < 0) {
-          console.log(`  ⚠ Skipped ${relativePath}: Cannot downgrade from ${oldVersion} to ${version}`);
-          hasDowngradeIssue = true;
-          continue;
-        } else if (comparison === 0) {
-          console.log(`  ⊘ Skipped ${relativePath}: Already at version ${version}`);
-          continue;
-        }
-
-        packageJson.version = version;
-        writeFileSync(filePath, JSON.stringify(packageJson, null, 2) + '\n');
-
-        console.log(`  ✓ Updated ${relativePath}: ${oldVersion} → ${version}`);
-        updatedFiles.push(relativePath);
-      } else {
-        console.log(`  ⊘ Skipped ${relativePath} (not affected)`);
-      }
+      console.log(`  ✓ Updated ${relativePath}: ${oldVersion} → ${version}`);
+      updatedFiles.push(relativePath);
     } catch (error) {
       const relativePath = relative(process.cwd(), filePath);
       console.error(`  ✗ Error updating ${relativePath}:`, error.message);
@@ -257,102 +287,74 @@ function getAffectedWorkspaces(changedFiles) {
   return Array.from(affectedWorkspaces);
 }
 
-function analyzeCommits(commits) {
-  let highestBumpType = 'none';
+function getCommitBumpType(commit) {
+  const lowerCommit = commit.toLowerCase();
+  const firstWord = lowerCommit.split(' ')[0];
 
-  const featureVerbs = [
-    'add',
-    'create',
-    'implement',
-    'introduce',
-    'enable'
-  ];
+  if (lowerCommit.startsWith('skip') || lowerCommit.includes('bump new version') || lowerCommit.includes('skip:')) {
+    return 'none';
+  }
 
-  const patchVerbs = [
-    'update',
-    'fix',
-    'refactor',
-    'format',
-    'remove',
-    'change',
-    'merge',
-    'clean',
-    'optimize',
-    'adjust',
-    'modify',
-    'rename',
-    'move',
-    'delete',
-    'disable'
-  ];
+  if (lowerCommit.includes('breaking change') || lowerCommit.includes('!:')) {
+    return 'major';
+  }
 
-  let tempMajor = major;
-  let tempMinor = minor;
-  let tempPatch = patch;
+  if (
+    lowerCommit.startsWith('feat:') ||
+    lowerCommit.startsWith('feature:') ||
+    ['add', 'create', 'implement', 'introduce', 'enable'].some(verb => firstWord === verb)
+  ) {
+    return 'minor';
+  }
 
-  console.log('\nAnalyzing commits with potential version changes:');
-  commits.forEach(commit => {
-    const lowerCommit = commit.toLowerCase();
-    const firstWord = lowerCommit.split(' ')[0];
-    let commitBumpType = 'none';
+  if (
+    lowerCommit.startsWith('fix:') ||
+    lowerCommit.startsWith('perf:') ||
+    lowerCommit.startsWith('refactor:') ||
+    lowerCommit.startsWith('style:') ||
+    lowerCommit.startsWith('test:') ||
+    lowerCommit.startsWith('docs:') ||
+    [
+      'update',
+      'fix',
+      'refactor',
+      'format',
+      'remove',
+      'change',
+      'merge',
+      'clean',
+      'optimize',
+      'adjust',
+      'modify',
+      'rename',
+      'move',
+      'delete',
+      'disable'
+    ].some(verb => firstWord === verb)
+  ) {
+    return 'patch';
+  }
 
-    if (lowerCommit.startsWith('skip') || lowerCommit.includes('bump new version') || lowerCommit.includes('skip:')) {
-      return;
-    }
-
-    if (lowerCommit.includes('breaking change') || lowerCommit.includes('!:')) {
-      commitBumpType = 'major';
-      if (highestBumpType !== 'major') {
-        tempMajor++;
-        tempMinor = 0;
-        tempPatch = 0;
-      }
-      highestBumpType = 'major';
-    }
-    else if (
-      lowerCommit.startsWith('feat:') ||
-      lowerCommit.startsWith('feature:') ||
-      featureVerbs.some(verb => firstWord === verb)
-    ) {
-      commitBumpType = 'minor';
-      if (highestBumpType !== 'major') {
-        if (highestBumpType !== 'minor') {
-          tempMinor++;
-          tempPatch = 0;
-        }
-        highestBumpType = 'minor';
-      }
-    }
-    else if (
-      lowerCommit.startsWith('fix:') ||
-      lowerCommit.startsWith('perf:') ||
-      lowerCommit.startsWith('refactor:') ||
-      lowerCommit.startsWith('style:') ||
-      lowerCommit.startsWith('test:') ||
-      lowerCommit.startsWith('docs:') ||
-      patchVerbs.some(verb => firstWord === verb)
-    ) {
-      commitBumpType = 'patch';
-      tempPatch++;
-      highestBumpType = 'patch';
-    }
-    else {
-      commitBumpType = 'none';
-    }
-    console.log(`- ${commit} (${commitBumpType}: v${tempMajor}.${tempMinor}.${tempPatch})`);
-  });
-
-  return {
-    major: tempMajor,
-    minor: tempMinor,
-    patch: tempPatch,
-    shouldBumpMajor: highestBumpType === 'major',
-    shouldBumpMinor: highestBumpType === 'minor',
-    shouldBumpPatch: highestBumpType === 'patch'
-  };
+  return 'none';
 }
 
-function updateVersion() {
+function getHighestBumpType(commits) {
+  const rank = { none: 0, patch: 1, minor: 2, major: 3 };
+  let highest = 'none';
+
+  console.log('\nAnalyzing commits with potential version changes:');
+  for (const commit of commits) {
+    const bumpType = getCommitBumpType(commit);
+    if (rank[bumpType] > rank[highest]) highest = bumpType;
+    if (bumpType !== 'none') {
+      console.log(`- ${commit} (${bumpType})`);
+    }
+  }
+
+  return highest;
+}
+
+function updateVersion(baseVersion) {
   const commits = getNewCommits();
 
   if (commits.length === 0) {
@@ -360,17 +362,17 @@ function updateVersion() {
     return null;
   }
 
-  const currentVersion = `${major}.${minor}.${patch}`;
-  console.log(`\nStarting version: ${currentVersion}`);
+  console.log(`\nStarting version (max in repo): ${baseVersion}`);
 
-  const { major: newMajor, minor: newMinor, patch: newPatch } = analyzeCommits(commits);
+  const bumpType = getHighestBumpType(commits);
+  const bumped = bumpSemver(baseVersion, bumpType);
+  if (!bumped) return null;
 
-  const newVersion = `${newMajor}.${newMinor}.${newPatch}`;
-  console.log(`\nFinal version change: ${currentVersion} → ${newVersion}`);
-  if (newVersion === currentVersion) {
+  console.log(`\nFinal version change: ${baseVersion} → ${bumped}`);
+  if (bumped === baseVersion) {
     return null;
   }
-  return newVersion;
+  return bumped;
 }
 
 const changedFiles = getChangedFiles();
@@ -387,17 +389,28 @@ if (affectedWorkspaces.length === 0) {
   process.exit(0);
 }
 
-let newVersion = updateVersion();
+const packageJsonFiles = findAllPackageJsonFiles();
+const baseVersion = getMaxRepoVersion(packageJsonFiles, rootPackageJson.version);
+
+if (!baseVersion) {
+  console.log('\nCould not determine a valid base version, skipping version update...');
+  process.exit(0);
+}
+
+let newVersion = updateVersion(baseVersion);
 
 if (!newVersion) {
-  const currentVersion = `${major}.${minor}.${patch}`;
-  const autoPatchVersion = `${major}.${minor}.${patch + 1}`;
+  const autoPatchVersion = bumpSemver(baseVersion, 'patch');
+  if (!autoPatchVersion) {
+    console.log('\nCould not auto-bump patch version, skipping version update...');
+    process.exit(0);
+  }
   console.log(`\nNo version bump detected from commit messages, but files changed in affected workspaces.`);
-  console.log(`Auto-bumping patch version: ${currentVersion} → ${autoPatchVersion}`);
+  console.log(`Auto-bumping patch version: ${baseVersion} → ${autoPatchVersion}`);
   newVersion = autoPatchVersion;
 }
 
-const updatedFiles = updateAffectedPackageJsonFiles(newVersion, affectedWorkspaces);
+const updatedFiles = updateAllPackageJsonFiles(newVersion);
 
 if (updatedFiles.length === 0) {
   console.log('\nNo package.json files to update');

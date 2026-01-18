@@ -246,8 +246,8 @@ export function VideoControls({
 
         if (response.ok) {
           setIsFavorite(true);
-          toast.success("Added to favorites");
-          
+          toast.success("Added to favorites ❤️");
+
           const userName = user?.fullName || user?.firstName || "Someone";
           sendFavoriteNotification("added", peerInfo.id, userName);
         } else {
@@ -265,7 +265,7 @@ export function VideoControls({
         if (response.ok) {
           setIsFavorite(false);
           toast.success("Removed from favorites");
-          
+
           const userName = user?.fullName || user?.firstName || "Someone";
           sendFavoriteNotification("removed", peerInfo.id, userName);
         } else {

@@ -50,7 +50,7 @@ export default function CreateChangelogPage() {
   const [token, setToken] = useState<string | null>(null);
 
   const form = useForm<ZodPrimitive.z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema as any),
     defaultValues: {
       version: "",
       title: "",

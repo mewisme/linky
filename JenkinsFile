@@ -15,9 +15,28 @@ pipeline {
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
+      }
+    }
+
+    stage('Check API changes') {
+      steps {
+        script {
+          def changed = sh(
+            script: "git diff --name-only origin/main...HEAD | grep '^apps/api/' || true",
+            returnStdout: true
+          ).trim()
+
+          if (!changed) {
+            currentBuild.result = 'SUCCESS'
+            error("No changes in apps/api/, skipping pipeline")
+          }
+
+          echo "Detected changes in apps/api"
+        }
       }
     }
 
@@ -44,13 +63,11 @@ pipeline {
 
     stage('Deploy Backend (Express.js)') {
       steps {
-        script {
-          sh '''
-            docker compose down || true
-            docker rm -f linky-api linky-redis || true
-            docker compose up -d
-          '''
-        }
+        sh '''
+          docker compose down || true
+          docker rm -f linky-api linky-redis || true
+          docker compose up -d
+        '''
       }
     }
 
@@ -61,10 +78,10 @@ pipeline {
       cleanWs()
     }
     success {
-      echo 'Turbo monorepo deploy successfully'
+      echo 'Backend deployed successfully'
     }
     failure {
-      echo 'Pipeline failed'
+      echo 'Backend deployment failed'
     }
   }
 }

@@ -1,12 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Update import paths and clean up component usage in reports ([b103834](../../commit/b103834))
+- Integrate consent management and update user context handling ([7034702](../../commit/7034702))
 
 🔨 Other Changes
 
-- Update package version to 0.21.0 and modify version lock ([423641e](../../commit/423641e))
+- Update package versions to 0.21.2 and modify version lock ([35e8848](../../commit/35e8848))
 
 
-📋 Full Changelog: [423641e...b103834](../../compare/423641e...b103834)
+📋 Full Changelog: [35e8848...7034702](../../compare/35e8848...7034702)

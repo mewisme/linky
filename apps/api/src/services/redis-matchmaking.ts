@@ -3,6 +3,7 @@ import { redisClient } from "../lib/redis/client.js";
 import { Logger } from "../utils/logger.js";
 import { getInterestTags } from "../lib/supabase/queries/user-details.js";
 import { getUserIdByClerkId } from "../lib/supabase/queries/call-history.js";
+import { getFavoritesByUserId } from "../lib/supabase/queries/favorites.js";
 import { findBestMatch, type QueueUser } from "../matching/interest-matcher.js";
 import type { AuthenticatedSocket } from "../socket/auth.js";
 
@@ -10,6 +11,7 @@ const QUEUE_KEY = "match:queue";
 const LOCK_KEY = "match:lock";
 const LOCK_TTL = 2;
 const INTEREST_TAGS_TTL = 15 * 60;
+const FAVORITES_TTL = 10 * 60;
 const SKIP_COOLDOWN_TTL = 10;
 const MAX_QUEUE_WAIT_TIME = 5 * 60 * 1000;
 const MAX_MATCHING_CANDIDATES = 50;
@@ -50,6 +52,7 @@ export class RedisMatchmakingService {
       }
 
       await this.cacheUserInterests(dbUserId);
+      await this.cacheUserFavorites(dbUserId);
 
       const now = Date.now();
       await redisClient.zAdd(QUEUE_KEY, {
@@ -142,6 +145,7 @@ export class RedisMatchmakingService {
       const userIds = queueMembers.map((m) => m.value);
       const skipSets = await this.loadSkipSets(userIds);
       const interestTagsMap = await this.loadInterestTags(userIds);
+      const favoritesMap = await this.loadFavorites(userIds);
 
       const queueUsers: QueueUser[] = [];
       const now = Date.now();
@@ -174,8 +178,9 @@ export class RedisMatchmakingService {
         return null;
       }
 
-      const matchesWithCommonInterests: Array<{ userA: QueueUser; userB: QueueUser; score: number; commonInterests: number }> = [];
-      const matchesWithoutCommonInterests: Array<{ userA: QueueUser; userB: QueueUser; score: number; commonInterests: number }> = [];
+      const favoriteMatches: Array<{ userA: QueueUser; userB: QueueUser; score: number; commonInterests: number; favoriteType: string }> = [];
+      const interestMatches: Array<{ userA: QueueUser; userB: QueueUser; score: number; commonInterests: number; favoriteType: string }> = [];
+      const fallbackMatches: Array<{ userA: QueueUser; userB: QueueUser; score: number; commonInterests: number; favoriteType: string }> = [];
 
       for (let i = 0; i < queueUsers.length; i++) {
         for (let j = i + 1; j < queueUsers.length; j++) {
@@ -188,17 +193,29 @@ export class RedisMatchmakingService {
             continue;
           }
 
+          const favoritesA = favoritesMap.get(userA.userId);
+          const favoritesB = favoritesMap.get(userB.userId);
+          const aFavoritesB = favoritesA?.has(userB.userId) || false;
+          const bFavoritesA = favoritesB?.has(userA.userId) || false;
+
+          let favoriteType = "none";
+          if (aFavoritesB && bFavoritesA) {
+            favoriteType = "mutual";
+          } else if (aFavoritesB || bFavoritesA) {
+            favoriteType = "one-way";
+          }
+
           const tagsA = new Set(userA.interestTags);
           const tagsB = new Set(userB.interestTags);
           let commonInterests = 0;
-          let score = 0;
 
           for (const tag of tagsA) {
             if (tagsB.has(tag)) {
               commonInterests++;
-              score += 100;
             }
           }
+
+          let score = commonInterests * 100;
 
           if (commonInterests > 0 && tagsA.size > 0 && tagsB.size > 0) {
             score += 50;
@@ -210,23 +227,43 @@ export class RedisMatchmakingService {
           const fairnessBonus = Math.min((avgWaitTime / 1000) * 0.1, 20);
           score += fairnessBonus;
 
-          if (commonInterests > 0) {
-            matchesWithCommonInterests.push({ userA, userB, score, commonInterests });
+          if (favoriteType !== "none") {
+            favoriteMatches.push({ userA, userB, score, commonInterests, favoriteType });
+          } else if (commonInterests > 0) {
+            interestMatches.push({ userA, userB, score, commonInterests, favoriteType });
           } else {
-            matchesWithoutCommonInterests.push({ userA, userB, score, commonInterests });
+            fallbackMatches.push({ userA, userB, score, commonInterests, favoriteType });
           }
         }
       }
 
-      const candidates = matchesWithCommonInterests.length > 0
-        ? matchesWithCommonInterests
-        : matchesWithoutCommonInterests;
+      let candidates: Array<{ userA: QueueUser; userB: QueueUser; score: number; commonInterests: number; favoriteType: string }>;
+
+      if (favoriteMatches.length > 0) {
+        candidates = favoriteMatches;
+      } else if (interestMatches.length > 0) {
+        candidates = interestMatches;
+      } else {
+        candidates = fallbackMatches;
+      }
 
       if (candidates.length === 0) {
         return null;
       }
 
       candidates.sort((a, b) => {
+        if (a.favoriteType === "mutual" && b.favoriteType !== "mutual") {
+          return -1;
+        }
+        if (b.favoriteType === "mutual" && a.favoriteType !== "mutual") {
+          return 1;
+        }
+        if (a.favoriteType === "one-way" && b.favoriteType === "none") {
+          return -1;
+        }
+        if (b.favoriteType === "one-way" && a.favoriteType === "none") {
+          return 1;
+        }
         if (a.commonInterests !== b.commonInterests) {
           return b.commonInterests - a.commonInterests;
         }
@@ -260,7 +297,7 @@ export class RedisMatchmakingService {
         bestMatch.userA.userId,
         "and",
         bestMatch.userB.userId,
-        `(Score: ${bestMatch.score.toFixed(2)}, Common interests: ${bestMatch.commonInterests})`
+        `(Score: ${bestMatch.score.toFixed(2)}, Common interests: ${bestMatch.commonInterests}, Favorite: ${bestMatch.favoriteType})`
       );
 
       return [
@@ -351,17 +388,12 @@ export class RedisMatchmakingService {
       const interestTags = await getInterestTags(dbUserId);
       const key = `user:interests:${dbUserId}`;
 
-      const pipeline = redisClient.multi();
-      pipeline.del(key);
-      if (interestTags.length > 0) {
-        pipeline.sAdd(key, interestTags);
-        pipeline.expire(key, INTEREST_TAGS_TTL);
-      } else {
-        pipeline.set(key, "__empty__");
-        pipeline.expire(key, INTEREST_TAGS_TTL);
-      }
-      await pipeline.exec();
+      await redisClient.del(key);
 
+      if (interestTags.length > 0) {
+        await redisClient.sAdd(key, interestTags);
+        await redisClient.expire(key, INTEREST_TAGS_TTL);
+      }
     } catch (error) {
       this.logger.error("Failed to cache user interests:", dbUserId, error instanceof Error ? error.message : "Unknown error");
     }
@@ -373,16 +405,8 @@ export class RedisMatchmakingService {
     try {
       for (const userId of userIds) {
         const key = `user:interests:${userId}`;
-        const type = await redisClient.type(key);
-
-        if (type === "set") {
-          const tags = await redisClient.sMembers(key);
-          result.set(userId, tags);
-        } else if (type === "string") {
-          result.set(userId, []);
-        } else {
-          result.set(userId, []);
-        }
+        const tags = await redisClient.sMembers(key);
+        result.set(userId, tags);
       }
     } catch (error) {
       this.logger.error("Failed to load interest tags:", error instanceof Error ? error.message : "Unknown error");
@@ -404,6 +428,40 @@ export class RedisMatchmakingService {
       }
     } catch (error) {
       this.logger.error("Failed to load skip sets:", error instanceof Error ? error.message : "Unknown error");
+    }
+
+    return result;
+  }
+
+  private async cacheUserFavorites(dbUserId: string): Promise<void> {
+    try {
+      const favorites = await getFavoritesByUserId(dbUserId);
+      const key = `user:favorites:${dbUserId}`;
+
+      await redisClient.del(key);
+
+      if (favorites.length > 0) {
+        await redisClient.sAdd(key, favorites);
+        await redisClient.expire(key, FAVORITES_TTL);
+      }
+    } catch (error) {
+      this.logger.error("Failed to cache user favorites:", dbUserId, error instanceof Error ? error.message : "Unknown error");
+    }
+  }
+
+  private async loadFavorites(userIds: string[]): Promise<Map<string, Set<string>>> {
+    const result = new Map<string, Set<string>>();
+
+    try {
+      for (const userId of userIds) {
+        const key = `user:favorites:${userId}`;
+        const favorites = await redisClient.sMembers(key);
+        if (favorites.length > 0) {
+          result.set(userId, new Set(favorites));
+        }
+      }
+    } catch (error) {
+      this.logger.error("Failed to load favorites:", error instanceof Error ? error.message : "Unknown error");
     }
 
     return result;

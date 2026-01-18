@@ -27,6 +27,7 @@ export interface SocketCallbacks {
   onSessionWaiting: (data: { message: string; positionInQueue: number; queueSize: number }) => void;
   onSessionActivated: (data: { message: string }) => void;
   onBackendRestart: () => void;
+  onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => void;
 }
 
 export interface UseSocketSignalingReturn {
@@ -137,6 +138,11 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       logger.error("Socket error:", data.message);
       publishPresence('offline');
       callbacks.onError(data);
+    });
+
+    socket.on("favorite:added", (data) => {
+      logger.info("Added to favorites by:", data.from_user_name);
+      callbacks.onFavoriteAdded(data);
     });
   }, []);
 

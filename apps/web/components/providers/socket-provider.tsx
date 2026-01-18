@@ -27,8 +27,9 @@ export interface SocketContextValue {
   isHealthy: boolean;
   updateToken: (token: string) => void;
   requestResync: () => void;
-  registerCallbacks: (callbacks: SocketEventCallback) => void;
-  unregisterCallbacks: () => void;
+  registerCallbacks: (key: string, callbacks: SocketEventCallback) => void;
+  unregisterCallbacks: (key: string) => void;
+  setInActiveCall: (active: boolean) => void;
 }
 
 const SocketContext = createContext<SocketContextValue | null>(null);
@@ -48,14 +49,19 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const isInActiveCallRef = useRef(false);
   const resyncPendingRef = useRef(false);
   const initializingRef = useRef(false);
-  const callbacksRef = useRef<SocketEventCallback>({});
+  const callbacksRef = useRef<Map<string, SocketEventCallback>>(new Map());
+  const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const registerCallbacks = useCallback((callbacks: SocketEventCallback) => {
-    callbacksRef.current = callbacks;
+  const registerCallbacks = useCallback((key: string, callbacks: SocketEventCallback) => {
+    callbacksRef.current.set(key, callbacks);
   }, []);
 
-  const unregisterCallbacks = useCallback(() => {
-    callbacksRef.current = {};
+  const unregisterCallbacks = useCallback((key: string) => {
+    callbacksRef.current.delete(key);
+  }, []);
+
+  const setInActiveCall = useCallback((active: boolean) => {
+    isInActiveCallRef.current = active;
   }, []);
 
   const initializeSocket = useCallback(async (tokenOverride?: string) => {
@@ -79,10 +85,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
     try {
       const token = tokenOverride || await getToken({ template: 'custom', skipCache: true });
       logger.info("[SocketProvider] Initializing global socket...");
+      setConnectionState("connecting");
       const newSocket = await createSocket(token);
       socketRef.current = newSocket;
-      setSocket(newSocket);
-
       setSocket(newSocket);
 
       newSocket.on("connect", () => {
@@ -100,7 +105,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
           logger.warn("[SocketProvider] Backend restart detected");
           isInActiveCallRef.current = false;
           resyncPendingRef.current = false;
-          callbacksRef.current.onBackendRestart?.();
+          callbacksRef.current.forEach(cb => cb.onBackendRestart?.());
         } else if (resyncPendingRef.current && isInActiveCallRef.current) {
           logger.info("[SocketProvider] Reconnecting - requesting resync");
           resyncPendingRef.current = false;
@@ -109,7 +114,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
           }
         }
 
-        callbacksRef.current.onConnect?.();
+        callbacksRef.current.forEach(cb => cb.onConnect?.());
       });
 
       newSocket.on("disconnect", (reason) => {
@@ -118,14 +123,20 @@ export function SocketProvider({ children }: SocketProviderProps) {
         backendRestartDetector.recordDisconnect(reason, wasConnected);
         setConnectionState("disconnected");
         publishPresence('offline');
-        callbacksRef.current.onDisconnect?.(reason);
+        
+        if (healthCheckIntervalRef.current) {
+          clearInterval(healthCheckIntervalRef.current);
+          healthCheckIntervalRef.current = null;
+        }
+        
+        callbacksRef.current.forEach(cb => cb.onDisconnect?.(reason));
       });
 
       newSocket.on("connect_error", (error) => {
         logger.error("[SocketProvider] Connection error:", error);
         setConnectionState("disconnected");
         publishPresence('offline');
-        callbacksRef.current.onConnectError?.(error);
+        callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
       });
 
       newSocket.on("reconnect_attempt", () => {
@@ -136,13 +147,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
       newSocket.on("session-waiting", (data) => {
         logger.info("[SocketProvider] Session queued:", data.message, "Position:", data.positionInQueue);
         publishPresence('online');
-        callbacksRef.current.onSessionWaiting?.(data);
+        callbacksRef.current.forEach(cb => cb.onSessionWaiting?.(data));
       });
 
       newSocket.on("session-activated", (data) => {
         logger.info("[SocketProvider] Session activated:", data.message);
         publishPresence('available');
-        callbacksRef.current.onSessionActivated?.(data);
+        callbacksRef.current.forEach(cb => cb.onSessionActivated?.(data));
       });
 
       newSocket.on("room-ping", (data: { timestamp?: number; roomId?: string }) => {
@@ -150,6 +161,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
         socketHealthMonitor.markEventReceived();
       });
 
+      socketHealthMonitor.stop();
       socketHealthMonitor.start({
         socket: newSocket,
         isInActiveCall: () => isInActiveCallRef.current,
@@ -171,13 +183,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
         },
       });
 
-      const healthCheckInterval = setInterval(() => {
+      if (healthCheckIntervalRef.current) {
+        clearInterval(healthCheckIntervalRef.current);
+        healthCheckIntervalRef.current = null;
+      }
+
+      healthCheckIntervalRef.current = setInterval(() => {
         setIsHealthy(socketHealthMonitor.isHealthy());
       }, 1000);
-
-      newSocket.on("disconnect", () => {
-        clearInterval(healthCheckInterval);
-      });
     } finally {
       initializingRef.current = false;
     }
@@ -194,6 +207,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
       isInActiveCallRef.current = false;
       resyncPendingRef.current = false;
       backendRestartDetector.reset();
+
+      if (healthCheckIntervalRef.current) {
+        clearInterval(healthCheckIntervalRef.current);
+        healthCheckIntervalRef.current = null;
+      }
 
       if (socketRef.current) {
         socketRef.current.removeAllListeners();
@@ -232,6 +250,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     requestResync,
     registerCallbacks,
     unregisterCallbacks,
+    setInActiveCall,
   };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;

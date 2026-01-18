@@ -544,6 +544,10 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setError(data.message);
         toast.error(`Error - ${data.message}`);
       },
+
+      onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => {
+        toast.success(`${data.from_user_name} added you to favorites`);
+      },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState, resetRuntimeState, state.connectionStatus]

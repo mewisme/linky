@@ -26,6 +26,7 @@ import {
   IconVideo,
   IconVideoOff,
   IconFlag,
+  IconStar,
 } from "@tabler/icons-react";
 import {
   Tooltip,
@@ -39,12 +40,13 @@ import { Button } from "@repo/ui/components/ui/button";
 import { Textarea } from "@repo/ui/components/ui/textarea";
 import { Label } from "@repo/ui/components/ui/label";
 import { useAuth } from "@clerk/nextjs";
-import { toast } from "react-hot-toast";
+import { toast } from "@repo/ui/components/ui/sonner";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import React, { useState, useMemo, type ReactNode } from "react";
+import { logger } from "@/utils/logger";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
@@ -71,6 +73,7 @@ interface ControlContext {
   isChatOpen: boolean;
   hasUnreadMessages: boolean;
   peerInfo: UsersAPI.PublicUserInfo | null;
+  isFavoriteAdded: boolean;
 }
 
 interface VideoControlsProps {
@@ -170,6 +173,44 @@ export function VideoControls({
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [isFavoriteAdded, setIsFavoriteAdded] = useState(false);
+  const [isAddingFavorite, setIsAddingFavorite] = useState(false);
+
+  const handleAddFavorite = async () => {
+    if (!peerInfo?.id || isAddingFavorite || isFavoriteAdded) {
+      return;
+    }
+
+    setIsAddingFavorite(true);
+
+    try {
+      const token = await getToken({ template: 'custom', skipCache: true });
+
+      const response = await fetch("/api/resources/favorites", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          favorite_user_id: peerInfo.id,
+        }),
+      });
+
+      if (response.ok) {
+        setIsFavoriteAdded(true);
+        toast.success("Added to favorites");
+      } else {
+        const error = await response.json();
+        toast.error(error.message || "Failed to add favorite");
+      }
+    } catch (error: unknown) {
+      logger.error("Failed to add favorite", error);
+      toast.error(error instanceof Error ? error.message : "Failed to add favorite");
+    } finally {
+      setIsAddingFavorite(false);
+    }
+  };
 
   const context: ControlContext = {
     connectionStatus,
@@ -179,6 +220,7 @@ export function VideoControls({
     isChatOpen,
     hasUnreadMessages,
     peerInfo,
+    isFavoriteAdded,
   };
 
   const controls: ControlConfig[] = useMemo(
@@ -258,6 +300,17 @@ export function VideoControls({
         visible: connectionStatus === "connected" && !!peerInfo,
       },
       {
+        id: "favorite",
+        priority: "overflow",
+        icon: IconStar,
+        label: "Add to Favorites",
+        variant: "outline",
+        onClick: handleAddFavorite,
+        visible: connectionStatus === "connected" && !!peerInfo,
+        disabled: (ctx) => ctx.isFavoriteAdded || isAddingFavorite,
+        dynamicLabel: (ctx) => ctx.isFavoriteAdded ? "Added to Favorites" : "Add to Favorites",
+      },
+      {
         id: "report",
         priority: "overflow",
         icon: IconFlag,
@@ -267,6 +320,7 @@ export function VideoControls({
         visible: connectionStatus === "connected" && !!peerInfo,
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       connectionStatus,
       hasLocalStream,
@@ -277,6 +331,9 @@ export function VideoControls({
       onToggleMute,
       onToggleVideo,
       peerInfo,
+      handleAddFavorite,
+      isFavoriteAdded,
+      isAddingFavorite,
     ]
   );
 

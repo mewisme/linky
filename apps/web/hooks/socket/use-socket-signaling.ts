@@ -28,6 +28,9 @@ export interface SocketCallbacks {
   onSessionActivated: (data: { message: string }) => void;
   onBackendRestart: () => void;
   onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => void;
+  onFavoriteAddedSelf: (data: { favorite_user_id: string }) => void;
+  onFavoriteRemoved: (data: { from_user_id: string; from_user_name: string }) => void;
+  onFavoriteRemovedSelf: (data: { favorite_user_id: string }) => void;
 }
 
 export interface UseSocketSignalingReturn {
@@ -39,6 +42,7 @@ export interface UseSocketSignalingReturn {
   sendChatMessage: (message: string, timestamp: number) => void;
   sendMuteToggle: (muted: boolean) => void;
   sendHeartReaction: (count: number) => void;
+  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   removeAllListeners: () => void;
   disconnectSocket: () => void;
   getSocket: () => Socket | null;
@@ -144,6 +148,21 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       logger.info("Added to favorites by:", data.from_user_name);
       callbacks.onFavoriteAdded(data);
     });
+
+    socket.on("favorite:added:self", (data) => {
+      logger.info("Favorite added successfully:", data.favorite_user_id);
+      callbacks.onFavoriteAddedSelf(data);
+    });
+
+    socket.on("favorite:removed", (data) => {
+      logger.info("Removed from favorites by:", data.from_user_name);
+      callbacks.onFavoriteRemoved(data);
+    });
+
+    socket.on("favorite:removed:self", (data) => {
+      logger.info("Favorite removed successfully:", data.favorite_user_id);
+      callbacks.onFavoriteRemovedSelf(data);
+    });
   }, []);
 
   const initializeSocket = useCallback(
@@ -167,11 +186,15 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socket.removeAllListeners("mute-toggle");
       socket.removeAllListeners("queue-timeout");
       socket.removeAllListeners("error");
+      socket.removeAllListeners("favorite:added");
+      socket.removeAllListeners("favorite:added:self");
+      socket.removeAllListeners("favorite:removed");
+      socket.removeAllListeners("favorite:removed:self");
 
       callbacksRef.current = callbacks;
       registerSocketListeners(socket, callbacks);
 
-      registerCallbacks({
+      registerCallbacks('socket-signaling', {
         onConnect: callbacks.onConnect,
         onDisconnect: callbacks.onDisconnect,
         onBackendRestart: callbacks.onBackendRestart,
@@ -264,6 +287,17 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
+  const sendFavoriteNotification = useCallback((action: "added" | "removed", peerUserId: string, userName: string) => {
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit("favorite:notify-peer", {
+        action,
+        peer_user_id: peerUserId,
+        user_name: userName,
+      });
+      logger.info("Favorite notification sent to server:", action, "for peer:", peerUserId);
+    }
+  }, []);
+
   const removeAllListeners = useCallback(() => {
     if (socketRef.current) {
       socketRef.current.removeAllListeners("joined-queue");
@@ -277,6 +311,10 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socketRef.current.removeAllListeners("mute-toggle");
       socketRef.current.removeAllListeners("queue-timeout");
       socketRef.current.removeAllListeners("error");
+      socketRef.current.removeAllListeners("favorite:added");
+      socketRef.current.removeAllListeners("favorite:added:self");
+      socketRef.current.removeAllListeners("favorite:removed");
+      socketRef.current.removeAllListeners("favorite:removed:self");
     }
   }, []);
 
@@ -284,7 +322,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     isInActiveCallRef.current = false;
     resyncPendingRef.current = false;
     removeAllListeners();
-    unregisterCallbacks();
+    unregisterCallbacks('socket-signaling');
   }, [removeAllListeners, unregisterCallbacks]);
 
   const getSocket = useCallback((): Socket | null => {
@@ -325,6 +363,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendChatMessage,
       sendMuteToggle,
       sendHeartReaction,
+      sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,
       getSocket,
@@ -344,6 +383,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendChatMessage,
       sendMuteToggle,
       sendHeartReaction,
+      sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,
       getSocket,

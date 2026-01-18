@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { logger } from "@/utils/logger";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { favorite_user_id: string } }
+  { params }: { params: Promise<{ favorite_user_id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -15,7 +16,7 @@ export async function DELETE(
       );
     }
 
-    const { favorite_user_id } = params;
+    const { favorite_user_id } = await params;
 
     if (!favorite_user_id) {
       return NextResponse.json(
@@ -25,16 +26,15 @@ export async function DELETE(
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(
-      `${apiUrl}/api/v1/favorites/${favorite_user_id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const url = `${apiUrl}/api/v1/favorites/${favorite_user_id}`;
+
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json",
+      },
+    });
 
     const data = await response.json();
 

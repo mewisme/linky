@@ -6,11 +6,15 @@ import {
   deleteFavorite,
   checkDailyLimitReached,
   incrementFavoriteLimit,
+  getFavoriteCreationDate,
+  decrementFavoriteLimit,
+  getFavoritesWithStats,
 } from "../../lib/supabase/queries/favorites.js";
 import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 import { Logger } from "../../utils/logger.js";
 import { getVideoChatContext } from "../../socket/video-chat/context.js";
 import { supabase } from "../../lib/supabase/client.js";
+import { redisClient } from "../../lib/redis/client.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("ResourcesFavoritesRoute");
@@ -34,7 +38,7 @@ router.get("/", async (req: Request, res: Response) => {
       });
     }
 
-    const favorites = await getFavoritesByUserId(userId);
+    const favorites = await getFavoritesWithStats(userId);
 
     logger.info("Favorites fetched for user:", userId, "Count:", favorites.length);
 
@@ -109,34 +113,6 @@ router.post("/", async (req: Request, res: Response) => {
     const favorite = await createFavorite(userId, favorite_user_id);
     await incrementFavoriteLimit(userId);
 
-    const { data: currentUser } = await supabase
-      .from("users")
-      .select("id, first_name, last_name")
-      .eq("id", userId)
-      .single();
-
-    const context = getVideoChatContext();
-    if (context) {
-      const { io, rooms } = context;
-      const room = rooms.findRoomByUserId(favorite_user_id, io);
-      
-      if (room) {
-        const favoriteUserSocketId = room.user1 === favorite_user_id ? room.user1 : room.user2;
-        const socket = io.sockets.sockets.get(favoriteUserSocketId);
-        
-        if (socket && socket.connected) {
-          const fromUserName = currentUser 
-            ? `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim() || "Someone"
-            : "Someone";
-          socket.emit("favorite:added", {
-            from_user_id: userId,
-            from_user_name: fromUserName,
-          });
-          logger.info("Favorite notification sent to:", favorite_user_id);
-        }
-      }
-    }
-
     logger.info("Favorite created:", userId, "->", favorite_user_id);
 
     return res.status(201).json({
@@ -190,12 +166,35 @@ router.delete("/:favorite_user_id", async (req: Request, res: Response) => {
       });
     }
 
+    const createdAt = await getFavoriteCreationDate(userId, favorite_user_id);
+    const today = new Date().toISOString().split("T")[0];
+    const createdDate = createdAt ? createdAt.split("T")[0] : null;
+    const isSameDay = createdDate === today;
+
     await deleteFavorite(userId, favorite_user_id);
+
+    if (isSameDay) {
+      try {
+        await decrementFavoriteLimit(userId);
+        logger.info("Daily limit refunded for user:", userId);
+      } catch (error) {
+        logger.error("Failed to refund daily limit:", error instanceof Error ? error.message : "Unknown error");
+      }
+    }
+
+    try {
+      const favoritesKey = `user:favorites:${userId}`;
+      await redisClient.sRem(favoritesKey, favorite_user_id);
+      logger.info("Redis cache updated for user:", userId);
+    } catch (error) {
+      logger.error("Failed to update Redis cache:", error instanceof Error ? error.message : "Unknown error");
+    }
 
     logger.info("Favorite deleted:", userId, "->", favorite_user_id);
 
     return res.json({
       message: "Favorite removed successfully",
+      refunded: isSameDay,
     });
   } catch (error) {
     logger.error(

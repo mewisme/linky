@@ -31,6 +31,7 @@ interface VideoContainerProps {
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onToggleChat: () => void;
+  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
 }
 
 export function VideoContainer({
@@ -49,6 +50,7 @@ export function VideoContainer({
   onToggleMute,
   onToggleVideo,
   onToggleChat,
+  sendFavoriteNotification,
 }: VideoContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const remoteVideoContainerRef = useRef<HTMLDivElement>(null);
@@ -207,6 +209,7 @@ export function VideoContainer({
           onToggleMute={onToggleMute}
           onToggleVideo={onToggleVideo}
           onToggleChat={onToggleChat}
+          sendFavoriteNotification={sendFavoriteNotification}
         />
       </div>
     </div>

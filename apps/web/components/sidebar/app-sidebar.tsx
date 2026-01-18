@@ -17,6 +17,8 @@ import {
   IconActivity,
   IconContract,
   IconEyeCog,
+  IconFlag,
+  IconHeartHandshake,
   IconHome,
   IconLogout,
   IconSettings,
@@ -25,8 +27,7 @@ import {
   IconUserScan,
   IconUserShield,
   IconUsers,
-  IconView360,
-  IconFlag
+  IconView360
 } from '@tabler/icons-react'
 import {
   Sidebar,
@@ -94,6 +95,13 @@ export const menuItems: MenuItem[] = [
         icon: IconUserScan,
         description: 'View your profile',
         href: '/user/profile',
+        category: 'Account',
+      },
+      {
+        label: 'Favorites',
+        icon: IconHeartHandshake,
+        description: 'View your favorites',
+        href: '/user/favorites',
         category: 'Account',
       },
       {

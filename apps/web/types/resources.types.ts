@@ -183,4 +183,56 @@ export namespace ResourcesAPI {
       }
     }
   }
+
+  export namespace Favorites {
+    export interface FavoriteWithStats {
+      id: string;
+      user_id: string;
+      favorite_user_id: string;
+      created_at: string;
+      clerk_user_id: string;
+      email: string | null;
+      first_name: string | null;
+      last_name: string | null;
+      avatar_url: string | null;
+      country: string | null;
+      match_count: number;
+      total_duration: number;
+      average_duration: number;
+    }
+
+    export namespace Get {
+      export interface Response {
+        data: FavoriteWithStats[];
+        count: number;
+      }
+    }
+
+    export namespace Create {
+      export interface Body {
+        favorite_user_id: string;
+      }
+
+      export interface Response {
+        data: {
+          id: string;
+          user_id: string;
+          favorite_user_id: string;
+          created_at: string;
+        };
+        message: string;
+      }
+    }
+
+    export namespace Delete {
+      export interface PathParams {
+        favorite_user_id: string;
+      }
+
+      export interface Response {
+        message: string;
+        refunded: boolean;
+      }
+    }
+  }
 }

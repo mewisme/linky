@@ -39,13 +39,13 @@ import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
 import { Textarea } from "@repo/ui/components/ui/textarea";
 import { Label } from "@repo/ui/components/ui/label";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { toast } from "@repo/ui/components/ui/sonner";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
-import React, { useState, useMemo, type ReactNode } from "react";
+import React, { useState, useMemo, useEffect, type ReactNode } from "react";
 import { logger } from "@/utils/logger";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
@@ -90,6 +90,7 @@ interface VideoControlsProps {
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onToggleChat: () => void;
+  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
 }
 
 interface ControlButtonProps {
@@ -166,49 +167,117 @@ export function VideoControls({
   onToggleMute,
   onToggleVideo,
   onToggleChat,
+  sendFavoriteNotification,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
   const { getToken } = useAuth();
+  const { user } = useUser();
   const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
-  const [isFavoriteAdded, setIsFavoriteAdded] = useState(false);
-  const [isAddingFavorite, setIsAddingFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
 
-  const handleAddFavorite = async () => {
-    if (!peerInfo?.id || isAddingFavorite || isFavoriteAdded) {
+  useEffect(() => {
+    if (!peerInfo?.id) {
+      setIsFavorite(false);
       return;
     }
 
-    setIsAddingFavorite(true);
+    let mounted = true;
+
+    const checkIfFavorited = async () => {
+      try {
+        const token = await getToken({ template: 'custom', skipCache: true });
+        if (!token || !mounted) return;
+
+        const response = await fetch("/api/resources/favorites", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok || !mounted) return;
+
+        const data = await response.json();
+        const favorites = data.data || [];
+        const isFavorited = favorites.some(
+          (fav: { favorite_user_id: string }) => fav.favorite_user_id === peerInfo.id
+        );
+
+        if (mounted) {
+          setIsFavorite(isFavorited);
+        }
+      } catch (error) {
+        logger.error("Failed to check favorite status", error);
+      }
+    };
+
+    checkIfFavorited();
+
+    return () => {
+      mounted = false;
+    };
+  }, [peerInfo?.id, getToken]);
+
+  const handleToggleFavorite = async () => {
+    if (!peerInfo?.id || isFavoriteLoading) {
+      return;
+    }
+
+    setIsFavoriteLoading(true);
+    const isAdding = !isFavorite;
 
     try {
       const token = await getToken({ template: 'custom', skipCache: true });
 
-      const response = await fetch("/api/resources/favorites", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          favorite_user_id: peerInfo.id,
-        }),
-      });
+      if (isAdding) {
+        const response = await fetch("/api/resources/favorites", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            favorite_user_id: peerInfo.id,
+          }),
+        });
 
-      if (response.ok) {
-        setIsFavoriteAdded(true);
-        toast.success("Added to favorites");
+        if (response.ok) {
+          setIsFavorite(true);
+          toast.success("Added to favorites");
+          
+          const userName = user?.fullName || user?.firstName || "Someone";
+          sendFavoriteNotification("added", peerInfo.id, userName);
+        } else {
+          const error = await response.json();
+          toast.error(error.message || "Failed to add favorite");
+        }
       } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to add favorite");
+        const response = await fetch(`/api/resources/favorites/${peerInfo.id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setIsFavorite(false);
+          toast.success("Removed from favorites");
+          
+          const userName = user?.fullName || user?.firstName || "Someone";
+          sendFavoriteNotification("removed", peerInfo.id, userName);
+        } else {
+          const error = await response.json();
+          toast.error(error.message || "Failed to remove favorite");
+        }
       }
     } catch (error: unknown) {
-      logger.error("Failed to add favorite", error);
-      toast.error(error instanceof Error ? error.message : "Failed to add favorite");
+      logger.error("Failed to toggle favorite", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update favorite");
     } finally {
-      setIsAddingFavorite(false);
+      setIsFavoriteLoading(false);
     }
   };
 
@@ -220,7 +289,7 @@ export function VideoControls({
     isChatOpen,
     hasUnreadMessages,
     peerInfo,
-    isFavoriteAdded,
+    isFavoriteAdded: isFavorite,
   };
 
   const controls: ControlConfig[] = useMemo(
@@ -305,10 +374,10 @@ export function VideoControls({
         icon: IconStar,
         label: "Add to Favorites",
         variant: "outline",
-        onClick: handleAddFavorite,
+        onClick: handleToggleFavorite,
         visible: connectionStatus === "connected" && !!peerInfo,
-        disabled: (ctx) => ctx.isFavoriteAdded || isAddingFavorite,
-        dynamicLabel: (ctx) => ctx.isFavoriteAdded ? "Added to Favorites" : "Add to Favorites",
+        disabled: isFavoriteLoading,
+        dynamicLabel: (ctx) => ctx.isFavoriteAdded ? "Remove from Favorites" : "Add to Favorites",
       },
       {
         id: "report",
@@ -331,9 +400,9 @@ export function VideoControls({
       onToggleMute,
       onToggleVideo,
       peerInfo,
-      handleAddFavorite,
-      isFavoriteAdded,
-      isAddingFavorite,
+      handleToggleFavorite,
+      isFavorite,
+      isFavoriteLoading,
     ]
   );
 

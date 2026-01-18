@@ -15,6 +15,7 @@ import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
 import { iceServerCache } from "@/lib/webrtc/ice-servers-cache";
 import { useUnloadEndCall } from "./use-unload-end-call";
 import { useUserContext } from "@/components/providers/user";
+import { useSocket } from "../socket/use-socket";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -31,6 +32,7 @@ export interface UseVideoChatReturn {
   endCall: () => void;
   toggleMute: () => void;
   toggleVideo: () => void;
+  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   error: string | null;
   clearError: () => void;
 }
@@ -41,6 +43,7 @@ export function useVideoChat(): UseVideoChatReturn {
   const {
     store: { userSettings },
   } = useUserContext();
+  const { isHealthy: isSocketHealthy } = useSocket();
 
   const { state, actions } = useVideoChatState();
   const iceServersRef = useRef<RTCIceServer[]>([]);
@@ -106,6 +109,11 @@ export function useVideoChat(): UseVideoChatReturn {
     isOffererRef.current = false;
     actionsRef.current.resetRuntimeState();
     hasShownConnectedToastRef.current = false;
+    if (reconnectToastIdRef.current !== null) {
+      toast.dismiss(reconnectToastIdRef.current);
+      reconnectToastIdRef.current = null;
+    }
+    isReconnectingRef.current = false;
   }, [mediaStream, peerConnection]);
 
   const cleanup = useCallback(() => {
@@ -196,6 +204,42 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [cleanup]);
 
   const hasShownConnectedToastRef = useRef(false);
+  const reconnectToastIdRef = useRef<string | number | null>(null);
+  const isReconnectingRef = useRef(false);
+
+  const startReconnecting = useCallback(() => {
+    const isInCall = state.connectionStatus === "connected" || state.connectionStatus === "reconnecting";
+    if (!isInCall || isReconnectingRef.current) {
+      return;
+    }
+
+    isReconnectingRef.current = true;
+    reconnectToastIdRef.current = toast.loading("Reconnecting...");
+    logger.info("[ReconnectUX] Reconnecting toast shown");
+  }, [state.connectionStatus]);
+
+  const completeReconnection = useCallback(() => {
+    if (!isReconnectingRef.current) {
+      return;
+    }
+
+    if (reconnectToastIdRef.current !== null) {
+      toast.dismiss(reconnectToastIdRef.current);
+      reconnectToastIdRef.current = null;
+    }
+
+    toast.success("Reconnected");
+    isReconnectingRef.current = false;
+    logger.info("[ReconnectUX] Reconnected toast shown");
+  }, []);
+
+  useEffect(() => {
+    const isInCall = state.connectionStatus === "connected" || state.connectionStatus === "reconnecting";
+    if (isInCall && !isSocketHealthy && !isReconnectingRef.current) {
+      logger.warn("[SocketHealth] Socket unhealthy during active call");
+      startReconnecting();
+    }
+  }, [isSocketHealthy, state.connectionStatus, startReconnecting]);
 
   const peerCallbacks = useMemo(
     () => ({
@@ -239,19 +283,32 @@ export function useVideoChat(): UseVideoChatReturn {
       },
       onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => {
         logger.info("ICE connection state changed:", iceConnectionState);
+        const isInCall = state.connectionStatus === "connected" || state.connectionStatus === "reconnecting";
+
         if (iceConnectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
           recoveryController.stop();
+          if (reconnectToastIdRef.current !== null) {
+            toast.dismiss(reconnectToastIdRef.current);
+            reconnectToastIdRef.current = null;
+          }
+          isReconnectingRef.current = false;
         } else if (iceConnectionState === "connected" || iceConnectionState === "completed") {
           recoveryController.markIceRestartComplete();
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier === "none") {
             actionsRef.current.setConnectionStatus("connected");
+            if (isReconnectingRef.current) {
+              completeReconnection();
+            }
           } else {
             actionsRef.current.setConnectionStatus("reconnecting");
           }
         } else if (iceConnectionState === "disconnected" || iceConnectionState === "checking") {
+          if (isInCall) {
+            startReconnecting();
+          }
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier !== "none") {
             actionsRef.current.setConnectionStatus("reconnecting");
@@ -261,17 +318,30 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
     }),
-    [socketSignaling]
+    [socketSignaling, startReconnecting, completeReconnection, state.connectionStatus]
   );
 
   const socketCallbacks = useMemo(
     () => ({
-      onConnect: () => { },
+      onConnect: () => {
+        const isInCall = state.connectionStatus === "connected" || state.connectionStatus === "reconnecting";
+        if (isInCall && isReconnectingRef.current) {
+          const pc = peerConnection.getPeerConnection();
+          if (pc) {
+            const iceState = pc.iceConnectionState;
+            if (iceState === "connected" || iceState === "completed") {
+              completeReconnection();
+            }
+          }
+        }
+      },
 
       onDisconnect: (reason: string) => {
         logger.warn("[SocketHealth] Socket disconnected:", reason);
-        if (state.connectionStatus === "connected" || state.connectionStatus === "reconnecting") {
+        const isInCall = state.connectionStatus === "connected" || state.connectionStatus === "reconnecting";
+        if (isInCall) {
           logger.info("[SocketHealth] Disconnect during active call - will resync on reconnect");
+          startReconnecting();
         }
         actionsRef.current.setConnectionStatus("peer-disconnected");
       },
@@ -546,11 +616,20 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => {
-        toast.success(`${data.from_user_name} added you to favorites`);
+        toast.success(`${data.from_user_name} added you to favorites ❤️`);
+      },
+
+      onFavoriteAddedSelf: () => {
+      },
+
+      onFavoriteRemoved: (data: { from_user_id: string; from_user_name: string }) => {
+        toast(`${data.from_user_name} removed you from favorites`);
+      },
+
+      onFavoriteRemovedSelf: () => {
       },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState, resetRuntimeState, state.connectionStatus]
+    [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState, resetRuntimeState, state.connectionStatus, startReconnecting, completeReconnection]
   );
 
   const start = useCallback(async () => {
@@ -687,6 +766,7 @@ export function useVideoChat(): UseVideoChatReturn {
     endCall,
     toggleMute,
     toggleVideo,
+    sendFavoriteNotification: socketSignaling.sendFavoriteNotification,
     error: state.error,
     clearError,
   };

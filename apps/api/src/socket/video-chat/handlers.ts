@@ -60,6 +60,7 @@ export function setupSocketHandlers(
   setupChatMessageHandler(socket, checkActiveSession, io, rooms);
   setupMuteToggleHandler(socket, io, rooms);
   setupReactionHandler(socket, io, rooms);
+  setupFavoriteNotificationHandler(socket, io, rooms);
   setupEndCallHandler(socket, checkActiveSession, io, matchmaking, rooms);
   setupResyncHandler(socket, userId, checkActiveSession, io, matchmaking, rooms);
   setupDisconnectHandler(socket, userId, io, matchmaking, rooms, userSessions);
@@ -347,6 +348,41 @@ function setupReactionHandler(
       timestamp: data.timestamp || Date.now(),
     });
     logger.info("Heart reaction relayed from", socket.id, "to", peerId, "in room", room.id);
+  });
+}
+
+function setupFavoriteNotificationHandler(
+  socket: AuthenticatedSocket,
+  io: SocketIOServer,
+  rooms: RoomService
+): void {
+  socket.on("favorite:notify-peer", (data: { action: "added" | "removed"; peer_user_id: string; user_name: string }) => {
+    logger.info("Favorite notification request received from:", socket.id, "action:", data.action);
+
+    const room = rooms.getRoomByUser(socket.id);
+    if (!room) {
+      logger.warn("Favorite notification from user not in room:", socket.id);
+      return;
+    }
+
+    const peerId = rooms.getPeer(socket.id);
+    if (!peerId) {
+      logger.error("No peer found for favorite notification:", socket.id, "in room:", room.id);
+      return;
+    }
+
+    const peerSocket = io.sockets.sockets.get(peerId);
+    if (!peerSocket || !peerSocket.connected) {
+      logger.warn("Peer socket not found or disconnected:", peerId, "- cannot send favorite notification");
+      return;
+    }
+
+    const eventName = data.action === "added" ? "favorite:added" : "favorite:removed";
+    io.to(peerId).emit(eventName, {
+      from_user_id: data.peer_user_id,
+      from_user_name: data.user_name,
+    });
+    logger.info("Favorite notification relayed:", eventName, "from", socket.id, "to", peerId);
   });
 }
 

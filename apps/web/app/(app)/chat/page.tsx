@@ -32,6 +32,7 @@ export default function ChatPage() {
     endCall,
     toggleMute,
     toggleVideo,
+    sendFavoriteNotification,
     error,
     clearError,
   } = useVideoChat();
@@ -99,6 +100,7 @@ export default function ChatPage() {
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
           onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          sendFavoriteNotification={sendFavoriteNotification}
         />
       </main>
 

@@ -778,6 +778,67 @@ export type Database = {
           },
         ]
       }
+      user_favorites_with_stats: {
+        Row: {
+          avatar_url: string | null
+          average_duration: number | null
+          clerk_user_id: string | null
+          country: string | null
+          created_at: string | null
+          email: string | null
+          favorite_user_id: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          match_count: number | null
+          total_duration: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_favorite_user_id_fkey"
+            columns: ["favorite_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_favorite_user_id_fkey"
+            columns: ["favorite_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_favorite_user_id_fkey"
+            columns: ["favorite_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_settings_v: {
         Row: {
           clerk_user_id: string | null

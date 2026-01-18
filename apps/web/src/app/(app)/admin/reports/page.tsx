@@ -4,8 +4,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useEffect, useState } from 'react'
 
 import type { AdminAPI } from '@/types/admin.types'
-import { AdminReportsDataTa@/components / layouts / app - layoutable / admin - reports / data - table'
-import { AppLayout } from '@/components@/components/data-table/admin-reports/data-table
+import { AdminReportsDataTable } from '@/components/data-table/admin-reports/data-table'
+import { AppLayout } from '@/components/layouts/app-layout'
 import { Button } from '@repo/ui/components/ui/button'
 import { IconRefresh } from '@tabler/icons-react'
 import { Input } from '@repo/ui/components/ui/input'

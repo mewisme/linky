@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/components/layouts/app-layout'
-import { Button } from '@re@/components/layouts/app-layout
-import { IconRefresh } from '@tabl@/components/data-table/reports/data-table
+import { Button } from '@repo/ui/components/ui/button'
+import { IconRefresh } from '@tabler/icons-react'
 import { ReportsDataTable } from '@/components/data-table/reports/data-table'
 import type { ResourcesAPI } from '@/types/resources.types'
 import { useAuth } from '@clerk/nextjs'

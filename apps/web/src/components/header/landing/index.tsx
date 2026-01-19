@@ -48,7 +48,7 @@ export const Header = ({ transition }: { transition: boolean }) => {
             layoutId="logo"
             className="absolute z-110 left-5"
             animate={{
-              top: 32,
+              top: 28,
             }}
           >
             <Logo size="sm" />
@@ -64,19 +64,19 @@ export const Header = ({ transition }: { transition: boolean }) => {
 
         <motion.div
           initial={{
-            top: 28,
+            top: 18,
             right: -43,
             opacity: 0,
           }}
           animate={
             transition
               ? {
-                top: 28,
+                top: 18,
                 right: 20,
                 opacity: 1,
               }
               : {
-                top: 28,
+                top: 18,
                 right: -43,
                 opacity: 0,
               }

@@ -22,24 +22,6 @@ pipeline {
       }
     }
 
-    stage('Check API changes') {
-      steps {
-        script {
-          def changed = sh(
-            script: "git diff --name-only origin/main...HEAD | grep '^apps/api/' || true",
-            returnStdout: true
-          ).trim()
-
-          if (!changed) {
-            currentBuild.result = 'SUCCESS'
-            error("No changes in apps/api/, skipping pipeline")
-          }
-
-          echo "Detected changes in apps/api"
-        }
-      }
-    }
-
     stage('Prepare Env Files') {
       steps {
         withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {

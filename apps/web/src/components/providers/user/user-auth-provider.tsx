@@ -17,6 +17,7 @@ export function UserAuthProvider({ children }: { children: ReactNode }) {
 
   const getClerkToken = useCallback(() => {
     return auth.getToken({ template: "custom", skipCache: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.getToken]);
 
   const value = useMemo<UserAuthContextValue>(() => {

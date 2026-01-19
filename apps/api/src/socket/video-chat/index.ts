@@ -1,4 +1,4 @@
-import { type Server as SocketIOServer } from "socket.io";
+import type { Namespace } from "socket.io";
 import { RedisMatchmakingService } from "../../services/redis-matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
 import { UserSessionService } from "../../services/user-sessions.js";
@@ -9,7 +9,7 @@ import { setVideoChatContext } from "./context.js";
 import type { VideoChatContext } from "./types.js";
 
 export function setupVideoChatHandlers(
-  io: SocketIOServer,
+  io: Namespace,
   matchmaking: RedisMatchmakingService,
   rooms: RoomService,
   userSessions: UserSessionService
@@ -21,7 +21,6 @@ export function setupVideoChatHandlers(
     userSessions,
   };
 
-  // Store context for access from HTTP routes
   setVideoChatContext(context);
 
   io.on("connection", (socket: AuthenticatedSocket) => {

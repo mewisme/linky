@@ -1,26 +1,26 @@
 import { Logger } from "../utils/logger.js";
-import { createSocketServer } from "../socket/index.js";
 import { supabase } from "./supabase/client.js";
+import { redisClient } from "./redis/client.js";
 
 const logger = new Logger("AdminCache");
 
-const adminSocketIds = new Set<string>();
-const adminUserIds = new Set<string>();
-let lastAdminCacheUpdate = 0;
-const ADMIN_CACHE_TTL = 5 * 60 * 1000;
+const ADMIN_CACHE_TTL_SECONDS = 5 * 60;
+
+function adminRoleCacheKey(clerkUserId: string): string {
+  return `admin:role:${clerkUserId}`;
+}
 
 export async function checkIfUserIsAdmin(clerkUserId: string): Promise<boolean> {
-  const now = Date.now();
-
-  if (now - lastAdminCacheUpdate > ADMIN_CACHE_TTL) {
-    await refreshAdminCache();
-  }
-
-  if (adminUserIds.has(clerkUserId)) {
-    return true;
-  }
-
   try {
+    const key = adminRoleCacheKey(clerkUserId);
+    const cached = await redisClient.get(key);
+    if (cached === "admin") {
+      return true;
+    }
+    if (cached === "user") {
+      return false;
+    }
+
     const { data: user, error } = await supabase
       .from("users")
       .select("role")
@@ -32,9 +32,10 @@ export async function checkIfUserIsAdmin(clerkUserId: string): Promise<boolean> 
     }
 
     const isAdmin = user.role === "admin";
-    if (isAdmin) {
-      adminUserIds.add(clerkUserId);
-    }
+
+    await redisClient.set(key, isAdmin ? "admin" : "user", {
+      EX: ADMIN_CACHE_TTL_SECONDS,
+    });
 
     return isAdmin;
   } catch (error) {
@@ -55,15 +56,14 @@ async function refreshAdminCache(): Promise<void> {
       return;
     }
 
-    adminUserIds.clear();
-    if (adminUsers) {
-      adminUsers.forEach((user) => {
-        adminUserIds.add(user.clerk_user_id);
-      });
+    if (!adminUsers || adminUsers.length === 0) {
+      return;
     }
 
-    lastAdminCacheUpdate = Date.now();
-    logger.info(`Admin cache refreshed: ${adminUserIds.size} admin users`);
+    for (const user of adminUsers) {
+      const key = adminRoleCacheKey(user.clerk_user_id);
+      await redisClient.set(key, "admin", { EX: ADMIN_CACHE_TTL_SECONDS });
+    }
   } catch (error) {
     logger.error("Error refreshing admin cache:", error);
   }
@@ -72,34 +72,3 @@ async function refreshAdminCache(): Promise<void> {
 export async function initializeAdminCache(): Promise<void> {
   await refreshAdminCache();
 }
-
-export async function refreshAdminCacheManually(): Promise<void> {
-  await refreshAdminCache();
-}
-
-export function getAdminSocketIds(): Set<string> {
-  return adminSocketIds;
-}
-
-export function removeAdminSocket(socketId: string): void {
-  adminSocketIds.delete(socketId);
-}
-
-export function setupAdminCacheTracking(io: ReturnType<typeof createSocketServer>): void {
-  io.on("connection", async (socket) => {
-    const userId = (socket.data as { userId?: string })?.userId;
-    if (!userId) return;
-
-    const isAdmin = await checkIfUserIsAdmin(userId);
-    if (isAdmin) {
-      adminSocketIds.add(socket.id);
-      logger.info(`Admin socket connected: ${socket.id} (user: ${userId})`);
-    }
-
-    socket.on("disconnect", () => {
-      adminSocketIds.delete(socket.id);
-      logger.info(`Admin socket disconnected: ${socket.id}`);
-    });
-  });
-}
-

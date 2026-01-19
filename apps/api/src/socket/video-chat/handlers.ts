@@ -1,4 +1,4 @@
-import { type Server as SocketIOServer } from "socket.io";
+import type { Namespace } from "socket.io";
 import { RedisMatchmakingService } from "../../services/redis-matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
 import { UserSessionService } from "../../services/user-sessions.js";
@@ -109,7 +109,7 @@ function setupJoinHandler(
 function setupSkipHandler(
   socket: AuthenticatedSocket,
   checkActiveSession: () => boolean,
-  io: SocketIOServer,
+  io: Namespace,
   matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
@@ -131,7 +131,7 @@ function setupSkipHandler(
       const peerId = rooms.getPeer(socket.id);
 
       if (peerId) {
-        const peerSocket = io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined;
+        const peerSocket = io.sockets.get(peerId) as AuthenticatedSocket | undefined;
         if (peerSocket) {
           const peerDbUserId = await getDbUserId(peerSocket);
           if (peerDbUserId) {
@@ -199,7 +199,7 @@ function setupSkipHandler(
 function setupSignalHandler(
   socket: AuthenticatedSocket,
   checkActiveSession: () => boolean,
-  io: SocketIOServer,
+  io: Namespace,
   rooms: RoomService
 ): void {
   socket.on("signal", (data: { type: string; sdp?: unknown; candidate?: unknown }) => {
@@ -225,7 +225,7 @@ function setupSignalHandler(
       return;
     }
 
-    const peerSocket = io.sockets.sockets.get(peerId);
+    const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
       logger.warn("Peer socket not found or disconnected:", peerId, "- cannot relay signal");
       socket.emit("error", {
@@ -242,7 +242,7 @@ function setupSignalHandler(
 function setupChatMessageHandler(
   socket: AuthenticatedSocket,
   checkActiveSession: () => boolean,
-  io: SocketIOServer,
+  io: Namespace,
   rooms: RoomService
 ): void {
   socket.on("chat-message", (data: { message: string; timestamp?: number }) => {
@@ -267,7 +267,7 @@ function setupChatMessageHandler(
       return;
     }
 
-    const peerSocket = io.sockets.sockets.get(peerId);
+    const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
       logger.warn("Peer socket not found or disconnected:", peerId, "- cannot relay chat message");
       return;
@@ -286,7 +286,7 @@ function setupChatMessageHandler(
 
 function setupMuteToggleHandler(
   socket: AuthenticatedSocket,
-  io: SocketIOServer,
+  io: Namespace,
   rooms: RoomService
 ): void {
   socket.on("mute-toggle", (data: { muted: boolean }) => {
@@ -304,7 +304,7 @@ function setupMuteToggleHandler(
       return;
     }
 
-    const peerSocket = io.sockets.sockets.get(peerId);
+    const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
       logger.warn("Peer socket not found or disconnected:", peerId, "- cannot relay mute toggle");
       return;
@@ -319,7 +319,7 @@ function setupMuteToggleHandler(
 
 function setupReactionHandler(
   socket: AuthenticatedSocket,
-  io: SocketIOServer,
+  io: Namespace,
   rooms: RoomService
 ): void {
   socket.on("reaction:heart", (data: { count: number; timestamp: number }) => {
@@ -337,7 +337,7 @@ function setupReactionHandler(
       return;
     }
 
-    const peerSocket = io.sockets.sockets.get(peerId);
+    const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
       logger.warn("Peer socket not found or disconnected:", peerId, "- cannot relay heart reaction");
       return;
@@ -353,7 +353,7 @@ function setupReactionHandler(
 
 function setupFavoriteNotificationHandler(
   socket: AuthenticatedSocket,
-  io: SocketIOServer,
+  io: Namespace,
   rooms: RoomService
 ): void {
   socket.on("favorite:notify-peer", (data: { action: "added" | "removed"; peer_user_id: string; user_name: string }) => {
@@ -371,7 +371,7 @@ function setupFavoriteNotificationHandler(
       return;
     }
 
-    const peerSocket = io.sockets.sockets.get(peerId);
+    const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
       logger.warn("Peer socket not found or disconnected:", peerId, "- cannot send favorite notification");
       return;
@@ -389,7 +389,7 @@ function setupFavoriteNotificationHandler(
 function setupEndCallHandler(
   socket: AuthenticatedSocket,
   checkActiveSession: () => boolean,
-  io: SocketIOServer,
+  io: Namespace,
   matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
@@ -413,13 +413,13 @@ function setupEndCallHandler(
     if (room) {
       const peerId = rooms.getPeer(socket.id);
 
-      recordCallHistory(io, room, socket, peerId ? io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined : undefined).catch((error) => {
+      recordCallHistory(io, room, socket, peerId ? io.sockets.get(peerId) as AuthenticatedSocket | undefined : undefined).catch((error) => {
         logger.error("Failed to record call history:", error instanceof Error ? error.message : "Unknown error");
       });
 
       if (peerId) {
         logger.info("Notifying peer of end call:", peerId, "from", socket.id);
-        const peerSocket = io.sockets.sockets.get(peerId);
+        const peerSocket = io.sockets.get(peerId);
         if (peerSocket && peerSocket.connected) {
           io.to(peerId).emit("end-call", {
             message: "Call ended by peer",
@@ -444,7 +444,7 @@ function setupResyncHandler(
   socket: AuthenticatedSocket,
   userId: string,
   checkActiveSession: () => boolean,
-  io: SocketIOServer,
+  io: Namespace,
   matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
@@ -478,7 +478,7 @@ function setupResyncHandler(
     const oldSocketId = roomWithUserId.user1;
     const peerOldSocketId = roomWithUserId.user2;
 
-    const user1Socket = io.sockets.sockets.get(oldSocketId) as AuthenticatedSocket | undefined;
+    const user1Socket = io.sockets.get(oldSocketId) as AuthenticatedSocket | undefined;
     const isUser1 = user1Socket?.data.userId === userId;
 
     const socketIdToReplace = isUser1 ? oldSocketId : peerOldSocketId;
@@ -491,7 +491,7 @@ function setupResyncHandler(
 
     logger.info("Re-binding socket:", socket.id, "to room:", roomWithUserId.id, "replacing:", socketIdToReplace);
 
-    const peerSocket = io.sockets.sockets.get(peerSocketId) as AuthenticatedSocket | undefined;
+    const peerSocket = io.sockets.get(peerSocketId) as AuthenticatedSocket | undefined;
     if (!peerSocket || !peerSocket.connected) {
       logger.warn("Peer socket not found or disconnected:", peerSocketId, "- cleaning up orphaned room");
       rooms.deleteRoom(roomWithUserId.id);
@@ -511,7 +511,7 @@ function setupResyncHandler(
 
     const peerId = rooms.getPeer(socket.id);
     if (peerId) {
-      const peerSocketFinal = io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined;
+      const peerSocketFinal = io.sockets.get(peerId) as AuthenticatedSocket | undefined;
       const isOfferer = roomWithUserId.user1 === socket.id ? (roomWithUserId.user1 < roomWithUserId.user2) : (roomWithUserId.user2 < roomWithUserId.user1);
 
       socket.emit("matched", {
@@ -529,7 +529,7 @@ function setupResyncHandler(
 function setupDisconnectHandler(
   socket: AuthenticatedSocket,
   userId: string,
-  io: SocketIOServer,
+  io: Namespace,
   matchmaking: RedisMatchmakingService,
   rooms: RoomService,
   userSessions: UserSessionService
@@ -553,7 +553,7 @@ function setupDisconnectHandler(
 
     if (room) {
       const peerId = rooms.getPeer(socket.id);
-      const peerSocket = peerId ? io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined : undefined;
+      const peerSocket = peerId ? io.sockets.get(peerId) as AuthenticatedSocket | undefined : undefined;
 
       recordCallHistory(io, room, socket, peerSocket).catch((error) => {
         logger.error("Failed to record call history:", error instanceof Error ? error.message : "Unknown error");
@@ -578,7 +578,7 @@ function setupDisconnectHandler(
           }
 
           setTimeout(async () => {
-            const stillConnected = peerSocket.connected && io.sockets.sockets.get(peerId);
+            const stillConnected = peerSocket.connected && io.sockets.get(peerId);
             if (stillConnected) {
               const peerAdded = await matchmaking.enqueue(peerSocket);
               if (peerAdded) {

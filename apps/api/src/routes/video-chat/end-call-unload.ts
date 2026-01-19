@@ -27,7 +27,7 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
 
     logger.info("Unload-triggered end-call received for socket:", socketId);
 
-    const socket = io.sockets.sockets.get(socketId) as AuthenticatedSocket | undefined;
+    const socket = io.sockets.get(socketId) as AuthenticatedSocket | undefined;
 
     if (!socket) {
       logger.warn("Socket not found:", socketId, "- may have already disconnected");
@@ -35,7 +35,7 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
       if (room) {
         const peerId = rooms.getPeer(socketId);
         if (peerId) {
-          const peerSocket = io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined;
+          const peerSocket = io.sockets.get(peerId) as AuthenticatedSocket | undefined;
           if (peerSocket && peerSocket.connected) {
             io.to(peerId).emit("end-call", {
               message: "Call ended by peer (unload)",
@@ -65,14 +65,14 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
     if (room) {
       const peerId = rooms.getPeer(socketId);
 
-      const peerSocket = peerId ? io.sockets.sockets.get(peerId) as AuthenticatedSocket | undefined : undefined;
+      const peerSocket = peerId ? io.sockets.get(peerId) as AuthenticatedSocket | undefined : undefined;
       await recordCallHistory(io, room, socket, peerSocket).catch((error) => {
         logger.error("Failed to record call history:", error instanceof Error ? error.message : "Unknown error");
       });
 
       if (peerId) {
         logger.info("Notifying peer of end-call:", peerId, "from", socketId);
-        const peerSocketFinal = io.sockets.sockets.get(peerId);
+        const peerSocketFinal = io.sockets.get(peerId);
         if (peerSocketFinal && peerSocketFinal.connected) {
           io.to(peerId).emit("end-call", {
             message: "Call ended by peer (unload)",

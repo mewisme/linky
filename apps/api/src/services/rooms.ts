@@ -1,4 +1,4 @@
-import { Server, type Socket } from "socket.io";
+import type { Namespace } from "socket.io";
 import { Logger } from "../utils/logger.js";
 
 interface Room {
@@ -122,10 +122,10 @@ export class RoomService {
     return true;
   }
 
-  findRoomByUserId(userId: string, io: Server): Room | null {
+  findRoomByUserId(userId: string, io: Namespace): Room | null {
     for (const room of this.rooms.values()) {
-      const user1Socket = io.sockets.sockets.get(room.user1);
-      const user2Socket = io.sockets.sockets.get(room.user2);
+      const user1Socket = io.sockets.get(room.user1);
+      const user2Socket = io.sockets.get(room.user2);
       if (user1Socket && (user1Socket as any).data?.userId === userId) {
         return room;
       }

@@ -1,4 +1,4 @@
-import { type Server as SocketIOServer } from "socket.io";
+import type { Namespace } from "socket.io";
 import { Logger } from "../../utils/logger.js";
 import { type AuthenticatedSocket } from "../auth.js";
 
@@ -16,7 +16,7 @@ export interface Room {
 }
 
 export async function recordCallHistory(
-  io: SocketIOServer,
+  io: Namespace,
   room: Room,
   socket1: AuthenticatedSocket,
   socket2: AuthenticatedSocket | undefined
@@ -42,7 +42,7 @@ export async function recordCallHistory(
     if (!dbUserId2) {
       const isSocket1User1 = room.user1 === socket1.id;
       const otherSocketId = isSocket1User1 ? room.user2 : room.user1;
-      const otherSocket = io.sockets.sockets.get(otherSocketId) as AuthenticatedSocket | undefined;
+      const otherSocket = io.sockets.get(otherSocketId) as AuthenticatedSocket | undefined;
 
       if (otherSocket?.data.userId) {
         dbUserId2 = await getUserIdByClerkId(otherSocket.data.userId);

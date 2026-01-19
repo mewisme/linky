@@ -1,5 +1,5 @@
 import { attachSocketIO as attachSocketIOToPresenceHandler, handlePresenceMessage } from './presence-handler.js'
-import { initializeAdminCache, setupAdminCacheTracking } from '../admin-cache.js'
+import { initializeAdminCache } from '../admin-cache.js'
 
 import { Logger } from '../../utils/logger.js'
 import { config } from '../../config/index.js'
@@ -48,7 +48,6 @@ mqttClient.on('message', async (topic, message) => {
 
 export function attachSocketIO(io: ReturnType<typeof createSocketServer>): void {
   attachSocketIOToPresenceHandler(io)
-  setupAdminCacheTracking(io)
 }
 
 export function initializeMqttClient(): void {

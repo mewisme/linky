@@ -1,11 +1,11 @@
-import { type Server as SocketIOServer } from "socket.io";
+import type { Namespace } from "socket.io";
 import { type MessageData, type RoomData } from "../types/index.js";
 import { Logger } from "../utils/logger.js";
 import { type AuthenticatedSocket } from "./auth.js";
 
 const logger = new Logger("SocketHandlers");
 
-export function setupSocketHandlers(io: SocketIOServer): void {
+export function setupSocketHandlers(io: Namespace): void {
   io.on("connection", (socket: AuthenticatedSocket) => {
     const userId = socket.data.userId || "unknown";
     logger.info("Client connected:", socket.id, "User:", userId);

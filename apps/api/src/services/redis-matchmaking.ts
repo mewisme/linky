@@ -1,4 +1,4 @@
-import { Server, type Socket } from "socket.io";
+import type { Namespace, Socket } from "socket.io";
 import { redisClient } from "../lib/redis/client.js";
 import { Logger } from "../utils/logger.js";
 import { getInterestTags } from "../lib/supabase/queries/user-details.js";
@@ -123,7 +123,7 @@ export class RedisMatchmakingService {
     }
   }
 
-  async tryMatch(io: Server): Promise<QueuedUser[] | null> {
+  async tryMatch(io: Namespace): Promise<QueuedUser[] | null> {
     const lockAcquired = await this.acquireLock();
     if (!lockAcquired) {
       return null;
@@ -159,7 +159,7 @@ export class RedisMatchmakingService {
           continue;
         }
 
-        const socket = io.sockets.sockets.get(socketId);
+        const socket = io.sockets.get(socketId);
         if (!socket || !socket.connected) {
           await this.dequeue(userId);
           continue;
@@ -282,8 +282,8 @@ export class RedisMatchmakingService {
         return null;
       }
 
-      const socketA = io.sockets.sockets.get(socketIdA);
-      const socketB = io.sockets.sockets.get(socketIdB);
+      const socketA = io.sockets.get(socketIdA);
+      const socketB = io.sockets.get(socketIdB);
 
       if (!socketA || !socketB || !socketA.connected || !socketB.connected) {
         return null;
@@ -321,7 +321,7 @@ export class RedisMatchmakingService {
     await this.dequeue(userId);
   }
 
-  async cleanupStaleSockets(io: Server): Promise<void> {
+  async cleanupStaleSockets(io: Namespace): Promise<void> {
     try {
       const queueMembers = await redisClient.zRange(QUEUE_KEY, 0, MAX_MATCHING_CANDIDATES - 1);
       const staleUserIds: string[] = [];
@@ -333,7 +333,7 @@ export class RedisMatchmakingService {
           continue;
         }
 
-        const socket = io.sockets.sockets.get(socketId);
+        const socket = io.sockets.get(socketId);
         if (!socket || !socket.connected) {
           staleUserIds.push(userId);
         }
@@ -350,7 +350,7 @@ export class RedisMatchmakingService {
     }
   }
 
-  async cleanupExpiredEntries(io: Server): Promise<void> {
+  async cleanupExpiredEntries(io: Namespace): Promise<void> {
     try {
       const queueMembers = await redisClient.zRangeWithScores(QUEUE_KEY, 0, MAX_MATCHING_CANDIDATES - 1);
       const now = Date.now();
@@ -368,7 +368,7 @@ export class RedisMatchmakingService {
           await this.dequeue(userId);
           const socketId = await redisClient.get(`match:socket:${userId}`);
           if (socketId) {
-            const socket = io.sockets.sockets.get(socketId);
+            const socket = io.sockets.get(socketId);
             if (socket && socket.connected) {
               socket.emit("queue-timeout", {
                 message: "Queue timeout. Please try again.",

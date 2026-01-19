@@ -1,26 +1,25 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { AdminAPI } from '@/types/admin.types';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { Button } from '@repo/ui/components/ui/button';
 import { IconRefresh } from '@tabler/icons-react';
-import type { Socket } from 'socket.io-client';
 import { UsersDataTable } from '@/components/data-table/users/data-table'
-import { createSocket } from '@/lib/socket/socket';
 import { logger } from '@/utils/logger';
 import { toast } from "@repo/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import { useUserContext } from '@/components/providers/user/user-provider';
+import { useSocket } from '@/hooks/socket/use-socket';
 
 export default function ListUsersPage() {
   const { state } = useUserContext()
+  const { adminSocket } = useSocket()
   const { play: playSound } = useSoundWithSettings()
   const [token, setToken] = useState<string | null>(null)
   const [data, setData] = useState<AdminAPI.User[]>([])
-  const socketRef = useRef<Socket | null>(null)
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -78,48 +77,29 @@ export default function ListUsersPage() {
   });
 
   useEffect(() => {
-    if (!token) return
-    let mounted = true
+    if (!adminSocket) return
 
-    const setupSocket = async () => {
-      try {
-        const socket = await createSocket(token)
-        socketRef.current = socket
-        socket.on('connect', () => logger.info('Admin socket connected'))
-        socket.on('presence_update', (update: { userId: string; state: string; updatedAt: number }) => {
-          if (!mounted) return
-          logger.info('Presence update received', update)
-          setData((prevData) => {
-            const newState = update.state as AdminAPI.PresenceState
-            const user = prevData.find(user => user.clerk_user_id === update.userId)
-            if (!user || user.presence === newState) {
-              return prevData
-            }
-            return prevData.map((item) =>
-              item.clerk_user_id === update.userId
-                ? { ...item, presence: newState }
-                : item
-            )
-          })
-        })
-        socket.on('disconnect', () => logger.info('Admin socket disconnected'))
-        socket.on('connect_error', (error) => logger.error('Admin socket connection error', error))
-      } catch (error) {
-        logger.error('Failed to setup admin socket', error)
-      }
+    const onPresenceUpdate = (update: { userId: string; state: string; updatedAt: number }) => {
+      logger.info('Presence update received', update)
+      setData((prevData) => {
+        const newState = update.state as AdminAPI.PresenceState
+        const user = prevData.find(user => user.clerk_user_id === update.userId)
+        if (!user || user.presence === newState) {
+          return prevData
+        }
+        return prevData.map((item) =>
+          item.clerk_user_id === update.userId
+            ? { ...item, presence: newState }
+            : item
+        )
+      })
     }
 
-    setupSocket()
-
+    adminSocket.on('presence_update', onPresenceUpdate)
     return () => {
-      mounted = false
-      if (socketRef.current) {
-        socketRef.current.removeAllListeners()
-        socketRef.current.disconnect()
-        socketRef.current = null
-      }
+      adminSocket.off('presence_update', onPresenceUpdate)
     }
-  }, [token])
+  }, [adminSocket])
 
   const tableCallbacks = {
     onSelectAllowState: (user: AdminAPI.User, allow: boolean) => {

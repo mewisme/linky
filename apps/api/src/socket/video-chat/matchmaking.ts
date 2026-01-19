@@ -1,4 +1,4 @@
-import { type Server as SocketIOServer } from "socket.io";
+import type { Namespace } from "socket.io";
 import { RedisMatchmakingService } from "../../services/redis-matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
 import { Logger } from "../../utils/logger.js";
@@ -9,16 +9,14 @@ import { getPublicUserInfo } from "../../lib/supabase/queries/user-details.js";
 import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
 
 export function setupMatchmakingInterval(
-  io: SocketIOServer,
+  io: Namespace,
   matchmaking: RedisMatchmakingService,
   rooms: RoomService
 ): void {
-  // Cleanup expired entries periodically
   setInterval(async () => {
     await matchmaking.cleanupExpiredEntries(io);
-  }, 30 * 1000); // Every 30 seconds
+  }, 30 * 1000);
 
-  // Main matching loop
   setInterval(async () => {
     const queueSize = await matchmaking.getQueueSize();
     if (queueSize >= 2) {
@@ -89,7 +87,7 @@ export function setupMatchmakingInterval(
 }
 
 export function setupRoomHeartbeat(
-  io: SocketIOServer,
+  io: Namespace,
   rooms: RoomService
 ): void {
   setInterval(() => {
@@ -103,8 +101,8 @@ export function setupRoomHeartbeat(
     let heartbeatFailed = 0;
 
     for (const room of allRooms) {
-      const user1Socket = io.sockets.sockets.get(room.user1) as AuthenticatedSocket | undefined;
-      const user2Socket = io.sockets.sockets.get(room.user2) as AuthenticatedSocket | undefined;
+      const user1Socket = io.sockets.get(room.user1) as AuthenticatedSocket | undefined;
+      const user2Socket = io.sockets.get(room.user2) as AuthenticatedSocket | undefined;
 
       const payload = {
         timestamp: Date.now(),

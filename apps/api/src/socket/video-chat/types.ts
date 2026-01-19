@@ -1,11 +1,10 @@
-import { type Server as SocketIOServer } from "socket.io";
+import type { Namespace } from "socket.io";
 import { RedisMatchmakingService } from "../../services/redis-matchmaking.js";
 import { RoomService } from "../../services/rooms.js";
 import { UserSessionService } from "../../services/user-sessions.js";
-import { type AuthenticatedSocket } from "../auth.js";
 
 export interface VideoChatContext {
-  io: SocketIOServer;
+  io: Namespace;
   matchmaking: RedisMatchmakingService;
   rooms: RoomService;
   userSessions: UserSessionService;

@@ -2,7 +2,6 @@ import "../styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@clerk/nextjs";
-import { ConsentManager } from "@/components/c15t/consent-manager";
 import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/realtime/mqtt-provider";
 import { Outfit } from "next/font/google";
@@ -88,7 +87,6 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ConsentManager>
               <UserProvider>
                 <SocketProvider>
                   <MqttProvider>
@@ -99,7 +97,6 @@ export default function RootLayout({
                   </MqttProvider>
                 </SocketProvider>
               </UserProvider>
-            </ConsentManager>
           </ThemeProvider>
           <Analytics />
           <SpeedInsights />

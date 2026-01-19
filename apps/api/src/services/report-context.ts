@@ -2,7 +2,7 @@ import { getCallHistoryById, getUserIdByClerkId } from "../lib/supabase/queries/
 
 import type { Json } from "../types/database.types.js";
 import { Logger } from "../utils/logger.js";
-import type { Server as SocketIOServer } from "socket.io";
+import type { Namespace } from "socket.io";
 import { getVideoChatContext } from "../socket/video-chat/context.js";
 
 const logger = new Logger("ReportContextService");
@@ -105,9 +105,9 @@ export async function collectReportContext(
           context.duration_seconds = durationSeconds > 0 ? durationSeconds : 0;
           context.reported_at_offset_seconds = durationSeconds > 0 ? durationSeconds : null;
 
-          const io: SocketIOServer = videoChatContext.io;
-          const user1Socket = io.sockets.sockets.get(room.user1);
-          const user2Socket = io.sockets.sockets.get(room.user2);
+          const io: Namespace = videoChatContext.io;
+          const user1Socket = io.sockets.get(room.user1);
+          const user2Socket = io.sockets.get(room.user2);
 
           if (user1Socket && (user1Socket as any).data?.userId) {
             const user1ClerkId = (user1Socket as any).data.userId;

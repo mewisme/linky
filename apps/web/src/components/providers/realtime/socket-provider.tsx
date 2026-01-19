@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Socket } from "socket.io-client";
-import { createSocket, updateToken } from "@/lib/socket/socket";
+import { createNamespaceSockets, updateToken } from "@/lib/socket/socket";
 import { socketHealthMonitor } from "@/lib/socket/socket-health";
 import { backendRestartDetector } from "@/lib/socket/backend-restart-detector";
 import { publishPresence } from "@/lib/mqtt/client";
@@ -22,6 +22,7 @@ type SocketEventCallback = {
 
 export interface SocketContextValue {
   socket: Socket | null;
+  adminSocket: Socket | null;
   connectionState: ConnectionState;
   socketId: string | null;
   isHealthy: boolean;
@@ -42,6 +43,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const { state: { getToken }, auth: { isLoaded } } = useUserContext();
   const socketRef = useRef<Socket | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const adminSocketRef = useRef<Socket | null>(null);
+  const [adminSocket, setAdminSocket] = useState<Socket | null>(null);
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const [socketId, setSocketId] = useState<string | null>(null);
   const socketIdRef = useRef<string | null>(null);
@@ -86,15 +89,29 @@ export function SocketProvider({ children }: SocketProviderProps) {
       const token = tokenOverride || await getToken();
       logger.info("[SocketProvider] Initializing global socket...");
       setConnectionState("connecting");
-      const newSocket = await createSocket(token);
-      socketRef.current = newSocket;
-      setSocket(newSocket);
+      const { chat: chatSocket, admin: adminNamespaceSocket } = await createNamespaceSockets(token);
+      socketRef.current = chatSocket;
+      setSocket(chatSocket);
+      adminSocketRef.current = adminNamespaceSocket;
+      setAdminSocket(adminNamespaceSocket);
 
-      newSocket.on("connect", () => {
-        logger.done("[SocketProvider] Socket connected:", newSocket.id);
-        const isBackendRestart = backendRestartDetector.recordConnect(newSocket);
+      adminNamespaceSocket.on("connect", () => {
+        logger.info("[SocketProvider] Admin namespace connected:", adminNamespaceSocket.id);
+      });
 
-        const newSocketId = newSocket.id || null;
+      adminNamespaceSocket.on("disconnect", () => {
+        logger.info("[SocketProvider] Admin namespace disconnected");
+      });
+
+      adminNamespaceSocket.on("connect_error", () => {
+        setAdminSocket(adminNamespaceSocket);
+      });
+
+      chatSocket.on("connect", () => {
+        logger.done("[SocketProvider] Socket connected:", chatSocket.id);
+        const isBackendRestart = backendRestartDetector.recordConnect(chatSocket);
+
+        const newSocketId = chatSocket.id || null;
         setSocketId(newSocketId);
         socketIdRef.current = newSocketId;
         setConnectionState("connected");
@@ -109,15 +126,15 @@ export function SocketProvider({ children }: SocketProviderProps) {
         } else if (resyncPendingRef.current && isInActiveCallRef.current) {
           logger.info("[SocketProvider] Reconnecting - requesting resync");
           resyncPendingRef.current = false;
-          if (newSocket.connected) {
-            newSocket.emit("resync-session", { timestamp: Date.now() });
+          if (chatSocket.connected) {
+            chatSocket.emit("resync-session", { timestamp: Date.now() });
           }
         }
 
         callbacksRef.current.forEach(cb => cb.onConnect?.());
       });
 
-      newSocket.on("disconnect", (reason) => {
+      chatSocket.on("disconnect", (reason) => {
         logger.info("[SocketProvider] Socket disconnected:", reason);
         const wasConnected = socketIdRef.current !== null;
         backendRestartDetector.recordDisconnect(reason, wasConnected);
@@ -132,38 +149,38 @@ export function SocketProvider({ children }: SocketProviderProps) {
         callbacksRef.current.forEach(cb => cb.onDisconnect?.(reason));
       });
 
-      newSocket.on("connect_error", (error) => {
+      chatSocket.on("connect_error", (error) => {
         logger.error("[SocketProvider] Connection error:", error);
         setConnectionState("disconnected");
         publishPresence('offline');
         callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
       });
 
-      newSocket.on("reconnect_attempt", () => {
+      chatSocket.on("reconnect_attempt", () => {
         logger.info("[SocketProvider] Reconnecting...");
         setConnectionState("reconnecting");
       });
 
-      newSocket.on("session-waiting", (data) => {
+      chatSocket.on("session-waiting", (data) => {
         logger.info("[SocketProvider] Session queued:", data.message, "Position:", data.positionInQueue);
         publishPresence('online');
         callbacksRef.current.forEach(cb => cb.onSessionWaiting?.(data));
       });
 
-      newSocket.on("session-activated", (data) => {
+      chatSocket.on("session-activated", (data) => {
         logger.info("[SocketProvider] Session activated:", data.message);
         publishPresence('available');
         callbacksRef.current.forEach(cb => cb.onSessionActivated?.(data));
       });
 
-      newSocket.on("room-ping", (data: { timestamp?: number; roomId?: string }) => {
+      chatSocket.on("room-ping", (data: { timestamp?: number; roomId?: string }) => {
         logger.info("[SocketProvider] Room heartbeat received:", data.roomId);
         socketHealthMonitor.markEventReceived();
       });
 
       socketHealthMonitor.stop();
       socketHealthMonitor.start({
-        socket: newSocket,
+        socket: chatSocket,
         isInActiveCall: () => isInActiveCallRef.current,
         getRoomInfo: () => null,
         onHalfDeadDetected: () => {
@@ -173,8 +190,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
         onResyncRequired: () => {
           logger.info("[SocketProvider] Resync required");
           resyncPendingRef.current = true;
-          if (newSocket.connected) {
-            newSocket.emit("resync-session", { timestamp: Date.now() });
+          if (chatSocket.connected) {
+            chatSocket.emit("resync-session", { timestamp: Date.now() });
           }
         },
         onForcedTeardown: () => {
@@ -219,6 +236,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
         socketRef.current = null;
         setSocket(null);
       }
+
+      if (adminSocketRef.current) {
+        adminSocketRef.current.removeAllListeners();
+        adminSocketRef.current.disconnect();
+        adminSocketRef.current = null;
+        setAdminSocket(null);
+      }
     };
   }, [initializeSocket, isLoaded]);
 
@@ -230,6 +254,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
 
     updateToken(socketRef.current, token);
+    if (adminSocketRef.current) {
+      updateToken(adminSocketRef.current, token);
+    }
     logger.info("[SocketProvider] Token updated");
   }, [initializeSocket]);
 
@@ -243,6 +270,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   const value: SocketContextValue = {
     socket,
+    adminSocket,
     connectionState,
     socketId,
     isHealthy,

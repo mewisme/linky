@@ -34,6 +34,7 @@ export function UserSettingsProvider({ children, store }: { children: ReactNode;
       store.setUserSettings(updated);
       return updated;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [store.setUserSettings, token],
   );
 

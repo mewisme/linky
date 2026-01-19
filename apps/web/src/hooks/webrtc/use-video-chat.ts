@@ -628,6 +628,7 @@ export function useVideoChat(): UseVideoChatReturn {
       onFavoriteRemovedSelf: () => {
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState, resetRuntimeState, state.connectionStatus, startReconnecting, completeReconnection]
   );
 

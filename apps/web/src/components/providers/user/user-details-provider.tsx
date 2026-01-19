@@ -34,6 +34,7 @@ export function UserDetailsProvider({ children, store }: { children: ReactNode; 
       store.setUserDetails(updated);
       return updated;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [store.setUserDetails, token],
   );
 

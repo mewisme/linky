@@ -3,6 +3,7 @@ import { createClerkClient, verifyToken } from "@clerk/backend";
 import type { Socket } from "socket.io";
 import { config } from "../config/index.js";
 import { Logger } from "../utils/logger.js";
+import { checkIfUserIsAdmin } from "../lib/admin-cache.js";
 
 const logger = new Logger("SocketAuth");
 
@@ -66,6 +67,27 @@ export async function socketAuthMiddleware(
   } catch (error) {
     logger.error("Socket authentication failed:", error instanceof Error ? error.message : "Unknown error");
     next(new Error("Authentication failed"));
+  }
+}
+
+export async function adminNamespaceAuthMiddleware(
+  socket: Socket,
+  next: (err?: Error) => void
+): Promise<void> {
+  const clerkUserId = (socket.data as { userId?: string } | undefined)?.userId;
+  if (!clerkUserId) {
+    return next(new Error("Authentication required"));
+  }
+
+  try {
+    const isAdmin = await checkIfUserIsAdmin(clerkUserId);
+    if (!isAdmin) {
+      return next(new Error("Admin access required"));
+    }
+    next();
+  } catch (error) {
+    logger.error("Admin namespace auth failed:", error instanceof Error ? error.message : "Unknown error");
+    next(new Error("Authorization failed"));
   }
 }
 

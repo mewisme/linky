@@ -1,21 +1,56 @@
-import { Socket, io } from "socket.io-client";
+import { Manager, Socket } from "socket.io-client";
 
 import type { UsersAPI } from "@/types/users.types";
 import { logger } from "@/utils/logger";
 
-export async function createSocket(token?: string | null): Promise<Socket> {
-  return io(process.env.NEXT_PUBLIC_API_URL, {
+export interface NamespaceSockets {
+  chat: Socket;
+  admin: Socket;
+}
+
+let manager: Manager | null = null;
+let managerBaseUrl: string | null = null;
+
+function getSocketManager(baseUrl: string): Manager {
+  if (manager && managerBaseUrl === baseUrl) {
+    return manager;
+  }
+
+  manager?.removeAllListeners();
+
+  managerBaseUrl = baseUrl;
+  manager = new Manager(baseUrl, {
+    path: "/ws",
     transports: ["websocket"],
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-    auth: {
-      token,
-    },
-    query: {
-      token,
-    },
   });
+
+  return manager;
+}
+
+export async function createNamespaceSockets(token?: string | null): Promise<NamespaceSockets> {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_API_URL is not set");
+  }
+
+  const socketManager = getSocketManager(baseUrl);
+
+  const chat = socketManager.socket("/chat", {
+    auth: { token },
+  });
+
+  const admin = socketManager.socket("/admin", {
+    auth: { token },
+  });
+
+  return { chat, admin };
+}
+
+export async function createSocket(token?: string | null): Promise<Socket> {
+  return (await createNamespaceSockets(token)).chat;
 }
 
 export function updateToken(socket: Socket, token: string | null): void {

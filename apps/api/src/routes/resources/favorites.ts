@@ -9,12 +9,12 @@ import {
   getFavoriteCreationDate,
   decrementFavoriteLimit,
   getFavoritesWithStats,
-} from "../../lib/supabase/queries/favorites.js";
-import { getUserIdByClerkId } from "../../lib/supabase/queries/call-history.js";
+} from "../../infra/supabase/repositories/favorites.js";
+import { getUserIdByClerkId } from "../../infra/supabase/repositories/call-history.js";
 import { Logger } from "../../utils/logger.js";
-import { getVideoChatContext } from "../../socket/video-chat/context.js";
-import { supabase } from "../../lib/supabase/client.js";
-import { redisClient } from "../../lib/redis/client.js";
+import { getVideoChatContext } from "../../domains/video-chat/socket/video-chat.socket.js";
+import { supabase } from "../../infra/supabase/client.js";
+import { redisClient } from "../../infra/redis/client.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("ResourcesFavoritesRoute");

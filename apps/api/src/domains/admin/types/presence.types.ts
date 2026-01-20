@@ -1,0 +1,2 @@
+export type PresenceState = string;
+

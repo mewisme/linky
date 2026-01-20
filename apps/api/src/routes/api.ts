@@ -1,11 +1,11 @@
 import { Router, type Router as ExpressRouter } from "express";
 import callHistoryRouter from "./resources/call-history.js";
-import reportsRouter from "./resources/reports.js";
+import reportsRouter from "../domains/reports/http/reports.route.js";
 import favoritesRouter from "./resources/favorites.js";
-import usersRouter from "./users/users.js";
-import userDetailsRouter from "./users/user-details.js";
-import userSettingsRouter from "./users/user-settings.js";
-import videoChatRouter from "./video-chat/end-call-unload.js";
+import usersRouter from "../domains/user/http/users.route.js";
+import userDetailsRouter from "../domains/user/http/user-details.route.js";
+import userSettingsRouter from "../domains/user/http/user-settings.route.js";
+import videoChatRouter from "../domains/video-chat/http/end-call-unload.route.js";
 
 const router: ExpressRouter = Router();
 

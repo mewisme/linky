@@ -2,9 +2,9 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 import { Webhook } from "svix";
 import { config } from "../config/index.js";
 import { Logger } from "../utils/logger.js";
-import type { ClerkWebhookEvent } from "../types/webhook.js";
-import { isUserCreatedEvent, isUserUpdatedEvent } from "../types/webhook.js";
-import { supabase } from "../lib/supabase/client.js";
+import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
+import { isUserCreatedEvent, isUserUpdatedEvent } from "../types/webhook/webhook.types.js";
+import { supabase } from "../infra/supabase/client.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("WebhookRoute");

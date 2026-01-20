@@ -1,5 +1,5 @@
 import type { Namespace } from "socket.io";
-import { type MessageData, type RoomData } from "../types/index.js";
+import { type MessageData, type RoomData } from "../types/socket/socket-event.types.js";
 import { Logger } from "../utils/logger.js";
 import { type AuthenticatedSocket } from "./auth.js";
 

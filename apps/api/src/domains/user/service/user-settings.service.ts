@@ -1,0 +1,39 @@
+import type { UserSettingsUpdate } from "../types/user-settings.types.js";
+import {
+  createUserSettings,
+  getUserSettingsByUserId,
+  patchUserSettings,
+  updateUserSettings,
+} from "../../../infra/supabase/repositories/user-settings.js";
+import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+
+type UserSettingsUpdateData = Omit<UserSettingsUpdate, "user_id">;
+
+export async function getUserIdByClerkUserId(clerkUserId: string): Promise<string | null> {
+  return getUserIdByClerkId(clerkUserId);
+}
+
+export async function fetchUserSettings(userId: string) {
+  return getUserSettingsByUserId(userId);
+}
+
+export async function putUserSettings(userId: string, updateData: UserSettingsUpdateData) {
+  const existing = await getUserSettingsByUserId(userId);
+
+  if (!existing) {
+    return createUserSettings(userId, updateData);
+  }
+
+  return updateUserSettings(userId, updateData);
+}
+
+export async function patchUserSettingsForUser(userId: string, updateData: Partial<UserSettingsUpdateData>) {
+  const existing = await getUserSettingsByUserId(userId);
+
+  if (!existing) {
+    return createUserSettings(userId, updateData);
+  }
+
+  return patchUserSettings(userId, updateData);
+}
+

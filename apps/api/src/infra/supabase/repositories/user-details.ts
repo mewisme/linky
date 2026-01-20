@@ -1,0 +1,290 @@
+import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
+
+import { Logger } from "../../../utils/logger.js";
+import { getInterestTagsByIds } from "./interest-tags.js";
+import { supabase } from "../client.js";
+
+type UserDetailsInsert = TablesInsert<"user_details">;
+type UserDetailsUpdate = TablesUpdate<"user_details">;
+
+const logger = new Logger("SupabaseUserDetailsQueries");
+
+export async function getUserDetailsByUserId(userId: string) {
+  const { data, error } = await supabase
+    .from("user_details")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    logger.error("Error fetching user details:", error.message);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getUserDetailsWithTags(userId: string) {
+  const { data, error } = await supabase
+    .from("user_details_expanded")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    logger.error("Error fetching user details with tags:", error.message);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function createUserDetails(userId: string, data: Omit<UserDetailsInsert, "user_id">) {
+  const { data: created, error } = await supabase
+    .from("user_details")
+    .insert({
+      ...data,
+      user_id: userId,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error creating user details:", error.message);
+    throw error;
+  }
+
+  return created;
+}
+
+export async function updateUserDetails(userId: string, data: UserDetailsUpdate) {
+  const existing = await getUserDetailsByUserId(userId);
+
+  if (!existing) {
+    throw new Error("User details not found");
+  }
+
+  const { data: updated, error } = await supabase
+    .from("user_details")
+    .update(data)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error updating user details:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+export async function patchUserDetails(userId: string, data: Partial<UserDetailsUpdate>) {
+  const existing = await getUserDetailsByUserId(userId);
+
+  if (!existing) {
+    throw new Error("User details not found");
+  }
+
+  const { data: updated, error } = await supabase
+    .from("user_details")
+    .update(data)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error patching user details:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+export async function getUserWithDetails(userId: string) {
+  const { data, error } = await supabase
+    .from("users_with_details")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    logger.error("Error fetching user with details:", error.message);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getPublicUserInfo(userId: string) {
+  const { data, error } = await supabase
+    .from("public_user_info")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    logger.error("Error fetching public user info:", error.message);
+    throw error;
+  }
+
+  return data;
+}
+
+export async function addInterestTags(userId: string, tagIds: string[]) {
+  if (!tagIds || tagIds.length === 0) {
+    throw new Error("Tag IDs array cannot be empty");
+  }
+
+  const validTags = await getInterestTagsByIds(tagIds);
+  if (validTags.length !== tagIds.length) {
+    const foundIds = validTags.map((tag) => tag.id);
+    const missingIds = tagIds.filter((id) => !foundIds.includes(id));
+    throw new Error(
+      `Invalid or inactive tag IDs: ${missingIds.join(", ")}`
+    );
+  }
+
+  const existing = await getUserDetailsByUserId(userId);
+  if (!existing) {
+    throw new Error("User details not found");
+  }
+
+  const currentTags = existing.interest_tags || [];
+
+  const updatedTags = Array.from(
+    new Set([...currentTags, ...tagIds])
+  );
+
+  const { data: updated, error } = await supabase
+    .from("user_details")
+    .update({ interest_tags: updatedTags })
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error adding interest tags:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+export async function removeInterestTags(userId: string, tagIds: string[]) {
+  if (!tagIds || tagIds.length === 0) {
+    throw new Error("Tag IDs array cannot be empty");
+  }
+
+  const existing = await getUserDetailsByUserId(userId);
+  if (!existing) {
+    throw new Error("User details not found");
+  }
+
+  const currentTags = existing.interest_tags || [];
+
+  const updatedTags = currentTags.filter((tagId) => !tagIds.includes(tagId));
+
+  const { data: updated, error } = await supabase
+    .from("user_details")
+    .update({ interest_tags: updatedTags.length > 0 ? updatedTags : null })
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error removing interest tags:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+export async function replaceInterestTags(userId: string, tagIds: string[]) {
+  const existing = await getUserDetailsByUserId(userId);
+  if (!existing) {
+    throw new Error("User details not found");
+  }
+
+  if (tagIds.length === 0) {
+    return await clearInterestTags(userId);
+  }
+
+  const validTags = await getInterestTagsByIds(tagIds);
+  if (validTags.length !== tagIds.length) {
+    const foundIds = validTags.map((tag) => tag.id);
+    const missingIds = tagIds.filter((id) => !foundIds.includes(id));
+    throw new Error(
+      `Invalid or inactive tag IDs: ${missingIds.join(", ")}`
+    );
+  }
+
+  const uniqueTags = Array.from(new Set(tagIds));
+
+  const { data: updated, error } = await supabase
+    .from("user_details")
+    .update({ interest_tags: uniqueTags })
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error replacing interest tags:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+export async function clearInterestTags(userId: string) {
+  const existing = await getUserDetailsByUserId(userId);
+  if (!existing) {
+    throw new Error("User details not found");
+  }
+
+  const { data: updated, error } = await supabase
+    .from("user_details")
+    .update({ interest_tags: null })
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    logger.error("Error clearing interest tags:", error.message);
+    throw error;
+  }
+
+  return updated;
+}
+
+export async function getInterestTags(userId: string) {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  const { data, error } = await supabase
+    .from("user_details")
+    .select("interest_tags")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    logger.error("Error fetching interest tags:", error.message);
+    throw error;
+  }
+
+  return data?.interest_tags || [];
+}
+

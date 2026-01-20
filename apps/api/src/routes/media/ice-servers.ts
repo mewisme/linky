@@ -1,17 +1,10 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "../../config/index.js";
 import { Logger } from "../../utils/logger.js";
+import type { CloudflareTurnResponse } from "../../domains/video-chat/types/call.types.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("MediaIceServersRoute");
-
-interface CloudflareTurnResponse {
-  iceServers: Array<{
-    urls: string[];
-    username: string;
-    credential: string;
-  }>;
-}
 
 router.get("/ice-servers", async (_req: Request, res: Response) => {
   logger.info("ICE servers request received");

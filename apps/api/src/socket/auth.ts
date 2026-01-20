@@ -1,22 +1,16 @@
 import { createClerkClient, verifyToken } from "@clerk/backend";
 
-import type { Socket } from "socket.io";
-import { config } from "../config/index.js";
+import type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
 import { Logger } from "../utils/logger.js";
-import { checkIfUserIsAdmin } from "../lib/admin-cache.js";
+import type { Socket } from "socket.io";
+import { checkIfUserIsAdmin } from "../infra/admin-cache/index.js";
+import { config } from "../config/index.js";
+
+export type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
 
 const logger = new Logger("SocketAuth");
 
 const clerk = createClerkClient({ secretKey: config.clerkSecretKey });
-
-export interface AuthenticatedSocket extends Socket {
-  data: {
-    userId?: string;
-    userName?: string;
-    userImageUrl?: string;
-    auth?: Awaited<ReturnType<typeof verifyToken>>;
-  };
-}
 
 export async function socketAuthMiddleware(
   socket: Socket,

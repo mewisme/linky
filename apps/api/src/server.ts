@@ -5,8 +5,8 @@ import { setupRoutes } from "./routes/index.js";
 import { createSocketServer } from "./socket/index.js";
 import { config } from "./config/index.js";
 import { Logger } from "./utils/logger.js";
-import { connectRedis } from "./lib/redis/client.js";
-import { initializeMqttClient, attachSocketIO } from "./lib/mqtt/client.js";
+import { connectRedis } from "./infra/redis/client.js";
+import { initializeMqttClient, attachSocketIO } from "./infra/mqtt/client.js";
 
 const logger = new Logger("Server");
 

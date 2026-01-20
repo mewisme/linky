@@ -9,7 +9,8 @@ import changelogsRouter from "./resources/changelogs.js";
 import iceServersRouter from "./media/ice-servers.js";
 import s3Router from "./media/s3.js";
 import webhookRouter from "./webhook.js";
-import adminRouter from "./admin.js";
+import { createAdminRouter } from "../domains/admin/index.js";
+import reportsAdminRouter from "../domains/reports/http/admin-reports.route.js";
 import { clerkMiddleware } from "../middleware/clerk.js";
 import { adminMiddleware } from "../middleware/admin.js";
 import { config } from "../config/index.js";
@@ -55,6 +56,6 @@ export function setupRoutes(app: Express): void {
 
   app.use("/api", iceServersRouter);
 
-  app.use("/api/v1/admin", adminMiddleware, adminRouter);
+  app.use("/api/v1/admin", adminMiddleware, createAdminRouter({ reportsRouter: reportsAdminRouter }));
 }
 

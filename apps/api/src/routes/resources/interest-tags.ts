@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { Logger } from "../../utils/logger.js";
-import { getInterestTags, getInterestTagById } from "../../lib/supabase/queries/interest-tags.js";
+import { getInterestTags, getInterestTagById } from "../../infra/supabase/repositories/interest-tags.js";
 
 const router: ExpressRouter = Router();
 const logger = new Logger("ResourcesInterestTagsRoute");

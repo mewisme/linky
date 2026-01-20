@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/media/ice-servers:", error);
+    console.error("Error in /api/media/ice-servers:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch ICE servers" },
       { status: 500 }

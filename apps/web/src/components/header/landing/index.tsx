@@ -7,6 +7,7 @@ import { motion, type Variants } from "motion/react"
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { ModeToggle } from "../mode-toggle";
 import { useUserContext } from "@/components/providers/user/user-provider";
+import { Activity } from "react";
 
 const UserButton = dynamic(() => import("../../auth/user-button").then(mod => ({ default: mod.UserButton })), {
   ssr: false,
@@ -85,7 +86,9 @@ export const Header = ({ transition }: { transition: boolean }) => {
           className="absolute z-110 flex items-center gap-x-4"
         >
           <ModeToggle />
-          {isLoaded && isSignedIn && <UserButton />}
+          <Activity mode={isLoaded && isSignedIn ? 'visible' : 'hidden'}>
+            <UserButton />
+          </Activity>
         </motion.div>
       </div>
     </motion.div>

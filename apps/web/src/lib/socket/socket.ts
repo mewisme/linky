@@ -1,7 +1,6 @@
 import { Manager, Socket } from "socket.io-client";
 
 import type { UsersAPI } from "@/types/users.types";
-import { logger } from "@/utils/logger";
 
 export interface NamespaceSockets {
   chat: Socket;
@@ -55,7 +54,7 @@ export async function createSocket(token?: string | null): Promise<Socket> {
 
 export function updateToken(socket: Socket, token: string | null): void {
   if (!token) {
-    logger.warn("Attempted to update socket with null token");
+    console.warn("Attempted to update socket with null token");
     return;
   }
 
@@ -70,7 +69,7 @@ export function updateToken(socket: Socket, token: string | null): void {
   }
 
   if (socket.connected) {
-    logger.info("Token updated, reconnecting socket with new token...");
+    console.info("Token updated, reconnecting socket with new token...");
     socket.once("disconnect", () => {
       socket.connect();
     });

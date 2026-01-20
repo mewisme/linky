@@ -80,7 +80,7 @@ export default function ListUsersPage() {
     if (!adminSocket) return
 
     const onPresenceUpdate = (update: { userId: string; state: string; updatedAt: number }) => {
-      logger.info('Presence update received', update)
+      console.info('Presence update received', update)
       setData((prevData) => {
         const newState = update.state as AdminAPI.PresenceState
         const user = prevData.find(user => user.clerk_user_id === update.userId)

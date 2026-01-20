@@ -2,7 +2,6 @@
 
 import { FavoritesDataTable } from "@/components/data-table/favorites/data-table";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { logger } from "@/utils/logger";
 import { toast } from "@repo/ui/components/ui/sonner";
 import { useState } from "react";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -24,7 +23,7 @@ export function FavoritesPageClient({ initialData }: FavoritesPageClientProps) {
       }
 
       if (!favorite.favorite_user_id) {
-        logger.error("Missing favorite_user_id:", favorite);
+        console.error("Missing favorite_user_id:", favorite);
         toast.error("Invalid favorite data");
         return;
       }
@@ -51,7 +50,7 @@ export function FavoritesPageClient({ initialData }: FavoritesPageClientProps) {
         toast.success("Removed from favorites");
       }
     } catch (error) {
-      logger.error("Failed to remove favorite:", error);
+      console.error("Failed to remove favorite:", error);
       toast.error("Failed to remove favorite");
     }
   };

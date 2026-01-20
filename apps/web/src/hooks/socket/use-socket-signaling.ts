@@ -6,7 +6,7 @@ import { type SignalData } from "@/lib/socket/socket";
 import { socketHealthMonitor } from "@/lib/socket/socket-health";
 import type { Socket } from "socket.io-client";
 import type { UsersAPI } from "@/types/users.types";
-import { logger } from "@/utils/logger";
+
 import { useSocket } from "./use-socket";
 
 export interface SocketCallbacks {
@@ -71,13 +71,13 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const registerSocketListeners = useCallback((socket: Socket, callbacks: SocketCallbacks) => {
     socket.on("joined-queue", (data) => {
-      logger.done("Joined queue:", data);
+      console.log("Joined queue:", data);
       publishPresence('matching');
       callbacks.onJoinedQueue(data);
     });
 
     socket.on("matched", (data) => {
-      logger.done("Matched with peer:", data.peerId, "Room:", data.roomId, "Is offerer:", data.isOfferer);
+      console.log("Matched with peer:", data.peerId, "Room:", data.roomId, "Is offerer:", data.isOfferer);
       publishPresence('in_call');
       isInActiveCallRef.current = true;
       socketHealthMonitor.markEventReceived();
@@ -91,7 +91,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("peer-left", (data) => {
-      logger.info("Peer left:", data.message);
+      console.info("Peer left:", data.message);
       publishPresence('matching');
       isInActiveCallRef.current = false;
       socketHealthMonitor.markEventReceived();
@@ -99,19 +99,19 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("peer-skipped", (data) => {
-      logger.info("Peer skipped:", data.message, "Queue size:", data.queueSize);
+      console.info("Peer skipped:", data.message, "Queue size:", data.queueSize);
       publishPresence('matching');
       callbacks.onPeerSkipped(data);
     });
 
     socket.on("skipped", (data) => {
-      logger.info("Skipped:", data.message, "Queue size:", data.queueSize);
+      console.info("Skipped:", data.message, "Queue size:", data.queueSize);
       publishPresence('matching');
       callbacks.onSkipped(data);
     });
 
     socket.on("end-call", (data) => {
-      logger.info("End call received from peer:", data.message);
+      console.info("End call received from peer:", data.message);
       publishPresence('available');
       isInActiveCallRef.current = false;
       socketHealthMonitor.markEventReceived();
@@ -119,48 +119,48 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("chat-message", (data) => {
-      logger.info("Chat message received:", data.message);
+      console.info("Chat message received:", data.message);
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onChatMessage(data);
     });
 
     socket.on("mute-toggle", (data) => {
-      logger.info("Peer mute state changed:", data.muted);
+      console.info("Peer mute state changed:", data.muted);
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onMuteToggle(data);
     });
 
     socket.on("queue-timeout", (data) => {
-      logger.info("Queue timeout:", data.message);
+      console.info("Queue timeout:", data.message);
       publishPresence('available');
       callbacks.onQueueTimeout(data);
     });
 
     socket.on("error", (data) => {
-      logger.error("Socket error:", data.message);
+      console.error("Socket error:", data.message);
       publishPresence('offline');
       callbacks.onError(data);
     });
 
     socket.on("favorite:added", (data) => {
-      logger.info("Added to favorites by:", data.from_user_name);
+      console.info("Added to favorites by:", data.from_user_name);
       callbacks.onFavoriteAdded(data);
     });
 
     socket.on("favorite:added:self", (data) => {
-      logger.info("Favorite added successfully:", data.favorite_user_id);
+      console.info("Favorite added successfully:", data.favorite_user_id);
       callbacks.onFavoriteAddedSelf(data);
     });
 
     socket.on("favorite:removed", (data) => {
-      logger.info("Removed from favorites by:", data.from_user_name);
+      console.info("Removed from favorites by:", data.from_user_name);
       callbacks.onFavoriteRemoved(data);
     });
 
     socket.on("favorite:removed:self", (data) => {
-      logger.info("Favorite removed successfully:", data.favorite_user_id);
+      console.info("Favorite removed successfully:", data.favorite_user_id);
       callbacks.onFavoriteRemovedSelf(data);
     });
   }, []);
@@ -168,13 +168,13 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const initializeSocket = useCallback(
     async (callbacks: SocketCallbacks): Promise<void> => {
       if (!socketRef.current) {
-        logger.error("Socket not available from provider");
+        console.error("Socket not available from provider");
         throw new Error("Socket not available");
       }
 
       const socket = socketRef.current;
 
-      logger.info("Initializing socket signaling listeners...");
+      console.info("Initializing socket signaling listeners...");
       socket.removeAllListeners("joined-queue");
       socket.removeAllListeners("matched");
       socket.removeAllListeners("signal");
@@ -209,11 +209,11 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const sendSignal = useCallback((data: SignalData) => {
     if (socketRef.current) {
       if (!socketHealthMonitor.isHealthy()) {
-        logger.warn("[SocketHealth] Socket unhealthy, deferring signal send");
+        console.warn("[SocketHealth] Socket unhealthy, deferring signal send");
         if (socketRef.current.connected) {
           socketRef.current.emit("signal", data);
         } else {
-          logger.error("[SocketHealth] Cannot send signal - socket disconnected");
+          console.error("[SocketHealth] Cannot send signal - socket disconnected");
         }
       } else {
         socketRef.current.emit("signal", data);
@@ -224,13 +224,13 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const joinQueue = useCallback(() => {
     if (socketRef.current) {
       if (socketRef.current.connected) {
-        logger.done("Socket already connected, joining queue...");
+        console.log("Socket already connected, joining queue...");
         socketRef.current.emit("join");
         publishPresence('matching');
       } else {
-        logger.load("Waiting for socket connection before joining queue...");
+        console.log("Waiting for socket connection before joining queue...");
         socketRef.current.once("connect", () => {
-          logger.done("Socket connected, joining queue...");
+          console.log("Socket connected, joining queue...");
           socketRef.current!.emit("join");
           publishPresence('matching');
         });
@@ -263,7 +263,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       if (socketHealthMonitor.isHealthy() || socketRef.current.connected) {
         sendEndCallWithRetry();
       } else {
-        logger.warn("[SocketHealth] Socket unhealthy, queuing end-call for retry");
+        console.warn("[SocketHealth] Socket unhealthy, queuing end-call for retry");
         sendEndCallWithRetry();
       }
     }
@@ -294,7 +294,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         peer_user_id: peerUserId,
         user_name: userName,
       });
-      logger.info("Favorite notification sent to server:", action, "for peer:", peerUserId);
+      console.info("Favorite notification sent to server:", action, "for peer:", peerUserId);
     }
   }, []);
 
@@ -339,7 +339,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const requestResync = useCallback(() => {
     if (socketRef.current && socketRef.current.connected) {
-      logger.info("[SocketResync] Explicit resync requested");
+      console.info("[SocketResync] Explicit resync requested");
       resyncPendingRef.current = true;
       socketRef.current.emit("resync-session", {
         timestamp: Date.now(),

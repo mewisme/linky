@@ -2,7 +2,7 @@ import { User, UserDetails, UserSettings } from "@/stores/user-store";
 
 import { UsersAPI } from "@/types";
 import axios from "axios";
-import { logger } from "@/utils/logger";
+
 
 interface FetchUserDataParams {
   isLoaded: boolean;
@@ -32,7 +32,7 @@ export async function fetchUserData(params: FetchUserDataParams) {
     });
     setUser(userData.data);
   } catch (error) {
-    logger.error('Failed to fetch user data:', error);
+    console.error('Failed to fetch user data:', error);
     setError(error instanceof Error ? error.message : 'Failed to fetch user data');
     setUser(null);
   }
@@ -62,7 +62,7 @@ export async function fetchUserDetails(params: FetchUserDetailsParams) {
     });
     setUserDetails(userDetailsData.data);
   } catch (error) {
-    logger.error('Failed to fetch user details:', error);
+    console.error('Failed to fetch user details:', error);
     setError(error instanceof Error ? error.message : 'Failed to fetch user details');
     setUserDetails(null);
   }
@@ -93,7 +93,7 @@ export async function fetchUserSettings(params: FetchUserSettingsParams) {
     });
     setUserSettings(userSettingsData.data);
   } catch (error) {
-    logger.error('Failed to fetch user settings:', error);
+    console.error('Failed to fetch user settings:', error);
     setError(error instanceof Error ? error.message : 'Failed to fetch user settings');
     setUserSettings(null);
   }
@@ -120,7 +120,7 @@ export async function updateUserCountry(params: UpdateUserCountryParams) {
     });
     return response.data;
   } catch (error) {
-    logger.error('Failed to update user country:', error);
+    console.error('Failed to update user country:', error);
     throw error;
   }
 }
@@ -142,7 +142,7 @@ export async function updateUserDetails(params: UpdateUserDetailsParams) {
     });
     return response.data;
   } catch (error) {
-    logger.error('Failed to update user details:', error);
+    console.error('Failed to update user details:', error);
     throw error;
   }
 }
@@ -164,7 +164,7 @@ export async function updateUserSettings(params: UpdateUserSettingsParams) {
     });
     return response.data;
   } catch (error) {
-    logger.error('Failed to update user settings:', error);
+    console.error('Failed to update user settings:', error);
     throw error;
   }
 }

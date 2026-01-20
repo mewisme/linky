@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
-import { logger } from "@/utils/logger";
 
 /**
  * DELETE /api/users/user-details/me/interest-tags/all
@@ -36,7 +35,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in DELETE /api/users/user-details/me/interest-tags/all:", error);
+    console.error("Error in DELETE /api/users/user-details/me/interest-tags/all:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to clear interest tags" },
       { status: 500 }

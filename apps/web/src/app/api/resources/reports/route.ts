@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { logger } from "@/utils/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    logger.error("Error in POST /api/resources/reports:", error);
+    console.error("Error in POST /api/resources/reports:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to create report" },
       { status: 500 }
@@ -78,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in GET /api/resources/reports:", error);
+    console.error("Error in GET /api/resources/reports:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch reports" },
       { status: 500 }

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/media/s3/presigned/upload:", error);
+    console.error("Error in /api/media/s3/presigned/upload:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to get upload URL" },
       { status: 500 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Activity, useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
 import type { ChatMessage, ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import {
@@ -14,7 +15,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@repo/ui/components/ui/sheet";
-import { useEffect, useRef, useState } from "react";
 
 import { AnimateIcon } from "@repo/ui/components/animate-ui/icons/icon";
 import { Button } from "@repo/ui/components/ui/button";
@@ -136,7 +136,9 @@ function ChatContent({
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  !msg.isOwn && <div className="size-8 shrink-0" />
+                  <Activity mode={!msg.isOwn ? 'visible' : 'hidden'}>
+                    <div className="size-8 shrink-0" />
+                  </Activity>
                 )}
 
                 <div

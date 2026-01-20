@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(
   request: NextRequest,
@@ -44,7 +43,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in GET /api/admin/reports/[id]:", error);
+    console.error("Error in GET /api/admin/reports/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch report" },
       { status: 500 }
@@ -93,7 +92,7 @@ export async function PATCH(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in PATCH /api/admin/reports/[id]:", error);
+    console.error("Error in PATCH /api/admin/reports/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update report" },
       { status: 500 }

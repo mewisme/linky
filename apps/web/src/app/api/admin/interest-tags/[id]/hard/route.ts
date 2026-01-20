@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
-import { logger } from "@/utils/logger";
 
 /**
  * DELETE /api/admin/interest-tags/[id]/hard
@@ -49,7 +48,7 @@ export async function DELETE(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in DELETE /api/admin/interest-tags/[id]/hard:", error);
+    console.error("Error in DELETE /api/admin/interest-tags/[id]/hard:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to hard delete interest tag" },
       { status: 500 }

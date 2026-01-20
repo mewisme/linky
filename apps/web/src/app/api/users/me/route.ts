@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
-import { logger } from "@/utils/logger";
 import { headers as nextHeaders } from "next/headers";
 
 export async function GET(request: NextRequest) {
@@ -65,16 +64,16 @@ export async function GET(request: NextRequest) {
           const updatedData = await updateResponse.json() as UsersAPI.UpdateCountry.Response;
           return NextResponse.json(updatedData);
         } else {
-          logger.error("Failed to update country:", await updateResponse.json());
+          console.error("Failed to update country:", await updateResponse.json());
         }
       } catch (updateError) {
-        logger.error("Error updating country:", updateError);
+        console.error("Error updating country:", updateError);
       }
     }
 
     return NextResponse.json(userData);
   } catch (error) {
-    logger.error("Error in /api/users/me:", error);
+    console.error("Error in /api/users/me:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch user data" },
       { status: 500 }

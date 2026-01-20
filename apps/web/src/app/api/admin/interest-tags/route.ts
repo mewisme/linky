@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
-import { logger } from "@/utils/logger";
 
 /**
  * GET /api/admin/interest-tags
@@ -56,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in GET /api/admin/interest-tags:", error);
+    console.error("Error in GET /api/admin/interest-tags:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch interest tags" },
       { status: 500 }
@@ -98,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    logger.error("Error in POST /api/admin/interest-tags:", error);
+    console.error("Error in POST /api/admin/interest-tags:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to create interest tag" },
       { status: 500 }

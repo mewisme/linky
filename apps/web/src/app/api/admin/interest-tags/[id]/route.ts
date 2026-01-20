@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
-import { logger } from "@/utils/logger";
 
 /**
  * GET /api/admin/interest-tags/[id]
@@ -48,7 +47,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in GET /api/admin/interest-tags/[id]:", error);
+    console.error("Error in GET /api/admin/interest-tags/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch interest tag" },
       { status: 500 }
@@ -102,7 +101,7 @@ export async function PUT(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in PUT /api/admin/interest-tags/[id]:", error);
+    console.error("Error in PUT /api/admin/interest-tags/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update interest tag" },
       { status: 500 }
@@ -156,7 +155,7 @@ export async function PATCH(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in PATCH /api/admin/interest-tags/[id]:", error);
+    console.error("Error in PATCH /api/admin/interest-tags/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update interest tag" },
       { status: 500 }
@@ -208,7 +207,7 @@ export async function DELETE(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in DELETE /api/admin/interest-tags/[id]:", error);
+    console.error("Error in DELETE /api/admin/interest-tags/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to delete interest tag" },
       { status: 500 }

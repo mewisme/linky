@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(
   request: NextRequest,
@@ -48,7 +47,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/media/s3/multipart/[uploadId]/part/[partNumber]:", error);
+    console.error("Error in /api/media/s3/multipart/[uploadId]/part/[partNumber]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to get part upload URL" },
       { status: 500 }

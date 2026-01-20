@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in GET /api/resources/reports/me:", error);
+    console.error("Error in GET /api/resources/reports/me:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch reports" },
       { status: 500 }

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { logger } from "@/utils/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/admin/analytics:", error);
+    console.error("Error in /api/admin/analytics:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch analytics" },
       { status: 500 }

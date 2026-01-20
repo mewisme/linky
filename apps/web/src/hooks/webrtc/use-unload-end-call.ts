@@ -3,7 +3,7 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
-import { logger } from "@/utils/logger";
+
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
 
 export function useUnloadEndCall(
@@ -25,17 +25,17 @@ export function useUnloadEndCall(
     }
 
     hasSentUnloadSignalRef.current = true;
-    logger.info("[UnloadDetection] TRUE EXIT detected during active call - sending end-call signal");
+    console.info("[UnloadDetection] TRUE EXIT detected during active call - sending end-call signal");
 
     recoveryController.stop();
 
     if (socketRef.current?.connected && socketId) {
       try {
         socketRef.current.emit("end-call");
-        logger.info("[UnloadDetection] End-call sent via socket emit");
+        console.info("[UnloadDetection] End-call sent via socket emit");
         return;
       } catch (err) {
-        logger.warn("[UnloadDetection] Socket emit failed, falling back to sendBeacon:", err);
+        console.warn("[UnloadDetection] Socket emit failed, falling back to sendBeacon:", err);
       }
     }
 
@@ -47,17 +47,17 @@ export function useUnloadEndCall(
 
         const sent = navigator.sendBeacon(url, blob);
         if (sent) {
-          logger.info("[UnloadDetection] End-call sent via sendBeacon");
+          console.info("[UnloadDetection] End-call sent via sendBeacon");
           return;
         } else {
-          logger.warn("[UnloadDetection] sendBeacon failed (queue full or blocked)");
+          console.warn("[UnloadDetection] sendBeacon failed (queue full or blocked)");
         }
       } catch (err) {
-        logger.error("[UnloadDetection] sendBeacon error:", err);
+        console.error("[UnloadDetection] sendBeacon error:", err);
       }
     }
 
-    logger.warn("[UnloadDetection] All unload signaling methods failed");
+    console.warn("[UnloadDetection] All unload signaling methods failed");
   };
 
   useEffect(() => {
@@ -71,10 +71,10 @@ export function useUnloadEndCall(
 
     const handlePageHide = (event: PageTransitionEvent) => {
       if (!event.persisted && isInActiveCall()) {
-        logger.info("[UnloadDetection] pagehide with persisted=false detected - TRUE EXIT");
+        console.info("[UnloadDetection] pagehide with persisted=false detected - TRUE EXIT");
         sendUnloadEndCall();
       } else if (event.persisted) {
-        logger.info("[UnloadDetection] pagehide with persisted=true detected - BACKGROUNDING (ignoring)");
+        console.info("[UnloadDetection] pagehide with persisted=true detected - BACKGROUNDING (ignoring)");
       }
     };
 

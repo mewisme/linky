@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { logger } from "@/utils/logger";
-
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ favorite_user_id: string }> }
@@ -44,7 +42,7 @@ export async function DELETE(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in DELETE /api/resources/favorites/:favorite_user_id:", error);
+    console.error("Error in DELETE /api/resources/favorites/:favorite_user_id:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to remove favorite" },
       { status: 500 }

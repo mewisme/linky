@@ -1,5 +1,4 @@
 import { fetchIceServers } from "./webrtc";
-import { logger } from "@/utils/logger";
 
 const ICE_SERVER_TTL_MS = 300_000;
 const ICE_SERVER_SAFETY_FACTOR = 0.8;
@@ -57,7 +56,7 @@ class IceServerCacheManager {
 
     if (reason === "expired") {
       if (timeSinceLastFetch < MIN_FETCH_INTERVAL_MS) {
-        logger.info(`[IceServerCache] Rate limited: last fetch was ${Math.round(timeSinceLastFetch / 1000)}s ago`);
+        console.info(`[IceServerCache] Rate limited: last fetch was ${Math.round(timeSinceLastFetch / 1000)}s ago`);
         return false;
       }
       return this.isNearExpiry();
@@ -67,34 +66,34 @@ class IceServerCacheManager {
   }
 
   async getIceServers(
-    getToken: (options: { template: 'custom', skipCache: boolean }) => Promise<string | null>,
+    getToken: (options: { template: 'custom' }) => Promise<string | null>,
     reason: "initial" | "expired" | "forced" = "initial"
   ): Promise<RTCIceServer[]> {
     if (this.isCacheValid() && reason !== "forced") {
       const age = Date.now() - (this.cache!.fetchedAt);
-      logger.info(`[IceServerCache] Using cached ICE servers (age: ${Math.round(age / 1000)}s)`);
+      console.info(`[IceServerCache] Using cached ICE servers (age: ${Math.round(age / 1000)}s)`);
       return this.cache!.servers;
     }
 
     if (this.inFlightFetch) {
-      logger.info("[IceServerCache] Waiting for in-flight fetch");
+      console.info("[IceServerCache] Waiting for in-flight fetch");
       return await this.inFlightFetch;
     }
 
     if (!this.canFetch(reason)) {
       if (this.cache) {
-        logger.warn(`[IceServerCache] Fetch skipped (reason: ${reason}), using cached servers`);
+        console.warn(`[IceServerCache] Fetch skipped (reason: ${reason}), using cached servers`);
         return this.cache.servers;
       }
       throw new Error("No ICE servers available and fetch is rate-limited");
     }
 
     this.lastFetchTimestamp = Date.now();
-    logger.info(`[IceServerCache] Fetching ICE servers (reason: ${reason})`);
+    console.info(`[IceServerCache] Fetching ICE servers (reason: ${reason})`);
 
     const fetchPromise = (async () => {
       try {
-        const token = await getToken({ template: 'custom', skipCache: true });
+        const token = await getToken({ template: 'custom' });
         if (!token) {
           throw new Error("No token available for ICE servers");
         }
@@ -108,12 +107,12 @@ class IceServerCacheManager {
           ttl: ICE_SERVER_TTL_MS,
         };
 
-        logger.info(`[IceServerCache] ICE servers fetched successfully (${servers.length} servers, cache age: ${Math.round(age / 1000)}s)`);
+        console.info(`[IceServerCache] ICE servers fetched successfully (${servers.length} servers, cache age: ${Math.round(age / 1000)}s)`);
         return servers;
       } catch (err) {
-        logger.error("[IceServerCache] Failed to fetch ICE servers:", err);
+        console.error("[IceServerCache] Failed to fetch ICE servers:", err);
         if (this.cache) {
-          logger.warn("[IceServerCache] Falling back to cached servers");
+          console.warn("[IceServerCache] Falling back to cached servers");
           return this.cache.servers;
         }
         throw err;
@@ -137,18 +136,18 @@ class IceServerCacheManager {
     this.iceRestartCount++;
 
     if (this.iceRestartCount > MAX_ICE_RESTARTS_PER_SESSION) {
-      logger.warn(`[IceServerCache] ICE restart limit exceeded (${this.iceRestartCount} restarts in window)`);
+      console.warn(`[IceServerCache] ICE restart limit exceeded (${this.iceRestartCount} restarts in window)`);
       return false;
     }
 
-    logger.info(`[IceServerCache] ICE restart recorded (${this.iceRestartCount}/${MAX_ICE_RESTARTS_PER_SESSION} in window)`);
+    console.info(`[IceServerCache] ICE restart recorded (${this.iceRestartCount}/${MAX_ICE_RESTARTS_PER_SESSION} in window)`);
     return true;
   }
 
   resetSession(): void {
     this.iceRestartCount = 0;
     this.iceRestartWindowStart = 0;
-    logger.info("[IceServerCache] Session reset");
+    console.info("[IceServerCache] Session reset");
   }
 
   getCachedServers(): RTCIceServer[] | null {

@@ -1,17 +1,14 @@
 "use client";
 
 import { SignIn, SignedIn, SignedOut } from "@clerk/nextjs";
-import { useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 
-import { Button } from "@repo/ui/components/ui/button";
+import Link from "next/link";
 import { dark } from "@clerk/themes";
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function SignInPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const { auth: { isSignedIn } } = useUserContext();
 
   const redirectUrl = useMemo(() => {
     const redirect = searchParams.get("redirect_url");
@@ -24,12 +21,6 @@ export default function SignInPage() {
       return redirect.startsWith("/") ? redirect : "/";
     }
   }, [searchParams]);
-
-  useEffect(() => {
-    if (isSignedIn && redirectUrl) {
-      router.push(redirectUrl);
-    }
-  }, [isSignedIn, redirectUrl, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -49,13 +40,11 @@ export default function SignInPage() {
           }}
         />
       </SignedOut>
-      <SignedIn>
-        <div className="flex flex-col items-center justify-center gap-4">
-          <p>You are already signed in</p>
-          <Button onClick={() => router.push(redirectUrl)} variant="outline">Go to the redirect url</Button>
-        </div>
+      <SignedIn treatPendingAsSignedOut={false}>
+        <Link href={redirectUrl}>
+          Proceed to redirect URL
+        </Link>
       </SignedIn>
     </div>
   );
 }
-

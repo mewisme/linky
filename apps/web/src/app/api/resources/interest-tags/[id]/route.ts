@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { logger } from "@/utils/logger";
 
 /**
  * GET /api/resources/interest-tags/[id]
@@ -38,7 +37,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/resources/interest-tags/[id]:", error);
+    console.error("Error in /api/resources/interest-tags/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch interest tag" },
       { status: 500 }

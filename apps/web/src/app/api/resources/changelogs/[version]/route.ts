@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(
   request: NextRequest,
@@ -34,7 +33,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/resources/changelogs/[version]:", error);
+    console.error("Error in /api/resources/changelogs/[version]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch changelog" },
       { status: 500 }

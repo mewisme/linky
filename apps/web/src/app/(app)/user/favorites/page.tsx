@@ -52,7 +52,7 @@ export default function FavoritesPage() {
       }
 
       if (!favorite.favorite_user_id) {
-        logger.error("Missing favorite_user_id:", favorite)
+        console.error("Missing favorite_user_id:", favorite)
         toast.error("Invalid favorite data")
         return
       }
@@ -79,7 +79,7 @@ export default function FavoritesPage() {
         toast.success("Removed from favorites")
       }
     } catch (error) {
-      logger.error("Failed to remove favorite:", error)
+      console.error("Failed to remove favorite:", error)
       toast.error("Failed to remove favorite")
     }
   }

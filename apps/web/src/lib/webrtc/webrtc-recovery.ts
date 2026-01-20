@@ -1,4 +1,4 @@
-import { logger } from "@/utils/logger";
+
 
 export type RecoveryTier = "none" | "resume-media" | "ice-restart" | "forced-relay";
 
@@ -92,7 +92,7 @@ class RecoveryController {
         videoBytesReceived,
       };
     } catch (err) {
-      logger.warn("Failed to get RTP stats:", err);
+      console.warn("Failed to get RTP stats:", err);
       return null;
     }
   }
@@ -163,7 +163,7 @@ class RecoveryController {
     const trackState = this.getMediaTrackState(pc);
 
     if (!trackState.audioOutboundActive && !trackState.videoOutboundActive) {
-      logger.info("[Recovery] All outbound tracks intentionally inactive - suppressing recovery");
+      console.info("[Recovery] All outbound tracks intentionally inactive - suppressing recovery");
       return false;
     }
 
@@ -188,11 +188,11 @@ class RecoveryController {
 
     if (this.isBackgrounded) {
       if (videoOutboundStalled && !audioOutboundStalled && audioBytesSentDelta >= MIN_BYTES_THRESHOLD) {
-        logger.info("[Recovery] App backgrounded - video stalled but audio active (expected), suppressing recovery");
+        console.info("[Recovery] App backgrounded - video stalled but audio active (expected), suppressing recovery");
         return false;
       }
       if (videoInboundStalled && !audioInboundStalled && audioBytesReceivedDelta >= MIN_BYTES_THRESHOLD) {
-        logger.info("[Recovery] App backgrounded - video inbound stalled but audio inbound active (expected), suppressing recovery");
+        console.info("[Recovery] App backgrounded - video inbound stalled but audio inbound active (expected), suppressing recovery");
         return false;
       }
       if (timeDelta < GRACE_PERIOD_MS * 2) {
@@ -218,7 +218,7 @@ class RecoveryController {
     const isUnhealthy = isOneWay || iceConnectedButStalled || iceRestartCompletedButStalled || this.networkChangeDetected;
 
     if (isUnhealthy) {
-      logger.warn("[Recovery] Media unhealthy detected:", {
+      console.warn("[Recovery] Media unhealthy detected:", {
         audioOutboundActive: trackState.audioOutboundActive,
         videoOutboundActive: trackState.videoOutboundActive,
         audioOutboundStalled,
@@ -248,7 +248,7 @@ class RecoveryController {
       }
 
       if (resumed) {
-        logger.info("[Recovery] Tier 1: Media resume attempted via replaceTrack");
+        console.info("[Recovery] Tier 1: Media resume attempted via replaceTrack");
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         const isSafariIOS = typeof navigator !== "undefined" &&
@@ -261,13 +261,13 @@ class RecoveryController {
               await sender.replaceTrack(sender.track);
             }
           }
-          logger.info("[Recovery] Tier 1: Second replaceTrack for Safari/iOS");
+          console.info("[Recovery] Tier 1: Second replaceTrack for Safari/iOS");
         }
 
         return true;
       }
     } catch (err) {
-      logger.warn("[Recovery] Tier 1 failed:", err);
+      console.warn("[Recovery] Tier 1 failed:", err);
     }
 
     return false;
@@ -284,19 +284,19 @@ class RecoveryController {
     }
 
     if (this.context.recordIceRestart && !this.context.recordIceRestart()) {
-      logger.warn("[Recovery] Tier 2: ICE restart limit exceeded, skipping");
+      console.warn("[Recovery] Tier 2: ICE restart limit exceeded, skipping");
       return false;
     }
 
     try {
-      logger.info("[Recovery] Tier 2: Initiating ICE restart");
+      console.info("[Recovery] Tier 2: Initiating ICE restart");
       this.lastRecoveryAttempt = now;
 
       const iceServers = await this.context.getIceServers();
       const currentConfig = this.context.pc.getConfiguration();
 
       if (JSON.stringify(currentConfig.iceServers) === JSON.stringify(iceServers)) {
-        logger.info("[Recovery] Tier 2: ICE servers unchanged, skipping setConfiguration");
+        console.info("[Recovery] Tier 2: ICE servers unchanged, skipping setConfiguration");
       } else {
         await this.context.pc.setConfiguration({
           iceServers,
@@ -313,7 +313,7 @@ class RecoveryController {
 
       return true;
     } catch (err) {
-      logger.warn("[Recovery] Tier 2 failed:", err);
+      console.warn("[Recovery] Tier 2 failed:", err);
       return false;
     }
   }
@@ -329,13 +329,13 @@ class RecoveryController {
     }
 
     if (this.context.recordIceRestart && !this.context.recordIceRestart()) {
-      logger.warn("[Recovery] Tier 3: ICE restart limit exceeded, forcing teardown");
+      console.warn("[Recovery] Tier 3: ICE restart limit exceeded, forcing teardown");
       this.context.onRecoveryStateChange?.("none");
       return false;
     }
 
     try {
-      logger.info("[Recovery] Tier 3: Forcing relay-only ICE restart");
+      console.info("[Recovery] Tier 3: Forcing relay-only ICE restart");
       this.lastRecoveryAttempt = now;
 
       const iceServers = await this.context.getIceServers();
@@ -358,7 +358,7 @@ class RecoveryController {
       const verifyStats = await this.getRtpStats(this.context.pc);
 
       if (verifyStats && !(await this.isMediaUnhealthy(verifyStats, this.lastStats))) {
-        logger.info("[Recovery] Tier 3 succeeded, resetting transport policy");
+        console.info("[Recovery] Tier 3 succeeded, resetting transport policy");
         try {
           await this.context.pc.setConfiguration({
             iceServers,
@@ -366,15 +366,15 @@ class RecoveryController {
             iceCandidatePoolSize: this.context.pc.getConfiguration().iceCandidatePoolSize,
           });
         } catch (err) {
-          logger.warn("[Recovery] Failed to reset transport policy:", err);
+          console.warn("[Recovery] Failed to reset transport policy:", err);
         }
         return true;
       }
 
-      logger.warn("[Recovery] Tier 3: Media remains unhealthy after forced relay");
+      console.warn("[Recovery] Tier 3: Media remains unhealthy after forced relay");
       return false;
     } catch (err) {
-      logger.error("[Recovery] Tier 3 failed (final attempt):", err);
+      console.error("[Recovery] Tier 3 failed (final attempt):", err);
       return false;
     }
   }
@@ -405,7 +405,7 @@ class RecoveryController {
 
       if (!(await this.isMediaUnhealthy(stats, this.lastStats))) {
         if (this.currentTier !== "none") {
-          logger.info("[Recovery] Media recovered, resetting tier");
+          console.info("[Recovery] Media recovered, resetting tier");
           this.currentTier = "none";
           this.networkChangeDetected = false;
           this.context?.onRecoveryStateChange?.("none");
@@ -431,13 +431,13 @@ class RecoveryController {
 
       const trackState = this.getMediaTrackState(pc);
       if (!trackState.audioOutboundActive && !trackState.videoOutboundActive) {
-        logger.info("[Recovery] All tracks intentionally inactive - suppressing recovery");
+        console.info("[Recovery] All tracks intentionally inactive - suppressing recovery");
         this.lastStats = stats;
         this.recoveryInProgress = false;
         return;
       }
 
-      logger.warn(`[Recovery] Triggered: ${reason}`);
+      console.warn(`[Recovery] Triggered: ${reason}`);
 
       if (this.currentTier === "none") {
         const resumed = await this.tier1ResumeMedia();
@@ -447,7 +447,7 @@ class RecoveryController {
           await new Promise((resolve) => setTimeout(resolve, GRACE_PERIOD_MS));
           const verifyStats = await this.getRtpStats(pc);
           if (verifyStats && !(await this.isMediaUnhealthy(verifyStats, stats))) {
-            logger.info("[Recovery] Tier 1 succeeded");
+            console.info("[Recovery] Tier 1 succeeded");
             this.currentTier = "none";
             this.networkChangeDetected = false;
             this.lastStats = verifyStats;
@@ -467,7 +467,7 @@ class RecoveryController {
           await new Promise((resolve) => setTimeout(resolve, GRACE_PERIOD_MS * 2));
           const verifyStats = await this.getRtpStats(pc);
           if (verifyStats && !(await this.isMediaUnhealthy(verifyStats, this.lastStats))) {
-            logger.info("[Recovery] Tier 2 succeeded, media recovered");
+            console.info("[Recovery] Tier 2 succeeded, media recovered");
             this.currentTier = "none";
             this.networkChangeDetected = false;
             this.lastStats = verifyStats;
@@ -487,7 +487,7 @@ class RecoveryController {
 
       if (this.currentTier === "forced-relay") {
         if (this.isBackgrounded) {
-          logger.info("[Recovery] App backgrounded - skipping forced relay escalation (allowing audio-only continuation)");
+          console.info("[Recovery] App backgrounded - skipping forced relay escalation (allowing audio-only continuation)");
           this.currentTier = "none";
           this.context?.onRecoveryStateChange?.("none");
         } else {
@@ -497,7 +497,7 @@ class RecoveryController {
         }
       }
     } catch (err) {
-      logger.error("[Recovery] Recovery attempt failed:", err);
+      console.error("[Recovery] Recovery attempt failed:", err);
     } finally {
       this.recoveryInProgress = false;
     }
@@ -523,9 +523,9 @@ class RecoveryController {
       this.isBackgrounded = typeof document !== "undefined" && document.hidden;
 
       if (wasBackgrounded && !this.isBackgrounded) {
-        logger.info("[Recovery] App returned to foreground - resuming normal recovery checks");
+        console.info("[Recovery] App returned to foreground - resuming normal recovery checks");
       } else if (!wasBackgrounded && this.isBackgrounded) {
-        logger.info("[Recovery] App backgrounded - allowing audio-only continuation, extending grace periods");
+        console.info("[Recovery] App backgrounded - allowing audio-only continuation, extending grace periods");
       }
     };
 
@@ -538,14 +538,14 @@ class RecoveryController {
       if (connection) {
         connection.addEventListener("change", () => {
           this.networkChangeDetected = true;
-          logger.info("[Recovery] Network change detected");
+          console.info("[Recovery] Network change detected");
         });
       }
     }
 
     this.updateStatsInterval();
 
-    logger.info("[Recovery] Recovery controller started");
+    console.info("[Recovery] Recovery controller started");
   }
 
   private updateStatsInterval(): void {
@@ -575,7 +575,7 @@ class RecoveryController {
     this.currentTier = "none";
     this.lastStats = null;
     this.networkChangeDetected = false;
-    logger.info("[Recovery] Recovery controller stopped");
+    console.info("[Recovery] Recovery controller stopped");
   }
 
   markIceRestartComplete(): void {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { logger } from "@/utils/logger";
+
 
 interface VideoPlayerProps {
   stream: MediaStream | null;
@@ -40,12 +40,12 @@ export function VideoPlayer({
               if (onError) {
                 onError(error);
               } else {
-                logger.error("Error playing video:", error);
+                console.error("Error playing video:", error);
               }
 
               if (isMobile) {
                 setTimeout(() => {
-                  video.play().catch(() => {});
+                  video.play().catch(() => { });
                 }, 100);
               }
             });

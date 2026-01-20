@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
-import { logger } from "@/utils/logger";
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -34,7 +33,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/users/me/country:", error);
+    console.error("Error in /api/users/me/country:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update country" },
       { status: 500 }

@@ -16,7 +16,7 @@ export function UserAuthProvider({ children }: { children: ReactNode }) {
   const user = useUser();
 
   const getClerkToken = useCallback(() => {
-    return auth.getToken({ template: "custom", skipCache: true });
+    return auth.getToken({ template: "custom" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.getToken]);
 

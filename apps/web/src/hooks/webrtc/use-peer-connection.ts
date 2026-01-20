@@ -3,7 +3,7 @@
 import { closePeerConnection, createPeerConnection } from "@/lib/webrtc/webrtc";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import { logger } from "@/utils/logger";
+
 
 export interface PeerConnectionCallbacks {
   onTrack: (stream: MediaStream) => void;
@@ -44,7 +44,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
   const initializePeerConnection = useCallback(
     (localStream: MediaStream, callbacks: PeerConnectionCallbacks): RTCPeerConnection => {
       if (initializingRef.current) {
-        logger.warn("PeerConnection initialization already in progress, skipping");
+        console.warn("PeerConnection initialization already in progress, skipping");
         return pcRef.current!;
       }
 
@@ -70,7 +70,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       });
 
       pc.ontrack = (event) => {
-        logger.info("Received remote track:", event.track.kind);
+        console.info("Received remote track:", event.track.kind);
         const [remoteStream] = event.streams;
         if (remoteStream && callbacksRef.current) {
           callbacksRef.current.onTrack(remoteStream);
@@ -86,7 +86,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       pc.onconnectionstatechange = () => {
         if (pcRef.current !== pc) return;
 
-        logger.info("Peer connection state changed:", pc.connectionState);
+        console.info("Peer connection state changed:", pc.connectionState);
         if (callbacksRef.current) {
           callbacksRef.current.onConnectionStateChange(pc.connectionState);
         }
@@ -95,7 +95,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       pc.oniceconnectionstatechange = () => {
         if (pcRef.current !== pc) return;
 
-        logger.info("ICE connection state changed:", pc.iceConnectionState);
+        console.info("ICE connection state changed:", pc.iceConnectionState);
         if (callbacksRef.current) {
           callbacksRef.current.onIceConnectionStateChange(pc.iceConnectionState);
         }
@@ -103,7 +103,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
 
       pc.onicegatheringstatechange = () => {
         if (pcRef.current !== pc) return;
-        logger.info("ICE gathering state changed:", pc.iceGatheringState);
+        console.info("ICE gathering state changed:", pc.iceGatheringState);
       };
 
       initializingRef.current = false;
@@ -130,7 +130,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     await pc.setLocalDescription(offer);
 
     if (options?.iceRestart) {
-      logger.info("ICE restart offer created");
+      console.info("ICE restart offer created");
       remoteDescriptionSetRef.current = false;
     }
 
@@ -151,7 +151,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     remoteDescriptionSetRef.current = true;
 
     if (isIceRestart) {
-      logger.info("Processing ICE restart offer - clearing old ICE candidates");
+      console.info("Processing ICE restart offer - clearing old ICE candidates");
       pendingIceCandidatesRef.current = [];
     }
 
@@ -159,9 +159,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     for (const candidate of pendingCandidates) {
       try {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        logger.info("Added buffered ICE candidate");
+        console.info("Added buffered ICE candidate");
       } catch (err) {
-        logger.warn("Failed to add buffered ICE candidate:", err);
+        console.warn("Failed to add buffered ICE candidate:", err);
       }
     }
 
@@ -185,7 +185,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     remoteDescriptionSetRef.current = true;
 
     if (isIceRestart) {
-      logger.info("ICE restart answer processed");
+      console.info("ICE restart answer processed");
       iceRestartInProgressRef.current = false;
     }
 
@@ -193,9 +193,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     for (const candidate of pendingCandidates) {
       try {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        logger.info("Added buffered ICE candidate");
+        console.info("Added buffered ICE candidate");
       } catch (err) {
-        logger.warn("Failed to add buffered ICE candidate:", err);
+        console.warn("Failed to add buffered ICE candidate:", err);
       }
     }
   }, []);
@@ -203,27 +203,27 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
   const addIceCandidate = useCallback(async (candidate: RTCIceCandidateInit): Promise<void> => {
     const pc = pcRef.current;
     if (!pc) {
-      logger.warn("ICE candidate received but peer connection not initialized, buffering");
+      console.warn("ICE candidate received but peer connection not initialized, buffering");
       pendingIceCandidatesRef.current.push(candidate);
       return;
     }
 
     if (pc.signalingState === "closed") {
-      logger.warn("ICE candidate received but peer connection is closed, ignoring");
+      console.warn("ICE candidate received but peer connection is closed, ignoring");
       return;
     }
 
     if (!remoteDescriptionSetRef.current) {
-      logger.info("ICE candidate received before remote description, buffering");
+      console.info("ICE candidate received before remote description, buffering");
       pendingIceCandidatesRef.current.push(candidate);
       return;
     }
 
     try {
       await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      logger.info("ICE candidate added successfully");
+      console.info("ICE candidate added successfully");
     } catch (err) {
-      logger.warn("Failed to add ICE candidate:", err);
+      console.warn("Failed to add ICE candidate:", err);
     }
   }, []);
 
@@ -247,9 +247,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
         iceCandidatePoolSize: pc.getConfiguration().iceCandidatePoolSize,
       });
       iceServersRef.current = newIceServers;
-      logger.info("ICE servers updated via setConfiguration");
+      console.info("ICE servers updated via setConfiguration");
     } catch (err) {
-      logger.error("Failed to update ICE servers:", err);
+      console.error("Failed to update ICE servers:", err);
       throw err;
     }
   }, []);
@@ -265,12 +265,12 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     }
 
     if (iceRestartInProgressRef.current) {
-      logger.warn("ICE restart already in progress, skipping");
+      console.warn("ICE restart already in progress, skipping");
       throw new Error("ICE restart already in progress");
     }
 
     iceRestartInProgressRef.current = true;
-    logger.info("Starting ICE restart");
+    console.info("Starting ICE restart");
 
     try {
       const offer = await createOffer({ iceRestart: true });

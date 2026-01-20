@@ -15,7 +15,7 @@ export function createMqttClient(userId: string): MqttClient {
 
   const mqttFullUrl = `wss://${mqttUrl}:${mqttPort}/mqtt`
 
-  logger.info(`Connecting to MQTT broker at ${mqttFullUrl}`)
+  console.info(`Connecting to MQTT broker at ${mqttFullUrl}`)
 
   client = mqtt.connect(mqttFullUrl, {
     clientId: userId,
@@ -31,17 +31,17 @@ export function createMqttClient(userId: string): MqttClient {
   })
 
   client.on('connect', () => {
-    logger.info('MQTT client connected')
+    console.info('MQTT client connected')
     publishPresence('online')
   })
 
   client.on('close', () => {
-    logger.info('MQTT client closed')
+    console.info('MQTT client closed')
     client = null
   })
 
   client.on('error', (error) => {
-    logger.error('MQTT client error:', error)
+    console.error('MQTT client error:', error)
   })
 
   return client
@@ -56,7 +56,7 @@ export function disconnectMqttClient() {
 export function publishPresence(state: string) {
   if (!client) return;
 
-  logger.info(`Publishing presence for ${client.options.clientId} with state ${state}`)
+  console.info(`Publishing presence for ${client.options.clientId} with state ${state}`)
 
   client.publish(
     `presence/${client.options.clientId}`,

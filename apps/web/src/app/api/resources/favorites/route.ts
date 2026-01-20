@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { logger } from "@/utils/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    logger.error("Error in POST /api/resources/favorites:", error);
+    console.error("Error in POST /api/resources/favorites:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to add favorite" },
       { status: 500 }
@@ -82,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in GET /api/resources/favorites:", error);
+    console.error("Error in GET /api/resources/favorites:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch favorites" },
       { status: 500 }

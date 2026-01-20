@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
-import { logger } from "@/utils/logger";
 
 /**
  * POST /api/users/user-details/me/interest-tags
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in POST /api/users/user-details/me/interest-tags:", error);
+    console.error("Error in POST /api/users/user-details/me/interest-tags:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to add interest tags" },
       { status: 500 }
@@ -80,7 +79,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in PUT /api/users/user-details/me/interest-tags:", error);
+    console.error("Error in PUT /api/users/user-details/me/interest-tags:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to replace interest tags" },
       { status: 500 }
@@ -122,7 +121,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in DELETE /api/users/user-details/me/interest-tags:", error);
+    console.error("Error in DELETE /api/users/user-details/me/interest-tags:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to remove interest tags" },
       { status: 500 }

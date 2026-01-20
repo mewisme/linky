@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(
   request: NextRequest,
@@ -44,7 +43,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/admin/changelogs/[id]:", error);
+    console.error("Error in /api/admin/changelogs/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch changelog" },
       { status: 500 }
@@ -94,7 +93,7 @@ export async function PUT(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/admin/changelogs/[id]:", error);
+    console.error("Error in /api/admin/changelogs/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update changelog" },
       { status: 500 }
@@ -144,7 +143,7 @@ export async function PATCH(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/admin/changelogs/[id]:", error);
+    console.error("Error in /api/admin/changelogs/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update changelog" },
       { status: 500 }
@@ -192,7 +191,7 @@ export async function DELETE(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/admin/changelogs/[id]:", error);
+    console.error("Error in /api/admin/changelogs/[id]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to delete changelog" },
       { status: 500 }

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
-import { logger } from "@/utils/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/admin/changelogs:", error);
+    console.error("Error in /api/admin/changelogs:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch changelogs" },
       { status: 500 }
@@ -74,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    logger.error("Error in /api/admin/changelogs:", error);
+    console.error("Error in /api/admin/changelogs:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to create changelog" },
       { status: 500 }

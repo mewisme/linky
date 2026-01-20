@@ -1,5 +1,4 @@
 import type { Socket } from "socket.io-client";
-import { logger } from "@/utils/logger";
 
 const SOCKET_SILENCE_THRESHOLD_MS = 8000;
 const SOCKET_RESYNC_TIMEOUT_MS = 6000;
@@ -58,21 +57,21 @@ class SocketHealthMonitor {
 
     if (isInCall && timeSinceLastEvent > SOCKET_SILENCE_THRESHOLD_MS && this.lastEventTimestamp > 0) {
       if (!this.halfDeadDetected) {
-        logger.warn("[SocketHealth] Half-dead socket detected - connected but silent for", timeSinceLastEvent, "ms");
+        console.warn("[SocketHealth] Half-dead socket detected - connected but silent for", timeSinceLastEvent, "ms");
         this.halfDeadDetected = true;
         this.context.onHalfDeadDetected();
 
         const now = Date.now();
         if (now - this.lastResyncAttempt > RESYNC_DEBOUNCE_MS) {
           this.lastResyncAttempt = now;
-          logger.info("[SocketHealth] Triggering resync on half-dead detection");
+          console.info("[SocketHealth] Triggering resync on half-dead detection");
           this.context.onResyncRequired();
         }
       }
 
       if (!this.resyncTimeout) {
         this.resyncTimeout = setTimeout(() => {
-          logger.error("[SocketHealth] Socket resync timeout - forcing teardown");
+          console.error("[SocketHealth] Socket resync timeout - forcing teardown");
           this.context?.onForcedTeardown();
         }, SOCKET_RESYNC_TIMEOUT_MS);
       }
@@ -81,7 +80,7 @@ class SocketHealthMonitor {
     }
 
     if (this.reconnectDetected && isInCall) {
-      logger.info("[SocketHealth] Reconnect detected during active call - resync required");
+      console.info("[SocketHealth] Reconnect detected during active call - resync required");
       this.context.onResyncRequired();
       this.reconnectDetected = false;
     }
@@ -105,10 +104,10 @@ class SocketHealthMonitor {
       this.isBackgrounded = document.hidden;
 
       if (wasBackgrounded && !this.isBackgrounded) {
-        logger.info("[SocketHealth] App returned to foreground - resuming health checks");
+        console.info("[SocketHealth] App returned to foreground - resuming health checks");
         this.trackEvent();
       } else if (!wasBackgrounded && this.isBackgrounded) {
-        logger.info("[SocketHealth] App backgrounded - pausing health checks to prevent false positives");
+        console.info("[SocketHealth] App backgrounded - pausing health checks to prevent false positives");
         if (this.resyncTimeout) {
           clearTimeout(this.resyncTimeout);
           this.resyncTimeout = null;
@@ -124,13 +123,13 @@ class SocketHealthMonitor {
       const wasConnected = this.lastEventTimestamp > 0 && Date.now() - this.lastEventTimestamp < 5000;
       if (wasConnected) {
         this.reconnectDetected = true;
-        logger.info("[SocketHealth] Socket reconnect detected");
+        console.info("[SocketHealth] Socket reconnect detected");
       }
       this.trackEvent();
     });
 
     socket.on("room-ping", (data: { timestamp?: number; roomId?: string }) => {
-      logger.info("[SocketHealth] Room heartbeat received:", data.roomId);
+      console.info("[SocketHealth] Room heartbeat received:", data.roomId);
       this.trackEvent();
     });
 
@@ -138,7 +137,7 @@ class SocketHealthMonitor {
       this.checkHealth();
     }, HEALTH_CHECK_INTERVAL_MS);
 
-    logger.info("[SocketHealth] Socket health monitoring started");
+    console.info("[SocketHealth] Socket health monitoring started");
   }
 
   stop(): void {
@@ -165,7 +164,7 @@ class SocketHealthMonitor {
     this.lastResyncAttempt = 0;
     this.isBackgrounded = false;
 
-    logger.info("[SocketHealth] Socket health monitoring stopped");
+    console.info("[SocketHealth] Socket health monitoring stopped");
   }
 
   markEventReceived(): void {

@@ -44,8 +44,8 @@ import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
-import React, { useState, useMemo, useEffect, type ReactNode } from "react";
-import { logger } from "@/utils/logger";
+import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "react";
+
 import { useUserContext } from "@/components/providers/user/user-provider";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
@@ -209,7 +209,7 @@ export function VideoControls({
           setIsFavorite(isFavorited);
         }
       } catch (error) {
-        logger.error("Failed to check favorite status", error);
+        console.error("Failed to check favorite status", error);
       }
     };
 
@@ -273,7 +273,7 @@ export function VideoControls({
         }
       }
     } catch (error: unknown) {
-      logger.error("Failed to toggle favorite", error);
+      console.error("Failed to toggle favorite", error);
       toast.error(error instanceof Error ? error.message : "Failed to update favorite");
     } finally {
       setIsFavoriteLoading(false);
@@ -555,7 +555,9 @@ export function VideoControls({
                   <div className="flex flex-wrap gap-2">
                     {peerInfo.interest_tags.map((tag) => (
                       <Badge key={tag.id} variant="secondary">
-                        {tag.icon && <span className="mr-1">{tag.icon}</span>}
+                        <Activity mode={tag.icon ? 'visible' : 'hidden'}>
+                          <span className="mr-1">{tag.icon}</span>
+                        </Activity>
                         {tag.name}
                       </Badge>
                     ))}

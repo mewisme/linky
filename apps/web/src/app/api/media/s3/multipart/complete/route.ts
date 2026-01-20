@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
-import { logger } from "@/utils/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/media/s3/multipart/complete:", error);
+    console.error("Error in /api/media/s3/multipart/complete:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to complete multipart upload" },
       { status: 500 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Activity, useEffect, useState } from 'react'
 
 import type { AdminAPI } from '@/types/admin.types'
 import { AppLayout } from '@/components/layouts/app-layout'
@@ -81,7 +81,9 @@ export default function VisitorsPage() {
 
   return (
     <AppLayout label="Visitors" description="Manage visitors">
-      {chartData && <VisitorChart setDays={setDays} days={days} data={chartData} />}
+      <Activity mode={chartData ? 'visible' : 'hidden'}>
+        <VisitorChart setDays={setDays} days={days} data={chartData} />
+      </Activity>
     </AppLayout>
   )
 }

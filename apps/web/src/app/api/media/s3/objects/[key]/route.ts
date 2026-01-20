@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
-import { logger } from "@/utils/logger";
 
 export async function DELETE(
   request: NextRequest,
@@ -45,7 +44,7 @@ export async function DELETE(
 
     return NextResponse.json(data);
   } catch (error) {
-    logger.error("Error in /api/media/s3/objects/[key]:", error);
+    console.error("Error in /api/media/s3/objects/[key]:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to delete object" },
       { status: 500 }

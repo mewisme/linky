@@ -2,10 +2,10 @@ import cors from "cors";
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import morgan from "morgan";
 import { config } from "../config/index.js";
-import { Logger } from "../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { clientIpMiddleware } from "./client-ip.js";
 
-const logger = new Logger("Middleware");
+const logger = createLogger("API:Middleware");
 
 morgan.token("custom", () => {
   return "";
@@ -49,14 +49,10 @@ export function setupErrorHandlers(app: Express): void {
   });
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    logger.error("Internal server error:", err.message);
+    logger.error("Internal server error: %o", err instanceof Error ? err : new Error(String(err)));
     if (err.stack) {
-      logger.error("Stack trace:", err.stack);
+      logger.trace("Stack trace: %o", err instanceof Error ? err : new Error(String(err)));
     }
-    res.status(500).json({
-      error: "An unexpected error occurred",
-      ...(config.nodeEnv === "development" && { message: err.message }),
-    });
+    res.status(500).json({ error: "An unexpected error occurred", message: err.message });
   });
 }
-

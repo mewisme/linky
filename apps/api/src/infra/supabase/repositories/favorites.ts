@@ -1,7 +1,7 @@
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
-const logger = new Logger("SupabaseFavoritesQueries");
+const logger = createLogger("API:Supabase:Favorites:Repository");
 
 export interface FavoriteRecord {
   id: string;
@@ -41,7 +41,7 @@ export async function getFavoritesByUserId(userId: string): Promise<string[]> {
     .eq("user_id", userId);
 
   if (error) {
-    logger.error("Error fetching favorites:", error.message);
+    logger.error("Error fetching favorites: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -57,7 +57,7 @@ export async function checkFavoriteExists(userId: string, favoriteUserId: string
     .maybeSingle();
 
   if (error) {
-    logger.error("Error checking favorite exists:", error.message);
+    logger.error("Error checking favorite exists: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -75,7 +75,7 @@ export async function createFavorite(userId: string, favoriteUserId: string): Pr
     .single();
 
   if (error) {
-    logger.error("Error creating favorite:", error.message);
+    logger.error("Error creating favorite: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -90,7 +90,7 @@ export async function deleteFavorite(userId: string, favoriteUserId: string): Pr
     .eq("favorite_user_id", favoriteUserId);
 
   if (error) {
-    logger.error("Error deleting favorite:", error.message);
+    logger.error("Error deleting favorite: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -100,7 +100,7 @@ export async function deleteFavorite(userId: string, favoriteUserId: string): Pr
 export async function getFavoriteLimitForToday(userId: string): Promise<FavoriteLimitRecord | null> {
   const today = new Date().toISOString().split("T")[0];
   if (!today) {
-    logger.error("Failed to get today's date");
+    logger.error("Failed to get today's date: %o", new Error("Failed to get today's date"));
     throw new Error("Failed to get today's date");
   }
 
@@ -112,7 +112,7 @@ export async function getFavoriteLimitForToday(userId: string): Promise<Favorite
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching favorite limit:", error.message);
+    logger.error("Error fetching favorite limit: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -122,7 +122,7 @@ export async function getFavoriteLimitForToday(userId: string): Promise<Favorite
 export async function incrementFavoriteLimit(userId: string, dailyLimit: number = 10): Promise<FavoriteLimitRecord> {
   const today = new Date().toISOString().split("T")[0];
   if (!today) {
-    logger.error("Failed to get today's date");
+    logger.error("Failed to get today's date: %o", new Error("Failed to get today's date"));
     throw new Error("Failed to get today's date");
   }
 
@@ -143,7 +143,7 @@ export async function incrementFavoriteLimit(userId: string, dailyLimit: number 
     .single();
 
   if (error) {
-    logger.error("Error incrementing favorite limit:", error.message);
+    logger.error("Error incrementing favorite limit: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -159,7 +159,7 @@ export async function incrementFavoriteLimit(userId: string, dailyLimit: number 
       .single();
 
     if (updateError) {
-      logger.error("Error updating favorite limit:", updateError.message);
+      logger.error("Error updating favorite limit: %o", updateError instanceof Error ? updateError : new Error(String(updateError)));
       throw updateError;
     }
 
@@ -186,7 +186,7 @@ export async function checkDailyLimitReached(userId: string): Promise<{ reached:
 export async function decrementFavoriteLimit(userId: string): Promise<boolean> {
   const today = new Date().toISOString().split("T")[0];
   if (!today) {
-    logger.error("Failed to get today's date");
+    logger.error("Failed to get today's date: %o", new Error("Failed to get today's date"));
     throw new Error("Failed to get today's date");
   }
 
@@ -205,7 +205,7 @@ export async function decrementFavoriteLimit(userId: string): Promise<boolean> {
     .eq("date", today);
 
   if (error) {
-    logger.error("Error decrementing favorite limit:", error.message);
+    logger.error("Error decrementing favorite limit: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -221,7 +221,7 @@ export async function getFavoriteCreationDate(userId: string, favoriteUserId: st
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching favorite creation date:", error.message);
+    logger.error("Error fetching favorite creation date: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -236,7 +236,7 @@ export async function getFavoritesWithStats(userId: string): Promise<FavoriteWit
     .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error("Error fetching favorites with stats:", error.message);
+    logger.error("Error fetching favorites with stats: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 

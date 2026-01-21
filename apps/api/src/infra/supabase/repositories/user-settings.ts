@@ -1,12 +1,12 @@
 import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
 
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
 type UserSettingsInsert = TablesInsert<"user_settings">;
 type UserSettingsUpdate = TablesUpdate<"user_settings">;
 
-const logger = new Logger("SupabaseUserSettingsQueries");
+const logger = createLogger("API:Supabase:UserSettings:Repository");
 
 export async function getUserSettingsByUserId(userId: string) {
   const { data, error } = await supabase
@@ -19,7 +19,7 @@ export async function getUserSettingsByUserId(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user settings:", error.message);
+    logger.error("Error fetching user settings: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -37,7 +37,7 @@ export async function createUserSettings(userId: string, data: Omit<UserSettings
     .single();
 
   if (error) {
-    logger.error("Error creating user settings:", error.message);
+    logger.error("Error creating user settings: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -59,7 +59,7 @@ export async function updateUserSettings(userId: string, data: UserSettingsUpdat
     .single();
 
   if (error) {
-    logger.error("Error updating user settings:", error.message);
+    logger.error("Error updating user settings: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -81,7 +81,7 @@ export async function patchUserSettings(userId: string, data: Partial<UserSettin
     .single();
 
   if (error) {
-    logger.error("Error patching user settings:", error.message);
+    logger.error("Error patching user settings: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 

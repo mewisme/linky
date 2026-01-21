@@ -1,12 +1,12 @@
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
-const logger = new Logger("SupabaseVisitorsQueries");
+const logger = createLogger("API:Supabase:Visitors:Repository");
 
 export async function getAllPageViews() {
   const { count: totalPageViews, error } = await supabase.from("page_views").select("*", { count: "exact", head: true });
   if (error) {
-    logger.error("Error fetching total page views:", error.message);
+    logger.error("Error fetching total page views: %o", error instanceof Error ? error : new Error(String(error)));
     return 0;
   }
   return totalPageViews;
@@ -17,7 +17,7 @@ export async function getAllVisitors() {
     .from("visitors")
     .select("*", { count: "exact", head: true });
   if (error) {
-    logger.error("Error fetching total visitors:", error.message);
+    logger.error("Error fetching total visitors: %o", error instanceof Error ? error : new Error(String(error)));
     return 0;
   }
   return totalVisitors;
@@ -26,7 +26,7 @@ export async function getAllVisitors() {
 export async function getPageViewsTimeseries(days: number) {
   const { data, error } = await supabase.rpc('page_views_timeseries', { days: days });
   if (error) {
-    logger.error("Error fetching page views timeseries:", error.message);
+    logger.error("Error fetching page views timeseries: %o", error instanceof Error ? error : new Error(String(error)));
     return [];
   }
   return data;
@@ -35,7 +35,7 @@ export async function getPageViewsTimeseries(days: number) {
 export async function getVisitorsTimeseries(days: number) {
   const { data, error } = await supabase.rpc('visitors_timeseries', { days: days });
   if (error) {
-    logger.error("Error fetching visitors timeseries:", error.message);
+    logger.error("Error fetching visitors timeseries: %o", error instanceof Error ? error : new Error(String(error)));
     return [];
   }
   return data;
@@ -44,7 +44,7 @@ export async function getVisitorsTimeseries(days: number) {
 export async function createPageView(path: string, ip: string) {
   const { error } = await supabase.from("page_views").insert({ path: path, ip: ip });
   if (error) {
-    logger.error("Error creating page view:", error.message);
+    logger.error("Error creating page view: %o", error instanceof Error ? error : new Error(String(error)));
     return false;
   }
   return true;
@@ -53,7 +53,7 @@ export async function createPageView(path: string, ip: string) {
 export async function createVisitor(ip: string) {
   const { error } = await supabase.from("visitors").insert({ ip: ip });
   if (error) {
-    logger.error("Error creating visitor:", error.message);
+    logger.error("Error creating visitor: %o", error instanceof Error ? error : new Error(String(error)));
     return false;
   }
   return true;
@@ -62,7 +62,7 @@ export async function createVisitor(ip: string) {
 export async function incrementVisitor(ip: string) {
   const { error } = await supabase.rpc('increment_visitor', { ip: ip });
   if (error) {
-    logger.error("Error incrementing visitor:", error.message);
+    logger.error("Error incrementing visitor: %o", error instanceof Error ? error : new Error(String(error)));
     return false;
   }
   return true;
@@ -76,7 +76,7 @@ export async function getVisitor(ip: string) {
     if (error.code === "PGRST116" || error.message.includes("JSON object requested, multiple (or no) rows returned")) {
       return null;
     }
-    logger.error("Error fetching visitor:", error.message);
+    logger.error("Error fetching visitor: %o", error instanceof Error ? error : new Error(String(error)));
     return null;
   }
   return data;
@@ -110,7 +110,7 @@ export async function getVisitors(options: GetVisitorsOptions = {}): Promise<Get
     .range(offset, offset + maxLimit - 1);
 
   if (error) {
-    logger.error("Error fetching visitors:", error.message);
+    logger.error("Error fetching visitors: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -161,7 +161,7 @@ export async function getPageViews(options: GetPageViewsOptions = {}): Promise<G
     .range(offset, offset + maxLimit - 1);
 
   if (error) {
-    logger.error("Error fetching page views:", error.message);
+    logger.error("Error fetching page views: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -188,7 +188,7 @@ export async function getTopPages(limit: number = 10): Promise<TopPage[]> {
     .select("path");
 
   if (error) {
-    logger.error("Error fetching top pages:", error.message);
+    logger.error("Error fetching top pages: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -221,7 +221,7 @@ export async function getVisitorStats(): Promise<VisitorStats> {
     .select("*");
 
   if (error) {
-    logger.error("Error fetching visitor stats:", error.message);
+    logger.error("Error fetching visitor stats: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 

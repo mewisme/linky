@@ -1,7 +1,7 @@
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
-const logger = new Logger("SupabaseCallHistoryQueries");
+const logger = createLogger("API:Supabase:CallHistory:Repository");
 
 export interface CreateCallHistoryParams {
   callerId: string;
@@ -44,7 +44,7 @@ export async function createCallHistory(params: CreateCallHistoryParams): Promis
     .single();
 
   if (error) {
-    logger.error("Error creating call history:", error.message);
+    logger.error("Error creating call history: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -65,7 +65,7 @@ export async function getCallHistoryByUserId(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error("Error fetching call history:", error.message);
+    logger.error("Error fetching call history: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -83,7 +83,7 @@ export async function getCallHistoryById(id: string): Promise<CallHistoryRecord 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching call history by ID:", error.message);
+    logger.error("Error fetching call history by ID: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -101,7 +101,7 @@ export async function getUserIdByClerkId(clerkUserId: string): Promise<string | 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user by Clerk ID:", error.message);
+    logger.error("Error fetching user by Clerk ID: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -116,7 +116,7 @@ export async function getUserCountry(userId: string): Promise<string | null> {
     .single();
 
   if (error) {
-    logger.error("Error fetching user country:", error.message);
+    logger.error("Error fetching user country: %o", error instanceof Error ? error : new Error(String(error)));
     return null;
   }
 

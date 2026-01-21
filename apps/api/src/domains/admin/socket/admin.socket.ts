@@ -1,9 +1,9 @@
 import type { Namespace } from "socket.io";
 import type { Socket } from "socket.io";
-import { Logger } from "../../../utils/logger.js";
 import { checkIfUserIsAdmin } from "../../../infra/admin-cache/index.js";
+import { createLogger } from "@repo/logger/api";
 
-const logger = new Logger("SocketAuth");
+const logger = createLogger("API:Admin:Socket:Auth");
 
 export async function adminNamespaceAuthMiddleware(socket: Socket, next: (err?: Error) => void): Promise<void> {
   const clerkUserId = (socket.data as { userId?: string } | undefined)?.userId;
@@ -18,7 +18,7 @@ export async function adminNamespaceAuthMiddleware(socket: Socket, next: (err?: 
     }
     next();
   } catch (error) {
-    logger.error("Admin namespace auth failed:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Admin namespace auth failed: %o", error instanceof Error ? error : new Error(String(error)));
     next(new Error("Authorization failed"));
   }
 }

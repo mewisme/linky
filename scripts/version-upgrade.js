@@ -55,13 +55,13 @@ function compareVersions(version1, version2) {
   return patch1 - patch2;
 }
 
-function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
+function updateAllPackageJsonFiles(version) {
   const packageJsonFiles = findAllPackageJsonFiles();
   const updatedFiles = [];
   let hasDowngradeIssue = false;
 
   console.log(`\nFound ${packageJsonFiles.length} package.json file(s)`);
-  console.log(`Affected workspaces: ${affectedWorkspaces.join(', ')}`);
+  console.log(`Updating all packages to version: ${version}`);
 
   for (const filePath of packageJsonFiles) {
     try {
@@ -72,47 +72,23 @@ function updateAffectedPackageJsonFiles(version, affectedWorkspaces) {
         continue;
       }
 
-      let shouldUpdate = false;
+      const oldVersion = packageJson.version;
+      const comparison = compareVersions(version, oldVersion);
 
-      const normalizedPath = relativePath.replace(/\\/g, '/');
-
-      if (normalizedPath === 'package.json' && affectedWorkspaces.includes('root')) {
-        shouldUpdate = true;
-      }
-      else {
-        for (const workspace of affectedWorkspaces) {
-          if (workspace === 'root') continue;
-
-          const expectedPath = `${workspace}/package.json`;
-          if (normalizedPath === expectedPath) {
-            shouldUpdate = true;
-            break;
-          }
-        }
+      if (comparison < 0) {
+        console.log(`  ⚠ Skipped ${relativePath}: Cannot downgrade from ${oldVersion} to ${version}`);
+        hasDowngradeIssue = true;
+        continue;
+      } else if (comparison === 0) {
+        console.log(`  ⊘ Skipped ${relativePath}: Already at version ${version}`);
+        continue;
       }
 
-      if (shouldUpdate) {
-        const oldVersion = packageJson.version;
+      packageJson.version = version;
+      writeFileSync(filePath, JSON.stringify(packageJson, null, 2) + '\n');
 
-        const comparison = compareVersions(version, oldVersion);
-
-        if (comparison < 0) {
-          console.log(`  ⚠ Skipped ${relativePath}: Cannot downgrade from ${oldVersion} to ${version}`);
-          hasDowngradeIssue = true;
-          continue;
-        } else if (comparison === 0) {
-          console.log(`  ⊘ Skipped ${relativePath}: Already at version ${version}`);
-          continue;
-        }
-
-        packageJson.version = version;
-        writeFileSync(filePath, JSON.stringify(packageJson, null, 2) + '\n');
-
-        console.log(`  ✓ Updated ${relativePath}: ${oldVersion} → ${version}`);
-        updatedFiles.push(relativePath);
-      } else {
-        console.log(`  ⊘ Skipped ${relativePath} (not affected)`);
-      }
+      console.log(`  ✓ Updated ${relativePath}: ${oldVersion} → ${version}`);
+      updatedFiles.push(relativePath);
     } catch (error) {
       const relativePath = relative(process.cwd(), filePath);
       console.error(`  ✗ Error updating ${relativePath}:`, error.message);
@@ -397,7 +373,7 @@ if (!newVersion) {
   newVersion = autoPatchVersion;
 }
 
-const updatedFiles = updateAffectedPackageJsonFiles(newVersion, affectedWorkspaces);
+const updatedFiles = updateAllPackageJsonFiles(newVersion);
 
 if (updatedFiles.length === 0) {
   console.log('\nNo package.json files to update');
@@ -405,13 +381,6 @@ if (updatedFiles.length === 0) {
 }
 
 saveLastProcessedCommit();
-
-try {
-  execSync('git add .', { encoding: 'utf8', stdio: 'inherit' });
-  console.log('\n✓ Staged all changes with `git add .`');
-} catch (error) {
-  console.error('\n✗ Error staging changes:', error.message);
-}
 
 console.log(`\n✓ Version upgraded to ${newVersion} in ${updatedFiles.length} package(s)`);
 console.log('✓ Last processed commit saved to .version-lock'); 

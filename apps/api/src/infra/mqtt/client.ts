@@ -1,12 +1,12 @@
 import { attachSocketIO as attachSocketIOToPresenceHandler, handlePresenceMessage } from './presence-handler.js'
-import { initializeAdminCache } from '../admin-cache/index.js'
 
-import { Logger } from '../../utils/logger.js'
 import { config } from '../../config/index.js'
+import { createLogger } from '@repo/logger/api'
 import { createSocketServer } from '@/socket/index.js'
+import { initializeAdminCache } from '../admin-cache/index.js'
 import mqtt from 'mqtt'
 
-const logger = new Logger("MQTTClient");
+const logger = createLogger("API:MQTT:Client");
 
 export const mqttClient = mqtt.connect(
   `mqtts://${config.mqttUrl}:${config.mqttPort}`,
@@ -20,11 +20,11 @@ export const mqttClient = mqtt.connect(
 )
 
 mqttClient.on('connect', () => {
-  logger.done('MQTT Client connected')
+  logger.info('MQTT Client connected')
 
   mqttClient.subscribe('presence/+', { qos: 0 }, (error) => {
     if (error) {
-      logger.error('MQTT Subscribe error:', error)
+      logger.error('MQTT Subscribe error: %o', error instanceof Error ? error : new Error(String(error)))
       return
     }
     logger.info('MQTT Subscribed to presence/+')
@@ -51,10 +51,10 @@ export function attachSocketIO(io: ReturnType<typeof createSocketServer>): void 
 }
 
 export function initializeMqttClient(): void {
-  logger.done('MQTT Client initialized')
+  logger.info('MQTT Client initialized')
 
   initializeAdminCache().catch((error) => {
-    logger.error('Failed to initialize admin cache:', error)
+    logger.error('Failed to initialize admin cache: %o', error instanceof Error ? error : new Error(String(error)))
   })
 }
 

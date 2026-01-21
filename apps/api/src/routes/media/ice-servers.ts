@@ -1,10 +1,10 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "../../config/index.js";
-import { Logger } from "../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { CloudflareTurnResponse } from "../../domains/video-chat/types/call.types.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("MediaIceServersRoute");
+const logger = createLogger("API:Media:IceServers:Route");
 
 router.get("/ice-servers", async (_req: Request, res: Response) => {
   logger.info("ICE servers request received");
@@ -22,7 +22,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
       });
     }
 
-    logger.load("Fetching ICE servers from Cloudflare API...");
+    logger.info("Fetching ICE servers from Cloudflare API...");
 
     const url = `https://rtc.live.cloudflare.com/v1/turn/keys/${keyId}/credentials/generate-ice-servers`;
 
@@ -44,7 +44,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        logger.error("Cloudflare TURN API error:", response.status, errorText);
+        logger.error("Cloudflare TURN API error: %d, %s", response.status, errorText);
         return res.status(response.status).json({
           error: "Failed to fetch ICE servers",
           message: "External API error",
@@ -53,13 +53,13 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
       const data = (await response.json()) as CloudflareTurnResponse;
 
-      logger.done("ICE servers fetched successfully");
+      logger.info("ICE servers fetched successfully");
       res.json(data);
-    } catch (fetchError) {
+    } catch (fetchError: unknown) {
       clearTimeout(timeoutId);
 
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
-        logger.error("ICE servers request timeout");
+        logger.error("ICE servers request timeout: %o", fetchError instanceof Error ? fetchError : new Error(String(fetchError)));
         return res.status(504).json({
           error: "Request timeout",
           message: "ICE server request timed out",
@@ -68,8 +68,8 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
       throw fetchError;
     }
-  } catch (error) {
-    logger.error("Error fetching ICE servers:", error);
+  } catch (error: unknown) {
+    logger.error("Error fetching ICE servers: %o", error instanceof Error ? error : new Error(String(error)));
     res.status(500).json({
       error: "Internal server error",
       message: "Failed to fetch ICE servers",

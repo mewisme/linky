@@ -1,14 +1,14 @@
-import { Logger } from '../../utils/logger.js'
+import { createLogger } from '@repo/logger/api'
 import { createSocketServer } from '@/socket/index.js'
 import { redisClient } from '../redis/client.js'
 
-const logger = new Logger("MQTTPresenceHandler");
+const logger = createLogger("API:MQTT:PresenceHandler");
 
 let ioRef: ReturnType<typeof createSocketServer> | null = null
 
 export function attachSocketIO(io: ReturnType<typeof createSocketServer>): void {
   ioRef = io
-  logger.done('Socket.IO attached to MQTT presence handler')
+  logger.info('Socket.IO attached to MQTT presence handler')
 }
 
 export async function handlePresenceMessage(

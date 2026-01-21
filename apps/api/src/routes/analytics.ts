@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import {
   createPageView as createPageViewQuery,
   createVisitor as createVisitorQuery,
@@ -8,7 +8,7 @@ import {
 } from "../infra/supabase/repositories/index.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("AnalyticsRoute");
+const logger = createLogger("API:Analytics:Route");
 
 router.post("/visitor", async (req: Request, res: Response) => {
   try {
@@ -37,8 +37,8 @@ router.post("/visitor", async (req: Request, res: Response) => {
           visitor = await getVisitor(ip);
         }
       }
-    } catch (visitorError) {
-      logger.error("Error tracking visitor:", visitorError instanceof Error ? visitorError.message : "Unknown error");
+    } catch (visitorError: unknown) {
+      logger.error("Error tracking visitor: %o", visitorError instanceof Error ? visitorError : new Error(String(visitorError)));
       return res.status(500).json({
         error: "Internal Server Error",
         message: "Failed to track visitor",
@@ -56,8 +56,8 @@ router.post("/visitor", async (req: Request, res: Response) => {
         lastVisit: visitor.last_visit,
       } : null,
     });
-  } catch (error) {
-    logger.error("Unexpected error in POST /analytics/visitor:", error instanceof Error ? error.message : "Unknown error");
+  } catch (error: unknown) {
+    logger.error("Unexpected error in POST /analytics/visitor: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to track visitor",
@@ -93,15 +93,15 @@ router.post("/visit", async (req: Request, res: Response) => {
         await createVisitorQuery(ip);
         visitor = await getVisitor(ip);
       }
-    } catch (visitorError) {
-      logger.error("Error ensuring visitor exists:", visitorError instanceof Error ? visitorError.message : "Unknown error");
+    } catch (visitorError: unknown) {
+      logger.error("Error ensuring visitor exists: %o", visitorError instanceof Error ? visitorError : new Error(String(visitorError)));
     }
 
     let pageViewCreated = false;
     try {
       pageViewCreated = await createPageViewQuery(path, ip);
-    } catch (pageViewError) {
-      logger.error("Error creating page view:", pageViewError instanceof Error ? pageViewError.message : "Unknown error");
+    } catch (pageViewError: unknown) {
+      logger.error("Error creating page view: %o", pageViewError instanceof Error ? pageViewError : new Error(String(pageViewError)));
     }
 
     return res.status(201).json({
@@ -116,8 +116,8 @@ router.post("/visit", async (req: Request, res: Response) => {
       } : null,
       pageViewCreated,
     });
-  } catch (error) {
-    logger.error("Unexpected error in POST /analytics/visit:", error instanceof Error ? error.message : "Unknown error");
+  } catch (error: unknown) {
+    logger.error("Unexpected error in POST /analytics/visit: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to track visit",

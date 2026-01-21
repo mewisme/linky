@@ -1,9 +1,11 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { getInterestTags, getInterestTagById } from "../../infra/supabase/repositories/interest-tags.js";
+import { getCachedData } from "../../infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("ResourcesInterestTagsRoute");
+const logger = createLogger("API:Resources:InterestTags:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -12,15 +14,33 @@ router.get("/", async (req: Request, res: Response) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const { data, count } = await getInterestTags({
-      category,
-      isActive: true,
-      search,
-      limit,
-      offset,
-    });
+    const shouldCache = !category && !search && limit <= 100 && offset === 0;
 
-    logger.info("Interest tags fetched:", { count, limit, offset });
+    let data, count;
+
+    if (shouldCache) {
+      ({ data, count } = await getCachedData(
+        CACHE_KEYS.interestTags(),
+        () => getInterestTags({
+          category,
+          isActive: true,
+          search,
+          limit,
+          offset,
+        }),
+        CACHE_TTL.INTEREST_TAGS
+      ));
+    } else {
+      ({ data, count } = await getInterestTags({
+        category,
+        isActive: true,
+        search,
+        limit,
+        offset,
+      }));
+    }
+
+    logger.info("Interest tags fetched: %d, %d, %d, %s", count, limit, offset, shouldCache ? "cached" : "not cached");
 
     return res.json({
       data,
@@ -31,8 +51,8 @@ router.get("/", async (req: Request, res: Response) => {
         totalPages: Math.ceil(count / limit),
       },
     });
-  } catch (error) {
-    logger.error("Unexpected error in GET /interest-tags:", error instanceof Error ? error.message : "Unknown error");
+  } catch (error: unknown) {
+    logger.error("Unexpected error in GET /interest-tags: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tags",
@@ -51,27 +71,30 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    const tag = await getInterestTagById(id);
+    const tag = await getCachedData(
+      CACHE_KEYS.interestTag(id),
+      async () => {
+        const tag = await getInterestTagById(id);
+        if (!tag || !tag.is_active) {
+          throw new Error("Interest tag not found");
+        }
+        return tag;
+      },
+      CACHE_TTL.INTEREST_TAGS
+    );
 
-    if (!tag) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Interest tag not found",
-      });
-    }
-
-    if (!tag.is_active) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Interest tag not found",
-      });
-    }
-
-    logger.info("Interest tag fetched:", id);
+    logger.info("Interest tag fetched: %s", id);
 
     return res.json(tag);
-  } catch (error) {
-    logger.error("Unexpected error in GET /interest-tags/:id:", error instanceof Error ? error.message : "Unknown error");
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === "Interest tag not found") {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "Interest tag not found",
+      });
+    }
+
+    logger.error("Unexpected error in GET /interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tag",

@@ -1,12 +1,12 @@
 import type { Namespace } from "socket.io";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { AuthenticatedSocket } from "../../../socket/auth.js";
 import type { MatchedPayload, RoomPingPayload } from "../types/socket-event.types.js";
 import { getPublicUserInfo } from "../../../infra/supabase/repositories/user-details.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import type { VideoChatMatchmaking, VideoChatRooms } from "./types.js";
 
-const logger = new Logger("MatchmakingInterval");
+const logger = createLogger("API:VideoChat:Matchmaking:Socket");
 
 export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMatchmaking, rooms: VideoChatRooms): void {
   setInterval(async () => {
@@ -16,7 +16,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
   setInterval(async () => {
     const queueSize = await matchmaking.getQueueSize();
     if (queueSize >= 2) {
-      logger.load(`Matching users (queue: ${queueSize})...`);
+      logger.info(`Matching users (queue: ${queueSize})...`);
       const matched = await matchmaking.tryMatch(io);
       if (matched && matched.length === 2) {
         const [user1, user2] = matched;
@@ -45,7 +45,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user1Info = await getPublicUserInfo(dbUserId1);
             }
           } catch (error) {
-            logger.error("Failed to fetch user1 info:", error instanceof Error ? error.message : "Unknown error");
+            logger.error("Failed to fetch user1 info: %o", error instanceof Error ? error : new Error(String(error)));
           }
         }
 
@@ -56,7 +56,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user2Info = await getPublicUserInfo(dbUserId2);
             }
           } catch (error) {
-            logger.error("Failed to fetch user2 info:", error instanceof Error ? error.message : "Unknown error");
+            logger.error("Failed to fetch user2 info: %o", error instanceof Error ? error : new Error(String(error)));
           }
         }
 
@@ -76,12 +76,13 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
           myInfo: user2Info,
         } satisfies MatchedPayload);
 
-        logger.done(
-          "Users matched:",
+        logger.info(
+          "Users matched: %s and %s (Active rooms: %d, Remaining queue: %d) %o",
           user1.socketId,
-          "and",
           user2.socketId,
-          `(Active rooms: ${rooms.getRoomCount()}, Remaining queue: ${matchmaking.getQueueSize()})`,
+          rooms.getRoomCount(),
+          await matchmaking.getQueueSize(),
+          matched,
         );
       }
     }
@@ -115,7 +116,7 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
           user1Socket.emit("room-ping", payload);
           heartbeatSent++;
         } catch (err) {
-          logger.warn("[RoomHeartbeat] Failed to send heartbeat to user1:", room.user1, err);
+          logger.warn("Failed to send heartbeat to user1: %s %o", room.user1, err instanceof Error ? err : new Error(String(err)));
           heartbeatFailed++;
           roomHeartbeatFailed++;
         }
@@ -129,7 +130,7 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
           user2Socket.emit("room-ping", payload);
           heartbeatSent++;
         } catch (err) {
-          logger.warn("[RoomHeartbeat] Failed to send heartbeat to user2:", room.user2, err);
+          logger.warn("Failed to send heartbeat to user2: %s %o", room.user2, err instanceof Error ? err : new Error(String(err)));
           heartbeatFailed++;
           roomHeartbeatFailed++;
         }
@@ -139,13 +140,13 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
       }
 
       if (roomHeartbeatFailed === 2) {
-        logger.warn("[RoomHeartbeat] Both sockets disconnected in room:", room.id, "- cleaning up");
+        logger.warn("Both sockets disconnected in room: %s - cleaning up", room.id);
         rooms.deleteRoom(room.id);
       }
     }
 
     if (heartbeatSent > 0) {
-      logger.info(`[RoomHeartbeat] Sent ${heartbeatSent} heartbeats to ${roomCount} rooms`);
+      logger.info(`Sent %d heartbeats to %d rooms`, heartbeatSent, roomCount);
     }
   }, 4000);
 }

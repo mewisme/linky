@@ -1,12 +1,12 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import type { ReportStatus } from "../types/report-status.types.js";
 import type { ReportUpdate } from "../types/report.types.js";
 import { fetchReportById, fetchReportWithContext, listReports, updateReportById } from "../service/reports.service.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("AdminReportsRoute");
+const logger = createLogger("API:Reports:Admin:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -24,7 +24,7 @@ router.get("/", async (req: Request, res: Response) => {
       reportedUserId,
     });
 
-    logger.info("Reports fetched by admin");
+    logger.info("Reports fetched by admin: %s", data.length);
 
     return res.json({
       data,
@@ -33,7 +33,7 @@ router.get("/", async (req: Request, res: Response) => {
       offset,
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/reports:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/reports: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch reports",
@@ -61,11 +61,11 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Report fetched by admin:", id);
+    logger.info("Report fetched by admin: %s", id);
 
     return res.json(reportWithContext);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/reports/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/reports/:id: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch report",
@@ -123,11 +123,11 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const updated = await updateReportById(id, finalUpdateData);
 
-    logger.info("Report updated by admin:", id);
+    logger.info("Report updated by admin: %s", id);
 
     return res.json(updated);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /admin/reports/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PATCH /admin/reports/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message.includes("violates check constraint")) {
       return res.status(400).json({

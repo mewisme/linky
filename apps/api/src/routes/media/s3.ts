@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "../../config/index.js";
-import { Logger } from "../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import {
   getUploadUrl,
   getDownloadUrl,
@@ -17,7 +17,7 @@ import {
 } from "../../infra/s3/multipart.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("MediaS3Route");
+const logger = createLogger("API:Media:S3:Route");
 
 router.get("/presigned/upload", async (req: Request, res: Response) => {
   try {
@@ -41,10 +41,7 @@ router.get("/presigned/upload", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info(`Generating upload presigned URL for key: ${key}`, {
-      userId: req.auth?.sub,
-      expiresIn,
-    });
+    logger.info("Generating upload presigned URL for key: %s, %d", key, expiresIn);
 
     const url = await getUploadUrl(bucket, key, expiresIn);
 
@@ -54,8 +51,8 @@ router.get("/presigned/upload", async (req: Request, res: Response) => {
       expiresIn,
       method: "PUT",
     });
-  } catch (error) {
-    logger.error("Error generating upload presigned URL", error);
+  } catch (error: unknown) {
+    logger.error("Error generating upload presigned URL: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to generate upload URL",
@@ -85,10 +82,7 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info(`Generating download presigned URL for key: ${key}`, {
-      userId: req.auth?.sub,
-      expiresIn,
-    });
+    logger.info("Generating download presigned URL for key: %s, %d", key, expiresIn);
 
     const url = await getDownloadUrl(bucket, key, expiresIn);
 
@@ -98,8 +92,8 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
       expiresIn,
       method: "GET",
     });
-  } catch (error) {
-    logger.error("Error generating download presigned URL", error);
+  } catch (error: unknown) {
+    logger.error("Error generating download presigned URL: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to generate download URL",
@@ -120,10 +114,7 @@ router.get("/objects", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Listing objects", {
-      userId: req.auth?.sub,
-      prefix: prefix as string | undefined,
-    });
+    logger.info("Listing objects: %s", prefix as string | undefined);
 
     const result = await listObjects(bucket, prefix as string | undefined);
 
@@ -137,8 +128,8 @@ router.get("/objects", async (req: Request, res: Response) => {
       prefix: prefix as string | undefined,
       isTruncated: result.IsTruncated,
     });
-  } catch (error) {
-    logger.error("Error listing objects", error);
+  } catch (error: unknown) {
+    logger.error("Error listing objects: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to list objects",
@@ -169,9 +160,7 @@ router.delete("/objects/:key", async (req: Request, res: Response) => {
 
     const decodedKey = decodeURIComponent(key);
 
-    logger.info(`Deleting object: ${decodedKey}`, {
-      userId: req.auth?.sub,
-    });
+    logger.info("Deleting object: %s", decodedKey);
 
     await deleteObject(bucket, decodedKey);
 
@@ -180,8 +169,8 @@ router.delete("/objects/:key", async (req: Request, res: Response) => {
       message: "Object deleted successfully",
       key: decodedKey,
     });
-  } catch (error) {
-    logger.error("Error deleting object", error);
+  } catch (error: unknown) {
+    logger.error("Error deleting object: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to delete object",
@@ -210,9 +199,7 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info(`Starting multipart upload for key: ${key}`, {
-      userId: req.auth?.sub,
-    });
+    logger.info("Starting multipart upload for key: %s", key);
 
     const uploadId = await startMultipart(bucket, key);
 
@@ -220,8 +207,8 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
       uploadId,
       key,
     });
-  } catch (error) {
-    logger.error("Error starting multipart upload", error);
+  } catch (error: unknown) {
+    logger.error("Error starting multipart upload: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to start multipart upload",
@@ -268,12 +255,7 @@ router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Re
       });
     }
 
-    logger.info(`Getting part upload URL for multipart upload`, {
-      userId: req.auth?.sub,
-      uploadId,
-      partNumber: partNum,
-      key,
-    });
+    logger.info("Getting part upload URL for multipart upload: %s, %d, %s", uploadId, partNum, key);
 
     const url = await getPartUploadUrl(bucket, key, uploadId, partNum);
 
@@ -283,8 +265,8 @@ router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Re
       partNumber: partNum,
       key,
     });
-  } catch (error) {
-    logger.error("Error getting part upload URL", error);
+  } catch (error: unknown) {
+    logger.error("Error getting part upload URL: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to get part upload URL",
@@ -327,12 +309,7 @@ router.post("/multipart/complete", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info(`Completing multipart upload`, {
-      userId: req.auth?.sub,
-      uploadId,
-      key,
-      partsCount: parts.length,
-    });
+    logger.info("Completing multipart upload: %s, %s, %s", uploadId, key, req.auth?.sub);
 
     await completeMultipart(
       bucket,
@@ -350,8 +327,8 @@ router.post("/multipart/complete", async (req: Request, res: Response) => {
       key,
       uploadId,
     });
-  } catch (error) {
-    logger.error("Error completing multipart upload", error);
+  } catch (error: unknown) {
+    logger.error("Error completing multipart upload: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to complete multipart upload",
@@ -387,11 +364,7 @@ router.post("/multipart/abort", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info(`Aborting multipart upload`, {
-      userId: req.auth?.sub,
-      uploadId,
-      key,
-    });
+    logger.info("Aborting multipart upload: %s, %s, %s", uploadId, key, req.auth?.sub);
 
     await abortMultipart(bucket, key as string, uploadId);
 
@@ -401,8 +374,8 @@ router.post("/multipart/abort", async (req: Request, res: Response) => {
       key,
       uploadId,
     });
-  } catch (error) {
-    logger.error("Error aborting multipart upload", error);
+  } catch (error: unknown) {
+    logger.error("Error aborting multipart upload: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to abort multipart upload",

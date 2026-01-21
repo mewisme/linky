@@ -1,11 +1,11 @@
 import type { Namespace } from "socket.io";
-import { Logger } from "../../../utils/logger.js";
 import type { VideoChatRoomRecord } from "../types/room.types.js";
+import { createLogger } from "@repo/logger/api";
 
 export class RoomService {
   private rooms: Map<string, VideoChatRoomRecord> = new Map();
   private userToRoom: Map<string, string> = new Map(); // socketId -> roomId
-  private readonly logger = new Logger("RoomService");
+  private readonly logger = createLogger("API:VideoChat:Rooms:Service");
 
   createRoom(user1SocketId: string, user2SocketId: string): string {
     const roomId = `room_${user1SocketId}_${user2SocketId}_${Date.now()}`;
@@ -22,7 +22,7 @@ export class RoomService {
     this.userToRoom.set(user1SocketId, roomId);
     this.userToRoom.set(user2SocketId, roomId);
 
-    this.logger.info("Room created:", roomId, "for users:", user1SocketId, user2SocketId);
+    this.logger.info("Room created: %s for users: %s %s", roomId, user1SocketId, user2SocketId);
 
     return roomId;
   }
@@ -30,7 +30,7 @@ export class RoomService {
   getRoom(roomId: string): VideoChatRoomRecord | undefined {
     const room = this.rooms.get(roomId);
     if (!room) {
-      this.logger.warn("Room not found:", roomId);
+      this.logger.warn("Room not found: %s", roomId);
     }
     return room;
   }
@@ -46,19 +46,19 @@ export class RoomService {
   getPeer(socketId: string): string | null {
     const room = this.getRoomByUser(socketId);
     if (!room) {
-      this.logger.warn("Peer lookup failed: User not in room:", socketId);
+      this.logger.warn("Peer lookup failed: User not in room: %s", socketId);
       return null;
     }
 
     const peerId = room.user1 === socketId ? room.user2 : room.user1;
-    this.logger.info("Peer lookup:", socketId, "->", peerId, "in room", room.id);
+    this.logger.info("Peer lookup: %s -> %s in room %s", socketId, peerId, room.id);
     return peerId;
   }
 
   deleteRoom(roomId: string): void {
     const room = this.rooms.get(roomId);
     if (!room) {
-      this.logger.warn("Attempted to delete non-existent room:", roomId);
+      this.logger.warn("Attempted to delete non-existent room: %s", roomId);
       return;
     }
 
@@ -68,9 +68,12 @@ export class RoomService {
     this.rooms.delete(roomId);
 
     this.logger.info(
-      "Room deleted:",
+      "Room deleted: %s (Users: %s, %s, Age: %ds, Active rooms: %d)",
       roomId,
-      `(Users: ${room.user1}, ${room.user2}, Age: ${Math.round(roomAge / 1000)}s, Active rooms: ${this.rooms.size})`,
+      room.user1,
+      room.user2,
+      Math.round(roomAge / 1000),
+      this.rooms.size,
     );
   }
 
@@ -115,7 +118,7 @@ export class RoomService {
     this.userToRoom.delete(oldSocketId);
     this.userToRoom.set(newSocketId, roomId);
 
-    this.logger.info("Updated socket ID:", oldSocketId, "->", newSocketId, "in room:", roomId);
+    this.logger.info("Updated socket ID: %s -> %s in room: %s", oldSocketId, newSocketId, roomId);
     return true;
   }
 

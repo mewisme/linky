@@ -7,10 +7,12 @@ import {
   getUserIdByClerkId,
   getUserCountry,
 } from "../../infra/supabase/repositories/call-history.js";
-import { Logger } from "../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
+import { getCachedData, invalidateCacheKey } from "../../infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("ResourcesCallHistoryRoute");
+const logger = createLogger("API:Resources:CallHistory:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -34,7 +36,22 @@ router.get("/", async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 50;
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const { data, count } = await getCallHistoryByUserId(userId, { limit, offset });
+    const shouldCache = limit === 50 && offset === 0;
+
+    let data, count;
+
+    if (shouldCache) {
+      ({ data, count } = await getCachedData(
+        CACHE_KEYS.callHistory(userId),
+        async () => {
+          const result = await getCallHistoryByUserId(userId, { limit, offset });
+          return result;
+        },
+        CACHE_TTL.CALL_HISTORY
+      ));
+    } else {
+      ({ data, count } = await getCallHistoryByUserId(userId, { limit, offset }));
+    }
 
     const enrichedData = await Promise.all(
       data.map(async (call) => {
@@ -61,7 +78,7 @@ router.get("/", async (req: Request, res: Response) => {
       })
     );
 
-    logger.info("Call history fetched for user:", userId, "Count:", count);
+    logger.info("Call history fetched for user: %s, Count: %d, cached: %s", userId, count || 0, shouldCache ? "cached" : "not cached");
 
     return res.json({
       data: enrichedData,
@@ -69,10 +86,10 @@ router.get("/", async (req: Request, res: Response) => {
       limit,
       offset,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(
-      "Unexpected error in GET /call-history:",
-      error instanceof Error ? error.message : "Unknown error"
+      "Unexpected error in GET /call-history: %o",
+      error instanceof Error ? error : new Error(String(error))
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -109,50 +126,65 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    const callHistory = await getCallHistoryById(id);
-    if (!callHistory) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Call history record not found",
-      });
-    }
-
-    if (callHistory.caller_id !== userId && callHistory.callee_id !== userId) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: "You do not have access to this call history record",
-      });
-    }
-
-    const isCaller = callHistory.caller_id === userId;
-    const otherUserId = isCaller ? callHistory.callee_id : callHistory.caller_id;
-
-    const { data: otherUser } = await supabase
-      .from("users")
-      .select("id, first_name, last_name, avatar_url, country")
-      .eq("id", otherUserId)
-      .single();
-
-    const enrichedData = {
-      ...callHistory,
-      other_user: otherUser
-        ? {
-          id: otherUser.id,
-          name: `${otherUser.first_name || ""} ${otherUser.last_name || ""}`.trim() || "Anonymous",
-          avatar_url: otherUser.avatar_url,
-          country: otherUser.country,
+    const enrichedData = await getCachedData(
+      CACHE_KEYS.callHistoryItem(id),
+      async () => {
+        const callHistory = await getCallHistoryById(id);
+        if (!callHistory) {
+          throw new Error("Call history record not found");
         }
-        : null,
-      is_caller: isCaller,
-    };
 
-    logger.info("Call history fetched:", id, "for user:", userId);
+        if (callHistory.caller_id !== userId && callHistory.callee_id !== userId) {
+          throw new Error("Forbidden: You do not have access to this call history record");
+        }
+
+        const isCaller = callHistory.caller_id === userId;
+        const otherUserId = isCaller ? callHistory.callee_id : callHistory.caller_id;
+
+        const { data: otherUser } = await supabase
+          .from("users")
+          .select("id, first_name, last_name, avatar_url, country")
+          .eq("id", otherUserId)
+          .single();
+
+        return {
+          ...callHistory,
+          other_user: otherUser
+            ? {
+              id: otherUser.id,
+              name: `${otherUser.first_name || ""} ${otherUser.last_name || ""}`.trim() || "Anonymous",
+              avatar_url: otherUser.avatar_url,
+              country: otherUser.country,
+            }
+            : null,
+          is_caller: isCaller,
+        };
+      },
+      CACHE_TTL.CALL_HISTORY
+    );
+
+    logger.info("Call history fetched: %s, for user: %s", id, userId);
 
     return res.json(enrichedData);
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "Call history record not found") {
+        return res.status(404).json({
+          error: "Not Found",
+          message: "Call history record not found",
+        });
+      }
+      if (error.message.includes("Forbidden")) {
+        return res.status(403).json({
+          error: "Forbidden",
+          message: "You do not have access to this call history record",
+        });
+      }
+    }
+
     logger.error(
-      "Unexpected error in GET /call-history/:id:",
-      error instanceof Error ? error.message : "Unknown error"
+      "Unexpected error in GET /call-history/:id: %o",
+      error instanceof Error ? error : new Error(String(error))
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -208,13 +240,17 @@ router.post("/", async (req: Request, res: Response) => {
       durationSeconds: duration_seconds,
     });
 
-    logger.info("Call history created:", callHistory.id, "for users:", caller_id, callee_id);
+    await invalidateCacheKey(CACHE_KEYS.callHistory(caller_id));
+    await invalidateCacheKey(CACHE_KEYS.callHistory(callee_id));
+    await invalidateCacheKey(CACHE_KEYS.callHistoryItem(callHistory.id));
+
+    logger.info("Call history created: %s, for users: %s -> %s", callHistory.id, caller_id, callee_id);
 
     return res.status(201).json(callHistory);
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(
-      "Unexpected error in POST /call-history:",
-      error instanceof Error ? error.message : "Unknown error"
+      "Unexpected error in POST /call-history: %o",
+      error instanceof Error ? error : new Error(String(error))
     );
     return res.status(500).json({
       error: "Internal Server Error",

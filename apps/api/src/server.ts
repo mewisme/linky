@@ -4,11 +4,12 @@ import { setupMiddleware, setupErrorHandlers } from "./middleware/index.js";
 import { setupRoutes } from "./routes/index.js";
 import { createSocketServer } from "./socket/index.js";
 import { config } from "./config/index.js";
-import { Logger } from "./utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { connectRedis } from "./infra/redis/client.js";
+import { preloadReferenceData } from "./infra/redis/cache-preload.js";
 import { initializeMqttClient, attachSocketIO } from "./infra/mqtt/client.js";
 
-const logger = new Logger("Server");
+const logger = createLogger("API:Server");
 
 export function createApp(): Express {
   const app = express();
@@ -21,45 +22,46 @@ export function createApp(): Express {
 }
 
 export async function startServer(): Promise<{ app: Express; httpServer: HTTPServer; io: ReturnType<typeof createSocketServer> }> {
-  logger.load("Initializing server...");
+  logger.info("Initializing server...");
 
   const app = createApp();
-  logger.done("Express app created");
+  logger.info("Express app created");
 
-  logger.load("Creating HTTP server...");
+  logger.info("Creating HTTP server...");
   const httpServer = createServer(app);
-  logger.done("HTTP server created");
+  logger.info("HTTP server created");
 
-  logger.load("Initializing Socket.IO server...");
+  logger.info("Initializing Socket.IO server...");
   const io = createSocketServer(httpServer);
-  logger.done("Socket.IO server created");
+  logger.info("Socket.IO server created");
 
   attachSocketIO(io);
 
-  logger.load("Connecting to Redis...");
+  logger.info("Connecting to Redis...");
   try {
     await connectRedis();
-  } catch (error) {
-    logger.error("Failed to connect to Redis, continuing without Redis:", error);
+    preloadReferenceData();
+  } catch (error: unknown) {
+    logger.error("Failed to connect to Redis, continuing without Redis: %o", error instanceof Error ? error : new Error(String(error)));
   }
 
   initializeMqttClient();
 
   httpServer.listen(config.port, () => {
     logger.info("=".repeat(50));
-    logger.done("Server started successfully");
-    logger.info("HTTP server running on", `http://localhost:${config.port}`);
+    logger.info("Server started successfully");
+    logger.info("HTTP server running on %s", `http://localhost:${config.port}`);
     logger.info("Socket.IO server ready for connections");
-    logger.info("Environment:", config.nodeEnv);
+    logger.info("Environment: %s", config.nodeEnv);
     const corsOriginDisplay = Array.isArray(config.corsOrigin)
       ? config.corsOrigin.join(", ")
       : config.corsOrigin;
-    logger.info("CORS origin:", corsOriginDisplay);
+    logger.info("CORS origin: %s", corsOriginDisplay);
     logger.info("=".repeat(50));
   });
 
   httpServer.on("error", (error: Error) => {
-    logger.error("HTTP server error:", error.message);
+    logger.fatal("HTTP server error: %o", error);
   });
 
   return { app, httpServer, io };

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { AdminInterestTagInsert, AdminInterestTagUpdate } from "../types/admin.types.js";
 import {
   createAdminInterestTag,
@@ -11,7 +11,7 @@ import {
 } from "../service/admin-interest-tags.service.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("AdminInterestTagsRoute");
+const logger = createLogger("API:Admin:InterestTags:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -39,7 +39,7 @@ router.get("/", async (req: Request, res: Response) => {
       offset,
     });
 
-    logger.info("Admin fetched interest tags:", { count, limit, offset });
+    logger.info("Admin fetched interest tags: %d, %d, %d", count, limit, offset);
 
     return res.json({
       data,
@@ -51,7 +51,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/interest-tags:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/interest-tags: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tags",
@@ -79,11 +79,11 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Admin fetched interest tag:", id);
+    logger.info("Admin fetched interest tag: %s", id);
 
     return res.json(tag);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/interest-tags/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tag",
@@ -111,11 +111,11 @@ router.post("/", async (req: Request, res: Response) => {
 
     const created = await createAdminInterestTag(tagData);
 
-    logger.info("Admin created interest tag:", created.id);
+    logger.info("Admin created interest tag: %s", created.id);
 
     return res.status(201).json(created);
   } catch (error) {
-    logger.error("Unexpected error in POST /admin/interest-tags:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in POST /admin/interest-tags: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message.includes("duplicate") || (error instanceof Error && error.message.includes("unique"))) {
       return res.status(409).json({
@@ -162,11 +162,11 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const updated = await updateAdminInterestTag(id, tagData);
 
-    logger.info("Admin updated interest tag:", id);
+    logger.info("Admin updated interest tag: %s", id);
 
     return res.json(updated);
   } catch (error) {
-    logger.error("Unexpected error in PUT /admin/interest-tags/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PUT /admin/interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message === "Interest tag not found") {
       return res.status(404).json({
@@ -220,11 +220,11 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const updated = await updateAdminInterestTag(id, tagData);
 
-    logger.info("Admin patched interest tag:", id);
+    logger.info("Admin patched interest tag: %s", id);
 
     return res.json(updated);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /admin/interest-tags/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PATCH /admin/interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message === "Interest tag not found") {
       return res.status(404).json({
@@ -260,14 +260,14 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     const deleted = await softDeleteInterestTag(id);
 
-    logger.info("Admin soft deleted interest tag:", id);
+    logger.info("Admin soft deleted interest tag: %s", id);
 
     return res.json({
       message: "Interest tag deactivated successfully",
       data: deleted,
     });
   } catch (error) {
-    logger.error("Unexpected error in DELETE /admin/interest-tags/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in DELETE /admin/interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message === "Interest tag not found") {
       return res.status(404).json({
@@ -296,15 +296,15 @@ router.delete("/:id/hard", async (req: Request, res: Response) => {
 
     await hardDeleteInterestTag(id);
 
-    logger.info("Admin hard deleted interest tag:", id);
+    logger.info("Admin hard deleted interest tag: %s", id);
 
     return res.json({
       message: "Interest tag permanently deleted",
     });
   } catch (error) {
     logger.error(
-      "Unexpected error in DELETE /admin/interest-tags/:id/hard:",
-      error instanceof Error ? error.message : "Unknown error",
+      "Unexpected error in DELETE /admin/interest-tags/:id/hard: %o",
+      error instanceof Error ? error : new Error(String(error)),
     );
 
     return res.status(500).json({

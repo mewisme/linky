@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { UpdateUserCountryBody } from "../types/user.types.js";
 import {
   fetchUserByClerkUserId,
@@ -8,7 +8,7 @@ import {
 } from "../service/user.service.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("UsersRoute");
+const logger = createLogger("API:User:Users:Route");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {
@@ -21,12 +21,12 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Fetching user data:", clerkUserId);
+    logger.info("Fetching user data: %s", clerkUserId);
 
     const { user, error } = await fetchUserByClerkUserId(clerkUserId);
 
     if (error) {
-      logger.error("Error fetching user from database:", error.message);
+      logger.error("Error fetching user from database: %o", error instanceof Error ? error : new Error(String(error)));
 
       if (error.code === "PGRST116") {
         return res.status(404).json({
@@ -52,24 +52,24 @@ router.get("/me", async (req: Request, res: Response) => {
       const countryHeader = req.headers["cf-ipcountry"] || req.headers["x-cf-ipcountry"];
 
       if (countryHeader && typeof countryHeader === "string") {
-        logger.info("Updating user country from header:", countryHeader);
+        logger.info("Updating user country from header: %s", countryHeader);
 
         const { updatedUser, updateError } = await tryUpdateUserCountryFromHeader(clerkUserId, countryHeader);
 
         if (updateError) {
-          logger.error("Error updating user country:", updateError.message);
+          logger.error("Error updating user country: %o", updateError instanceof Error ? updateError : new Error(String(updateError)));
         } else if (updatedUser) {
-          logger.info("User country updated successfully:", countryHeader);
+          logger.info("User country updated successfully: %s", countryHeader);
           return res.json(updatedUser);
         }
       }
     }
 
-    logger.info("User data fetched successfully:", user.id);
+    logger.info("User data fetched successfully: %s", user.id);
 
     return res.json(user);
   } catch (error) {
-    logger.error("Unexpected error in GET /users/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /users/me: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",
@@ -95,12 +95,12 @@ router.patch("/me/country", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Updating user country:", { clerk_user_id, country });
+    logger.info("Updating user country: %s %s", clerk_user_id, country);
 
     const { user, error } = await updateUserCountryByClerkUserId(clerk_user_id, country);
 
     if (error) {
-      logger.error("Error updating user country:", error.message);
+      logger.error("Error updating user country: %o", error instanceof Error ? error : new Error(String(error)));
       return res.status(500).json({
         error: "Internal Server Error",
         message: "Failed to update user country",
@@ -114,11 +114,11 @@ router.patch("/me/country", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("User country updated successfully:", user.id);
+    logger.info("User country updated successfully: %s", user.id);
 
     return res.json(user);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /users/me/country:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PATCH /users/me/country: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",

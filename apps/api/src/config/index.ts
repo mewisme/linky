@@ -33,4 +33,3 @@ export const config = {
   redisUsername: process.env.REDIS_USERNAME as string,
   redisPassword: process.env.REDIS_PASSWORD as string,
 } as const;
-

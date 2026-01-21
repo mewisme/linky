@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import {
   createPageView,
   deletePageViewById,
@@ -10,7 +10,7 @@ import {
 } from "../service/admin-visits.service.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("AdminVisitsRoute");
+const logger = createLogger("API:Admin:Visits:Route");
 
 router.get("/visitor/:ip", async (req: Request, res: Response) => {
   try {
@@ -33,7 +33,7 @@ router.get("/visitor/:ip", async (req: Request, res: Response) => {
     }
 
     if (result.pageViewsError) {
-      logger.warn("Error fetching page views for visitor:", result.pageViewsError.message);
+      logger.warn("Error fetching page views for visitor: %o", result.pageViewsError);
     }
 
     return res.json({
@@ -41,7 +41,7 @@ router.get("/visitor/:ip", async (req: Request, res: Response) => {
       pageViews: result.pageViews,
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/visits/visitor/:ip:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/visits/visitor/:ip: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch visitor details",
@@ -67,7 +67,7 @@ router.get("/path/:path", async (req: Request, res: Response) => {
     const result = await getPathViews({ page, limit, path: decodedPath });
 
     if (result.uniqueVisitorsError) {
-      logger.warn("Error fetching unique visitors count:", result.uniqueVisitorsError.message);
+      logger.warn("Error fetching unique visitors count: %o", result.uniqueVisitorsError);
     }
 
     return res.json({
@@ -76,7 +76,7 @@ router.get("/path/:path", async (req: Request, res: Response) => {
       path: decodedPath,
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/visits/path/:path:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/visits/path/:path: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch path views",
@@ -119,7 +119,7 @@ router.post("/page-view", async (req: Request, res: Response) => {
       ip,
     });
   } catch (error) {
-    logger.error("Unexpected error in POST /admin/visits/page-view:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in POST /admin/visits/page-view: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to create page view",
@@ -141,7 +141,7 @@ router.delete("/page-view/:id", async (req: Request, res: Response) => {
     const result = await deletePageViewById(id);
 
     if (result.error) {
-      logger.error("Error deleting page view:", result.error.message);
+      logger.error("Error deleting page view: %o", result.error);
       return res.status(500).json({
         error: "Internal Server Error",
         message: "Failed to delete page view",
@@ -154,8 +154,8 @@ router.delete("/page-view/:id", async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(
-      "Unexpected error in DELETE /admin/visits/page-view/:id:",
-      error instanceof Error ? error.message : "Unknown error",
+      "Unexpected error in DELETE /admin/visits/page-view/:id: %o",
+      error instanceof Error ? error : new Error(String(error)),
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -178,7 +178,7 @@ router.get("/recent", async (req: Request, res: Response) => {
       pagination: result.pagination,
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/visits/recent:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/visits/recent: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch recent visits",
@@ -191,7 +191,7 @@ router.get("/stats", async (_req: Request, res: Response) => {
     const stats = await getVisitStats();
     return res.json(stats);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/visits/stats:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/visits/stats: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch visit statistics",

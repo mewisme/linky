@@ -1,9 +1,9 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { getOverview, getPageViewsForAdmin, getTopPagesForAdmin, getVisitorStatsForAdmin, getVisitorsForAdmin } from "../service/admin-analytics.service.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("AdminAnalyticsRoute");
+const logger = createLogger("API:Admin:Analytics:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -11,7 +11,7 @@ router.get("/", async (req: Request, res: Response) => {
     const result = await getOverview(days);
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/analytics:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/analytics: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch analytics",
@@ -29,7 +29,7 @@ router.get("/page-views", async (req: Request, res: Response) => {
     const result = await getPageViewsForAdmin({ days, page, limit, timeseries });
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/analytics/page-views:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/analytics/page-views: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch page views",
@@ -47,7 +47,7 @@ router.get("/visitors", async (req: Request, res: Response) => {
     const result = await getVisitorsForAdmin({ days, page, limit, timeseries });
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/analytics/visitors:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/analytics/visitors: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch visitors",
@@ -61,7 +61,7 @@ router.get("/top-pages", async (req: Request, res: Response) => {
     const result = await getTopPagesForAdmin(limit);
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/analytics/top-pages:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/analytics/top-pages: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch top pages",
@@ -74,7 +74,7 @@ router.get("/visitor-stats", async (_req: Request, res: Response) => {
     const stats = await getVisitorStatsForAdmin();
     return res.json(stats);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/analytics/visitor-stats:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/analytics/visitor-stats: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch visitor stats",

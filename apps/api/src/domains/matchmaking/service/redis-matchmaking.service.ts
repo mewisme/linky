@@ -1,13 +1,14 @@
 import type { Namespace, Socket } from "socket.io";
-import { redisClient } from "../../../infra/redis/client.js";
-import { Logger } from "../../../utils/logger.js";
-import { getInterestTags } from "../../../infra/supabase/repositories/user-details.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import { getFavoritesByUserId } from "../../../infra/supabase/repositories/favorites.js";
-import type { AuthenticatedSocket } from "../../../types/socket/socket-context.types.js";
-import type { QueuedUser } from "../types/matchmaking.types.js";
 import type { QueueUser, ScoredCandidatePair } from "../types/candidate.types.js";
 import { calculateFavoriteType, calculateRedisCandidateScore } from "./scoring.service.js";
+
+import type { AuthenticatedSocket } from "../../../types/socket/socket-context.types.js";
+import type { QueuedUser } from "../types/matchmaking.types.js";
+import { createLogger } from "@repo/logger/api";
+import { getFavoritesByUserId } from "../../../infra/supabase/repositories/favorites.js";
+import { getInterestTags } from "../../../infra/supabase/repositories/user-details.js";
+import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import { redisClient } from "../../../infra/redis/client.js";
 
 const QUEUE_KEY = "match:queue";
 const LOCK_KEY = "match:lock";
@@ -19,7 +20,7 @@ const MAX_QUEUE_WAIT_TIME = 5 * 60 * 1000;
 const MAX_MATCHING_CANDIDATES = 50;
 
 export class RedisMatchmakingService {
-  private readonly logger = new Logger("RedisMatchmakingService");
+  private readonly logger = createLogger("API:Matchmaking:Redis:Service");
 
   async enqueue(socket: Socket): Promise<boolean> {
     const socketId = socket.id;
@@ -27,14 +28,14 @@ export class RedisMatchmakingService {
     const clerkUserId = authSocket.data.userId;
 
     if (!clerkUserId) {
-      this.logger.warn("Cannot enqueue user without Clerk ID:", socketId);
+      this.logger.warn("Cannot enqueue user without Clerk ID: %s", socketId);
       return false;
     }
 
     try {
       const dbUserId = await getUserIdByClerkId(clerkUserId);
       if (!dbUserId) {
-        this.logger.warn("Cannot enqueue user without database ID:", socketId, "Clerk ID:", clerkUserId);
+        this.logger.warn("Cannot enqueue user without database ID: %s Clerk ID: %s", socketId, clerkUserId);
         return false;
       }
 
@@ -43,7 +44,7 @@ export class RedisMatchmakingService {
         await redisClient.set(`match:socket:${dbUserId}`, socketId, {
           EX: MAX_QUEUE_WAIT_TIME / 1000 + 60,
         });
-        this.logger.info("User already in queue, updated socket:", dbUserId, socketId);
+        this.logger.info("User already in queue, updated socket: %s %s", dbUserId, socketId);
         return true;
       }
 
@@ -61,11 +62,11 @@ export class RedisMatchmakingService {
       });
 
       const queueSize = await this.getQueueSize();
-      this.logger.info("User added to queue:", dbUserId, `(Queue size: ${queueSize})`);
+      this.logger.info("User added to queue: %s (Queue size: %d)", dbUserId, queueSize);
 
       return true;
     } catch (error) {
-      this.logger.error("Failed to enqueue user:", socketId, error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to enqueue user: %s %o", socketId, error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
@@ -77,13 +78,13 @@ export class RedisMatchmakingService {
 
       if (removed > 0) {
         const queueSize = await this.getQueueSize();
-        this.logger.info("User removed from queue:", userId, `(Queue size: ${queueSize})`);
+        this.logger.info("User removed from queue: %s (Queue size: %d)", userId, queueSize);
         return true;
       }
 
       return false;
     } catch (error) {
-      this.logger.error("Failed to dequeue user:", userId, error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to dequeue user: %s %o", userId, error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
@@ -93,7 +94,7 @@ export class RedisMatchmakingService {
       const score = await redisClient.zScore(QUEUE_KEY, userId);
       return score !== null;
     } catch (error) {
-      this.logger.error("Failed to check queue status:", userId, error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to check queue status: %s %o", userId, error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
@@ -102,7 +103,7 @@ export class RedisMatchmakingService {
     try {
       return await redisClient.zCard(QUEUE_KEY);
     } catch (error) {
-      this.logger.error("Failed to get queue size:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to get queue size: %o", error instanceof Error ? error : new Error(String(error)));
       return 0;
     }
   }
@@ -113,13 +114,13 @@ export class RedisMatchmakingService {
       await redisClient.sAdd(skipKey, skippedUserId);
       await redisClient.expire(skipKey, SKIP_COOLDOWN_TTL);
 
-      this.logger.info("Skip recorded:", skipperUserId, "->", skippedUserId, `(Cooldown: ${SKIP_COOLDOWN_TTL}s)`);
+      this.logger.info("Skip recorded: %s -> %s (Cooldown: %ds)", skipperUserId, skippedUserId, SKIP_COOLDOWN_TTL);
     } catch (error) {
       this.logger.error(
-        "Failed to record skip:",
+        "Failed to record skip: %s -> %s %o",
         skipperUserId,
         skippedUserId,
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error : new Error(String(error)),
       );
     }
   }
@@ -269,11 +270,12 @@ export class RedisMatchmakingService {
       await this.dequeue(bestMatch.userB.userId);
 
       this.logger.info(
-        "Matched users:",
+        "Matched users: %s and %s (Score: %s, Common interests: %d, Favorite: %s)",
         bestMatch.userA.userId,
-        "and",
         bestMatch.userB.userId,
-        `(Score: ${bestMatch.score.toFixed(2)}, Common interests: ${bestMatch.commonInterests}, Favorite: ${bestMatch.favoriteType})`,
+        bestMatch.score.toFixed(2),
+        bestMatch.commonInterests,
+        bestMatch.favoriteType,
       );
 
       return [
@@ -319,10 +321,10 @@ export class RedisMatchmakingService {
         for (const userId of staleUserIds) {
           await this.dequeue(userId);
         }
-        this.logger.info("Cleaned up", staleUserIds.length, "stale socket references");
+        this.logger.info("Cleaned up %d stale socket references", staleUserIds.length);
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup stale sockets:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to cleanup stale sockets: %o", error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -352,10 +354,10 @@ export class RedisMatchmakingService {
             }
           }
         }
-        this.logger.info("Cleaned up", expiredUserIds.length, "expired queue entries");
+        this.logger.info("Cleaned up %d expired queue entries", expiredUserIds.length);
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup expired entries:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to cleanup expired entries: %o", error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -372,9 +374,9 @@ export class RedisMatchmakingService {
       }
     } catch (error) {
       this.logger.error(
-        "Failed to cache user interests:",
+        "Failed to cache user interests: %s %o",
         dbUserId,
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error : new Error(String(error)),
       );
     }
   }
@@ -389,7 +391,7 @@ export class RedisMatchmakingService {
         result.set(userId, tags);
       }
     } catch (error) {
-      this.logger.error("Failed to load interest tags:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to load interest tags: %o", error instanceof Error ? error : new Error(String(error)));
     }
 
     return result;
@@ -407,7 +409,7 @@ export class RedisMatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to load skip sets:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to load skip sets: %o", error instanceof Error ? error : new Error(String(error)));
     }
 
     return result;
@@ -426,9 +428,9 @@ export class RedisMatchmakingService {
       }
     } catch (error) {
       this.logger.error(
-        "Failed to cache user favorites:",
+        "Failed to cache user favorites: %s %o",
         dbUserId,
-        error instanceof Error ? error.message : "Unknown error",
+        error instanceof Error ? error : new Error(String(error)),
       );
     }
   }
@@ -445,7 +447,7 @@ export class RedisMatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to load favorites:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to load favorites: %o", error instanceof Error ? error : new Error(String(error)));
     }
 
     return result;
@@ -459,7 +461,7 @@ export class RedisMatchmakingService {
       });
       return result === "OK";
     } catch (error) {
-      this.logger.error("Failed to acquire lock:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to acquire lock: %o", error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
@@ -468,7 +470,7 @@ export class RedisMatchmakingService {
     try {
       await redisClient.del(LOCK_KEY);
     } catch (error) {
-      this.logger.error("Failed to release lock:", error instanceof Error ? error.message : "Unknown error");
+      this.logger.error("Failed to release lock: %o", error instanceof Error ? error : new Error(String(error)));
     }
   }
 }

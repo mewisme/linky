@@ -1,14 +1,14 @@
 import { createClerkClient, verifyToken } from "@clerk/backend";
 
 import type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
-import { Logger } from "../utils/logger.js";
 import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "../infra/admin-cache/index.js";
 import { config } from "../config/index.js";
+import { createLogger } from "@repo/logger/api";
 
 export type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
 
-const logger = new Logger("SocketAuth");
+const logger = createLogger("API:Socket:Auth");
 
 const clerk = createClerkClient({ secretKey: config.clerkSecretKey });
 
@@ -24,9 +24,7 @@ export async function socketAuthMiddleware(
     const token = tokenFromAuth || tokenFromQuery;
 
     if (!token) {
-      logger.warn("Socket connection rejected: No token provided", {
-        socketId: socket.id,
-      });
+      logger.warn("Socket connection rejected: No token provided: %s", socket.id);
       return next(new Error("Authentication required"));
     }
 
@@ -41,11 +39,8 @@ export async function socketAuthMiddleware(
       const user = await clerk.users.getUser(payload.sub);
       userName = user.firstName || user.username || "Anonymous";
       userImageUrl = user.imageUrl;
-    } catch (err) {
-      logger.warn("Failed to fetch user profile from Clerk", {
-        userId: payload.sub,
-        error: err instanceof Error ? err.message : "Unknown error",
-      });
+    } catch (err: unknown) {
+      logger.warn("Failed to fetch user profile from Clerk: %s, Error: %o", payload.sub, err instanceof Error ? err : new Error(String(err)));
     }
 
     (socket as AuthenticatedSocket).data = {
@@ -55,11 +50,11 @@ export async function socketAuthMiddleware(
       auth: payload,
     };
 
-    logger.info("Socket authenticated:", userName);
+    logger.info("Socket authenticated: %s, User: %s", socket.id, userName);
 
     next();
-  } catch (error) {
-    logger.error("Socket authentication failed:", error instanceof Error ? error.message : "Unknown error");
+  } catch (error: unknown) {
+    logger.error("Socket authentication failed: %o", error instanceof Error ? error : new Error(String(error)));
     next(new Error("Authentication failed"));
   }
 }
@@ -79,8 +74,8 @@ export async function adminNamespaceAuthMiddleware(
       return next(new Error("Admin access required"));
     }
     next();
-  } catch (error) {
-    logger.error("Admin namespace auth failed:", error instanceof Error ? error.message : "Unknown error");
+  } catch (error: unknown) {
+    logger.error("Admin namespace auth failed: %o", error instanceof Error ? error : new Error(String(error)));
     next(new Error("Authorization failed"));
   }
 }

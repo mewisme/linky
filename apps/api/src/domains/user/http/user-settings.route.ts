@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { UserSettingsUpdate } from "../types/user-settings.types.js";
 import {
   fetchUserSettings,
@@ -7,9 +7,11 @@ import {
   patchUserSettingsForUser,
   putUserSettings,
 } from "../service/user-settings.service.js";
+import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("UserSettingsRoute");
+const logger = createLogger("API:User:Settings:Route");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {
@@ -30,20 +32,30 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    const userSettings = await fetchUserSettings(userId);
+    const userSettings = await getCachedData(
+      CACHE_KEYS.userSettings(userId),
+      async () => {
+        const userSettings = await fetchUserSettings(userId);
+        if (!userSettings) {
+          throw new Error("User settings not found");
+        }
+        return userSettings;
+      },
+      CACHE_TTL.USER_SETTINGS
+    );
 
-    if (!userSettings) {
+    logger.info("User settings fetched for user: %s", userId);
+
+    return res.json(userSettings);
+  } catch (error) {
+    if (error instanceof Error && error.message === "User settings not found") {
       return res.status(404).json({
         error: "Not Found",
         message: "User settings not found",
       });
     }
 
-    logger.info("User settings fetched for user:", userId);
-
-    return res.json(userSettings);
-  } catch (error) {
-    logger.error("Unexpected error in GET /user-settings/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /user-settings/me: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user settings",
@@ -76,16 +88,19 @@ router.put("/me", async (req: Request, res: Response) => {
 
     const result = await putUserSettings(userId, updateData);
 
-    logger.info("User settings updated for user:", userId);
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userSettings(userId));
+
+    logger.info("User settings updated for user: %s", userId);
 
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in PUT /user-settings/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PUT /user-settings/me: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message === "User settings not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
@@ -121,18 +136,21 @@ router.patch("/me", async (req: Request, res: Response) => {
 
     await patchUserSettingsForUser(userId, updateData);
 
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userSettings(userId));
+
     const userSettings = await fetchUserSettings(userId);
 
-    logger.info("User settings patched for user:", userId);
+    logger.info("User settings patched for user: %s", userId);
 
     return res.json(userSettings);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /user-settings/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PATCH /user-settings/me: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message === "User settings not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 

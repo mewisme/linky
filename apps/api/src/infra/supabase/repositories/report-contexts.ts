@@ -1,12 +1,11 @@
 import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
 
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
 type ReportContextInsert = TablesInsert<"report_contexts">;
-type ReportContextUpdate = TablesUpdate<"report_contexts">;
 
-const logger = new Logger("SupabaseReportContextsQueries");
+const logger = createLogger("API:Supabase:ReportContexts:Repository");
 
 export interface ReportContextWithReport {
   id: string;
@@ -35,7 +34,7 @@ export async function createReportContext(
     .single();
 
   if (error) {
-    logger.error("Error creating report context:", error.message);
+    logger.error("Error creating report context: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -53,7 +52,7 @@ export async function getReportContextByReportId(reportId: string): Promise<Repo
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching report context:", error.message);
+    logger.error("Error fetching report context: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -71,7 +70,7 @@ export async function getReportWithContext(reportId: string) {
     if (reportError.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching report:", reportError.message);
+    logger.error("Error fetching report: %o", reportError instanceof Error ? reportError : new Error(String(reportError)));
     throw reportError;
   }
 
@@ -82,8 +81,8 @@ export async function getReportWithContext(reportId: string) {
     .single();
 
   if (contextError && contextError.code !== "PGRST116") {
-    logger.error("Error fetching report context:", contextError.message);
-    throw contextError;
+    logger.error("Error fetching report context: %o", contextError instanceof Error ? contextError : new Error(String(contextError)));
+    throw new Error(contextError.message);
   }
 
   return {

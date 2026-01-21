@@ -1,13 +1,15 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { createReportContext } from "../../../infra/supabase/repositories/report-contexts.js";
 import { collectReportContext } from "../../../services/report-context.js";
 import type { CreateReportBody } from "../types/report.types.js";
 import { createUserReport, listUserReports } from "../service/reports.service.js";
+import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("ReportsRoute");
+const logger = createLogger("API:Reports:Route");
 
 router.post("/", async (req: Request, res: Response) => {
   try {
@@ -57,7 +59,10 @@ router.post("/", async (req: Request, res: Response) => {
       reason: reason.trim(),
     });
 
-    logger.info("Report created:", report.id);
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userReports(reporterUserId));
+
+    logger.info("Report created: %s", report.id);
 
     try {
       const contextData = await collectReportContext({
@@ -73,14 +78,14 @@ router.post("/", async (req: Request, res: Response) => {
         ...contextData,
       });
 
-      logger.info("Report context created for report:", report.id);
+      logger.info("Report context created for report: %s", report.id);
     } catch (error) {
-      logger.error("Error creating report context:", error instanceof Error ? error.message : "Unknown error");
+      logger.error("Error creating report context: %o", error instanceof Error ? error : new Error(String(error)));
     }
 
     return res.status(201).json(report);
   } catch (error) {
-    logger.error("Unexpected error in POST /reports:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in POST /reports: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message.includes("violates check constraint")) {
       return res.status(400).json({
@@ -118,9 +123,22 @@ router.get("/me", async (req: Request, res: Response) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const { data, count } = await listUserReports({ userId, limit, offset });
+    // Only cache when using default pagination (most common case)
+    const shouldCache = limit === 50 && offset === 0;
 
-    logger.info("User reports fetched for user:", userId);
+    let data, count;
+
+    if (shouldCache) {
+      ({ data, count } = await getCachedData(
+        CACHE_KEYS.userReports(userId),
+        () => listUserReports({ userId, limit, offset }),
+        CACHE_TTL.USER_REPORTS
+      ));
+    } else {
+      ({ data, count } = await listUserReports({ userId, limit, offset }));
+    }
+
+    logger.info("User reports fetched for user: %s cached: %s", userId, shouldCache);
 
     return res.json({
       data,
@@ -129,7 +147,7 @@ router.get("/me", async (req: Request, res: Response) => {
       offset,
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /reports/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /reports/me: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user reports",

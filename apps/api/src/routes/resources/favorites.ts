@@ -11,13 +11,15 @@ import {
   getFavoritesWithStats,
 } from "../../infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "../../infra/supabase/repositories/call-history.js";
-import { Logger } from "../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { getVideoChatContext } from "../../domains/video-chat/socket/video-chat.socket.js";
 import { supabase } from "../../infra/supabase/client.js";
 import { redisClient } from "../../infra/redis/client.js";
+import { getCachedData, invalidateCacheKey } from "../../infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("ResourcesFavoritesRoute");
+const logger = createLogger("API:Resources:Favorites:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -38,18 +40,22 @@ router.get("/", async (req: Request, res: Response) => {
       });
     }
 
-    const favorites = await getFavoritesWithStats(userId);
+    const favorites = await getCachedData(
+      CACHE_KEYS.userFavorites(userId),
+      () => getFavoritesWithStats(userId),
+      CACHE_TTL.USER_FAVORITES
+    );
 
-    logger.info("Favorites fetched for user:", userId, "Count:", favorites.length);
+    logger.info("Favorites fetched for user: %s, Count: %d", userId, favorites.length);
 
     return res.json({
       data: favorites,
       count: favorites.length,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(
-      "Unexpected error in GET /favorites:",
-      error instanceof Error ? error.message : "Unknown error"
+      "Unexpected error in GET /favorites: %o",
+      error instanceof Error ? error : new Error(String(error))
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -113,16 +119,19 @@ router.post("/", async (req: Request, res: Response) => {
     const favorite = await createFavorite(userId, favorite_user_id);
     await incrementFavoriteLimit(userId);
 
-    logger.info("Favorite created:", userId, "->", favorite_user_id);
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userFavorites(userId));
+
+    logger.info("Favorite created: %s -> %s", userId, favorite_user_id);
 
     return res.status(201).json({
       data: favorite,
       message: "User added to favorites",
     });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(
-      "Unexpected error in POST /favorites:",
-      error instanceof Error ? error.message : "Unknown error"
+      "Unexpected error in POST /favorites: %o",
+      error instanceof Error ? error : new Error(String(error))
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -176,30 +185,30 @@ router.delete("/:favorite_user_id", async (req: Request, res: Response) => {
     if (isSameDay) {
       try {
         await decrementFavoriteLimit(userId);
-        logger.info("Daily limit refunded for user:", userId);
-      } catch (error) {
-        logger.error("Failed to refund daily limit:", error instanceof Error ? error.message : "Unknown error");
+        logger.info("Daily limit refunded for user: %s", userId);
+      } catch (error: unknown) {
+        logger.error("Failed to refund daily limit: %o", error instanceof Error ? error : new Error(String(error)));
       }
     }
 
     try {
       const favoritesKey = `user:favorites:${userId}`;
       await redisClient.sRem(favoritesKey, favorite_user_id);
-      logger.info("Redis cache updated for user:", userId);
-    } catch (error) {
-      logger.error("Failed to update Redis cache:", error instanceof Error ? error.message : "Unknown error");
+      logger.info("Redis cache updated for user: %s", userId);
+    } catch (error: unknown) {
+      logger.error("Failed to update Redis cache: %o", error instanceof Error ? error : new Error(String(error)));
     }
 
-    logger.info("Favorite deleted:", userId, "->", favorite_user_id);
+    logger.info("Favorite deleted: %s -> %s", userId, favorite_user_id);
 
     return res.json({
       message: "Favorite removed successfully",
       refunded: isSameDay,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(
-      "Unexpected error in DELETE /favorites/:favorite_user_id:",
-      error instanceof Error ? error.message : "Unknown error"
+      "Unexpected error in DELETE /favorites/:favorite_user_id: %o",
+      error instanceof Error ? error : new Error(String(error))
     );
     return res.status(500).json({
       error: "Internal Server Error",

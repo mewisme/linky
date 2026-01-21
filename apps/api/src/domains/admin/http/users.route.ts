@@ -1,11 +1,11 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { AdminUserUpdate } from "../types/admin.types.js";
 import { redisClient } from "../../../infra/redis/client.js";
 import { getUser, listUsers, patchAdminUser, updateAdminUser } from "../service/admin-users.service.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("AdminUsersRoute");
+const logger = createLogger("API:Admin:Users:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -38,8 +38,8 @@ router.get("/", async (req: Request, res: Response) => {
             }
           } catch (presenceError) {
             logger.warn(
-              "Error fetching presence from Redis:",
-              presenceError instanceof Error ? presenceError.message : "Unknown error",
+              "Error fetching presence from Redis: %o",
+              presenceError instanceof Error ? presenceError : new Error(String(presenceError)),
             );
           }
         }
@@ -64,7 +64,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/users:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/users: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch users",
@@ -99,11 +99,7 @@ router.get("/:id", async (req: Request, res: Response) => {
           presence = presenceState;
         }
       } catch (presenceError) {
-        logger.warn("Error fetching presence from Redis", {
-          userId: (user as any).id,
-          clerkUserId: (user as any).clerk_user_id,
-          error: presenceError instanceof Error ? presenceError.message : "Unknown error",
-        });
+        logger.warn("Error fetching presence from Redis: %o", presenceError instanceof Error ? presenceError : new Error(String(presenceError)));
       }
     }
 
@@ -112,7 +108,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       presence,
     });
   } catch (error: any) {
-    logger.error("Unexpected error in GET /admin/users/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error.code === "PGRST116") {
       return res.status(404).json({
@@ -141,10 +137,10 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const user = await updateAdminUser(id, userData);
 
-    logger.info("User updated successfully:", id);
+    logger.info("User updated successfully: %s", id);
     return res.json(user);
   } catch (error: any) {
-    logger.error("Unexpected error in PUT /admin/users/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PUT /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error.message === "User not found") {
       return res.status(404).json({
@@ -180,10 +176,10 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const user = await patchAdminUser(id, userData);
 
-    logger.info("User updated successfully:", id);
+    logger.info("User updated successfully: %s", id);
     return res.json(user);
   } catch (error: any) {
-    logger.error("Unexpected error in PATCH /admin/users/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PATCH /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error.message === "User not found") {
       return res.status(404).json({

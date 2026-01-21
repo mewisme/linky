@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { InterestTagsBody, UserDetailsUpdate } from "../types/user-details.types.js";
 import {
   addUserInterestTags,
@@ -11,9 +11,11 @@ import {
   removeUserInterestTags,
   replaceUserInterestTags,
 } from "../service/user-details.service.js";
+import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("UserDetailsRoute");
+const logger = createLogger("API:User:Details:Route");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {
@@ -34,20 +36,30 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    const userDetails = await fetchUserDetailsWithTags(userId);
+    const userDetails = await getCachedData(
+      CACHE_KEYS.userDetails(userId),
+      async () => {
+        const userDetails = await fetchUserDetailsWithTags(userId);
+        if (!userDetails) {
+          throw new Error("User details not found");
+        }
+        return userDetails;
+      },
+      CACHE_TTL.USER_DETAILS
+    );
 
-    if (!userDetails) {
+    logger.info("User details fetched for user: %s", userId);
+
+    return res.json(userDetails);
+  } catch (error) {
+    if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
         message: "User details not found",
       });
     }
 
-    logger.info("User details fetched for user:", userId);
-
-    return res.json(userDetails);
-  } catch (error) {
-    logger.error("Unexpected error in GET /user-details/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /user-details/me: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user details",
@@ -80,32 +92,35 @@ router.put("/me", async (req: Request, res: Response) => {
 
     const result = await putUserDetails(userId, updateData);
 
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
+
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("User details updated for user:", userId);
+    logger.info("User details updated for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error("Unexpected error in PUT /user-details/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PUT /user-details/me: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message.includes("Invalid interest tag")) {
       return res.status(400).json({
         error: "Bad Request",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
     if (error instanceof Error && error.message.includes("Date of birth")) {
       return res.status(400).json({
         error: "Bad Request",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
@@ -141,32 +156,35 @@ router.patch("/me", async (req: Request, res: Response) => {
 
     const result = await patchUserDetailsForUser(userId, updateData);
 
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
+
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("User details patched for user:", userId);
+    logger.info("User details patched for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /user-details/me:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PATCH /user-details/me: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error instanceof Error && error.message.includes("Invalid interest tag")) {
       return res.status(400).json({
         error: "Bad Request",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
     if (error instanceof Error && error.message.includes("Date of birth")) {
       return res.status(400).json({
         error: "Bad Request",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
@@ -207,28 +225,31 @@ router.post("/me/interest-tags", async (req: Request, res: Response) => {
 
     const result = await addUserInterestTags(userId, tagIds);
 
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
+
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("Interest tags added for user:", userId);
+    logger.info("Interest tags added for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
     logger.error(
-      "Unexpected error in POST /user-details/me/interest-tags:",
-      error instanceof Error ? error.message : "Unknown error",
+      "Unexpected error in POST /user-details/me/interest-tags: %o",
+      error instanceof Error ? error : new Error(String(error)),
     );
 
     if (error instanceof Error && error.message.includes("Invalid or inactive")) {
       return res.status(400).json({
         error: "Bad Request",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
@@ -269,21 +290,24 @@ router.delete("/me/interest-tags", async (req: Request, res: Response) => {
 
     const result = await removeUserInterestTags(userId, tagIds);
 
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
+
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("Interest tags removed for user:", userId);
+    logger.info("Interest tags removed for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
     logger.error(
-      "Unexpected error in DELETE /user-details/me/interest-tags:",
-      error instanceof Error ? error.message : "Unknown error",
+      "Unexpected error in DELETE /user-details/me/interest-tags: %o",
+      error instanceof Error ? error : new Error(String(error)),
     );
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
@@ -324,28 +348,31 @@ router.put("/me/interest-tags", async (req: Request, res: Response) => {
 
     const result = await replaceUserInterestTags(userId, tagIds);
 
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
+
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("Interest tags replaced for user:", userId);
+    logger.info("Interest tags replaced for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
     logger.error(
-      "Unexpected error in PUT /user-details/me/interest-tags:",
-      error instanceof Error ? error.message : "Unknown error",
+      "Unexpected error in PUT /user-details/me/interest-tags: %o",
+      error instanceof Error ? error : new Error(String(error)),
     );
 
     if (error instanceof Error && error.message.includes("Invalid or inactive")) {
       return res.status(400).json({
         error: "Bad Request",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 
@@ -377,21 +404,24 @@ router.delete("/me/interest-tags/all", async (req: Request, res: Response) => {
 
     const result = await clearUserInterestTags(userId);
 
+    // Invalidate cache after successful database update
+    await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
+
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("Interest tags cleared for user:", userId);
+    logger.info("Interest tags cleared for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
     logger.error(
-      "Unexpected error in DELETE /user-details/me/interest-tags/all:",
-      error instanceof Error ? error.message : "Unknown error",
+      "Unexpected error in DELETE /user-details/me/interest-tags/all: %o",
+      error instanceof Error ? error : new Error(String(error)),
     );
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
-        message: error.message,
+        message: error instanceof Error ? error.message : "Unknown error",
       });
     }
 

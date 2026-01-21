@@ -1,9 +1,9 @@
 import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
 
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
-const logger = new Logger("SupabaseInterestTagsQueries");
+const logger = createLogger("API:Supabase:InterestTags:Repository");
 
 export interface GetInterestTagsOptions {
   category?: string;
@@ -39,7 +39,7 @@ export async function getInterestTags(options: GetInterestTagsOptions = {}) {
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error("Error fetching interest tags:", error.message);
+    logger.error("Error fetching interest tags: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -57,7 +57,7 @@ export async function getInterestTagById(id: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching interest tag:", error.message);
+    logger.error("Error fetching interest tag: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -76,7 +76,7 @@ export async function getInterestTagsByIds(ids: string[]) {
     .eq("is_active", true);
 
   if (error) {
-    logger.error("Error fetching interest tags by IDs:", error.message);
+    logger.error("Error fetching interest tags by IDs: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -94,7 +94,7 @@ export async function createInterestTag(data: InterestTagInsert) {
     .single();
 
   if (error) {
-    logger.error("Error creating interest tag:", error.message);
+    logger.error("Error creating interest tag: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -113,7 +113,7 @@ export async function updateInterestTag(id: string, data: InterestTagUpdate) {
     if (error.code === "PGRST116") {
       throw new Error("Interest tag not found");
     }
-    logger.error("Error updating interest tag:", error.message);
+    logger.error("Error updating interest tag: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -132,7 +132,7 @@ export async function deleteInterestTag(id: string) {
     if (error.code === "PGRST116") {
       throw new Error("Interest tag not found");
     }
-    logger.error("Error deleting interest tag:", error.message);
+    logger.error("Error deleting interest tag: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -146,7 +146,7 @@ export async function deleteInterestTagHard(id: string) {
     .eq("id", id);
 
   if (error) {
-    logger.error("Error hard deleting interest tag:", error.message);
+    logger.error("Error hard deleting interest tag: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 

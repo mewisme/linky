@@ -1,11 +1,11 @@
-import type { Namespace } from "socket.io";
-import { Logger } from "../../../utils/logger.js";
 import type { AuthenticatedSocket } from "../../../socket/auth.js";
+import type { Namespace } from "socket.io";
 import type { VideoChatRoom } from "../types/room.types.js";
+import { createLogger } from "@repo/logger/api";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { recordCallHistoryInDatabase } from "../service/call-history.service.js";
 
-const logger = new Logger("CallHistory");
+const logger = createLogger("API:VideoChat:CallHistory:Socket");
 
 export async function recordCallHistory(
   io: Namespace,
@@ -60,13 +60,9 @@ export async function recordCallHistory(
       durationSeconds: durationSeconds > 0 ? durationSeconds : 0,
     });
 
-    logger.info("Call history recorded:", {
-      callerId,
-      calleeId,
-      duration: durationSeconds,
-    });
+    logger.info("Call history recorded: %s %s %d", callerId, calleeId, durationSeconds);
   } catch (error) {
-    logger.error("Error recording call history:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Error recording call history: %o", error instanceof Error ? error : new Error(String(error)));
   }
 }
 

@@ -1,9 +1,9 @@
 import { RedisClientType, RedisFunctions, RedisModules, RedisScripts, RespVersions, TypeMapping, createClient } from 'redis'
 
-import { Logger } from '../../utils/logger.js'
 import { config } from '../../config/index.js'
+import { createLogger } from '@repo/logger/api'
 
-const logger = new Logger("RedisClient");
+const logger = createLogger("API:Redis:Client");
 
 const redisConfig = config.redisUrl && config.redisUrl.startsWith('redis://')
   ? {
@@ -23,26 +23,26 @@ const redisConfig = config.redisUrl && config.redisUrl.startsWith('redis://')
 export const redisClient = createClient(redisConfig) as RedisClientType<RedisModules, RedisFunctions, RedisScripts, RespVersions, TypeMapping>
 
 redisClient.on('error', (err) => {
-  logger.error('Redis Client Error:', err)
+  logger.error('Redis Client Error: %o', err instanceof Error ? err : new Error(String(err)))
 })
 
 redisClient.on('connect', () => {
-  logger.load('Redis Client connecting...')
+  logger.info('Redis Client connecting...')
 })
 
 redisClient.on('ready', () => {
-  logger.done('Redis Client connected and ready')
+  logger.info('Redis Client connected and ready')
 })
 
 redisClient.on('reconnecting', () => {
-  logger.load('Redis Client reconnecting...')
+  logger.info('Redis Client reconnecting...')
 })
 
 export async function connectRedis(): Promise<void> {
   try {
     await redisClient.connect()
   } catch (error) {
-    logger.error('Failed to connect to Redis:', error)
+    logger.error('Failed to connect to Redis: %o', error instanceof Error ? error : new Error(String(error as string)))
     throw error
   }
 }

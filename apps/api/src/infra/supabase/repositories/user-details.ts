@@ -1,13 +1,13 @@
 import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
 
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { getInterestTagsByIds } from "./interest-tags.js";
 import { supabase } from "../client.js";
 
 type UserDetailsInsert = TablesInsert<"user_details">;
 type UserDetailsUpdate = TablesUpdate<"user_details">;
 
-const logger = new Logger("SupabaseUserDetailsQueries");
+const logger = createLogger("API:Supabase:UserDetails:Repository");
 
 export async function getUserDetailsByUserId(userId: string) {
   const { data, error } = await supabase
@@ -20,7 +20,7 @@ export async function getUserDetailsByUserId(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user details:", error.message);
+    logger.error("Error fetching user details: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -38,7 +38,7 @@ export async function getUserDetailsWithTags(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user details with tags:", error.message);
+    logger.error("Error fetching user details with tags: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -56,7 +56,7 @@ export async function createUserDetails(userId: string, data: Omit<UserDetailsIn
     .single();
 
   if (error) {
-    logger.error("Error creating user details:", error.message);
+    logger.error("Error creating user details: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -78,7 +78,7 @@ export async function updateUserDetails(userId: string, data: UserDetailsUpdate)
     .single();
 
   if (error) {
-    logger.error("Error updating user details:", error.message);
+    logger.error("Error updating user details: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -100,7 +100,7 @@ export async function patchUserDetails(userId: string, data: Partial<UserDetails
     .single();
 
   if (error) {
-    logger.error("Error patching user details:", error.message);
+    logger.error("Error patching user details: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -118,7 +118,7 @@ export async function getUserWithDetails(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user with details:", error.message);
+    logger.error("Error fetching user with details: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -136,7 +136,7 @@ export async function getPublicUserInfo(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching public user info:", error.message);
+    logger.error("Error fetching public user info: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -176,7 +176,7 @@ export async function addInterestTags(userId: string, tagIds: string[]) {
     .single();
 
   if (error) {
-    logger.error("Error adding interest tags:", error.message);
+    logger.error("Error adding interest tags: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -205,7 +205,7 @@ export async function removeInterestTags(userId: string, tagIds: string[]) {
     .single();
 
   if (error) {
-    logger.error("Error removing interest tags:", error.message);
+    logger.error("Error removing interest tags: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -241,7 +241,7 @@ export async function replaceInterestTags(userId: string, tagIds: string[]) {
     .single();
 
   if (error) {
-    logger.error("Error replacing interest tags:", error.message);
+    logger.error("Error replacing interest tags: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -262,7 +262,7 @@ export async function clearInterestTags(userId: string) {
     .single();
 
   if (error) {
-    logger.error("Error clearing interest tags:", error.message);
+    logger.error("Error clearing interest tags: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -281,7 +281,7 @@ export async function getInterestTags(userId: string) {
     .single();
 
   if (error) {
-    logger.error("Error fetching interest tags:", error.message);
+    logger.error("Error fetching interest tags: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 

@@ -1,12 +1,12 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { getVideoChatContext } from "../socket/video-chat.socket.js";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { recordCallHistory } from "../socket/call-history.socket.js";
 import { type AuthenticatedSocket } from "../../../socket/auth.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("UnloadEndCallRoute");
+const logger = createLogger("API:VideoChat:EndCall:Unload:Route");
 
 router.post("/end-call-unload", async (req: Request, res: Response) => {
   try {
@@ -25,12 +25,12 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
 
     const { io, matchmaking, rooms } = context;
 
-    logger.info("Unload-triggered end-call received for socket:", socketId);
+    logger.info("Unload-triggered end-call received for socket: %s", socketId);
 
     const socket = io.sockets.get(socketId) as AuthenticatedSocket | undefined;
 
     if (!socket) {
-      logger.warn("Socket not found:", socketId, "- may have already disconnected");
+      logger.warn("Socket not found: %s - may have already disconnected", socketId);
       const room = rooms.getRoomByUser(socketId);
       if (room) {
         const peerId = rooms.getPeer(socketId);
@@ -40,11 +40,11 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
             io.to(peerId).emit("end-call", {
               message: "Call ended by peer (unload)",
             });
-            logger.info("Notified peer of end-call:", peerId);
+            logger.info("Notified peer of end-call: %s", peerId);
           }
         }
         rooms.deleteRoom(room.id);
-        logger.info("Room cleaned up for disconnected socket:", socketId);
+        logger.info("Room cleaned up for disconnected socket: %s", socketId);
       }
       return res.status(200).json({ success: true, message: "Cleanup completed" });
     }
@@ -56,7 +56,7 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
         const wasInQueue = await matchmaking.isInQueue(dbUserId);
         if (wasInQueue) {
           await matchmaking.removeUser(dbUserId);
-          logger.info("User removed from queue:", socketId);
+          logger.info("User removed from queue: %s", socketId);
         }
       }
     }
@@ -67,35 +67,36 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
 
       const peerSocket = peerId ? (io.sockets.get(peerId) as AuthenticatedSocket | undefined) : undefined;
       await recordCallHistory(io, room, socket, peerSocket).catch((error) => {
-        logger.error("Failed to record call history:", error instanceof Error ? error.message : "Unknown error");
+        logger.error("Failed to record call history: %o", error instanceof Error ? error : new Error(String(error)));
       });
 
       if (peerId) {
-        logger.info("Notifying peer of end-call:", peerId, "from", socketId);
+        logger.info("Notifying peer of end-call: %s from %s", peerId, socketId);
         const peerSocketFinal = io.sockets.get(peerId);
         if (peerSocketFinal && peerSocketFinal.connected) {
           io.to(peerId).emit("end-call", {
             message: "Call ended by peer (unload)",
           });
         } else {
-          logger.warn("Peer socket not found or disconnected:", peerId);
+          logger.warn("Peer socket not found or disconnected: %s", peerId);
         }
       }
 
       rooms.deleteRoom(room.id);
       const queueSize = await matchmaking.getQueueSize();
       logger.info(
-        "Room cleaned up after unload end-call:",
+        "Room cleaned up after unload end-call: %s (Active rooms: %d, Queue size: %d)",
         socketId,
-        `(Active rooms: ${rooms.getRoomCount()}, Queue size: ${queueSize})`,
+        rooms.getRoomCount(),
+        queueSize,
       );
     } else {
-      logger.info("Socket not in room:", socketId);
+      logger.info("Socket not in room: %s", socketId);
     }
 
     res.status(200).json({ success: true, message: "End-call processed" });
   } catch (error) {
-    logger.error("Error processing unload end-call:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Error processing unload end-call: %o", error instanceof Error ? error : new Error(String(error)));
     res.status(500).json({ error: "Internal server error" });
   }
 });

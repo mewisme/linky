@@ -1,9 +1,9 @@
-import { Logger } from "../../../utils/logger.js";
 import type { TablesUpdate } from "../../../types/database/supabase.types.js";
+import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
 type UserUpdate = TablesUpdate<"users">;
-const logger = new Logger("SupabaseUsersQueries");
+const logger = createLogger("API:Supabase:Users:Repository");
 
 export interface GetUsersOptions {
   page?: number;
@@ -51,7 +51,7 @@ export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersR
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error("Error fetching users:", error.message);
+    logger.error("Error fetching users: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -66,7 +66,7 @@ export async function getUserById(id: string) {
     .single();
 
   if (error) {
-    logger.error("Error fetching user:", error.message);
+    logger.error("Error fetching user: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -105,7 +105,7 @@ export async function updateUser(id: string, userData: UserUpdate) {
     .single();
 
   if (error) {
-    logger.error("Error updating user:", error.message);
+    logger.error("Error updating user: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -144,7 +144,7 @@ export async function patchUser(id: string, userData: Partial<UserUpdate>) {
     .single();
 
   if (error) {
-    logger.error("Error updating user:", error.message);
+    logger.error("Error updating user: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 

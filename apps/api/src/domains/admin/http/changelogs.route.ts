@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { Logger } from "../../../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import {
   createAdminChangelog,
@@ -12,7 +12,7 @@ import {
 } from "../service/admin-changelogs.service.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("AdminChangelogsRoute");
+const logger = createLogger("API:Admin:Changelogs:Route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -36,7 +36,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/changelogs:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/changelogs: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch changelogs",
@@ -65,7 +65,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     return res.json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in GET /admin/changelogs/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in GET /admin/changelogs/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error.code === "PGRST116") {
       return res.status(404).json({
@@ -142,10 +142,10 @@ router.post("/", async (req: Request, res: Response) => {
 
     const changelog = await createAdminChangelog(params);
 
-    logger.info("Changelog created successfully:", changelog.id);
+    logger.info("Changelog created successfully: %s", changelog.id);
     return res.status(201).json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in POST /admin/changelogs:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in POST /admin/changelogs: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error.code === "23505") {
       return res.status(409).json({
@@ -183,10 +183,10 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const changelog = await updateAdminChangelog(id, params);
 
-    logger.info("Changelog updated successfully:", id);
+    logger.info("Changelog updated successfully: %s", id);
     return res.json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in PUT /admin/changelogs/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PUT /admin/changelogs/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error.message === "Changelog not found") {
       return res.status(404).json({
@@ -231,10 +231,10 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const changelog = await updateAdminChangelog(id, params);
 
-    logger.info("Changelog updated successfully:", id);
+    logger.info("Changelog updated successfully: %s", id);
     return res.json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in PATCH /admin/changelogs/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in PATCH /admin/changelogs/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     if (error.message === "Changelog not found") {
       return res.status(404).json({
@@ -277,13 +277,13 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     await deleteAdminChangelog(id);
 
-    logger.info("Changelog deleted successfully:", id);
+    logger.info("Changelog deleted successfully: %s", id);
     return res.json({
       success: true,
       message: "Changelog deleted successfully",
     });
   } catch (error: any) {
-    logger.error("Unexpected error in DELETE /admin/changelogs/:id:", error instanceof Error ? error.message : "Unknown error");
+    logger.error("Unexpected error in DELETE /admin/changelogs/:id: %o", error instanceof Error ? error : new Error(String(error)));
 
     return res.status(500).json({
       error: "Internal Server Error",

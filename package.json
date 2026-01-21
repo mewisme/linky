@@ -8,6 +8,8 @@
     "build:api": "turbo run build --filter=@repo/api",
     "build:web": "turbo run build --filter=@repo/web",
     "dev": "turbo run dev",
+    "dev:api": "turbo run dev --filter=@repo/api",
+    "dev:web": "turbo run dev --filter=@repo/web",
     "lint": "turbo run lint",
     "lint:api": "turbo run lint --filter=@repo/api",
     "lint:web": "turbo run lint --filter=@repo/web",

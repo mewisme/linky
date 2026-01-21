@@ -1,13 +1,13 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { Webhook } from "svix";
 import { config } from "../config/index.js";
-import { Logger } from "../utils/logger.js";
+import { createLogger } from "@repo/logger/api";
 import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
 import { isUserCreatedEvent, isUserUpdatedEvent } from "../types/webhook/webhook.types.js";
 import { supabase } from "../infra/supabase/client.js";
 
 const router: ExpressRouter = Router();
-const logger = new Logger("WebhookRoute");
+const logger = createLogger("API:Webhook:Route");
 
 router.post("/clerk", async (req: Request, res: Response) => {
   try {
@@ -16,7 +16,7 @@ router.post("/clerk", async (req: Request, res: Response) => {
     const svixSignature = req.headers["svix-signature"] as string;
 
     if (!svixId || !svixTimestamp || !svixSignature) {
-      logger.warn("Webhook request missing svix headers");
+      logger.warn("Webhook request missing svix headers: %s, %s, %s", svixId, svixTimestamp, svixSignature || "undefined");
       return res.status(400).json({
         error: "Bad Request",
         message: "Missing svix headers",
@@ -34,8 +34,8 @@ router.post("/clerk", async (req: Request, res: Response) => {
         "svix-timestamp": svixTimestamp,
         "svix-signature": svixSignature,
       }) as ClerkWebhookEvent;
-    } catch (err) {
-      logger.error("Webhook verification failed: " + (err instanceof Error ? err.message : "Unknown error"));
+    } catch (err: unknown) {
+      logger.error("Webhook verification failed: %o", err instanceof Error ? err : new Error(String(err)));
       return res.status(400).json({
         error: "Bad Request",
         message: "Webhook verification failed",
@@ -44,7 +44,7 @@ router.post("/clerk", async (req: Request, res: Response) => {
 
     const eventType = evt.type;
 
-    logger.info("Webhook event received: " + eventType);
+    logger.info("Webhook event received: %s", eventType);
 
     switch (eventType) {
       case "user.created": {
@@ -58,12 +58,10 @@ router.post("/clerk", async (req: Request, res: Response) => {
           });
 
           if (error) {
-            logger.error("Error creating user", {
-              error: error.message,
-            });
+            logger.error("Error creating user: %o", error);
           }
 
-          logger.info("Created user with email: " + evt.data.email_addresses[0]?.email_address);
+          logger.info("Created user with email: %s", evt.data.email_addresses[0]?.email_address);
 
           break;
         }
@@ -80,29 +78,24 @@ router.post("/clerk", async (req: Request, res: Response) => {
           }).eq("clerk_user_id", evt.data.id);
 
           if (error) {
-            logger.error("Error updating user", {
-              error: error.message,
-            });
+            logger.error("Error updating user: %o", error);
           }
 
-          logger.info("Updated user with email: " + evt.data.email_addresses[0]?.email_address);
+          logger.info("Updated user with email: %s", evt.data.email_addresses[0]?.email_address);
         }
         break;
       }
 
       default:
-        logger.info("Unhandled webhook event type: " + eventType);
+        logger.info("Unhandled webhook event type: %s", eventType);
     }
 
     return res.status(200).json({
       success: true,
       message: "Webhook processed",
     });
-  } catch (error) {
-    logger.error("Error processing webhook", {
-      error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+  } catch (error: unknown) {
+    logger.error("Error processing webhook: %o", error instanceof Error ? error : new Error(String(error)));
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to process webhook",

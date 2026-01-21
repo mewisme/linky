@@ -1,8 +1,8 @@
-import { Logger } from "../../utils/logger.js";
-import { supabase } from "../supabase/client.js";
+import { createLogger } from "@repo/logger/api";
 import { redisClient } from "../redis/client.js";
+import { supabase } from "../supabase/client.js";
 
-const logger = new Logger("AdminCache");
+const logger = createLogger("API:AdminCache");
 
 const ADMIN_CACHE_TTL_SECONDS = 5 * 60;
 
@@ -39,7 +39,7 @@ export async function checkIfUserIsAdmin(clerkUserId: string): Promise<boolean> 
 
     return isAdmin;
   } catch (error) {
-    logger.error("Error checking admin status:", error);
+    logger.error("Error checking admin status: %o", error instanceof Error ? error : new Error(String(error)));
     return false;
   }
 }
@@ -52,7 +52,7 @@ async function refreshAdminCache(): Promise<void> {
       .eq("role", "admin");
 
     if (error) {
-      logger.error("Error refreshing admin cache:", error);
+      logger.error("Error refreshing admin cache: %o", error instanceof Error ? error : new Error(String(error)));
       return;
     }
 
@@ -65,7 +65,7 @@ async function refreshAdminCache(): Promise<void> {
       await redisClient.set(key, "admin", { EX: ADMIN_CACHE_TTL_SECONDS });
     }
   } catch (error) {
-    logger.error("Error refreshing admin cache:", error);
+    logger.error("Error refreshing admin cache: %o", error instanceof Error ? error : new Error(String(error)));
   }
 }
 

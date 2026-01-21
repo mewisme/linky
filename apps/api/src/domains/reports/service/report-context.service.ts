@@ -1,10 +1,11 @@
-import type { Namespace } from "socket.io";
 import type { CollectReportContextParams, LiveVideoChatContext, ReportContextData } from "../types/report-context.types.js";
-import type { Json } from "../../../types/database/supabase.types.js";
-import { Logger } from "../../../utils/logger.js";
 import { getCallHistoryById, getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 
-const logger = new Logger("ReportContextService");
+import type { Json } from "../../../types/database/supabase.types.js";
+import type { Namespace } from "socket.io";
+import { createLogger } from "@repo/logger/api";
+
+const logger = createLogger("API:Reports:Context:Service");
 
 export async function collectReportContext(
   params: CollectReportContextParams,
@@ -52,7 +53,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error("Error fetching call history:", error instanceof Error ? error.message : "Unknown error");
+      logger.error("Error fetching call history: %o", error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -90,7 +91,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error("Error fetching room context:", error instanceof Error ? error.message : "Unknown error");
+      logger.error("Error fetching room context: %o", error instanceof Error ? error : new Error(String(error)));
     }
   }
 

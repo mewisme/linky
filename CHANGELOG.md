@@ -2,8 +2,12 @@
 
 🔨 Other Changes
 
-- Update package manager version and remove chalk dependency ([d839ed0](../../commit/d839ed0))
-- Bump package version to 0.25.0 and update version lock ([4ed15e4](../../commit/4ed15e4))
+- Add compression middleware and update dependencies ([3b11a87](../../commit/3b11a87))
+- Remove unused logger imports and streamline user pages ([2535cc3](../../commit/2535cc3))
+- Update Dockerfile and package.json for improved configuration ([4601fc8](../../commit/4601fc8))
+- Update package.json and pnpm-lock.yaml for Node.js version and workspace settings ([4c4068f](../../commit/4c4068f))
+- Update Dockerfile to include logger package in installation ([2f5a79b](../../commit/2f5a79b))
+- Bump package version to 0.25.1 and update version lock ([6d75fad](../../commit/6d75fad))
 
 
-📋 Full Changelog: [4ed15e4...d839ed0](../../compare/4ed15e4...d839ed0)
+📋 Full Changelog: [6d75fad...3b11a87](../../compare/6d75fad...3b11a87)

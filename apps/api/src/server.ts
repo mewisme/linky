@@ -8,6 +8,7 @@ import { createLogger } from "@repo/logger/api";
 import { connectRedis } from "./infra/redis/client.js";
 import { preloadReferenceData } from "./infra/redis/cache-preload.js";
 import { initializeMqttClient, attachSocketIO } from "./infra/mqtt/client.js";
+import { setupGracefulShutdown } from "./middleware/graceful-shutdown.js";
 
 const logger = createLogger("API:Server");
 
@@ -63,6 +64,8 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   httpServer.on("error", (error: Error) => {
     logger.fatal("HTTP server error: %o", error);
   });
+
+  setupGracefulShutdown(httpServer, io);
 
   return { app, httpServer, io };
 }

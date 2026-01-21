@@ -5,11 +5,12 @@ import { createLogger } from "@repo/logger/api";
 import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
 import { isUserCreatedEvent, isUserUpdatedEvent } from "../types/webhook/webhook.types.js";
 import { supabase } from "../infra/supabase/client.js";
+import { rateLimitMiddleware } from "../middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("API:Webhook:Route");
 
-router.post("/clerk", async (req: Request, res: Response) => {
+router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {
     const svixId = req.headers["svix-id"] as string;
     const svixTimestamp = req.headers["svix-timestamp"] as string;

@@ -17,6 +17,7 @@ import { supabase } from "../../infra/supabase/client.js";
 import { redisClient } from "../../infra/redis/client.js";
 import { getCachedData, invalidateCacheKey } from "../../infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
+import { rateLimitMiddleware } from "../../middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("API:Resources:Favorites:Route");
@@ -64,7 +65,7 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
     const { favorite_user_id } = req.body;
@@ -140,7 +141,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/:favorite_user_id", async (req: Request, res: Response) => {
+router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
     const { favorite_user_id } = req.params;

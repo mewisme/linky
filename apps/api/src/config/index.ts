@@ -32,4 +32,15 @@ export const config = {
   redisPort: process.env.REDIS_PORT as string,
   redisUsername: process.env.REDIS_USERNAME as string,
   redisPassword: process.env.REDIS_PASSWORD as string,
+  // Cache
+  cacheNamespaceVersion: process.env.CACHE_NAMESPACE_VERSION || "v1",
+  // Server
+  shutdownTimeout: Number(process.env.SHUTDOWN_TIMEOUT) || 30000,
+  jsonBodySizeLimit: process.env.JSON_BODY_SIZE_LIMIT || "500kb",
+  // Timeouts
+  redisTimeout: Number(process.env.REDIS_TIMEOUT) || 5000,
+  supabaseTimeout: Number(process.env.SUPABASE_TIMEOUT) || 10000,
+  // Rate Limiting
+  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 30000,
+  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 20,
 } as const;

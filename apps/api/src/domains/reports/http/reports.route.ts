@@ -7,11 +7,12 @@ import type { CreateReportBody } from "../types/report.types.js";
 import { createUserReport, listUserReports } from "../service/reports.service.js";
 import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
+import { rateLimitMiddleware } from "../../../middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("API:Reports:Route");
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
 

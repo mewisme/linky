@@ -9,6 +9,7 @@ import changelogsRouter from "./resources/changelogs.js";
 import iceServersRouter from "./media/ice-servers.js";
 import s3Router from "./media/s3.js";
 import webhookRouter from "./webhook.js";
+import healthRouter from "./health.js";
 import { createAdminRouter } from "../domains/admin/index.js";
 import reportsAdminRouter from "../domains/reports/http/admin-reports.route.js";
 import { clerkMiddleware } from "../middleware/clerk.js";
@@ -31,6 +32,7 @@ export function setupRoutes(app: Express): void {
     });
   });
 
+  app.use("/", healthRouter);
   app.use("/webhook", webhookRouter);
 
   app.get("/health", (_req: Request, res: Response) => {

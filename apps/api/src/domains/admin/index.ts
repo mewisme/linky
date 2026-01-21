@@ -5,9 +5,12 @@ import visitsRouter from "./http/visits.route.js";
 import interestTagsRouter from "./http/interest-tags.route.js";
 import changelogsRouter from "./http/changelogs.route.js";
 import { createAdminReportsRouter } from "./http/reports.route.js";
+import { rateLimitMiddleware } from "../../middleware/rate-limit.js";
 
 export function createAdminRouter(deps: { reportsRouter: ExpressRouter }): ExpressRouter {
   const router: ExpressRouter = Router();
+
+  router.use(rateLimitMiddleware);
 
   router.use("/users", usersRouter);
   router.use("/analytics", analyticsRouter);

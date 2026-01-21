@@ -1,5 +1,8 @@
+import { getCacheKey, shouldVersionKey } from "./cache-namespace.js";
+
 import { createLogger } from "@repo/logger/api";
 import { redisClient } from "./client.js";
+import { withRedisTimeout } from "./timeout-wrapper.js";
 
 const logger = createLogger("API:Redis:CacheUtils");
 
@@ -9,26 +12,34 @@ export async function getCachedData<T>(
   fetchFromDb: () => Promise<T>,
   ttl?: number
 ): Promise<T> {
+  const cacheKey = shouldVersionKey(key) ? getCacheKey(key) : key;
+
   try {
-    const cached = await redisClient.get(key);
+    const cached = await withRedisTimeout(
+      () => redisClient.get(cacheKey),
+      `get-cached-${cacheKey}`
+    );
     if (cached) {
-      logger.info(`Cache hit for key: ${key}`);
+      logger.info(`Cache hit for key: ${cacheKey}`);
       return JSON.parse(cached) as T;
     }
 
-    logger.info(`Cache miss for key: ${key}`);
+    logger.info(`Cache miss for key: ${cacheKey}`);
   } catch (error) {
-    logger.warn(`Redis cache read failed for key ${key}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Redis cache read failed for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
   }
 
   const data = await fetchFromDb();
 
   if (ttl !== undefined) {
     try {
-      await redisClient.set(key, JSON.stringify(data), { EX: ttl });
-      logger.info(`Data cached for key: ${key}`);
+      await withRedisTimeout(
+        () => redisClient.set(cacheKey, JSON.stringify(data), { EX: ttl }),
+        `set-cached-${cacheKey}`
+      );
+      logger.info(`Data cached for key: ${cacheKey}`);
     } catch (error) {
-      logger.warn(`Failed to cache data for key ${key}: %o`, error instanceof Error ? error : new Error(String(error)));
+      logger.warn(`Failed to cache data for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -36,30 +47,45 @@ export async function getCachedData<T>(
 }
 
 export async function invalidateCacheKey(key: string): Promise<void> {
+  const cacheKey = shouldVersionKey(key) ? getCacheKey(key) : key;
+
   try {
-    await redisClient.del(key);
-    logger.info(`Cache invalidated for key: ${key}`);
+    await withRedisTimeout(
+      () => redisClient.del(cacheKey),
+      `invalidate-${cacheKey}`
+    );
+    logger.info(`Cache invalidated for key: ${cacheKey}`);
   } catch (error) {
-    logger.warn(`Failed to invalidate cache for key ${key}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Failed to invalidate cache for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
   }
 }
 
 export async function invalidateCacheKeys(keys: string[]): Promise<void> {
   if (keys.length === 0) return;
 
+  const cacheKeys = keys.map(key => shouldVersionKey(key) ? getCacheKey(key) : key);
+
   try {
-    await redisClient.del(keys);
-    logger.info(`Cache invalidated for keys: %s`, keys.join(", "));
+    await withRedisTimeout(
+      () => redisClient.del(cacheKeys),
+      `invalidate-multiple`
+    );
+    logger.info(`Cache invalidated for keys: %s`, cacheKeys.join(", "));
   } catch (error) {
-    logger.warn(`Failed to invalidate cache for keys ${keys.join(", ")}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Failed to invalidate cache for keys ${cacheKeys.join(", ")}: %o`, error instanceof Error ? error : new Error(String(error)));
   }
 }
 
 export async function updateCachedData<T>(key: string, data: T, ttl?: number): Promise<void> {
+  const cacheKey = shouldVersionKey(key) ? getCacheKey(key) : key;
+
   try {
-    await redisClient.set(key, JSON.stringify(data), ttl ? { EX: ttl } : undefined);
-    logger.info(`Cache updated for key: ${key}`);
+    await withRedisTimeout(
+      () => redisClient.set(cacheKey, JSON.stringify(data), ttl ? { EX: ttl } : undefined),
+      `update-cached-${cacheKey}`
+    );
+    logger.info(`Cache updated for key: ${cacheKey}`);
   } catch (error) {
-    logger.warn(`Failed to update cache for key ${key}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Failed to update cache for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
   }
 }

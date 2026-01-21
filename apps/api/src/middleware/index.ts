@@ -5,6 +5,8 @@ import morgan from "morgan";
 import { config } from "../config/index.js";
 import { createLogger } from "@repo/logger/api";
 import { clientIpMiddleware } from "./client-ip.js";
+import { requestIdMiddleware } from "./request-id.js";
+import { jsonBodySizeLimitMiddleware } from "./json-body-size-limit.js";
 
 const logger = createLogger("API:Middleware");
 
@@ -19,6 +21,7 @@ const morganFormat = config.nodeEnv === "production"
 export function setupMiddleware(app: Express): void {
   app.enable("trust proxy");
 
+  app.use(requestIdMiddleware);
   app.use(clientIpMiddleware);
 
   app.use("/webhook", express.raw({ type: "application/json" }));
@@ -45,7 +48,8 @@ export function setupMiddleware(app: Express): void {
     threshold: 1024,
   }));
 
-  app.use(express.json());
+  app.use(jsonBodySizeLimitMiddleware);
+  app.use(express.json({ limit: config.jsonBodySizeLimit }));
   app.use(express.urlencoded({ extended: true }));
 
   app.use(morgan(morganFormat, {

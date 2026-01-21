@@ -6,6 +6,7 @@ declare global {
     interface Request {
       auth?: Awaited<ReturnType<typeof verifyToken>>;
       clientIp?: string;
+      requestId?: string;
     }
   }
 }

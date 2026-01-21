@@ -2,8 +2,10 @@ packages:
   - apps/*
   - packages/*
 
+injectWorkspacePackages: true
+
 onlyBuiltDependencies:
-  - '@clerk/shared'
+  - "@clerk/shared"
   - esbuild
   - msw
   - protobufjs

@@ -8,11 +8,10 @@ import { AppLayout } from '@/components/layouts/app-layout';
 import { Button } from '@repo/ui/components/ui/button';
 import { IconRefresh } from '@tabler/icons-react';
 import { UsersDataTable } from '@/components/data-table/users/data-table'
-import { logger } from '@/utils/logger';
 import { toast } from "@repo/ui/components/ui/sonner";
+import { useSocket } from '@/hooks/socket/use-socket';
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import { useUserContext } from '@/components/providers/user/user-provider';
-import { useSocket } from '@/hooks/socket/use-socket';
 
 export default function ListUsersPage() {
   const { state } = useUserContext()

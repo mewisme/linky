@@ -1,7 +1,5 @@
 import mqtt, { MqttClient } from 'mqtt'
 
-import { logger } from '@/utils/logger';
-
 let client: MqttClient | null = null
 
 export function createMqttClient(userId: string): MqttClient {

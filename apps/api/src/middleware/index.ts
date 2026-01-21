@@ -1,3 +1,4 @@
+import compression from "compression";
 import cors from "cors";
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import morgan from "morgan";
@@ -25,6 +26,23 @@ export function setupMiddleware(app: Express): void {
   app.use(cors({
     origin: config.corsOrigin,
     credentials: true,
+  }));
+
+  app.use(compression({
+    filter: (req: Request, res: Response) => {
+      const contentType = res.get('Content-Type');
+      const isJsonResponse = contentType?.startsWith('application/json') || contentType?.startsWith('application/vnd.api+json');
+      if (!isJsonResponse) {
+        return false;
+      }
+      const contentLength = res.get('Content-Length');
+      if (contentLength && parseInt(contentLength, 10) <= 1024) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    level: 5,
+    threshold: 1024,
   }));
 
   app.use(express.json());

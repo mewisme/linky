@@ -47,7 +47,8 @@ pipeline {
       steps {
         sh '''
           docker compose down || true
-          docker rm -f linky-api linky-redis || true
+          [ "$(docker ps -a -q -f name=^linky-api$)" ] && docker rm -f linky-api || true
+          [ "$(docker ps -a -q -f name=^linky-redis$)" ] && docker rm -f linky-redis || true
           docker compose up -d
         '''
       }

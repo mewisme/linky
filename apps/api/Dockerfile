@@ -44,7 +44,7 @@ COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
-RUN pnpm install --frozen-lockfile --prod --filter=@repo/api
+RUN pnpm install --frozen-lockfile --prod --filter=@repo/api --filter=@repo/logger
 
 WORKDIR /app/apps/api
 

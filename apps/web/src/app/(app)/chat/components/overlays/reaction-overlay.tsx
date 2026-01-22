@@ -4,9 +4,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
-import { useHeartReactionContext } from "@/components/providers/realtime/heart-reaction-provider";
+import { useReactionEffectContext } from "@/components/providers/realtime/reaction-effect-provider";
 
-interface HeartInstance {
+interface ReactionInstance {
   id: string;
   x: number;
   y: number;
@@ -16,24 +16,24 @@ interface HeartInstance {
   swayAmplitude: number;
 }
 
-interface HeartOverlayProps {
+interface ReactionOverlayProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
-export function HeartOverlay({ containerRef }: HeartOverlayProps) {
-  const { hearts, removeHeart } = useHeartReactionContext();
-  const [heartInstances, setHeartInstances] = useState<Map<string, HeartInstance[]>>(new Map());
-  const processedHeartIdsRef = useRef<Set<string>>(new Set());
-  const heartInstancesRef = useRef<Map<string, HeartInstance[]>>(new Map());
+export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
+  const { reactions, removeReaction } = useReactionEffectContext();
+  const [reactionInstances, setReactionInstances] = useState<Map<string, ReactionInstance[]>>(new Map());
+  const processedReactionIdsRef = useRef<Set<string>>(new Set());
+  const reactionInstancesRef = useRef<Map<string, ReactionInstance[]>>(new Map());
   const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
 
   useEffect(() => {
-    heartInstancesRef.current = heartInstances;
-  }, [heartInstances]);
+    reactionInstancesRef.current = reactionInstances;
+  }, [reactionInstances]);
 
   useEffect(() => {
-    hearts.forEach((heart) => {
-      if (processedHeartIdsRef.current.has(heart.id)) return;
+    reactions.forEach((reaction) => {
+      if (processedReactionIdsRef.current.has(reaction.id)) return;
 
       const container = containerRef.current;
       if (!container) return;
@@ -44,13 +44,13 @@ export function HeartOverlay({ containerRef }: HeartOverlayProps) {
       const containerTop = containerRect.top;
       const containerLeft = containerRect.left;
 
-      const instances: HeartInstance[] = [];
+      const instances: ReactionInstance[] = [];
 
-      if (heart.isLocal && heart.tapPosition) {
-        const screenX = containerLeft + heart.tapPosition.x;
-        const screenY = containerTop + heart.tapPosition.y;
+      if (reaction.isLocal && reaction.tapPosition) {
+        const screenX = containerLeft + reaction.tapPosition.x;
+        const screenY = containerTop + reaction.tapPosition.y;
         instances.push({
-          id: heart.id,
+          id: reaction.id,
           x: screenX,
           y: screenY,
           scale: 1,
@@ -59,9 +59,9 @@ export function HeartOverlay({ containerRef }: HeartOverlayProps) {
           swayAmplitude: Math.random() * 8 + 4,
         });
       } else {
-        const idParts = heart.id.split("-");
-        const heartIndexStr = idParts.length >= 3 ? idParts[2] : undefined;
-        const heartIndex = heartIndexStr ? parseInt(heartIndexStr, 10) : 0;
+        const idParts = reaction.id.split("-");
+        const reactionIndexStr = idParts.length >= 3 ? idParts[2] : undefined;
+        const reactionIndex = reactionIndexStr ? parseInt(reactionIndexStr, 10) : 0;
         const minX = containerWidth * 0.2;
         const maxX = containerWidth * 0.8;
         const randomX = Math.random() * (maxX - minX) + minX;
@@ -72,64 +72,65 @@ export function HeartOverlay({ containerRef }: HeartOverlayProps) {
         const swayAmplitude = Math.random() * 8 + 4;
 
         instances.push({
-          id: heart.id,
+          id: reaction.id,
           x: screenX,
           y: screenY,
           scale: randomScale,
-          delay: isNaN(heartIndex) ? 0 : heartIndex * 0.1,
+          delay: isNaN(reactionIndex) ? 0 : reactionIndex * 0.1,
           initialRotation,
           swayAmplitude,
         });
       }
 
-      processedHeartIdsRef.current.add(heart.id);
-      setHeartInstances((prev) => {
+      processedReactionIdsRef.current.add(reaction.id);
+      setReactionInstances((prev) => {
         const next = new Map(prev);
-        next.set(heart.id, instances);
+        next.set(reaction.id, instances);
         return next;
       });
     });
 
-    const currentHeartIds = new Set(hearts.map((h) => h.id));
-    const removedHeartIds = Array.from(heartInstancesRef.current.keys()).filter(
-      (id) => !currentHeartIds.has(id)
+    const currentReactionIds = new Set(reactions.map((r) => r.id));
+    const removedReactionIds = Array.from(reactionInstancesRef.current.keys()).filter(
+      (id) => !currentReactionIds.has(id)
     );
 
-    if (removedHeartIds.length > 0) {
-      removedHeartIds.forEach((id) => processedHeartIdsRef.current.delete(id));
-      setHeartInstances((prev) => {
+    if (removedReactionIds.length > 0) {
+      removedReactionIds.forEach((id) => processedReactionIdsRef.current.delete(id));
+      setReactionInstances((prev) => {
         const next = new Map(prev);
-        removedHeartIds.forEach((id) => next.delete(id));
+        removedReactionIds.forEach((id) => next.delete(id));
         return next;
       });
     }
-  }, [hearts, containerRef]);
+  }, [reactions, containerRef]);
 
-  const handleHeartComplete = (heartId: string) => {
-    setHeartInstances((prev) => {
+  const handleReactionComplete = (reactionId: string) => {
+    setReactionInstances((prev) => {
       const next = new Map(prev);
-      next.delete(heartId);
+      next.delete(reactionId);
       return next;
     });
     setTimeout(() => {
-      removeHeart(heartId);
+      removeReaction(reactionId);
     }, 0);
   };
 
-  const allInstances: Array<{ heartId: string; instance: HeartInstance; isLocal: boolean }> = [];
-  heartInstances.forEach((instances, heartId) => {
-    const heart = hearts.find((h) => h.id === heartId);
-    if (!heart) return;
+  const allInstances: Array<{ reactionId: string; instance: ReactionInstance; isLocal: boolean; type: string }> = [];
+  reactionInstances.forEach((instances, reactionId) => {
+    const reaction = reactions.find((r) => r.id === reactionId);
+    if (!reaction) return;
     instances.forEach((instance) => {
-      allInstances.push({ heartId, instance, isLocal: heart.isLocal });
+      allInstances.push({ reactionId, instance, isLocal: reaction.isLocal, type: reaction.type });
     });
   });
 
   return (
     <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 100 }}>
       <AnimatePresence>
-        {allInstances.map(({ heartId, instance, isLocal }) => {
+        {allInstances.map(({ reactionId, instance, isLocal, type }) => {
           const remoteDistance = -(viewportHeight * 2 / 3);
+          const imagePath = type === "heart" ? "/images/heart.png" : `/images/reactions/${type}.png`;
           return (
             <motion.div
               key={instance.id}
@@ -161,7 +162,7 @@ export function HeartOverlay({ containerRef }: HeartOverlayProps) {
                 times: [0, 0.1, 0.7, 1],
                 ease: "easeOut",
               }}
-              onAnimationComplete={() => handleHeartComplete(heartId)}
+              onAnimationComplete={() => handleReactionComplete(reactionId)}
               className="pointer-events-none fixed"
               style={{
                 left: `${instance.x}px`,
@@ -181,7 +182,7 @@ export function HeartOverlay({ containerRef }: HeartOverlayProps) {
                 className="pointer-events-none"
               >
                 <Image
-                  src="/images/heart.png"
+                  src={imagePath}
                   alt=""
                   width={32}
                   height={32}

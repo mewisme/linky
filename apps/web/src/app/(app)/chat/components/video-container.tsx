@@ -1,15 +1,16 @@
 "use client";
 
 import { MicOff, VideoOff } from "lucide-react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
-import { HeartOverlay } from "./heart-overlay";
+import { ReactionOverlay } from "./overlays/reaction-overlay";
+import { StreakCompletionOverlay } from "./overlays/streak-completion-overlay";
 import type { UsersAPI } from "@/types/users.types";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
-import { useHeartReaction } from "@/hooks/webrtc/use-heart-reaction";
+import { useReactionTrigger } from "@/hooks/webrtc/use-reaction-trigger";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useMousePosition } from "@/hooks/ui/use-mouse-move";
 import { useStreamAspectRatio } from "@/hooks/webrtc/use-stream-aspect-ratio";
@@ -64,7 +65,7 @@ export function VideoContainer({
 
   const isActive = hasPeer && connectionStatus === "connected";
 
-  const { handleTap } = useHeartReaction({
+  const { handleTap } = useReactionTrigger({
     isActive,
   });
 
@@ -74,7 +75,7 @@ export function VideoContainer({
 
       const target = e.target as HTMLElement;
       if (
-        target.closest('[data-heart-exclude]') ||
+        target.closest('[data-reaction-exclude]') ||
         target.closest('button') ||
         target.closest('[role="button"]') ||
         target.closest('[role="dialog"]')
@@ -106,6 +107,38 @@ export function VideoContainer({
 
   const displayAspectRatio = hasPeer ? remoteAspectRatio : localAspectRatio;
 
+  const [callDuration, setCallDuration] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldShowTimer = hasPeer && connectionStatus === "connected";
+
+  useEffect(() => {
+    if (shouldShowTimer) {
+      setCallDuration(0);
+      intervalRef.current = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      setCallDuration(0);
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [shouldShowTimer]);
+
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
+
   return (
     <div
       ref={setContainerRef}
@@ -119,6 +152,18 @@ export function VideoContainer({
             className="absolute inset-0 z-10 cursor-pointer"
             onClick={handleTapCapture}
           />
+          {shouldShowTimer && (
+            <div
+              className="absolute top-4 left-1/2 z-20 -translate-x-1/2 pointer-events-none"
+              data-reaction-exclude
+            >
+              <div className="inline-flex items-center justify-center rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-md min-w-14">
+                <span className="text-sm font-mono font-medium text-white tabular-nums">
+                  {formatTime(callDuration)}
+                </span>
+              </div>
+            </div>
+          )}
           <div
             ref={remoteVideoContainerRef}
             className="relative flex h-full w-full items-center justify-center"
@@ -139,7 +184,7 @@ export function VideoContainer({
               </div>
             )}
           </div>
-          <HeartOverlay containerRef={containerRef} />
+          <ReactionOverlay containerRef={containerRef} />
 
           {isMobile ? (
             localStream && (
@@ -194,7 +239,9 @@ export function VideoContainer({
         </>
       )}
 
-      <div data-heart-exclude className="relative" style={{ zIndex: 110 }}>
+      <StreakCompletionOverlay />
+
+      <div data-reaction-exclude className="relative" style={{ zIndex: 110 }}>
         <VideoControls
           connectionStatus={connectionStatus}
           isMuted={isMuted}

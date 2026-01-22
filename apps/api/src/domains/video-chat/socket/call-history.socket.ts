@@ -7,6 +7,8 @@ import { recordCallHistoryInDatabase } from "../service/call-history.service.js"
 
 const logger = createLogger("API:VideoChat:CallHistory:Socket");
 
+const STREAK_COMPLETED_EVENT = "streak:completed";
+
 export async function recordCallHistory(
   io: Namespace,
   room: VideoChatRoom,
@@ -27,6 +29,7 @@ export async function recordCallHistory(
     }
 
     let dbUserId2: string | null = null;
+    let calleeSocket: AuthenticatedSocket | undefined = socket2;
     if (socket2?.data.userId) {
       dbUserId2 = await getUserIdByClerkId(socket2.data.userId);
     }
@@ -38,6 +41,7 @@ export async function recordCallHistory(
 
       if (otherSocket?.data.userId) {
         dbUserId2 = await getUserIdByClerkId(otherSocket.data.userId);
+        calleeSocket = otherSocket;
       }
     }
 
@@ -48,6 +52,7 @@ export async function recordCallHistory(
 
     const callerId = dbUserId1;
     const calleeId = dbUserId2;
+    const callerSocket = socket1;
 
     const endedAt = new Date();
     const durationSeconds = Math.floor((endedAt.getTime() - room.startedAt.getTime()) / 1000);
@@ -58,6 +63,18 @@ export async function recordCallHistory(
       startedAt: room.startedAt,
       endedAt,
       durationSeconds: durationSeconds > 0 ? durationSeconds : 0,
+      onStreakCompleted(userId, payload) {
+        const socket = userId === callerId ? callerSocket : userId === calleeId ? calleeSocket : undefined;
+        if (!socket?.connected) {
+          return;
+        }
+        socket.emit(STREAK_COMPLETED_EVENT, {
+          userId,
+          streakCount: payload.streakCount,
+          date: payload.date,
+        });
+        logger.info("Emitted %s to user %s streak %s", STREAK_COMPLETED_EVENT, userId, payload.streakCount);
+      },
     });
 
     logger.info("Call history recorded: %s %s %d", callerId, calleeId, durationSeconds);

@@ -414,4 +414,223 @@ export namespace AdminAPI {
       export type Response = Report;
     }
   }
+
+  export namespace LevelRewards {
+    export interface LevelReward {
+      id: string;
+      level_required: number;
+      reward_type: string;
+      reward_payload: Record<string, unknown>;
+      created_at: string;
+      updated_at: string;
+    }
+
+    export namespace Get {
+      export interface Response {
+        data: LevelReward[];
+      }
+    }
+
+    export namespace GetById {
+      export interface PathParams {
+        id: string;
+      }
+
+      export type Response = LevelReward;
+    }
+
+    export namespace Create {
+      export interface Body {
+        level_required: number;
+        reward_type: string;
+        reward_payload: Record<string, unknown>;
+      }
+
+      export type Response = LevelReward;
+    }
+
+    export namespace Update {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        level_required?: number;
+        reward_type?: string;
+        reward_payload?: Record<string, unknown>;
+      }
+
+      export type Response = LevelReward;
+    }
+
+    export namespace Patch {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        level_required?: number;
+        reward_type?: string;
+        reward_payload?: Record<string, unknown>;
+      }
+
+      export type Response = LevelReward;
+    }
+
+    export namespace Delete {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Response {
+        message: string;
+      }
+    }
+  }
+
+  export namespace LevelFeatureUnlocks {
+    export interface LevelFeatureUnlock {
+      id: string;
+      level_required: number;
+      feature_key: string;
+      feature_payload: Record<string, unknown>;
+      created_at: string;
+      updated_at: string;
+    }
+
+    export namespace Get {
+      export interface Response {
+        data: LevelFeatureUnlock[];
+      }
+    }
+
+    export namespace GetById {
+      export interface PathParams {
+        id: string;
+      }
+
+      export type Response = LevelFeatureUnlock;
+    }
+
+    export namespace Create {
+      export interface Body {
+        level_required: number;
+        feature_key: string;
+        feature_payload: Record<string, unknown>;
+      }
+
+      export type Response = LevelFeatureUnlock;
+    }
+
+    export namespace Update {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        level_required?: number;
+        feature_key?: string;
+        feature_payload?: Record<string, unknown>;
+      }
+
+      export type Response = LevelFeatureUnlock;
+    }
+
+    export namespace Patch {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        level_required?: number;
+        feature_key?: string;
+        feature_payload?: Record<string, unknown>;
+      }
+
+      export type Response = LevelFeatureUnlock;
+    }
+
+    export namespace Delete {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Response {
+        message: string;
+      }
+    }
+  }
+
+  export namespace StreakExpBonuses {
+    export interface StreakExpBonus {
+      id: string;
+      min_streak: number;
+      max_streak: number;
+      bonus_multiplier: number;
+      created_at: string;
+      updated_at: string;
+    }
+
+    export namespace Get {
+      export interface Response {
+        data: StreakExpBonus[];
+      }
+    }
+
+    export namespace GetById {
+      export interface PathParams {
+        id: string;
+      }
+
+      export type Response = StreakExpBonus;
+    }
+
+    export namespace Create {
+      export interface Body {
+        min_streak: number;
+        max_streak: number;
+        bonus_multiplier: number;
+      }
+
+      export type Response = StreakExpBonus;
+    }
+
+    export namespace Update {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        min_streak?: number;
+        max_streak?: number;
+        bonus_multiplier?: number;
+      }
+
+      export type Response = StreakExpBonus;
+    }
+
+    export namespace Patch {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        min_streak?: number;
+        max_streak?: number;
+        bonus_multiplier?: number;
+      }
+
+      export type Response = StreakExpBonus;
+    }
+
+    export namespace Delete {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Response {
+        message: string;
+      }
+    }
+  }
 }

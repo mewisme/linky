@@ -15,7 +15,7 @@ export type {
   MuteTogglePayload,
   PeerLeftPayload,
   QueueStatusPayload,
-  ReactionHeartPayload,
+  ReactionPayload,
   ResyncSessionPayload,
   RoomPingPayload,
   SessionActivatedPayload,

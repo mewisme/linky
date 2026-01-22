@@ -44,8 +44,9 @@ export interface MuteTogglePayload {
   muted: boolean;
 }
 
-export interface ReactionHeartPayload {
+export interface ReactionPayload {
   count: number;
+  type?: string;
   timestamp: number;
 }
 

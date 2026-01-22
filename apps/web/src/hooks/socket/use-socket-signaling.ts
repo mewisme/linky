@@ -41,7 +41,7 @@ export interface UseSocketSignalingReturn {
   sendEndCall: () => void;
   sendChatMessage: (message: string, timestamp: number) => void;
   sendMuteToggle: (muted: boolean) => void;
-  sendHeartReaction: (count: number) => void;
+  sendReaction: (count: number, type?: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   removeAllListeners: () => void;
   disconnectSocket: () => void;
@@ -281,9 +281,9 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
-  const sendHeartReaction = useCallback((count: number) => {
+  const sendReaction = useCallback((count: number, type: string = "heart") => {
     if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit("reaction:heart", { count, timestamp: Date.now() });
+      socketRef.current.emit("reaction:triggered", { count, type, timestamp: Date.now() });
     }
   }, []);
 
@@ -362,7 +362,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendEndCall,
       sendChatMessage,
       sendMuteToggle,
-      sendHeartReaction,
+      sendReaction,
       sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,
@@ -382,7 +382,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendEndCall,
       sendChatMessage,
       sendMuteToggle,
-      sendHeartReaction,
+      sendReaction,
       sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,

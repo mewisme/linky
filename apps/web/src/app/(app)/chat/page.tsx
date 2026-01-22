@@ -12,7 +12,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { ChatSidebar } from "./components/chat-sidebar";
-import { HeartReactionProvider } from "@/components/providers/realtime/heart-reaction-provider";
+import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
 import { VideoContainer } from "./components/video-container";
 import { useVideoChat } from "@/hooks/webrtc/use-video-chat";
 
@@ -70,7 +70,7 @@ export default function ChatPage() {
   }, [chatMessages.length]);
 
   return (
-    <HeartReactionProvider>
+    <ReactionEffectProvider>
       <main className="relative flex flex-1 flex-col overflow-hidden h-full">
         <AlertDialog open={!!error} onOpenChange={(open) => !open && clearError()}>
           <AlertDialogContent>
@@ -111,6 +111,6 @@ export default function ChatPage() {
         connectionStatus={connectionStatus}
         onSendMessage={sendMessage}
       />
-    </HeartReactionProvider>
+    </ReactionEffectProvider>
   );
 }

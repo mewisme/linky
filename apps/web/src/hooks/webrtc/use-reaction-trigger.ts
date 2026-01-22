@@ -2,18 +2,19 @@
 
 import { useCallback, useRef } from "react";
 
-import { useHeartReactionContext } from "@/components/providers/realtime/heart-reaction-provider";
+import { useReactionEffectContext } from "@/components/providers/realtime/reaction-effect-provider";
 
-interface UseHeartReactionOptions {
+interface UseReactionTriggerOptions {
   isActive: boolean;
+  reactionType?: string;
 }
 
 const MAX_TAP_COUNT = 8;
 
-export function useHeartReaction({ isActive }: UseHeartReactionOptions) {
+export function useReactionTrigger({ isActive, reactionType = "heart" }: UseReactionTriggerOptions) {
   const tapCountRef = useRef<number>(0);
   const tapWindowTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const { triggerLocalHeart, emitHeartReaction } = useHeartReactionContext();
+  const { triggerLocalReaction, emitReaction } = useReactionEffectContext();
 
   const handleTap = useCallback(
     (x: number, y: number) => {
@@ -22,14 +23,14 @@ export function useHeartReaction({ isActive }: UseHeartReactionOptions) {
       tapCountRef.current += 1;
 
       if (tapCountRef.current >= 2) {
-        triggerLocalHeart({ x, y });
+        triggerLocalReaction({ x, y }, reactionType);
 
         if (tapCountRef.current >= MAX_TAP_COUNT) {
           if (tapWindowTimerRef.current) {
             clearTimeout(tapWindowTimerRef.current);
           }
-          const heartCount = tapCountRef.current - 1;
-          emitHeartReaction(heartCount);
+          const reactionCount = tapCountRef.current - 1;
+          emitReaction(reactionCount, reactionType);
           tapCountRef.current = 0;
           tapWindowTimerRef.current = null;
           return;
@@ -44,15 +45,15 @@ export function useHeartReaction({ isActive }: UseHeartReactionOptions) {
         const count = tapCountRef.current;
 
         if (count >= 2) {
-          const heartCount = count - 1;
-          emitHeartReaction(heartCount);
+          const reactionCount = count - 1;
+          emitReaction(reactionCount, reactionType);
         }
 
         tapCountRef.current = 0;
         tapWindowTimerRef.current = null;
       }, 500);
     },
-    [isActive, triggerLocalHeart, emitHeartReaction]
+    [isActive, triggerLocalReaction, emitReaction, reactionType]
   );
 
   return {

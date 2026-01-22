@@ -2,7 +2,7 @@ import type {
   ChatMessageInputPayload,
   FavoriteNotifyPeerPayload,
   MuteTogglePayload,
-  ReactionHeartPayload,
+  ReactionPayload,
   ResyncSessionPayload,
   SignalPayload,
 } from "../types/socket-event.types.js";
@@ -322,32 +322,34 @@ function setupMuteToggleHandler(socket: AuthenticatedSocket, io: Namespace, room
 }
 
 function setupReactionHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
-  socket.on("reaction:heart", (data: ReactionHeartPayload) => {
-    logger.info("Heart reaction received from: %s count: %d", socket.id, data.count);
+  socket.on("reaction:triggered", (data: ReactionPayload) => {
+    const reactionType = data.type || "heart";
+    logger.info("Reaction received from: %s count: %d type: %s", socket.id, data.count, reactionType);
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      logger.warn("Heart reaction received from user not in room: %s", socket.id);
+      logger.warn("Reaction received from user not in room: %s", socket.id);
       return;
     }
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      logger.error("No peer found for heart reaction: %s in room: %s", socket.id, room.id);
+      logger.error("No peer found for reaction: %s in room: %s", socket.id, room.id);
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cannot relay heart reaction", peerId);
+      logger.warn("Peer socket not found or disconnected: %s - cannot relay reaction", peerId);
       return;
     }
 
-    io.to(peerId).emit("reaction:heart", {
+    io.to(peerId).emit("reaction:triggered", {
       count: data.count,
+      type: reactionType,
       timestamp: data.timestamp || Date.now(),
     });
-    logger.info("Heart reaction relayed from %s to %s in room %s", socket.id, peerId, room.id);
+    logger.info("Reaction relayed from %s to %s in room %s", socket.id, peerId, room.id);
   });
 }
 

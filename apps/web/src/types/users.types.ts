@@ -156,4 +156,27 @@ export namespace UsersAPI {
       export type Response = GetMe.Response;
     }
   }
+
+  export namespace Progress {
+    export namespace GetMe {
+      export interface Response {
+        currentLevel: number;
+        expProgress: {
+          totalExpSeconds: number;
+          expToNextLevel: number;
+          progressPercentage: number;
+        };
+        todayCallDuration: {
+          totalSeconds: number;
+          isValid: boolean;
+        };
+        streak: {
+          currentStreak: number;
+          longestStreak: number;
+          remainingSecondsToKeepStreak: number;
+          lastValidDate: string | null;
+        };
+      }
+    }
+  }
 }

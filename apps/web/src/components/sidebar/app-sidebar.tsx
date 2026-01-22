@@ -27,7 +27,11 @@ import {
   IconUserScan,
   IconUserShield,
   IconUsers,
-  IconView360
+  IconView360,
+  IconGift,
+  IconLock,
+  IconBolt,
+  IconTrendingUp
 } from '@tabler/icons-react'
 import {
   Sidebar,
@@ -111,6 +115,13 @@ export const menuItems: MenuItem[] = [
         href: '/user/reports',
         category: 'Account',
       },
+      {
+        label: 'Progress',
+        icon: IconTrendingUp,
+        description: 'View your level and streak progress',
+        href: '/user/progress',
+        category: 'Account',
+      },
     ],
   },
   {
@@ -153,6 +164,27 @@ export const menuItems: MenuItem[] = [
         icon: IconFlag,
         description: 'Manage reports',
         href: '/admin/reports',
+        category: 'Admin',
+      },
+      {
+        label: 'Level Rewards',
+        icon: IconGift,
+        description: 'Manage level rewards',
+        href: '/admin/level-rewards',
+        category: 'Admin',
+      },
+      {
+        label: 'Feature Unlocks',
+        icon: IconLock,
+        description: 'Manage level-based feature unlocks',
+        href: '/admin/level-feature-unlocks',
+        category: 'Admin',
+      },
+      {
+        label: 'Streak EXP Bonuses',
+        icon: IconBolt,
+        description: 'Manage streak EXP bonus multipliers',
+        href: '/admin/streak-exp-bonuses',
         category: 'Admin',
       }
     ],

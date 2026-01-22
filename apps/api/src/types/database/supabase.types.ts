@@ -190,6 +190,60 @@ export type Database = {
         }
         Relationships: []
       }
+      level_feature_unlocks: {
+        Row: {
+          created_at: string
+          feature_key: string
+          feature_payload: Json
+          id: string
+          level_required: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          feature_payload?: Json
+          id?: string
+          level_required: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          feature_payload?: Json
+          id?: string
+          level_required?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      level_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          level_required: number
+          reward_payload: Json
+          reward_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level_required: number
+          reward_payload?: Json
+          reward_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level_required?: number
+          reward_payload?: Json
+          reward_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           created_at: string
@@ -401,6 +455,33 @@ export type Database = {
           },
         ]
       }
+      streak_exp_bonuses: {
+        Row: {
+          bonus_multiplier: number
+          created_at: string
+          id: string
+          max_streak: number
+          min_streak: number
+          updated_at: string
+        }
+        Insert: {
+          bonus_multiplier?: number
+          created_at?: string
+          id?: string
+          max_streak: number
+          min_streak: number
+          updated_at?: string
+        }
+        Update: {
+          bonus_multiplier?: number
+          created_at?: string
+          id?: string
+          max_streak?: number
+          min_streak?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_details: {
         Row: {
           bio: string | null
@@ -569,6 +650,102 @@ export type Database = {
           },
         ]
       }
+      user_level_rewards: {
+        Row: {
+          granted_at: string
+          id: string
+          level_reward_id: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          id?: string
+          level_reward_id: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          id?: string
+          level_reward_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_level_rewards_reward"
+            columns: ["level_reward_id"]
+            isOneToOne: false
+            referencedRelation: "level_rewards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_level_rewards_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_level_rewards_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_level_rewards_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_levels: {
+        Row: {
+          created_at: string
+          id: string
+          total_exp_seconds: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          total_exp_seconds?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          total_exp_seconds?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_levels_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_levels_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_levels_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_settings: {
         Row: {
           created_at: string
@@ -617,6 +794,104 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_user_settings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_streak_days: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          is_valid: boolean
+          total_call_seconds: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          is_valid?: boolean
+          total_call_seconds?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          is_valid?: boolean
+          total_call_seconds?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_streak_days_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_days_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_days_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_streaks: {
+        Row: {
+          current_streak: number
+          id: string
+          last_valid_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          id?: string
+          last_valid_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          id?: string
+          last_valid_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_streaks_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streaks_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streaks_user"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "users_with_details"
@@ -901,12 +1176,31 @@ export type Database = {
       }
     }
     Functions: {
+      increment_user_exp: {
+        Args: { p_seconds: number; p_user_id: string }
+        Returns: undefined
+      }
       increment_visitor: { Args: { ip: string }; Returns: undefined }
       page_views_timeseries: {
         Args: { days: number }
         Returns: {
           day: string
           views: number
+        }[]
+      }
+      update_user_streak_summary: {
+        Args: { p_date: string; p_is_valid: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      upsert_user_streak_day: {
+        Args: {
+          p_date: string
+          p_total_call_seconds: number
+          p_user_id: string
+        }
+        Returns: {
+          current_streak: number
+          first_time_valid: boolean
         }[]
       }
       visitors_timeseries: {
@@ -1050,4 +1344,3 @@ export const Constants = {
     },
   },
 } as const
-

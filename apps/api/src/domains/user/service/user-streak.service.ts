@@ -6,6 +6,9 @@ import {
   getUserStreakDaysByMonth,
 } from "../../../infra/supabase/repositories/user-streaks.js";
 import type { UserStreak, UserStreakDay } from "../types/user-streak.types.js";
+import { getOrSet, invalidate } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
 
 const logger = createLogger("API:User:Streak:Service");
 
@@ -36,6 +39,18 @@ export async function addCallDurationToStreak(
 
     const result = await upsertUserStreakDay(userId, utcDate, durationSeconds);
     logger.info("Added %d seconds to streak for user: %s on date: %s", durationSeconds, userId, dateStr);
+
+    await invalidate(REDIS_CACHE_KEYS.userProgress(userId));
+
+    const current = new Date();
+    const currentYear = current.getUTCFullYear();
+    const currentMonth = current.getUTCMonth() + 1;
+    const updatedYear = utcDate.getUTCFullYear();
+    const updatedMonth = utcDate.getUTCMonth() + 1;
+
+    if (updatedYear === currentYear && updatedMonth === currentMonth) {
+      await invalidate(REDIS_CACHE_KEYS.userStreakCalendar(userId, updatedYear, updatedMonth));
+    }
 
     if (!result?.firstTimeValid) {
       return null;
@@ -124,18 +139,33 @@ export async function getUserStreakCalendar(
   }
 
   try {
-    const records = await getUserStreakDaysByMonth(userId, year, month);
-    
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split("T")[0] || "";
+    const now = new Date();
+    const currentYear = now.getUTCFullYear();
+    const currentMonth = now.getUTCMonth() + 1;
 
-    return records.map((record) => ({
-      date: record.date,
-      isValid: record.is_valid,
-      totalCallSeconds: record.total_call_seconds,
-      isToday: record.date === todayStr,
-    }));
+    const ttlSeconds =
+      year === currentYear && month === currentMonth
+        ? REDIS_CACHE_TTL_SECONDS.USER_STREAK_CALENDAR_CURRENT_MONTH
+        : REDIS_CACHE_TTL_SECONDS.USER_STREAK_CALENDAR_PAST_MONTH;
+
+    return await getOrSet(
+      REDIS_CACHE_KEYS.userStreakCalendar(userId, year, month),
+      ttlSeconds,
+      async () => {
+        const records = await getUserStreakDaysByMonth(userId, year, month);
+
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split("T")[0] || "";
+
+        return records.map((record) => ({
+          date: record.date,
+          isValid: record.is_valid,
+          totalCallSeconds: record.total_call_seconds,
+          isToday: record.date === todayStr,
+        }));
+      },
+    );
   } catch (error) {
     logger.error("Error getting user streak calendar: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;

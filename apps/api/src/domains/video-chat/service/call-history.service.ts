@@ -1,6 +1,8 @@
 import { createCallHistory, getUserCountry } from "../../../infra/supabase/repositories/call-history.js";
 import { addCallExp } from "../../user/service/user-level.service.js";
 import { addCallDurationToStreak } from "../../user/service/user-streak.service.js";
+import { invalidate } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 
 export type OnStreakCompleted = (userId: string, payload: { streakCount: number; date: string }) => void;
 
@@ -30,6 +32,11 @@ export async function recordCallHistoryInDatabase(params: {
   if (durationSeconds <= 0) {
     return;
   }
+
+  await Promise.allSettled([
+    invalidate(REDIS_CACHE_KEYS.userProgress(callerId)),
+    invalidate(REDIS_CACHE_KEYS.userProgress(calleeId)),
+  ]);
 
   await Promise.allSettled([
     addCallExp(callerId, durationSeconds),

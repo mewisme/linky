@@ -14,24 +14,24 @@ import {
   DropdownMenuTrigger,
 } from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
 import {
-  IconActivity,
+  IconBolt,
+  IconChartLine,
   IconContract,
   IconEyeCog,
   IconFlag,
-  IconHeartHandshake,
-  IconHome,
+  IconGift,
+  IconHeart,
+  IconHistory,
+  IconId,
+  IconLock,
   IconLogout,
+  IconMessages,
   IconSettings,
   IconTags,
   IconUser,
-  IconUserScan,
   IconUserShield,
   IconUsers,
-  IconView360,
-  IconGift,
-  IconLock,
-  IconBolt,
-  IconTrendingUp
+  IconVideo,
 } from '@tabler/icons-react'
 import {
   Sidebar,
@@ -70,25 +70,37 @@ export interface MenuItem {
 
 export const menuItems: MenuItem[] = [
   {
-    label: 'Home',
-    icon: IconHome,
-    description: 'Go to the home page',
-    href: '/',
-    category: 'Navigation',
-  },
-  {
     label: 'Video Chat',
-    icon: IconView360,
+    icon: IconVideo,
     description: 'Start a video chat',
     href: '/chat',
     category: 'Navigation',
   },
   {
-    label: 'Call History',
-    icon: IconActivity,
-    description: 'View your call history',
-    href: '/call-history',
-    category: 'Navigation',
+    label: 'Chat',
+    icon: IconMessages,
+    subItems: [
+      {
+        label: 'Call History',
+        icon: IconHistory,
+        description: 'View your call history',
+        href: '/chat/call-history',
+        category: 'Navigation',
+      },
+    ]
+  },
+  {
+    label: 'Connections',
+    icon: IconUsers,
+    subItems: [
+      {
+        label: 'Favorites',
+        icon: IconHeart,
+        description: 'View your favorites',
+        href: '/connections/favorites',
+        category: 'Account',
+      },
+    ]
   },
   {
     label: 'User',
@@ -96,16 +108,16 @@ export const menuItems: MenuItem[] = [
     subItems: [
       {
         label: 'Profile',
-        icon: IconUserScan,
+        icon: IconId,
         description: 'View your profile',
         href: '/user/profile',
         category: 'Account',
       },
       {
-        label: 'Favorites',
-        icon: IconHeartHandshake,
-        description: 'View your favorites',
-        href: '/user/favorites',
+        label: 'Progress',
+        icon: IconChartLine,
+        description: 'View your level and streak progress',
+        href: '/user/progress',
         category: 'Account',
       },
       {
@@ -113,13 +125,6 @@ export const menuItems: MenuItem[] = [
         icon: IconFlag,
         description: 'View your reports',
         href: '/user/reports',
-        category: 'Account',
-      },
-      {
-        label: 'Progress',
-        icon: IconTrendingUp,
-        description: 'View your level and streak progress',
-        href: '/user/progress',
         category: 'Account',
       },
     ],

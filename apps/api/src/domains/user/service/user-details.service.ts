@@ -12,6 +12,8 @@ import {
 } from "../../../infra/supabase/repositories/user-details.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { getInterestTagsByIds } from "../../../infra/supabase/repositories/interest-tags.js";
+import { invalidate } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 
 type UserDetailsUpdateData = Omit<UserDetailsUpdate, "user_id">;
 
@@ -62,10 +64,14 @@ export async function putUserDetails(userId: string, updateData: UserDetailsUpda
   const existing = await getUserDetailsByUserId(userId);
 
   if (!existing) {
-    return createUserDetails(userId, updateData);
+    const created = await createUserDetails(userId, updateData);
+    await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    return created;
   }
 
-  return updateUserDetails(userId, updateData);
+  const updated = await updateUserDetails(userId, updateData);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 
 export async function patchUserDetailsForUser(userId: string, updateData: Partial<UserDetailsUpdateData>) {
@@ -80,25 +86,37 @@ export async function patchUserDetailsForUser(userId: string, updateData: Partia
   const existing = await getUserDetailsByUserId(userId);
 
   if (!existing) {
-    return createUserDetails(userId, updateData);
+    const created = await createUserDetails(userId, updateData);
+    await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    return created;
   }
 
-  return patchUserDetails(userId, updateData);
+  const updated = await patchUserDetails(userId, updateData);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 
 export async function addUserInterestTags(userId: string, tagIds: string[]) {
-  return addInterestTags(userId, tagIds);
+  const updated = await addInterestTags(userId, tagIds);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 
 export async function removeUserInterestTags(userId: string, tagIds: string[]) {
-  return removeInterestTags(userId, tagIds);
+  const updated = await removeInterestTags(userId, tagIds);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 
 export async function replaceUserInterestTags(userId: string, tagIds: string[]) {
-  return replaceInterestTags(userId, tagIds);
+  const updated = await replaceInterestTags(userId, tagIds);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 
 export async function clearUserInterestTags(userId: string) {
-  return clearInterestTags(userId);
+  const updated = await clearInterestTags(userId);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 

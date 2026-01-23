@@ -5,6 +5,8 @@ import { createLogger } from "@repo/logger/api";
 import { getStreakExpBonusForStreak } from "../../../infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "../../../infra/supabase/repositories/user-streaks.js";
 import { grantRewardsForLevel } from "./user-level-reward.service.js";
+import { invalidate } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 
 const logger = createLogger("API:User:Level:Service");
 
@@ -97,6 +99,7 @@ export async function addCallExp(userId: string, durationSeconds: number): Promi
     }
 
     await incrementUserExp(userId, expToAdd);
+    await invalidate(REDIS_CACHE_KEYS.userProgress(userId));
 
     const levelAfter = await getUserLevel(userId);
     const levelAfterValue = levelAfter

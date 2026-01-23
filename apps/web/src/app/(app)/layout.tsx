@@ -19,7 +19,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
+      <SidebarProvider
+        style={{
+          "--sidebar-width": "20rem",
+        } as React.CSSProperties}
+      >
         <AppSidebar />
         <div className="w-full flex flex-col h-full">
           <SidebarInset className="container mx-auto">

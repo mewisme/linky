@@ -6,6 +6,8 @@ import {
   updateUserSettings,
 } from "../../../infra/supabase/repositories/user-settings.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import { invalidate } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 
 type UserSettingsUpdateData = Omit<UserSettingsUpdate, "user_id">;
 
@@ -21,19 +23,27 @@ export async function putUserSettings(userId: string, updateData: UserSettingsUp
   const existing = await getUserSettingsByUserId(userId);
 
   if (!existing) {
-    return createUserSettings(userId, updateData);
+    const created = await createUserSettings(userId, updateData);
+    await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    return created;
   }
 
-  return updateUserSettings(userId, updateData);
+  const updated = await updateUserSettings(userId, updateData);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 
 export async function patchUserSettingsForUser(userId: string, updateData: Partial<UserSettingsUpdateData>) {
   const existing = await getUserSettingsByUserId(userId);
 
   if (!existing) {
-    return createUserSettings(userId, updateData);
+    const created = await createUserSettings(userId, updateData);
+    await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    return created;
   }
 
-  return patchUserSettings(userId, updateData);
+  const updated = await patchUserSettings(userId, updateData);
+  await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  return updated;
 }
 

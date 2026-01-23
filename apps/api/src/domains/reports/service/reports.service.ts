@@ -8,14 +8,20 @@ import {
 import { getReportWithContext } from "../../../infra/supabase/repositories/report-contexts.js";
 import type { ReportStatus } from "../types/report-status.types.js";
 import type { ReportUpdate } from "../types/report.types.js";
+import { getOrSet, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
+import { hashFilters } from "../../../infra/redis/cache/hash.js";
 
 export async function createUserReport(params: { reporterUserId: string; reportedUserId: string; reason: string }) {
-  return await createReport({
+  const created = await createReport({
     reporter_user_id: params.reporterUserId,
     reported_user_id: params.reportedUserId,
     reason: params.reason,
     status: "pending",
   });
+  await invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("reports"));
+  return created;
 }
 
 export async function listUserReports(params: { userId: string; limit: number; offset: number }) {
@@ -29,13 +35,26 @@ export async function listReports(params: {
   reporterUserId?: string;
   reportedUserId?: string;
 }) {
-  return await getReports({
+  const filters = {
     limit: params.limit,
     offset: params.offset,
     status: params.status,
     reporterUserId: params.reporterUserId,
     reportedUserId: params.reportedUserId,
-  });
+  };
+
+  return await getOrSet(
+    REDIS_CACHE_KEYS.admin("reports", hashFilters(filters)),
+    REDIS_CACHE_TTL_SECONDS.ADMIN_LISTS,
+    async () =>
+      await getReports({
+        limit: params.limit,
+        offset: params.offset,
+        status: params.status,
+        reporterUserId: params.reporterUserId,
+        reportedUserId: params.reportedUserId,
+      }),
+  );
 }
 
 export async function fetchReportById(id: string) {
@@ -47,6 +66,8 @@ export async function fetchReportWithContext(id: string) {
 }
 
 export async function updateReportById(id: string, updateData: Partial<ReportUpdate>) {
-  return await updateReport(id, updateData as ReportUpdate);
+  const updated = await updateReport(id, updateData as ReportUpdate);
+  await invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("reports"));
+  return updated;
 }
 

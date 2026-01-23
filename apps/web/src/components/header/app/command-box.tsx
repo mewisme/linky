@@ -8,7 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from '@repo/ui/components/ui/command'
-import { IconLogout, IconPalette } from '@tabler/icons-react'
+import { IconHome, IconLogout, IconPalette } from '@tabler/icons-react'
 import { useCallback, useMemo } from 'react'
 
 import { menuItems } from '@/components/sidebar/app-sidebar'
@@ -33,6 +33,12 @@ export function CommandBox({ open, setOpen }: { open: boolean; setOpen: (open: b
   const allActions = useMemo(() => {
     const fromMenu = transformMenuItems(menuItems)
     const customActions: CommandAction[] = [
+      {
+        label: 'Home',
+        icon: IconHome,
+        category: 'Navigation',
+        href: '/',
+      },
       {
         label: 'Theme Toggle',
         icon: IconPalette,

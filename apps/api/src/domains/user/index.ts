@@ -1,6 +1,7 @@
 export { default as usersRouter } from "./http/users.route.js";
 export { default as userDetailsRouter } from "./http/user-details.route.js";
 export { default as userSettingsRouter } from "./http/user-settings.route.js";
+export { default as userProfileRouter } from "./http/user-profile.route.js";
 export { default as userLevelRouter } from "./http/user-level.route.js";
 export { default as userStreakRouter } from "./http/user-streak.route.js";
 

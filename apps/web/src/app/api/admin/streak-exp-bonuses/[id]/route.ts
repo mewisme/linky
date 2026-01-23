@@ -5,7 +5,7 @@ import type { ApiError } from "@/types/api.types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -17,10 +17,11 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     const response = await fetch(
-      `${apiUrl}/api/v1/admin/streak-exp-bonuses/${params.id}`,
+      `${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`,
       {
         method: "GET",
         headers: {
@@ -48,7 +49,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -60,9 +61,10 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const body = await request.json() as AdminAPI.StreakExpBonuses.Update.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${params.id}`, {
+    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`, {
       method: "PUT",
       headers: {
         Authorization: authHeader,
@@ -89,7 +91,7 @@ export async function PUT(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -101,9 +103,10 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const body = await request.json() as AdminAPI.StreakExpBonuses.Patch.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${params.id}`, {
+    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`, {
       method: "PATCH",
       headers: {
         Authorization: authHeader,
@@ -130,7 +133,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -142,8 +145,9 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${params.id}`, {
+    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

@@ -5,7 +5,7 @@ import type { ApiError } from "@/types/api.types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -17,10 +17,11 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     const response = await fetch(
-      `${apiUrl}/api/v1/admin/level-feature-unlocks/${params.id}`,
+      `${apiUrl}/api/v1/admin/level-feature-unlocks/${id}`,
       {
         method: "GET",
         headers: {

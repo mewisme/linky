@@ -5,7 +5,7 @@ import type { ProgressInsights } from "../types/progress-insights.types.js";
 
 const logger = createLogger("API:User:Progress:Service");
 
-const MIN_STREAK_SECONDS = 60;
+const STREAK_REQUIRED_SECONDS = 300;
 
 export async function getUserProgressInsights(userId: string): Promise<ProgressInsights | null> {
   if (!userId || typeof userId !== "string" || userId.trim() === "") {
@@ -32,7 +32,8 @@ export async function getUserProgressInsights(userId: string): Promise<ProgressI
     const todayCallSeconds = todayStreakDay?.totalCallSeconds || 0;
     const todayIsValid = todayStreakDay?.isValid || false;
 
-    const remainingSecondsToKeepStreak = Math.max(0, MIN_STREAK_SECONDS - todayCallSeconds);
+    const streakRemainingSeconds = Math.max(0, STREAK_REQUIRED_SECONDS - todayCallSeconds);
+    const isTodayStreakComplete = todayCallSeconds >= STREAK_REQUIRED_SECONDS;
 
     const expInCurrentLevel = levelData.totalExpSeconds;
     const expToNextLevel = levelData.expToNextLevel;
@@ -55,10 +56,14 @@ export async function getUserProgressInsights(userId: string): Promise<ProgressI
         totalSeconds: todayCallSeconds,
         isValid: todayIsValid,
       },
+      todayCallDurationSeconds: todayCallSeconds,
+      streakRequiredSeconds: STREAK_REQUIRED_SECONDS,
+      streakRemainingSeconds,
+      isTodayStreakComplete,
       streak: {
         currentStreak: streakData?.currentStreak || 0,
         longestStreak: streakData?.longestStreak || 0,
-        remainingSecondsToKeepStreak,
+        remainingSecondsToKeepStreak: streakRemainingSeconds,
         lastValidDate: streakData?.lastValidDate || null,
       },
     };

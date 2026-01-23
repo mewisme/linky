@@ -97,3 +97,34 @@ export async function getUserStreakDays(
 
   return { data: data || [], count };
 }
+
+export async function getUserStreakDaysByMonth(
+  userId: string,
+  year: number,
+  month: number,
+): Promise<UserStreakDayRecord[]> {
+  if (month < 1 || month > 12) {
+    throw new Error("Month must be between 1 and 12");
+  }
+
+  const startDate = new Date(Date.UTC(year, month - 1, 1));
+  const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+  
+  const startDateStr = startDate.toISOString().split("T")[0] || "";
+  const endDateStr = endDate.toISOString().split("T")[0] || "";
+
+  const { data, error } = await supabase
+    .from("user_streak_days")
+    .select("*")
+    .eq("user_id", userId)
+    .gte("date", startDateStr)
+    .lte("date", endDateStr)
+    .order("date", { ascending: true });
+
+  if (error) {
+    logger.error("Error fetching user streak days by month: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data || [];
+}

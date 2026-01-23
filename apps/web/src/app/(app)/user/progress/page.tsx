@@ -1,13 +1,23 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
-import { IconClock, IconFlame, IconTrendingUp } from "@tabler/icons-react";
+import { IconClock, IconFlame, IconStar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Badge } from "@repo/ui/components/ui/badge";
+import { Button } from "@repo/ui/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/components/ui/dialog";
 import { Loader2 } from "lucide-react";
 import { Progress } from "@repo/ui/components/ui/progress";
+import { StreakCalendar } from "@/components/user/streak-calendar";
+import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";
 import { useQuery } from "@tanstack/react-query";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -29,6 +39,7 @@ function formatSeconds(seconds: number): string {
 export default function UserProgressPage() {
   const { state } = useUserContext();
   const [token, setToken] = useState<string | null>(null);
+  const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -74,120 +85,139 @@ export default function UserProgressPage() {
 
   return (
     <AppLayout label="Progress" description="Track your level, EXP, and streak progress">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Current Level</CardTitle>
-              <Badge variant="secondary" className="text-sm px-3 py-1">
-                Level {data.currentLevel}
-              </Badge>
-            </div>
-            <CardDescription>Your current progression level</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total EXP</span>
-                <span className="font-medium">{formatSeconds(data.expProgress.totalExpSeconds)}</span>
+      <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <IconStar className="w-5 h-5 text-yellow-500" />
+                  Current Level
+                </CardTitle>
+                <Badge variant="secondary" className="text-sm px-3 py-1">
+                  Level {data.currentLevel}
+                </Badge>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">EXP to Next Level</span>
-                <span className="font-medium">{formatSeconds(data.expProgress.expToNextLevel)}</span>
-              </div>
-              <Progress value={data.expProgress.progressPercentage} className="h-2" />
-              <p className="text-xs text-center text-muted-foreground">
-                {data.expProgress.progressPercentage.toFixed(1)}% to Level {data.currentLevel + 1}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <IconFlame className="w-5 h-5 text-orange-500" />
-                Streak
-              </CardTitle>
-              <Badge variant="secondary" className="text-sm px-3 py-1">
-                {data.streak.currentStreak} days
-              </Badge>
-            </div>
-            <CardDescription>Your daily call streak</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Current Streak</span>
-                <span className="font-medium">{data.streak.currentStreak} days</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Longest Streak</span>
-                <span className="font-medium">{data.streak.longestStreak} days</span>
-              </div>
-              {data.streak.remainingSecondsToKeepStreak > 0 && (
-                <div className="pt-2 border-t">
-                  <div className="flex items-center gap-2 text-sm">
-                    <IconClock className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {formatSeconds(data.streak.remainingSecondsToKeepStreak)} needed today
-                    </span>
+              <CardDescription>Your current progression level</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total EXP</span>
+                    <span className="font-medium">{formatSeconds(data.expProgress.totalExpSeconds)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">EXP to Next Level</span>
+                    <span className="font-medium">{formatSeconds(data.expProgress.expToNextLevel)}</span>
+                  </div>
+                  <Progress value={data.expProgress.progressPercentage} className="h-2" />
+                  <p className="text-xs text-center text-muted-foreground">
+                    {data.expProgress.progressPercentage.toFixed(1)}% to Level {data.currentLevel + 1}
+                  </p>
+                </div>
+                <div className="pt-3 border-t">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Next Level</span>
+                      <Badge variant="outline" className="text-xs">
+                        Level {data.currentLevel + 1}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Keep progressing to unlock future rewards
+                    </p>
                   </div>
                 </div>
-              )}
-              {data.streak.remainingSecondsToKeepStreak === 0 && data.todayCallDuration.isValid && (
-                <div className="pt-2 border-t">
-                  <Badge variant="default" className="w-full justify-center">
-                    Streak maintained today
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <IconFlame className="w-5 h-5 text-orange-500" />
+                  Streak
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsCalendarDialogOpen(true)}
+                    className="text-xs"
+                  >
+                    View all
+                  </Button>
+                  <Badge
+                    variant={data.isTodayStreakComplete ? "default" : "secondary"}
+                    className="text-sm px-3 py-1"
+                  >
+                    {data.isTodayStreakComplete ? "Complete" : "Incomplete"}
                   </Badge>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <IconTrendingUp className="w-5 h-5 text-blue-500" />
-                Today's Activity
-              </CardTitle>
-              <Badge
-                variant={data.todayCallDuration.isValid ? "default" : "secondary"}
-                className="text-sm px-3 py-1"
-              >
-                {data.todayCallDuration.isValid ? "Valid" : "Incomplete"}
-              </Badge>
-            </div>
-            <CardDescription>Call duration for today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Call Duration</span>
-                <span className="font-medium">{formatSeconds(data.todayCallDuration.totalSeconds)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Status</span>
-                <span className="font-medium">
-                  {data.todayCallDuration.isValid ? "Streak valid" : "Streak incomplete"}
-                </span>
-              </div>
-              {data.streak.remainingSecondsToKeepStreak > 0 && (
-                <div className="pt-2 border-t">
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">Need </span>
-                    <span className="font-medium">{formatSeconds(data.streak.remainingSecondsToKeepStreak)}</span>
-                    <span className="text-muted-foreground"> more to maintain streak</span>
+              <CardDescription>Your daily call streak</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Current Streak</span>
+                    <span className="font-medium">{data.streak.currentStreak} days</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Longest Streak</span>
+                    <span className="font-medium">{data.streak.longestStreak} days</span>
                   </div>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="pt-3 border-t">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Today&apos;s Call Duration</span>
+                      <span className="font-medium">{formatSeconds(data.todayCallDurationSeconds)}</span>
+                    </div>
+                    {data.streakRemainingSeconds > 0 && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <IconClock className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">
+                          {formatSeconds(data.streakRemainingSeconds)} more needed today
+                        </span>
+                      </div>
+                    )}
+                    {data.isTodayStreakComplete && (
+                      <Badge variant="default" className="w-full justify-center">
+                        Streak completed today
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="pt-3 border-t">
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Current Streak</p>
+                    <StreakMiniCalendar progressData={data} />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <IconFlame className="w-5 h-5 text-orange-500" />
+              Streak Calendar
+            </DialogTitle>
+            <DialogDescription>View your complete streak history</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <StreakCalendar />
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

@@ -9,6 +9,10 @@ export interface ProgressInsights {
     totalSeconds: number;
     isValid: boolean;
   };
+  todayCallDurationSeconds: number;
+  streakRequiredSeconds: number;
+  streakRemainingSeconds: number;
+  isTodayStreakComplete: boolean;
   streak: {
     currentStreak: number;
     longestStreak: number;

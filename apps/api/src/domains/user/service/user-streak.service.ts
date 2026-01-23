@@ -3,6 +3,7 @@ import {
   upsertUserStreakDay,
   getUserStreak,
   getUserStreakDays,
+  getUserStreakDaysByMonth,
 } from "../../../infra/supabase/repositories/user-streaks.js";
 import type { UserStreak, UserStreakDay } from "../types/user-streak.types.js";
 
@@ -98,6 +99,45 @@ export async function getUserStreakHistory(
     };
   } catch (error) {
     logger.error("Error getting user streak history: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+}
+
+export interface StreakCalendarDay {
+  date: string;
+  isValid: boolean;
+  totalCallSeconds: number;
+  isToday: boolean;
+}
+
+export async function getUserStreakCalendar(
+  userId: string,
+  year: number,
+  month: number,
+): Promise<StreakCalendarDay[]> {
+  if (!userId || typeof userId !== "string" || userId.trim() === "") {
+    return [];
+  }
+
+  if (month < 1 || month > 12) {
+    throw new Error("Month must be between 1 and 12");
+  }
+
+  try {
+    const records = await getUserStreakDaysByMonth(userId, year, month);
+    
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split("T")[0] || "";
+
+    return records.map((record) => ({
+      date: record.date,
+      isValid: record.is_valid,
+      totalCallSeconds: record.total_call_seconds,
+      isToday: record.date === todayStr,
+    }));
+  } catch (error) {
+    logger.error("Error getting user streak calendar: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 }

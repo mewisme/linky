@@ -170,6 +170,10 @@ export namespace UsersAPI {
           totalSeconds: number;
           isValid: boolean;
         };
+        todayCallDurationSeconds: number;
+        streakRequiredSeconds: number;
+        streakRemainingSeconds: number;
+        isTodayStreakComplete: boolean;
         streak: {
           currentStreak: number;
           longestStreak: number;
@@ -177,6 +181,19 @@ export namespace UsersAPI {
           lastValidDate: string | null;
         };
       }
+    }
+  }
+
+  export namespace Streak {
+    export namespace Calendar {
+      export interface Day {
+        date: string;
+        isValid: boolean;
+        totalCallSeconds: number;
+        isToday: boolean;
+      }
+
+      export type Response = Day[];
     }
   }
 }

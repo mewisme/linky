@@ -23,7 +23,6 @@ import ReactCrop, {
   type PercentCrop,
   type PixelCrop,
   type ReactCropProps,
-  // @ts-ignore
 } from "react-image-crop";
 import { cn } from "@repo/ui/lib/utils";
 

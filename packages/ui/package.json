@@ -9,6 +9,7 @@
     "./animate-ui/*": "./src/components/animate-ui/*.tsx",
     "./kibo-ui/*": "./src/components/kibo-ui/*.tsx",
     "./lib/*": "./src/lib/*.ts",
+    "./internal-lib/*": "./src/internal-lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
     "./postcss.config": "./postcss.config.mjs"
   },
@@ -75,6 +76,7 @@
     "color": "^5.0.3",
     "culori": "^4.0.2",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "embla-carousel-react": "^8.6.0",
     "frimousse": "^0.3.0",
     "input-otp": "^1.4.2",

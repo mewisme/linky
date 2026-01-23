@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger/api";
-import { getUserStreakData, getUserStreakHistory } from "../service/user-streak.service.js";
+import { getUserStreakData, getUserStreakHistory, getUserStreakCalendar } from "../service/user-streak.service.js";
 import { getUserIdByClerkUserId } from "../service/user-settings.service.js";
 
 const router: ExpressRouter = Router();
@@ -92,6 +92,63 @@ router.get("/me/history", async (req: Request, res: Response) => {
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user streak history",
+    });
+  }
+});
+
+router.get("/calendar", async (req: Request, res: Response) => {
+  try {
+    const clerkUserId = req.auth?.sub;
+
+    if (!clerkUserId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User ID not found in authentication token",
+      });
+    }
+
+    const userId = await getUserIdByClerkUserId(clerkUserId);
+    if (!userId) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found in database",
+      });
+    }
+
+    const year = req.query.year ? parseInt(String(req.query.year), 10) : null;
+    const month = req.query.month ? parseInt(String(req.query.month), 10) : null;
+
+    if (year === null || isNaN(year)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Year query parameter is required and must be a number",
+      });
+    }
+
+    if (month === null || isNaN(month)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Month query parameter is required and must be a number",
+      });
+    }
+
+    if (month < 1 || month > 12) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Month must be between 1 and 12",
+      });
+    }
+
+    const calendarData = await getUserStreakCalendar(userId, year, month);
+
+    logger.info("User streak calendar fetched for user: %s, year: %d, month: %d", userId, year, month);
+
+    return res.json(calendarData);
+  } catch (error) {
+    logger.error("Unexpected error in GET /user-streak/calendar: %o", error instanceof Error ? error : new Error(String(error)));
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to fetch user streak calendar",
     });
   }
 });

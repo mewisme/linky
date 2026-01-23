@@ -32,6 +32,7 @@ import {
   PopoverTrigger,
 } from "@repo/ui/components/ui/popover";
 import { cn } from "@repo/ui/lib/utils";
+import { ButtonGroup } from "@repo/ui/components/ui/button-group";
 
 export type CalendarState = {
   month: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
@@ -415,12 +416,14 @@ export const CalendarDatePagination = ({
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <Button onClick={handlePreviousMonth} size="icon" variant="ghost">
-        <ChevronLeftIcon size={16} />
-      </Button>
-      <Button onClick={handleNextMonth} size="icon" variant="ghost">
-        <ChevronRightIcon size={16} />
-      </Button>
+      <ButtonGroup orientation="horizontal">
+        <Button onClick={handlePreviousMonth} size="icon" variant="outline">
+          <ChevronLeftIcon size={16} />
+        </Button>
+        <Button onClick={handleNextMonth} size="icon" variant="outline">
+          <ChevronRightIcon size={16} />
+        </Button>
+      </ButtonGroup>
     </div>
   );
 };
@@ -446,7 +449,7 @@ export const CalendarHeader = ({ className }: CalendarHeaderProps) => {
   }, [locale, startDay]);
 
   return (
-    <div className={cn("grid flex-grow grid-cols-7", className)}>
+    <div className={cn("grid grow grid-cols-7", className)}>
       {daysData.map((day) => (
         <div className="p-3 text-right text-muted-foreground text-xs" key={day}>
           {day}

@@ -49,7 +49,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -61,9 +61,10 @@ export async function PUT(
       );
     }
 
+    const { id } = await params;
     const body = await request.json() as AdminAPI.LevelFeatureUnlocks.Update.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${params.id}`, {
+    const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${id}`, {
       method: "PUT",
       headers: {
         Authorization: authHeader,
@@ -90,7 +91,7 @@ export async function PUT(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -102,9 +103,10 @@ export async function PATCH(
       );
     }
 
+    const { id } = await params;
     const body = await request.json() as AdminAPI.LevelFeatureUnlocks.Patch.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${params.id}`, {
+    const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${id}`, {
       method: "PATCH",
       headers: {
         Authorization: authHeader,
@@ -131,7 +133,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -143,8 +145,9 @@ export async function DELETE(
       );
     }
 
+    const { id } = await params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${params.id}`, {
+    const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

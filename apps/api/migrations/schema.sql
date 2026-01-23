@@ -74,6 +74,26 @@ COMMENT ON FUNCTION "public"."fn_init_user_settings"() IS 'Initialize user_setti
 
 
 
+CREATE OR REPLACE FUNCTION "public"."increment_user_exp"("p_user_id" "uuid", "p_seconds" bigint) RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  INSERT INTO user_levels (user_id, total_exp_seconds)
+  VALUES (p_user_id, p_seconds)
+  ON CONFLICT (user_id)
+  DO UPDATE SET
+    total_exp_seconds = user_levels.total_exp_seconds + p_seconds;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."increment_user_exp"("p_user_id" "uuid", "p_seconds" bigint) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."increment_user_exp"("p_user_id" "uuid", "p_seconds" bigint) IS 'Increments user experience points by adding seconds. Creates row if missing.';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."increment_visitor"("ip" "text") RETURNS "void"
     LANGUAGE "sql"
     AS $$
@@ -102,6 +122,23 @@ $$;
 
 
 ALTER FUNCTION "public"."page_views_timeseries"("days" integer) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trigger_update_streak_summary"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  PERFORM update_user_streak_summary(NEW.user_id, NEW.date, NEW.is_valid);
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_update_streak_summary"() OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."trigger_update_streak_summary"() IS 'Trigger function to automatically update streak summary when streak day is inserted or updated';
+
 
 
 CREATE OR REPLACE FUNCTION "public"."update_call_history_updated_at"() RETURNS "trigger"
@@ -143,6 +180,32 @@ $$;
 ALTER FUNCTION "public"."update_interest_tags_updated_at"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_level_feature_unlocks_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_level_feature_unlocks_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_level_rewards_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_level_rewards_updated_at"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_reports_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -154,6 +217,19 @@ $$;
 
 
 ALTER FUNCTION "public"."update_reports_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_streak_exp_bonuses_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_streak_exp_bonuses_updated_at"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_user_details_updated_at"() RETURNS "trigger"
@@ -169,6 +245,32 @@ $$;
 ALTER FUNCTION "public"."update_user_details_updated_at"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."update_user_favorite_limits_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_user_favorite_limits_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_user_levels_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_user_levels_updated_at"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."update_user_settings_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -180,6 +282,77 @@ $$;
 
 
 ALTER FUNCTION "public"."update_user_settings_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_user_streak_summary"("p_user_id" "uuid", "p_date" "date", "p_is_valid" boolean) RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+  v_existing_summary RECORD;
+  v_new_current_streak INTEGER;
+  v_new_longest_streak INTEGER;
+BEGIN
+  SELECT current_streak, longest_streak, last_valid_date
+  INTO v_existing_summary
+  FROM user_streaks
+  WHERE user_id = p_user_id;
+  
+  IF NOT FOUND THEN
+    IF p_is_valid THEN
+      INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_valid_date)
+      VALUES (p_user_id, 1, 1, p_date);
+    ELSE
+      INSERT INTO user_streaks (user_id, current_streak, longest_streak, last_valid_date)
+      VALUES (p_user_id, 0, 0, NULL);
+    END IF;
+    RETURN;
+  END IF;
+  
+  IF NOT p_is_valid THEN
+    UPDATE user_streaks
+    SET current_streak = 0,
+        last_valid_date = NULL
+    WHERE user_id = p_user_id;
+    RETURN;
+  END IF;
+  
+  IF v_existing_summary.last_valid_date IS NULL THEN
+    v_new_current_streak := 1;
+  ELSIF v_existing_summary.last_valid_date = p_date - INTERVAL '1 day' THEN
+    v_new_current_streak := v_existing_summary.current_streak + 1;
+  ELSE
+    v_new_current_streak := 1;
+  END IF;
+  
+  v_new_longest_streak := GREATEST(v_existing_summary.longest_streak, v_new_current_streak);
+  
+  UPDATE user_streaks
+  SET current_streak = v_new_current_streak,
+      longest_streak = v_new_longest_streak,
+      last_valid_date = p_date
+  WHERE user_id = p_user_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_user_streak_summary"("p_user_id" "uuid", "p_date" "date", "p_is_valid" boolean) OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."update_user_streak_summary"("p_user_id" "uuid", "p_date" "date", "p_is_valid" boolean) IS 'Updates user streak summary. Handles increment/reset logic based on consecutive valid days.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."update_user_streaks_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_user_streaks_updated_at"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_users_updated_at"() RETURNS "trigger"
@@ -197,6 +370,55 @@ ALTER FUNCTION "public"."update_users_updated_at"() OWNER TO "postgres";
 
 COMMENT ON FUNCTION "public"."update_users_updated_at"() IS 'Automatically updates the updated_at timestamp when a user record is updated';
 
+
+
+CREATE OR REPLACE FUNCTION "public"."upsert_user_streak_day"("p_user_id" "uuid", "p_date" "date", "p_total_call_seconds" integer) RETURNS TABLE("first_time_valid" boolean, "current_streak" integer)
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+  v_old_valid BOOLEAN := false;
+  v_old_total INTEGER := 0;
+  v_new_total INTEGER;
+  v_is_valid BOOLEAN;
+  v_found BOOLEAN := false;
+  v_streak INTEGER := 0;
+BEGIN
+  SELECT is_valid, total_call_seconds INTO v_old_valid, v_old_total
+  FROM user_streak_days
+  WHERE user_id = p_user_id AND date = p_date;
+
+  v_found := FOUND;
+  IF NOT FOUND THEN
+    v_old_valid := false;
+    v_old_total := 0;
+  END IF;
+  v_new_total := v_old_total + p_total_call_seconds;
+  v_is_valid := v_new_total >= 300;
+
+  INSERT INTO user_streak_days (user_id, date, total_call_seconds, is_valid)
+  VALUES (p_user_id, p_date, p_total_call_seconds, v_is_valid)
+  ON CONFLICT (user_id, date)
+  DO UPDATE SET
+    total_call_seconds = user_streak_days.total_call_seconds + p_total_call_seconds,
+    is_valid = (user_streak_days.total_call_seconds + p_total_call_seconds) >= 300;
+
+  first_time_valid := (NOT v_found OR NOT v_old_valid) AND v_is_valid;
+
+  IF first_time_valid OR v_is_valid THEN
+    SELECT s.current_streak INTO v_streak
+    FROM user_streaks s
+    WHERE s.user_id = p_user_id;
+    current_streak := COALESCE(v_streak, 0);
+  ELSE
+    current_streak := 0;
+  END IF;
+
+  RETURN NEXT;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."upsert_user_streak_day"("p_user_id" "uuid", "p_date" "date", "p_total_call_seconds" integer) OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."visitors_timeseries"("days" integer) RETURNS TABLE("day" "date", "visitors" bigint)
@@ -390,6 +612,82 @@ COMMENT ON COLUMN "public"."interest_tags"."is_active" IS 'Whether this tag is c
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."level_feature_unlocks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "level_required" integer NOT NULL,
+    "feature_key" character varying(100) NOT NULL,
+    "feature_payload" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_level_required" CHECK (("level_required" > 0))
+);
+
+
+ALTER TABLE "public"."level_feature_unlocks" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."level_feature_unlocks" IS 'Admin-defined feature unlock rules based on level thresholds';
+
+
+
+COMMENT ON COLUMN "public"."level_feature_unlocks"."level_required" IS 'Level at which this feature is unlocked';
+
+
+
+COMMENT ON COLUMN "public"."level_feature_unlocks"."feature_key" IS 'String identifier for the feature (e.g., reaction_types, favorite_limit, avatar_frames)';
+
+
+
+COMMENT ON COLUMN "public"."level_feature_unlocks"."feature_payload" IS 'Extensible JSON payload containing feature-specific configuration';
+
+
+
+COMMENT ON COLUMN "public"."level_feature_unlocks"."created_at" IS 'Timestamp when the record was created';
+
+
+
+COMMENT ON COLUMN "public"."level_feature_unlocks"."updated_at" IS 'Timestamp when the record was last updated';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."level_rewards" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "level_required" integer NOT NULL,
+    "reward_type" character varying(100) NOT NULL,
+    "reward_payload" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_level_required" CHECK (("level_required" > 0))
+);
+
+
+ALTER TABLE "public"."level_rewards" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."level_rewards" IS 'Admin-defined rewards granted at specific level milestones';
+
+
+
+COMMENT ON COLUMN "public"."level_rewards"."level_required" IS 'Level at which this reward is granted';
+
+
+
+COMMENT ON COLUMN "public"."level_rewards"."reward_type" IS 'Type identifier for the reward (e.g., avatar_frame, badge, currency)';
+
+
+
+COMMENT ON COLUMN "public"."level_rewards"."reward_payload" IS 'Extensible JSON payload containing reward-specific data';
+
+
+
+COMMENT ON COLUMN "public"."level_rewards"."created_at" IS 'Timestamp when the record was created';
+
+
+
+COMMENT ON COLUMN "public"."level_rewards"."updated_at" IS 'Timestamp when the record was last updated';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."page_views" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "ip" "text" NOT NULL,
@@ -468,6 +766,79 @@ COMMENT ON VIEW "public"."public_user_info" IS 'Public user information view wit
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."report_contexts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "report_id" "uuid" NOT NULL,
+    "call_id" "uuid",
+    "room_id" "text",
+    "call_started_at" timestamp with time zone,
+    "call_ended_at" timestamp with time zone,
+    "duration_seconds" integer,
+    "reporter_role" "text",
+    "reported_role" "text",
+    "ended_by" "uuid",
+    "reported_at_offset_seconds" integer,
+    "chat_snapshot" "jsonb",
+    "behavior_flags" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."report_contexts" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."report_contexts" IS 'Stores immutable context snapshots for user reports';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."report_id" IS 'Foreign key to reports table';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."call_id" IS 'Foreign key to call_history table if report is tied to a call';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."room_id" IS 'Room ID from RoomService if report was created during active call';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."call_started_at" IS 'Timestamp when the call started';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."call_ended_at" IS 'Timestamp when the call ended';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."duration_seconds" IS 'Call duration in seconds';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."reporter_role" IS 'Role of reporter: caller or callee';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."reported_role" IS 'Role of reported user: caller or callee';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."ended_by" IS 'User ID who ended or skipped the call';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."reported_at_offset_seconds" IS 'Seconds into call when report was created';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."chat_snapshot" IS 'JSONB snapshot of chat messages during call';
+
+
+
+COMMENT ON COLUMN "public"."report_contexts"."behavior_flags" IS 'JSONB object containing call metadata and reporter-provided flags';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."reports" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "reporter_user_id" "uuid" NOT NULL,
@@ -519,6 +890,46 @@ COMMENT ON COLUMN "public"."reports"."reviewed_at" IS 'Timestamp when the report
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."streak_exp_bonuses" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "min_streak" integer NOT NULL,
+    "max_streak" integer NOT NULL,
+    "bonus_multiplier" numeric(5,2) DEFAULT 1.00 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_bonus_multiplier" CHECK (("bonus_multiplier" >= 1.00)),
+    CONSTRAINT "check_max_streak" CHECK (("max_streak" >= "min_streak")),
+    CONSTRAINT "check_min_streak" CHECK (("min_streak" >= 0))
+);
+
+
+ALTER TABLE "public"."streak_exp_bonuses" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."streak_exp_bonuses" IS 'Admin-defined EXP bonus multipliers based on streak length ranges';
+
+
+
+COMMENT ON COLUMN "public"."streak_exp_bonuses"."min_streak" IS 'Minimum streak length (inclusive) for this bonus';
+
+
+
+COMMENT ON COLUMN "public"."streak_exp_bonuses"."max_streak" IS 'Maximum streak length (inclusive) for this bonus';
+
+
+
+COMMENT ON COLUMN "public"."streak_exp_bonuses"."bonus_multiplier" IS 'Multiplier applied to EXP when streak is within this range (e.g., 1.50 for 50% bonus)';
+
+
+
+COMMENT ON COLUMN "public"."streak_exp_bonuses"."created_at" IS 'Timestamp when the record was created';
+
+
+
+COMMENT ON COLUMN "public"."streak_exp_bonuses"."updated_at" IS 'Timestamp when the record was last updated';
+
+
+
 CREATE OR REPLACE VIEW "public"."user_details_expanded" AS
  SELECT "id",
     "user_id",
@@ -538,6 +949,172 @@ ALTER VIEW "public"."user_details_expanded" OWNER TO "postgres";
 
 
 COMMENT ON VIEW "public"."user_details_expanded" IS 'User details with expanded interest tags as JSON array';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_favorite_limits" (
+    "user_id" "uuid" NOT NULL,
+    "date" "date" NOT NULL,
+    "used_count" integer DEFAULT 0 NOT NULL,
+    "daily_limit" integer DEFAULT 10 NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE "public"."user_favorite_limits" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_favorite_limits" IS 'Tracks daily favorite usage limits per user';
+
+
+
+COMMENT ON COLUMN "public"."user_favorite_limits"."user_id" IS 'The user whose limit is being tracked';
+
+
+
+COMMENT ON COLUMN "public"."user_favorite_limits"."date" IS 'The date for which the limit applies';
+
+
+
+COMMENT ON COLUMN "public"."user_favorite_limits"."used_count" IS 'Number of favorites added on this date';
+
+
+
+COMMENT ON COLUMN "public"."user_favorite_limits"."daily_limit" IS 'Maximum favorites allowed per day';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_favorites" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "favorite_user_id" "uuid" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "user_favorites_not_self" CHECK (("user_id" <> "favorite_user_id"))
+);
+
+
+ALTER TABLE "public"."user_favorites" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_favorites" IS 'Stores unilateral favorite relationships between users';
+
+
+
+COMMENT ON COLUMN "public"."user_favorites"."user_id" IS 'The user who is marking someone as favorite';
+
+
+
+COMMENT ON COLUMN "public"."user_favorites"."favorite_user_id" IS 'The user being marked as favorite';
+
+
+
+CREATE OR REPLACE VIEW "public"."user_favorites_with_stats" AS
+ SELECT "uf"."id",
+    "uf"."user_id",
+    "uf"."favorite_user_id",
+    "uf"."created_at",
+    "u"."clerk_user_id",
+    "u"."email",
+    "u"."first_name",
+    "u"."last_name",
+    "u"."avatar_url",
+    "u"."country",
+    COALESCE("match_stats"."match_count", (0)::bigint) AS "match_count",
+    COALESCE("match_stats"."total_duration", (0)::bigint) AS "total_duration",
+        CASE
+            WHEN (COALESCE("match_stats"."match_count", (0)::bigint) > 0) THEN (COALESCE("match_stats"."total_duration", (0)::bigint) / "match_stats"."match_count")
+            ELSE (0)::bigint
+        END AS "average_duration"
+   FROM (("public"."user_favorites" "uf"
+     JOIN "public"."users" "u" ON (("uf"."favorite_user_id" = "u"."id")))
+     LEFT JOIN ( SELECT
+                CASE
+                    WHEN ("ch"."caller_id" < "ch"."callee_id") THEN "ch"."caller_id"
+                    ELSE "ch"."callee_id"
+                END AS "user_a",
+                CASE
+                    WHEN ("ch"."caller_id" < "ch"."callee_id") THEN "ch"."callee_id"
+                    ELSE "ch"."caller_id"
+                END AS "user_b",
+            "count"(*) AS "match_count",
+            "sum"(COALESCE("ch"."duration_seconds", 0)) AS "total_duration"
+           FROM "public"."call_history" "ch"
+          WHERE ("ch"."duration_seconds" IS NOT NULL)
+          GROUP BY
+                CASE
+                    WHEN ("ch"."caller_id" < "ch"."callee_id") THEN "ch"."caller_id"
+                    ELSE "ch"."callee_id"
+                END,
+                CASE
+                    WHEN ("ch"."caller_id" < "ch"."callee_id") THEN "ch"."callee_id"
+                    ELSE "ch"."caller_id"
+                END) "match_stats" ON (((("uf"."user_id" = "match_stats"."user_a") AND ("uf"."favorite_user_id" = "match_stats"."user_b")) OR (("uf"."user_id" = "match_stats"."user_b") AND ("uf"."favorite_user_id" = "match_stats"."user_a")))));
+
+
+ALTER VIEW "public"."user_favorites_with_stats" OWNER TO "postgres";
+
+
+COMMENT ON VIEW "public"."user_favorites_with_stats" IS 'User favorites with call statistics including match count, total duration, and average duration';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_level_rewards" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "level_reward_id" "uuid" NOT NULL,
+    "granted_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."user_level_rewards" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_level_rewards" IS 'Tracks which level rewards have been granted to each user';
+
+
+
+COMMENT ON COLUMN "public"."user_level_rewards"."user_id" IS 'Foreign key reference to users table';
+
+
+
+COMMENT ON COLUMN "public"."user_level_rewards"."level_reward_id" IS 'Foreign key reference to level_rewards table';
+
+
+
+COMMENT ON COLUMN "public"."user_level_rewards"."granted_at" IS 'Timestamp when the reward was granted to the user';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_levels" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "total_exp_seconds" bigint DEFAULT 0 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_total_exp_seconds" CHECK (("total_exp_seconds" >= 0))
+);
+
+
+ALTER TABLE "public"."user_levels" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_levels" IS 'Stores user experience points accumulated from call duration';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."user_id" IS 'Foreign key reference to users table (one-to-one relationship)';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."total_exp_seconds" IS 'Total experience points in seconds accumulated from completed calls';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."created_at" IS 'Timestamp when the record was created';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."updated_at" IS 'Timestamp when the record was last updated';
 
 
 
@@ -598,6 +1175,83 @@ ALTER VIEW "public"."user_settings_v" OWNER TO "postgres";
 
 
 COMMENT ON VIEW "public"."user_settings_v" IS 'User settings with user information';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_streak_days" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "date" "date" NOT NULL,
+    "total_call_seconds" integer DEFAULT 0 NOT NULL,
+    "is_valid" boolean DEFAULT false NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_total_call_seconds" CHECK (("total_call_seconds" >= 0))
+);
+
+
+ALTER TABLE "public"."user_streak_days" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_streak_days" IS 'Stores daily call duration records for streak calculation';
+
+
+
+COMMENT ON COLUMN "public"."user_streak_days"."user_id" IS 'Foreign key reference to users table';
+
+
+
+COMMENT ON COLUMN "public"."user_streak_days"."date" IS 'UTC date for the streak day';
+
+
+
+COMMENT ON COLUMN "public"."user_streak_days"."total_call_seconds" IS 'Total call duration in seconds for this UTC day';
+
+
+
+COMMENT ON COLUMN "public"."user_streak_days"."is_valid" IS 'Whether this day counts as a valid streak day (>= 300 seconds)';
+
+
+
+COMMENT ON COLUMN "public"."user_streak_days"."created_at" IS 'Timestamp when the record was created';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_streaks" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "current_streak" integer DEFAULT 0 NOT NULL,
+    "longest_streak" integer DEFAULT 0 NOT NULL,
+    "last_valid_date" "date",
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_current_streak" CHECK (("current_streak" >= 0)),
+    CONSTRAINT "check_longest_streak" CHECK (("longest_streak" >= 0))
+);
+
+
+ALTER TABLE "public"."user_streaks" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_streaks" IS 'Stores user streak summary with current and longest streak';
+
+
+
+COMMENT ON COLUMN "public"."user_streaks"."user_id" IS 'Foreign key reference to users table (one-to-one relationship)';
+
+
+
+COMMENT ON COLUMN "public"."user_streaks"."current_streak" IS 'Current consecutive valid streak days';
+
+
+
+COMMENT ON COLUMN "public"."user_streaks"."longest_streak" IS 'Longest streak achieved by the user';
+
+
+
+COMMENT ON COLUMN "public"."user_streaks"."last_valid_date" IS 'Last UTC date that was a valid streak day';
+
+
+
+COMMENT ON COLUMN "public"."user_streaks"."updated_at" IS 'Timestamp when the record was last updated';
 
 
 
@@ -671,13 +1325,58 @@ ALTER TABLE ONLY "public"."interest_tags"
 
 
 
+ALTER TABLE ONLY "public"."level_feature_unlocks"
+    ADD CONSTRAINT "level_feature_unlocks_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."level_rewards"
+    ADD CONSTRAINT "level_rewards_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."page_views"
     ADD CONSTRAINT "page_views_pkey" PRIMARY KEY ("id");
 
 
 
+ALTER TABLE ONLY "public"."report_contexts"
+    ADD CONSTRAINT "report_contexts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."report_contexts"
+    ADD CONSTRAINT "report_contexts_report_id_key" UNIQUE ("report_id");
+
+
+
 ALTER TABLE ONLY "public"."reports"
     ADD CONSTRAINT "reports_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."streak_exp_bonuses"
+    ADD CONSTRAINT "streak_exp_bonuses_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."level_feature_unlocks"
+    ADD CONSTRAINT "unique_level_feature" UNIQUE ("level_required", "feature_key");
+
+
+
+ALTER TABLE ONLY "public"."level_rewards"
+    ADD CONSTRAINT "unique_level_reward" UNIQUE ("level_required", "reward_type");
+
+
+
+ALTER TABLE ONLY "public"."user_level_rewards"
+    ADD CONSTRAINT "unique_user_level_reward" UNIQUE ("user_id", "level_reward_id");
+
+
+
+ALTER TABLE ONLY "public"."user_streak_days"
+    ADD CONSTRAINT "unique_user_streak_day" UNIQUE ("user_id", "date");
 
 
 
@@ -691,6 +1390,36 @@ ALTER TABLE ONLY "public"."user_details"
 
 
 
+ALTER TABLE ONLY "public"."user_favorite_limits"
+    ADD CONSTRAINT "user_favorite_limits_pkey" PRIMARY KEY ("user_id", "date");
+
+
+
+ALTER TABLE ONLY "public"."user_favorites"
+    ADD CONSTRAINT "user_favorites_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_favorites"
+    ADD CONSTRAINT "user_favorites_unique" UNIQUE ("user_id", "favorite_user_id");
+
+
+
+ALTER TABLE ONLY "public"."user_level_rewards"
+    ADD CONSTRAINT "user_level_rewards_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_levels"
+    ADD CONSTRAINT "user_levels_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_levels"
+    ADD CONSTRAINT "user_levels_user_id_key" UNIQUE ("user_id");
+
+
+
 ALTER TABLE ONLY "public"."user_settings"
     ADD CONSTRAINT "user_settings_pkey" PRIMARY KEY ("id");
 
@@ -698,6 +1427,21 @@ ALTER TABLE ONLY "public"."user_settings"
 
 ALTER TABLE ONLY "public"."user_settings"
     ADD CONSTRAINT "user_settings_user_id_key" UNIQUE ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."user_streak_days"
+    ADD CONSTRAINT "user_streak_days_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_streaks"
+    ADD CONSTRAINT "user_streaks_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_streaks"
+    ADD CONSTRAINT "user_streaks_user_id_key" UNIQUE ("user_id");
 
 
 
@@ -765,6 +1509,22 @@ CREATE INDEX "idx_interest_tags_name" ON "public"."interest_tags" USING "btree" 
 
 
 
+CREATE INDEX "idx_level_feature_unlocks_feature_key" ON "public"."level_feature_unlocks" USING "btree" ("feature_key");
+
+
+
+CREATE INDEX "idx_level_feature_unlocks_level_required" ON "public"."level_feature_unlocks" USING "btree" ("level_required");
+
+
+
+CREATE INDEX "idx_level_rewards_level_required" ON "public"."level_rewards" USING "btree" ("level_required");
+
+
+
+CREATE INDEX "idx_level_rewards_reward_type" ON "public"."level_rewards" USING "btree" ("reward_type");
+
+
+
 CREATE INDEX "idx_page_views_created_at" ON "public"."page_views" USING "btree" ("created_at");
 
 
@@ -774,6 +1534,18 @@ CREATE INDEX "idx_page_views_ip" ON "public"."page_views" USING "btree" ("ip");
 
 
 CREATE INDEX "idx_page_views_path" ON "public"."page_views" USING "btree" ("path");
+
+
+
+CREATE INDEX "idx_report_contexts_call_id" ON "public"."report_contexts" USING "btree" ("call_id");
+
+
+
+CREATE INDEX "idx_report_contexts_created_at" ON "public"."report_contexts" USING "btree" ("created_at" DESC);
+
+
+
+CREATE INDEX "idx_report_contexts_report_id" ON "public"."report_contexts" USING "btree" ("report_id");
 
 
 
@@ -797,6 +1569,14 @@ CREATE INDEX "idx_reports_status" ON "public"."reports" USING "btree" ("status")
 
 
 
+CREATE INDEX "idx_streak_exp_bonuses_max_streak" ON "public"."streak_exp_bonuses" USING "btree" ("max_streak");
+
+
+
+CREATE INDEX "idx_streak_exp_bonuses_min_streak" ON "public"."streak_exp_bonuses" USING "btree" ("min_streak");
+
+
+
 CREATE INDEX "idx_user_details_gender" ON "public"."user_details" USING "btree" ("gender");
 
 
@@ -813,7 +1593,75 @@ CREATE INDEX "idx_user_details_user_id" ON "public"."user_details" USING "btree"
 
 
 
+CREATE INDEX "idx_user_favorite_limits_date" ON "public"."user_favorite_limits" USING "btree" ("date");
+
+
+
+CREATE INDEX "idx_user_favorite_limits_user_id" ON "public"."user_favorite_limits" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_favorites_created_at" ON "public"."user_favorites" USING "btree" ("created_at");
+
+
+
+CREATE INDEX "idx_user_favorites_favorite_user_id" ON "public"."user_favorites" USING "btree" ("favorite_user_id");
+
+
+
+CREATE INDEX "idx_user_favorites_user_id" ON "public"."user_favorites" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_level_rewards_granted_at" ON "public"."user_level_rewards" USING "btree" ("granted_at" DESC);
+
+
+
+CREATE INDEX "idx_user_level_rewards_level_reward_id" ON "public"."user_level_rewards" USING "btree" ("level_reward_id");
+
+
+
+CREATE INDEX "idx_user_level_rewards_user_id" ON "public"."user_level_rewards" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_levels_total_exp_seconds" ON "public"."user_levels" USING "btree" ("total_exp_seconds" DESC);
+
+
+
+CREATE INDEX "idx_user_levels_user_id" ON "public"."user_levels" USING "btree" ("user_id");
+
+
+
 CREATE INDEX "idx_user_settings_user_id" ON "public"."user_settings" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_streak_days_date" ON "public"."user_streak_days" USING "btree" ("date" DESC);
+
+
+
+CREATE INDEX "idx_user_streak_days_is_valid" ON "public"."user_streak_days" USING "btree" ("user_id", "is_valid", "date" DESC);
+
+
+
+CREATE INDEX "idx_user_streak_days_user_date" ON "public"."user_streak_days" USING "btree" ("user_id", "date" DESC);
+
+
+
+CREATE INDEX "idx_user_streak_days_user_id" ON "public"."user_streak_days" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_streaks_current_streak" ON "public"."user_streaks" USING "btree" ("current_streak" DESC);
+
+
+
+CREATE INDEX "idx_user_streaks_longest_streak" ON "public"."user_streaks" USING "btree" ("longest_streak" DESC);
+
+
+
+CREATE INDEX "idx_user_streaks_user_id" ON "public"."user_streaks" USING "btree" ("user_id");
 
 
 
@@ -845,7 +1693,19 @@ CREATE OR REPLACE TRIGGER "trigger_update_interest_tags_updated_at" BEFORE UPDAT
 
 
 
+CREATE OR REPLACE TRIGGER "trigger_update_level_feature_unlocks_updated_at" BEFORE UPDATE ON "public"."level_feature_unlocks" FOR EACH ROW EXECUTE FUNCTION "public"."update_level_feature_unlocks_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_update_level_rewards_updated_at" BEFORE UPDATE ON "public"."level_rewards" FOR EACH ROW EXECUTE FUNCTION "public"."update_level_rewards_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "trigger_update_reports_updated_at" BEFORE UPDATE ON "public"."reports" FOR EACH ROW EXECUTE FUNCTION "public"."update_reports_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_update_streak_exp_bonuses_updated_at" BEFORE UPDATE ON "public"."streak_exp_bonuses" FOR EACH ROW EXECUTE FUNCTION "public"."update_streak_exp_bonuses_updated_at"();
 
 
 
@@ -853,11 +1713,27 @@ CREATE OR REPLACE TRIGGER "trigger_update_user_details_updated_at" BEFORE UPDATE
 
 
 
+CREATE OR REPLACE TRIGGER "trigger_update_user_levels_updated_at" BEFORE UPDATE ON "public"."user_levels" FOR EACH ROW EXECUTE FUNCTION "public"."update_user_levels_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "trigger_update_user_settings_updated_at" BEFORE UPDATE ON "public"."user_settings" FOR EACH ROW EXECUTE FUNCTION "public"."update_user_settings_updated_at"();
 
 
 
+CREATE OR REPLACE TRIGGER "trigger_update_user_streaks_updated_at" BEFORE UPDATE ON "public"."user_streaks" FOR EACH ROW EXECUTE FUNCTION "public"."update_user_streaks_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "trigger_update_users_updated_at" BEFORE UPDATE ON "public"."users" FOR EACH ROW EXECUTE FUNCTION "public"."update_users_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_user_streak_days_update_summary" AFTER INSERT OR UPDATE OF "is_valid", "total_call_seconds" ON "public"."user_streak_days" FOR EACH ROW WHEN (("new"."is_valid" = true)) EXECUTE FUNCTION "public"."trigger_update_streak_summary"();
+
+
+
+CREATE OR REPLACE TRIGGER "user_favorite_limits_updated_at_trigger" BEFORE UPDATE ON "public"."user_favorite_limits" FOR EACH ROW EXECUTE FUNCTION "public"."update_user_favorite_limits_updated_at"();
 
 
 
@@ -873,6 +1749,21 @@ ALTER TABLE ONLY "public"."call_history"
 
 ALTER TABLE ONLY "public"."changelogs"
     ADD CONSTRAINT "fk_changelogs_created_by" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE RESTRICT;
+
+
+
+ALTER TABLE ONLY "public"."report_contexts"
+    ADD CONSTRAINT "fk_report_contexts_call" FOREIGN KEY ("call_id") REFERENCES "public"."call_history"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."report_contexts"
+    ADD CONSTRAINT "fk_report_contexts_ended_by" FOREIGN KEY ("ended_by") REFERENCES "public"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."report_contexts"
+    ADD CONSTRAINT "fk_report_contexts_report" FOREIGN KEY ("report_id") REFERENCES "public"."reports"("id") ON DELETE CASCADE;
 
 
 
@@ -896,8 +1787,48 @@ ALTER TABLE ONLY "public"."user_details"
 
 
 
+ALTER TABLE ONLY "public"."user_level_rewards"
+    ADD CONSTRAINT "fk_user_level_rewards_reward" FOREIGN KEY ("level_reward_id") REFERENCES "public"."level_rewards"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_level_rewards"
+    ADD CONSTRAINT "fk_user_level_rewards_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_levels"
+    ADD CONSTRAINT "fk_user_levels_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."user_settings"
     ADD CONSTRAINT "fk_user_settings_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_streak_days"
+    ADD CONSTRAINT "fk_user_streak_days_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_streaks"
+    ADD CONSTRAINT "fk_user_streaks_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_favorite_limits"
+    ADD CONSTRAINT "user_favorite_limits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_favorites"
+    ADD CONSTRAINT "user_favorites_favorite_user_id_fkey" FOREIGN KEY ("favorite_user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_favorites"
+    ADD CONSTRAINT "user_favorites_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -920,6 +1851,12 @@ GRANT ALL ON FUNCTION "public"."fn_init_user_settings"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."increment_user_exp"("p_user_id" "uuid", "p_seconds" bigint) TO "anon";
+GRANT ALL ON FUNCTION "public"."increment_user_exp"("p_user_id" "uuid", "p_seconds" bigint) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."increment_user_exp"("p_user_id" "uuid", "p_seconds" bigint) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."increment_visitor"("ip" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."increment_visitor"("ip" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."increment_visitor"("ip" "text") TO "service_role";
@@ -929,6 +1866,12 @@ GRANT ALL ON FUNCTION "public"."increment_visitor"("ip" "text") TO "service_role
 GRANT ALL ON FUNCTION "public"."page_views_timeseries"("days" integer) TO "anon";
 GRANT ALL ON FUNCTION "public"."page_views_timeseries"("days" integer) TO "authenticated";
 GRANT ALL ON FUNCTION "public"."page_views_timeseries"("days" integer) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."trigger_update_streak_summary"() TO "anon";
+GRANT ALL ON FUNCTION "public"."trigger_update_streak_summary"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."trigger_update_streak_summary"() TO "service_role";
 
 
 
@@ -950,9 +1893,27 @@ GRANT ALL ON FUNCTION "public"."update_interest_tags_updated_at"() TO "service_r
 
 
 
+GRANT ALL ON FUNCTION "public"."update_level_feature_unlocks_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_level_feature_unlocks_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_level_feature_unlocks_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_level_rewards_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_level_rewards_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_level_rewards_updated_at"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_reports_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_reports_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_reports_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_streak_exp_bonuses_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_streak_exp_bonuses_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_streak_exp_bonuses_updated_at"() TO "service_role";
 
 
 
@@ -962,15 +1923,45 @@ GRANT ALL ON FUNCTION "public"."update_user_details_updated_at"() TO "service_ro
 
 
 
+GRANT ALL ON FUNCTION "public"."update_user_favorite_limits_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_user_favorite_limits_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_user_favorite_limits_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_user_levels_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_user_levels_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_user_levels_updated_at"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_user_settings_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_user_settings_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_user_settings_updated_at"() TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."update_user_streak_summary"("p_user_id" "uuid", "p_date" "date", "p_is_valid" boolean) TO "anon";
+GRANT ALL ON FUNCTION "public"."update_user_streak_summary"("p_user_id" "uuid", "p_date" "date", "p_is_valid" boolean) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_user_streak_summary"("p_user_id" "uuid", "p_date" "date", "p_is_valid" boolean) TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_user_streaks_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_user_streaks_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_user_streaks_updated_at"() TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."update_users_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_users_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_users_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."upsert_user_streak_day"("p_user_id" "uuid", "p_date" "date", "p_total_call_seconds" integer) TO "anon";
+GRANT ALL ON FUNCTION "public"."upsert_user_streak_day"("p_user_id" "uuid", "p_date" "date", "p_total_call_seconds" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."upsert_user_streak_day"("p_user_id" "uuid", "p_date" "date", "p_total_call_seconds" integer) TO "service_role";
 
 
 
@@ -1010,6 +2001,18 @@ GRANT ALL ON TABLE "public"."interest_tags" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."level_feature_unlocks" TO "anon";
+GRANT ALL ON TABLE "public"."level_feature_unlocks" TO "authenticated";
+GRANT ALL ON TABLE "public"."level_feature_unlocks" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."level_rewards" TO "anon";
+GRANT ALL ON TABLE "public"."level_rewards" TO "authenticated";
+GRANT ALL ON TABLE "public"."level_rewards" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."page_views" TO "anon";
 GRANT ALL ON TABLE "public"."page_views" TO "authenticated";
 GRANT ALL ON TABLE "public"."page_views" TO "service_role";
@@ -1028,15 +2031,57 @@ GRANT ALL ON TABLE "public"."public_user_info" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."report_contexts" TO "anon";
+GRANT ALL ON TABLE "public"."report_contexts" TO "authenticated";
+GRANT ALL ON TABLE "public"."report_contexts" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."reports" TO "anon";
 GRANT ALL ON TABLE "public"."reports" TO "authenticated";
 GRANT ALL ON TABLE "public"."reports" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."streak_exp_bonuses" TO "anon";
+GRANT ALL ON TABLE "public"."streak_exp_bonuses" TO "authenticated";
+GRANT ALL ON TABLE "public"."streak_exp_bonuses" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."user_details_expanded" TO "anon";
 GRANT ALL ON TABLE "public"."user_details_expanded" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_details_expanded" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_favorite_limits" TO "anon";
+GRANT ALL ON TABLE "public"."user_favorite_limits" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_favorite_limits" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_favorites" TO "anon";
+GRANT ALL ON TABLE "public"."user_favorites" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_favorites" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_favorites_with_stats" TO "anon";
+GRANT ALL ON TABLE "public"."user_favorites_with_stats" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_favorites_with_stats" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_level_rewards" TO "anon";
+GRANT ALL ON TABLE "public"."user_level_rewards" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_level_rewards" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_levels" TO "anon";
+GRANT ALL ON TABLE "public"."user_levels" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_levels" TO "service_role";
 
 
 
@@ -1049,6 +2094,18 @@ GRANT ALL ON TABLE "public"."user_settings" TO "service_role";
 GRANT ALL ON TABLE "public"."user_settings_v" TO "anon";
 GRANT ALL ON TABLE "public"."user_settings_v" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_settings_v" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_streak_days" TO "anon";
+GRANT ALL ON TABLE "public"."user_streak_days" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_streak_days" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_streaks" TO "anon";
+GRANT ALL ON TABLE "public"."user_streaks" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_streaks" TO "service_role";
 
 
 

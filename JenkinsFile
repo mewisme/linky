@@ -38,8 +38,7 @@ pipeline {
       steps {
         sh '''
           pnpm install --frozen-lockfile
-          pnpm check-types --filter @repo/api
-          pnpm --filter @repo/api test --coverage
+          pnpm test --coverage
         '''
       }
     }

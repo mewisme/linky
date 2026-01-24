@@ -15,6 +15,8 @@
     "lint:web": "turbo run lint --filter=@repo/web",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "test:api": "turbo run test --filter=@repo/api",
     "upver": "node scripts/generate-changelog.js && node scripts/version-upgrade.js"
   },
   "devDependencies": {

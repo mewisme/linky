@@ -108,10 +108,6 @@ export function useVideoChat(): UseVideoChatReturn {
     isOffererRef.current = false;
     actionsRef.current.resetRuntimeState();
     hasShownConnectedToastRef.current = false;
-    if (reconnectToastIdRef.current !== null) {
-      toast.dismiss(reconnectToastIdRef.current);
-      reconnectToastIdRef.current = null;
-    }
     isReconnectingRef.current = false;
   }, [mediaStream, peerConnection]);
 
@@ -203,7 +199,6 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [cleanup]);
 
   const hasShownConnectedToastRef = useRef(false);
-  const reconnectToastIdRef = useRef<string | number | null>(null);
   const isReconnectingRef = useRef(false);
 
   const startReconnecting = useCallback(() => {
@@ -213,18 +208,12 @@ export function useVideoChat(): UseVideoChatReturn {
     }
 
     isReconnectingRef.current = true;
-    reconnectToastIdRef.current = toast.loading("Reconnecting...");
     console.info("[ReconnectUX] Reconnecting toast shown");
   }, [state.connectionStatus]);
 
   const completeReconnection = useCallback(() => {
     if (!isReconnectingRef.current) {
       return;
-    }
-
-    if (reconnectToastIdRef.current !== null) {
-      toast.dismiss(reconnectToastIdRef.current);
-      reconnectToastIdRef.current = null;
     }
 
     toast.success("Reconnected");
@@ -288,10 +277,6 @@ export function useVideoChat(): UseVideoChatReturn {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
           recoveryController.stop();
-          if (reconnectToastIdRef.current !== null) {
-            toast.dismiss(reconnectToastIdRef.current);
-            reconnectToastIdRef.current = null;
-          }
           isReconnectingRef.current = false;
         } else if (iceConnectionState === "connected" || iceConnectionState === "completed") {
           recoveryController.markIceRestartComplete();

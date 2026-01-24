@@ -124,13 +124,14 @@ export function ProfileNameFields({
                 </Button>
               </div>
             ) : (
-              <div className="flex-1 flex items-center gap-2 group">
+                <div className="flex-1 flex items-center gap-2 group">
                 <p className="text-lg font-semibold">{displayName}</p>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="profile-section-edit-reveal"
                   onClick={() => setEditingName(true)}
+                  aria-label="Edit name"
                 >
                   <IconPencil className="size-4" />
                 </Button>
@@ -215,8 +216,9 @@ export function ProfileNameFields({
               <Button
                 size="sm"
                 variant="ghost"
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                className="profile-section-edit-reveal"
                 onClick={() => setEditingCountry(true)}
+                aria-label="Edit country"
               >
                 <IconPencil className="size-4" />
               </Button>

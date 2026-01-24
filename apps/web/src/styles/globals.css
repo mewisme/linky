@@ -1,2 +1,28 @@
 @import "@repo/ui/globals.css";
 @source "../node_modules/@blocknote/shadcn";
+
+/*
+ * Profile section Edit button: hover on desktop, always-visible on touch.
+ * Uses @media (hover: hover) / (hover: none) for capability detection (no user-agent).
+ * Mobile (Option B): always-visible for one-tap edit, no extra gestures, no accidental
+ *   activation. focus-visible keeps keyboard users able to reach the button.
+ */
+.profile-section-edit-reveal {
+  transition: opacity 0.15s ease;
+}
+@media (hover: hover) {
+  .profile-section-edit-reveal {
+    opacity: 0;
+  }
+  .group:hover .profile-section-edit-reveal {
+    opacity: 1;
+  }
+  .profile-section-edit-reveal:focus-visible {
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .profile-section-edit-reveal {
+    opacity: 1;
+  }
+}

@@ -160,8 +160,9 @@ export function PersonalInfoSection({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="profile-section-edit-reveal"
                   onClick={() => setEditingDateOfBirth(true)}
+                  aria-label="Edit date of birth"
                 >
                   <IconPencil className="size-4" />
                 </Button>
@@ -228,8 +229,9 @@ export function PersonalInfoSection({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="profile-section-edit-reveal"
                   onClick={() => setEditingGender(true)}
+                  aria-label="Edit gender"
                 >
                   <IconPencil className="size-4" />
                 </Button>

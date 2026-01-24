@@ -78,7 +78,7 @@ export default function UserProfilePage() {
           <Separator />
 
           {/* EQUAL HEIGHT CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* EMAILS */}
             <div className="h-full flex flex-col space-y-4">
               <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">

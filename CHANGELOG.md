@@ -2,14 +2,16 @@
 
 ✨ Features
 
-- Implement import functionality for interest tags in admin panel ([7d30f37](../../commit/7d30f37))
+- Enhance draggable video overlay with mobile support and layout improvements ([59a0711](../../commit/59a0711))
+
+♻️ Refactoring
+
+- Remove streak completion overlay and related assets ([9df5b10](../../commit/9df5b10))
+- Remove reconnect toast handling from video chat hook ([f284ffe](../../commit/f284ffe))
 
 🔨 Other Changes
 
-- Remove 'Run Tests' stage from JenkinsFile to streamline pipeline ([fafba6a](../../commit/fafba6a))
-- Update test command in JenkinsFile for API coverage ([b289e74](../../commit/b289e74))
-- Simplify testing commands in JenkinsFile and update package.json ([d9ab6e2](../../commit/d9ab6e2))
-- Bump package version to 0.27.0 and update version lock ([fbac272](../../commit/fbac272))
+- Bump package version to 0.28.0 and update version lock ([ab0f8b5](../../commit/ab0f8b5))
 
 
-📋 Full Changelog: [fbac272...7d30f37](../../compare/fbac272...7d30f37)
+📋 Full Changelog: [ab0f8b5...59a0711](../../compare/ab0f8b5...59a0711)

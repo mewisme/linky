@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { ReactionOverlay } from "./overlays/reaction-overlay";
+import { VideoChatIdleState } from "./video-chat-idle-state";
+import { VideoChatSearchingState } from "./video-chat-searching-state";
 import type { UsersAPI } from "@/types/users.types";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
@@ -185,37 +187,18 @@ export function VideoContainer({
           </div>
           <ReactionOverlay containerRef={containerRef} />
 
-          {isMobile ? (
-            localStream && (
-              <div className="absolute top-4 right-4 z-20 w-32 overflow-hidden rounded-lg border-2 border-background shadow-lg">
-                <div className="relative bg-black" style={{ aspectRatio: localAspectRatio ?? 1 }}>
-                  <VideoPlayer
-                    stream={localStream}
-                    muted
-                    playsInline
-                    className="h-full w-full"
-                    objectFit="cover"
-                    isMobile={isMobile}
-                  />
-                  {isVideoOff && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                      <VideoOff className="size-6 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          ) : (
-            <DraggableVideoOverlay
-              localStream={localStream}
-              isVideoOff={isVideoOff}
-              containerRef={containerRef as React.RefObject<HTMLDivElement>}
-            />
-          )}
+          <DraggableVideoOverlay
+            localStream={localStream}
+            isVideoOff={isVideoOff}
+            containerRef={containerRef as React.RefObject<HTMLDivElement>}
+            isMobile={isMobile}
+          />
         </>
       ) : (
         <>
-          {localStream ? (
+          {connectionStatus === "searching" || connectionStatus === "connecting" ? (
+            <VideoChatSearchingState />
+          ) : localStream ? (
             <div className="relative flex h-full w-full items-center justify-center">
               <VideoPlayer
                 stream={localStream}
@@ -232,6 +215,8 @@ export function VideoContainer({
                 </div>
               )}
             </div>
+          ) : connectionStatus === "idle" ? (
+            <VideoChatIdleState onStart={onStart} />
           ) : (
             <div className="h-full w-full" />
           )}

@@ -10,6 +10,7 @@ interface VideoPlayerProps {
   aspectRatio?: string | number;
   className?: string;
   objectFit?: "contain" | "cover";
+  objectPosition?: string;
   isMobile?: boolean;
   onError?: (error: Error) => void;
 }
@@ -21,6 +22,7 @@ export function VideoPlayer({
   aspectRatio,
   className = "",
   objectFit = "contain",
+  objectPosition,
   isMobile = false,
   onError,
 }: VideoPlayerProps) {
@@ -75,6 +77,7 @@ export function VideoPlayer({
       style={{
         ...aspectRatioStyle,
         objectFit,
+        ...(objectPosition && { objectPosition }),
       }}
     />
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 
 import { VideoOff } from "lucide-react";
 import { VideoPlayer } from "./video-player";
@@ -17,175 +18,264 @@ interface DraggableVideoOverlayProps {
   isVideoOff: boolean;
   containerRef: React.RefObject<HTMLDivElement>;
   onPositionChange?: (position: Position, corner: CornerPosition | null) => void;
+  isMobile?: boolean;
 }
+
+function getDefaultCorner(isMobile: boolean): CornerPosition {
+  return isMobile ? "top-right" : "bottom-right";
+}
+
+const PADDING = 16;
+
+const MOBILE_OVERLAY_WIDTH_VW = 30;
+const MOBILE_OVERLAY_MAX_PX = 128;
+
+function getCornerPosition(
+  corner: CornerPosition,
+  containerWidth: number,
+  containerHeight: number,
+  overlayWidth: number,
+  overlayHeight: number
+): Position {
+  switch (corner) {
+    case "top-left":
+      return { x: PADDING, y: PADDING };
+    case "top-right":
+      return { x: containerWidth - overlayWidth - PADDING, y: PADDING };
+    case "bottom-left":
+      return { x: PADDING, y: containerHeight - overlayHeight - PADDING };
+    case "bottom-right":
+      return {
+        x: containerWidth - overlayWidth - PADDING,
+        y: containerHeight - overlayHeight - PADDING,
+      };
+  }
+}
+
+function getNearestCorner(
+  overlayCenterX: number,
+  overlayCenterY: number,
+  containerWidth: number,
+  containerHeight: number,
+  overlayWidth: number,
+  overlayHeight: number
+): CornerPosition {
+  const corners: CornerPosition[] = [
+    "top-left",
+    "top-right",
+    "bottom-left",
+    "bottom-right",
+  ];
+  let best: CornerPosition = "bottom-right";
+  let bestDistSq = Infinity;
+  for (const c of corners) {
+    const p = getCornerPosition(
+      c,
+      containerWidth,
+      containerHeight,
+      overlayWidth,
+      overlayHeight
+    );
+    const cx = p.x + overlayWidth / 2;
+    const cy = p.y + overlayHeight / 2;
+    const dSq = (overlayCenterX - cx) ** 2 + (overlayCenterY - cy) ** 2;
+    if (dSq < bestDistSq) {
+      bestDistSq = dSq;
+      best = c;
+    }
+  }
+  return best;
+}
+
+const springTransition = {
+  type: "spring" as const,
+  stiffness: 250,
+  damping: 28,
+};
 
 export function DraggableVideoOverlay({
   localStream,
   isVideoOff,
   containerRef,
   onPositionChange,
+  isMobile = false,
 }: DraggableVideoOverlayProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const positionRef = useRef<Position | null>(null);
+  const latestPositionRef = useRef<Position | null>(null);
+  const hasInitializedPositionRef = useRef(false);
+  const hasUserDraggedRef = useRef(false);
+
   const [isDragging, setIsDragging] = useState(false);
-  const [localVideoPosition, setLocalVideoPosition] = useState<Position>({
-    x: 0,
-    y: 0,
-  });
+  const [position, setPosition] = useState<Position | null>(null);
 
-  useEffect(() => {
-    if (containerRef.current && overlayRef.current) {
-      const container = containerRef.current;
-      const overlay = overlayRef.current;
-      const containerRect = container.getBoundingClientRect();
-      const overlayRect = overlay.getBoundingClientRect();
+  positionRef.current = position;
 
-      const position = {
-        x: containerRect.width - overlayRect.width - 16,
-        y: containerRect.height - overlayRect.height - 16,
-      };
-      setLocalVideoPosition(position);
-      onPositionChange?.(position, "bottom-right");
-    }
-  }, [containerRef, onPositionChange]);
-
-  const getCornerPosition = (
-    corner: CornerPosition,
-    containerWidth: number,
-    containerHeight: number,
-    overlayWidth: number,
-    overlayHeight: number
-  ): Position => {
-    const padding = 16;
-    switch (corner) {
-      case "top-left":
-        return { x: padding, y: padding };
-      case "top-right":
-        return { x: containerWidth - overlayWidth - padding, y: padding };
-      case "bottom-left":
-        return { x: padding, y: containerHeight - overlayHeight - padding };
-      case "bottom-right":
-        return {
-          x: containerWidth - overlayWidth - padding,
-          y: containerHeight - overlayHeight - padding,
-        };
-    }
-  };
-
-  const checkMagneticSnap = (
-    pos: Position,
-    containerWidth: number,
-    containerHeight: number,
-    overlayWidth: number,
-    overlayHeight: number
-  ): CornerPosition | null => {
-    const snapThreshold = 50; // pixels
-    const corners: CornerPosition[] = [
-      "top-left",
-      "top-right",
-      "bottom-left",
-      "bottom-right",
-    ];
-
-    for (const corner of corners) {
-      const cornerPos = getCornerPosition(
-        corner,
-        containerWidth,
-        containerHeight,
-        overlayWidth,
-        overlayHeight
-      );
-      const distance = Math.sqrt(
-        Math.pow(pos.x - cornerPos.x, 2) + Math.pow(pos.y - cornerPos.y, 2)
-      );
-      if (distance < snapThreshold) {
-        return corner;
-      }
-    }
-    return null;
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  useLayoutEffect(() => {
+    if (hasInitializedPositionRef.current) return;
     if (!containerRef.current || !overlayRef.current) return;
-
-    setIsDragging(true);
     const container = containerRef.current;
     const overlay = overlayRef.current;
     const containerRect = container.getBoundingClientRect();
     const overlayRect = overlay.getBoundingClientRect();
+    const defaultCorner = getDefaultCorner(isMobile);
+    const cornerPos = getCornerPosition(
+      defaultCorner,
+      containerRect.width,
+      containerRect.height,
+      overlayRect.width,
+      overlayRect.height
+    );
+    hasInitializedPositionRef.current = true;
+    setPosition(cornerPos);
+    onPositionChange?.(cornerPos, defaultCorner);
+  }, [containerRef, isMobile, onPositionChange]);
 
-    const startX = e.clientX - containerRect.left - localVideoPosition.x;
-    const startY = e.clientY - containerRect.top - localVideoPosition.y;
+  useLayoutEffect(() => {
+    if (!hasInitializedPositionRef.current || hasUserDraggedRef.current) return;
+    if (positionRef.current === null || !containerRef.current || !overlayRef.current)
+      return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const overlayRect = overlayRef.current.getBoundingClientRect();
+    const defaultCorner = getDefaultCorner(isMobile);
+    const cornerPos = getCornerPosition(
+      defaultCorner,
+      containerRect.width,
+      containerRect.height,
+      overlayRect.width,
+      overlayRect.height
+    );
+    setPosition(cornerPos);
+    onPositionChange?.(cornerPos, defaultCorner);
+  }, [containerRef, isMobile, onPositionChange]);
 
-    let currentPos = { ...localVideoPosition };
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const containerRect = container.getBoundingClientRect();
-      const newX = moveEvent.clientX - containerRect.left - startX;
-      const newY = moveEvent.clientY - containerRect.top - startY;
-
-      const constrainedX = Math.max(
-        0,
-        Math.min(newX, containerRect.width - overlayRect.width)
-      );
-      const constrainedY = Math.max(
-        0,
-        Math.min(newY, containerRect.height - overlayRect.height)
-      );
-
-      currentPos = { x: constrainedX, y: constrainedY };
-      setLocalVideoPosition(currentPos);
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-
-      const containerRect = container.getBoundingClientRect();
-      const overlayRect = overlayRef.current?.getBoundingClientRect();
-      if (!overlayRect) return;
-
-      const snapped = checkMagneticSnap(
-        currentPos,
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const ro = new ResizeObserver(() => {
+      const pos = positionRef.current;
+      if (!pos || !overlayRef.current || !containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const overlayRect = overlayRef.current.getBoundingClientRect();
+      const corner = hasUserDraggedRef.current
+        ? getNearestCorner(
+            pos.x + overlayRect.width / 2,
+            pos.y + overlayRect.height / 2,
+            containerRect.width,
+            containerRect.height,
+            overlayRect.width,
+            overlayRect.height
+          )
+        : getDefaultCorner(isMobile);
+      const next = getCornerPosition(
+        corner,
         containerRect.width,
         containerRect.height,
         overlayRect.width,
         overlayRect.height
       );
+      setPosition(next);
+      onPositionChange?.(next, corner);
+    });
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [containerRef, isMobile, onPositionChange]);
 
-      if (snapped) {
-        const cornerPos = getCornerPosition(
-          snapped,
-          containerRect.width,
-          containerRect.height,
-          overlayRect.width,
-          overlayRect.height
-        );
-        setLocalVideoPosition(cornerPos);
-        onPositionChange?.(cornerPos, snapped);
-      } else {
-        onPositionChange?.(currentPos, null);
-      }
+  const runSnapToNearestCorner = (override?: Position) => {
+    const pos = override ?? positionRef.current;
+    if (!pos || !containerRef.current || !overlayRef.current) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const overlayRect = overlayRef.current.getBoundingClientRect();
+    const centerX = pos.x + overlayRect.width / 2;
+    const centerY = pos.y + overlayRect.height / 2;
+    const corner = getNearestCorner(
+      centerX,
+      centerY,
+      containerRect.width,
+      containerRect.height,
+      overlayRect.width,
+      overlayRect.height
+    );
+    const cornerPos = getCornerPosition(
+      corner,
+      containerRect.width,
+      containerRect.height,
+      overlayRect.width,
+      overlayRect.height
+    );
+    setPosition(cornerPos);
+    onPositionChange?.(cornerPos, corner);
+  };
 
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!containerRef.current || !overlayRef.current || position === null)
+      return;
+    e.preventDefault();
+    hasUserDraggedRef.current = true;
+    const overlay = overlayRef.current;
+    const pointerId = e.pointerId;
+    overlay.setPointerCapture(pointerId);
+    setIsDragging(true);
+    latestPositionRef.current = position;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const overlayRect = overlay.getBoundingClientRect();
+    const offsetX = e.clientX - containerRect.left - position.x;
+    const offsetY = e.clientY - containerRect.top - position.y;
+
+    const handlePointerMove = (moveEvent: PointerEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      let newX = moveEvent.clientX - rect.left - offsetX;
+      let newY = moveEvent.clientY - rect.top - offsetY;
+      newX = Math.max(0, Math.min(newX, rect.width - overlayRect.width));
+      newY = Math.max(0, Math.min(newY, rect.height - overlayRect.height));
+      const next = { x: newX, y: newY };
+      latestPositionRef.current = next;
+      setPosition(next);
     };
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    const handlePointerUp = () => {
+      overlay.releasePointerCapture(pointerId);
+      setIsDragging(false);
+      runSnapToNearestCorner(latestPositionRef.current ?? undefined);
+      overlay.removeEventListener("pointermove", handlePointerMove);
+      overlay.removeEventListener("pointerup", handlePointerUp);
+      overlay.removeEventListener("pointercancel", handlePointerUp);
+    };
+
+    overlay.addEventListener("pointermove", handlePointerMove);
+    overlay.addEventListener("pointerup", handlePointerUp);
+    overlay.addEventListener("pointercancel", handlePointerUp);
   };
 
   if (!localStream) return null;
 
+  const transition = isDragging ? { duration: 0 } : springTransition;
+
   return (
-    <div
+    <motion.div
       ref={overlayRef}
-      onMouseDown={handleMouseDown}
-      className={`absolute z-10 cursor-move transition-transform outline-none ring-0 ${isDragging ? "scale-105" : "scale-100"} rounded-lg p-1 bg-accent`}
-      style={{
-        left: `${localVideoPosition.x}px`,
-        top: `${localVideoPosition.y}px`,
-        width: "200px",
-        height: "150px",
-      }}
+      data-reaction-exclude
+      className={`absolute left-0 top-0 z-10 ${isMobile ? "aspect-square" : "w-[200px] aspect-4/3"} cursor-move overflow-hidden rounded-lg border-2 border-background bg-black outline-none ring-0 touch-none select-none ${
+        position === null ? "invisible" : ""
+      }`}
+      style={
+        isMobile
+          ? { width: `min(${MOBILE_OVERLAY_WIDTH_VW}vw, ${MOBILE_OVERLAY_MAX_PX}px)` }
+          : undefined
+      }
+      animate={
+        position
+          ? {
+              x: position.x,
+              y: position.y,
+              scale: isDragging ? 1.05 : 1,
+            }
+          : { x: 0, y: 0, scale: 1 }
+      }
+      transition={transition}
+      initial={false}
+      onPointerDown={handlePointerDown}
     >
       <VideoPlayer
         stream={localStream}
@@ -193,14 +283,14 @@ export function DraggableVideoOverlay({
         playsInline
         className="h-full w-full"
         objectFit="cover"
-        isMobile={false}
+        objectPosition="center"
+        isMobile={isMobile}
       />
       {isVideoOff && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted">
           <VideoOff className="size-8 text-muted-foreground" />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
-

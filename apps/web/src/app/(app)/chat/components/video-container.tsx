@@ -6,7 +6,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { ReactionOverlay } from "./overlays/reaction-overlay";
-import { StreakCompletionOverlay } from "./overlays/streak-completion-overlay";
 import type { UsersAPI } from "@/types/users.types";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
@@ -238,8 +237,6 @@ export function VideoContainer({
           )}
         </>
       )}
-
-      <StreakCompletionOverlay />
 
       <div data-reaction-exclude className="relative" style={{ zIndex: 110 }}>
         <VideoControls

@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 
 import { useSocket } from "@/hooks/socket/use-socket";
 import { useUserContext } from "@/components/providers/user/user-provider";
+import { toast } from "@repo/ui/components/ui/sonner";
 
 interface FloatingReaction {
   id: string;
@@ -12,20 +13,12 @@ interface FloatingReaction {
   isLocal: boolean;
 }
 
-export interface StreakCompletionPayload {
-  streakCount: number;
-  date: string;
-}
-
 interface ReactionEffectContextValue {
   triggerLocalReaction: (tapPosition: { x: number; y: number }, type?: string) => void;
   emitReaction: (count: number, type?: string) => void;
   triggerRemoteReactions: (count: number, type?: string) => void;
   reactions: FloatingReaction[];
   removeReaction: (id: string) => void;
-  streakCompletion: StreakCompletionPayload | null;
-  triggerStreakCompletion: (payload: StreakCompletionPayload) => void;
-  clearStreakCompletion: () => void;
 }
 
 const ReactionEffectContext = createContext<ReactionEffectContextValue | null>(null);
@@ -44,13 +37,14 @@ interface ReactionEffectProviderProps {
 
 const STREAK_COMPLETED_EVENT = "streak:completed";
 
+const STREAK_TOAST_DEBOUNCE_MS = 2000;
+
 export function ReactionEffectProvider({ children }: ReactionEffectProviderProps) {
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
-  const [streakCompletion, setStreakCompletion] = useState<StreakCompletionPayload | null>(null);
   const { socket } = useSocket();
   const { store } = useUserContext();
   const currentUserIdRef = useRef<string | null>(null);
-  const streakActiveRef = useRef(false);
+  const lastStreakToastAtRef = useRef(0);
   currentUserIdRef.current = store.user?.id ?? null;
 
   const triggerLocalReaction = useCallback((tapPosition: { x: number; y: number }, type: string = "heart") => {
@@ -78,17 +72,6 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
     setReactions((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
-  const triggerStreakCompletion = useCallback((payload: StreakCompletionPayload) => {
-    if (streakActiveRef.current) return;
-    streakActiveRef.current = true;
-    setStreakCompletion(payload);
-  }, []);
-
-  const clearStreakCompletion = useCallback(() => {
-    streakActiveRef.current = false;
-    setStreakCompletion(null);
-  }, []);
-
   useEffect(() => {
     if (!socket) return;
     const handleReaction = (data: { count: number; type?: string; timestamp: number }) => {
@@ -105,14 +88,16 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
     const handleStreakCompleted = (data: { userId: string; streakCount: number; date: string }) => {
       const current = currentUserIdRef.current;
       if (!current || data.userId !== current) return;
-      if (streakActiveRef.current) return;
-      triggerStreakCompletion({ streakCount: data.streakCount, date: data.date });
+      const now = Date.now();
+      if (now - lastStreakToastAtRef.current < STREAK_TOAST_DEBOUNCE_MS) return;
+      lastStreakToastAtRef.current = now;
+      toast.success("🔥 Streak completed! Keep it going!");
     };
     socket.on(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     return () => {
       socket.off(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     };
-  }, [socket, triggerStreakCompletion]);
+  }, [socket]);
 
   const value: ReactionEffectContextValue = {
     triggerLocalReaction,
@@ -120,9 +105,6 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
     triggerRemoteReactions,
     reactions,
     removeReaction,
-    streakCompletion,
-    triggerStreakCompletion,
-    clearStreakCompletion,
   };
 
   return (

@@ -4,12 +4,20 @@ import {
   getUserStreak,
   getUserStreakDays,
   getUserStreakDaysByMonth,
+  getStreakDayByUserAndDate,
+  clearLastContinuationUsedFreeze,
 } from "../../../infra/supabase/repositories/user-streaks.js";
+import {
+  getFreezeInventory,
+  consumeFreeze,
+  prepareStreakFreeze,
+} from "../../../infra/supabase/repositories/user-streak-freeze.js";
 import type { UserStreak, UserStreakDay } from "../types/user-streak.types.js";
 import { getOrSet, invalidate } from "../../../infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
 import { toUserLocalDateString } from "../../../utils/timezone.js";
+import { addDays } from "../../../utils/date-helpers.js";
 
 const logger = createLogger("API:User:Streak:Service");
 
@@ -36,7 +44,21 @@ export async function addCallDurationToStreak(
   try {
     const dateStr = toUserLocalDateString(callEndDate, timezone);
 
+    let usedPrepare = false;
+    const streakRow = await getUserStreak(userId);
+    const inv = await getFreezeInventory(userId);
+    const available = inv?.available_count ?? 0;
+    const lastValid = streakRow?.last_valid_date;
+    const oneDayGap = lastValid && addDays(lastValid, 2) === dateStr && available > 0;
+    if (oneDayGap) {
+      const gapDate = addDays(dateStr, -1);
+      prepareStreakFreeze(userId, gapDate);
+      if (await consumeFreeze(userId)) usedPrepare = true;
+    }
     const result = await upsertUserStreakDay(userId, dateStr, durationSeconds);
+    const dayAfter = await getStreakDayByUserAndDate(userId, dateStr);
+    const completedValidDayWithoutFreeze = !usedPrepare && dayAfter?.is_valid === true;
+    if (completedValidDayWithoutFreeze) clearLastContinuationUsedFreeze(userId);
     logger.info("Added %d seconds to streak for user: %s on date: %s", durationSeconds, userId, dateStr);
 
     await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
@@ -87,6 +109,7 @@ export async function getUserStreakData(userId: string): Promise<UserStreak | nu
       currentStreak: record.current_streak,
       longestStreak: record.longest_streak,
       lastValidDate: record.last_valid_date,
+      lastContinuationUsedFreeze: record.last_continuation_used_freeze ?? false,
       updatedAt: record.updated_at,
     };
   } catch (error) {

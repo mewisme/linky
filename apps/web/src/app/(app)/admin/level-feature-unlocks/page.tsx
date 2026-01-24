@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/components/ui/dialog";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -134,13 +135,6 @@ export default function LevelFeatureUnlocksPage() {
     },
   });
 
-  const handleOpenCreate = () => {
-    setEditingUnlock(null);
-    setFormData({ level_required: 1, feature_key: "", feature_payload: {} });
-    setPayloadText("{}");
-    setIsModalOpen(true);
-  };
-
   const handleOpenEdit = (unlock: AdminAPI.LevelFeatureUnlocks.LevelFeatureUnlock) => {
     setEditingUnlock(unlock);
     setFormData({
@@ -173,8 +167,10 @@ export default function LevelFeatureUnlocksPage() {
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
-            <IconPlus className="w-4 h-4 mr-2" /> Add New Unlock
+          <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
+            <Link href="/admin/level-feature-unlocks/create">
+              <IconPlus className="w-4 h-4 mr-2" /> Add New Unlock
+            </Link>
           </Button>
         }
       />

@@ -18,6 +18,7 @@ export interface UserStreakRecord {
   current_streak: number;
   longest_streak: number;
   last_valid_date: string | null;
+  last_continuation_used_freeze?: boolean;
   updated_at: string;
 }
 
@@ -77,6 +78,35 @@ export async function getUserStreak(userId: string): Promise<UserStreakRecord | 
   }
 
   return data;
+}
+
+export async function getStreakDayByUserAndDate(
+  userId: string,
+  dateStr: string,
+): Promise<{ is_valid: boolean } | null> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const { data, error } = await supabase
+    .from("user_streak_days")
+    .select("is_valid")
+    .eq("user_id", userId)
+    .eq("date", dateStr)
+    .maybeSingle();
+  if (error) {
+    logger.error("Error fetching streak day by date: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+  return data;
+}
+
+export async function clearLastContinuationUsedFreeze(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from("user_streaks")
+    .update({ last_continuation_used_freeze: false })
+    .eq("user_id", userId);
+  if (error) {
+    logger.error("Error clearing last_continuation_used_freeze: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
 }
 
 export async function getUserStreakDays(

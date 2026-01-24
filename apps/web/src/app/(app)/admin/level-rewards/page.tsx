@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/components/ui/dialog";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -134,13 +135,6 @@ export default function LevelRewardsPage() {
     },
   });
 
-  const handleOpenCreate = () => {
-    setEditingReward(null);
-    setFormData({ level_required: 1, reward_type: "", reward_payload: {} });
-    setPayloadText("{}");
-    setIsModalOpen(true);
-  };
-
   const handleOpenEdit = (reward: AdminAPI.LevelRewards.LevelReward) => {
     setEditingReward(reward);
     setFormData({
@@ -173,8 +167,10 @@ export default function LevelRewardsPage() {
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
-            <IconPlus className="w-4 h-4 mr-2" /> Add New Reward
+          <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
+            <Link href="/admin/level-rewards/create">
+              <IconPlus className="w-4 h-4 mr-2" /> Add New Reward
+            </Link>
           </Button>
         }
       />

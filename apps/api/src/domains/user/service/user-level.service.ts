@@ -1,12 +1,15 @@
 import type { LevelCalculationParams, UserLevel } from "../types/user-level.types.js";
 import { getUserLevel, incrementUserExp } from "../../../infra/supabase/repositories/user-levels.js";
-
 import { createLogger } from "@repo/logger/api";
 import { getStreakExpBonusForStreak } from "../../../infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "../../../infra/supabase/repositories/user-streaks.js";
+import { getActiveFavoriteExpBoostRules } from "../../../infra/supabase/repositories/favorite-exp-boost-rules.js";
+import { checkFavoriteExists } from "../../../infra/supabase/repositories/favorites.js";
 import { grantRewardsForLevel } from "./user-level-reward.service.js";
+import { grantFreezesForLevel } from "./user-streak-freeze.service.js";
 import { invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import { incrExpToday } from "../../../infra/redis/cache/exp-today.js";
 
 const logger = createLogger("API:User:Level:Service");
 
@@ -65,18 +68,21 @@ export function calculateLevelFromExp(
   return { level, expToNextLevel };
 }
 
+export interface AddCallExpOptions {
+  timezone?: string;
+  counterpartUserId?: string;
+  dateForExpToday?: string;
+}
+
 export async function addCallExp(
   userId: string,
   durationSeconds: number,
-  timezone?: string,
+  options?: AddCallExpOptions,
 ): Promise<void> {
-  if (durationSeconds <= 0) {
-    return;
-  }
+  if (durationSeconds <= 0) return;
+  if (!userId || typeof userId !== "string" || userId.trim() === "") return;
 
-  if (!userId || typeof userId !== "string" || userId.trim() === "") {
-    return;
-  }
+  const timezone = options?.timezone;
 
   try {
     const levelBefore = await getUserLevel(userId);
@@ -102,7 +108,30 @@ export async function addCallExp(
       }
     }
 
+    const counterpartUserId = options?.counterpartUserId;
+    if (counterpartUserId) {
+      const [aFavB, bFavA] = await Promise.all([
+        checkFavoriteExists(userId, counterpartUserId),
+        checkFavoriteExists(counterpartUserId, userId),
+      ]);
+      const rules = await getActiveFavoriteExpBoostRules();
+      if (rules) {
+        const mult = aFavB && bFavA ? rules.mutual_multiplier : aFavB || bFavA ? rules.one_way_multiplier : 1;
+        if (mult > 1) {
+          expToAdd = Math.floor(expToAdd * mult);
+          logger.info(
+            "Applied favorite EXP boost %d (mutual=%s) for user: %s",
+            mult,
+            Boolean(aFavB && bFavA),
+            userId,
+          );
+        }
+      }
+    }
+
     await incrementUserExp(userId, expToAdd);
+    const dateForExpToday = options?.dateForExpToday;
+    if (dateForExpToday) await incrExpToday(userId, dateForExpToday, expToAdd);
     if (timezone) {
       await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
     } else {
@@ -116,6 +145,7 @@ export async function addCallExp(
 
     if (levelAfterValue > levelBeforeValue) {
       await grantRewardsForLevel(userId, levelAfterValue);
+      await grantFreezesForLevel(userId, levelAfterValue);
       logger.info("User %s leveled up from %d to %d", userId, levelBeforeValue, levelAfterValue);
     }
 

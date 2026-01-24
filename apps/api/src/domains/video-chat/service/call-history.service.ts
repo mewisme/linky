@@ -1,4 +1,5 @@
 import { createCallHistory, getUserCountry } from "../../../infra/supabase/repositories/call-history.js";
+import { upsertSharedStreakForPair } from "../../../infra/supabase/repositories/shared-streaks.js";
 import { addCallExp } from "../../user/service/user-level.service.js";
 import { addCallDurationToStreak } from "../../user/service/user-streak.service.js";
 import { invalidate } from "../../../infra/redis/cache/index.js";
@@ -49,15 +50,28 @@ export async function recordCallHistoryInDatabase(params: {
     invalidate(REDIS_CACHE_KEYS.userProgress(calleeId, calleeTimezone)),
   ]);
 
+  const callerDateStr = new Date(endedAt).toLocaleDateString("sv-SE", { timeZone: callerTimezone });
+  const calleeDateStr = new Date(endedAt).toLocaleDateString("sv-SE", { timeZone: calleeTimezone });
   await Promise.allSettled([
-    addCallExp(callerId, durationSeconds, callerTimezone),
-    addCallExp(calleeId, durationSeconds, calleeTimezone),
+    addCallExp(callerId, durationSeconds, {
+      timezone: callerTimezone,
+      counterpartUserId: calleeId,
+      dateForExpToday: callerDateStr,
+    }),
+    addCallExp(calleeId, durationSeconds, {
+      timezone: calleeTimezone,
+      counterpartUserId: callerId,
+      dateForExpToday: calleeDateStr,
+    }),
   ]);
 
   const [callerResult, calleeResult] = await Promise.all([
     addCallDurationToStreak(callerId, durationSeconds, endedAt, callerTimezone),
     addCallDurationToStreak(calleeId, durationSeconds, endedAt, calleeTimezone),
   ]);
+
+  const sharedStreakCallerLocalDate = callerDateStr;
+  await upsertSharedStreakForPair(callerId, calleeId, sharedStreakCallerLocalDate);
 
   if (onStreakCompleted) {
     if (callerResult?.firstTimeValid) {

@@ -35,6 +35,24 @@ export async function getLevelFeatureUnlocksUpToLevel(level: number): Promise<Le
   }));
 }
 
+export async function getLevelFeatureUnlocksAtLevel(level: number): Promise<LevelFeatureUnlockRecord[]> {
+  const { data, error } = await supabase
+    .from("level_feature_unlocks")
+    .select("*")
+    .eq("level_required", level)
+    .order("feature_key", { ascending: true });
+
+  if (error) {
+    logger.error("Error fetching level feature unlocks at level: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return (data || []).map((record) => ({
+    ...record,
+    feature_payload: (record.feature_payload || {}) as Record<string, unknown>,
+  }));
+}
+
 export async function getAllLevelFeatureUnlocks(): Promise<LevelFeatureUnlockRecord[]> {
   const { data, error } = await supabase
     .from("level_feature_unlocks")

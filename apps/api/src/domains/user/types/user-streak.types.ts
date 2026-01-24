@@ -3,6 +3,7 @@ export interface UserStreak {
   currentStreak: number;
   longestStreak: number;
   lastValidDate: string | null;
+  lastContinuationUsedFreeze?: boolean;
   updatedAt: string;
 }
 

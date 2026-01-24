@@ -1,10 +1,12 @@
 import { createLogger } from "@repo/logger/api";
 import { getUserLevelData } from "./user-level.service.js";
 import { getUserStreakData, getUserStreakHistory } from "./user-streak.service.js";
-import type { ProgressInsights } from "../types/progress-insights.types.js";
+import type { ProgressInsights, StreakStatus } from "../types/progress-insights.types.js";
 import { getOrSet } from "../../../infra/redis/cache/index.js";
+import { getExpToday } from "../../../infra/redis/cache/exp-today.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
+import { getCallDurationsForUserOnLocalDate } from "../../../infra/supabase/repositories/call-history.js";
 import { toUserLocalDateString } from "../../../utils/timezone.js";
 
 const logger = createLogger("API:User:Progress:Service");
@@ -55,14 +57,12 @@ export async function getUserProgressInsights(
         } else {
           const yesterdayStr = toUserLocalDateString(new Date(ref.getTime() - 86400000), timezone);
           if (historySet.get(yesterdayStr) !== true) {
-            currentStreak = 0;
+            currentStreak = 1;
           } else {
             let count = 2;
             for (let i = 2; i < MAX_STREAK_DAYS_TO_FETCH; i++) {
               const prevDate = toUserLocalDateString(new Date(ref.getTime() - i * 86400000), timezone);
-              if (historySet.get(prevDate) !== true) {
-                break;
-              }
+              if (historySet.get(prevDate) !== true) break;
               count++;
             }
             currentStreak = count;
@@ -85,6 +85,17 @@ export async function getUserProgressInsights(
             ? Math.min(100, Math.max(0, (expInCurrentLevel / totalExpForLevel) * 100))
             : 100;
 
+        let expEarnedToday = await getExpToday(userId, todayStr);
+        if (expEarnedToday <= 0) {
+          expEarnedToday = await getCallDurationsForUserOnLocalDate(userId, todayStr, timezone);
+        }
+
+        const remainingSecondsToNextLevel = expToNextLevel;
+
+        let streakStatus: StreakStatus = "incomplete";
+        if (currentStreak > 0 && isTodayStreakComplete) streakStatus = "active";
+        else if (currentStreak > 0 && (streakData?.lastContinuationUsedFreeze ?? false)) streakStatus = "frozen";
+
         const insights: ProgressInsights = {
           currentLevel: levelData.level,
           expProgress: {
@@ -92,6 +103,9 @@ export async function getUserProgressInsights(
             expToNextLevel: levelData.expToNextLevel,
             progressPercentage,
           },
+          expEarnedToday,
+          remainingSecondsToNextLevel,
+          streakStatus,
           todayCallDuration: {
             totalSeconds: todayCallSeconds,
             isValid: todayIsValid,

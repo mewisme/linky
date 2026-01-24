@@ -9,6 +9,7 @@ import userProfileRouter from "../domains/user/http/user-profile.route.js";
 import userLevelRouter from "../domains/user/http/user-level.route.js";
 import userStreakRouter from "../domains/user/http/user-streak.route.js";
 import userProgressRouter from "../domains/user/http/user-progress.route.js";
+import userSharedStreaksRouter from "../domains/user/http/user-shared-streaks.route.js";
 import videoChatRouter from "../domains/video-chat/http/end-call-unload.route.js";
 
 const router: ExpressRouter = Router();
@@ -20,6 +21,7 @@ router.use("/user-profile", userProfileRouter);
 router.use("/user-level", userLevelRouter);
 router.use("/user-streak", userStreakRouter);
 router.use("/user-progress", userProgressRouter);
+router.use("/user-shared-streaks", userSharedStreaksRouter);
 router.use("/call-history", callHistoryRouter);
 router.use("/reports", reportsRouter);
 router.use("/favorites", favoritesRouter);

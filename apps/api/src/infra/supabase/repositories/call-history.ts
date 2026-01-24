@@ -108,6 +108,43 @@ export async function getUserIdByClerkId(clerkUserId: string): Promise<string | 
   return data?.id || null;
 }
 
+export async function getCallDurationsForUserOnLocalDate(
+  userId: string,
+  localDateStr: string,
+  tz: string,
+): Promise<number> {
+  const d = new Date(localDateStr + "T12:00:00Z");
+  const start = new Date(d);
+  start.setUTCDate(start.getUTCDate() - 1);
+  start.setUTCHours(0, 0, 0, 0);
+  const end = new Date(d);
+  end.setUTCDate(end.getUTCDate() + 2);
+  end.setUTCHours(0, 0, 0, 0);
+
+  const { data, error } = await supabase
+    .from("call_history")
+    .select("ended_at, duration_seconds")
+    .or(`caller_id.eq.${userId},callee_id.eq.${userId}`)
+    .not("ended_at", "is", null)
+    .not("duration_seconds", "is", null)
+    .gte("ended_at", start.toISOString())
+    .lt("ended_at", end.toISOString());
+
+  if (error) {
+    logger.error("Error fetching call durations for derive: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  let sum = 0;
+  for (const row of data ?? []) {
+    const ed = row.ended_at;
+    if (!ed) continue;
+    const localStr = new Date(ed).toLocaleDateString("sv-SE", { timeZone: tz });
+    if (localStr === localDateStr) sum += row.duration_seconds ?? 0;
+  }
+  return sum;
+}
+
 export async function getUserCountry(userId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("users")

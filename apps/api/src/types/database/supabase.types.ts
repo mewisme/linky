@@ -157,6 +157,30 @@ export type Database = {
           },
         ]
       }
+      favorite_exp_boost_rules: {
+        Row: {
+          created_at: string
+          id: string
+          mutual_multiplier: number
+          one_way_multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mutual_multiplier?: number
+          one_way_multiplier?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mutual_multiplier?: number
+          one_way_multiplier?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       interest_tags: {
         Row: {
           category: string | null
@@ -449,6 +473,76 @@ export type Database = {
           {
             foreignKeyName: "fk_reports_reviewed_by"
             columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shared_streaks: {
+        Row: {
+          current_streak: number
+          last_valid_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          current_streak?: number
+          last_valid_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          current_streak?: number
+          last_valid_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_shared_streaks_user_a"
+            columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_shared_streaks_user_a"
+            columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_shared_streaks_user_a"
+            columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_shared_streaks_user_b"
+            columns: ["user_b"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_shared_streaks_user_b"
+            columns: ["user_b"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_shared_streaks_user_b"
+            columns: ["user_b"]
             isOneToOne: false
             referencedRelation: "users_with_details"
             referencedColumns: ["id"]
@@ -850,10 +944,101 @@ export type Database = {
           },
         ]
       }
+      user_streak_freeze_grants: {
+        Row: {
+          granted_at: string
+          level_feature_unlock_id: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          level_feature_unlock_id: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          level_feature_unlock_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_streak_freeze_grants_unlock"
+            columns: ["level_feature_unlock_id"]
+            isOneToOne: false
+            referencedRelation: "level_feature_unlocks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_freeze_grants_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_freeze_grants_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_freeze_grants_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_streak_freeze_inventory: {
+        Row: {
+          available_count: number
+          total_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_count?: number
+          total_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_count?: number
+          total_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_streak_freeze_inventory_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_freeze_inventory_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_freeze_inventory_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_streaks: {
         Row: {
           current_streak: number
           id: string
+          last_continuation_used_freeze: boolean
           last_valid_date: string | null
           longest_streak: number
           updated_at: string
@@ -862,6 +1047,7 @@ export type Database = {
         Insert: {
           current_streak?: number
           id?: string
+          last_continuation_used_freeze?: boolean
           last_valid_date?: string | null
           longest_streak?: number
           updated_at?: string
@@ -870,6 +1056,7 @@ export type Database = {
         Update: {
           current_streak?: number
           id?: string
+          last_continuation_used_freeze?: boolean
           last_valid_date?: string | null
           longest_streak?: number
           updated_at?: string
@@ -1187,6 +1374,10 @@ export type Database = {
           day: string
           views: number
         }[]
+      }
+      prepare_streak_freeze: {
+        Args: { p_gap_date: string; p_user_id: string }
+        Returns: undefined
       }
       update_user_streak_summary: {
         Args: { p_date: string; p_is_valid: boolean; p_user_id: string }

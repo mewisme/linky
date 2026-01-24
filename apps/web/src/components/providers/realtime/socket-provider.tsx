@@ -6,6 +6,7 @@ import { createNamespaceSockets, updateToken } from "@/lib/socket/socket";
 import { socketHealthMonitor } from "@/lib/socket/socket-health";
 import { backendRestartDetector } from "@/lib/socket/backend-restart-detector";
 import { publishPresence } from "@/lib/mqtt/client";
+import { getUserTimezone } from "@/utils/timezone";
 
 import { useUserContext } from "@/components/providers/user/user-provider";
 
@@ -109,6 +110,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
       chatSocket.on("connect", () => {
         console.log("[SocketProvider] Socket connected:", chatSocket.id);
+        chatSocket.emit("client:timezone:init", { timezone: getUserTimezone() });
+
         const isBackendRestart = backendRestartDetector.recordConnect(chatSocket);
 
         const newSocketId = chatSocket.id || null;

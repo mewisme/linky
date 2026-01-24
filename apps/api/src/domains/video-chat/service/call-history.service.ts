@@ -12,9 +12,20 @@ export async function recordCallHistoryInDatabase(params: {
   startedAt: Date;
   endedAt: Date;
   durationSeconds: number;
+  callerTimezone: string;
+  calleeTimezone: string;
   onStreakCompleted?: OnStreakCompleted;
 }): Promise<void> {
-  const { callerId, calleeId, startedAt, endedAt, durationSeconds, onStreakCompleted } = params;
+  const {
+    callerId,
+    calleeId,
+    startedAt,
+    endedAt,
+    durationSeconds,
+    callerTimezone,
+    calleeTimezone,
+    onStreakCompleted,
+  } = params;
 
   const callerCountry = await getUserCountry(callerId);
   const calleeCountry = await getUserCountry(calleeId);
@@ -34,18 +45,18 @@ export async function recordCallHistoryInDatabase(params: {
   }
 
   await Promise.allSettled([
-    invalidate(REDIS_CACHE_KEYS.userProgress(callerId)),
-    invalidate(REDIS_CACHE_KEYS.userProgress(calleeId)),
+    invalidate(REDIS_CACHE_KEYS.userProgress(callerId, callerTimezone)),
+    invalidate(REDIS_CACHE_KEYS.userProgress(calleeId, calleeTimezone)),
   ]);
 
   await Promise.allSettled([
-    addCallExp(callerId, durationSeconds),
-    addCallExp(calleeId, durationSeconds),
+    addCallExp(callerId, durationSeconds, callerTimezone),
+    addCallExp(calleeId, durationSeconds, calleeTimezone),
   ]);
 
   const [callerResult, calleeResult] = await Promise.all([
-    addCallDurationToStreak(callerId, durationSeconds, endedAt),
-    addCallDurationToStreak(calleeId, durationSeconds, endedAt),
+    addCallDurationToStreak(callerId, durationSeconds, endedAt, callerTimezone),
+    addCallDurationToStreak(calleeId, durationSeconds, endedAt, calleeTimezone),
   ]);
 
   if (onStreakCompleted) {

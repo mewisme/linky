@@ -5,34 +5,38 @@ import type { ProgressInsights } from "../types/progress-insights.types.js";
 import { getOrSet } from "../../../infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
+import { toUserLocalDateString } from "../../../utils/timezone.js";
 
 const logger = createLogger("API:User:Progress:Service");
 
 const STREAK_REQUIRED_SECONDS = 300;
+const RECENT_STREAK_DAYS = 10;
+const MAX_STREAK_DAYS_TO_FETCH = 400;
 
-export async function getUserProgressInsights(userId: string): Promise<ProgressInsights | null> {
+export async function getUserProgressInsights(
+  userId: string,
+  timezone: string,
+): Promise<ProgressInsights | null> {
   if (!userId || typeof userId !== "string" || userId.trim() === "") {
     return null;
   }
 
   try {
     return await getOrSet(
-      REDIS_CACHE_KEYS.userProgress(userId),
+      REDIS_CACHE_KEYS.userProgress(userId, timezone),
       REDIS_CACHE_TTL_SECONDS.USER_PROGRESS,
       async () => {
         const [levelData, streakData, streakHistory] = await Promise.all([
           getUserLevelData(userId),
           getUserStreakData(userId),
-          getUserStreakHistory(userId, { limit: 1, offset: 0 }),
+          getUserStreakHistory(userId, { limit: MAX_STREAK_DAYS_TO_FETCH, offset: 0 }),
         ]);
 
         if (!levelData) {
           return null;
         }
 
-        const today = new Date();
-        today.setUTCHours(0, 0, 0, 0);
-        const todayStr = today.toISOString().split("T")[0] || "";
+        const todayStr = toUserLocalDateString(new Date(), timezone);
 
         const todayStreakDay = streakHistory.data.find((day) => day.date === todayStr);
 
@@ -41,6 +45,35 @@ export async function getUserProgressInsights(userId: string): Promise<ProgressI
 
         const streakRemainingSeconds = Math.max(0, STREAK_REQUIRED_SECONDS - todayCallSeconds);
         const isTodayStreakComplete = todayCallSeconds >= STREAK_REQUIRED_SECONDS;
+
+        const historySet = new Map(streakHistory.data.map((d) => [d.date, d.isValid]));
+        const ref = new Date();
+
+        let currentStreak: number;
+        if (!todayIsValid) {
+          currentStreak = 0;
+        } else {
+          const yesterdayStr = toUserLocalDateString(new Date(ref.getTime() - 86400000), timezone);
+          if (historySet.get(yesterdayStr) !== true) {
+            currentStreak = 0;
+          } else {
+            let count = 2;
+            for (let i = 2; i < MAX_STREAK_DAYS_TO_FETCH; i++) {
+              const prevDate = toUserLocalDateString(new Date(ref.getTime() - i * 86400000), timezone);
+              if (historySet.get(prevDate) !== true) {
+                break;
+              }
+              count++;
+            }
+            currentStreak = count;
+          }
+        }
+
+        const recentStreakDays: { date: string; isValid: boolean }[] = [];
+        for (let i = 0; i < RECENT_STREAK_DAYS; i++) {
+          const d = toUserLocalDateString(new Date(ref.getTime() - i * 86400000), timezone);
+          recentStreakDays.push({ date: d, isValid: currentStreak > 0 && i < currentStreak });
+        }
 
         const expInCurrentLevel = levelData.totalExpSeconds;
         const expToNextLevel = levelData.expToNextLevel;
@@ -68,18 +101,23 @@ export async function getUserProgressInsights(userId: string): Promise<ProgressI
           streakRemainingSeconds,
           isTodayStreakComplete,
           streak: {
-            currentStreak: streakData?.currentStreak || 0,
+            currentStreak,
             longestStreak: streakData?.longestStreak || 0,
             remainingSecondsToKeepStreak: streakRemainingSeconds,
             lastValidDate: streakData?.lastValidDate || null,
           },
+          todayDate: todayStr,
+          recentStreakDays,
         };
 
         return insights;
       },
     );
   } catch (error) {
-    logger.error("Error getting user progress insights: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      "Error getting user progress insights: %o",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     throw error;
   }
 }

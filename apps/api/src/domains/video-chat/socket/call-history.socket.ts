@@ -57,12 +57,17 @@ export async function recordCallHistory(
     const endedAt = new Date();
     const durationSeconds = Math.floor((endedAt.getTime() - room.startedAt.getTime()) / 1000);
 
+    const callerTimezone = (callerSocket.data.timezone as string | undefined) ?? "UTC";
+    const calleeTimezone = (calleeSocket?.data.timezone as string | undefined) ?? "UTC";
+
     await recordCallHistoryInDatabase({
       callerId,
       calleeId,
       startedAt: room.startedAt,
       endedAt,
       durationSeconds: durationSeconds > 0 ? durationSeconds : 0,
+      callerTimezone,
+      calleeTimezone,
       onStreakCompleted(userId, payload) {
         const socket = userId === callerId ? callerSocket : userId === calleeId ? calleeSocket : undefined;
         if (!socket?.connected) {

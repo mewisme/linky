@@ -1,12 +1,6 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
-import { IconClock, IconFlame, IconStar } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
-
-import { AppLayout } from "@/components/layouts/app-layout";
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,11 +8,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@repo/ui/components/ui/dialog";
+import { IconClock, IconFlame, IconStar } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+
+import { AppLayout } from "@/components/layouts/app-layout";
+import { Badge } from "@repo/ui/components/ui/badge";
+import { Button } from "@repo/ui/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Progress } from "@repo/ui/components/ui/progress";
 import { StreakCalendar } from "@/components/user/streak-calendar";
 import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";
+import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";
 import { useUserContext } from "@/components/providers/user/user-provider";
 
@@ -53,7 +54,10 @@ export default function UserProgressPage() {
     queryKey: ["user-progress"],
     queryFn: async () => {
       const res = await fetch(`/api/user-progress/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-user-timezone": getUserTimezone(),
+        },
       });
       if (!res.ok) throw new Error("Failed to load progress data");
       return res.json() as Promise<UsersAPI.Progress.GetMe.Response>;
@@ -213,7 +217,7 @@ export default function UserProgressPage() {
             </DialogTitle>
             <DialogDescription>View your complete streak history</DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 overflow-x-auto">
             <StreakCalendar />
           </div>
         </DialogContent>

@@ -9,6 +9,7 @@ import type { UserStreak, UserStreakDay } from "../types/user-streak.types.js";
 import { getOrSet, invalidate } from "../../../infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
+import { toUserLocalDateString } from "../../../utils/timezone.js";
 
 const logger = createLogger("API:User:Streak:Service");
 
@@ -22,6 +23,7 @@ export async function addCallDurationToStreak(
   userId: string,
   durationSeconds: number,
   callEndDate: Date,
+  timezone: string,
 ): Promise<StreakCompletionResult | null> {
   if (durationSeconds <= 0) {
     return null;
@@ -32,24 +34,23 @@ export async function addCallDurationToStreak(
   }
 
   try {
-    const utcDate = new Date(
-      Date.UTC(callEndDate.getUTCFullYear(), callEndDate.getUTCMonth(), callEndDate.getUTCDate()),
-    );
-    const dateStr = utcDate.toISOString().split("T")[0] ?? "";
+    const dateStr = toUserLocalDateString(callEndDate, timezone);
 
-    const result = await upsertUserStreakDay(userId, utcDate, durationSeconds);
+    const result = await upsertUserStreakDay(userId, dateStr, durationSeconds);
     logger.info("Added %d seconds to streak for user: %s on date: %s", durationSeconds, userId, dateStr);
 
-    await invalidate(REDIS_CACHE_KEYS.userProgress(userId));
+    await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
 
-    const current = new Date();
-    const currentYear = current.getUTCFullYear();
-    const currentMonth = current.getUTCMonth() + 1;
-    const updatedYear = utcDate.getUTCFullYear();
-    const updatedMonth = utcDate.getUTCMonth() + 1;
+    const todayStr = toUserLocalDateString(new Date(), timezone);
+    const todayParts = todayStr.split("-").map(Number);
+    const currentYear = todayParts[0] ?? 0;
+    const currentMonth = todayParts[1] ?? 0;
+    const updatedParts = dateStr.split("-").map(Number);
+    const updatedYear = updatedParts[0] ?? 0;
+    const updatedMonth = updatedParts[1] ?? 0;
 
     if (updatedYear === currentYear && updatedMonth === currentMonth) {
-      await invalidate(REDIS_CACHE_KEYS.userStreakCalendar(userId, updatedYear, updatedMonth));
+      await invalidate(REDIS_CACHE_KEYS.userStreakCalendar(userId, updatedYear, updatedMonth, timezone));
     }
 
     if (!result?.firstTimeValid) {
@@ -62,7 +63,10 @@ export async function addCallDurationToStreak(
       date: dateStr,
     };
   } catch (error) {
-    logger.error("Error adding call duration to streak: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      "Error adding call duration to streak: %o",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     throw error;
   }
 }
@@ -129,6 +133,7 @@ export async function getUserStreakCalendar(
   userId: string,
   year: number,
   month: number,
+  timezone: string,
 ): Promise<StreakCalendarDay[]> {
   if (!userId || typeof userId !== "string" || userId.trim() === "") {
     return [];
@@ -139,9 +144,8 @@ export async function getUserStreakCalendar(
   }
 
   try {
-    const now = new Date();
-    const currentYear = now.getUTCFullYear();
-    const currentMonth = now.getUTCMonth() + 1;
+    const todayStr = toUserLocalDateString(new Date(), timezone);
+    const [currentYear, currentMonth] = todayStr.split("-").map(Number);
 
     const ttlSeconds =
       year === currentYear && month === currentMonth
@@ -149,14 +153,10 @@ export async function getUserStreakCalendar(
         : REDIS_CACHE_TTL_SECONDS.USER_STREAK_CALENDAR_PAST_MONTH;
 
     return await getOrSet(
-      REDIS_CACHE_KEYS.userStreakCalendar(userId, year, month),
+      REDIS_CACHE_KEYS.userStreakCalendar(userId, year, month, timezone),
       ttlSeconds,
       async () => {
         const records = await getUserStreakDaysByMonth(userId, year, month);
-
-        const today = new Date();
-        today.setUTCHours(0, 0, 0, 0);
-        const todayStr = today.toISOString().split("T")[0] || "";
 
         return records.map((record) => ({
           date: record.date,
@@ -167,7 +167,10 @@ export async function getUserStreakCalendar(
       },
     );
   } catch (error) {
-    logger.error("Error getting user streak calendar: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      "Error getting user streak calendar: %o",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     throw error;
   }
 }

@@ -19,4 +19,6 @@ export interface ProgressInsights {
     remainingSecondsToKeepStreak: number;
     lastValidDate: string | null;
   };
+  todayDate: string;
+  recentStreakDays: { date: string; isValid: boolean }[];
 }

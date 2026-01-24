@@ -5,8 +5,8 @@ import {
   MiniCalendarDay,
   MiniCalendarDays,
 } from "@repo/ui/components/kibo-ui/mini-calendar";
-import { format, isToday, subDays } from "@repo/ui/internal-lib/date-fns";
-import { getLocalDate, parseLocalDate } from "@repo/ui/internal-lib/date-utils";
+import { format, subDays } from "@repo/ui/internal-lib/date-fns";
+import { getLocalDate } from "@repo/ui/internal-lib/date-utils";
 import { useEffect, useMemo, useState } from "react";
 
 import { IconFlameFilled } from "@tabler/icons-react";
@@ -57,47 +57,13 @@ export function StreakMiniCalendar({
 
   const getDayStatus = (date: Date) => {
     const dateToCheck = getLocalDate(date);
-    const today = getLocalDate(new Date());
-    const isTodayDate = isToday(date);
     const dateStr = format(dateToCheck, "yyyy-MM-dd");
-    const todayStr = format(today, "yyyy-MM-dd");
-
-    if (dateStr === todayStr) {
-      return {
-        isValid: progressData.todayCallDuration.isValid,
-        isToday: true,
-      };
-    }
-
-    const isFutureDate = dateToCheck.getTime() > today.getTime();
-    if (isFutureDate) {
-      return { isValid: false, isToday: false };
-    }
-
-    const { currentStreak, lastValidDate } = progressData.streak;
-    const { isValid: todayIsValid } = progressData.todayCallDuration;
-
-    if (!lastValidDate || currentStreak === 0) {
-      return { isValid: false, isToday: false };
-    }
-
-    const lastValid = parseLocalDate(lastValidDate);
-
-    let streakEndDate: Date;
-    if (todayIsValid) {
-      streakEndDate = today;
-    } else {
-      streakEndDate = lastValid;
-    }
-
-    const streakStartDate = subDays(streakEndDate, currentStreak - 1);
-    const streakStartLocal = getLocalDate(streakStartDate);
-    const streakEndLocal = getLocalDate(streakEndDate);
-
-    const isValid =
-      dateToCheck.getTime() >= streakStartLocal.getTime() &&
-      dateToCheck.getTime() <= streakEndLocal.getTime();
-
+    const todayStr =
+      progressData.todayDate ?? format(getLocalDate(new Date()), "yyyy-MM-dd");
+    const isTodayDate = dateStr === todayStr;
+    const recent = progressData.recentStreakDays ?? [];
+    const d = recent.find((x) => x.date === dateStr);
+    const isValid = d?.isValid ?? false;
     return { isValid, isToday: isTodayDate };
   };
 

@@ -28,14 +28,16 @@ export interface UpsertUserStreakDayResult {
 
 export async function upsertUserStreakDay(
   userId: string,
-  date: Date,
+  dateStr: string,
   totalCallSeconds: number,
 ): Promise<UpsertUserStreakDayResult | null> {
   if (totalCallSeconds <= 0) {
     return null;
   }
 
-  const dateStr = date.toISOString().split("T")[0] || "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    throw new Error("dateStr must be YYYY-MM-DD");
+  }
 
   const { data, error } = await supabase.rpc("upsert_user_streak_day", {
     p_user_id: userId,

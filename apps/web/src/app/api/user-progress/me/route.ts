@@ -15,17 +15,20 @@ export async function GET(request: NextRequest) {
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const timezone = request.headers.get("x-user-timezone") ?? request.nextUrl.searchParams.get("timezone");
 
-    const response = await fetch(
-      `${apiUrl}/api/v1/user-progress/me`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const headers: Record<string, string> = {
+      Authorization: authHeader,
+      "Content-Type": "application/json",
+    };
+    if (timezone) {
+      headers["x-user-timezone"] = timezone;
+    }
+
+    const response = await fetch(`${apiUrl}/api/v1/user-progress/me`, {
+      method: "GET",
+      headers,
+    });
 
     const data = await response.json() as UsersAPI.Progress.GetMe.Response | ApiError;
 

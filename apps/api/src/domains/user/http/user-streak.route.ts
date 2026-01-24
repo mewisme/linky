@@ -2,9 +2,20 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 import { createLogger } from "@repo/logger/api";
 import { getUserStreakData, getUserStreakHistory, getUserStreakCalendar } from "../service/user-streak.service.js";
 import { getUserIdByClerkUserId } from "../service/user-settings.service.js";
+import { isValidTimezone } from "../../../utils/timezone.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("API:User:Streak:Route");
+
+function getTimezone(req: Request): string {
+  const fromHeader = req.headers["x-user-timezone"];
+  const fromQuery = req.query.timezone;
+  const tz = (typeof fromHeader === "string" ? fromHeader : typeof fromQuery === "string" ? fromQuery : "").trim();
+  if (tz && isValidTimezone(tz)) {
+    return tz;
+  }
+  return "UTC";
+}
 
 router.get("/me", async (req: Request, res: Response) => {
   try {
@@ -139,7 +150,8 @@ router.get("/calendar", async (req: Request, res: Response) => {
       });
     }
 
-    const calendarData = await getUserStreakCalendar(userId, year, month);
+    const timezone = getTimezone(req);
+    const calendarData = await getUserStreakCalendar(userId, year, month, timezone);
 
     logger.info("User streak calendar fetched for user: %s, year: %d, month: %d", userId, year, month);
 

@@ -12,6 +12,7 @@ import type { AuthenticatedSocket } from "../../../socket/auth.js";
 import type { Namespace } from "socket.io";
 import { createLogger } from "@repo/logger/api";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import { isValidTimezone } from "../../../utils/timezone.js";
 import { recordCallHistory } from "./call-history.socket.js";
 
 const logger = createLogger("API:VideoChat:Socket:Handlers");
@@ -28,6 +29,14 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
   const { io, matchmaking, rooms, userSessions } = context;
   const userId = socket.data.userId || "unknown";
   logger.info("Client connected: %s User: %s", socket.id, userId);
+
+  socket.on("client:timezone:init", (payload: { timezone?: string }) => {
+    const tz = typeof payload?.timezone === "string" ? payload.timezone.trim() : "";
+    if (tz && isValidTimezone(tz)) {
+      socket.data.timezone = tz;
+      logger.info("Timezone set for socket %s: %s", socket.id, tz);
+    }
+  });
 
   matchmaking.cleanupStaleSockets(io).catch((error) => {
     logger.error("Failed to cleanup stale sockets: %o", error instanceof Error ? error : new Error(String(error)));

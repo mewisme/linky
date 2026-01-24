@@ -16,6 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import { IconFlameFilled } from "@tabler/icons-react";
 import type { UsersAPI } from "@/types/users.types";
 import { cn } from "@repo/ui/lib/utils";
+import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";
 import { useUserContext } from "@/components/providers/user/user-provider";
 
@@ -46,7 +47,10 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
       const res = await fetch(
         `/api/user-streak/calendar?year=${year}&month=${monthNumber}`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "x-user-timezone": getUserTimezone(),
+          },
         }
       );
       if (!res.ok) throw new Error("Failed to load calendar data");
@@ -149,7 +153,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
               <IconFlameFilled className="h-4 w-4 text-orange-500" />
             ) : dayData.isToday ? (
               <IconFlameFilled className="h-4 w-4 text-muted-foreground" />
-            ) : <IconFlameFilled className="h-4 w-4 text-muted-foreground" />}
+            ) : <></>}
           </div>
         )}
       </div>
@@ -179,7 +183,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
       <CalendarDate>
         <CalendarDatePagination />
         <CalendarMonthPicker />
-        <CalendarYearPicker start={2025} end={new Date().getFullYear() + 5} />
+        <CalendarYearPicker start={2025} end={new Date().getFullYear() + 5} className="max-w-24" />
       </CalendarDate>
       <CalendarHeader />
       <div className="grid grow grid-cols-7">

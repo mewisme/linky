@@ -180,6 +180,8 @@ export namespace UsersAPI {
           remainingSecondsToKeepStreak: number;
           lastValidDate: string | null;
         };
+        todayDate: string;
+        recentStreakDays: { date: string; isValid: boolean }[];
       }
     }
   }

@@ -5,7 +5,7 @@ import { createLogger } from "@repo/logger/api";
 import { getStreakExpBonusForStreak } from "../../../infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "../../../infra/supabase/repositories/user-streaks.js";
 import { grantRewardsForLevel } from "./user-level-reward.service.js";
-import { invalidate } from "../../../infra/redis/cache/index.js";
+import { invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 
 const logger = createLogger("API:User:Level:Service");
@@ -65,7 +65,11 @@ export function calculateLevelFromExp(
   return { level, expToNextLevel };
 }
 
-export async function addCallExp(userId: string, durationSeconds: number): Promise<void> {
+export async function addCallExp(
+  userId: string,
+  durationSeconds: number,
+  timezone?: string,
+): Promise<void> {
   if (durationSeconds <= 0) {
     return;
   }
@@ -99,7 +103,11 @@ export async function addCallExp(userId: string, durationSeconds: number): Promi
     }
 
     await incrementUserExp(userId, expToAdd);
-    await invalidate(REDIS_CACHE_KEYS.userProgress(userId));
+    if (timezone) {
+      await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
+    } else {
+      await invalidateByPrefix(`user:progress:${userId}:`);
+    }
 
     const levelAfter = await getUserLevel(userId);
     const levelAfterValue = levelAfter

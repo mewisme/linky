@@ -21,6 +21,7 @@ interface VideoContainerProps {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
   connectionStatus: ConnectionStatus;
+  callStartedAt: number | null;
   isMuted: boolean;
   isVideoOff: boolean;
   remoteMuted: boolean;
@@ -40,6 +41,7 @@ export function VideoContainer({
   localStream,
   remoteStream,
   connectionStatus,
+  callStartedAt,
   isMuted,
   isVideoOff,
   remoteMuted,
@@ -64,7 +66,7 @@ export function VideoContainer({
   const localAspectRatio = useStreamAspectRatio(localStream);
   const containerHeight = useViewportHeight(64);
 
-  const isActive = hasPeer && connectionStatus === "connected";
+  const isActive = hasPeer && (connectionStatus === "connected" || connectionStatus === "reconnecting");
 
   const { handleTap } = useReactionTrigger({
     isActive,
@@ -108,31 +110,16 @@ export function VideoContainer({
 
   const displayAspectRatio = hasPeer ? remoteAspectRatio : localAspectRatio;
 
-  const [callDuration, setCallDuration] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const shouldShowTimer = hasPeer && connectionStatus === "connected";
+  const shouldShowTimer = hasPeer && (connectionStatus === "connected" || connectionStatus === "reconnecting") && callStartedAt != null;
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (shouldShowTimer) {
-      setCallDuration(0);
-      intervalRef.current = setInterval(() => {
-        setCallDuration((prev) => prev + 1);
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      setCallDuration(0);
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
+    if (!shouldShowTimer) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
   }, [shouldShowTimer]);
+
+  const callDuration = shouldShowTimer && callStartedAt != null ? Math.floor((now - callStartedAt) / 1000) : 0;
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);

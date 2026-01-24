@@ -35,6 +35,7 @@ interface VideoChatState {
   isVideoOff: boolean;
   remoteMuted: boolean;
   connectionStatus: ConnectionStatus;
+  callStartedAt: number | null;
   chatMessages: ChatMessage[];
   error: string | null;
   peerInfo: UsersAPI.PublicUserInfo | null;
@@ -44,6 +45,7 @@ type VideoChatAction =
   | { type: "SET_LOCAL_STREAM"; payload: MediaStream | null }
   | { type: "SET_REMOTE_STREAM"; payload: MediaStream | null }
   | { type: "SET_CONNECTION_STATUS"; payload: ConnectionStatus }
+  | { type: "SET_CALL_STARTED_AT"; payload: number | null }
   | { type: "SET_MUTED"; payload: boolean }
   | { type: "SET_VIDEO_OFF"; payload: boolean }
   | { type: "SET_REMOTE_MUTED"; payload: boolean }
@@ -62,6 +64,7 @@ const initialState: VideoChatState = {
   isVideoOff: false,
   remoteMuted: false,
   connectionStatus: "idle",
+  callStartedAt: null,
   chatMessages: [],
   error: null,
   peerInfo: null,
@@ -73,7 +76,14 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
       return { ...state, localStream: action.payload };
 
     case "SET_REMOTE_STREAM":
-      return { ...state, remoteStream: action.payload };
+      return {
+        ...state,
+        remoteStream: action.payload,
+        ...(action.payload === null ? { callStartedAt: null } : {}),
+      };
+
+    case "SET_CALL_STARTED_AT":
+      return { ...state, callStartedAt: action.payload };
 
     case "SET_CONNECTION_STATUS":
       return { ...state, connectionStatus: action.payload };
@@ -109,6 +119,7 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
         remoteMuted: false,
         chatMessages: [],
         connectionStatus: "idle",
+        callStartedAt: null,
         error: null,
         peerInfo: null,
       };
@@ -121,6 +132,7 @@ function videoChatReducer(state: VideoChatState, action: VideoChatAction): Video
         remoteMuted: false,
         chatMessages: [],
         connectionStatus: "idle",
+        callStartedAt: null,
         error: null,
         peerInfo: null,
       };
@@ -145,6 +157,10 @@ export function useVideoChatState() {
 
       setConnectionStatus: (status: ConnectionStatus) => {
         dispatch({ type: "SET_CONNECTION_STATUS", payload: status });
+      },
+
+      setCallStartedAt: (timestamp: number | null) => {
+        dispatch({ type: "SET_CALL_STARTED_AT", payload: timestamp });
       },
 
       setMuted: (muted: boolean) => {

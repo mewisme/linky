@@ -78,7 +78,7 @@ function ChatContent({
 
   const sendMessage = () => {
     const el = inputRef.current;
-    if (!el || connectionStatus !== "connected") return;
+    if (!el || (connectionStatus !== "connected" && connectionStatus !== "reconnecting")) return;
 
     const text = el.innerText.trim();
     if (!text) return;
@@ -206,7 +206,7 @@ function ChatContent({
           <Button
             size="icon"
             className="rounded-full shrink-0"
-            disabled={connectionStatus !== "connected"}
+            disabled={connectionStatus !== "connected" && connectionStatus !== "reconnecting"}
             onClick={sendMessage}
           >
             <Send size={16} />

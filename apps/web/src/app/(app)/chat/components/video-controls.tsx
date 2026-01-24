@@ -320,9 +320,10 @@ export function VideoControls({
         label: "Skip",
         variant: "outline",
         onClick: onSkip,
-        visible: connectionStatus === "connected",
+        visible: connectionStatus === "connected" || connectionStatus === "reconnecting",
         disabled:
           connectionStatus !== "connected" &&
+          connectionStatus !== "reconnecting" &&
           connectionStatus !== "searching",
       },
       {
@@ -345,6 +346,7 @@ export function VideoControls({
         onClick: onEndCall,
         visible:
           connectionStatus === "connected" ||
+          connectionStatus === "reconnecting" ||
           connectionStatus === "searching" ||
           connectionStatus === "connecting" ||
           hasLocalStream,
@@ -365,7 +367,7 @@ export function VideoControls({
         label: "Peer Info",
         variant: "outline",
         onClick: () => { },
-        visible: connectionStatus === "connected" && !!peerInfo,
+        visible: (connectionStatus === "connected" || connectionStatus === "reconnecting") && !!peerInfo,
       },
       {
         id: "favorite",
@@ -374,7 +376,7 @@ export function VideoControls({
         label: "Add to Favorites",
         variant: "outline",
         onClick: handleToggleFavorite,
-        visible: connectionStatus === "connected" && !!peerInfo,
+        visible: (connectionStatus === "connected" || connectionStatus === "reconnecting") && !!peerInfo,
         disabled: isFavoriteLoading,
         dynamicLabel: (ctx) => ctx.isFavoriteAdded ? "Remove from Favorites" : "Add to Favorites",
       },
@@ -385,7 +387,7 @@ export function VideoControls({
         label: "Report",
         variant: "outline",
         onClick: () => { },
-        visible: connectionStatus === "connected" && !!peerInfo,
+        visible: (connectionStatus === "connected" || connectionStatus === "reconnecting") && !!peerInfo,
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps

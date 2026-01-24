@@ -153,6 +153,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     if (isIceRestart) {
       console.info("Processing ICE restart offer - clearing old ICE candidates");
       pendingIceCandidatesRef.current = [];
+      iceRestartInProgressRef.current = true;
     }
 
     const pendingCandidates = pendingIceCandidatesRef.current.splice(0);
@@ -295,6 +296,14 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     return pcRef.current;
   }, []);
 
+  const getIceRestartInProgress = useCallback((): boolean => {
+    return iceRestartInProgressRef.current;
+  }, []);
+
+  const setIceRestartInProgress = useCallback((value: boolean) => {
+    iceRestartInProgressRef.current = value;
+  }, []);
+
   useEffect(() => {
     return () => {
       closePeer();
@@ -313,6 +322,8 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       closePeer,
       isConnectionValid,
       getPeerConnection,
+      getIceRestartInProgress,
+      setIceRestartInProgress,
       pcRef,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps

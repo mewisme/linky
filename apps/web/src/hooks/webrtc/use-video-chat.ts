@@ -19,6 +19,7 @@ export interface UseVideoChatReturn {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
   connectionStatus: ConnectionStatus;
+  callStartedAt: number | null;
   isMuted: boolean;
   isVideoOff: boolean;
   remoteMuted: boolean;
@@ -233,6 +234,7 @@ export function useVideoChat(): UseVideoChatReturn {
     () => ({
       onTrack: (stream: MediaStream) => {
         actionsRef.current.setRemoteStream(stream);
+        actionsRef.current.setCallStartedAt(Date.now());
         actionsRef.current.setConnectionStatus("connected");
         console.info("Received remote track:", stream.getTracks().length, "tracks");
 
@@ -248,6 +250,9 @@ export function useVideoChat(): UseVideoChatReturn {
         });
       },
       onConnectionStateChange: (connectionState: RTCPeerConnectionState) => {
+        if (peerConnection.getIceRestartInProgress?.() && (connectionState === "disconnected" || connectionState === "connecting")) {
+          return;
+        }
         if (connectionState === "failed") {
           actionsRef.current.setConnectionStatus("peer-disconnected");
           hasShownConnectedToastRef.current = false;
@@ -271,6 +276,9 @@ export function useVideoChat(): UseVideoChatReturn {
       },
       onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => {
         console.info("ICE connection state changed:", iceConnectionState);
+        if (peerConnection.getIceRestartInProgress?.() && (iceConnectionState === "checking" || iceConnectionState === "disconnected")) {
+          return;
+        }
         const isInCall = state.connectionStatus === "connected" || state.connectionStatus === "reconnecting";
 
         if (iceConnectionState === "failed") {
@@ -279,6 +287,7 @@ export function useVideoChat(): UseVideoChatReturn {
           recoveryController.stop();
           isReconnectingRef.current = false;
         } else if (iceConnectionState === "connected" || iceConnectionState === "completed") {
+          peerConnection.setIceRestartInProgress?.(false);
           recoveryController.markIceRestartComplete();
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier === "none") {
@@ -390,6 +399,7 @@ export function useVideoChat(): UseVideoChatReturn {
             pc,
             isOfferer: data.isOfferer,
             onIceRestart: async (offer, useRelay) => {
+              peerConnection.setIceRestartInProgress?.(true);
               if (!socketSignaling.isSocketHealthy()) {
                 console.warn("[Recovery] Socket unhealthy, waiting for recovery before ICE restart");
                 await new Promise<void>((resolve) => {
@@ -436,6 +446,9 @@ export function useVideoChat(): UseVideoChatReturn {
             },
             onRecoveryStateChange: (tier) => {
               if (tier === "none") {
+                if (peerConnection.getIceRestartInProgress?.()) {
+                  return;
+                }
                 const pcState = pc.connectionState;
                 const iceState = pc.iceConnectionState;
                 if (pcState === "connected" && (iceState === "connected" || iceState === "completed")) {
@@ -492,19 +505,22 @@ export function useVideoChat(): UseVideoChatReturn {
               iceRestart: isIceRestart,
             });
             console.log("Answer created and sent to peer");
-            actionsRef.current.setConnectionStatus("connecting");
+            if (!isIceRestart) {
+              actionsRef.current.setConnectionStatus("connecting");
+            }
           } else if (data.type === "answer") {
             console.info("Received answer, setting remote description...");
             await peerConnection.handleAnswer(data.sdp as RTCSessionDescriptionInit, data.iceRestart);
             console.log("Remote description set successfully");
             if (data.iceRestart) {
               recoveryController.markIceRestartComplete();
-            }
-            const currentTier = recoveryController.getCurrentTier();
-            if (currentTier === "none") {
-              actionsRef.current.setConnectionStatus("connecting");
             } else {
-              actionsRef.current.setConnectionStatus("reconnecting");
+              const currentTier = recoveryController.getCurrentTier();
+              if (currentTier === "none") {
+                actionsRef.current.setConnectionStatus("connecting");
+              } else {
+                actionsRef.current.setConnectionStatus("reconnecting");
+              }
             }
           } else if (data.type === "ice-candidate" && data.candidate) {
             console.info("Received ICE candidate, adding...");
@@ -740,6 +756,7 @@ export function useVideoChat(): UseVideoChatReturn {
     localStream: state.localStream,
     remoteStream: state.remoteStream,
     connectionStatus: state.connectionStatus,
+    callStartedAt: state.callStartedAt,
     isMuted: state.isMuted,
     isVideoOff: state.isVideoOff,
     remoteMuted: state.remoteMuted,

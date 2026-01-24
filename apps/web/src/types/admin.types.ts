@@ -225,6 +225,25 @@ export namespace AdminAPI {
         message: string;
       }
     }
+
+    export namespace Import {
+      export interface Body {
+        items: Array<{
+          display_name: string;
+          category?: string;
+          icon?: string;
+          description?: string;
+          is_active?: boolean;
+        }>;
+      }
+
+      export interface Response {
+        total: number;
+        created: number;
+        updated: number;
+        skipped_invalid: number;
+      }
+    }
   }
 
   export namespace Changelogs {

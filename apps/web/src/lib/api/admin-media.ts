@@ -18,7 +18,7 @@ export async function getAdminPresignedUpload(
   params: AdminPresignedUploadParams,
   token: string
 ): Promise<AdminPresignedUploadResponse> {
-  const response = await client.post<AdminPresignedUploadResponse>(
+  const data = await client.post<AdminPresignedUploadResponse>(
     "/api/admin/media/presigned-upload",
     params,
     {
@@ -28,5 +28,5 @@ export async function getAdminPresignedUpload(
       },
     }
   );
-  return response.data;
+  return data;
 }

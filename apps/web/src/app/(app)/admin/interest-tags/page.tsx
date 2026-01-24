@@ -7,7 +7,7 @@ import {
   EmojiPickerFooter,
   EmojiPickerSearch,
 } from "@repo/ui/components/ui/emoji-picker";
-import { IconMoodSearch, IconPlus, IconRefresh } from "@tabler/icons-react";
+import { IconFileImport, IconMoodSearch, IconPlus, IconRefresh } from "@tabler/icons-react";
 import {
   Popover,
   PopoverContent,
@@ -20,6 +20,7 @@ import { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@repo/ui/components/ui/button";
 import { Input } from "@repo/ui/components/ui/input";
+import { ImportInterestTagsDialog } from '@/components/data-table/interest-tags/import-interest-tags-dialog';
 import { InterestTagsDataTable } from '@/components/data-table/interest-tags/data-table';
 import { Label } from "@repo/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
@@ -36,6 +37,7 @@ export default function InterestTagsPage() {
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
   // States
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<AdminAPI.InterestTags.InterestTag | null>(null);
   const [formData, setFormData] = useState<Partial<AdminAPI.InterestTags.Create.Body>>({
@@ -179,9 +181,14 @@ export default function InterestTagsPage() {
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
-            <IconPlus className="w-4 h-4 mr-2" /> Add New Tag
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+              <IconFileImport className="w-4 h-4 mr-2" /> Import JSON
+            </Button>
+            <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
+              <IconPlus className="w-4 h-4 mr-2" /> Add New Tag
+            </Button>
+          </div>
         }
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -263,6 +270,15 @@ export default function InterestTagsPage() {
           </form>
         </DialogContent>
       </Dialog>
+      <ImportInterestTagsDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        token={token}
+        onSuccess={async () => {
+          await queryClient.invalidateQueries({ queryKey: ["interest-tags"], refetchType: "active" });
+          await refetch();
+        }}
+      />
     </AppLayout>
   )
 }

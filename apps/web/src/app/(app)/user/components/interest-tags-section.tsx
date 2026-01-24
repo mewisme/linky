@@ -1,6 +1,6 @@
 'use client'
 
-import { IconCheck, IconLoader2, IconPencil, IconTags, IconX } from '@tabler/icons-react'
+import { IconCheck, IconLoader2, IconPencil, IconTags } from '@tabler/icons-react'
 import {
   Tags,
   TagsContent,
@@ -24,7 +24,6 @@ import { Badge } from '@repo/ui/components/ui/badge'
 import { Button } from '@repo/ui/components/ui/button'
 import type { ResourcesAPI } from '@/types/resources.types'
 import type { UserDetails } from '@/stores/user-store'
-import axios from 'axios'
 import { toast } from "@repo/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
@@ -50,11 +49,10 @@ export function InterestTagsSection({
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const response = await axios.get<ResourcesAPI.InterestTags.Get.Response>(
-          '/api/resources/interest-tags',
-          { params: { limit: 200 } }
-        )
-        setAvailableTags(response.data.data)
+        const res = await fetch('/api/resources/interest-tags?limit=200')
+        if (!res.ok) throw new Error(await res.text() || res.statusText)
+        const json = (await res.json()) as ResourcesAPI.InterestTags.Get.Response
+        setAvailableTags(json.data)
       } catch (error) {
         console.error('Failed to fetch interest tags:', error)
       }

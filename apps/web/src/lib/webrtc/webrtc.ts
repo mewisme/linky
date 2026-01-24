@@ -6,12 +6,10 @@ export interface IceServersResponse {
 
 export async function fetchIceServers(token: string | null): Promise<RTCIceServer[]> {
   try {
-    const response = await client.get<IceServersResponse>("/api/media/ice-servers", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const data = await client.get<IceServersResponse>("/api/media/ice-servers", {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data.iceServers;
+    return data.iceServers;
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`Failed to fetch ICE servers: ${error.message}`);

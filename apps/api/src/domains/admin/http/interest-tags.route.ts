@@ -5,10 +5,12 @@ import {
   createAdminInterestTag,
   getInterestTag,
   hardDeleteInterestTag,
+  importInterestTags,
   listInterestTags,
   softDeleteInterestTag,
   updateAdminInterestTag,
 } from "../service/admin-interest-tags.service.js";
+import type { InterestTagsImportRequestBody } from "../types/admin.types.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("API:Admin:InterestTags:Route");
@@ -55,6 +57,31 @@ router.get("/", async (req: Request, res: Response) => {
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tags",
+    });
+  }
+});
+
+router.post("/import", async (req: Request, res: Response) => {
+  try {
+    const body = req.body as unknown;
+
+    if (!body || typeof body !== "object" || !Array.isArray((body as InterestTagsImportRequestBody).items)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Request body must be an object with an 'items' array",
+      });
+    }
+
+    const result = await importInterestTags(body as InterestTagsImportRequestBody);
+
+    logger.info("Admin imported interest tags: total=%d, created=%d, updated=%d, skipped_invalid=%d", result.total, result.created, result.updated, result.skipped_invalid);
+
+    return res.json(result);
+  } catch (error) {
+    logger.error("Unexpected error in POST /admin/interest-tags/import: %o", error instanceof Error ? error : new Error(String(error)));
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to import interest tags",
     });
   }
 });

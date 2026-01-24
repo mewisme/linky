@@ -1,8 +1,6 @@
 import { User, UserDetails, UserSettings } from "@/stores/user-store";
 
 import { UsersAPI } from "@/types";
-import axios from "axios";
-
 
 interface FetchUserDataParams {
   isLoaded: boolean;
@@ -25,15 +23,15 @@ export async function fetchUserData(params: FetchUserDataParams) {
   setError(null);
 
   try {
-    const userData = await axios.get<User>('/api/users/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await fetch("/api/users/me", {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    setUser(userData.data);
+    if (!res.ok) throw new Error(await res.text() || res.statusText);
+    const userData = (await res.json()) as User;
+    setUser(userData);
   } catch (error) {
-    console.error('Failed to fetch user data:', error);
-    setError(error instanceof Error ? error.message : 'Failed to fetch user data');
+    console.error("Failed to fetch user data:", error);
+    setError(error instanceof Error ? error.message : "Failed to fetch user data");
     setUser(null);
   }
 }
@@ -55,15 +53,15 @@ export async function fetchUserDetails(params: FetchUserDetailsParams) {
   setError(null);
 
   try {
-    const userDetailsData = await axios.get<UserDetails>('/api/users/user-details/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await fetch("/api/users/user-details/me", {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    setUserDetails(userDetailsData.data);
+    if (!res.ok) throw new Error(await res.text() || res.statusText);
+    const userDetailsData = (await res.json()) as UserDetails;
+    setUserDetails(userDetailsData);
   } catch (error) {
-    console.error('Failed to fetch user details:', error);
-    setError(error instanceof Error ? error.message : 'Failed to fetch user details');
+    console.error("Failed to fetch user details:", error);
+    setError(error instanceof Error ? error.message : "Failed to fetch user details");
     setUserDetails(null);
   }
 }
@@ -86,15 +84,15 @@ export async function fetchUserSettings(params: FetchUserSettingsParams) {
   setError(null);
 
   try {
-    const userSettingsData = await axios.get<UserSettings>('/api/users/user-settings/me', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await fetch("/api/users/user-settings/me", {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    setUserSettings(userSettingsData.data);
+    if (!res.ok) throw new Error(await res.text() || res.statusText);
+    const userSettingsData = (await res.json()) as UserSettings;
+    setUserSettings(userSettingsData);
   } catch (error) {
-    console.error('Failed to fetch user settings:', error);
-    setError(error instanceof Error ? error.message : 'Failed to fetch user settings');
+    console.error("Failed to fetch user settings:", error);
+    setError(error instanceof Error ? error.message : "Failed to fetch user settings");
     setUserSettings(null);
   }
 }
@@ -107,20 +105,24 @@ interface UpdateUserCountryParams {
 
 export async function updateUserCountry(params: UpdateUserCountryParams) {
   if (!params.token || !params.country || !params.clerk_user_id) {
-    throw new Error('Missing required parameters');
+    throw new Error("Missing required parameters");
   }
   try {
-    const response = await axios.patch<UsersAPI.UpdateCountry.Response>('/api/users/me/country', {
-      country: params.country,
-      clerk_user_id: params.clerk_user_id,
-    }, {
+    const res = await fetch("/api/users/me/country", {
+      method: "PATCH",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${params.token}`,
       },
+      body: JSON.stringify({
+        country: params.country,
+        clerk_user_id: params.clerk_user_id,
+      }),
     });
-    return response.data;
+    if (!res.ok) throw new Error(await res.text() || res.statusText);
+    return (await res.json()) as UsersAPI.UpdateCountry.Response;
   } catch (error) {
-    console.error('Failed to update user country:', error);
+    console.error("Failed to update user country:", error);
     throw error;
   }
 }
@@ -132,17 +134,21 @@ interface UpdateUserDetailsParams {
 
 export async function updateUserDetails(params: UpdateUserDetailsParams) {
   if (!params.token) {
-    throw new Error('Missing required parameters');
+    throw new Error("Missing required parameters");
   }
   try {
-    const response = await axios.patch<UserDetails>('/api/users/user-details/me', params.data, {
+    const res = await fetch("/api/users/user-details/me", {
+      method: "PATCH",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${params.token}`,
       },
+      body: JSON.stringify(params.data),
     });
-    return response.data;
+    if (!res.ok) throw new Error(await res.text() || res.statusText);
+    return (await res.json()) as UserDetails;
   } catch (error) {
-    console.error('Failed to update user details:', error);
+    console.error("Failed to update user details:", error);
     throw error;
   }
 }
@@ -154,17 +160,21 @@ interface UpdateUserSettingsParams {
 
 export async function updateUserSettings(params: UpdateUserSettingsParams) {
   if (!params.token) {
-    throw new Error('Missing required parameters');
+    throw new Error("Missing required parameters");
   }
   try {
-    const response = await axios.patch<UserSettings>('/api/users/user-settings/me', params.data, {
+    const res = await fetch("/api/users/user-settings/me", {
+      method: "PATCH",
       headers: {
+        "Content-Type": "application/json",
         Authorization: `Bearer ${params.token}`,
       },
+      body: JSON.stringify(params.data),
     });
-    return response.data;
+    if (!res.ok) throw new Error(await res.text() || res.statusText);
+    return (await res.json()) as UserSettings;
   } catch (error) {
-    console.error('Failed to update user settings:', error);
+    console.error("Failed to update user settings:", error);
     throw error;
   }
 }

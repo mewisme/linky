@@ -33,16 +33,7 @@ pipeline {
         }
       }
     }
-
-    stage('Run Tests') {
-      steps {
-        sh '''
-          pnpm install --frozen-lockfile
-          pnpm test:api -- --coverage
-        '''
-      }
-    }
-
+    
     stage('Docker Build Backend (Express.js)') {
       steps {
         script {

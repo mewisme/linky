@@ -2,12 +2,14 @@
 
 ✨ Features
 
-- Enhance user experience with new features and testing capabilities ([1eeedc2](../../commit/1eeedc2))
-- Enhance user progress and streak functionalities with timezone support ([7bfd8b8](../../commit/7bfd8b8))
+- Implement import functionality for interest tags in admin panel ([7d30f37](../../commit/7d30f37))
 
 🔨 Other Changes
 
-- Bump package version to 0.26.0 and update version lock ([7a4d45f](../../commit/7a4d45f))
+- Remove 'Run Tests' stage from JenkinsFile to streamline pipeline ([fafba6a](../../commit/fafba6a))
+- Update test command in JenkinsFile for API coverage ([b289e74](../../commit/b289e74))
+- Simplify testing commands in JenkinsFile and update package.json ([d9ab6e2](../../commit/d9ab6e2))
+- Bump package version to 0.27.0 and update version lock ([fbac272](../../commit/fbac272))
 
 
-📋 Full Changelog: [7a4d45f...1eeedc2](../../compare/7a4d45f...1eeedc2)
+📋 Full Changelog: [fbac272...7d30f37](../../compare/fbac272...7d30f37)

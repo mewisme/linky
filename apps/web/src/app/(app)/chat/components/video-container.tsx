@@ -1,9 +1,10 @@
 "use client";
 
 import { MicOff, VideoOff } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
+import { CallTimer } from "./call-timer";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { ReactionOverlay } from "./overlays/reaction-overlay";
 import { VideoChatIdleState } from "./video-chat-idle-state";
@@ -21,7 +22,6 @@ interface VideoContainerProps {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
   connectionStatus: ConnectionStatus;
-  callStartedAt: number | null;
   isMuted: boolean;
   isVideoOff: boolean;
   remoteMuted: boolean;
@@ -41,7 +41,6 @@ export function VideoContainer({
   localStream,
   remoteStream,
   connectionStatus,
-  callStartedAt,
   isMuted,
   isVideoOff,
   remoteMuted,
@@ -110,23 +109,6 @@ export function VideoContainer({
 
   const displayAspectRatio = hasPeer ? remoteAspectRatio : localAspectRatio;
 
-  const shouldShowTimer = hasPeer && (connectionStatus === "connected" || connectionStatus === "reconnecting") && callStartedAt != null;
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    if (!shouldShowTimer) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [shouldShowTimer]);
-
-  const callDuration = shouldShowTimer && callStartedAt != null ? Math.floor((now - callStartedAt) / 1000) : 0;
-
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
-
   return (
     <div
       ref={setContainerRef}
@@ -140,18 +122,7 @@ export function VideoContainer({
             className="absolute inset-0 z-10 cursor-pointer"
             onClick={handleTapCapture}
           />
-          {shouldShowTimer && (
-            <div
-              className="absolute top-4 left-1/2 z-20 -translate-x-1/2 pointer-events-none"
-              data-reaction-exclude
-            >
-              <div className="inline-flex items-center justify-center rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-md min-w-14">
-                <span className="text-sm font-mono font-medium text-white tabular-nums">
-                  {formatTime(callDuration)}
-                </span>
-              </div>
-            </div>
-          )}
+          <CallTimer />
           <div
             ref={remoteVideoContainerRef}
             className="relative flex h-full w-full items-center justify-center"

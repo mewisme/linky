@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@repo/ui/components/ui/sonner";
 import type { SignalData } from "@/lib/socket/socket";
 import type { UsersAPI } from "@/types/users.types";
@@ -44,6 +45,7 @@ export function useVideoChat(): UseVideoChatReturn {
     store: { userSettings }
   } = useUserContext();
   const { isHealthy: isSocketHealthy } = useSocket();
+  const queryClient = useQueryClient();
 
   const { state, actions } = useVideoChatState();
   const iceServersRef = useRef<RTCIceServer[]>([]);
@@ -58,6 +60,10 @@ export function useVideoChat(): UseVideoChatReturn {
   const peerConnection = usePeerConnection(iceServersRef.current);
 
   const socketSignaling = useSocketSignaling();
+
+  const refreshUserProgress = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["user-progress"] });
+  }, [queryClient]);
 
   useEffect(() => {
     let mounted = true;
@@ -565,6 +571,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setError(null);
         toast(`Peer skipped - ${data.message}`);
+        refreshUserProgress();
       },
 
       onSkipped: (data: { message: string; queueSize: number }) => {
@@ -576,6 +583,7 @@ export function useVideoChat(): UseVideoChatReturn {
         isOffererRef.current = false;
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
+        refreshUserProgress();
       },
 
       onEndCall: (data: { message: string }) => {
@@ -584,6 +592,7 @@ export function useVideoChat(): UseVideoChatReturn {
         toast(`Call ended - ${data.message}`);
         isOffererRef.current = false;
         resetPeerState();
+        refreshUserProgress();
       },
 
       onChatMessage: (data: { message: string; timestamp: number; senderId: string; senderName?: string; senderImageUrl?: string }) => {
@@ -630,7 +639,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState, resetRuntimeState, state.connectionStatus, startReconnecting, completeReconnection]
+    [mediaStream, peerConnection, peerCallbacks, socketSignaling, resetPeerState, resetRuntimeState, state.connectionStatus, startReconnecting, completeReconnection, refreshUserProgress]
   );
 
   const start = useCallback(async () => {
@@ -698,7 +707,8 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.clearChatMessages();
     actionsRef.current.setRemoteMuted(false);
     socketSignaling.skipPeer();
-  }, [peerConnection, socketSignaling]);
+    setTimeout(() => refreshUserProgress(), 400);
+  }, [peerConnection, socketSignaling, refreshUserProgress]);
 
   const toggleMute = useCallback(() => {
     const newMutedState = mediaStream.toggleMute();
@@ -739,7 +749,8 @@ export function useVideoChat(): UseVideoChatReturn {
     socketSignaling.sendEndCall();
     toast("Call ended - You have ended the call.");
     resetPeerState();
-  }, [socketSignaling, resetPeerState]);
+    setTimeout(() => refreshUserProgress(), 400);
+  }, [socketSignaling, resetPeerState, refreshUserProgress]);
 
   const clearError = useCallback(() => {
     actionsRef.current.setError(null);

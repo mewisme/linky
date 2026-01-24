@@ -9,6 +9,7 @@ import { publishPresence } from "@/lib/mqtt/client";
 import { getUserTimezone } from "@/utils/timezone";
 
 import { useUserContext } from "@/components/providers/user/user-provider";
+import { useSocketStore } from "@/stores/socket-store";
 
 export type ConnectionState = "disconnected" | "connecting" | "connected" | "reconnecting";
 
@@ -34,7 +35,12 @@ export interface SocketContextValue {
   setInActiveCall: (active: boolean) => void;
 }
 
-const SocketContext = createContext<SocketContextValue | null>(null);
+type SocketContextValueFromProvider = Omit<
+  SocketContextValue,
+  "connectionState" | "isHealthy"
+>;
+
+const SocketContext = createContext<SocketContextValueFromProvider | null>(null);
 
 interface SocketProviderProps {
   children: ReactNode;
@@ -46,10 +52,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const adminSocketRef = useRef<Socket | null>(null);
   const [adminSocket, setAdminSocket] = useState<Socket | null>(null);
-  const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const [socketId, setSocketId] = useState<string | null>(null);
   const socketIdRef = useRef<string | null>(null);
-  const [isHealthy, setIsHealthy] = useState(false);
   const isInActiveCallRef = useRef(false);
   const resyncPendingRef = useRef(false);
   const initializingRef = useRef(false);
@@ -89,7 +93,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     try {
       const token = tokenOverride || await getToken();
       console.info("[SocketProvider] Initializing global socket...");
-      setConnectionState("connecting");
+      useSocketStore.getState().setConnectionState("connecting");
       const { chat: chatSocket, admin: adminNamespaceSocket } = await createNamespaceSockets(token);
       socketRef.current = chatSocket;
       setSocket(chatSocket);
@@ -117,7 +121,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
         const newSocketId = chatSocket.id || null;
         setSocketId(newSocketId);
         socketIdRef.current = newSocketId;
-        setConnectionState("connected");
+        useSocketStore.getState().setConnectionState("connected");
         publishPresence('online');
         socketHealthMonitor.markEventReceived();
 
@@ -141,7 +145,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
         console.info("[SocketProvider] Socket disconnected:", reason);
         const wasConnected = socketIdRef.current !== null;
         backendRestartDetector.recordDisconnect(reason, wasConnected);
-        setConnectionState("disconnected");
+        useSocketStore.getState().setConnectionState("disconnected");
         publishPresence('offline');
 
         if (healthCheckIntervalRef.current) {
@@ -154,14 +158,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
       chatSocket.on("connect_error", (error) => {
         console.error("[SocketProvider] Connection error:", error);
-        setConnectionState("disconnected");
+        useSocketStore.getState().setConnectionState("disconnected");
         publishPresence('offline');
         callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
       });
 
       chatSocket.on("reconnect_attempt", () => {
         console.info("[SocketProvider] Reconnecting...");
-        setConnectionState("reconnecting");
+        useSocketStore.getState().setConnectionState("reconnecting");
       });
 
       chatSocket.on("session-waiting", (data) => {
@@ -188,7 +192,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
         getRoomInfo: () => null,
         onHalfDeadDetected: () => {
           console.warn("[SocketProvider] Half-dead socket detected");
-          setIsHealthy(false);
+          useSocketStore.getState().setIsHealthy(false);
         },
         onResyncRequired: () => {
           console.info("[SocketProvider] Resync required");
@@ -209,7 +213,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       }
 
       healthCheckIntervalRef.current = setInterval(() => {
-        setIsHealthy(socketHealthMonitor.isHealthy());
+        useSocketStore.getState().setIsHealthy(socketHealthMonitor.isHealthy());
       }, 1000);
     } finally {
       initializingRef.current = false;
@@ -227,6 +231,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
       isInActiveCallRef.current = false;
       resyncPendingRef.current = false;
       backendRestartDetector.reset();
+      useSocketStore.getState().setConnectionState("disconnected");
+      useSocketStore.getState().setIsHealthy(false);
 
       if (healthCheckIntervalRef.current) {
         clearInterval(healthCheckIntervalRef.current);
@@ -271,12 +277,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
   }, []);
 
-  const value: SocketContextValue = {
+  const value = {
     socket,
     adminSocket,
-    connectionState,
     socketId,
-    isHealthy,
     updateToken: updateSocketToken,
     requestResync,
     registerCallbacks,

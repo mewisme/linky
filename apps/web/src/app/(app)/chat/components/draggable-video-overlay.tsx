@@ -4,24 +4,21 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
 import { VideoOff } from "lucide-react";
+import {
+  useVideoChatStore,
+  type OverlayCorner,
+  type OverlayPosition,
+} from "@/stores/video-chat-store";
 import { VideoPlayer } from "./video-player";
-
-type CornerPosition = "top-left" | "top-right" | "bottom-left" | "bottom-right";
-
-interface Position {
-  x: number;
-  y: number;
-}
 
 interface DraggableVideoOverlayProps {
   localStream: MediaStream | null;
   isVideoOff: boolean;
   containerRef: React.RefObject<HTMLDivElement>;
-  onPositionChange?: (position: Position, corner: CornerPosition | null) => void;
   isMobile?: boolean;
 }
 
-function getDefaultCorner(isMobile: boolean): CornerPosition {
+function getDefaultCorner(isMobile: boolean): OverlayCorner {
   return isMobile ? "top-right" : "bottom-right";
 }
 
@@ -31,12 +28,12 @@ const MOBILE_OVERLAY_WIDTH_VW = 30;
 const MOBILE_OVERLAY_MAX_PX = 128;
 
 function getCornerPosition(
-  corner: CornerPosition,
+  corner: OverlayCorner,
   containerWidth: number,
   containerHeight: number,
   overlayWidth: number,
   overlayHeight: number
-): Position {
+): OverlayPosition {
   switch (corner) {
     case "top-left":
       return { x: PADDING, y: PADDING };
@@ -59,14 +56,14 @@ function getNearestCorner(
   containerHeight: number,
   overlayWidth: number,
   overlayHeight: number
-): CornerPosition {
-  const corners: CornerPosition[] = [
+): OverlayCorner {
+  const corners: OverlayCorner[] = [
     "top-left",
     "top-right",
     "bottom-left",
     "bottom-right",
   ];
-  let best: CornerPosition = "bottom-right";
+  let best: OverlayCorner = "bottom-right";
   let bestDistSq = Infinity;
   for (const c of corners) {
     const p = getCornerPosition(
@@ -97,18 +94,16 @@ export function DraggableVideoOverlay({
   localStream,
   isVideoOff,
   containerRef,
-  onPositionChange,
   isMobile = false,
 }: DraggableVideoOverlayProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const positionRef = useRef<Position | null>(null);
-  const latestPositionRef = useRef<Position | null>(null);
+  const latestPositionRef = useRef<OverlayPosition | null>(null);
   const hasInitializedPositionRef = useRef(false);
   const hasUserDraggedRef = useRef(false);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState<Position | null>(null);
-
+  const position = useVideoChatStore((s) => s.overlayPosition);
+  const positionRef = useRef<OverlayPosition | null>(null);
   positionRef.current = position;
 
   useLayoutEffect(() => {
@@ -127,9 +122,9 @@ export function DraggableVideoOverlay({
       overlayRect.height
     );
     hasInitializedPositionRef.current = true;
-    setPosition(cornerPos);
-    onPositionChange?.(cornerPos, defaultCorner);
-  }, [containerRef, isMobile, onPositionChange]);
+    useVideoChatStore.getState().setOverlayPosition(cornerPos);
+    useVideoChatStore.getState().setOverlayCorner(defaultCorner);
+  }, [containerRef, isMobile]);
 
   useLayoutEffect(() => {
     if (!hasInitializedPositionRef.current || hasUserDraggedRef.current) return;
@@ -145,9 +140,9 @@ export function DraggableVideoOverlay({
       overlayRect.width,
       overlayRect.height
     );
-    setPosition(cornerPos);
-    onPositionChange?.(cornerPos, defaultCorner);
-  }, [containerRef, isMobile, onPositionChange]);
+    useVideoChatStore.getState().setOverlayPosition(cornerPos);
+    useVideoChatStore.getState().setOverlayCorner(defaultCorner);
+  }, [containerRef, isMobile]);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
@@ -174,14 +169,14 @@ export function DraggableVideoOverlay({
         overlayRect.width,
         overlayRect.height
       );
-      setPosition(next);
-      onPositionChange?.(next, corner);
+      useVideoChatStore.getState().setOverlayPosition(next);
+      useVideoChatStore.getState().setOverlayCorner(corner);
     });
     ro.observe(container);
     return () => ro.disconnect();
-  }, [containerRef, isMobile, onPositionChange]);
+  }, [containerRef, isMobile]);
 
-  const runSnapToNearestCorner = (override?: Position) => {
+  const runSnapToNearestCorner = (override?: OverlayPosition) => {
     const pos = override ?? positionRef.current;
     if (!pos || !containerRef.current || !overlayRef.current) return;
     const containerRect = containerRef.current.getBoundingClientRect();
@@ -203,8 +198,8 @@ export function DraggableVideoOverlay({
       overlayRect.width,
       overlayRect.height
     );
-    setPosition(cornerPos);
-    onPositionChange?.(cornerPos, corner);
+    useVideoChatStore.getState().setOverlayPosition(cornerPos);
+    useVideoChatStore.getState().setOverlayCorner(corner);
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -231,7 +226,7 @@ export function DraggableVideoOverlay({
       newY = Math.max(0, Math.min(newY, rect.height - overlayRect.height));
       const next = { x: newX, y: newY };
       latestPositionRef.current = next;
-      setPosition(next);
+      useVideoChatStore.getState().setOverlayPosition(next);
     };
 
     const handlePointerUp = () => {

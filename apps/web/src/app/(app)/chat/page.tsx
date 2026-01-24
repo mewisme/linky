@@ -21,7 +21,6 @@ export default function ChatPage() {
     localStream,
     remoteStream,
     connectionStatus,
-    callStartedAt,
     isMuted,
     isVideoOff,
     remoteMuted,
@@ -89,7 +88,6 @@ export default function ChatPage() {
           localStream={localStream}
           remoteStream={remoteStream}
           connectionStatus={connectionStatus}
-          callStartedAt={callStartedAt}
           isMuted={isMuted}
           isVideoOff={isVideoOff}
           remoteMuted={remoteMuted}

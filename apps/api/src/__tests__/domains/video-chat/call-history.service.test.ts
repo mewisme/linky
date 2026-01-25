@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { recordCallHistoryInDatabase } from "../../../domains/video-chat/service/call-history.service.js";
 
 const mockGetUserCountry = vi.fn();
@@ -6,15 +7,10 @@ const mockCreateCallHistory = vi.fn();
 const mockInvalidate = vi.fn();
 const mockAddCallExp = vi.fn();
 const mockAddCallDurationToStreak = vi.fn();
-const mockUpsertSharedStreakForPair = vi.fn();
 
 vi.mock("../../../infra/supabase/repositories/call-history.js", () => ({
   createCallHistory: (...args: unknown[]) => mockCreateCallHistory(...args),
   getUserCountry: (...args: unknown[]) => mockGetUserCountry(...args),
-}));
-
-vi.mock("../../../infra/supabase/repositories/shared-streaks.js", () => ({
-  upsertSharedStreakForPair: (...args: unknown[]) => mockUpsertSharedStreakForPair(...args),
 }));
 
 vi.mock("../../../domains/user/service/user-level.service.js", () => ({
@@ -36,7 +32,6 @@ beforeEach(() => {
   mockInvalidate.mockResolvedValue(undefined);
   mockAddCallExp.mockResolvedValue(undefined);
   mockAddCallDurationToStreak.mockResolvedValue(null);
-  mockUpsertSharedStreakForPair.mockResolvedValue(undefined);
 });
 
 describe("recordCallHistoryInDatabase", () => {
@@ -65,17 +60,16 @@ describe("recordCallHistoryInDatabase", () => {
     });
   });
 
-  it("when durationSeconds <= 0: createCallHistory only, no invalidate/addCallExp/addCallDurationToStreak/upsertSharedStreakForPair", async () => {
+  it("when durationSeconds <= 0: createCallHistory only, no invalidate/addCallExp/addCallDurationToStreak", async () => {
     await recordCallHistoryInDatabase({ ...baseParams, durationSeconds: 0 });
 
     expect(mockCreateCallHistory).toHaveBeenCalled();
     expect(mockInvalidate).not.toHaveBeenCalled();
     expect(mockAddCallExp).not.toHaveBeenCalled();
     expect(mockAddCallDurationToStreak).not.toHaveBeenCalled();
-    expect(mockUpsertSharedStreakForPair).not.toHaveBeenCalled();
   });
 
-  it("when durationSeconds > 0: invalidate both, addCallExp for both with timezone/counterpart/dateForExpToday, addCallDurationToStreak, upsertSharedStreakForPair", async () => {
+  it("when durationSeconds > 0: invalidate both, addCallExp for both with timezone/counterpart/dateForExpToday, addCallDurationToStreak", async () => {
     await recordCallHistoryInDatabase({ ...baseParams, durationSeconds: 300 });
 
     expect(mockInvalidate).toHaveBeenCalledWith("user:progress:c1:America/New_York");
@@ -94,8 +88,6 @@ describe("recordCallHistoryInDatabase", () => {
 
     expect(mockAddCallDurationToStreak).toHaveBeenCalledWith("c1", 300, baseParams.endedAt, "America/New_York");
     expect(mockAddCallDurationToStreak).toHaveBeenCalledWith("c2", 300, baseParams.endedAt, "Europe/Paris");
-
-    expect(mockUpsertSharedStreakForPair).toHaveBeenCalledWith("c1", "c2", "2024-06-15");
   });
 
   it("onStreakCompleted: called for caller when addCallDurationToStreak returns firstTimeValid", async () => {

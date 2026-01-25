@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@repo/ui/components/ui/dialog";
-import { IconClock, IconFlame, IconStar } from "@tabler/icons-react";
+import { IconClock, IconFlame, IconSnowflake, IconStar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
@@ -121,6 +121,12 @@ export default function UserProgressPage() {
                   </p>
                 </div>
                 <div className="pt-3 border-t">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">EXP earned today</span>
+                    <span className="font-medium">{formatSeconds(data.expEarnedToday ?? 0)}</span>
+                  </div>
+                </div>
+                <div className="pt-3 border-t">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-muted-foreground">Next Level</span>
@@ -130,6 +136,9 @@ export default function UserProgressPage() {
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Keep progressing to unlock future rewards
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Calling favorites gives bonus EXP. Mutual favorites give higher bonus.
                     </p>
                   </div>
                 </div>
@@ -141,7 +150,11 @@ export default function UserProgressPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <IconFlame className="w-5 h-5 text-orange-500" />
+                  {data.streakStatus === "frozen" ? (
+                    <IconSnowflake className="w-5 h-5 text-sky-500" aria-hidden />
+                  ) : (
+                    <IconFlame className="w-5 h-5 text-orange-500" />
+                  )}
                   Streak
                 </CardTitle>
                 <div className="flex items-center gap-2">
@@ -154,10 +167,20 @@ export default function UserProgressPage() {
                     View all
                   </Button>
                   <Badge
-                    variant={data.isTodayStreakComplete ? "default" : "secondary"}
+                    variant={
+                      data.streakStatus === "active"
+                        ? "default"
+                        : data.streakStatus === "frozen"
+                          ? "secondary"
+                          : "outline"
+                    }
                     className="text-sm px-3 py-1"
                   >
-                    {data.isTodayStreakComplete ? "Complete" : "Incomplete"}
+                    {data.streakStatus === "active"
+                      ? "Complete"
+                      : data.streakStatus === "frozen"
+                        ? "Frozen"
+                        : "Incomplete"}
                   </Badge>
                 </div>
               </div>
@@ -168,12 +191,28 @@ export default function UserProgressPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Current Streak</span>
-                    <span className="font-medium">{data.streak.currentStreak} days</span>
+                    <span className="font-medium">
+                      {data.streak.currentStreak} days
+                      {data.streakStatus === "frozen" && (
+                        <span className="ml-1.5 text-sky-600" title="Freeze used to continue">
+                          <IconSnowflake className="inline-block size-3.5" aria-hidden />
+                        </span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Longest Streak</span>
                     <span className="font-medium">{data.streak.longestStreak} days</span>
                   </div>
+                  {data.freeze && data.freeze.availableCount != null && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Freeze available</span>
+                      <span className="font-medium">{data.freeze.availableCount}</span>
+                    </div>
+                  )}
+                  {data.streakStatus === "frozen" && (
+                    <p className="text-xs text-muted-foreground">Freeze used today</p>
+                  )}
                 </div>
                 <div className="pt-3 border-t">
                   <div className="space-y-3">

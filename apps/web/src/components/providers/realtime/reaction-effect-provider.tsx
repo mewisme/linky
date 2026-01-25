@@ -2,9 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
+import { toast } from "@repo/ui/components/ui/sonner";
 import { useSocket } from "@/hooks/socket/use-socket";
 import { useUserContext } from "@/components/providers/user/user-provider";
-import { toast } from "@repo/ui/components/ui/sonner";
 
 interface FloatingReaction {
   id: string;
@@ -85,13 +85,22 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
 
   useEffect(() => {
     if (!socket) return;
-    const handleStreakCompleted = (data: { userId: string; streakCount: number; date: string }) => {
+    const handleStreakCompleted = (data: {
+      userId: string;
+      streakCount: number;
+      date: string;
+      freezeUsed?: boolean;
+    }) => {
       const current = currentUserIdRef.current;
       if (!current || data.userId !== current) return;
       const now = Date.now();
       if (now - lastStreakToastAtRef.current < STREAK_TOAST_DEBOUNCE_MS) return;
       lastStreakToastAtRef.current = now;
-      toast.success("🔥 Streak completed! Keep it going!");
+      if (data.freezeUsed) {
+        toast.success("Streak saved by freeze");
+      } else {
+        toast.success("Streak completed! Keep it going!");
+      }
     };
     socket.on(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     return () => {

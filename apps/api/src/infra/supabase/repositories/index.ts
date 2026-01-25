@@ -29,4 +29,3 @@ export * from "./user-level-rewards.js";
 export * from "./level-feature-unlocks.js";
 export * from "./streak-exp-bonuses.js";
 export * from "./favorite-exp-boost-rules.js";
-export * from "./shared-streaks.js";

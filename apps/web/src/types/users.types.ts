@@ -158,6 +158,8 @@ export namespace UsersAPI {
   }
 
   export namespace Progress {
+    export type StreakStatus = "active" | "frozen" | "incomplete";
+
     export namespace GetMe {
       export interface Response {
         currentLevel: number;
@@ -166,6 +168,9 @@ export namespace UsersAPI {
           expToNextLevel: number;
           progressPercentage: number;
         };
+        expEarnedToday: number;
+        remainingSecondsToNextLevel: number;
+        streakStatus: StreakStatus;
         todayCallDuration: {
           totalSeconds: number;
           isValid: boolean;
@@ -182,6 +187,7 @@ export namespace UsersAPI {
         };
         todayDate: string;
         recentStreakDays: { date: string; isValid: boolean }[];
+        freeze?: { availableCount: number };
       }
     }
   }

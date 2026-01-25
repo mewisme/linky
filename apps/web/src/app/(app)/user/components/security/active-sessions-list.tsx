@@ -10,7 +10,7 @@ import { Separator } from '@repo/ui/components/ui/separator'
 import { cn } from '@repo/ui/lib/utils'
 import { formatDistanceToNow } from '@repo/ui/internal-lib/date-fns'
 
-const COLLAPSED_EXTRA = 3
+const COLLAPSED_EXTRA = 1
 
 export type SessionWithActivity = {
   id: string

@@ -2,8 +2,11 @@
 
 import {
   IconBrandApple,
+  IconBrandDiscord,
   IconBrandFacebook,
+  IconBrandGithub,
   IconBrandGoogle,
+  IconBrandLinkedin,
 } from '@tabler/icons-react'
 
 import { formatProvider } from './security-utils'
@@ -12,6 +15,9 @@ function ProviderIcon({ provider }: { provider: string }) {
   const p = provider.toLowerCase().replace(/^oauth_/, '')
   if (p === 'google') return <IconBrandGoogle className="size-4" />
   if (p === 'facebook') return <IconBrandFacebook className="size-4" />
+  if (p === 'discord') return <IconBrandDiscord className="size-4" />
+  if (p === 'github') return <IconBrandGithub className="size-4" />
+  if (p === 'linkedin') return <IconBrandLinkedin className="size-4" />
   if (p === 'apple') return <IconBrandApple className="size-4" />
   return null
 }

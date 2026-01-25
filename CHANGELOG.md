@@ -2,16 +2,21 @@
 
 ✨ Features
 
-- Enhance draggable video overlay with mobile support and layout improvements ([59a0711](../../commit/59a0711))
+- Enhance profile section edit buttons with improved accessibility and styling ([b00ff25](../../commit/b00ff25))
+- Enhance video chat functionality with call duration tracking and connection status improvements ([59b1820](../../commit/59b1820))
+
+🐛 Bug Fixes
+
+- Update logger level for improved production logging ([bb554dc](../../commit/bb554dc))
 
 ♻️ Refactoring
 
-- Remove streak completion overlay and related assets ([9df5b10](../../commit/9df5b10))
-- Remove reconnect toast handling from video chat hook ([f284ffe](../../commit/f284ffe))
+- Streamline video chat state management and enhance overlay functionality ([85096e3](../../commit/85096e3))
 
 🔨 Other Changes
 
-- Bump package version to 0.28.0 and update version lock ([ab0f8b5](../../commit/ab0f8b5))
+- Update dependencies and clean up user profile page ([4f8a421](../../commit/4f8a421))
+- Bump package version to 0.29.2 and update version lock ([ff4144c](../../commit/ff4144c))
 
 
-📋 Full Changelog: [ab0f8b5...59a0711](../../compare/ab0f8b5...59a0711)
+📋 Full Changelog: [ff4144c...bb554dc](../../compare/ff4144c...bb554dc)

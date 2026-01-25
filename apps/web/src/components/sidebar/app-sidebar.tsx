@@ -27,6 +27,7 @@ import {
   IconLogout,
   IconMessages,
   IconSettings,
+  IconShield,
   IconTags,
   IconUser,
   IconUserShield,
@@ -46,7 +47,7 @@ import {
   SidebarRail,
   useSidebar
 } from '@repo/ui/components/animate-ui/components/radix/sidebar';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation'
 
 import { Kbd } from '@repo/ui/components/ui/kbd';
@@ -111,6 +112,13 @@ export const menuItems: MenuItem[] = [
         icon: IconId,
         description: 'View your profile',
         href: '/user/profile',
+        category: 'Account',
+      },
+      {
+        label: 'Security',
+        icon: IconShield,
+        description: 'View your security settings',
+        href: '/user/security',
         category: 'Account',
       },
       {
@@ -204,7 +212,7 @@ export const menuItems: MenuItem[] = [
 ]
 
 export function AppSidebar() {
-  const { user: { user }, auth: { signOut } } = useUserContext();
+  const { user: { user } } = useUserContext();
   const { user: userStore } = useUserStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter()
@@ -220,18 +228,6 @@ export function AppSidebar() {
       return true
     })
   }, [userStore?.role])
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "q" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
-        console.log("Signing out")
-        e.preventDefault()
-        signOut()
-      }
-    }
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
-  }, [signOut])
 
   return (
     <Sidebar collapsible='icon' variant='floating' className='z-120!' >

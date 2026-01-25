@@ -32,11 +32,3 @@ export function formatLocation(
   const parts = [activity.city, activity.country].filter(Boolean)
   return parts.length > 0 ? parts.join(', ') : null
 }
-
-const TOTP_ISSUER = 'Linky'
-
-export function buildTotpUri(account: string, secret: string, issuer: string = TOTP_ISSUER): string {
-  const encodedIssuer = encodeURIComponent(issuer)
-  const encodedAccount = encodeURIComponent(account)
-  return `otpauth://totp/${encodedIssuer}:${encodedAccount}?secret=${secret}&issuer=${encodedIssuer}`
-}

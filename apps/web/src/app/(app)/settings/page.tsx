@@ -7,6 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/components/ui/select'
 import { IconBell, IconLoader2, IconMicrophone, IconVideo } from '@tabler/icons-react'
 import { useEffect, useState, useTransition } from 'react'
 
@@ -16,8 +23,68 @@ import { Label } from '@repo/ui/components/ui/label'
 import { Separator } from '@repo/ui/components/ui/separator'
 import { Switch } from '@repo/ui/components/ui/switch'
 import { toast } from "@repo/ui/components/ui/sonner";
+import { useSidebarStore, type SidebarCollapsible, type SidebarVariant } from '@/stores/sidebar-store'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import { useUserContext } from '@/components/providers/user/user-provider'
+
+function SidebarSettings() {
+  const { variant, collapsible, setVariant, setCollapsible } = useSidebarStore();
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        Sidebar
+      </h3>
+
+      <div className="grid gap-4">
+        <div className="flex justify-between">
+          <div className="space-y-2">
+            <Label htmlFor="sidebar-variant" className="flex items-center gap-2">
+              Sidebar Variant
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Sidebar layout: attached (sidebar) or floating panel
+            </p>
+          </div>
+          <Select
+            value={variant}
+            onValueChange={(v) => setVariant(v as SidebarVariant)}
+          >
+            <SelectTrigger id="sidebar-variant">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sidebar">Sidebar</SelectItem>
+              <SelectItem value="floating">Floating</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex justify-between">
+          <div className="space-y-2">
+            <Label htmlFor="sidebar-collapsible" className="flex items-center gap-2">
+              Collapse behavior
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Offcanvas slides off-screen; icon keeps a narrow strip visible
+            </p>
+          </div>
+          <Select
+            value={collapsible}
+            onValueChange={(c) => setCollapsible(c as SidebarCollapsible)}
+          >
+            <SelectTrigger id="sidebar-collapsible">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="offcanvas">Offcanvas</SelectItem>
+              <SelectItem value="icon">Icon</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function SettingsPage() {
   const {
@@ -148,6 +215,11 @@ export default function SettingsPage() {
               />
             </div>
           </div>
+
+          <Separator />
+
+          {/* Sidebar Settings */}
+          <SidebarSettings />
 
           {/* Save Button */}
           <div className="flex justify-end pt-4">

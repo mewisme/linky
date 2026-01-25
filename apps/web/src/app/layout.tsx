@@ -1,7 +1,8 @@
 import "../styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider } from "@/components/providers/clerk/clerk-provider";
+import { HideDevelopmentMode } from "@/components/clerk/hide-development-mode";
 import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/realtime/mqtt-provider";
 import { Outfit } from "next/font/google";
@@ -76,17 +77,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`${outfit.className} antialiased`}
-        >
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
+    <HideDevelopmentMode>
+      <ClerkProvider>
+        <html lang="en" suppressHydrationWarning>
+          <body
+            className={`${outfit.className} antialiased`}
           >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
               <UserProvider>
                 <SocketProvider>
                   <MqttProvider>
@@ -97,11 +99,12 @@ export default function RootLayout({
                   </MqttProvider>
                 </SocketProvider>
               </UserProvider>
-          </ThemeProvider>
-          <Analytics />
-          <SpeedInsights />
-        </body>
-      </html>
-    </ClerkProvider>
+            </ThemeProvider>
+            <Analytics />
+            <SpeedInsights />
+          </body>
+        </html>
+      </ClerkProvider>
+    </HideDevelopmentMode>
   );
 }

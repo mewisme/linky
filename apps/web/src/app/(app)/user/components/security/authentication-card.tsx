@@ -14,12 +14,12 @@ import {
   IconMail,
   IconShield,
 } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@repo/ui/components/ui/button'
 import { PasswordModal } from './password-modal'
 import { ProviderList } from './provider-list'
 import type { UserResource } from '@clerk/types'
-import { useState } from 'react'
 
 interface AuthenticationCardProps {
   user: UserResource
@@ -28,8 +28,12 @@ interface AuthenticationCardProps {
 export function AuthenticationCard({ user }: AuthenticationCardProps) {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false)
   const [passwordModalMode, setPasswordModalMode] = useState<'change' | 'set'>('change')
+  const [hasPassword, setHasPassword] = useState(user.passwordEnabled)
 
-  const hasPassword = user.passwordEnabled
+  useEffect(() => {
+    if (!user) return
+    setHasPassword(user.passwordEnabled)
+  }, [user])
 
   const openPasswordModal = (mode: 'change' | 'set') => {
     setPasswordModalMode(mode)
@@ -45,7 +49,7 @@ export function AuthenticationCard({ user }: AuthenticationCardProps) {
         </div>
         <CardDescription>Manage your sign-in methods and account authentication.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <dl className="grid gap-3">
           <div className="flex items-center justify-between gap-2 rounded-lg border p-3">
             <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -68,7 +72,6 @@ export function AuthenticationCard({ user }: AuthenticationCardProps) {
               Password
             </dt>
             <dd className="flex flex-wrap items-center justify-end gap-2">
-              <span className="text-sm font-medium">{hasPassword ? 'Set' : 'Not set'}</span>
               <Button
                 size="sm"
                 variant="outline"

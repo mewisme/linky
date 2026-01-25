@@ -8,12 +8,14 @@ import {
   CommandItem,
   CommandList,
 } from '@repo/ui/components/ui/command'
-import { IconHome, IconLogout, IconPalette } from '@tabler/icons-react'
+import { IconHome, IconLayoutSidebar, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconLogout, IconPalette, IconVersions } from '@tabler/icons-react'
 import { useCallback, useMemo } from 'react'
 
 import { menuItems } from '@/components/sidebar/app-sidebar'
 import { transformMenuItems } from '@/utils/transform'
 import { useRouter } from 'next/navigation'
+import { useSidebar } from '@repo/ui/components/animate-ui/components/radix/sidebar'
+import { useSidebarStore } from '@/stores/sidebar-store'
 import { useTheme } from 'next-themes'
 import { useUserContext } from '@/components/providers/user/user-provider'
 
@@ -30,6 +32,8 @@ export function CommandBox({ open, setOpen }: { open: boolean; setOpen: (open: b
   const router = useRouter()
   const { setTheme, resolvedTheme } = useTheme()
   const { auth: { signOut } } = useUserContext()
+  const { setCollapsible, setVariant, variant, collapsible } = useSidebarStore()
+  const { toggleSidebar, state: sidebarState } = useSidebar()
   const allActions = useMemo(() => {
     const fromMenu = transformMenuItems(menuItems)
     const customActions: CommandAction[] = [
@@ -40,13 +44,40 @@ export function CommandBox({ open, setOpen }: { open: boolean; setOpen: (open: b
         href: '/',
       },
       {
-        label: 'Theme Toggle',
+        label: 'Toggle Theme',
         icon: IconPalette,
         category: 'System',
         onSelect: () => {
           setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
         },
         description: `Toggle theme to ${resolvedTheme === 'dark' ? 'light' : 'dark'}`
+      },
+      {
+        label: 'Toggle Sidebar',
+        icon: sidebarState === 'expanded' ? IconLayoutSidebarLeftCollapse : IconLayoutSidebarLeftExpand,
+        category: 'System',
+        onSelect: () => {
+          toggleSidebar()
+        },
+        description: `Toggle sidebar state to ${sidebarState === 'expanded' ? 'collapsed' : 'expanded'}`
+      },
+      {
+        label: 'Toggle Sidebar Variant',
+        icon: IconVersions,
+        category: 'System',
+        onSelect: () => {
+          setVariant(variant === 'sidebar' ? 'floating' : 'sidebar')
+        },
+        description: `Toggle sidebar variant to ${variant === 'sidebar' ? 'floating' : 'sidebar'}`
+      },
+      {
+        label: 'Toggle Sidebar Collapsible',
+        icon: IconLayoutSidebar,
+        category: 'System',
+        onSelect: () => {
+          setCollapsible(collapsible === 'offcanvas' ? 'icon' : 'offcanvas')
+        },
+        description: `Toggle sidebar collapsible to ${collapsible === 'offcanvas' ? 'icon' : 'offcanvas'}`
       },
       {
         label: 'Logout',
@@ -59,7 +90,7 @@ export function CommandBox({ open, setOpen }: { open: boolean; setOpen: (open: b
       }
     ]
     return [...fromMenu, ...customActions]
-  }, [resolvedTheme, setTheme, signOut])
+  }, [collapsible, resolvedTheme, setCollapsible, setTheme, setVariant, sidebarState, signOut, toggleSidebar, variant])
 
   const onRunCommand = useCallback((action: CommandAction) => {
     setOpen(false)

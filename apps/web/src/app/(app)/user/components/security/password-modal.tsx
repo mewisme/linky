@@ -23,18 +23,10 @@ import { Button } from '@repo/ui/components/ui/button'
 import { Input } from '@repo/ui/components/ui/input'
 import { Label } from '@repo/ui/components/ui/label'
 import type { UserResource } from '@clerk/types'
-import { VerificationComponent } from './security-verification'
 import { toast } from '@repo/ui/components/ui/sonner'
 import { useIsMobile } from '@repo/ui/hooks/use-mobile'
 import { useReverification } from '@clerk/nextjs'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
-
-type VerificationState = {
-  complete: () => void
-  cancel: () => void
-  level: import('@clerk/types').SessionVerificationLevel | undefined
-  inProgress: boolean
-}
 
 interface PasswordModalProps {
   open: boolean
@@ -47,48 +39,28 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
   const isMobile = useIsMobile()
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
-  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [show, setShow] = useState({ current: false, new: false, confirm: false })
-  const [errors, setErrors] = useState<{
-    current?: string
-    new?: string
-    confirm?: string
-  }>({})
+  const [show, setShow] = useState({ new: false, confirm: false })
+  const [errors, setErrors] = useState<{ new?: string; confirm?: string }>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [verificationState, setVerificationState] = useState<VerificationState | undefined>(
-    undefined
-  )
-
-  const onNeedsReverification = ({ complete, cancel, level }: {
-    complete: () => void
-    cancel: () => void
-    level: import('@clerk/types').SessionVerificationLevel | undefined
-  }) => {
-    setVerificationState({ complete, cancel, level, inProgress: true })
-  }
 
   const changeWithReverify = useReverification(
-    (current: string, newPwd: string) =>
-      user.updatePassword({ currentPassword: current, newPassword: newPwd }),
-    { onNeedsReverification }
+    (newPwd: string) =>
+      user.updatePassword({ newPassword: newPwd }),
   )
 
   const setWithReverify = useReverification(
     (newPwd: string) =>
       user.updatePassword({ newPassword: newPwd }).then(() => user.reload()),
-    { onNeedsReverification }
   )
 
   useEffect(() => {
     if (!open) {
-      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       setErrors({})
       setSubmitError(null)
-      setVerificationState(undefined)
     }
   }, [open])
 
@@ -98,9 +70,6 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
     e.preventDefault()
     setSubmitError(null)
     const next: typeof errors = {}
-    if (mode === 'change') {
-      if (!currentPassword.trim()) next.current = 'Current password is required'
-    }
     if (!newPassword.trim()) next.new = 'New password is required'
     else if (newPassword.length < 8) next.new = 'Password must be at least 8 characters'
     if (newPassword !== confirmPassword) next.confirm = 'Passwords do not match'
@@ -112,16 +81,15 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
     startTransition(async () => {
       try {
         if (mode === 'change') {
-          await changeWithReverify(currentPassword, newPassword)
+          await changeWithReverify(newPassword)
           playSound('success')
           toast.success('Password updated successfully')
         } else {
-          await setWithReverify(newPassword)
+          const result = await setWithReverify(newPassword)
+          console.log('result', result)
           playSound('success')
           toast.success('Password set successfully')
         }
-        setVerificationState(undefined)
-        setCurrentPassword('')
         setNewPassword('')
         setConfirmPassword('')
         setSubmitError(null)
@@ -129,7 +97,6 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
       } catch (err) {
         if (isClerkRuntimeError(err) && isReverificationCancelledError(err)) {
           toast.info('Verification was cancelled')
-          setVerificationState(undefined)
           return
         }
         const msg = getClerkErrorMessage(err)
@@ -151,29 +118,6 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
         <p className="text-sm text-destructive" role="alert">
           {submitError}
         </p>
-      )}
-      {isChange && (
-        <div className="space-y-2">
-          <Label>Current password</Label>
-          <div className="relative">
-            <Input
-              type={show.current ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => {
-                setCurrentPassword(e.target.value)
-                setErrors((p) => ({ ...p, current: undefined }))
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => setShow((s) => ({ ...s, current: !s.current }))}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
-            >
-              {show.current ? <IconEyeOff className="size-4" /> : <IconEye className="size-4" />}
-            </button>
-          </div>
-          {errors.current && <p className="text-sm text-destructive">{errors.current}</p>}
-        </div>
       )}
       <div className="space-y-2">
         <Label>{isChange ? 'New password' : 'New password'}</Label>
@@ -225,22 +169,7 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
     </>
   )
 
-  const showVerification = verificationState?.inProgress === true
-  const body = showVerification ? (
-    <div className="space-y-4">
-      <VerificationComponent
-        level={verificationState.level}
-        onComplete={() => {
-          verificationState.complete()
-          setVerificationState(undefined)
-        }}
-        onCancel={() => {
-          verificationState.cancel()
-          setVerificationState(undefined)
-        }}
-      />
-    </div>
-  ) : (
+  const body = (
     <form onSubmit={handleSubmit} className="space-y-4">
       {formBody}
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">

@@ -23,6 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         style={{
           "--sidebar-width": "20rem",
         } as React.CSSProperties}
+        defaultOpen={false}
       >
         <AppSidebar />
         <div className="w-full flex flex-col h-full">

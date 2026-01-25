@@ -3,7 +3,6 @@
 import { SignIn, SignedIn, SignedOut } from "@clerk/nextjs";
 
 import Link from "next/link";
-import { dark } from "@clerk/themes";
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -24,20 +23,11 @@ export default function SignInPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      {/* eslint-disable-next-line react/no-unknown-property */}
-      <style jsx global>{`
-        .cl-footer > div:last-child {
-          display: none !important;
-        }
-      `}</style>
       <SignedOut>
         <SignIn
           routing="path"
           path="/sign-in"
           fallbackRedirectUrl={redirectUrl}
-          appearance={{
-            baseTheme: dark
-          }}
         />
       </SignedOut>
       <SignedIn treatPendingAsSignedOut={false}>

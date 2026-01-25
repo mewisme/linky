@@ -47,7 +47,7 @@ import {
   SidebarRail,
   useSidebar
 } from '@repo/ui/components/animate-ui/components/radix/sidebar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation'
 
 import { Kbd } from '@repo/ui/components/ui/kbd';
@@ -55,6 +55,7 @@ import { Separator } from '@repo/ui/components/ui/separator';
 import { SignOutButton } from '@clerk/nextjs'
 import { cn } from '@repo/ui/lib/utils';
 import { useIsMobile } from '@repo/ui/hooks/use-mobile';
+import { useSidebarStore } from '@/stores/sidebar-store';
 import { useUserContext } from '@/components/providers/user/user-provider';
 import { useUserStore } from '@/stores/user-store';
 
@@ -214,11 +215,16 @@ export const menuItems: MenuItem[] = [
 export function AppSidebar() {
   const { user: { user } } = useUserContext();
   const { user: userStore } = useUserStore();
+  const { variant, collapsible } = useSidebarStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter()
   const pathname = usePathname()
   const { state } = useSidebar()
   const isMobile = useIsMobile()
+
+  useEffect(() => {
+    useSidebarStore.persist.rehydrate();
+  }, []);
 
   const menuItemsFiltered = useMemo(() => {
     return menuItems.filter((item) => {
@@ -230,7 +236,7 @@ export function AppSidebar() {
   }, [userStore?.role])
 
   return (
-    <Sidebar collapsible='icon' variant='floating' className='z-120!' >
+    <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

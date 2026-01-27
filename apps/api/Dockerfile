@@ -15,10 +15,15 @@ COPY packages/typescript-config ./packages/typescript-config
 COPY packages/logger ./packages/logger
 COPY apps/api ./apps/api
 
-RUN pnpm install --frozen-lockfile \
-  && pnpm --filter @repo/logger build \
-  && pnpm --filter @repo/api build \
-  && pnpm --filter @repo/api deploy /out --prod
+RUN pnpm install --frozen-lockfile
+
+RUN pnpm --filter @repo/logger build
+
+RUN ls -la /app/packages/logger/dist/
+
+RUN pnpm --filter @repo/api build
+
+RUN pnpm --filter @repo/api deploy /out --prod
 
 # ======================
 # Runtime stage

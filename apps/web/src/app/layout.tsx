@@ -2,6 +2,7 @@ import "../styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@/components/providers/clerk/clerk-provider";
+import { ClerkReadyIndicator } from "@/components/clerk/clerk-ready-indicator";
 import { HideDevelopmentMode } from "@/components/clerk/hide-development-mode";
 import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/realtime/mqtt-provider";
@@ -90,6 +91,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <UserProvider>
+                <ClerkReadyIndicator />
                 <SocketProvider>
                   <MqttProvider>
                     <ProgressBarProvider>

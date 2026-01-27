@@ -1,8 +1,7 @@
 "use client";
 
-import { create } from "zustand";
-
 import type { UsersAPI } from "@/types/users.types";
+import { create } from "zustand";
 
 export type ConnectionStatus =
   | "idle"
@@ -42,6 +41,9 @@ interface VideoChatStore {
   peerInfo: UsersAPI.PublicUserInfo | null;
   overlayPosition: OverlayPosition | null;
   overlayCorner: OverlayCorner | null;
+  isFloatingMode: boolean;
+  floatingPosition: OverlayPosition | null;
+  floatingCorner: OverlayCorner | null;
 
   setLocalStream: (stream: MediaStream | null) => void;
   setRemoteStream: (stream: MediaStream | null) => void;
@@ -56,6 +58,9 @@ interface VideoChatStore {
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
   setOverlayPosition: (position: OverlayPosition | null) => void;
   setOverlayCorner: (corner: OverlayCorner | null) => void;
+  setFloatingMode: (isFloating: boolean) => void;
+  setFloatingPosition: (position: OverlayPosition | null) => void;
+  setFloatingCorner: (corner: OverlayCorner | null) => void;
 
   resetState: () => void;
   resetPeerState: () => void;
@@ -75,14 +80,16 @@ const initialState = {
   peerInfo: null as UsersAPI.PublicUserInfo | null,
   overlayPosition: null as OverlayPosition | null,
   overlayCorner: null as OverlayCorner | null,
+  isFloatingMode: false,
+  floatingPosition: null as OverlayPosition | null,
+  floatingCorner: null as OverlayCorner | null,
 };
 
 export const useVideoChatStore = create<VideoChatStore>((set) => ({
   ...initialState,
 
   setLocalStream: (stream) => set({ localStream: stream }),
-  setRemoteStream: (stream) =>
-    set({ remoteStream: stream, ...(stream === null ? { callStartedAt: null } : {}) }),
+  setRemoteStream: (stream) => set({ remoteStream: stream }),
   setMuted: (muted) => set({ isMuted: muted }),
   setVideoOff: (videoOff) => set({ isVideoOff: videoOff }),
   setRemoteMuted: (muted) => set({ remoteMuted: muted }),
@@ -95,6 +102,9 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setPeerInfo: (peerInfo) => set({ peerInfo }),
   setOverlayPosition: (position) => set({ overlayPosition: position }),
   setOverlayCorner: (corner) => set({ overlayCorner: corner }),
+  setFloatingMode: (isFloating) => set({ isFloatingMode: isFloating }),
+  setFloatingPosition: (position) => set({ floatingPosition: position }),
+  setFloatingCorner: (corner) => set({ floatingCorner: corner }),
 
   resetState: () => set(initialState),
   resetPeerState: () =>
@@ -119,5 +129,8 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
       peerInfo: null,
       overlayPosition: null,
       overlayCorner: null,
+      isFloatingMode: false,
+      floatingPosition: null,
+      floatingCorner: null,
     }),
 }));

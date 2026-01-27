@@ -1,7 +1,8 @@
-import { createUserContext, startCall, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
+import { createUserContext, openChatPage, startCall, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
 import { expect, test } from '@playwright/test';
 
 import { TEST_USERS } from '../../fixtures/users.fixtures';
+import { waitForClerkReady } from '../../utils/clerk-helpers';
 
 test.describe('Video Chat - Reconnect Handling', () => {
   test('should reconnect and return to in-call state after page reload', async ({ browser }) => {
@@ -18,8 +19,8 @@ test.describe('Video Chat - Reconnect Handling', () => {
     const user2Page = await user2Context.newPage();
 
     try {
-      await user1Page.goto('/chat');
-      await user2Page.goto('/chat');
+      await openChatPage(user1Page);
+      await openChatPage(user2Page);
 
       await waitForIdle(user1Page);
       await waitForIdle(user2Page);
@@ -35,6 +36,7 @@ test.describe('Video Chat - Reconnect Handling', () => {
       ]);
 
       await user1Page.reload();
+      await waitForClerkReady(user1Page);
 
       await waitForInCall(user1Page);
 

@@ -1,4 +1,4 @@
-import { createUserContext, startCall, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
+import { createUserContext, openChatPage, startCall, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
 import { devices, expect, test } from '@playwright/test';
 
 import { TEST_USERS } from '../../fixtures/users.fixtures';
@@ -15,7 +15,7 @@ test.describe('Video Chat - Mobile Viewport', () => {
     const user1Page = await user1Context.newPage();
 
     try {
-      await user1Page.goto('/chat');
+      await openChatPage(user1Page);
 
       await waitForIdle(user1Page);
 
@@ -40,7 +40,7 @@ test.describe('Video Chat - Mobile Viewport', () => {
     const user2Page = await user2Context.newPage();
 
     try {
-      await user1Page.goto('/chat');
+      await openChatPage(user1Page);
       await user2Page.goto('/chat');
 
       await waitForIdle(user1Page);

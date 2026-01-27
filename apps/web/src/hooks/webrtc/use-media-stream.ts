@@ -1,9 +1,17 @@
 "use client";
 
 import { getUserMedia, stopMediaStream } from "@/lib/webrtc/webrtc";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
-export function useMediaStream() {
+export interface UseMediaStreamReturn {
+  acquireMedia: (initialMuted?: boolean, initialVideoOff?: boolean) => Promise<MediaStream>;
+  toggleMute: () => boolean;
+  toggleVideo: () => boolean;
+  getStream: () => MediaStream | null;
+  releaseMedia: () => void;
+}
+
+export function useMediaStream(): UseMediaStreamReturn {
   const streamRef = useRef<MediaStream | null>(null);
   const isMutedRef = useRef(false);
   const isVideoOffRef = useRef(false);
@@ -76,12 +84,6 @@ export function useMediaStream() {
     isVideoOffRef.current = false;
   }, []);
 
-  useEffect(() => {
-    return () => {
-      releaseMedia();
-    };
-  }, [releaseMedia]);
-
   return useMemo(
     () => ({
       acquireMedia,
@@ -89,9 +91,6 @@ export function useMediaStream() {
       toggleVideo,
       getStream,
       releaseMedia,
-      streamRef,
-      isMutedRef,
-      isVideoOffRef,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []

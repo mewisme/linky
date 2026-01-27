@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
-import { VideoOff } from "lucide-react";
+import { IconVideoOff } from "@tabler/icons-react";
 import {
   useVideoChatStore,
   type OverlayCorner,
@@ -154,13 +154,13 @@ export function DraggableVideoOverlay({
       const overlayRect = overlayRef.current.getBoundingClientRect();
       const corner = hasUserDraggedRef.current
         ? getNearestCorner(
-            pos.x + overlayRect.width / 2,
-            pos.y + overlayRect.height / 2,
-            containerRect.width,
-            containerRect.height,
-            overlayRect.width,
-            overlayRect.height
-          )
+          pos.x + overlayRect.width / 2,
+          pos.y + overlayRect.height / 2,
+          containerRect.width,
+          containerRect.height,
+          overlayRect.width,
+          overlayRect.height
+        )
         : getDefaultCorner(isMobile);
       const next = getCornerPosition(
         corner,
@@ -251,9 +251,8 @@ export function DraggableVideoOverlay({
     <motion.div
       ref={overlayRef}
       data-reaction-exclude
-      className={`absolute left-0 top-0 z-10 ${isMobile ? "aspect-square" : "w-[200px] aspect-4/3"} cursor-move overflow-hidden rounded-lg border-2 border-background bg-black outline-none ring-0 touch-none select-none ${
-        position === null ? "invisible" : ""
-      }`}
+      className={`absolute left-0 top-0 z-10 ${isMobile ? "aspect-square" : "w-[200px] aspect-4/3"} cursor-move overflow-hidden rounded-lg border-2 border-background bg-black outline-none ring-0 touch-none select-none ${position === null ? "invisible" : ""
+        }`}
       style={
         isMobile
           ? { width: `min(${MOBILE_OVERLAY_WIDTH_VW}vw, ${MOBILE_OVERLAY_MAX_PX}px)` }
@@ -262,10 +261,10 @@ export function DraggableVideoOverlay({
       animate={
         position
           ? {
-              x: position.x,
-              y: position.y,
-              scale: isDragging ? 1.05 : 1,
-            }
+            x: position.x,
+            y: position.y,
+            scale: isDragging ? 1.05 : 1,
+          }
           : { x: 0, y: 0, scale: 1 }
       }
       transition={transition}
@@ -283,7 +282,7 @@ export function DraggableVideoOverlay({
       />
       {isVideoOff && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <VideoOff className="size-8 text-muted-foreground" />
+          <IconVideoOff className="size-8 text-muted-foreground" />
         </div>
       )}
     </motion.div>

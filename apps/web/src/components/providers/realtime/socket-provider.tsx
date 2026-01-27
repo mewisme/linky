@@ -180,11 +180,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
         callbacksRef.current.forEach(cb => cb.onSessionActivated?.(data));
       });
 
-      chatSocket.on("room-ping", (data: { timestamp?: number; roomId?: string }) => {
-        console.info("[SocketProvider] Room heartbeat received:", data.roomId);
-        socketHealthMonitor.markEventReceived();
-      });
-
       socketHealthMonitor.stop();
       socketHealthMonitor.start({
         socket: chatSocket,

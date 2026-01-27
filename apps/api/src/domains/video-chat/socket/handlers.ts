@@ -85,23 +85,26 @@ function setupJoinHandler(
   rooms: VideoChatRooms,
 ): void {
   socket.on("join", async () => {
-    logger.info("Join request received from: %s", socket.id);
+    const userId = socket.data.userId || "unknown";
+    logger.info("[JOIN] Join request received from socket: %s user: %s", socket.id, userId);
 
     if (!checkActiveSession()) {
+      logger.warn("[JOIN] Session check failed for socket: %s", socket.id);
       return;
     }
 
     if (rooms.isInRoom(socket.id)) {
-      logger.warn("User already in room, cannot join queue: %s Active rooms: %d", socket.id, rooms.getRoomCount());
+      logger.warn("[JOIN] User already in room, cannot join queue: %s Active rooms: %d", socket.id, rooms.getRoomCount());
       socket.emit("error", {
         message: "Already in a room. Please disconnect first.",
       });
       return;
     }
 
+    logger.info("[JOIN] Calling matchmaking.enqueue for socket: %s", socket.id);
     const added = await matchmaking.enqueue(socket);
     if (!added) {
-      logger.warn("User already in queue, duplicate join request: %s", socket.id);
+      logger.warn("[JOIN] Enqueue returned false for socket: %s", socket.id);
       socket.emit("error", {
         message: "Already in queue.",
       });
@@ -115,8 +118,9 @@ function setupJoinHandler(
     });
 
     logger.info(
-      "User successfully joined queue: %s (Queue size: %d, Active rooms: %d)",
+      "[JOIN] User successfully joined queue: %s user: %s (Queue size: %d, Active rooms: %d)",
       socket.id,
+      userId,
       queueSize,
       rooms.getRoomCount(),
     );

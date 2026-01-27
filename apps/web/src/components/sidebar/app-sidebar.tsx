@@ -219,12 +219,18 @@ export function AppSidebar() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const router = useRouter()
   const pathname = usePathname()
-  const { state } = useSidebar()
+  const { state, setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
 
   useEffect(() => {
     useSidebarStore.persist.rehydrate();
   }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [pathname, isMobile, setOpenMobile]);
 
   const menuItemsFiltered = useMemo(() => {
     return menuItems.filter((item) => {

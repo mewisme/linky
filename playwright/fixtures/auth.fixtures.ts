@@ -4,6 +4,7 @@ import { OTPPage } from '../flows/auth/pages/otp.page';
 import { Page } from '@playwright/test';
 import { PasswordPage } from '../flows/auth/pages/password.page';
 import { TestUser } from './users.fixtures';
+import { waitForClerkReady } from '../utils/clerk-helpers';
 
 export async function authenticateUser(
   page: Page,
@@ -11,6 +12,7 @@ export async function authenticateUser(
 ): Promise<void> {
   const identifierPage = new IdentifierPage(page);
   await page.goto('/sign-in');
+  await waitForClerkReady(page);
   await page.waitForTimeout(1000);
   await identifierPage.waitUntilVisible();
 

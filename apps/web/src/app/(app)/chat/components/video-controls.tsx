@@ -9,16 +9,9 @@ import {
   DialogTitle,
 } from "@repo/ui/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@repo/ui/components/ui/dropdown-menu";
-import {
   IconMessageCircle,
   IconMicrophone,
   IconMicrophoneOff,
-  IconDotsVertical,
   IconPhoneOff,
   IconPlayerPlay,
   IconPlayerSkipForward,
@@ -27,6 +20,7 @@ import {
   IconVideoOff,
   IconFlag,
   IconStar,
+  IconPictureInPicture,
 } from "@tabler/icons-react";
 import {
   Tooltip,
@@ -34,6 +28,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@repo/ui/components/ui/tooltip";
+import { MoreOptionsMenu } from "./more-options-menu";
+import { MoreOptionsDrawer } from "./more-options-drawer";
 
 import { Badge } from "@repo/ui/components/ui/badge";
 import { Button } from "@repo/ui/components/ui/button";
@@ -47,10 +43,11 @@ import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "react";
 
 import { useUserContext } from "@/components/providers/user/user-provider";
+import { useVideoChatStore } from "@/stores/video-chat-store";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
-interface ControlConfig {
+export interface ControlConfig {
   id: string;
   priority: ControlPriority;
   icon: React.ElementType;
@@ -66,7 +63,7 @@ interface ControlConfig {
   testId?: string | ((props: ControlContext) => string);
 }
 
-interface ControlContext {
+export interface ControlContext {
   connectionStatus: ConnectionStatus;
   isMuted: boolean;
   isVideoOff: boolean;
@@ -79,6 +76,7 @@ interface ControlContext {
 
 interface VideoControlsProps {
   connectionStatus: ConnectionStatus;
+  isInActiveCall: boolean;
   isMuted: boolean;
   isVideoOff: boolean;
   hasLocalStream: boolean;
@@ -158,6 +156,7 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
 
 export function VideoControls({
   connectionStatus,
+  isInActiveCall,
   isMuted,
   isVideoOff,
   hasLocalStream,
@@ -180,6 +179,7 @@ export function VideoControls({
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
 
   useEffect(() => {
     if (!peerInfo?.id) {
@@ -324,11 +324,8 @@ export function VideoControls({
         label: "Skip",
         variant: "outline",
         onClick: onSkip,
-        visible: connectionStatus === "connected" || connectionStatus === "reconnecting",
-        disabled:
-          connectionStatus !== "connected" &&
-          connectionStatus !== "reconnecting" &&
-          connectionStatus !== "searching",
+        visible: isInActiveCall,
+        disabled: !isInActiveCall && connectionStatus !== "searching",
         testId: "chat-skip-button",
       },
       {
@@ -377,7 +374,7 @@ export function VideoControls({
         label: "Peer Info",
         variant: "outline",
         onClick: () => { },
-        visible: (connectionStatus === "connected" || connectionStatus === "reconnecting") && !!peerInfo,
+        visible: isInActiveCall && !!peerInfo,
       },
       {
         id: "favorite",
@@ -386,7 +383,7 @@ export function VideoControls({
         label: "Add to Favorites",
         variant: "outline",
         onClick: handleToggleFavorite,
-        visible: (connectionStatus === "connected" || connectionStatus === "reconnecting") && !!peerInfo,
+        visible: isInActiveCall && !!peerInfo,
         disabled: isFavoriteLoading,
         dynamicLabel: (ctx) => ctx.isFavoriteAdded ? "Remove from Favorites" : "Add to Favorites",
         testId: (ctx) => ctx.isFavoriteAdded ? "chat-remove-favorite-button" : "chat-add-favorite-button",
@@ -398,12 +395,26 @@ export function VideoControls({
         label: "Report",
         variant: "outline",
         onClick: () => { },
-        visible: (connectionStatus === "connected" || connectionStatus === "reconnecting") && !!peerInfo,
+        visible: isInActiveCall && !!peerInfo,
+      },
+      {
+        id: "picture-in-picture",
+        priority: "overflow",
+        icon: IconPictureInPicture,
+        label: "Picture in Picture",
+        variant: "outline",
+        onClick: () => {
+          useVideoChatStore.getState().setFloatingMode(!isFloatingMode);
+        },
+        visible: isInActiveCall,
+        dynamicLabel: () => isFloatingMode ? "Exit Picture in Picture" : "Picture in Picture",
+        testId: "chat-pip-toggle-button",
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       connectionStatus,
+      isInActiveCall,
       hasLocalStream,
       onEndCall,
       onSkip,
@@ -415,6 +426,7 @@ export function VideoControls({
       handleToggleFavorite,
       isFavorite,
       isFavoriteLoading,
+      isFloatingMode,
     ]
   );
 
@@ -459,64 +471,24 @@ export function VideoControls({
           />
         ))}
 
-        {showOverflowMenu && (
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className={`h-12 w-12 ${hasUnreadMessagesIndicator ? "relative" : ""}`}
-                    data-testid="chat-overflow-menu-button"
-                  >
-                    <IconDotsVertical className="size-5" />
-                    {hasUnreadMessagesIndicator && (
-                      <span className="absolute right-1 top-1 flex h-3 w-3">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
-                        <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
-                      </span>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>More options</p>
-              </TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end" side="top" className="mb-2">
-              {visibleOverflowControls.map((control) => {
-                const Icon = control.dynamicIcon?.(context) ?? control.icon;
-                const label = control.dynamicLabel?.(context) ?? control.label;
-                const isDisabled =
-                  typeof control.disabled === "boolean"
-                    ? control.disabled
-                    : control.disabled?.(context) ?? false;
-                const testId = typeof control.testId === "function" ? control.testId(context) : control.testId;
-
-                return (
-                  <DropdownMenuItem
-                    key={control.id}
-                    onClick={() => {
-                      if (control.id === "peer-info") {
-                        setIsPeerInfoOpen(true);
-                      } else if (control.id === "report") {
-                        setIsReportOpen(true);
-                      } else {
-                        control.onClick();
-                      }
-                    }}
-                    disabled={isDisabled}
-                    data-testid={testId}
-                  >
-                    <Icon className="size-4" />
-                    <span>{label}</span>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        {showOverflowMenu &&
+          (isMobile ? (
+            <MoreOptionsDrawer
+              controls={visibleOverflowControls}
+              context={context}
+              hasUnreadIndicator={hasUnreadMessagesIndicator}
+              onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
+              onReportOpen={() => setIsReportOpen(true)}
+            />
+          ) : (
+            <MoreOptionsMenu
+              controls={visibleOverflowControls}
+              context={context}
+              hasUnreadIndicator={hasUnreadMessagesIndicator}
+              onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
+              onReportOpen={() => setIsReportOpen(true)}
+            />
+          ))}
       </TooltipProvider>
 
       <Dialog open={isPeerInfoOpen} onOpenChange={setIsPeerInfoOpen}>

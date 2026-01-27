@@ -1,4 +1,4 @@
-import { createUserContext, endCall, startCall, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
+import { createUserContext, endCall, openChatPage, startCall, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
 import { expect, test } from '@playwright/test';
 
 import { TEST_USERS } from '../../fixtures/users.fixtures';
@@ -18,8 +18,8 @@ test.describe('Video Chat - End Call', () => {
     const user2Page = await user2Context.newPage();
 
     try {
-      await user1Page.goto('/chat');
-      await user2Page.goto('/chat');
+      await openChatPage(user1Page);
+      await openChatPage(user2Page);
 
       await waitForIdle(user1Page);
       await waitForIdle(user2Page);

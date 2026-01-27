@@ -3,8 +3,6 @@
 import { closePeerConnection, createPeerConnection } from "@/lib/webrtc/webrtc";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-
-
 export interface PeerConnectionCallbacks {
   onTrack: (stream: MediaStream) => void;
   onIceCandidate: (candidate: RTCIceCandidate) => void;
@@ -12,7 +10,22 @@ export interface PeerConnectionCallbacks {
   onIceConnectionStateChange: (state: RTCIceConnectionState) => void;
 }
 
-export function usePeerConnection(iceServers: RTCIceServer[]) {
+export interface UsePeerConnectionReturn {
+  initializePeerConnection: (localStream: MediaStream, callbacks: PeerConnectionCallbacks) => RTCPeerConnection;
+  createOffer: () => Promise<RTCSessionDescriptionInit>;
+  handleOffer: (offer: RTCSessionDescriptionInit, isIceRestart?: boolean) => Promise<RTCSessionDescriptionInit>;
+  handleAnswer: (answer: RTCSessionDescriptionInit, isIceRestart?: boolean) => Promise<void>;
+  addIceCandidate: (candidate: RTCIceCandidateInit) => Promise<void>;
+  updateIceServers: (newIceServers: RTCIceServer[]) => Promise<void>;
+  restartIce: () => Promise<RTCSessionDescriptionInit>;
+  closePeer: () => void;
+  isConnectionValid: () => boolean;
+  getPeerConnection: () => RTCPeerConnection | null;
+  getIceRestartInProgress?: () => boolean;
+  setIceRestartInProgress?: (value: boolean) => void;
+}
+
+export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnectionReturn {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const callbacksRef = useRef<PeerConnectionCallbacks | null>(null);
   const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
@@ -304,12 +317,6 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
     iceRestartInProgressRef.current = value;
   }, []);
 
-  useEffect(() => {
-    return () => {
-      closePeer();
-    };
-  }, [closePeer]);
-
   return useMemo(
     () => ({
       initializePeerConnection,
@@ -324,7 +331,6 @@ export function usePeerConnection(iceServers: RTCIceServer[]) {
       getPeerConnection,
       getIceRestartInProgress,
       setIceRestartInProgress,
-      pcRef,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []

@@ -1,6 +1,6 @@
 "use client";
 
-import { MicOff, VideoOff } from "lucide-react";
+import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
 import { useCallback, useRef } from "react";
 
 import { CallTimer } from "./call-timer";
@@ -22,6 +22,7 @@ interface VideoContainerProps {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
   connectionStatus: ConnectionStatus;
+  isInActiveCall: boolean;
   isMuted: boolean;
   isVideoOff: boolean;
   remoteMuted: boolean;
@@ -41,6 +42,7 @@ export function VideoContainer({
   localStream,
   remoteStream,
   connectionStatus,
+  isInActiveCall,
   isMuted,
   isVideoOff,
   remoteMuted,
@@ -65,7 +67,7 @@ export function VideoContainer({
   const localAspectRatio = useStreamAspectRatio(localStream);
   const containerHeight = useViewportHeight(64);
 
-  const isActive = hasPeer && (connectionStatus === "connected" || connectionStatus === "reconnecting");
+  const isActive = isInActiveCall;
 
   const { handleTap } = useReactionTrigger({
     isActive,
@@ -123,17 +125,23 @@ export function VideoContainer({
             className="absolute inset-0 z-10 cursor-pointer"
             onClick={handleTapCapture}
           />
-          <CallTimer />
+          <CallTimer isInActiveCall={isInActiveCall} />
           <div
             ref={remoteVideoContainerRef}
             className="relative flex h-full w-full items-center justify-center"
+            style={{
+              minHeight: '100%',
+              minWidth: '100%',
+              maxHeight: '100%',
+              maxWidth: '100%'
+            }}
             data-testid="chat-remote-video"
           >
             <VideoPlayer
               stream={remoteStream}
               playsInline
               aspectRatio={displayAspectRatio ?? undefined}
-              className="max-h-full max-w-full"
+              className="h-full w-full"
               objectFit="contain"
               isMobile={isMobile}
             />
@@ -141,7 +149,7 @@ export function VideoContainer({
               <div
                 className={`absolute z-10 flex items-center justify-center rounded-full bg-black/60 p-2 ${isMobile ? "top-4 left-4" : "top-4 right-4"}`}
               >
-                <MicOff className="size-5 text-white" />
+                <IconMicrophoneOff className="size-5 text-white" />
               </div>
             )}
           </div>
@@ -171,7 +179,7 @@ export function VideoContainer({
               />
               {isVideoOff && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted" data-testid="chat-camera-off-indicator">
-                  <VideoOff className="size-12 text-muted-foreground" />
+                  <IconVideoOff className="size-12 text-muted-foreground" />
                 </div>
               )}
             </div>
@@ -186,6 +194,7 @@ export function VideoContainer({
       <div data-reaction-exclude className="relative" style={{ zIndex: 110 }}>
         <VideoControls
           connectionStatus={connectionStatus}
+          isInActiveCall={isInActiveCall}
           isMuted={isMuted}
           isVideoOff={isVideoOff}
           hasLocalStream={!!localStream}

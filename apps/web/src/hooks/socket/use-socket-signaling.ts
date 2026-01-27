@@ -347,12 +347,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
-  useEffect(() => {
-    return () => {
-      disconnectSocket();
-    };
-  }, [disconnectSocket]);
-
   return useMemo(
     () => ({
       initializeSocket,

@@ -10,16 +10,14 @@ function formatTime(seconds: number): string {
   return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-export function CallTimer() {
-  const remoteStream = useVideoChatStore((s) => s.remoteStream);
-  const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
+interface CallTimerProps {
+  isInActiveCall: boolean;
+}
+
+export function CallTimer({ isInActiveCall }: CallTimerProps) {
   const callStartedAt = useVideoChatStore((s) => s.callStartedAt);
 
-  const hasPeer = !!remoteStream;
-  const shouldShowTimer =
-    hasPeer &&
-    (connectionStatus === "connected" || connectionStatus === "reconnecting") &&
-    callStartedAt != null;
+  const shouldShowTimer = isInActiveCall && callStartedAt != null;
 
   const [now, setNow] = useState(() => Date.now());
 
@@ -31,7 +29,7 @@ export function CallTimer() {
 
   const callDuration =
     shouldShowTimer && callStartedAt != null
-      ? Math.floor((now - callStartedAt) / 1000)
+      ? Math.max(0, Math.floor((now - callStartedAt) / 1000))
       : 0;
 
   if (!shouldShowTimer) return null;

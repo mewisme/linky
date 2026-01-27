@@ -25,6 +25,8 @@ interface UserContextData {
   auth: ReturnType<typeof useUserAuthContext>["auth"];
   store: UserState;
   state: State;
+  authReady: boolean;
+  authLoading: boolean;
 }
 
 const UserContext = createContext<UserContextData | null>(null);
@@ -35,6 +37,14 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
   const { fetchUserData } = useUserDataContext();
   const { fetchUserDetails, updateUserDetails } = useUserDetailsContext();
   const { fetchUserSettings, updateUserSettings } = useUserSettingsContext();
+
+  const authReady = useMemo(() => {
+    return auth.isLoaded && auth.isSignedIn && token !== null;
+  }, [auth.isLoaded, auth.isSignedIn, token]);
+
+  const authLoading = useMemo(() => {
+    return !auth.isLoaded || (auth.isLoaded && auth.isSignedIn && token === null);
+  }, [auth.isLoaded, auth.isSignedIn, token]);
 
   const state = useMemo<State>(() => {
     return {
@@ -66,8 +76,8 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
   }, [auth.isLoaded, auth.isSignedIn, fetchUserData, fetchUserDetails, fetchUserSettings, token]);
 
   const value = useMemo<UserContextData>(() => {
-    return { user, auth, store, state };
-  }, [auth, state, store, user]);
+    return { user, auth, store, state, authReady, authLoading };
+  }, [auth, state, store, user, authReady, authLoading]);
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }

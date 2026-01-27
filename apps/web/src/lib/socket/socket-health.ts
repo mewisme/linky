@@ -25,6 +25,8 @@ class SocketHealthMonitor {
   private halfDeadDetected = false;
   private isBackgrounded = false;
   private visibilityChangeHandler: (() => void) | null = null;
+  private connectHandler: (() => void) | null = null;
+  private roomPingHandler: ((data: { timestamp?: number; roomId?: string }) => void) | null = null;
 
   private trackEvent(): void {
     this.lastEventTimestamp = Date.now();
@@ -119,19 +121,21 @@ class SocketHealthMonitor {
       document.addEventListener("visibilitychange", this.visibilityChangeHandler);
     }
 
-    socket.on("connect", () => {
+    this.connectHandler = () => {
       const wasConnected = this.lastEventTimestamp > 0 && Date.now() - this.lastEventTimestamp < 5000;
       if (wasConnected) {
         this.reconnectDetected = true;
         console.info("[SocketHealth] Socket reconnect detected");
       }
       this.trackEvent();
-    });
+    };
+    socket.on("connect", this.connectHandler);
 
-    socket.on("room-ping", (data: { timestamp?: number; roomId?: string }) => {
-      console.info("[SocketHealth] Room heartbeat received:", data.roomId);
+    this.roomPingHandler = (data: { timestamp?: number; roomId?: string }) => {
+      console.info("[DEBUG] Received room-ping: roomId=%s socketId=%s timestamp=%d", data.roomId, socket.id, data.timestamp);
       this.trackEvent();
-    });
+    };
+    socket.on("room-ping", this.roomPingHandler);
 
     this.healthCheckInterval = setInterval(() => {
       this.checkHealth();
@@ -154,6 +158,17 @@ class SocketHealthMonitor {
     if (this.visibilityChangeHandler && typeof document !== "undefined") {
       document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
       this.visibilityChangeHandler = null;
+    }
+
+    if (this.context?.socket) {
+      if (this.connectHandler) {
+        this.context.socket.off("connect", this.connectHandler);
+        this.connectHandler = null;
+      }
+      if (this.roomPingHandler) {
+        this.context.socket.off("room-ping", this.roomPingHandler);
+        this.roomPingHandler = null;
+      }
     }
 
     this.isMonitoring = false;

@@ -63,7 +63,7 @@ export function AppHeader() {
         </div>
         <div className='flex items-center space-x-4'>
           {/* placeholder same width with Logo size="sm" */}
-          <div className='w-16 h-8' />
+          <div className='w-16 h-8 hidden md:block' />
           <ModeToggle />
         </div>
       </div>

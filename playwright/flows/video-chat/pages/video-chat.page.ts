@@ -1,10 +1,12 @@
 import { Page } from '@playwright/test';
+import { waitForClerkReady } from '../../../utils/clerk-helpers';
 
 export class VideoChatPage {
   constructor(private readonly page: Page) { }
 
   async goto() {
     await this.page.goto('/chat');
+    await waitForClerkReady(this.page);
   }
 
   async waitForIdle() {

@@ -4,10 +4,42 @@ import type { VideoChatRoom } from "../types/room.types.js";
 import { createLogger } from "@repo/logger/api";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { recordCallHistoryInDatabase } from "../service/call-history.service.js";
+import { redisClient } from "../../../infra/redis/client.js";
+import { withRedisTimeout } from "../../../infra/redis/timeout-wrapper.js";
 
 const logger = createLogger("API:VideoChat:CallHistory:Socket");
 
 const STREAK_COMPLETED_EVENT = "streak:completed";
+const IDEMPOTENCY_KEY_TTL_SECONDS = 300;
+
+function getCallIdempotencyKey(userId1: string, userId2: string, startedAt: Date): string {
+  const sortedUserIds = [userId1, userId2].sort().join(":");
+  const startTime = startedAt.getTime();
+  return `call:processed:${sortedUserIds}:${startTime}`;
+}
+
+async function acquireIdempotencyLock(key: string): Promise<boolean> {
+  try {
+    if (!redisClient.isOpen) {
+      logger.warn("Redis not available, skipping idempotency check");
+      return true;
+    }
+
+    const result = await withRedisTimeout(
+      () => redisClient.set(key, "1", { NX: true, EX: IDEMPOTENCY_KEY_TTL_SECONDS }),
+      `idempotency-lock:${key}`,
+    );
+
+    return result === "OK";
+  } catch (error) {
+    logger.warn(
+      "Failed to acquire idempotency lock for key %s: %o",
+      key,
+      error instanceof Error ? error : new Error(String(error)),
+    );
+    return true;
+  }
+}
 
 export async function recordCallHistory(
   io: Namespace,
@@ -47,6 +79,14 @@ export async function recordCallHistory(
 
     if (!dbUserId2) {
       logger.warn("Cannot record call history: User 2 not found in database");
+      return;
+    }
+
+    const idempotencyKey = getCallIdempotencyKey(dbUserId1, dbUserId2, room.startedAt);
+    const lockAcquired = await acquireIdempotencyLock(idempotencyKey);
+
+    if (!lockAcquired) {
+      logger.info("Call history already processed for users %s and %s, skipping duplicate", dbUserId1, dbUserId2);
       return;
     }
 

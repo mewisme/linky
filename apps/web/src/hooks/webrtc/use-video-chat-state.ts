@@ -11,6 +11,23 @@ import {
 
 export type { ConnectionStatus, ChatMessage };
 
+export interface VideoChatActions {
+  setLocalStream: (stream: MediaStream | null) => void;
+  setRemoteStream: (stream: MediaStream | null) => void;
+  setConnectionStatus: (status: ConnectionStatus) => void;
+  setCallStartedAt: (timestamp: number | null) => void;
+  setMuted: (muted: boolean) => void;
+  setVideoOff: (videoOff: boolean) => void;
+  setRemoteMuted: (muted: boolean) => void;
+  addChatMessage: (message: ChatMessage) => void;
+  clearChatMessages: () => void;
+  setError: (error: string | null) => void;
+  setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
+  resetState: () => void;
+  resetPeerState: () => void;
+  resetRuntimeState: () => void;
+}
+
 export function getConnectionStatusMessage(status: ConnectionStatus): string {
   const statusMessages: Record<ConnectionStatus, string> = {
     idle: "Ready",

@@ -7,6 +7,7 @@ import { LandingPage } from '../../flows/auth/pages/landing.page';
 import { OTPPage } from '../../flows/auth/pages/otp.page';
 import { PasswordPage } from '../../flows/auth/pages/password.page';
 import { TEST_USERS } from '../../fixtures/users.fixtures';
+import { waitForClerkReady } from '../../utils/clerk-helpers';
 
 test.describe('Sign in flow', () => {
   let identifierPage: IdentifierPage;
@@ -14,6 +15,7 @@ test.describe('Sign in flow', () => {
   test.beforeEach(async ({ page }) => {
     identifierPage = new IdentifierPage(page);
     await page.goto('/sign-in');
+    await waitForClerkReady(page);
     await identifierPage.waitUntilVisible();
   });
 

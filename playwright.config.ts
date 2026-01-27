@@ -20,7 +20,7 @@ export default defineConfig({
   reporter: 'html',
   globalSetup: './playwright/tests/auth/global-setup.ts',
   use: {
-    baseURL: 'https://www.linkynow.site',
+    baseURL: 'https://3000.mewis.me',
     trace: 'on-first-retry',
   },
 

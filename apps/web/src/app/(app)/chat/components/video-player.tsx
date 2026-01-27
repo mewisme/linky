@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-
 interface VideoPlayerProps {
   stream: MediaStream | null;
   muted?: boolean;
@@ -78,6 +77,9 @@ export function VideoPlayer({
         ...aspectRatioStyle,
         objectFit,
         ...(objectPosition && { objectPosition }),
+        width: '100%',
+        height: '100%',
+        display: 'block',
       }}
     />
   );

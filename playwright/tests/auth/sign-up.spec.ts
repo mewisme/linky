@@ -4,6 +4,7 @@ import { OTPPage } from '../../flows/auth/pages/otp.page';
 import { SignUpPage } from '../../flows/auth/pages/sign-up.page';
 import { TEST_USERS } from '../../fixtures/users.fixtures';
 import { generateEmail } from '../../utils/auth/sign-up';
+import { waitForClerkReady } from '../../utils/clerk-helpers';
 
 test.describe('Sign up flow', () => {
   let signUpPage: SignUpPage;
@@ -13,6 +14,7 @@ test.describe('Sign up flow', () => {
     signUpPage = new SignUpPage(page);
     signUpEmail = generateEmail({ prefix: 'example', suffix: true, domain: 'example.com' });
     await page.goto('/sign-up');
+    await waitForClerkReady(page);
     await signUpPage.waitUntilVisible();
   });
 

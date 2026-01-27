@@ -16,15 +16,17 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
   setInterval(async () => {
     const queueSize = await matchmaking.getQueueSize();
     if (queueSize >= 2) {
-      logger.info(`Matching users (queue: ${queueSize})...`);
+      logger.info("[MATCHER] Matching users (queue: %d)...", queueSize);
       const matched = await matchmaking.tryMatch(io);
       if (matched && matched.length === 2) {
         const [user1, user2] = matched;
 
         if (!user1 || !user2) {
-          logger.error("Match failed: Invalid user data");
+          logger.error("[MATCHER] Match failed: Invalid user data");
           return;
         }
+
+        logger.info("[MATCHER] Match successful, creating room for: %s <-> %s", user1.socketId, user2.socketId);
 
         const roomId = rooms.createRoom(user1.socketId, user2.socketId);
         const isUser1Offerer = user1.socketId < user2.socketId;
@@ -45,7 +47,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user1Info = await getPublicUserInfo(dbUserId1);
             }
           } catch (error) {
-            logger.error("Failed to fetch user1 info: %o", error instanceof Error ? error : new Error(String(error)));
+            logger.error("[MATCHER] Failed to fetch user1 info: %o", error instanceof Error ? error : new Error(String(error)));
           }
         }
 
@@ -56,7 +58,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user2Info = await getPublicUserInfo(dbUserId2);
             }
           } catch (error) {
-            logger.error("Failed to fetch user2 info: %o", error instanceof Error ? error : new Error(String(error)));
+            logger.error("[MATCHER] Failed to fetch user2 info: %o", error instanceof Error ? error : new Error(String(error)));
           }
         }
 
@@ -77,13 +79,14 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
         } satisfies MatchedPayload);
 
         logger.info(
-          "Users matched: %s and %s (Active rooms: %d, Remaining queue: %d) %o",
+          "[MATCHER] Users matched and notified: %s and %s (Active rooms: %d, Remaining queue: %d)",
           user1.socketId,
           user2.socketId,
           rooms.getRoomCount(),
           await matchmaking.getQueueSize(),
-          matched,
         );
+      } else {
+        logger.info("[MATCHER] No match found (queue: %d)", queueSize);
       }
     }
   }, 1000);
@@ -113,6 +116,7 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
 
       if (user1Socket && user1Socket.connected) {
         try {
+          logger.info("[DEBUG] Emitting room-ping: roomId=%s socketId=%s namespace=%s timestamp=%d", room.id, user1Socket.id, user1Socket.nsp.name, payload.timestamp);
           user1Socket.emit("room-ping", payload);
           heartbeatSent++;
         } catch (err) {
@@ -127,6 +131,7 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
 
       if (user2Socket && user2Socket.connected) {
         try {
+          logger.info("[DEBUG] Emitting room-ping: roomId=%s socketId=%s namespace=%s timestamp=%d", room.id, user2Socket.id, user2Socket.nsp.name, payload.timestamp);
           user2Socket.emit("room-ping", payload);
           heartbeatSent++;
         } catch (err) {

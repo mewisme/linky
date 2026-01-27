@@ -37,7 +37,10 @@ pipeline {
     stage('Docker Build Backend (Express.js)') {
       steps {
         script {
-          def backendImage = docker.build("${BACKEND_IMAGE}", "-f apps/api/Dockerfile .")
+          def backendImage = docker.build(
+            "${BACKEND_IMAGE}",
+            "--no-cache -f apps/api/Dockerfile ."
+          )
           env.BACKEND_IMAGE_ID = backendImage.id
         }
       }

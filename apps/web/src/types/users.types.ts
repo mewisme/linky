@@ -24,7 +24,6 @@ export namespace UsersAPI {
       avatar_url: string | null;
       country: string | null;
       role: UserRole;
-      allow: boolean;
       created_at: string;
       updated_at: string;
     }

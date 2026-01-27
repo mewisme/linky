@@ -7,7 +7,7 @@ import { Badge } from '@repo/ui/components/ui/badge';
 import {
   type ColumnDef,
 } from "@tanstack/react-table"
-import { IconCircleCheckFilled, IconCircleXFilled, IconDotsVertical } from '@tabler/icons-react';
+import { IconCircleCheckFilled, IconCircleXFilled, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import {
   DropdownMenu,
   DropdownMenuSeparator,
@@ -21,10 +21,25 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@repo/ui/components/animate-ui/components/radix/alert-dialog';
 import { toast } from "@repo/ui/components/ui/sonner";
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar';
 import { Status, StatusIndicator, StatusLabel } from "@repo/ui/components/kibo-ui/status";
-import { memo } from 'react';
+import { memo, useState } from 'react';
+
+export interface RowCallbacks {
+  onSelectRole?: (user: AdminAPI.User, role: AdminAPI.UserRole) => void
+  onDelete: (user: AdminAPI.User) => void
+}
 
 type User = AdminAPI.User;
 
@@ -43,9 +58,88 @@ const AvatarCell = memo(({ avatarUrl, firstName, lastName }: { avatarUrl: string
 
 AvatarCell.displayName = 'AvatarCell'
 
-export interface RowCallbacks {
-  onSelectAllowState?: (user: AdminAPI.User, allow: boolean) => void
-  onSelectRole?: (user: AdminAPI.User, role: AdminAPI.UserRole) => void
+function ActionsCell({ row, callbacks }: { row: { original: User }, callbacks?: RowCallbacks }) {
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  const user = row.original;
+
+  return (
+    <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+      <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon">
+              <span className="sr-only">Open menu</span>
+              <IconDotsVertical />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className='overflow-hidden'>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => {
+                navigator.clipboard.writeText(user.id)
+                toast.success('User ID copied to clipboard')
+              }}
+            >
+              Copy user ID
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                navigator.clipboard.writeText(user.clerk_user_id)
+                toast.success('Clerk user ID copied to clipboard')
+              }}
+            >
+              Copy Clerk user ID
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                Select role
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup value={user.role} onValueChange={(value) => {
+                  callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole)
+                }}>
+                  <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="member">Member</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                setAlertOpen(true);
+              }}
+              variant='destructive'
+            >
+              <IconTrash />
+              Delete user
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, go back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                callbacks?.onDelete(user);
+                setAlertOpen(false);
+              }}
+            >Yes, delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
@@ -117,16 +211,16 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
     cell: ({ row }) => <div>{row.getValue("role")}</div>,
   },
   {
-    accessorKey: "allow",
-    header: "Allow",
+    accessorKey: "deleted",
+    header: "Active",
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.allow ? (
+        {!row.original.deleted ? (
           <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
         ) : (
           <IconCircleXFilled className="fill-red-500 dark:fill-red-400" />
         )}
-        {row.original.allow ? "Allow" : "Block"}
+        {row.original.deleted ? "Deleted" : "Active"}
       </Badge>
     ),
   },
@@ -160,66 +254,8 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
   {
     id: "actions",
     cell: ({ row }) => {
-      const user = row.original
       return (
-        <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost"
-                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-                size="icon">
-                <span className="sr-only">Open menu</span>
-                <IconDotsVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className='overflow-hidden'>
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(user.id)
-                  toast.success('User ID copied to clipboard')
-                }}
-              >
-                Copy user ID
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(user.clerk_user_id)
-                  toast.success('Clerk user ID copied to clipboard')
-                }}
-              >
-                Copy Clerk user ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  Select allow state
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuRadioGroup value={user.allow ? "true" : "false"} onValueChange={(value) => {
-                    callbacks?.onSelectAllowState?.(user, value === "true")
-                  }}>
-                    <DropdownMenuRadioItem value="true">Allow</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="false">Block</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  Select role
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuRadioGroup value={user.role} onValueChange={(value) => {
-                    callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole)
-                  }}>
-                    <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="member">Member</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <ActionsCell row={row} callbacks={callbacks} />
       )
     },
     enableHiding: false,

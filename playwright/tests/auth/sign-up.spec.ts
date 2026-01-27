@@ -1,0 +1,114 @@
+import * as Fixtures from '../../fixtures/auth.fixtures';
+
+import { expect, test } from '@playwright/test';
+
+import { OTPPage } from '../../flows/auth/pages/otp.page';
+import { SignUpPage } from '../../flows/auth/pages/sign-up.page';
+import { generateEmail } from '../../utils/auth/sign-up';
+
+test.describe('Sign up page', () => {
+  let signUpPage: SignUpPage;
+  let signUpEmail: string;
+
+  test.beforeEach(async ({ page }) => {
+    signUpPage = new SignUpPage(page);
+    signUpEmail = generateEmail({ prefix: 'example', suffix: true, domain: 'example.com' });
+    await page.goto('/sign-up');
+    await signUpPage.waitUntilVisible();
+  });
+
+  test.describe('Client side validation', () => {
+
+    test('invalid email format', async () => {
+      await signUpPage.fillEmailAddress('abc');
+      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+      await signUpPage.fillCheckbox();
+      await signUpPage.submitSignUp();
+
+      await expect(signUpPage.emailAddressInput()).toHaveValue('abc');
+    });
+
+    test('password less than 8 characters', async () => {
+      await signUpPage.fillPassword('123');
+      await signUpPage.submitSignUp();
+
+      await expect(signUpPage.errorPasswordMessage()).toBeVisible();
+    });
+
+    test('terms not accepted', async () => {
+      await signUpPage.fillFirstName('Test');
+      await signUpPage.fillLastName('User');
+      await signUpPage.fillEmailAddress(signUpEmail);
+      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+
+      await signUpPage.submitSignUp();
+
+      await expect(signUpPage.checkboxInput()).not.toBeChecked();
+    });
+  });
+
+  test.describe('Server side validation (after submit)', () => {
+
+    test('email already in use', async () => {
+      await signUpPage.fillFirstName('Test');
+      await signUpPage.fillLastName('User');
+      await signUpPage.fillEmailAddress(Fixtures.CORRECT_TEST_EMAIL);
+      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+      await signUpPage.fillCheckbox();
+
+      await signUpPage.submitSignUp();
+
+      await expect(signUpPage.formFeedbackErrorMessage()).toBeVisible();
+      await expect(signUpPage.formFeedbackErrorMessage())
+        .toHaveText(/email address is taken/i);
+    });
+
+    test('weak or compromised password', async () => {
+      await signUpPage.fillFirstName('Test');
+      await signUpPage.fillLastName('User');
+      await signUpPage.fillEmailAddress(Fixtures.CORRECT_TEST_EMAIL);
+      await signUpPage.fillPassword(Fixtures.NEW_SHORT_PASSWORD);
+      await signUpPage.fillCheckbox();
+
+      await signUpPage.submitSignUp();
+
+      await expect(signUpPage.errorPasswordMessage()).toBeVisible();
+    });
+  });
+
+  test.describe('Successful sign up', () => {
+
+    test.beforeEach(async ({ page }) => {
+      await signUpPage.fillFirstName(Fixtures.FIRST_NAME);
+      await signUpPage.fillLastName(Fixtures.LAST_NAME);
+      await signUpPage.fillEmailAddress(signUpEmail);
+      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+      await signUpPage.fillCheckbox();
+
+      await signUpPage.submitSignUp();
+    });
+
+
+    test('without otp', async ({ page }) => {
+      const otpPage = new OTPPage(page);
+      await otpPage.submitOTP('');
+      await expect(otpPage.errorMessage()).toBeVisible();
+      await expect(otpPage.errorMessage()).toHaveText(/Enter code./i);
+    })
+
+    test('incorrect otp', async ({ page }) => {
+      const otpPage = new OTPPage(page);
+      await otpPage.fillOTP(Fixtures.WRONG_OTP);
+      await expect(otpPage.errorMessage()).toBeVisible();
+      await expect(otpPage.errorMessage()).toHaveText(/Incorrect/i);
+    })
+
+    test('sign up successfully', async ({ page }) => {
+      const otpPage = new OTPPage(page);
+      await page.waitForTimeout(1000);
+      await otpPage.fillOTP(Fixtures.CORRECT_OTP);
+      await otpPage.waitUntilHidden();
+      await expect(page).toHaveURL('/');
+    });
+  });
+});

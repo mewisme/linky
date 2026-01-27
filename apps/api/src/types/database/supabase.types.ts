@@ -1018,11 +1018,12 @@ export type Database = {
       }
       users: {
         Row: {
-          allow: boolean
           avatar_url: string | null
           clerk_user_id: string
           country: string | null
           created_at: string
+          deleted: boolean | null
+          deleted_at: string | null
           email: string | null
           first_name: string | null
           id: string
@@ -1031,11 +1032,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          allow?: boolean
           avatar_url?: string | null
           clerk_user_id: string
           country?: string | null
           created_at?: string
+          deleted?: boolean | null
+          deleted_at?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
@@ -1044,11 +1046,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          allow?: boolean
           avatar_url?: string | null
           clerk_user_id?: string
           country?: string | null
           created_at?: string
+          deleted?: boolean | null
+          deleted_at?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
@@ -1269,7 +1272,6 @@ export type Database = {
       }
       users_with_details: {
         Row: {
-          allow: boolean | null
           avatar_url: string | null
           bio: string | null
           clerk_user_id: string | null

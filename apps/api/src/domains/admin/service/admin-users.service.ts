@@ -1,8 +1,10 @@
 import { getUserById, getUsers, patchUser, updateUser } from "../../../infra/supabase/repositories/index.js";
-import type { AdminUserUpdate } from "../types/admin.types.js";
 import { getOrSet, invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
+
+import type { AdminUserUpdate } from "../types/admin.types.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
+import { clerk } from "../../../infra/clerk/client.js";
 import { hashFilters } from "../../../infra/redis/cache/hash.js";
 
 export async function listUsers(params: {
@@ -10,7 +12,7 @@ export async function listUsers(params: {
   page: number;
   limit: number;
   role?: "admin" | "member";
-  allow?: boolean;
+  deleted?: boolean;
   search?: string;
 }) {
   const filters = {
@@ -18,7 +20,7 @@ export async function listUsers(params: {
     page: params.page,
     limit: params.limit,
     role: params.role,
-    allow: params.allow,
+    deleted: params.deleted,
     search: params.search,
   };
 
@@ -30,7 +32,7 @@ export async function listUsers(params: {
         page: params.page,
         limit: params.limit,
         role: params.role,
-        allow: params.allow,
+        deleted: params.deleted,
         search: params.search,
         getAll: params.getAll,
       }),
@@ -59,3 +61,17 @@ export async function patchAdminUser(id: string, userData: Partial<AdminUserUpda
   return updated;
 }
 
+export async function deleteUser(id: string): Promise<void> {
+  const user = await getUser(id);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  if (user.deleted) {
+    throw new Error("User already deleted");
+  }
+  if (user.role === "admin") {
+    throw new Error("Admin users cannot be deleted");
+  }
+
+  await clerk.users.deleteUser(user.clerk_user_id);
+}

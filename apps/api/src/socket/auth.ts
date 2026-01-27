@@ -1,4 +1,4 @@
-import { createClerkClient, verifyToken } from "@clerk/backend";
+import { clerk, verifyToken } from '../infra/clerk/client.js';
 
 import type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
 import type { Socket } from "socket.io";
@@ -9,8 +9,6 @@ import { createLogger } from "@repo/logger/api";
 export type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
 
 const logger = createLogger("API:Socket:Auth");
-
-const clerk = createClerkClient({ secretKey: config.clerkSecretKey });
 
 export async function socketAuthMiddleware(
   socket: Socket,
@@ -28,9 +26,7 @@ export async function socketAuthMiddleware(
       return next(new Error("Authentication required"));
     }
 
-    const payload = await verifyToken(token, {
-      secretKey: config.clerkSecretKey,
-    });
+    const payload = await verifyToken(token);
 
     let userName = "Anonymous";
     let userImageUrl: string | undefined;

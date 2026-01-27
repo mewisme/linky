@@ -14,7 +14,7 @@ export namespace AdminAPI {
     last_name: string | null;
     avatar_url: string | null;
     role: UserRole;
-    allow: boolean;
+    deleted: boolean;
     presence: PresenceState;
     created_at: string;
     updated_at: string;
@@ -53,7 +53,6 @@ export namespace AdminAPI {
       page?: number;
       limit?: number;
       role?: UserRole;
-      allow?: boolean | string;
       search?: string;
       all?: boolean | string;
     }
@@ -85,7 +84,6 @@ export namespace AdminAPI {
     }
 
     export interface Body {
-      allow?: boolean;
       avatar_url?: string | null;
       clerk_user_id?: string;
       created_at?: string;
@@ -105,7 +103,6 @@ export namespace AdminAPI {
     }
 
     export interface Body {
-      allow?: boolean;
       avatar_url?: string | null;
       clerk_user_id?: string;
       created_at?: string;
@@ -117,6 +114,13 @@ export namespace AdminAPI {
     }
 
     export type Response = User;
+  }
+
+  export namespace DeleteUser {
+    export interface Response {
+      success: true;
+      message: string;
+    }
   }
 
   export namespace InterestTags {
@@ -256,7 +260,6 @@ export namespace AdminAPI {
       avatar_url: string | null;
       country: string | null;
       role: "admin" | "member";
-      allow: boolean;
       created_at: string;
       updated_at: string;
     }

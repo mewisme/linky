@@ -124,6 +124,25 @@ $$;
 ALTER FUNCTION "public"."page_views_timeseries"("days" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."prepare_streak_freeze"("p_user_id" "uuid", "p_gap_date" "date") RETURNS "void"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  UPDATE user_streaks
+  SET last_valid_date = p_gap_date,
+      last_continuation_used_freeze = true
+  WHERE user_id = p_user_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."prepare_streak_freeze"("p_user_id" "uuid", "p_gap_date" "date") OWNER TO "postgres";
+
+
+COMMENT ON FUNCTION "public"."prepare_streak_freeze"("p_user_id" "uuid", "p_gap_date" "date") IS 'Bridges a one-day gap for streak continuity by setting last_valid_date to the gap date; consumed freeze and last_continuation_used_freeze are handled by the application';
+
+
+
 CREATE OR REPLACE FUNCTION "public"."trigger_update_streak_summary"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -165,6 +184,19 @@ $$;
 
 
 ALTER FUNCTION "public"."update_changelogs_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_favorite_exp_boost_rules_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_favorite_exp_boost_rules_updated_at"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_interest_tags_updated_at"() RETURNS "trigger"
@@ -543,8 +575,9 @@ CREATE TABLE IF NOT EXISTS "public"."users" (
     "role" "public"."user_role" DEFAULT 'member'::"public"."user_role" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "allow" boolean DEFAULT false NOT NULL,
-    "country" "text"
+    "country" "text",
+    "deleted" boolean DEFAULT false,
+    "deleted_at" timestamp with time zone
 );
 
 
@@ -561,7 +594,7 @@ CREATE OR REPLACE VIEW "public"."changelogs_with_creator" AS
     "c"."order",
     "c"."created_at",
     "c"."updated_at",
-    "json_build_object"('id', "u"."id", 'clerk_user_id', "u"."clerk_user_id", 'email', "u"."email", 'first_name', "u"."first_name", 'last_name', "u"."last_name", 'avatar_url', "u"."avatar_url", 'country', "u"."country", 'role', "u"."role", 'allow', "u"."allow", 'created_at', "u"."created_at", 'updated_at', "u"."updated_at") AS "created_by"
+    "json_build_object"('id', "u"."id", 'clerk_user_id', "u"."clerk_user_id", 'email', "u"."email", 'first_name', "u"."first_name", 'last_name', "u"."last_name", 'avatar_url', "u"."avatar_url", 'country', "u"."country", 'role', "u"."role", 'created_at', "u"."created_at", 'updated_at', "u"."updated_at") AS "created_by"
    FROM ("public"."changelogs" "c"
      LEFT JOIN "public"."users" "u" ON (("c"."created_by" = "u"."id")));
 
@@ -569,7 +602,21 @@ CREATE OR REPLACE VIEW "public"."changelogs_with_creator" AS
 ALTER VIEW "public"."changelogs_with_creator" OWNER TO "postgres";
 
 
-COMMENT ON VIEW "public"."changelogs_with_creator" IS 'Changelogs view with creator user information expanded from users table instead of just created_by UUID';
+CREATE TABLE IF NOT EXISTS "public"."favorite_exp_boost_rules" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "one_way_multiplier" numeric(5,2) DEFAULT 1.00 NOT NULL,
+    "mutual_multiplier" numeric(5,2) DEFAULT 1.00 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_mutual_multiplier" CHECK (("mutual_multiplier" >= 1.00)),
+    CONSTRAINT "check_one_way_multiplier" CHECK (("one_way_multiplier" >= 1.00))
+);
+
+
+ALTER TABLE "public"."favorite_exp_boost_rules" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."favorite_exp_boost_rules" IS 'Admin-defined EXP multipliers when calling with favorite (one-way vs mutual)';
 
 
 
@@ -1216,6 +1263,37 @@ COMMENT ON COLUMN "public"."user_streak_days"."created_at" IS 'Timestamp when th
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."user_streak_freeze_grants" (
+    "user_id" "uuid" NOT NULL,
+    "level_feature_unlock_id" "uuid" NOT NULL,
+    "granted_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."user_streak_freeze_grants" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_streak_freeze_grants" IS 'Tracks which level feature unlocks have granted streak freezes to avoid double-granting';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_streak_freeze_inventory" (
+    "user_id" "uuid" NOT NULL,
+    "available_count" integer DEFAULT 0 NOT NULL,
+    "total_used" integer DEFAULT 0 NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_available_count" CHECK (("available_count" >= 0)),
+    CONSTRAINT "check_total_used" CHECK (("total_used" >= 0))
+);
+
+
+ALTER TABLE "public"."user_streak_freeze_inventory" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_streak_freeze_inventory" IS 'Tracks available and used streak freezes per user';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."user_streaks" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -1223,6 +1301,7 @@ CREATE TABLE IF NOT EXISTS "public"."user_streaks" (
     "longest_streak" integer DEFAULT 0 NOT NULL,
     "last_valid_date" "date",
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "last_continuation_used_freeze" boolean DEFAULT false NOT NULL,
     CONSTRAINT "check_current_streak" CHECK (("current_streak" >= 0)),
     CONSTRAINT "check_longest_streak" CHECK (("longest_streak" >= 0))
 );
@@ -1255,6 +1334,10 @@ COMMENT ON COLUMN "public"."user_streaks"."updated_at" IS 'Timestamp when the re
 
 
 
+COMMENT ON COLUMN "public"."user_streaks"."last_continuation_used_freeze" IS 'True when the most recent streak continuation used a freeze to bridge a one-day gap';
+
+
+
 CREATE OR REPLACE VIEW "public"."users_with_details" AS
  SELECT "u"."id",
     "u"."clerk_user_id",
@@ -1264,7 +1347,6 @@ CREATE OR REPLACE VIEW "public"."users_with_details" AS
     "u"."avatar_url",
     "u"."country",
     "u"."role",
-    "u"."allow",
     "u"."created_at" AS "user_created_at",
     "u"."updated_at" AS "user_updated_at",
     "ud"."id" AS "details_id",
@@ -1282,10 +1364,6 @@ CREATE OR REPLACE VIEW "public"."users_with_details" AS
 
 
 ALTER VIEW "public"."users_with_details" OWNER TO "postgres";
-
-
-COMMENT ON VIEW "public"."users_with_details" IS 'Complete user profile combining users table with expanded user details and interest tags';
-
 
 
 CREATE TABLE IF NOT EXISTS "public"."visitors" (
@@ -1312,6 +1390,11 @@ ALTER TABLE ONLY "public"."changelogs"
 
 ALTER TABLE ONLY "public"."changelogs"
     ADD CONSTRAINT "changelogs_version_key" UNIQUE ("version");
+
+
+
+ALTER TABLE ONLY "public"."favorite_exp_boost_rules"
+    ADD CONSTRAINT "favorite_exp_boost_rules_pkey" PRIMARY KEY ("id");
 
 
 
@@ -1432,6 +1515,16 @@ ALTER TABLE ONLY "public"."user_settings"
 
 ALTER TABLE ONLY "public"."user_streak_days"
     ADD CONSTRAINT "user_streak_days_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_streak_freeze_grants"
+    ADD CONSTRAINT "user_streak_freeze_grants_pkey" PRIMARY KEY ("user_id", "level_feature_unlock_id");
+
+
+
+ALTER TABLE ONLY "public"."user_streak_freeze_inventory"
+    ADD CONSTRAINT "user_streak_freeze_inventory_pkey" PRIMARY KEY ("user_id");
 
 
 
@@ -1653,6 +1746,14 @@ CREATE INDEX "idx_user_streak_days_user_id" ON "public"."user_streak_days" USING
 
 
 
+CREATE INDEX "idx_user_streak_freeze_grants_user_id" ON "public"."user_streak_freeze_grants" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_user_streak_freeze_inventory_user_id" ON "public"."user_streak_freeze_inventory" USING "btree" ("user_id");
+
+
+
 CREATE INDEX "idx_user_streaks_current_streak" ON "public"."user_streaks" USING "btree" ("current_streak" DESC);
 
 
@@ -1686,6 +1787,10 @@ CREATE OR REPLACE TRIGGER "trigger_update_call_history_updated_at" BEFORE UPDATE
 
 
 CREATE OR REPLACE TRIGGER "trigger_update_changelogs_updated_at" BEFORE UPDATE ON "public"."changelogs" FOR EACH ROW EXECUTE FUNCTION "public"."update_changelogs_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trigger_update_favorite_exp_boost_rules_updated_at" BEFORE UPDATE ON "public"."favorite_exp_boost_rules" FOR EACH ROW EXECUTE FUNCTION "public"."update_favorite_exp_boost_rules_updated_at"();
 
 
 
@@ -1812,6 +1917,21 @@ ALTER TABLE ONLY "public"."user_streak_days"
 
 
 
+ALTER TABLE ONLY "public"."user_streak_freeze_grants"
+    ADD CONSTRAINT "fk_user_streak_freeze_grants_unlock" FOREIGN KEY ("level_feature_unlock_id") REFERENCES "public"."level_feature_unlocks"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_streak_freeze_grants"
+    ADD CONSTRAINT "fk_user_streak_freeze_grants_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_streak_freeze_inventory"
+    ADD CONSTRAINT "fk_user_streak_freeze_inventory_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."user_streaks"
     ADD CONSTRAINT "fk_user_streaks_user" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE;
 
@@ -1869,6 +1989,12 @@ GRANT ALL ON FUNCTION "public"."page_views_timeseries"("days" integer) TO "servi
 
 
 
+GRANT ALL ON FUNCTION "public"."prepare_streak_freeze"("p_user_id" "uuid", "p_gap_date" "date") TO "anon";
+GRANT ALL ON FUNCTION "public"."prepare_streak_freeze"("p_user_id" "uuid", "p_gap_date" "date") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."prepare_streak_freeze"("p_user_id" "uuid", "p_gap_date" "date") TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."trigger_update_streak_summary"() TO "anon";
 GRANT ALL ON FUNCTION "public"."trigger_update_streak_summary"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."trigger_update_streak_summary"() TO "service_role";
@@ -1884,6 +2010,12 @@ GRANT ALL ON FUNCTION "public"."update_call_history_updated_at"() TO "service_ro
 GRANT ALL ON FUNCTION "public"."update_changelogs_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_changelogs_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_changelogs_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_favorite_exp_boost_rules_updated_at"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_favorite_exp_boost_rules_updated_at"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_favorite_exp_boost_rules_updated_at"() TO "service_role";
 
 
 
@@ -1995,6 +2127,12 @@ GRANT ALL ON TABLE "public"."changelogs_with_creator" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."favorite_exp_boost_rules" TO "anon";
+GRANT ALL ON TABLE "public"."favorite_exp_boost_rules" TO "authenticated";
+GRANT ALL ON TABLE "public"."favorite_exp_boost_rules" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."interest_tags" TO "anon";
 GRANT ALL ON TABLE "public"."interest_tags" TO "authenticated";
 GRANT ALL ON TABLE "public"."interest_tags" TO "service_role";
@@ -2100,6 +2238,18 @@ GRANT ALL ON TABLE "public"."user_settings_v" TO "service_role";
 GRANT ALL ON TABLE "public"."user_streak_days" TO "anon";
 GRANT ALL ON TABLE "public"."user_streak_days" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_streak_days" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_streak_freeze_grants" TO "anon";
+GRANT ALL ON TABLE "public"."user_streak_freeze_grants" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_streak_freeze_grants" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_streak_freeze_inventory" TO "anon";
+GRANT ALL ON TABLE "public"."user_streak_freeze_inventory" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_streak_freeze_inventory" TO "service_role";
 
 
 

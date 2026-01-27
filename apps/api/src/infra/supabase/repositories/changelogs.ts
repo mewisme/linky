@@ -31,7 +31,6 @@ export interface ChangelogCreator {
   avatar_url: string | null;
   country: string | null;
   role: "admin" | "member";
-  allow: boolean;
   created_at: string;
   updated_at: string;
 }

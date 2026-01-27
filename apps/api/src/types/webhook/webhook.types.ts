@@ -25,6 +25,21 @@ export interface ClerkUserUpdatedEvent {
   type: "user.updated";
 }
 
+export interface ClerkUserDeletedEvent {
+  data: {
+    deleted: true,
+    id: string,
+    object: string
+  },
+  event_attributes: {
+    http_request: { client_ip: string, user_agent: string }
+  },
+  instance_id: string,
+  object: 'event',
+  timestamp: number,
+  type: 'user.deleted'
+}
+
 export interface ClerkUserData {
   backup_code_enabled: boolean;
   banned: boolean;
@@ -97,7 +112,7 @@ export interface ClerkHttpRequest {
 /**
  * Union type for all supported Clerk webhook event types
  */
-export type ClerkWebhookEvent = ClerkUserCreatedEvent | ClerkUserUpdatedEvent;
+export type ClerkWebhookEvent = ClerkUserCreatedEvent | ClerkUserUpdatedEvent | ClerkUserDeletedEvent;
 
 /**
  * Type guard to check if event is user.created
@@ -117,3 +132,11 @@ export function isUserUpdatedEvent(
   return event.type === "user.updated";
 }
 
+/**
+ * Type guard to check if event is user.deleted
+ */
+export function isUserDeletedEvent(
+  event: ClerkWebhookEvent
+): event is ClerkUserDeletedEvent {
+  return event.type === "user.deleted";
+}

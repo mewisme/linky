@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 import { createLogger } from "@repo/logger/api";
 import type { AdminUserUpdate } from "../types/admin.types.js";
 import { redisClient } from "../../../infra/redis/client.js";
-import { getUser, listUsers, patchAdminUser, updateAdminUser } from "../service/admin-users.service.js";
+import { deleteUser, getUser, listUsers, patchAdminUser, updateAdminUser } from "../service/admin-users.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("API:Admin:Users:Route");
@@ -15,7 +15,7 @@ router.get("/", async (req: Request, res: Response) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
 
     const role = req.query.role as "admin" | "member" | undefined;
-    const allow = req.query.allow !== undefined ? req.query.allow === "true" || req.query.allow === "1" : undefined;
+    const deleted = req.query.deleted === "true" || req.query.deleted === "1";
     const search = req.query.search as string | undefined;
 
     const { data: users, count } = await listUsers({
@@ -23,7 +23,7 @@ router.get("/", async (req: Request, res: Response) => {
       page,
       limit,
       role: role === "admin" || role === "member" ? role : undefined,
-      allow,
+      deleted,
       search,
     });
 
@@ -201,6 +201,30 @@ router.patch("/:id", async (req: Request, res: Response) => {
     });
   }
 });
+
+router.delete("/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Invalid user ID",
+      });
+    }
+
+    await deleteUser(id);
+
+    logger.info("User deleted successfully: %s", id);
+    return res.json({ success: true, message: "User deleted successfully" });
+  } catch (error: any) {
+    logger.error("Unexpected error in DELETE /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to delete user",
+    });
+  }
+})
 
 export default router;
 

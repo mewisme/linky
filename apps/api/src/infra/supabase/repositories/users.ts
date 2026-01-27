@@ -1,15 +1,16 @@
-import type { TablesUpdate } from "../../../types/database/supabase.types.js";
+import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
 import { createLogger } from "@repo/logger/api";
 import { supabase } from "../client.js";
 
 type UserUpdate = TablesUpdate<"users">;
+type UserInsert = TablesInsert<"users">;
 const logger = createLogger("API:Supabase:Users:Repository");
 
 export interface GetUsersOptions {
   page?: number;
   limit?: number;
   role?: "admin" | "member";
-  allow?: boolean;
+  deleted?: boolean;
   search?: string;
   getAll?: boolean;
 }
@@ -20,7 +21,7 @@ export interface GetUsersResult {
 }
 
 export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersResult> {
-  const { page = 1, limit = 50, role, allow, search, getAll = false } = options;
+  const { page = 1, limit = 50, role, deleted, search, getAll = false } = options;
   const maxLimit = Math.min(limit, 100);
   const offset = (page - 1) * maxLimit;
 
@@ -32,8 +33,8 @@ export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersR
     query = query.eq("role", role);
   }
 
-  if (allow !== undefined) {
-    query = query.eq("allow", allow);
+  if (deleted !== undefined) {
+    query = query.eq("deleted", deleted);
   }
 
   if (search) {
@@ -67,6 +68,37 @@ export async function getUserById(id: string) {
 
   if (error) {
     logger.error("Error fetching user: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getUserByEmail(email: string) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    logger.error("Error fetching user by email: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data;
+}
+
+export async function getUserByClerkId(clerkUserId: string) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("clerk_user_id", clerkUserId)
+    .maybeSingle();
+
+  if (error) {
+    logger.error("Error fetching user by clerk id: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 
@@ -151,3 +183,25 @@ export async function patchUser(id: string, userData: Partial<UserUpdate>) {
   return data;
 }
 
+export async function softDeleteUserByClerkId(clerkUserId: string): Promise<void> {
+  const { error } = await supabase
+    .from("users")
+    .update({ deleted: true, deleted_at: new Date().toISOString() })
+    .eq("clerk_user_id", clerkUserId);
+
+  if (error) {
+    logger.error("Error soft-deleting user: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+}
+
+export async function createUser(params: UserInsert) {
+  const { data, error } = await supabase.from("users").insert(params).select().single();
+
+  if (error) {
+    logger.error("Error creating user: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data;
+}

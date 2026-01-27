@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Database } from "../../../types/database/supabase.types.js";
 import {
+  deleteUser,
   getUser,
   listUsers,
   patchAdminUser,
@@ -13,6 +15,7 @@ const mockPatchUser = vi.fn();
 const mockGetOrSet = vi.fn();
 const mockInvalidate = vi.fn().mockResolvedValue(undefined);
 const mockInvalidateByPrefix = vi.fn().mockResolvedValue(undefined);
+const mockClerkDeleteUser = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../../../infra/supabase/repositories/index.js", () => ({
   getUsers: (...args: unknown[]) => mockGetUsers(...args),
@@ -25,6 +28,12 @@ vi.mock("../../../infra/redis/cache/index.js", () => ({
   getOrSet: (...args: unknown[]) => mockGetOrSet(...args),
   invalidate: (...args: unknown[]) => mockInvalidate(...args),
   invalidateByPrefix: (...args: unknown[]) => mockInvalidateByPrefix(...args),
+}));
+
+vi.mock("../../../infra/clerk/client.js", () => ({
+  clerk: {
+    users: { deleteUser: (...args: unknown[]) => mockClerkDeleteUser(...args) },
+  },
 }));
 
 beforeEach(() => {
@@ -42,7 +51,7 @@ describe("listUsers", () => {
       page: 1,
       limit: 10,
       role: "admin",
-      allow: true,
+      deleted: false,
       search: "x",
     });
 
@@ -52,7 +61,7 @@ describe("listUsers", () => {
       page: 1,
       limit: 10,
       role: "admin",
-      allow: true,
+      deleted: false,
       search: "x",
       getAll: false,
     });
@@ -93,14 +102,75 @@ describe("updateAdminUser", () => {
 
 describe("patchAdminUser", () => {
   it("calls patchUser then invalidateByPrefix and invalidate", async () => {
-    const updated = { id: "u1", allow: false };
+    const updated = { id: "u1", role: "member" };
     mockPatchUser.mockResolvedValue(updated);
 
-    const result = await patchAdminUser("u1", { allow: false });
+    const result = await patchAdminUser("u1", { role: "member" });
 
     expect(result).toEqual(updated);
-    expect(mockPatchUser).toHaveBeenCalledWith("u1", { allow: false });
+    expect(mockPatchUser).toHaveBeenCalledWith("u1", { role: "member" });
     expect(mockInvalidateByPrefix).toHaveBeenCalledWith("admin:users:");
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+  });
+});
+
+describe("deleteUser", () => {
+  it("calls Clerk deleteUser only and does not update database", async () => {
+    const user = {
+      id: "u1",
+      clerk_user_id: "clerk_abc",
+      deleted: false,
+      role: "member",
+    };
+    mockGetUserById.mockResolvedValue(user);
+    mockClerkDeleteUser.mockResolvedValue(undefined);
+
+    await deleteUser("u1");
+
+    expect(mockGetUserById).toHaveBeenCalledWith("u1");
+    expect(mockClerkDeleteUser).toHaveBeenCalledWith("clerk_abc");
+    expect(mockUpdateUser).not.toHaveBeenCalled();
+    expect(mockPatchUser).not.toHaveBeenCalled();
+    expect(mockInvalidateByPrefix).not.toHaveBeenCalled();
+  });
+
+  it("throws when user not found", async () => {
+    mockGetUserById.mockResolvedValue(null);
+
+    await expect(deleteUser("u1")).rejects.toThrow("User not found");
+    expect(mockClerkDeleteUser).not.toHaveBeenCalled();
+  });
+
+  it("throws when user already deleted", async () => {
+    mockGetUserById.mockResolvedValue({
+      id: "u1",
+      clerk_user_id: "clerk_abc",
+      deleted: true,
+      role: "member",
+    });
+
+    await expect(deleteUser("u1")).rejects.toThrow("User already deleted");
+    expect(mockClerkDeleteUser).not.toHaveBeenCalled();
+  });
+
+  it("throws when user is admin", async () => {
+    mockGetUserById.mockResolvedValue({
+      id: "u1",
+      clerk_user_id: "clerk_abc",
+      deleted: false,
+      role: "admin",
+    });
+
+    await expect(deleteUser("u1")).rejects.toThrow("Admin users cannot be deleted");
+    expect(mockClerkDeleteUser).not.toHaveBeenCalled();
+  });
+});
+
+describe("users.allow removal", () => {
+  it("users table Row type does not include allow (type-level)", () => {
+    type UsersRow = Database["public"]["Tables"]["users"]["Row"];
+    type AssertNoAllow = "allow" extends keyof UsersRow ? never : true;
+    const _: AssertNoAllow = true;
+    expect(_).toBe(true);
   });
 });

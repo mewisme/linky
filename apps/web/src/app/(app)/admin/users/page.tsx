@@ -140,6 +140,8 @@ export default function ListUsersPage() {
 
   return (
     <AppLayout label="Users" description="Manage users">
+      {isFetching && <div data-testid="admin-users-loading" />}
+      {!isFetching && listData.length === 0 && <div data-testid="admin-users-empty-state" />}
       <UsersDataTable
         initialData={dataWithPresence}
         callbacks={tableCallbacks}

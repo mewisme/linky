@@ -6,6 +6,7 @@ import { IdentifierPage } from '../../flows/auth/pages/identifier.page';
 import { LandingPage } from '../../flows/auth/pages/landing.page';
 import { OTPPage } from '../../flows/auth/pages/otp.page';
 import { PasswordPage } from '../../flows/auth/pages/password.page';
+import { TEST_USERS } from '../../fixtures/users.fixtures';
 
 test.describe('Sign in flow', () => {
   let identifierPage: IdentifierPage;
@@ -20,28 +21,28 @@ test.describe('Sign in flow', () => {
     test('should not submit with empty email', async ({ page }) => {
       await identifierPage.submitEmail('');
       await expect(identifierPage.emailInput()).toHaveValue('');
-    })
+    });
 
     test('should not submit with invalid email format', async ({ page }) => {
-      await identifierPage.submitEmail(Fixtures.INVALID_EMAIL);
-      await expect(identifierPage.emailInput()).toHaveValue(Fixtures.INVALID_EMAIL);
-    })
+      await identifierPage.submitEmail(TEST_USERS.user3.email);
+      await expect(identifierPage.emailInput()).toHaveValue(TEST_USERS.user3.email);
+    });
 
     test('should show error when email is not found', async ({ page }) => {
-      await identifierPage.submitEmail(Fixtures.WRONG_IDENTIFIER);
+      await identifierPage.submitEmail(TEST_USERS.user4.email);
       await expect(identifierPage.errorMessage()).toBeVisible();
       await expect(identifierPage.errorMessage()).toHaveText(
         "Couldn't find your account."
       );
-    })
-  })
+    });
+  });
 
   test.describe('Password validation', () => {
     let passwordPage: PasswordPage;
 
     test.beforeEach(async ({ page }) => {
       passwordPage = new PasswordPage(page);
-      await identifierPage.submitEmail(Fixtures.CORRECT_TEST_EMAIL);
+      await identifierPage.submitEmail(TEST_USERS.user1.email);
       await identifierPage.waitUntilHidden();
       await passwordPage.waitUntilVisible();
     });
@@ -52,31 +53,38 @@ test.describe('Sign in flow', () => {
     });
 
     test('should show error when password is incorrect', async ({ page }) => {
-      await passwordPage.submitPassword(Fixtures.WRONG_PASSWORD);
+      await passwordPage.submitPassword(TEST_USERS.user4.password);
       await expect(passwordPage.errorMessage()).toBeVisible();
       await expect(passwordPage.errorMessage()).toHaveText(
         'Password is incorrect. Try again, or use another method.'
       );
     });
+  });
 
-    test.describe('correct email & password', () => {
-      test.describe('password is not compromised', () => {
-        test('should sign in successfully', async ({ page }) => {
-          const landingPage = new LandingPage(page);
-          await page.waitForTimeout(1000);
-          await passwordPage.submitPassword(Fixtures.CORRECT_TEST_PASSWORD);
-          await passwordPage.waitUntilHidden();
+  test.describe('Successful sign in', () => {
+    let passwordPage: PasswordPage;
 
-          if (page.url().includes('/sign-in/factor-two')) {
-            const otpPage = new OTPPage(page);
-            await otpPage.fillOTP(Fixtures.CORRECT_OTP);
-            await otpPage.waitUntilHidden();
-          }
+    test.beforeEach(async ({ page }) => {
+      passwordPage = new PasswordPage(page);
+      await identifierPage.submitEmail(TEST_USERS.user1.email);
+      await identifierPage.waitUntilHidden();
+      await passwordPage.waitUntilVisible();
+    });
 
-          await landingPage.waitUntilVisible();
-          await expect(landingPage.goToChatButton()).toBeVisible();
-        });
-      })
-    })
-  })
-})
+    test('should sign in successfully', async ({ page }) => {
+      const landingPage = new LandingPage(page);
+      await page.waitForTimeout(1000);
+      await passwordPage.submitPassword(TEST_USERS.user1.password);
+      await passwordPage.waitUntilHidden();
+
+      if (page.url().includes('/sign-in/factor-two')) {
+        const otpPage = new OTPPage(page);
+        await otpPage.fillOTP(TEST_USERS.user1.otp);
+        await otpPage.waitUntilHidden();
+      }
+
+      await landingPage.waitUntilVisible();
+      await expect(landingPage.goToChatButton()).toBeVisible();
+    });
+  });
+});

@@ -30,6 +30,7 @@ export function VideoChatSearchingState() {
       <div
         className="animate-in fade-in-0 zoom-in-95 flex w-full max-w-sm flex-col items-center gap-6 rounded-2xl border border-border bg-card px-6 py-8 shadow-lg duration-300 sm:px-8 sm:py-10 dark:border-white/10 dark:bg-black/40 dark:shadow-xl dark:backdrop-blur-md"
         style={{ animationFillMode: "backwards" }}
+        data-testid="chat-searching-indicator"
       >
         <div className="flex flex-col items-center gap-5 text-center">
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">

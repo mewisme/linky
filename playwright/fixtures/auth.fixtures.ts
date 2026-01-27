@@ -1,24 +1,49 @@
-import { generateEmail } from "../utils/auth/sign-up";
+import { IdentifierPage } from '../flows/auth/pages/identifier.page';
+import { LandingPage } from '../flows/auth/pages/landing.page';
+import { OTPPage } from '../flows/auth/pages/otp.page';
+import { Page } from '@playwright/test';
+import { PasswordPage } from '../flows/auth/pages/password.page';
+import { TestUser } from './users.fixtures';
 
-export const CORRECT_TEST_EMAIL = 'example+clerk_test@example.com';
-export const CORRECT_TEST_PASSWORD = 'Example@2003';
+export async function authenticateUser(
+  page: Page,
+  user: TestUser,
+): Promise<void> {
+  const identifierPage = new IdentifierPage(page);
+  await page.goto('/sign-in');
+  await page.waitForTimeout(1000);
+  await identifierPage.waitUntilVisible();
 
-export const INVALID_EMAIL = 'invalid-email';
-export const WRONG_IDENTIFIER = 'example_wrong+clerk_test@example.com';
-export const WRONG_PASSWORD = 'wrong-password';
+  await identifierPage.submitEmail(user.email);
+  await identifierPage.waitUntilHidden();
 
-export const WRONG_OTP = '000000';
-export const CORRECT_OTP = '424242';
+  const passwordPage = new PasswordPage(page);
+  await page.waitForTimeout(1000);
+  await passwordPage.waitUntilVisible();
+  await passwordPage.submitPassword(user.password);
+  await passwordPage.waitUntilHidden();
 
-export const NEW_SHORT_PASSWORD = '123456';
-export const NEW_PASSWORD = '12345678';
-export const CONFIRM_PASSWORD = '12345678';
-export const CONFIRM_PASSWORD_MISMATCH = '123456789';
-export const NEW_STRONG_PASSWORD = 'Example@2026';
-export const CONFIRM_STRONG_PASSWORD = 'Example@2026';
-export const NOT_COMPROMISED_PASSWORD = 'Example@2026';
+  if (page.url().includes('/sign-in/factor-two')) {
+    const otpPage = new OTPPage(page);
+    await otpPage.waitUntilVisible();
+    await page.waitForTimeout(1000);
+    await otpPage.fillOTP(user.otp);
+    await otpPage.waitUntilHidden();
+  }
 
-export const FIRST_NAME = 'John';
-export const LAST_NAME = 'Doe';
+  const landingPage = new LandingPage(page);
+  await page.waitForTimeout(1000);
+  await landingPage.waitUntilVisible();
+  await landingPage.goToChatButton().waitFor({ state: 'visible' });
 
-export const CORRECT_SIGN_UP_EMAIL = generateEmail({ prefix: 'example', suffix: true, domain: 'example.com' });
+  await page.waitForURL((url) => !url.pathname.includes('/sign-in'), {
+    timeout: 10000,
+  });
+}
+
+export async function saveStorageState(
+  page: Page,
+  user: TestUser,
+): Promise<void> {
+  await page.context().storageState({ path: user.storageStatePath });
+}

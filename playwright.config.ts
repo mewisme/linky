@@ -18,6 +18,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  globalSetup: './playwright/tests/auth/global-setup.ts',
   use: {
     baseURL: 'https://www.linkynow.site',
     trace: 'on-first-retry',

@@ -1,9 +1,8 @@
-import * as Fixtures from '../../fixtures/auth.fixtures';
-
 import { expect, test } from '@playwright/test';
 
 import { OTPPage } from '../../flows/auth/pages/otp.page';
 import { SignUpPage } from '../../flows/auth/pages/sign-up.page';
+import { TEST_USERS } from '../../fixtures/users.fixtures';
 import { generateEmail } from '../../utils/auth/sign-up';
 
 test.describe('Sign up flow', () => {
@@ -21,7 +20,7 @@ test.describe('Sign up flow', () => {
 
     test('should not submit with invalid email format', async () => {
       await signUpPage.fillEmailAddress('abc');
-      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+      await signUpPage.fillPassword(TEST_USERS.user1.password);
       await signUpPage.fillCheckbox();
       await signUpPage.submitSignUp();
 
@@ -39,7 +38,7 @@ test.describe('Sign up flow', () => {
       await signUpPage.fillFirstName('Test');
       await signUpPage.fillLastName('User');
       await signUpPage.fillEmailAddress(signUpEmail);
-      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+      await signUpPage.fillPassword(TEST_USERS.user1.password);
 
       await signUpPage.submitSignUp();
 
@@ -52,8 +51,8 @@ test.describe('Sign up flow', () => {
     test('should show error when email is already in use', async () => {
       await signUpPage.fillFirstName('Test');
       await signUpPage.fillLastName('User');
-      await signUpPage.fillEmailAddress(Fixtures.CORRECT_TEST_EMAIL);
-      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+      await signUpPage.fillEmailAddress(TEST_USERS.user1.email);
+      await signUpPage.fillPassword(TEST_USERS.user1.password);
       await signUpPage.fillCheckbox();
 
       await signUpPage.submitSignUp();
@@ -66,8 +65,8 @@ test.describe('Sign up flow', () => {
     test('should show error when password is weak or compromised', async () => {
       await signUpPage.fillFirstName('Test');
       await signUpPage.fillLastName('User');
-      await signUpPage.fillEmailAddress(Fixtures.CORRECT_TEST_EMAIL);
-      await signUpPage.fillPassword(Fixtures.NEW_SHORT_PASSWORD);
+      await signUpPage.fillEmailAddress(TEST_USERS.user6.email);
+      await signUpPage.fillPassword(TEST_USERS.user6.password);
       await signUpPage.fillCheckbox();
 
       await signUpPage.submitSignUp();
@@ -79,10 +78,10 @@ test.describe('Sign up flow', () => {
   test.describe('Successful sign up', () => {
 
     test.beforeEach(async ({ page }) => {
-      await signUpPage.fillFirstName(Fixtures.FIRST_NAME);
-      await signUpPage.fillLastName(Fixtures.LAST_NAME);
+      await signUpPage.fillFirstName(TEST_USERS.user7.firstName);
+      await signUpPage.fillLastName(TEST_USERS.user7.lastName);
       await signUpPage.fillEmailAddress(signUpEmail);
-      await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
+      await signUpPage.fillPassword(TEST_USERS.user7.password);
       await signUpPage.fillCheckbox();
 
       await signUpPage.submitSignUp();
@@ -94,11 +93,11 @@ test.describe('Sign up flow', () => {
       await otpPage.submitOTP('');
       await expect(otpPage.errorMessage()).toBeVisible();
       await expect(otpPage.errorMessage()).toHaveText(/Enter code./i);
-    })
+    });
 
     test('should show error when OTP is incorrect', async ({ page }) => {
       const otpPage = new OTPPage(page);
-      await otpPage.fillOTP(Fixtures.WRONG_OTP);
+      await otpPage.fillOTP('000000');
       await expect(otpPage.errorMessage()).toBeVisible();
       await expect(otpPage.errorMessage()).toHaveText(/Incorrect/i);
     })
@@ -106,7 +105,7 @@ test.describe('Sign up flow', () => {
     test('should sign up successfully', async ({ page }) => {
       const otpPage = new OTPPage(page);
       await page.waitForTimeout(1000);
-      await otpPage.fillOTP(Fixtures.CORRECT_OTP);
+      await otpPage.fillOTP(TEST_USERS.user7.otp);
       await otpPage.waitUntilHidden();
       await expect(page).toHaveURL('/');
     });

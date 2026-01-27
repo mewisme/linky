@@ -63,6 +63,7 @@ interface ControlConfig {
   dynamicIcon?: (props: ControlContext) => React.ElementType;
   dynamicLabel?: (props: ControlContext) => string;
   dynamicVariant?: (props: ControlContext) => "default" | "destructive" | "outline";
+  testId?: string | ((props: ControlContext) => string);
 }
 
 interface ControlContext {
@@ -121,6 +122,7 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
   const label = config.dynamicLabel?.(context) ?? config.label;
   const variant =
     config.dynamicVariant?.(context) ?? config.variant ?? "outline";
+  const testId = typeof config.testId === "function" ? config.testId(context) : config.testId;
 
   const handleClick = () => {
     if (config.id === "peer-info") {
@@ -141,6 +143,7 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
           variant={variant}
           size="icon"
           className={`h-12 w-12 ${config.badge ? "relative" : ""}`}
+          data-testid={testId}
         >
           <Icon className="size-5" />
           {config.badge}
@@ -312,6 +315,7 @@ export function VideoControls({
         dynamicIcon: (ctx) => (ctx.isMuted ? IconMicrophoneOff : IconMicrophone),
         dynamicLabel: (ctx) => (ctx.isMuted ? "Unmute" : "Mute"),
         dynamicVariant: (ctx) => (ctx.isMuted ? "destructive" : "outline"),
+        testId: "chat-mute-button",
       },
       {
         id: "skip",
@@ -325,6 +329,7 @@ export function VideoControls({
           connectionStatus !== "connected" &&
           connectionStatus !== "reconnecting" &&
           connectionStatus !== "searching",
+        testId: "chat-skip-button",
       },
       {
         id: "video",
@@ -336,6 +341,7 @@ export function VideoControls({
         dynamicIcon: (ctx) => (ctx.isVideoOff ? IconVideoOff : IconVideo),
         dynamicLabel: (ctx) => (ctx.isVideoOff ? "Camera On" : "Camera Off"),
         dynamicVariant: (ctx) => (ctx.isVideoOff ? "destructive" : "outline"),
+        testId: "chat-video-toggle-button",
       },
       {
         id: "end-call",
@@ -350,6 +356,9 @@ export function VideoControls({
           connectionStatus === "searching" ||
           connectionStatus === "connecting" ||
           hasLocalStream,
+        testId: (ctx) => ctx.connectionStatus === "searching" || ctx.connectionStatus === "connecting"
+          ? "chat-cancel-search-button"
+          : "chat-end-call-button",
       },
       {
         id: "chat",
@@ -359,6 +368,7 @@ export function VideoControls({
         variant: "outline",
         onClick: onToggleChat,
         dynamicLabel: (ctx) => (ctx.isChatOpen ? "Hide Chat" : "Show Chat"),
+        testId: "chat-toggle-button",
       },
       {
         id: "peer-info",
@@ -379,6 +389,7 @@ export function VideoControls({
         visible: (connectionStatus === "connected" || connectionStatus === "reconnecting") && !!peerInfo,
         disabled: isFavoriteLoading,
         dynamicLabel: (ctx) => ctx.isFavoriteAdded ? "Remove from Favorites" : "Add to Favorites",
+        testId: (ctx) => ctx.isFavoriteAdded ? "chat-remove-favorite-button" : "chat-add-favorite-button",
       },
       {
         id: "report",
@@ -457,6 +468,7 @@ export function VideoControls({
                     variant="outline"
                     size="icon"
                     className={`h-12 w-12 ${hasUnreadMessagesIndicator ? "relative" : ""}`}
+                    data-testid="chat-overflow-menu-button"
                   >
                     <IconDotsVertical className="size-5" />
                     {hasUnreadMessagesIndicator && (
@@ -480,6 +492,7 @@ export function VideoControls({
                   typeof control.disabled === "boolean"
                     ? control.disabled
                     : control.disabled?.(context) ?? false;
+                const testId = typeof control.testId === "function" ? control.testId(context) : control.testId;
 
                 return (
                   <DropdownMenuItem
@@ -494,6 +507,7 @@ export function VideoControls({
                       }
                     }}
                     disabled={isDisabled}
+                    data-testid={testId}
                   >
                     <Icon className="size-4" />
                     <span>{label}</span>

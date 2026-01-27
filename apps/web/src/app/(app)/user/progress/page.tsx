@@ -91,7 +91,7 @@ export default function UserProgressPage() {
     <AppLayout label="Progress" description="Track your level, EXP, and streak progress">
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
+          <Card data-testid="progress-level-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -113,7 +113,7 @@ export default function UserProgressPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">EXP to Next Level</span>
-                    <span className="font-medium">{formatSeconds(data.expProgress.expToNextLevel)}</span>
+                    <span className="font-medium" data-testid="progress-exp-remaining">{formatSeconds(data.expProgress.expToNextLevel)}</span>
                   </div>
                   <Progress value={data.expProgress.progressPercentage} className="h-2" />
                   <p className="text-xs text-center text-muted-foreground">
@@ -123,7 +123,7 @@ export default function UserProgressPage() {
                 <div className="pt-3 border-t">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">EXP earned today</span>
-                    <span className="font-medium">{formatSeconds(data.expEarnedToday ?? 0)}</span>
+                    <span className="font-medium" data-testid="progress-exp-today">{formatSeconds(data.expEarnedToday ?? 0)}</span>
                   </div>
                 </div>
                 <div className="pt-3 border-t">
@@ -146,7 +146,7 @@ export default function UserProgressPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card data-testid="progress-streak-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -191,7 +191,7 @@ export default function UserProgressPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Current Streak</span>
-                    <span className="font-medium">
+                    <span className="font-medium" data-testid="progress-current-streak">
                       {data.streak.currentStreak} days
                       {data.streakStatus === "frozen" && (
                         <span className="ml-1.5 text-sky-600" title="Freeze used to continue">
@@ -202,7 +202,7 @@ export default function UserProgressPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Longest Streak</span>
-                    <span className="font-medium">{data.streak.longestStreak} days</span>
+                    <span className="font-medium" data-testid="progress-longest-streak">{data.streak.longestStreak} days</span>
                   </div>
                   {data.freeze && data.freeze.availableCount != null && (
                     <div className="flex justify-between text-sm">

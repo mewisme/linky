@@ -41,7 +41,7 @@ export function AuthenticationCard({ user }: AuthenticationCardProps) {
   }
 
   return (
-    <Card>
+    <Card data-testid="security-authentication-card">
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
           <IconShield className="size-5" />
@@ -76,6 +76,7 @@ export function AuthenticationCard({ user }: AuthenticationCardProps) {
                 size="sm"
                 variant="outline"
                 onClick={() => openPasswordModal(hasPassword ? 'change' : 'set')}
+                data-testid="security-password-open-dialog"
               >
                 {hasPassword ? 'Change password' : 'Set password'}
               </Button>

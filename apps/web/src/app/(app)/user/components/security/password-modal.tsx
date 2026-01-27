@@ -173,10 +173,10 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
     <form onSubmit={handleSubmit} className="space-y-4">
       {formBody}
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="dialog-cancel-button">
           Cancel
         </Button>
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} data-testid="security-password-submit">
           {isPending && <IconLoader2 className="mr-2 size-4 animate-spin" />}
           {isChange ? 'Update password' : 'Set password'}
         </Button>
@@ -187,7 +187,7 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="sm:max-w-md">
+        <DrawerContent className="sm:max-w-md" data-testid="drawer-container">
           <DrawerHeader>
             <DrawerTitle>{title}</DrawerTitle>
             <DrawerDescription>{description}</DrawerDescription>
@@ -200,7 +200,7 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" data-testid="dialog-container">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

@@ -144,6 +144,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   className="group"
+                  data-testid={row.original && typeof row.original === 'object' && 'id' in row.original ? `admin-user-row-${row.original.id}` : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

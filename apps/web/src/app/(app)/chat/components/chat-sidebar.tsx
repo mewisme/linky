@@ -95,12 +95,12 @@ function ChatContent({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col text-base">
+    <div className="flex h-full min-h-0 flex-col text-base" data-testid="chat-sidebar">
       <ScrollArea
         ref={scrollAreaRef}
         className="flex-1 bg-muted/30 px-4 py-3 h-96"
       >
-        <div className="flex flex-col">
+        <div className="flex flex-col" data-testid="chat-messages-container">
           {chatMessages.map((msg, index) => {
             const prev = chatMessages[index - 1];
             const next = chatMessages[index + 1];
@@ -148,6 +148,7 @@ function ChatContent({
                       ? "ml-auto items-end"
                       : "items-start"
                   )}
+                  data-testid={`chat-message-${msg.id}`}
                 >
                   <div
                     className={cn(
@@ -192,6 +193,7 @@ function ChatContent({
           role="textbox"
           spellCheck
           data-placeholder="Type a message..."
+          data-testid="chat-input"
           onKeyDown={handleKeyDown}
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
@@ -208,6 +210,7 @@ function ChatContent({
             className="rounded-full shrink-0"
             disabled={connectionStatus !== "connected" && connectionStatus !== "reconnecting"}
             onClick={sendMessage}
+            data-testid="chat-send-button"
           >
             <Send size={16} />
           </Button>

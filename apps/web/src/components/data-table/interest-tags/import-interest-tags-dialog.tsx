@@ -163,6 +163,7 @@ export function ImportInterestTagsDialog({
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 value={paste}
                 onChange={(e) => setPaste(e.target.value)}
+                data-testid="admin-interest-tags-json-input"
               />
             </div>
             <details className="text-sm overflow-x-auto">
@@ -175,7 +176,7 @@ export function ImportInterestTagsDialog({
           <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={importing}>
+          <Button type="button" onClick={handleSubmit} disabled={importing} data-testid="admin-interest-tags-import-submit">
             {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Import"}
           </Button>
         </DialogFooter>

@@ -114,13 +114,14 @@ function ActionsCell({ row, callbacks }: { row: { original: User }, callbacks?: 
                 setAlertOpen(true);
               }}
               variant='destructive'
+              data-testid="admin-user-delete-button"
             >
               <IconTrash />
               Delete user
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <AlertDialogContent>
+        <AlertDialogContent data-testid="dialog-container">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -128,12 +129,13 @@ function ActionsCell({ row, callbacks }: { row: { original: User }, callbacks?: 
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>No, go back</AlertDialogCancel>
+            <AlertDialogCancel data-testid="dialog-cancel-button">No, go back</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 callbacks?.onDelete(user);
                 setAlertOpen(false);
               }}
+              data-testid="admin-user-confirm-delete"
             >Yes, delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

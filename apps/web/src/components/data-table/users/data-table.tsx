@@ -17,18 +17,20 @@ export function UsersDataTable({ initialData, className = '', callbacks, leftCol
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
-    <DataTable
-      initialData={initialData}
-      filterColumn="email"
-      initialColumnVisibility={{
-        id: false,
-        clerk_user_id: false,
-        created_at: false,
-        updated_at: false,
-      }}
-      columns={tableColumns}
-      className={className}
-      leftColumnVisibilityContent={leftColumnVisibilityContent}
-    />
+    <div data-testid="admin-users-table">
+      <DataTable
+        initialData={initialData}
+        filterColumn="email"
+        initialColumnVisibility={{
+          id: false,
+          clerk_user_id: false,
+          created_at: false,
+          updated_at: false,
+        }}
+        columns={tableColumns}
+        className={className}
+        leftColumnVisibilityContent={leftColumnVisibilityContent}
+      />
+    </div>
   )
 }

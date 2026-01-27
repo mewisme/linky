@@ -40,6 +40,7 @@ export function CallTimer() {
     <div
       className="absolute top-4 left-1/2 z-20 -translate-x-1/2 pointer-events-none"
       data-reaction-exclude
+      data-testid="chat-call-timer"
     >
       <div className="inline-flex items-center justify-center rounded-full bg-black/50 px-3 py-1.5 backdrop-blur-md min-w-14">
         <span className="text-sm font-mono font-medium text-white tabular-nums">

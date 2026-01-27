@@ -18,15 +18,17 @@ export function InterestTagsDataTable({ initialData, className = '', callbacks, 
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
-    <DataTable
-      initialData={initialData}
-      filterColumn="name"
-      filterPlaceholder="Search tags..."
-      initialColumnVisibility={{ id: false }}
-      columns={tableColumns}
-      className={className}
-      leftColumnVisibilityContent={leftColumnVisibilityContent}
-      rightColumnVisibilityContent={rightColumnVisibilityContent}
-    />
+    <div data-testid="admin-interest-tags-table">
+      <DataTable
+        initialData={initialData}
+        filterColumn="name"
+        filterPlaceholder="Search tags..."
+        initialColumnVisibility={{ id: false }}
+        columns={tableColumns}
+        className={className}
+        leftColumnVisibilityContent={leftColumnVisibilityContent}
+        rightColumnVisibilityContent={rightColumnVisibilityContent}
+      />
+    </div>
   )
 }

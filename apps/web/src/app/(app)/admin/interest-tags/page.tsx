@@ -19,8 +19,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
 import { ImportInterestTagsDialog } from '@/components/data-table/interest-tags/import-interest-tags-dialog';
+import { Input } from "@repo/ui/components/ui/input";
 import { InterestTagsDataTable } from '@/components/data-table/interest-tags/data-table';
 import { Label } from "@repo/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
@@ -182,10 +182,10 @@ export default function InterestTagsPage() {
         }
         rightColumnVisibilityContent={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)} data-testid="admin-interest-tags-import-button">
               <IconFileImport className="w-4 h-4 mr-2" /> Import JSON
             </Button>
-            <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
+            <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm" data-testid="admin-interest-tag-create-button">
               <IconPlus className="w-4 h-4 mr-2" /> Add New Tag
             </Button>
           </div>

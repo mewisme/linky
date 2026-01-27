@@ -1,14 +1,14 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
-import { Button } from "@repo/ui/components/ui/button";
 import { IconFlame, IconPlayerPlay, IconStar } from "@tabler/icons-react";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { Button } from "@repo/ui/components/ui/button";
 import type { UsersAPI } from "@/types/users.types";
 import { getUserTimezone } from "@/utils/timezone";
+import { useQuery } from "@tanstack/react-query";
+import { useUserContext } from "@/components/providers/user/user-provider";
 
 interface VideoChatIdleStateProps {
   onStart: () => void;
@@ -50,6 +50,7 @@ export function VideoChatIdleState({ onStart }: VideoChatIdleStateProps) {
     <div
       className="flex h-full w-full flex-col items-center justify-center pb-24 pt-8"
       data-reaction-exclude
+      data-testid="chat-idle-container"
     >
       <div
         className="animate-in fade-in-0 zoom-in-95 flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-card px-6 py-6 shadow-lg duration-500 sm:px-8 sm:py-7 dark:border-white/10 dark:bg-black/40 dark:shadow-xl dark:backdrop-blur-md"
@@ -93,6 +94,7 @@ export function VideoChatIdleState({ onStart }: VideoChatIdleStateProps) {
           size="lg"
           onClick={onStart}
           className="h-12 w-full gap-2 rounded-xl px-6 text-base font-semibold shadow-lg sm:h-14 sm:px-8"
+          data-testid="chat-start-button"
         >
           <IconPlayerPlay className="size-5" />
           Start Chat

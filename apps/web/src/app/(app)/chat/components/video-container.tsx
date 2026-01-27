@@ -3,18 +3,18 @@
 import { MicOff, VideoOff } from "lucide-react";
 import { useCallback, useRef } from "react";
 
-import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { CallTimer } from "./call-timer";
+import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { ReactionOverlay } from "./overlays/reaction-overlay";
+import type { UsersAPI } from "@/types/users.types";
 import { VideoChatIdleState } from "./video-chat-idle-state";
 import { VideoChatSearchingState } from "./video-chat-searching-state";
-import type { UsersAPI } from "@/types/users.types";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
-import { useReactionTrigger } from "@/hooks/webrtc/use-reaction-trigger";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useMousePosition } from "@/hooks/ui/use-mouse-move";
+import { useReactionTrigger } from "@/hooks/webrtc/use-reaction-trigger";
 import { useStreamAspectRatio } from "@/hooks/webrtc/use-stream-aspect-ratio";
 import { useViewportHeight } from "@/hooks/ui/use-viewport-height";
 
@@ -114,6 +114,7 @@ export function VideoContainer({
       ref={setContainerRef}
       className="relative w-full overflow-hidden bg-transparent"
       style={{ height: `${containerHeight}px` }}
+      data-testid="chat-video-container"
     >
       {hasPeer ? (
         <>
@@ -126,6 +127,7 @@ export function VideoContainer({
           <div
             ref={remoteVideoContainerRef}
             className="relative flex h-full w-full items-center justify-center"
+            data-testid="chat-remote-video"
           >
             <VideoPlayer
               stream={remoteStream}
@@ -157,7 +159,7 @@ export function VideoContainer({
           {connectionStatus === "searching" || connectionStatus === "connecting" ? (
             <VideoChatSearchingState />
           ) : localStream ? (
-            <div className="relative flex h-full w-full items-center justify-center">
+            <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
               <VideoPlayer
                 stream={localStream}
                 muted
@@ -168,7 +170,7 @@ export function VideoContainer({
                 isMobile={isMobile}
               />
               {isVideoOff && (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                <div className="absolute inset-0 flex items-center justify-center bg-muted" data-testid="chat-camera-off-indicator">
                   <VideoOff className="size-12 text-muted-foreground" />
                 </div>
               )}

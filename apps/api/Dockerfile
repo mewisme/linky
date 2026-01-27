@@ -15,7 +15,7 @@ COPY packages/typescript-config ./packages/typescript-config
 COPY packages/logger ./packages/logger
 COPY apps/api ./apps/api
 
-RUN pnpm install
+RUN pnpm install --force --frozen-lockfile
 
 RUN pnpm --filter @repo/logger build
 

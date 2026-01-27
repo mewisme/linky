@@ -1,6 +1,6 @@
 FROM node:24-slim AS base
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 # ======================
 # Build stage

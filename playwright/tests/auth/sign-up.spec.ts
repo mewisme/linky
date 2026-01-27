@@ -6,7 +6,7 @@ import { OTPPage } from '../../flows/auth/pages/otp.page';
 import { SignUpPage } from '../../flows/auth/pages/sign-up.page';
 import { generateEmail } from '../../utils/auth/sign-up';
 
-test.describe('Sign up page', () => {
+test.describe('Sign up flow', () => {
   let signUpPage: SignUpPage;
   let signUpEmail: string;
 

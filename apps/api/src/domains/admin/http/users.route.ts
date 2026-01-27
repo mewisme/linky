@@ -15,7 +15,8 @@ router.get("/", async (req: Request, res: Response) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
 
     const role = req.query.role as "admin" | "member" | undefined;
-    const deleted = req.query.deleted === "true" || req.query.deleted === "1";
+    const deletedParam = req.query.deleted;
+    const deleted = deletedParam === "true" || deletedParam === "1" ? true : deletedParam === "false" || deletedParam === "0" ? false : undefined;
     const search = req.query.search as string | undefined;
 
     const { data: users, count } = await listUsers({
@@ -23,7 +24,7 @@ router.get("/", async (req: Request, res: Response) => {
       page,
       limit,
       role: role === "admin" || role === "member" ? role : undefined,
-      deleted,
+      deleted: deleted !== undefined ? deleted : false,
       search,
     });
 

@@ -31,7 +31,7 @@ export default function ListUsersPage() {
   const { data: users, isFetching, refetch } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/users?all=true`, {
+      const res = await fetch(`/api/admin/users?all=true&deleted=false`, {
         headers: { Authorization: `Bearer ${token || ''}` },
       });
       if (!res.ok) throw new Error('Failed to load data');

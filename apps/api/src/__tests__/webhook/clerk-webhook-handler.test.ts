@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { handleClerkWebhookEvent } from "../../webhook/clerk-webhook-handler.js";
 import type { ClerkUserCreatedEvent, ClerkUserDeletedEvent } from "../../types/webhook/webhook.types.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { handleClerkWebhookEvent } from "../../webhook/clerk-webhook-handler.js";
 
 const mockCreateUser = vi.fn();
 const mockGetUserByEmail = vi.fn();
@@ -182,6 +183,62 @@ describe("handleClerkWebhookEvent", () => {
           last_name: "",
         }),
       );
+    });
+
+    it("normalizes email to lowercase when checking for existing user", async () => {
+      const existing = { id: "db-u1", email: "test@example.com", clerk_user_id: "old_clerk", deleted: true };
+      mockGetUserByEmail.mockResolvedValue(existing);
+      mockPatchUser.mockResolvedValue({ ...existing, deleted: false });
+
+      await handleClerkWebhookEvent(
+        userCreatedEvent({ clerkId: "new_clerk", email: "TEST@EXAMPLE.COM", firstName: "T", lastName: "E" }),
+      );
+
+      expect(mockGetUserByEmail).toHaveBeenCalledWith("test@example.com");
+      expect(mockPatchUser).toHaveBeenCalledWith(
+        "db-u1",
+        expect.objectContaining({
+          clerk_user_id: "new_clerk",
+          email: "test@example.com",
+          deleted: false,
+          deleted_at: null,
+        }),
+      );
+    });
+
+    it("updates clerk_user_id when non-deleted user has mismatched clerk_user_id", async () => {
+      const existing = { id: "db-u1", email: "a@b.com", clerk_user_id: "old_clerk", deleted: false };
+      mockGetUserByEmail.mockResolvedValue(existing);
+      mockPatchUser.mockResolvedValue({ ...existing, clerk_user_id: "new_clerk" });
+
+      await handleClerkWebhookEvent(
+        userCreatedEvent({ clerkId: "new_clerk", email: "a@b.com", firstName: "A", lastName: "B" }),
+      );
+
+      expect(mockGetUserByEmail).toHaveBeenCalledWith("a@b.com");
+      expect(mockPatchUser).toHaveBeenCalledWith(
+        "db-u1",
+        expect.objectContaining({
+          clerk_user_id: "new_clerk",
+          email: "a@b.com",
+          first_name: "A",
+          last_name: "B",
+        }),
+      );
+      expect(mockCreateUser).not.toHaveBeenCalled();
+    });
+
+    it("does not update when non-deleted user has matching clerk_user_id (idempotent)", async () => {
+      const existing = { id: "db-u1", email: "a@b.com", clerk_user_id: "same_clerk", deleted: false };
+      mockGetUserByEmail.mockResolvedValue(existing);
+
+      await handleClerkWebhookEvent(
+        userCreatedEvent({ clerkId: "same_clerk", email: "a@b.com", firstName: "A", lastName: "B" }),
+      );
+
+      expect(mockGetUserByEmail).toHaveBeenCalledWith("a@b.com");
+      expect(mockPatchUser).not.toHaveBeenCalled();
+      expect(mockCreateUser).not.toHaveBeenCalled();
     });
   });
 });

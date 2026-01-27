@@ -1,9 +1,3 @@
-import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
-import {
-  isUserCreatedEvent,
-  isUserUpdatedEvent,
-  isUserDeletedEvent,
-} from "../types/webhook/webhook.types.js";
 import {
   createUser,
   getUserByClerkId,
@@ -11,8 +5,15 @@ import {
   patchUser,
   softDeleteUserByClerkId,
 } from "../infra/supabase/repositories/index.js";
-import { invalidateByPrefix } from "../infra/redis/cache/index.js";
+import {
+  isUserCreatedEvent,
+  isUserDeletedEvent,
+  isUserUpdatedEvent,
+} from "../types/webhook/webhook.types.js";
+
+import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
 import { REDIS_CACHE_KEYS } from "../infra/redis/cache/keys.js";
+import { invalidateByPrefix } from "../infra/redis/cache/index.js";
 
 export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<void> {
   const eventType = evt.type;
@@ -20,7 +21,8 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
   switch (eventType) {
     case "user.created": {
       if (isUserCreatedEvent(evt)) {
-        const email = evt.data.email_addresses[0]?.email_address ?? null;
+        const rawEmail = evt.data.email_addresses[0]?.email_address ?? null;
+        const email = rawEmail ? rawEmail.toLowerCase().trim() : null;
         const payload = {
           clerk_user_id: evt.data.id,
           email,
@@ -32,12 +34,24 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
         if (email) {
           const existing = await getUserByEmail(email);
           if (existing) {
-            await patchUser(existing.id, {
-              ...payload,
-              deleted: false,
-              deleted_at: null,
-            });
-            return;
+            if (existing.deleted === true) {
+              await patchUser(existing.id, {
+                ...payload,
+                deleted: false,
+                deleted_at: null,
+              });
+              return;
+            }
+            if ((existing.deleted === false || existing.deleted === null) && existing.clerk_user_id !== evt.data.id) {
+              await patchUser(existing.id, {
+                clerk_user_id: evt.data.id,
+                email,
+                first_name: evt.data.first_name ?? null,
+                last_name: evt.data.last_name ?? null,
+                avatar_url: evt.data.image_url ?? null,
+              });
+              return;
+            }
           }
         }
 

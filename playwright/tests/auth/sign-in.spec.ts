@@ -41,7 +41,6 @@ test.describe('Sign in flow', () => {
 
     test.beforeEach(async ({ page }) => {
       passwordPage = new PasswordPage(page);
-
       await identifierPage.submitEmail(Fixtures.CORRECT_TEST_EMAIL);
       await identifierPage.waitUntilHidden();
       await passwordPage.waitUntilVisible();
@@ -61,11 +60,11 @@ test.describe('Sign in flow', () => {
     });
 
     test.describe('correct email & password', () => {
-
       test.describe('password is not compromised', () => {
         test('sign in successfully', async ({ page }) => {
           const landingPage = new LandingPage(page);
-          await passwordPage.submitPassword(Fixtures.NOT_COMPROMISED_PASSWORD);
+          await page.waitForTimeout(1000);
+          await passwordPage.submitPassword(Fixtures.CORRECT_TEST_PASSWORD);
           await passwordPage.waitUntilHidden();
 
           if (page.url().includes('/sign-in/factor-two')) {

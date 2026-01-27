@@ -1,7 +1,7 @@
 import { generateEmail } from "../utils/auth/sign-up";
 
 export const CORRECT_TEST_EMAIL = 'example+clerk_test@example.com';
-export const CORRECT_TEST_PASSWORD = 'example';
+export const CORRECT_TEST_PASSWORD = 'Example@2003';
 
 export const INVALID_EMAIL = 'invalid-email';
 export const WRONG_IDENTIFIER = 'example_wrong+clerk_test@example.com';

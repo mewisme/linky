@@ -26,18 +26,32 @@ RUN pnpm install --force
 
 RUN pnpm --filter @repo/api build
 
-RUN pnpm --filter @repo/api deploy /out --prod
-
 # ======================
 # Runtime stage
 # ======================
-FROM node:24-slim AS runner
+FROM base AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY --from=builder /out ./
+# Copy workspace config files
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+
+# Copy logger package (only package.json and dist needed at runtime)
+COPY --from=builder /app/packages/logger/package.json ./packages/logger/
+COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
+
+# Copy API package (only package.json and dist needed at runtime)
+COPY --from=builder /app/apps/api/package.json ./apps/api/
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+
+# Install only production dependencies (much faster than deploy)
+# This will set up workspace links automatically
+RUN pnpm install --prod --frozen-lockfile --filter @repo/api
+
+# Set working directory to the API app
+WORKDIR /app/apps/api
 
 EXPOSE 3001
 

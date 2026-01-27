@@ -4,6 +4,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": ".",
+    "skipLibCheck": true,
     "lib": [
       "es2022"
     ],
@@ -21,6 +22,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/__tests__/**/*"
   ]
 }

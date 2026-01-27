@@ -8,15 +8,15 @@
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": "./dist/index.js"
     }
   },
   "dependencies": {

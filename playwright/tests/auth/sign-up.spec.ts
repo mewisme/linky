@@ -19,7 +19,7 @@ test.describe('Sign up flow', () => {
 
   test.describe('Client side validation', () => {
 
-    test('invalid email format', async () => {
+    test('should not submit with invalid email format', async () => {
       await signUpPage.fillEmailAddress('abc');
       await signUpPage.fillPassword(Fixtures.NEW_STRONG_PASSWORD);
       await signUpPage.fillCheckbox();
@@ -28,14 +28,14 @@ test.describe('Sign up flow', () => {
       await expect(signUpPage.emailAddressInput()).toHaveValue('abc');
     });
 
-    test('password less than 8 characters', async () => {
+    test('should show error when password is less than 8 characters', async () => {
       await signUpPage.fillPassword('123');
       await signUpPage.submitSignUp();
 
       await expect(signUpPage.errorPasswordMessage()).toBeVisible();
     });
 
-    test('terms not accepted', async () => {
+    test('should not submit when terms are not accepted', async () => {
       await signUpPage.fillFirstName('Test');
       await signUpPage.fillLastName('User');
       await signUpPage.fillEmailAddress(signUpEmail);
@@ -49,7 +49,7 @@ test.describe('Sign up flow', () => {
 
   test.describe('Server side validation (after submit)', () => {
 
-    test('email already in use', async () => {
+    test('should show error when email is already in use', async () => {
       await signUpPage.fillFirstName('Test');
       await signUpPage.fillLastName('User');
       await signUpPage.fillEmailAddress(Fixtures.CORRECT_TEST_EMAIL);
@@ -63,7 +63,7 @@ test.describe('Sign up flow', () => {
         .toHaveText(/email address is taken/i);
     });
 
-    test('weak or compromised password', async () => {
+    test('should show error when password is weak or compromised', async () => {
       await signUpPage.fillFirstName('Test');
       await signUpPage.fillLastName('User');
       await signUpPage.fillEmailAddress(Fixtures.CORRECT_TEST_EMAIL);
@@ -89,21 +89,21 @@ test.describe('Sign up flow', () => {
     });
 
 
-    test('without otp', async ({ page }) => {
+    test('should show error when OTP is not provided', async ({ page }) => {
       const otpPage = new OTPPage(page);
       await otpPage.submitOTP('');
       await expect(otpPage.errorMessage()).toBeVisible();
       await expect(otpPage.errorMessage()).toHaveText(/Enter code./i);
     })
 
-    test('incorrect otp', async ({ page }) => {
+    test('should show error when OTP is incorrect', async ({ page }) => {
       const otpPage = new OTPPage(page);
       await otpPage.fillOTP(Fixtures.WRONG_OTP);
       await expect(otpPage.errorMessage()).toBeVisible();
       await expect(otpPage.errorMessage()).toHaveText(/Incorrect/i);
     })
 
-    test('sign up successfully', async ({ page }) => {
+    test('should sign up successfully', async ({ page }) => {
       const otpPage = new OTPPage(page);
       await page.waitForTimeout(1000);
       await otpPage.fillOTP(Fixtures.CORRECT_OTP);

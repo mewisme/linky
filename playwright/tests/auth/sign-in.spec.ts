@@ -17,17 +17,17 @@ test.describe('Sign in flow', () => {
   });
 
   test.describe('Email validation', () => {
-    test('empty email', async ({ page }) => {
+    test('should not submit with empty email', async ({ page }) => {
       await identifierPage.submitEmail('');
       await expect(identifierPage.emailInput()).toHaveValue('');
     })
 
-    test('invalid email format', async ({ page }) => {
+    test('should not submit with invalid email format', async ({ page }) => {
       await identifierPage.submitEmail(Fixtures.INVALID_EMAIL);
       await expect(identifierPage.emailInput()).toHaveValue(Fixtures.INVALID_EMAIL);
     })
 
-    test('email not found', async ({ page }) => {
+    test('should show error when email is not found', async ({ page }) => {
       await identifierPage.submitEmail(Fixtures.WRONG_IDENTIFIER);
       await expect(identifierPage.errorMessage()).toBeVisible();
       await expect(identifierPage.errorMessage()).toHaveText(
@@ -46,12 +46,12 @@ test.describe('Sign in flow', () => {
       await passwordPage.waitUntilVisible();
     });
 
-    test('empty password', async ({ page }) => {
+    test('should not submit with empty password', async ({ page }) => {
       await passwordPage.submitPassword('');
       await expect(passwordPage.passwordInput()).toHaveValue('');
     });
 
-    test('wrong password', async ({ page }) => {
+    test('should show error when password is incorrect', async ({ page }) => {
       await passwordPage.submitPassword(Fixtures.WRONG_PASSWORD);
       await expect(passwordPage.errorMessage()).toBeVisible();
       await expect(passwordPage.errorMessage()).toHaveText(
@@ -61,7 +61,7 @@ test.describe('Sign in flow', () => {
 
     test.describe('correct email & password', () => {
       test.describe('password is not compromised', () => {
-        test('sign in successfully', async ({ page }) => {
+        test('should sign in successfully', async ({ page }) => {
           const landingPage = new LandingPage(page);
           await page.waitForTimeout(1000);
           await passwordPage.submitPassword(Fixtures.CORRECT_TEST_PASSWORD);

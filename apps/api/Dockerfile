@@ -21,6 +21,9 @@ RUN pnpm --filter @repo/logger build
 
 RUN ls -la /app/packages/logger/dist/
 
+# Refresh workspace links so TypeScript can find @repo/logger
+RUN pnpm install --force --frozen-lockfile
+
 RUN pnpm --filter @repo/api build
 
 RUN pnpm --filter @repo/api deploy /out --prod

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import type { AdminUserUpdate } from "../types/admin.types.js";
 import { redisClient } from "../../../infra/redis/client.js";
 import { deleteUser, getUser, listUsers, patchAdminUser, updateAdminUser } from "../service/admin-users.service.js";

@@ -1,6 +1,6 @@
 import type { Namespace } from "socket.io";
 import { type MessageData, type RoomData } from "../types/socket/socket-event.types.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { type AuthenticatedSocket } from "./auth.js";
 
 const logger = createLogger("API:Socket:Handlers");

@@ -4,7 +4,7 @@ import type { AuthenticatedSocket } from "../types/socket/socket-context.types.j
 import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "../infra/admin-cache/index.js";
 import { config } from "../config/index.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 
 export type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
 

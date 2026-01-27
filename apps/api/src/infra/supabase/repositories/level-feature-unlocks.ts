@@ -1,6 +1,7 @@
-import { createLogger } from "@repo/logger/api";
-import { supabase } from "../client.js";
 import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
+
+import { createLogger } from "@repo/logger";
+import { supabase } from "../client.js";
 
 const logger = createLogger("API:Supabase:LevelFeatureUnlocks:Repository");
 
@@ -88,9 +89,9 @@ export async function getLevelFeatureUnlockById(id: string): Promise<LevelFeatur
 
   return data
     ? {
-        ...data,
-        feature_payload: (data.feature_payload || {}) as Record<string, unknown>,
-      }
+      ...data,
+      feature_payload: (data.feature_payload || {}) as Record<string, unknown>,
+    }
     : null;
 }
 

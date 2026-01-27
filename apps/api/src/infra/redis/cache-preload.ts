@@ -1,6 +1,6 @@
 import { CACHE_KEYS, CACHE_TTL } from "./cache-config.js";
 
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getChangelogs } from "../supabase/repositories/changelogs.js";
 import { getInterestTags } from "../supabase/repositories/interest-tags.js";
 import { updateCachedData } from "./cache-utils.js";

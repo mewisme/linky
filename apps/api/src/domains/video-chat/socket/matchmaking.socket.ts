@@ -1,5 +1,5 @@
 import type { Namespace } from "socket.io";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import type { AuthenticatedSocket } from "../../../socket/auth.js";
 import type { MatchedPayload, RoomPingPayload } from "../types/socket-event.types.js";
 import { getPublicUserInfo } from "../../../infra/supabase/repositories/user-details.js";

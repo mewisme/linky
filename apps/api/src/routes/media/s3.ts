@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "../../config/index.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import {
   getUploadUrl,
   getDownloadUrl,

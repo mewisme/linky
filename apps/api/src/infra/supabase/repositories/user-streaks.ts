@@ -1,4 +1,4 @@
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
 const logger = createLogger("API:Supabase:UserStreaks:Repository");
@@ -141,7 +141,7 @@ export async function getUserStreakDaysByMonth(
 
   const startDate = new Date(Date.UTC(year, month - 1, 1));
   const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
-  
+
   const startDateStr = startDate.toISOString().split("T")[0] || "";
   const endDateStr = endDate.toISOString().split("T")[0] || "";
 

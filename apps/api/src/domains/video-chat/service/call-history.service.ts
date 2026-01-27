@@ -3,7 +3,7 @@ import { createCallHistory, getUserCountry } from "../../../infra/supabase/repos
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { addCallDurationToStreak } from "../../user/service/user-streak.service.js";
 import { addCallExp } from "../../user/service/user-level.service.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { invalidate } from "../../../infra/redis/cache/index.js";
 
 const logger = createLogger("API:VideoChat:CallHistory:Service");

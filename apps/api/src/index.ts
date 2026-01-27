@@ -1,4 +1,4 @@
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { startServer } from "./server.js";
 
 const logger = createLogger("API");

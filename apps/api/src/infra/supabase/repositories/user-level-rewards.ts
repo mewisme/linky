@@ -1,6 +1,6 @@
-import { createLogger } from "@repo/logger/api";
-import { supabase } from "../client.js";
 import type { TablesInsert } from "../../../types/database/supabase.types.js";
+import { createLogger } from "@repo/logger";
+import { supabase } from "../client.js";
 
 const logger = createLogger("API:Supabase:UserLevelRewards:Repository");
 

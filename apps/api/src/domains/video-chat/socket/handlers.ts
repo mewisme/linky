@@ -10,7 +10,7 @@ import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms, VideoChatU
 
 import type { AuthenticatedSocket } from "../../../socket/auth.js";
 import type { Namespace } from "socket.io";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { isValidTimezone } from "../../../utils/timezone.js";
 import { recordCallHistory } from "./call-history.socket.js";

@@ -4,7 +4,7 @@ import { calculateFavoriteType, calculateRedisCandidateScore } from "./scoring.s
 
 import type { AuthenticatedSocket } from "../../../types/socket/socket-context.types.js";
 import type { QueuedUser } from "../types/matchmaking.types.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getFavoritesByUserId } from "../../../infra/supabase/repositories/favorites.js";
 import { getInterestTags } from "../../../infra/supabase/repositories/user-details.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";

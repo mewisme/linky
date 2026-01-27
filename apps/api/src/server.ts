@@ -4,7 +4,7 @@ import { setupMiddleware, setupErrorHandlers } from "./middleware/index.js";
 import { setupRoutes } from "./routes/index.js";
 import { createSocketServer } from "./socket/index.js";
 import { config } from "./config/index.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { connectRedis } from "./infra/redis/client.js";
 import { preloadReferenceData } from "./infra/redis/cache-preload.js";
 import { initializeMqttClient, attachSocketIO } from "./infra/mqtt/client.js";

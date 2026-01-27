@@ -1,4 +1,4 @@
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { redisClient } from "../redis/client.js";
 import { supabase } from "../supabase/client.js";
 

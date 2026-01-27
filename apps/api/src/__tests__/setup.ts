@@ -11,6 +11,6 @@ const noopLogger = {
   child: () => noopLogger,
 };
 
-vi.mock("@repo/logger/api", () => ({
+vi.mock("@repo/logger", () => ({
   createLogger: () => noopLogger,
 }));

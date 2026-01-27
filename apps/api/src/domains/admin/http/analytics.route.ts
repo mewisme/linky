@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getOverview, getPageViewsForAdmin, getTopPagesForAdmin, getVisitorStatsForAdmin, getVisitorsForAdmin } from "../service/admin-analytics.service.js";
 
 const router: ExpressRouter = Router();

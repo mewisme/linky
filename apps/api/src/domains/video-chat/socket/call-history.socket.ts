@@ -1,7 +1,7 @@
 import type { AuthenticatedSocket } from "../../../socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoom } from "../types/room.types.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { recordCallHistoryInDatabase } from "../service/call-history.service.js";
 import { redisClient } from "../../../infra/redis/client.js";

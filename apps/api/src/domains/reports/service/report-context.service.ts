@@ -3,7 +3,7 @@ import { getCallHistoryById, getUserIdByClerkId } from "../../../infra/supabase/
 
 import type { Json } from "../../../types/database/supabase.types.js";
 import type { Namespace } from "socket.io";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 
 const logger = createLogger("API:Reports:Context:Service");
 

@@ -1,5 +1,5 @@
 import { type Socket } from "socket.io";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import type { WaitingSession } from "../types/session.types.js";
 
 export class UserSessionService {

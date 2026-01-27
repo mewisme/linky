@@ -1,14 +1,15 @@
 import type { LevelCalculationParams, UserLevel } from "../types/user-level.types.js";
 import { getUserLevel, incrementUserExp } from "../../../infra/supabase/repositories/user-levels.js";
-import { createLogger } from "@repo/logger/api";
+import { invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
+
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import { checkFavoriteExists } from "../../../infra/supabase/repositories/favorites.js";
+import { createLogger } from "@repo/logger";
+import { getActiveFavoriteExpBoostRules } from "../../../infra/supabase/repositories/favorite-exp-boost-rules.js";
 import { getStreakExpBonusForStreak } from "../../../infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "../../../infra/supabase/repositories/user-streaks.js";
-import { getActiveFavoriteExpBoostRules } from "../../../infra/supabase/repositories/favorite-exp-boost-rules.js";
-import { checkFavoriteExists } from "../../../infra/supabase/repositories/favorites.js";
-import { grantRewardsForLevel } from "./user-level-reward.service.js";
 import { grantFreezesForLevel } from "./user-streak-freeze.service.js";
-import { invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import { grantRewardsForLevel } from "./user-level-reward.service.js";
 import { incrExpToday } from "../../../infra/redis/cache/exp-today.js";
 
 const logger = createLogger("API:User:Level:Service");

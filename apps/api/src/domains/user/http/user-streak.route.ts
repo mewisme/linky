@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getUserStreakData, getUserStreakHistory, getUserStreakCalendar } from "../service/user-streak.service.js";
 import { getUserIdByClerkUserId } from "../service/user-settings.service.js";
 import { isValidTimezone } from "../../../utils/timezone.js";

@@ -1,6 +1,7 @@
-import { createLogger } from "@repo/logger/api";
-import { supabase } from "../client.js";
 import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
+
+import { createLogger } from "@repo/logger";
+import { supabase } from "../client.js";
 
 const logger = createLogger("API:Supabase:LevelRewards:Repository");
 
@@ -88,9 +89,9 @@ export async function getLevelRewardById(id: string): Promise<LevelRewardRecord 
 
   return data
     ? {
-        ...data,
-        reward_payload: (data.reward_payload || {}) as Record<string, unknown>,
-      }
+      ...data,
+      reward_payload: (data.reward_payload || {}) as Record<string, unknown>,
+    }
     : null;
 }
 

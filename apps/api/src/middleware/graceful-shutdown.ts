@@ -3,7 +3,7 @@ import { type Server as SocketIOServer } from "socket.io";
 import { redisClient } from "../infra/redis/client.js";
 import { mqttClient } from "../infra/mqtt/client.js";
 import { config } from "../config/index.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 
 const logger = createLogger("API:Server:Shutdown");
 

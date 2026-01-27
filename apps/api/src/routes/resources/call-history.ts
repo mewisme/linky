@@ -7,7 +7,7 @@ import {
   getUserIdByClerkId,
   getUserCountry,
 } from "../../infra/supabase/repositories/call-history.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getCachedData, invalidateCacheKey } from "../../infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
 

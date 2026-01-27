@@ -1,4 +1,4 @@
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
 const logger = createLogger("API:Supabase:UserLevels:Repository");

@@ -11,7 +11,7 @@ import {
   getFavoritesWithStats,
 } from "../../infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "../../infra/supabase/repositories/call-history.js";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import { getVideoChatContext } from "../../domains/video-chat/socket/video-chat.socket.js";
 import { supabase } from "../../infra/supabase/client.js";
 import { redisClient } from "../../infra/redis/client.js";

@@ -1,9 +1,10 @@
-import { createLogger } from "@repo/logger/api";
 import {
-  grantUserLevelRewards,
   getUserLevelRewardIds,
   getUserLevelRewards,
+  grantUserLevelRewards,
 } from "../../../infra/supabase/repositories/user-level-rewards.js";
+
+import { createLogger } from "@repo/logger";
 import { getLevelRewardsUpToLevel as getLevelRewards } from "../../../infra/supabase/repositories/level-rewards.js";
 
 const logger = createLogger("API:User:LevelReward:Service");

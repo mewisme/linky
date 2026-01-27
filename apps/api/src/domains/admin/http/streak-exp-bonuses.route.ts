@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger/api";
+import { createLogger } from "@repo/logger";
 import type { AdminStreakExpBonusInsert, AdminStreakExpBonusUpdate } from "../types/streak-exp-bonus.types.js";
 import {
   createAdminStreakExpBonus,

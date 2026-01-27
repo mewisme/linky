@@ -9,7 +9,10 @@
     "check-types": "tsc --noEmit"
   },
   "exports": {
-    "./api": "./dist/logger.js"
+    ".": {
+      "types": "./dist/logger.d.ts",
+      "default": "./dist/logger.js"
+    }
   },
   "packageManager": "pnpm@10.28.2",
   "dependencies": {

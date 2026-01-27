@@ -1,4 +1,4 @@
-import { createLogger } from '@repo/logger/api'
+import { createLogger } from '@repo/logger'
 import { createSocketServer } from '@/socket/index.js'
 import { redisClient } from '../redis/client.js'
 

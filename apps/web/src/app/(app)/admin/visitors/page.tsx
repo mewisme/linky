@@ -61,21 +61,8 @@ export default function VisitorsPage() {
   })
 
   useEffect(() => {
-    const mockData = [
-      { date: '2026-01-01', visitors: 1, pageViews: 10 },
-      { date: '2026-01-02', visitors: 2, pageViews: 20 },
-      { date: '2026-01-03', visitors: 3, pageViews: 30 },
-      { date: '2026-01-04', visitors: 4, pageViews: 40 },
-      { date: '2026-01-05', visitors: 5, pageViews: 50 },
-      { date: '2026-01-06', visitors: 6, pageViews: 40 },
-      { date: '2026-01-07', visitors: 7, pageViews: 30 },
-      { date: '2026-01-08', visitors: 8, pageViews: 40 },
-      { date: '2026-01-09', visitors: 9, pageViews: 30 },
-    ]
     if (analytics) {
-      setChartData([...mockData, ...analytics])
-    } else {
-      setChartData(mockData)
+      setChartData([...analytics])
     }
   }, [analytics])
 

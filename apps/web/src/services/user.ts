@@ -53,7 +53,7 @@ export async function fetchUserDetails(params: FetchUserDetailsParams) {
   setError(null);
 
   try {
-    const res = await fetch("/api/users/user-details/me", {
+    const res = await fetch("/api/users/details", {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error(await res.text() || res.statusText);
@@ -84,7 +84,7 @@ export async function fetchUserSettings(params: FetchUserSettingsParams) {
   setError(null);
 
   try {
-    const res = await fetch("/api/users/user-settings/me", {
+    const res = await fetch("/api/users/settings", {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error(await res.text() || res.statusText);
@@ -137,7 +137,7 @@ export async function updateUserDetails(params: UpdateUserDetailsParams) {
     throw new Error("Missing required parameters");
   }
   try {
-    const res = await fetch("/api/users/user-details/me", {
+    const res = await fetch("/api/users/details", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -163,7 +163,7 @@ export async function updateUserSettings(params: UpdateUserSettingsParams) {
     throw new Error("Missing required parameters");
   }
   try {
-    const res = await fetch("/api/users/user-settings/me", {
+    const res = await fetch("/api/users/settings", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

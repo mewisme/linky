@@ -45,7 +45,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
     queryFn: async () => {
       if (!token) throw new Error("No token");
       const res = await fetch(
-        `/api/user-streak/calendar?year=${year}&month=${monthNumber}`,
+        `/api/users/streak/calendar?year=${year}&month=${monthNumber}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

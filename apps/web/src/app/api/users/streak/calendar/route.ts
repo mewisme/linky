@@ -55,10 +55,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in GET /api/user-streak/calendar:", error);
+    console.error("Error in GET /api/users/streak/calendar:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch streak calendar" },
       { status: 500 }
     );
   }
 }
+

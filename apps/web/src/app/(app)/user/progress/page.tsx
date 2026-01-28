@@ -64,7 +64,7 @@ export default function UserProgressPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
     queryFn: async () => {
-      const res = await fetch(`/api/user-progress/me`, {
+      const res = await fetch(`/api/users/progress`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "x-user-timezone": getUserTimezone(),

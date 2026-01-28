@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import type { UsersAPI } from "@/types/users.types";
 import type { ApiError } from "@/types/api.types";
+import type { UsersAPI } from "@/types/users.types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,10 +38,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in GET /api/user-progress/me:", error);
+    console.error("Error in GET /api/users/progress:", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch user progress" },
       { status: 500 }
     );
   }
 }
+

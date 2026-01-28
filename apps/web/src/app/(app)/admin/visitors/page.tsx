@@ -18,7 +18,7 @@ export default function VisitorsPage() {
   const { state } = useUserContext()
 
   const [token, setToken] = useState<string | null>(null)
-  const [days, setDays] = useState(90)
+  const [days, setDays] = useState(7)
   const [chartData, setChartData] = useState<ChartItem[]>([])
 
   useEffect(() => {

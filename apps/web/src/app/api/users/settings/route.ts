@@ -3,11 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
 
-/**
- * POST /api/users/user-details/me/interest-tags
- * Add interest tags to user details
- */
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -18,18 +14,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json() as UsersAPI.UserDetails.InterestTags.Add.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-details/me/interest-tags`, {
-      method: "POST",
+    const response = await fetch(`${apiUrl}/api/v1/user-settings/me`, {
+      method: "GET",
       headers: {
         Authorization: authHeader,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
     });
 
-    const data = await response.json() as UsersAPI.UserDetails.InterestTags.Add.Response | ApiError;
+    const data = await response.json() as UsersAPI.UserSettings.GetMe.Response | ApiError;
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
@@ -37,18 +31,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in POST /api/users/user-details/me/interest-tags:", error);
+    console.error("Error in /api/users/settings:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to add interest tags" },
+      { error: "Internal Server Error", message: "Failed to fetch user settings" },
       { status: 500 }
     );
   }
 }
 
-/**
- * PUT /api/users/user-details/me/interest-tags
- * Replace all interest tags in user details
- */
 export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -60,9 +50,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const body = await request.json() as UsersAPI.UserDetails.InterestTags.Replace.Body;
+    const body = await request.json() as UsersAPI.UserSettings.UpdateMe.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-details/me/interest-tags`, {
+    const response = await fetch(`${apiUrl}/api/v1/user-settings/me`, {
       method: "PUT",
       headers: {
         Authorization: authHeader,
@@ -71,7 +61,7 @@ export async function PUT(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    const data = await response.json() as UsersAPI.UserDetails.InterestTags.Replace.Response | ApiError;
+    const data = await response.json() as UsersAPI.UserSettings.UpdateMe.Response | ApiError;
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
@@ -79,19 +69,15 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in PUT /api/users/user-details/me/interest-tags:", error);
+    console.error("Error in PUT /api/users/settings:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to replace interest tags" },
+      { error: "Internal Server Error", message: "Failed to update user settings" },
       { status: 500 }
     );
   }
 }
 
-/**
- * DELETE /api/users/user-details/me/interest-tags
- * Remove interest tags from user details
- */
-export async function DELETE(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -102,10 +88,10 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const body = await request.json() as UsersAPI.UserDetails.InterestTags.Remove.Body;
+    const body = await request.json() as UsersAPI.UserSettings.PatchMe.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-details/me/interest-tags`, {
-      method: "DELETE",
+    const response = await fetch(`${apiUrl}/api/v1/user-settings/me`, {
+      method: "PATCH",
       headers: {
         Authorization: authHeader,
         "Content-Type": "application/json",
@@ -113,7 +99,7 @@ export async function DELETE(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    const data = await response.json() as UsersAPI.UserDetails.InterestTags.Remove.Response | ApiError;
+    const data = await response.json() as UsersAPI.UserSettings.PatchMe.Response | ApiError;
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
@@ -121,10 +107,11 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in DELETE /api/users/user-details/me/interest-tags:", error);
+    console.error("Error in PATCH /api/users/settings:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to remove interest tags" },
+      { error: "Internal Server Error", message: "Failed to update user settings" },
       { status: 500 }
     );
   }
 }
+

@@ -176,7 +176,8 @@ export function useVideoChatLifecycle({
   const toggleVideo = useCallback(() => {
     const newVideoOffState = mediaStream.toggleVideo();
     actionsRef.current.setVideoOff(newVideoOffState);
-  }, [mediaStream, actionsRef]);
+    socketSignaling.sendVideoToggle(newVideoOffState);
+  }, [mediaStream, socketSignaling, actionsRef]);
 
   const sendMessage = useCallback(
     (message: string) => {

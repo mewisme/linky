@@ -1,8 +1,9 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
-import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
 
+import type { FloatingLayoutMode } from "./floating-video-state";
+import { IconMicrophoneOff } from "@tabler/icons-react";
 import { VideoPlayer } from "@/app/(app)/chat/components/video-player";
 
 interface PeerInfo {
@@ -10,38 +11,30 @@ interface PeerInfo {
   avatar_url?: string | null;
 }
 
-interface VideoLayoutProps {
+interface FloatingVideoLayoutProps {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
-  isVideoOff: boolean;
   remoteMuted: boolean;
   peerInfo: PeerInfo | null;
   isMobile: boolean;
+  layoutMode: FloatingLayoutMode;
 }
 
 export function FloatingVideoLayout({
   localStream,
   remoteStream,
-  isVideoOff,
   remoteMuted,
   peerInfo,
   isMobile,
-}: VideoLayoutProps) {
-  const hasRemoteVideo = remoteStream && remoteStream.getVideoTracks().some((t) => t.enabled);
-  const hasLocalVideo = localStream && !isVideoOff && localStream.getVideoTracks().some((t) => t.enabled);
-  const showBothVideos = hasRemoteVideo && hasLocalVideo;
-  const showRemoteOnly = hasRemoteVideo && !hasLocalVideo;
-  const showLocalOnly = !hasRemoteVideo && hasLocalVideo;
-  const showAvatar = !hasRemoteVideo && !hasLocalVideo;
-
-  const gap = isMobile ? "gap-0.5" : "gap-1";
+  layoutMode,
+}: FloatingVideoLayoutProps) {
   const iconSize = isMobile ? "size-3" : "size-4";
   const padding = isMobile ? "p-1" : "p-1.5";
 
-  if (showBothVideos) {
+  if (layoutMode === "dual") {
     return (
-      <div className={`flex h-full w-full flex-col ${gap} pointer-events-none`}>
-        <div className="relative flex-1 overflow-hidden bg-black">
+      <div className="flex h-full w-full flex-col pointer-events-none">
+        <div className="relative w-full overflow-hidden bg-black" style={{ flex: "0 0 60%" }}>
           <VideoPlayer
             stream={remoteStream}
             playsInline
@@ -55,7 +48,7 @@ export function FloatingVideoLayout({
             </div>
           )}
         </div>
-        <div className="relative flex-1 overflow-hidden bg-black">
+        <div className="relative w-full overflow-hidden bg-black" style={{ flex: "0 0 40%" }}>
           <VideoPlayer
             stream={localStream}
             muted
@@ -69,7 +62,7 @@ export function FloatingVideoLayout({
     );
   }
 
-  if (showRemoteOnly) {
+  if (layoutMode === "single-remote") {
     return (
       <div className="relative h-full w-full pointer-events-none bg-black">
         <VideoPlayer
@@ -88,7 +81,7 @@ export function FloatingVideoLayout({
     );
   }
 
-  if (showLocalOnly) {
+  if (layoutMode === "single-local") {
     return (
       <div className="relative h-full w-full pointer-events-none bg-black">
         <VideoPlayer
@@ -99,22 +92,23 @@ export function FloatingVideoLayout({
           objectFit="cover"
           objectPosition="center center"
         />
-        {isVideoOff && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <IconVideoOff className="size-8 text-muted-foreground" />
-          </div>
-        )}
       </div>
     );
   }
 
-  if (showAvatar && peerInfo) {
+  if (layoutMode === "avatar") {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-muted pointer-events-none">
-        <Avatar className="h-16 w-16">
-          <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || "User"} />
-          <AvatarFallback>{peerInfo.first_name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
-        </Avatar>
+      <div className="relative flex h-full w-full items-center justify-center bg-muted pointer-events-none">
+        {peerInfo ? (
+          <Avatar className="h-full w-full rounded-none">
+            <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || "User"} className="object-cover" />
+            <AvatarFallback className="h-full w-full text-4xl">{peerInfo.first_name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+          </Avatar>
+        ) : (
+          <Avatar className="h-full w-full rounded-none">
+            <AvatarFallback className="h-full w-full text-4xl">U</AvatarFallback>
+          </Avatar>
+        )}
         {remoteMuted && (
           <div className={`absolute left-2 top-2 flex items-center justify-center rounded-full bg-black/60 ${padding}`}>
             <IconMicrophoneOff className={iconSize} />
@@ -124,11 +118,5 @@ export function FloatingVideoLayout({
     );
   }
 
-  return (
-    <div className="flex h-full w-full items-center justify-center bg-muted pointer-events-none">
-      <Avatar className="h-16 w-16">
-        <AvatarFallback>U</AvatarFallback>
-      </Avatar>
-    </div>
-  );
+  return null;
 }

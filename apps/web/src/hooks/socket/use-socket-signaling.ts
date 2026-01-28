@@ -19,6 +19,7 @@ export interface SocketCallbacks {
   onEndCall: (data: { message: string }) => void;
   onChatMessage: (data: { message: string; timestamp: number; senderId: string; senderName?: string; senderImageUrl?: string }) => void;
   onMuteToggle: (data: { muted: boolean }) => void;
+  onVideoToggle: (data: { videoOff: boolean }) => void;
   onQueueTimeout: (data: { message: string }) => void;
   onError: (data: { message: string }) => void;
   onConnect: () => void;
@@ -41,6 +42,7 @@ export interface UseSocketSignalingReturn {
   sendEndCall: () => void;
   sendChatMessage: (message: string, timestamp: number) => void;
   sendMuteToggle: (muted: boolean) => void;
+  sendVideoToggle: (videoOff: boolean) => void;
   sendReaction: (count: number, type?: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   removeAllListeners: () => void;
@@ -130,6 +132,13 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onMuteToggle(data);
+    });
+
+    socket.on("video-toggle", (data) => {
+      console.info("Peer video state changed:", data.videoOff);
+      publishPresence('in_call');
+      socketHealthMonitor.markEventReceived();
+      callbacks.onVideoToggle(data);
     });
 
     socket.on("queue-timeout", (data) => {
@@ -281,6 +290,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
+  const sendVideoToggle = useCallback((videoOff: boolean) => {
+    if (socketRef.current) {
+      socketRef.current.emit("video-toggle", { videoOff });
+    }
+  }, []);
+
   const sendReaction = useCallback((count: number, type: string = "heart") => {
     if (socketRef.current && socketRef.current.connected) {
       socketRef.current.emit("reaction:triggered", { count, type, timestamp: Date.now() });
@@ -309,6 +324,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socketRef.current.removeAllListeners("end-call");
       socketRef.current.removeAllListeners("chat-message");
       socketRef.current.removeAllListeners("mute-toggle");
+      socketRef.current.removeAllListeners("video-toggle");
       socketRef.current.removeAllListeners("queue-timeout");
       socketRef.current.removeAllListeners("error");
       socketRef.current.removeAllListeners("favorite:added");
@@ -356,6 +372,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendEndCall,
       sendChatMessage,
       sendMuteToggle,
+      sendVideoToggle,
       sendReaction,
       sendFavoriteNotification,
       removeAllListeners,
@@ -376,6 +393,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendEndCall,
       sendChatMessage,
       sendMuteToggle,
+      sendVideoToggle,
       sendReaction,
       sendFavoriteNotification,
       removeAllListeners,

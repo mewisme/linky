@@ -5,6 +5,7 @@ import type {
   ReactionPayload,
   ResyncSessionPayload,
   SignalPayload,
+  VideoTogglePayload,
 } from "../types/socket-event.types.js";
 import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms, VideoChatUserSessions } from "./types.js";
 
@@ -71,6 +72,7 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
   setupSignalHandler(socket, checkActiveSession, io, rooms);
   setupChatMessageHandler(socket, checkActiveSession, io, rooms);
   setupMuteToggleHandler(socket, io, rooms);
+  setupVideoToggleHandler(socket, io, rooms);
   setupReactionHandler(socket, io, rooms);
   setupFavoriteNotificationHandler(socket, io, rooms);
   setupEndCallHandler(socket, checkActiveSession, io, matchmaking, rooms);
@@ -331,6 +333,35 @@ function setupMuteToggleHandler(socket: AuthenticatedSocket, io: Namespace, room
       muted: data.muted,
     });
     logger.info("Mute toggle relayed from %s to %s muted: %s", socket.id, peerId, data.muted);
+  });
+}
+
+function setupVideoToggleHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
+  socket.on("video-toggle", (data: VideoTogglePayload) => {
+    logger.info("Video toggle received from: %s videoOff: %s", socket.id, data.videoOff);
+
+    const room = rooms.getRoomByUser(socket.id);
+    if (!room) {
+      logger.warn("Video toggle received from user not in room: %s", socket.id);
+      return;
+    }
+
+    const peerId = rooms.getPeer(socket.id);
+    if (!peerId) {
+      logger.error("No peer found for video toggle: %s in room: %s", socket.id, room.id);
+      return;
+    }
+
+    const peerSocket = io.sockets.get(peerId);
+    if (!peerSocket || !peerSocket.connected) {
+      logger.warn("Peer socket not found or disconnected: %s - cannot relay video toggle", peerId);
+      return;
+    }
+
+    io.to(peerId).emit("video-toggle", {
+      videoOff: data.videoOff,
+    });
+    logger.info("Video toggle relayed from %s to %s videoOff: %s", socket.id, peerId, data.videoOff);
   });
 }
 

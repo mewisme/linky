@@ -1,5 +1,7 @@
 "use client";
 
+import type { NetworkQuality } from "@/lib/webrtc/network-monitor";
+import type { QualityTier } from "@/lib/webrtc/adaptive-encoding";
 import type { UsersAPI } from "@/types/users.types";
 import { create } from "zustand";
 
@@ -34,6 +36,7 @@ interface VideoChatStore {
   isMuted: boolean;
   isVideoOff: boolean;
   remoteMuted: boolean;
+  remoteCameraEnabled: boolean;
   connectionStatus: ConnectionStatus;
   callStartedAt: number | null;
   chatMessages: ChatMessage[];
@@ -44,12 +47,16 @@ interface VideoChatStore {
   isFloatingMode: boolean;
   floatingPosition: OverlayPosition | null;
   floatingCorner: OverlayCorner | null;
+  networkQuality: NetworkQuality;
+  isVideoStalled: boolean;
+  currentQualityTier: QualityTier;
 
   setLocalStream: (stream: MediaStream | null) => void;
   setRemoteStream: (stream: MediaStream | null) => void;
   setMuted: (muted: boolean) => void;
   setVideoOff: (videoOff: boolean) => void;
   setRemoteMuted: (muted: boolean) => void;
+  setRemoteCameraEnabled: (enabled: boolean) => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
   setCallStartedAt: (timestamp: number | null) => void;
   addChatMessage: (message: ChatMessage) => void;
@@ -61,6 +68,9 @@ interface VideoChatStore {
   setFloatingMode: (isFloating: boolean) => void;
   setFloatingPosition: (position: OverlayPosition | null) => void;
   setFloatingCorner: (corner: OverlayCorner | null) => void;
+  setNetworkQuality: (quality: NetworkQuality) => void;
+  setVideoStalled: (stalled: boolean) => void;
+  setQualityTier: (tier: QualityTier) => void;
 
   resetState: () => void;
   resetPeerState: () => void;
@@ -73,6 +83,7 @@ const initialState = {
   isMuted: false,
   isVideoOff: false,
   remoteMuted: false,
+  remoteCameraEnabled: true,
   connectionStatus: "idle" as ConnectionStatus,
   callStartedAt: null as number | null,
   chatMessages: [] as ChatMessage[],
@@ -83,6 +94,9 @@ const initialState = {
   isFloatingMode: false,
   floatingPosition: null as OverlayPosition | null,
   floatingCorner: null as OverlayCorner | null,
+  networkQuality: "excellent" as NetworkQuality,
+  isVideoStalled: false,
+  currentQualityTier: "high" as QualityTier,
 };
 
 export const useVideoChatStore = create<VideoChatStore>((set) => ({
@@ -93,6 +107,7 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setMuted: (muted) => set({ isMuted: muted }),
   setVideoOff: (videoOff) => set({ isVideoOff: videoOff }),
   setRemoteMuted: (muted) => set({ remoteMuted: muted }),
+  setRemoteCameraEnabled: (enabled) => set({ remoteCameraEnabled: enabled }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setCallStartedAt: (timestamp) => set({ callStartedAt: timestamp }),
   addChatMessage: (message) =>
@@ -105,17 +120,24 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setFloatingMode: (isFloating) => set({ isFloatingMode: isFloating }),
   setFloatingPosition: (position) => set({ floatingPosition: position }),
   setFloatingCorner: (corner) => set({ floatingCorner: corner }),
+  setNetworkQuality: (quality) => set({ networkQuality: quality }),
+  setVideoStalled: (stalled) => set({ isVideoStalled: stalled }),
+  setQualityTier: (tier) => set({ currentQualityTier: tier }),
 
   resetState: () => set(initialState),
   resetPeerState: () =>
     set({
       remoteStream: null,
       remoteMuted: false,
+      remoteCameraEnabled: true,
       chatMessages: [],
       connectionStatus: "idle",
       callStartedAt: null,
       error: null,
       peerInfo: null,
+      networkQuality: "excellent",
+      isVideoStalled: false,
+      currentQualityTier: "high",
     }),
   resetRuntimeState: () =>
     set({
@@ -132,5 +154,8 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
       isFloatingMode: false,
       floatingPosition: null,
       floatingCorner: null,
+      networkQuality: "excellent",
+      isVideoStalled: false,
+      currentQualityTier: "high",
     }),
 }));

@@ -44,6 +44,10 @@ export interface MuteTogglePayload {
   muted: boolean;
 }
 
+export interface VideoTogglePayload {
+  videoOff: boolean;
+}
+
 export interface ReactionPayload {
   count: number;
   type?: string;

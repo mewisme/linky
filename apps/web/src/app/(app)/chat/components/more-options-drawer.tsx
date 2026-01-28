@@ -75,7 +75,7 @@ export function MoreOptionsDrawer({
           <p>More options</p>
         </TooltipContent>
       </Tooltip>
-      <DrawerContent className="z-[120]">
+      <DrawerContent className="z-[120]" style={{ zIndex: 120 }}>
         <DrawerHeader>
           <DrawerTitle>More Options</DrawerTitle>
         </DrawerHeader>

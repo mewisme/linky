@@ -1,18 +1,18 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { FloatingVideoLayout } from "./floating-video-layout";
-import { FloatingVideoOverlay } from "./floating-video-overlay";
+import { FloatingVideoControls } from "./floating-video-controls";
+import { getFloatingVideoMetrics } from "./floating-video-metrics";
+import { deriveFloatingLayoutMode } from "./floating-video-state";
 import { useVideoChatStore, type OverlayCorner, type OverlayPosition } from "@/stores/video-chat-store";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
+import type { UsersAPI } from "@/types/users.types";
 
 const PADDING = 16;
-const DESKTOP_WIDTH = 320;
-const DESKTOP_HEIGHT = 240;
-const MOBILE_WIDTH = 180;
-const MOBILE_HEIGHT = 180;
 const DRAG_THRESHOLD = 10;
 const DRAG_TIME_THRESHOLD = 200;
 
@@ -66,6 +66,20 @@ function getNearestCorner(
   return best;
 }
 
+function getAspectRatioClass(layoutMode: string): string {
+  switch (layoutMode) {
+    case "dual":
+      return "aspect-[320/457]";
+    case "single-remote":
+    case "single-local":
+      return "aspect-4/3";
+    case "avatar":
+      return "aspect-square";
+    default:
+      return "aspect-4/3";
+  }
+}
+
 const springTransition = {
   type: "spring" as const,
   stiffness: 250,
@@ -77,9 +91,21 @@ interface FloatingVideoContainerProps {
   remoteStream: MediaStream | null;
   isVideoOff: boolean;
   remoteMuted: boolean;
-  peerInfo: { first_name?: string | null; avatar_url?: string | null } | null;
+  peerInfo: UsersAPI.PublicUserInfo | null;
   hasAudioActivity?: boolean;
-  onExpand: () => void;
+  connectionStatus: ConnectionStatus;
+  isInActiveCall: boolean;
+  isMuted: boolean;
+  isChatOpen: boolean;
+  hasUnreadMessages: boolean;
+  onStart: () => void;
+  onSkip: () => void;
+  onEndCall: () => void;
+  onToggleMute: () => void;
+  onToggleVideo: () => void;
+  onToggleChat: () => void;
+  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  onNavigateToChat: () => void;
 }
 
 export function FloatingVideoContainer({
@@ -89,7 +115,19 @@ export function FloatingVideoContainer({
   remoteMuted,
   peerInfo,
   hasAudioActivity = false,
-  onExpand,
+  connectionStatus,
+  isInActiveCall,
+  isMuted,
+  isChatOpen,
+  hasUnreadMessages,
+  onStart,
+  onSkip,
+  onEndCall,
+  onToggleMute,
+  onToggleVideo,
+  onToggleChat,
+  sendFavoriteNotification,
+  onNavigateToChat,
 }: FloatingVideoContainerProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const latestPositionRef = useRef<OverlayPosition | null>(null);
@@ -100,14 +138,60 @@ export function FloatingVideoContainer({
   const dragStartTimeRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
+  const [isControlsVisible, setIsControlsVisible] = useState(false);
+  const [dragPosition, setDragPosition] = useState<OverlayPosition | null>(null);
+  const dragPositionRef = useRef<OverlayPosition | null>(null);
+  const rafIdRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
 
   const position = useVideoChatStore((s) => s.floatingPosition);
+  const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
   const positionRef = useRef<OverlayPosition | null>(null);
   positionRef.current = position;
 
-  const overlayWidth = isMobile ? MOBILE_WIDTH : DESKTOP_WIDTH;
-  const overlayHeight = isMobile ? MOBILE_HEIGHT : DESKTOP_HEIGHT;
+  const isRemoteCameraOn = remoteCameraEnabled;
+  const isLocalCameraOn = !isVideoOff;
+
+  const layoutMode = useMemo(
+    () => deriveFloatingLayoutMode(isRemoteCameraOn, isLocalCameraOn),
+    [isRemoteCameraOn, isLocalCameraOn]
+  );
+
+  const metrics = useMemo(
+    () => getFloatingVideoMetrics({ isMobile, layoutMode }),
+    [isMobile, layoutMode]
+  );
+
+  const { width, maxHeightVh } = metrics;
+
+  const hideTimerRef = useRef<number | null>(null);
+
+  const clearHideTimer = () => {
+    if (hideTimerRef.current === null) return;
+    window.clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = null;
+  };
+
+  const handleTap = () => {
+    if (isMobile) {
+      onNavigateToChat();
+    } else {
+      // On desktop, clicking background navigates (handled by parent)
+      // Controls are shown on hover
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (isMobile || isDragging) return;
+    clearHideTimer();
+    setIsControlsVisible(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (isMobile) return;
+    clearHideTimer();
+    setIsControlsVisible(false);
+  };
 
   useLayoutEffect(() => {
     if (hasInitializedPositionRef.current) return;
@@ -116,68 +200,93 @@ export function FloatingVideoContainer({
     const containerWidth = window.innerWidth;
     const containerHeight = window.innerHeight;
     const defaultCorner = getDefaultCorner(isMobile);
+    const actualWidth = overlayRef.current.offsetWidth;
+    const actualHeight = overlayRef.current.offsetHeight;
     const cornerPos = getCornerPosition(
       defaultCorner,
       containerWidth,
       containerHeight,
-      overlayWidth,
-      overlayHeight
+      actualWidth,
+      actualHeight
     );
 
     hasInitializedPositionRef.current = true;
     useVideoChatStore.getState().setFloatingPosition(cornerPos);
     useVideoChatStore.getState().setFloatingCorner(defaultCorner);
-  }, [isMobile, overlayWidth, overlayHeight]);
+  }, [isMobile, layoutMode]);
+
+  useLayoutEffect(() => {
+    const pos = positionRef.current;
+    if (!pos || !overlayRef.current) return;
+
+    const containerWidth = window.innerWidth;
+    const containerHeight = window.innerHeight;
+    const actualWidth = overlayRef.current.offsetWidth;
+    const actualHeight = overlayRef.current.offsetHeight;
+
+    const next = {
+      x: Math.max(0, Math.min(pos.x, containerWidth - actualWidth)),
+      y: Math.max(0, Math.min(pos.y, containerHeight - actualHeight)),
+    };
+
+    if (next.x !== pos.x || next.y !== pos.y) {
+      useVideoChatStore.getState().setFloatingPosition(next);
+    }
+  }, [layoutMode]);
 
   useLayoutEffect(() => {
     const handleResize = () => {
       const pos = positionRef.current;
-      if (!pos) return;
+      if (!pos || !overlayRef.current) return;
 
       const containerWidth = window.innerWidth;
       const containerHeight = window.innerHeight;
+      const actualWidth = overlayRef.current.offsetWidth;
+      const actualHeight = overlayRef.current.offsetHeight;
 
-      const centerX = pos.x + overlayWidth / 2;
-      const centerY = pos.y + overlayHeight / 2;
+      const centerX = pos.x + actualWidth / 2;
+      const centerY = pos.y + actualHeight / 2;
 
       const corner = getNearestCorner(
         centerX,
         centerY,
         containerWidth,
         containerHeight,
-        overlayWidth,
-        overlayHeight
+        actualWidth,
+        actualHeight
       );
 
-      const next = getCornerPosition(corner, containerWidth, containerHeight, overlayWidth, overlayHeight);
+      const next = getCornerPosition(corner, containerWidth, containerHeight, actualWidth, actualHeight);
       useVideoChatStore.getState().setFloatingPosition(next);
       useVideoChatStore.getState().setFloatingCorner(corner);
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [overlayWidth, overlayHeight]);
+  }, [layoutMode]);
 
   const runSnapToNearestCorner = (override?: OverlayPosition) => {
     const pos = override ?? positionRef.current;
-    if (!pos) return;
+    if (!pos || !overlayRef.current) return;
 
     const containerWidth = window.innerWidth;
     const containerHeight = window.innerHeight;
+    const actualWidth = overlayRef.current.offsetWidth;
+    const actualHeight = overlayRef.current.offsetHeight;
 
-    const centerX = pos.x + overlayWidth / 2;
-    const centerY = pos.y + overlayHeight / 2;
+    const centerX = pos.x + actualWidth / 2;
+    const centerY = pos.y + actualHeight / 2;
 
     const corner = getNearestCorner(
       centerX,
       centerY,
       containerWidth,
       containerHeight,
-      overlayWidth,
-      overlayHeight
+      actualWidth,
+      actualHeight
     );
 
-    const cornerPos = getCornerPosition(corner, containerWidth, containerHeight, overlayWidth, overlayHeight);
+    const cornerPos = getCornerPosition(corner, containerWidth, containerHeight, actualWidth, actualHeight);
     useVideoChatStore.getState().setFloatingPosition(cornerPos);
     useVideoChatStore.getState().setFloatingCorner(corner);
   };
@@ -187,11 +296,10 @@ export function FloatingVideoContainer({
 
     // Prevent drag when clicking on interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('[role="button"]')) {
+    if (target.closest("button") || target.closest('[role="button"]')) {
       return;
     }
 
-    e.preventDefault();
     e.stopPropagation();
 
     const overlay = overlayRef.current;
@@ -231,26 +339,57 @@ export function FloatingVideoContainer({
         const containerWidth = window.innerWidth;
         const containerHeight = window.innerHeight;
 
-        newX = Math.max(0, Math.min(newX, containerWidth - overlayWidth));
-        newY = Math.max(0, Math.min(newY, containerHeight - overlayHeight));
+        const actualWidth = overlayRef.current?.offsetWidth || 0;
+        const actualHeight = overlayRef.current?.offsetHeight || 0;
+        newX = Math.max(0, Math.min(newX, containerWidth - actualWidth));
+        newY = Math.max(0, Math.min(newY, containerHeight - actualHeight));
 
         const next = { x: newX, y: newY };
         latestPositionRef.current = next;
-        useVideoChatStore.getState().setFloatingPosition(next);
+        dragPositionRef.current = next;
+
+        // Update state immediately for first move, then batch subsequent updates with RAF
+        if (rafIdRef.current === null) {
+          // First update: immediate for instant feedback
+          setDragPosition(next);
+          // Subsequent updates: batched per frame
+          rafIdRef.current = requestAnimationFrame(() => {
+            if (dragPositionRef.current) {
+              setDragPosition(dragPositionRef.current);
+            }
+            rafIdRef.current = null;
+          });
+        }
       }
     };
 
     const handlePointerUp = () => {
       overlay.releasePointerCapture(pointerId);
 
-      const wasDrag = dragDistanceRef.current > DRAG_THRESHOLD;
+      // Cancel any pending RAF
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+
+      const wasDrag = dragStartedRef.current || dragDistanceRef.current > DRAG_THRESHOLD;
 
       if (wasDrag) {
-        runSnapToNearestCorner(latestPositionRef.current ?? undefined);
+        // Sync final position to store and snap to corner
+        const finalPos = latestPositionRef.current ?? dragPosition;
+        if (finalPos) {
+          setDragPosition(finalPos);
+          useVideoChatStore.getState().setFloatingPosition(finalPos);
+        }
+        runSnapToNearestCorner(finalPos ?? undefined);
+      } else {
+        handleTap();
       }
 
       setIsDragging(false);
       setIsInteracting(false);
+      setDragPosition(null);
+      dragPositionRef.current = null;
       dragStartedRef.current = false;
       dragDistanceRef.current = 0;
       startPositionRef.current = null;
@@ -268,43 +407,76 @@ export function FloatingVideoContainer({
 
   const transition = isDragging ? { duration: 0 } : springTransition;
 
+  useEffect(() => {
+    if (!isDragging && !isInteracting) return;
+    if (isMobile) return; // Don't hide controls on mobile during drag
+    clearHideTimer();
+    setIsControlsVisible(false);
+  }, [isDragging, isInteracting, isMobile]);
+
+  useEffect(() => {
+    return () => {
+      clearHideTimer();
+    };
+  }, []);
+
+  const aspectRatioClass = getAspectRatioClass(layoutMode);
+
   return (
     <motion.div
       ref={overlayRef}
       className={`fixed left-0 top-0 overflow-hidden rounded-lg border-2 bg-black shadow-2xl touch-none select-none ${hasAudioActivity ? "border-green-500 shadow-green-500/50 shadow-lg" : "border-border"
-        } ${position === null ? "invisible" : ""}`}
+        } ${position === null ? "invisible" : ""} ${aspectRatioClass}`}
       style={{
-        width: overlayWidth,
-        height: overlayHeight,
         zIndex: 40,
+        width,
+        ...(maxHeightVh ? { maxHeight: `${maxHeightVh}vh` } : {}),
+        ...(isDragging ? { willChange: "transform" } : {}),
       }}
       animate={
-        position
+        dragPosition || position
           ? {
-            x: position.x,
-            y: position.y,
+            x: (dragPosition ?? position)!.x,
+            y: (dragPosition ?? position)!.y,
             scale: isDragging ? 1.05 : 1,
           }
           : { x: 0, y: 0, scale: 1 }
       }
-      transition={transition}
+      transition={isDragging ? { duration: 0 } : transition}
       initial={false}
       onPointerDown={handlePointerDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <FloatingVideoLayout
         localStream={localStream}
         remoteStream={remoteStream}
-        isVideoOff={isVideoOff}
         remoteMuted={remoteMuted}
         peerInfo={peerInfo}
         isMobile={isMobile}
+        layoutMode={layoutMode}
       />
-      <FloatingVideoOverlay
-        onExpand={onExpand}
-        isMobile={isMobile}
-        isDragging={isDragging}
-        isInteracting={isInteracting}
-      />
+      {!isMobile && (
+        <FloatingVideoControls
+          connectionStatus={connectionStatus}
+          isInActiveCall={isInActiveCall}
+          isMuted={isMuted}
+          isVideoOff={isVideoOff}
+          hasLocalStream={!!localStream}
+          isChatOpen={isChatOpen}
+          hasUnreadMessages={hasUnreadMessages}
+          peerInfo={peerInfo}
+          onStart={onStart}
+          onSkip={onSkip}
+          onEndCall={onEndCall}
+          onToggleMute={onToggleMute}
+          onToggleVideo={onToggleVideo}
+          onToggleChat={onToggleChat}
+          sendFavoriteNotification={sendFavoriteNotification}
+          isVisible={isControlsVisible}
+          isMobile={false}
+        />
+      )}
     </motion.div>
   );
 }

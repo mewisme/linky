@@ -1,9 +1,11 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
 import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
 import { useCallback, useRef } from "react";
 
 import { CallTimer } from "./call-timer";
+import { ConnectionQualityIndicator } from "./connection-quality-indicator";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { ReactionOverlay } from "./overlays/reaction-overlay";
@@ -16,6 +18,7 @@ import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useMousePosition } from "@/hooks/ui/use-mouse-move";
 import { useReactionTrigger } from "@/hooks/webrtc/use-reaction-trigger";
 import { useStreamAspectRatio } from "@/hooks/webrtc/use-stream-aspect-ratio";
+import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useViewportHeight } from "@/hooks/ui/use-viewport-height";
 
 interface VideoContainerProps {
@@ -66,6 +69,13 @@ export function VideoContainer({
   const remoteAspectRatio = useStreamAspectRatio(remoteStream);
   const localAspectRatio = useStreamAspectRatio(localStream);
   const containerHeight = useViewportHeight(64);
+
+  const networkQuality = useVideoChatStore((s) => s.networkQuality);
+  const isVideoStalled = useVideoChatStore((s) => s.isVideoStalled);
+  const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
+
+  const isRemoteCameraOn = hasPeer && remoteCameraEnabled && !isVideoStalled;
+  const isLocalCameraOn = !isVideoOff;
 
   const isActive = isInActiveCall;
 
@@ -137,12 +147,37 @@ export function VideoContainer({
             }}
             data-testid="chat-remote-video"
           >
-            <VideoPlayer
-              stream={remoteStream}
-              playsInline
-              aspectRatio={displayAspectRatio ?? undefined}
-              className="h-full w-full"
-              objectFit="contain"
+            {isRemoteCameraOn ? (
+              <VideoPlayer
+                stream={remoteStream}
+                playsInline
+                aspectRatio={displayAspectRatio ?? undefined}
+                className="h-full w-full"
+                objectFit="contain"
+                isMobile={isMobile}
+              />
+            ) : (
+              <div
+                className="relative flex h-full w-full items-center justify-center bg-muted"
+                style={{
+                  aspectRatio: displayAspectRatio ?? undefined,
+                }}
+              >
+                {peerInfo ? (
+                  <Avatar className="h-32 w-32 sm:h-40 sm:w-40">
+                    <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || "User"} className="object-cover" />
+                    <AvatarFallback className="text-4xl sm:text-5xl">{peerInfo.first_name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <Avatar className="h-32 w-32 sm:h-40 sm:w-40">
+                    <AvatarFallback className="text-4xl sm:text-5xl">U</AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            )}
+            <ConnectionQualityIndicator
+              networkQuality={networkQuality}
+              isVideoStalled={isVideoStalled}
               isMobile={isMobile}
             />
             {remoteMuted && (
@@ -155,12 +190,14 @@ export function VideoContainer({
           </div>
           <ReactionOverlay containerRef={containerRef} />
 
-          <DraggableVideoOverlay
-            localStream={localStream}
-            isVideoOff={isVideoOff}
-            containerRef={containerRef as React.RefObject<HTMLDivElement>}
-            isMobile={isMobile}
-          />
+          {isLocalCameraOn && (
+            <DraggableVideoOverlay
+              localStream={localStream}
+              isVideoOff={isVideoOff}
+              containerRef={containerRef as React.RefObject<HTMLDivElement>}
+              isMobile={isMobile}
+            />
+          )}
         </>
       ) : (
         <>

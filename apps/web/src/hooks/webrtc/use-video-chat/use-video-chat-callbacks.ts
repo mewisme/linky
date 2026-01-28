@@ -8,7 +8,9 @@ import type { UsersAPI } from "@/types/users.types";
 import { iceServerCache } from "@/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
 import { toast } from "@repo/ui/components/ui/sonner";
+import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useMemo } from "react";
+import { useWebRTCMonitoring } from "../use-webrtc-monitoring";
 
 interface UseVideoChatCallbacksParams {
   mediaStream: UseMediaStreamReturn;
@@ -45,6 +47,8 @@ export function useVideoChatCallbacks({
   resetRuntimeState,
   refreshUserProgress,
 }: UseVideoChatCallbacksParams) {
+  const isMobile = useIsMobile();
+  const monitoring = useWebRTCMonitoring();
   const peerCallbacks = useMemo(
     () => ({
       onTrack: (stream: MediaStream) => {
@@ -202,6 +206,7 @@ export function useVideoChatCallbacks({
         actionsRef.current.setError(null);
         actionsRef.current.setConnectionStatus("connecting");
         actionsRef.current.setPeerInfo(data.peerInfo);
+        actionsRef.current.setRemoteCameraEnabled(true);
         toast.success("Peer matched! Connecting to peer...");
 
         const localStream = mediaStream.getStream();
@@ -228,6 +233,18 @@ export function useVideoChatCallbacks({
 
         const pc = peerConnection.getPeerConnection();
         if (pc) {
+          monitoring.initializeMonitoring(pc, isMobile, {
+            onNetworkQualityChange: (quality) => {
+              actionsRef.current.setNetworkQuality(quality);
+            },
+            onVideoStalled: (stalled) => {
+              actionsRef.current.setVideoStalled(stalled);
+            },
+            onQualityTierChange: (tier) => {
+              actionsRef.current.setQualityTier(tier);
+            },
+          });
+
           recoveryController.start({
             pc,
             isOfferer: data.isOfferer,
@@ -371,6 +388,7 @@ export function useVideoChatCallbacks({
       },
 
       onPeerLeft: (data: { message: string; queueSize?: number }) => {
+        monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
         isOffererRef.current = false;
@@ -389,6 +407,7 @@ export function useVideoChatCallbacks({
       },
 
       onPeerSkipped: (data: { message: string; queueSize: number }) => {
+        monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
         isOffererRef.current = false;
@@ -403,6 +422,7 @@ export function useVideoChatCallbacks({
 
       onSkipped: (data: { message: string; queueSize: number }) => {
         console.info("Skipped:", data.message, "Queue size:", data.queueSize);
+        monitoring.stopMonitoring();
         recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
@@ -415,6 +435,7 @@ export function useVideoChatCallbacks({
 
       onEndCall: (data: { message: string }) => {
         console.info("End call received from peer:", data.message);
+        monitoring.stopMonitoring();
         recoveryController.stop();
         toast(`Call ended - ${data.message}`);
         isOffererRef.current = false;
@@ -438,6 +459,10 @@ export function useVideoChatCallbacks({
 
       onMuteToggle: (data: { muted: boolean }) => {
         actionsRef.current.setRemoteMuted(data.muted);
+      },
+
+      onVideoToggle: (data: { videoOff: boolean }) => {
+        actionsRef.current.setRemoteCameraEnabled(!data.videoOff);
       },
 
       onQueueTimeout: (data: { message: string }) => {
@@ -482,6 +507,8 @@ export function useVideoChatCallbacks({
       isReconnectingRef,
       actionsRef,
       getToken,
+      monitoring,
+      isMobile,
     ]
   );
 

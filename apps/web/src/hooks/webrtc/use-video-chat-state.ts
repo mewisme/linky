@@ -8,6 +8,8 @@ import {
   type ChatMessage,
   type ConnectionStatus,
 } from "@/stores/video-chat-store";
+import type { NetworkQuality } from "@/lib/webrtc/network-monitor";
+import type { QualityTier } from "@/lib/webrtc/adaptive-encoding";
 
 export type { ConnectionStatus, ChatMessage };
 
@@ -19,10 +21,14 @@ export interface VideoChatActions {
   setMuted: (muted: boolean) => void;
   setVideoOff: (videoOff: boolean) => void;
   setRemoteMuted: (muted: boolean) => void;
+  setRemoteCameraEnabled: (enabled: boolean) => void;
   addChatMessage: (message: ChatMessage) => void;
   clearChatMessages: () => void;
   setError: (error: string | null) => void;
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
+  setNetworkQuality: (quality: NetworkQuality) => void;
+  setVideoStalled: (stalled: boolean) => void;
+  setQualityTier: (tier: QualityTier) => void;
   resetState: () => void;
   resetPeerState: () => void;
   resetRuntimeState: () => void;
@@ -94,6 +100,8 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setVideoOff(videoOff),
       setRemoteMuted: (muted: boolean) =>
         useVideoChatStore.getState().setRemoteMuted(muted),
+      setRemoteCameraEnabled: (enabled: boolean) =>
+        useVideoChatStore.getState().setRemoteCameraEnabled(enabled),
       addChatMessage: (message: ChatMessage) =>
         useVideoChatStore.getState().addChatMessage(message),
       clearChatMessages: () =>
@@ -102,6 +110,12 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setError(error),
       setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) =>
         useVideoChatStore.getState().setPeerInfo(peerInfo),
+      setNetworkQuality: (quality: NetworkQuality) =>
+        useVideoChatStore.getState().setNetworkQuality(quality),
+      setVideoStalled: (stalled: boolean) =>
+        useVideoChatStore.getState().setVideoStalled(stalled),
+      setQualityTier: (tier: QualityTier) =>
+        useVideoChatStore.getState().setQualityTier(tier),
       resetState: () => useVideoChatStore.getState().resetState(),
       resetPeerState: () => useVideoChatStore.getState().resetPeerState(),
       resetRuntimeState: () => useVideoChatStore.getState().resetRuntimeState(),

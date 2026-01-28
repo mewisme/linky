@@ -200,9 +200,7 @@ export class RedisMatchmakingService {
       const isForcedFallbackScenario = queueUsers.length === 2;
       this.logger.info("[MATCH] Forced fallback scenario: %s", isForcedFallbackScenario);
 
-      const favoriteMatches: ScoredCandidatePair[] = [];
-      const interestMatches: ScoredCandidatePair[] = [];
-      const fallbackMatches: ScoredCandidatePair[] = [];
+      const allCandidates: ScoredCandidatePair[] = [];
 
       for (let i = 0; i < queueUsers.length; i++) {
         for (let j = i + 1; j < queueUsers.length; j++) {
@@ -213,12 +211,9 @@ export class RedisMatchmakingService {
           const skipSetB = skipSets.get(userB.userId);
           const hasSkipCooldown = skipSetA?.has(userB.userId) || skipSetB?.has(userA.userId);
 
-          if (hasSkipCooldown) {
-            this.logger.info("[MATCH] Skip cooldown detected: %s <-> %s", userA.userId, userB.userId);
-            if (!isForcedFallbackScenario) {
-              continue;
-            }
-            this.logger.info("[MATCH] Forced fallback: ignoring skip cooldown for 2-user scenario");
+          if (hasSkipCooldown && !isForcedFallbackScenario) {
+            this.logger.info("[MATCH] SKIP candidate %s <-> %s (reason: skip_cooldown)", userA.userId, userB.userId);
+            continue;
           }
 
           const favoritesA = favoritesMap.get(userA.userId);
@@ -226,44 +221,32 @@ export class RedisMatchmakingService {
 
           const favoriteType = calculateFavoriteType(favoritesA, favoritesB, userA.userId, userB.userId);
 
-          const { score, commonInterests } = calculateRedisCandidateScore(userA, userB, now);
+          const { score: baseScore, commonInterests } = calculateRedisCandidateScore(userA, userB, now);
 
-          const candidate: ScoredCandidatePair = { userA, userB, score, commonInterests, favoriteType };
+          let finalScore = baseScore;
+          if (favoriteType === "mutual") {
+            finalScore += 10000;
+          } else if (favoriteType === "one-way") {
+            finalScore += 5000;
+          }
+
+          const candidate: ScoredCandidatePair = { userA, userB, score: finalScore, commonInterests, favoriteType };
+
+          allCandidates.push(candidate);
 
           this.logger.info(
             "[MATCH] Candidate: %s <-> %s (score: %s, interests: %d, favorite: %s, skip: %s)",
             userA.userId,
             userB.userId,
-            score.toFixed(2),
+            finalScore.toFixed(2),
             commonInterests,
             favoriteType,
             hasSkipCooldown ? "yes" : "no",
           );
-
-          if (favoriteType !== "none") {
-            favoriteMatches.push(candidate);
-          } else if (commonInterests > 0) {
-            interestMatches.push(candidate);
-          } else {
-            fallbackMatches.push(candidate);
-          }
         }
       }
 
-      let candidates: ScoredCandidatePair[];
-
-      if (favoriteMatches.length > 0) {
-        candidates = favoriteMatches;
-        this.logger.info("[MATCH] Using favorite matches: %d", favoriteMatches.length);
-      } else if (interestMatches.length > 0) {
-        candidates = interestMatches;
-        this.logger.info("[MATCH] Using interest matches: %d", interestMatches.length);
-      } else {
-        candidates = fallbackMatches;
-        this.logger.info("[MATCH] Using fallback matches: %d", fallbackMatches.length);
-      }
-
-      if (candidates.length === 0) {
+      if (allCandidates.length === 0) {
         if (isForcedFallbackScenario && queueUsers.length === 2) {
           this.logger.info("[MATCH] Forced fallback: creating match for exactly 2 users");
           const userA = queueUsers[0]!;
@@ -288,7 +271,7 @@ export class RedisMatchmakingService {
           await this.dequeue(userA.userId);
           await this.dequeue(userB.userId);
 
-          this.logger.info("[MATCH] Forced fallback match: %s <-> %s", userA.userId, userB.userId);
+          this.logger.info("[MATCH] MATCHED (reason: forced_fallback) %s <-> %s", userA.userId, userB.userId);
 
           return [
             {
@@ -307,26 +290,9 @@ export class RedisMatchmakingService {
         return null;
       }
 
-      candidates.sort((a, b) => {
-        if (a.favoriteType === "mutual" && b.favoriteType !== "mutual") {
-          return -1;
-        }
-        if (b.favoriteType === "mutual" && a.favoriteType !== "mutual") {
-          return 1;
-        }
-        if (a.favoriteType === "one-way" && b.favoriteType === "none") {
-          return -1;
-        }
-        if (b.favoriteType === "one-way" && a.favoriteType === "none") {
-          return 1;
-        }
-        if (a.commonInterests !== b.commonInterests) {
-          return b.commonInterests - a.commonInterests;
-        }
-        return b.score - a.score;
-      });
+      allCandidates.sort((a, b) => b.score - a.score);
 
-      const bestMatch = candidates[0];
+      const bestMatch = allCandidates[0];
       if (!bestMatch) {
         this.logger.warn("[MATCH] No best match after sorting");
         return null;
@@ -351,13 +317,28 @@ export class RedisMatchmakingService {
       await this.dequeue(bestMatch.userA.userId);
       await this.dequeue(bestMatch.userB.userId);
 
+      const waitTimeMs = now - Math.min(bestMatch.userA.joinedAt, bestMatch.userB.joinedAt);
+      const waitTimeSec = (waitTimeMs / 1000).toFixed(1);
+
+      let matchReason: string;
+      if (bestMatch.favoriteType === "mutual") {
+        matchReason = "mutual_favorite";
+      } else if (bestMatch.favoriteType === "one-way") {
+        matchReason = "one_way_favorite";
+      } else if (bestMatch.commonInterests > 0) {
+        matchReason = "common_interests";
+      } else {
+        matchReason = "fallback";
+      }
+
       this.logger.info(
-        "[MATCH] Matched users: %s and %s (Score: %s, Common interests: %d, Favorite: %s)",
-        bestMatch.userA.userId,
-        bestMatch.userB.userId,
+        "[MATCH] MATCHED (reason: %s, score: %s, interests: %d, wait: %ss) %s <-> %s",
+        matchReason,
         bestMatch.score.toFixed(2),
         bestMatch.commonInterests,
-        bestMatch.favoriteType,
+        waitTimeSec,
+        bestMatch.userA.userId,
+        bestMatch.userB.userId,
       );
 
       return [
@@ -468,9 +449,15 @@ export class RedisMatchmakingService {
     const result = new Map<string, string[]>();
 
     try {
-      for (const userId of userIds) {
+      const operations = userIds.map(async (userId) => {
         const key = `user:interests:${userId}`;
         const tags = await redisClient.sMembers(key);
+        return { userId, tags };
+      });
+
+      const results = await Promise.all(operations);
+
+      for (const { userId, tags } of results) {
         result.set(userId, tags);
       }
     } catch (error) {
@@ -484,9 +471,15 @@ export class RedisMatchmakingService {
     const result = new Map<string, Set<string>>();
 
     try {
-      for (const userId of userIds) {
+      const operations = userIds.map(async (userId) => {
         const skipKey = `match:skip:${userId}`;
         const skippedUserIds = await redisClient.sMembers(skipKey);
+        return { userId, skippedUserIds };
+      });
+
+      const results = await Promise.all(operations);
+
+      for (const { userId, skippedUserIds } of results) {
         if (skippedUserIds.length > 0) {
           result.set(userId, new Set(skippedUserIds));
         }
@@ -522,9 +515,15 @@ export class RedisMatchmakingService {
     const result = new Map<string, Set<string>>();
 
     try {
-      for (const userId of userIds) {
+      const operations = userIds.map(async (userId) => {
         const key = `user:favorites:${userId}`;
         const favorites = await redisClient.sMembers(key);
+        return { userId, favorites };
+      });
+
+      const results = await Promise.all(operations);
+
+      for (const { userId, favorites } of results) {
         if (favorites.length > 0) {
           result.set(userId, new Set(favorites));
         }

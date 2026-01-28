@@ -297,6 +297,8 @@ describe("RedisMatchmakingService", () => {
       mockGet
         .mockResolvedValueOnce("socket1")
         .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3")
+        .mockResolvedValueOnce("socket1")
         .mockResolvedValueOnce("socket3");
       mockSMembers
         .mockResolvedValueOnce([])
@@ -307,8 +309,7 @@ describe("RedisMatchmakingService", () => {
       const result = await svc.tryMatch(io);
 
       expect(result).not.toBeNull();
-      expect(result![0]!.socketId).not.toBe("socket1");
-      expect(result![1]!.socketId).not.toBe("socket2");
+      expect([result![0]!.socketId, result![1]!.socketId].sort()).toEqual(["socket1", "socket3"]);
     });
 
     it("forces match for exactly 2 users even with skip cooldown", async () => {
@@ -352,6 +353,250 @@ describe("RedisMatchmakingService", () => {
       const result = await svc.tryMatch(io);
 
       expect(result).toBeNull();
+    });
+
+    it("matches user with interests to user without interests (unified scoring)", async () => {
+      const now = Date.now();
+      const socket1 = createMockSocket("socket1", "clerk1");
+      const socket2 = createMockSocket("socket2", "clerk2");
+      const socket3 = createMockSocket("socket3", "clerk3");
+      const sockets = new Map([
+        ["socket1", socket1],
+        ["socket2", socket2],
+        ["socket3", socket3],
+      ]);
+      const io = createMockNamespace(sockets);
+
+      mockZCard.mockResolvedValue(3);
+      mockSet.mockResolvedValue("OK");
+      mockZRangeWithScores.mockResolvedValue([
+        { value: "user1", score: now - 1000 },
+        { value: "user2", score: now - 500 },
+        { value: "user3", score: now - 200 },
+      ]);
+      mockGet
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3")
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2");
+      mockSMembers
+        .mockResolvedValueOnce(["tag1", "tag2"])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(["tag3"])
+        .mockResolvedValue([]);
+
+      const result = await svc.tryMatch(io);
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveLength(2);
+    });
+
+    it("matches user with offline favorite to available user without signals", async () => {
+      const now = Date.now();
+      const socket1 = createMockSocket("socket1", "clerk1");
+      const socket2 = createMockSocket("socket2", "clerk2");
+      const sockets = new Map([
+        ["socket1", socket1],
+        ["socket2", socket2],
+      ]);
+      const io = createMockNamespace(sockets);
+
+      mockZCard.mockResolvedValue(2);
+      mockSet.mockResolvedValue("OK");
+      mockZRangeWithScores.mockResolvedValue([
+        { value: "user1", score: now - 1000 },
+        { value: "user2", score: now - 500 },
+      ]);
+      mockGet
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2");
+      mockSMembers
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(["user999"])
+        .mockResolvedValue([]);
+
+      const result = await svc.tryMatch(io);
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveLength(2);
+      expect(result![0]!.socketId).toBe("socket1");
+      expect(result![1]!.socketId).toBe("socket2");
+    });
+
+    it("respects skip cooldown when queue has 3+ users", async () => {
+      const now = Date.now();
+      const socket1 = createMockSocket("socket1", "clerk1");
+      const socket2 = createMockSocket("socket2", "clerk2");
+      const socket3 = createMockSocket("socket3", "clerk3");
+      const sockets = new Map([
+        ["socket1", socket1],
+        ["socket2", socket2],
+        ["socket3", socket3],
+      ]);
+      const io = createMockNamespace(sockets);
+
+      mockZCard.mockResolvedValue(3);
+      mockSet.mockResolvedValue("OK");
+      mockZRangeWithScores.mockResolvedValue([
+        { value: "user1", score: now - 1000 },
+        { value: "user2", score: now - 500 },
+        { value: "user3", score: now - 200 },
+      ]);
+      mockGet
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3")
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket3");
+      mockSMembers
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(["user2"])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([]);
+
+      const result = await svc.tryMatch(io);
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveLength(2);
+      expect(result![0]!.socketId).toBe("socket1");
+      expect(result![1]!.socketId).toBe("socket3");
+    });
+
+    it("prioritizes mutual favorites over one-way favorites and common interests", async () => {
+      const now = Date.now();
+      const socket1 = createMockSocket("socket1", "clerk1");
+      const socket2 = createMockSocket("socket2", "clerk2");
+      const socket3 = createMockSocket("socket3", "clerk3");
+      const socket4 = createMockSocket("socket4", "clerk4");
+      const sockets = new Map([
+        ["socket1", socket1],
+        ["socket2", socket2],
+        ["socket3", socket3],
+        ["socket4", socket4],
+      ]);
+      const io = createMockNamespace(sockets);
+
+      mockZCard.mockResolvedValue(4);
+      mockSet.mockResolvedValue("OK");
+      mockZRangeWithScores.mockResolvedValue([
+        { value: "user1", score: now - 1000 },
+        { value: "user2", score: now - 900 },
+        { value: "user3", score: now - 800 },
+        { value: "user4", score: now - 700 },
+      ]);
+      mockGet
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3")
+        .mockResolvedValueOnce("socket4")
+        .mockResolvedValueOnce("socket3")
+        .mockResolvedValueOnce("socket4");
+      mockSMembers
+        .mockResolvedValueOnce(["tag1"])
+        .mockResolvedValueOnce(["tag1"])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(["user4"])
+        .mockResolvedValueOnce(["user3"])
+        .mockResolvedValue([]);
+
+      const result = await svc.tryMatch(io);
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveLength(2);
+      expect([result![0]!.socketId, result![1]!.socketId].sort()).toEqual(["socket3", "socket4"]);
+    });
+
+    it("prioritizes one-way favorites over common interests", async () => {
+      const now = Date.now();
+      const socket1 = createMockSocket("socket1", "clerk1");
+      const socket2 = createMockSocket("socket2", "clerk2");
+      const socket3 = createMockSocket("socket3", "clerk3");
+      const sockets = new Map([
+        ["socket1", socket1],
+        ["socket2", socket2],
+        ["socket3", socket3],
+      ]);
+      const io = createMockNamespace(sockets);
+
+      mockZCard.mockResolvedValue(3);
+      mockSet.mockResolvedValue("OK");
+      mockZRangeWithScores.mockResolvedValue([
+        { value: "user1", score: now - 1000 },
+        { value: "user2", score: now - 900 },
+        { value: "user3", score: now - 800 },
+      ]);
+      mockGet
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3");
+      mockSMembers
+        .mockResolvedValueOnce(["tag1"])
+        .mockResolvedValueOnce(["tag1"])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(["user3"])
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([]);
+
+      const result = await svc.tryMatch(io);
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveLength(2);
+      expect([result![0]!.socketId, result![1]!.socketId].sort()).toEqual(["socket2", "socket3"]);
+    });
+
+    it("prioritizes common interests over fallback", async () => {
+      const now = Date.now();
+      const socket1 = createMockSocket("socket1", "clerk1");
+      const socket2 = createMockSocket("socket2", "clerk2");
+      const socket3 = createMockSocket("socket3", "clerk3");
+      const sockets = new Map([
+        ["socket1", socket1],
+        ["socket2", socket2],
+        ["socket3", socket3],
+      ]);
+      const io = createMockNamespace(sockets);
+
+      mockZCard.mockResolvedValue(3);
+      mockSet.mockResolvedValue("OK");
+      mockZRangeWithScores.mockResolvedValue([
+        { value: "user1", score: now - 1000 },
+        { value: "user2", score: now - 900 },
+        { value: "user3", score: now - 800 },
+      ]);
+      mockGet
+        .mockResolvedValueOnce("socket1")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3")
+        .mockResolvedValueOnce("socket2")
+        .mockResolvedValueOnce("socket3");
+      mockSMembers
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce(["tag1"])
+        .mockResolvedValueOnce(["tag1"])
+        .mockResolvedValue([]);
+
+      const result = await svc.tryMatch(io);
+
+      expect(result).not.toBeNull();
+      expect(result).toHaveLength(2);
+      expect([result![0]!.socketId, result![1]!.socketId].sort()).toEqual(["socket2", "socket3"]);
     });
   });
 });

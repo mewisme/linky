@@ -121,7 +121,7 @@ export default function ChatPage() {
         )}
 
         {isFloatingMode && isInActiveCall && (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-4">
+          <div className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4">
             <p className="text-lg text-muted-foreground">Call is minimized</p>
             <Button onClick={handleRestoreFullUI} size="lg">
               Restore Full View

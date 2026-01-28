@@ -11,6 +11,7 @@ import { getUserStreak } from "../../../infra/supabase/repositories/user-streaks
 import { grantFreezesForLevel } from "./user-streak-freeze.service.js";
 import { grantRewardsForLevel } from "./user-level-reward.service.js";
 import { incrExpToday } from "../../../infra/redis/cache/exp-today.js";
+import { incrementUserExpDaily } from "../../../infra/supabase/repositories/user-exp-daily.js";
 
 const logger = createLogger("API:User:Level:Service");
 
@@ -132,7 +133,12 @@ export async function addCallExp(
 
     await incrementUserExp(userId, expToAdd);
     const dateForExpToday = options?.dateForExpToday;
-    if (dateForExpToday) await incrExpToday(userId, dateForExpToday, expToAdd);
+    if (dateForExpToday) {
+      await Promise.all([
+        incrementUserExpDaily(userId, dateForExpToday, expToAdd),
+        incrExpToday(userId, dateForExpToday, expToAdd),
+      ]);
+    }
     if (timezone) {
       await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
     } else {

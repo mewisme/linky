@@ -175,9 +175,6 @@ export function FloatingVideoContainer({
   const handleTap = () => {
     if (isMobile) {
       onNavigateToChat();
-    } else {
-      // On desktop, clicking background navigates (handled by parent)
-      // Controls are shown on hover
     }
   };
 
@@ -294,7 +291,6 @@ export function FloatingVideoContainer({
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!overlayRef.current || position === null) return;
 
-    // Prevent drag when clicking on interactive elements
     const target = e.target as HTMLElement;
     if (target.closest("button") || target.closest('[role="button"]')) {
       return;
@@ -348,11 +344,8 @@ export function FloatingVideoContainer({
         latestPositionRef.current = next;
         dragPositionRef.current = next;
 
-        // Update state immediately for first move, then batch subsequent updates with RAF
         if (rafIdRef.current === null) {
-          // First update: immediate for instant feedback
           setDragPosition(next);
-          // Subsequent updates: batched per frame
           rafIdRef.current = requestAnimationFrame(() => {
             if (dragPositionRef.current) {
               setDragPosition(dragPositionRef.current);
@@ -366,7 +359,6 @@ export function FloatingVideoContainer({
     const handlePointerUp = () => {
       overlay.releasePointerCapture(pointerId);
 
-      // Cancel any pending RAF
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
@@ -375,7 +367,6 @@ export function FloatingVideoContainer({
       const wasDrag = dragStartedRef.current || dragDistanceRef.current > DRAG_THRESHOLD;
 
       if (wasDrag) {
-        // Sync final position to store and snap to corner
         const finalPos = latestPositionRef.current ?? dragPosition;
         if (finalPos) {
           setDragPosition(finalPos);
@@ -409,7 +400,7 @@ export function FloatingVideoContainer({
 
   useEffect(() => {
     if (!isDragging && !isInteracting) return;
-    if (isMobile) return; // Don't hide controls on mobile during drag
+    if (isMobile) return;
     clearHideTimer();
     setIsControlsVisible(false);
   }, [isDragging, isInteracting, isMobile]);

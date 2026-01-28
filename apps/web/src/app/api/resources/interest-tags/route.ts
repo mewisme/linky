@@ -3,11 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
 
-/**
- * GET /api/resources/interest-tags
- * List all active interest tags (public endpoint, no authentication required)
- * Query params: category, search, limit, offset
- */
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -16,7 +11,6 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get("limit") || "100";
     const offset = searchParams.get("offset") || "0";
 
-    // Build query string
     const queryParams = new URLSearchParams();
     if (category) queryParams.append("category", category);
     if (search) queryParams.append("search", search);

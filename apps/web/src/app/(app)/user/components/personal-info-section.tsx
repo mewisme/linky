@@ -42,14 +42,11 @@ export function PersonalInfoSection({
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
   const [gender, setGender] = useState('')
 
-  // Helper function to parse date string safely (avoid timezone issues)
   const parseDateString = (dateString: string): Date => {
-    // Parse YYYY-MM-DD format and create date in local timezone
     const [year, month, day] = dateString.split('-').map(Number)
     return new Date(year ?? 0, (month ?? 0) - 1, day ?? 0)
   }
 
-  // Helper function to format date to YYYY-MM-DD string
   const formatDateString = (date: Date): string => {
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -103,7 +100,6 @@ export function PersonalInfoSection({
         <span>Personal Information</span>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* Date of Birth */}
         <div className="flex items-center gap-3 p-4 border rounded-xl bg-card group">
           <div className="p-2 bg-muted rounded-lg">
             <IconCalendar className="size-5 text-muted-foreground" />
@@ -171,7 +167,6 @@ export function PersonalInfoSection({
           </div>
         </div>
 
-        {/* Gender */}
         <div className="flex items-center gap-3 p-4 border rounded-xl bg-card group">
           <div className="p-2 bg-muted rounded-lg">
             <IconUser className="size-5 text-muted-foreground" />

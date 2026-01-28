@@ -36,7 +36,6 @@ export default function InterestTagsPage() {
   const queryClient = useQueryClient();
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
-  // States
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTag, setEditingTag] = useState<AdminAPI.InterestTags.InterestTag | null>(null);

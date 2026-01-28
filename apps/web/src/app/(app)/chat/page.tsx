@@ -22,7 +22,6 @@ import { useVideoChatStore } from "@/stores/video-chat-store";
 export default function ChatPage() {
   const { authLoading } = useUserContext();
 
-  // Subscribe to Zustand state directly to minimize rerenders
   const localStream = useVideoChatStore((s) => s.localStream);
   const remoteStream = useVideoChatStore((s) => s.remoteStream);
   const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
@@ -34,7 +33,6 @@ export default function ChatPage() {
   const error = useVideoChatStore((s) => s.error);
   const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
 
-  // Get only methods from context (these don't cause rerenders)
   const {
     isInActiveCall,
     start,

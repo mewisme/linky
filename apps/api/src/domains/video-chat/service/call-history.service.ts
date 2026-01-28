@@ -5,6 +5,7 @@ import { addCallDurationToStreak } from "../../user/service/user-streak.service.
 import { addCallExp } from "../../user/service/user-level.service.js";
 import { createLogger } from "@repo/logger";
 import { invalidate } from "../../../infra/redis/cache/index.js";
+import { toUserLocalDateString } from "../../../utils/timezone.js";
 
 const logger = createLogger("API:VideoChat:CallHistory:Service");
 
@@ -27,7 +28,7 @@ async function applyCallProgressForUser(
 ): Promise<ApplyCallProgressResult> {
   const { userId, counterpartUserId, durationSeconds, callEndDate, timezone } = params;
 
-  const dateStr = new Date(callEndDate).toLocaleDateString("sv-SE", { timeZone: timezone });
+  const dateStr = toUserLocalDateString(new Date(callEndDate), timezone);
 
   await Promise.allSettled([
     invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone)),

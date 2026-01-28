@@ -6,8 +6,6 @@ interface LoggerConfig {
   color?: string;
 }
 
-// TODO: Add a logger for the web app..
-
 const MAX_LABEL_LENGTH = 4;
 
 const truncateLabel = (label: string): string => {

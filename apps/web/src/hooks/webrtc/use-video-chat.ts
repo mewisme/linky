@@ -85,8 +85,6 @@ export function useVideoChat(): UseVideoChatReturn {
   });
 
   const isInActiveCall = useMemo(() => {
-    // WARNING: UI state must remain stable during reconnections and ICE restarts
-    // Use callStartedAt as the source of truth to prevent UI desync
     return (
       state.callStartedAt !== null &&
       (state.connectionStatus === "connected" ||
@@ -96,13 +94,11 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [state.callStartedAt, state.connectionStatus, state.remoteStream]);
 
   useEffect(() => {
-    // WARNING: Only set callStartedAt when truly starting a call, never during reconnections
     const shouldStartCall =
       !!state.remoteStream &&
       state.connectionStatus === "connected" &&
       state.callStartedAt === null;
 
-    // WARNING: Only clear callStartedAt on explicit disconnect states
     const shouldEndCall =
       state.callStartedAt !== null &&
       (state.connectionStatus === "idle" ||

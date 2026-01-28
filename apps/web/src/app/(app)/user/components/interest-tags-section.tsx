@@ -45,7 +45,6 @@ export function InterestTagsSection({
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Load available tags
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -60,7 +59,6 @@ export function InterestTagsSection({
     fetchTags()
   }, [])
 
-  // Initialize selected tags from userDetails
   useEffect(() => {
     if (userDetails?.interest_tags) {
       setSelectedTagIds(
@@ -96,8 +94,6 @@ export function InterestTagsSection({
     selectedTagIds.includes(tag.id)
   )
 
-  // Create search value for each tag to help Command component filter
-  // Command component filters by matching the value prop
   const getTagSearchValue = (tag: ResourcesAPI.InterestTags.InterestTag) => {
     return `${tag.name} ${tag.description || ''} ${tag.category || ''}`.trim()
   }

@@ -43,21 +43,17 @@ export function FloatingVideoControls({
   onToggleChat,
   sendFavoriteNotification,
   isVisible,
-  isMobile,
 }: FloatingVideoControlsProps) {
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (e: React.MouseEvent) => {
-    // Prevent navigation when clicking controls
     e.stopPropagation();
   };
 
-  // Override VideoControls positioning to be absolute instead of fixed
   useEffect(() => {
     if (!controlsWrapperRef.current) return;
     const controlsDiv = controlsWrapperRef.current.querySelector("div");
     if (controlsDiv) {
-      // Force absolute positioning instead of fixed
       controlsDiv.style.position = "absolute";
     }
   }, []);

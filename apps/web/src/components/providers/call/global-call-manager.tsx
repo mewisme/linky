@@ -3,13 +3,9 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useVideoChat } from "@/hooks/webrtc/use-video-chat";
 
-// Expose only methods and computed values, not raw state
-// Components should subscribe to Zustand directly for state
 interface GlobalCallContextValue {
-  // Computed values
   isInActiveCall: boolean;
 
-  // Methods
   sendMessage: (message: string) => void;
   start: () => Promise<void>;
   skip: () => void;
@@ -29,7 +25,6 @@ interface GlobalCallManagerProps {
 export function GlobalCallManager({ children }: GlobalCallManagerProps) {
   const videoChat = useVideoChat();
 
-  // Expose only methods and computed values to prevent context rerenders
   const contextValue = useMemo<GlobalCallContextValue>(() => ({
     isInActiveCall: videoChat.isInActiveCall,
     sendMessage: videoChat.sendMessage,

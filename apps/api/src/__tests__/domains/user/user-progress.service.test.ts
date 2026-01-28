@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { getUserProgressInsights } from "../../../domains/user/service/user-progress.service.js";
 
 const mockGetOrSet = vi.fn();
@@ -6,6 +7,7 @@ const mockGetUserLevelData = vi.fn();
 const mockGetUserStreakData = vi.fn();
 const mockGetUserStreakHistory = vi.fn();
 const mockGetExpToday = vi.fn();
+const mockGetUserExpDaily = vi.fn();
 const mockGetCallDurationsForUserOnLocalDate = vi.fn();
 
 vi.mock("../../../infra/redis/cache/index.js", () => ({
@@ -23,6 +25,10 @@ vi.mock("../../../domains/user/service/user-streak.service.js", () => ({
 
 vi.mock("../../../infra/redis/cache/exp-today.js", () => ({
   getExpToday: (...args: unknown[]) => mockGetExpToday(...args),
+}));
+
+vi.mock("../../../infra/supabase/repositories/user-exp-daily.js", () => ({
+  getUserExpDaily: (...args: unknown[]) => mockGetUserExpDaily(...args),
 }));
 
 vi.mock("../../../infra/supabase/repositories/call-history.js", () => ({
@@ -45,6 +51,7 @@ beforeEach(() => {
   });
   mockGetUserStreakHistory.mockResolvedValue({ data: [], count: 0 });
   mockGetExpToday.mockResolvedValue(0);
+  mockGetUserExpDaily.mockResolvedValue(0);
   mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(0);
 });
 

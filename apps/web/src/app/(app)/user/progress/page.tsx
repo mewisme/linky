@@ -37,6 +37,17 @@ function formatSeconds(seconds: number): string {
   return `${secs}s`;
 }
 
+function formatExp(exp: number): string {
+  // format number like 1000 -> 1k, 1000000 -> 1M
+  if (exp >= 1000000) {
+    return `${(exp / 1000000).toFixed(1)}M`;
+  }
+  if (exp >= 1000) {
+    return `${(exp / 1000).toFixed(1)}k`;
+  }
+  return exp.toString();
+}
+
 export default function UserProgressPage() {
   const { state } = useUserContext();
   const [token, setToken] = useState<string | null>(null);
@@ -108,12 +119,8 @@ export default function UserProgressPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total EXP</span>
-                    <span className="font-medium">{formatSeconds(data.expProgress.totalExpSeconds)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">EXP to Next Level</span>
-                    <span className="font-medium" data-testid="progress-exp-remaining">{formatSeconds(data.expProgress.expToNextLevel)}</span>
+                    <span className="font-medium" data-testid="progress-exp-remaining">{formatExp(data.expProgress.expToNextLevel)} EXP</span>
                   </div>
                   <Progress value={data.expProgress.progressPercentage} className="h-2" />
                   <p className="text-xs text-center text-muted-foreground">
@@ -123,7 +130,7 @@ export default function UserProgressPage() {
                 <div className="pt-3 border-t">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">EXP earned today</span>
-                    <span className="font-medium" data-testid="progress-exp-today">{formatSeconds(data.expEarnedToday ?? 0)}</span>
+                    <span className="font-medium" data-testid="progress-exp-today">{formatExp(data.expEarnedToday ?? 0)} EXP</span>
                   </div>
                 </div>
                 <div className="pt-3 border-t">

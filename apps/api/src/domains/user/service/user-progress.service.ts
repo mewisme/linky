@@ -7,6 +7,7 @@ import { createLogger } from "@repo/logger";
 import { getCallDurationsForUserOnLocalDate } from "../../../infra/supabase/repositories/call-history.js";
 import { getExpToday } from "../../../infra/redis/cache/exp-today.js";
 import { getOrSet } from "../../../infra/redis/cache/index.js";
+import { getUserExpDaily } from "../../../infra/supabase/repositories/user-exp-daily.js";
 import { getUserLevelData } from "./user-level.service.js";
 import { toUserLocalDateString } from "../../../utils/timezone.js";
 
@@ -88,8 +89,12 @@ export async function getUserProgressInsights(
 
         let expEarnedToday = await getExpToday(userId, todayStr);
         if (expEarnedToday <= 0) {
+          expEarnedToday = await getUserExpDaily(userId, todayStr);
+        }
+        if (expEarnedToday <= 0) {
           expEarnedToday = await getCallDurationsForUserOnLocalDate(userId, todayStr, timezone);
         }
+        expEarnedToday = Math.min(expEarnedToday, levelData.totalExpSeconds);
 
         const remainingSecondsToNextLevel = expToNextLevel;
 

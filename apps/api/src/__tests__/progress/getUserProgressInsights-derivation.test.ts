@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { getUserProgressInsights } from "../../domains/user/service/user-progress.service.js";
 
 const RECENT_STREAK_DAYS = 10;
@@ -8,6 +9,7 @@ const mockGetUserLevelData = vi.fn();
 const mockGetUserStreakData = vi.fn();
 const mockGetUserStreakHistory = vi.fn();
 const mockGetExpToday = vi.fn();
+const mockGetUserExpDaily = vi.fn();
 const mockGetCallDurationsForUserOnLocalDate = vi.fn();
 
 vi.mock("../../infra/redis/cache/index.js", () => ({
@@ -25,6 +27,10 @@ vi.mock("../../domains/user/service/user-streak.service.js", () => ({
 
 vi.mock("../../infra/redis/cache/exp-today.js", () => ({
   getExpToday: (...args: unknown[]) => mockGetExpToday(...args),
+}));
+
+vi.mock("../../infra/supabase/repositories/user-exp-daily.js", () => ({
+  getUserExpDaily: (...args: unknown[]) => mockGetUserExpDaily(...args),
 }));
 
 vi.mock("../../infra/supabase/repositories/call-history.js", () => ({
@@ -47,6 +53,7 @@ beforeEach(() => {
   });
   mockGetUserStreakHistory.mockResolvedValue({ data: [], count: 0 });
   mockGetExpToday.mockResolvedValue(0);
+  mockGetUserExpDaily.mockResolvedValue(0);
   mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(0);
 });
 
@@ -157,25 +164,56 @@ describe("getUserProgressInsights derivation", () => {
     });
   });
 
-  describe("getExpToday fallback", () => {
-    it("when getExpToday returns 0, getCallDurationsForUserOnLocalDate is called and expEarnedToday equals that", async () => {
+  describe("expEarnedToday derivation", () => {
+    it("when getExpToday returns 0, getUserExpDaily is called then getCallDurationsForUserOnLocalDate if 0", async () => {
       mockGetExpToday.mockResolvedValue(0);
+      mockGetUserExpDaily.mockResolvedValue(0);
       mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(120);
 
       const r = await getUserProgressInsights("u1", tz);
 
+      expect(mockGetUserExpDaily).toHaveBeenCalledWith("u1", todayStr);
       expect(mockGetCallDurationsForUserOnLocalDate).toHaveBeenCalledWith("u1", todayStr, tz);
       expect(r?.expEarnedToday).toBe(120);
     });
 
-  it("when getExpToday returns >0, getCallDurationsForUserOnLocalDate is not called", async () => {
-    mockGetExpToday.mockResolvedValue(50);
-    mockGetCallDurationsForUserOnLocalDate.mockClear();
+    it("when getExpToday returns 0 and getUserExpDaily returns value, expEarnedToday equals that and getCallDurations not called", async () => {
+      mockGetExpToday.mockResolvedValue(0);
+      mockGetUserExpDaily.mockResolvedValue(80);
+      mockGetCallDurationsForUserOnLocalDate.mockClear();
 
-    await getUserProgressInsights("u1", tz);
+      const r = await getUserProgressInsights("u1", tz);
 
-    expect(mockGetCallDurationsForUserOnLocalDate).not.toHaveBeenCalled();
-  });
+      expect(mockGetUserExpDaily).toHaveBeenCalledWith("u1", todayStr);
+      expect(mockGetCallDurationsForUserOnLocalDate).not.toHaveBeenCalled();
+      expect(r?.expEarnedToday).toBe(80);
+    });
+
+    it("when getExpToday returns >0, getUserExpDaily and getCallDurations are not called", async () => {
+      mockGetExpToday.mockResolvedValue(50);
+      mockGetUserExpDaily.mockClear();
+      mockGetCallDurationsForUserOnLocalDate.mockClear();
+
+      await getUserProgressInsights("u1", tz);
+
+      expect(mockGetUserExpDaily).not.toHaveBeenCalled();
+      expect(mockGetCallDurationsForUserOnLocalDate).not.toHaveBeenCalled();
+    });
+
+    it("expEarnedToday is capped at totalExpSeconds", async () => {
+      mockGetUserLevelData.mockResolvedValue({
+        level: 2,
+        totalExpSeconds: 100,
+        expToNextLevel: 200,
+      });
+      mockGetExpToday.mockResolvedValue(0);
+      mockGetUserExpDaily.mockResolvedValue(0);
+      mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(150);
+
+      const r = await getUserProgressInsights("u1", tz);
+
+      expect(r?.expEarnedToday).toBe(100);
+    });
   });
 
   describe("recentStreakDays", () => {

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { addCallExp, getUserLevelData } from "../../../domains/user/service/user-level.service.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetUserLevel = vi.fn();
 const mockIncrementUserExp = vi.fn();
@@ -12,6 +12,7 @@ const mockGrantFreezesForLevel = vi.fn();
 const mockInvalidate = vi.fn();
 const mockInvalidateByPrefix = vi.fn();
 const mockIncrExpToday = vi.fn();
+const mockIncrementUserExpDaily = vi.fn();
 
 vi.mock("../../../infra/supabase/repositories/user-levels.js", () => ({
   getUserLevel: (...args: unknown[]) => mockGetUserLevel(...args),
@@ -51,6 +52,10 @@ vi.mock("../../../infra/redis/cache/exp-today.js", () => ({
   incrExpToday: (...args: unknown[]) => mockIncrExpToday(...args),
 }));
 
+vi.mock("../../../infra/supabase/repositories/user-exp-daily.js", () => ({
+  incrementUserExpDaily: (...args: unknown[]) => mockIncrementUserExpDaily(...args),
+}));
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetUserLevel
@@ -62,14 +67,16 @@ beforeEach(() => {
   mockInvalidate.mockResolvedValue(undefined);
   mockInvalidateByPrefix.mockResolvedValue(undefined);
   mockIncrExpToday.mockResolvedValue(undefined);
+  mockIncrementUserExpDaily.mockResolvedValue(undefined);
 });
 
 describe("addCallExp", () => {
-  it("returns early when durationSeconds <= 0: no incrementUserExp, incrExpToday, invalidate", async () => {
+  it("returns early when durationSeconds <= 0: no incrementUserExp, incrExpToday, incrementUserExpDaily, invalidate", async () => {
     await addCallExp("u1", 0);
     await addCallExp("u1", -1);
     expect(mockIncrementUserExp).not.toHaveBeenCalled();
     expect(mockIncrExpToday).not.toHaveBeenCalled();
+    expect(mockIncrementUserExpDaily).not.toHaveBeenCalled();
     expect(mockInvalidate).not.toHaveBeenCalled();
     expect(mockInvalidateByPrefix).not.toHaveBeenCalled();
   });
@@ -85,13 +92,15 @@ describe("addCallExp", () => {
     expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 120);
   });
 
-  it("when dateForExpToday provided, calls incrExpToday with userId, dateForExpToday, expToAdd", async () => {
+  it("when dateForExpToday provided, calls incrementUserExpDaily and incrExpToday with userId, dateForExpToday, expToAdd", async () => {
     await addCallExp("u1", 100, { dateForExpToday: "2024-06-15" });
+    expect(mockIncrementUserExpDaily).toHaveBeenCalledWith("u1", "2024-06-15", 100);
     expect(mockIncrExpToday).toHaveBeenCalledWith("u1", "2024-06-15", 100);
   });
 
-  it("when dateForExpToday not provided, does not call incrExpToday", async () => {
+  it("when dateForExpToday not provided, does not call incrementUserExpDaily or incrExpToday", async () => {
     await addCallExp("u1", 100);
+    expect(mockIncrementUserExpDaily).not.toHaveBeenCalled();
     expect(mockIncrExpToday).not.toHaveBeenCalled();
   });
 

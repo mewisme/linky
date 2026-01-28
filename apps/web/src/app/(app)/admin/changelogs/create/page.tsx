@@ -154,7 +154,7 @@ export default function CreateChangelogPage() {
               <CardContent>
                 <div className="rounded-md border bg-muted/20">
                   <Editor
-                    className="min-h-[500px]" // Tăng chiều cao editor để dễ viết
+                    className="min-h-[500px]"
                     value={markdownContent}
                     onChange={setMarkdownContent}
                     editable={true}
@@ -173,7 +173,6 @@ export default function CreateChangelogPage() {
               <CardContent>
                 <Form {...form}>
                   <form className="space-y-8">
-                    {/* Grid responsive: 1 cột trên mobile, 2 trên tablet, 3 trên desktop */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       <FormField
                         control={form.control}

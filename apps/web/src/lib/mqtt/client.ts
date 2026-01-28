@@ -5,7 +5,6 @@ let client: MqttClient | null = null
 export function createMqttClient(userId: string): MqttClient {
   if (client) return client;
 
-  // Validate MQTT configuration
   const mqttUrl = process.env.NEXT_PUBLIC_MQTT_CLIENT_URL;
   const mqttPort = process.env.NEXT_PUBLIC_MQTT_CLIENT_PORT;
   const mqttUsername = process.env.NEXT_PUBLIC_MQTT_CLIENT_USERNAME;

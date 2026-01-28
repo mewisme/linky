@@ -43,7 +43,6 @@ export default function Home() {
   const [transition, setTransition] = useState(false);
   const [isLoadedTransition, setIsLoadedTransition] = useState(false);
 
-  // Track visitor on session start
   useVisitorTracking();
 
   useEffect(() => {

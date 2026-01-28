@@ -564,6 +564,33 @@ export type Database = {
           },
         ]
       }
+      user_exp_daily: {
+        Row: {
+          created_at: string
+          date: string
+          exp_seconds: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          exp_seconds?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          exp_seconds?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_favorite_limits: {
         Row: {
           daily_limit: number
@@ -1297,6 +1324,10 @@ export type Database = {
     Functions: {
       increment_user_exp: {
         Args: { p_seconds: number; p_user_id: string }
+        Returns: undefined
+      }
+      increment_user_exp_daily: {
+        Args: { p_date: string; p_exp_seconds: number; p_user_id: string }
         Returns: undefined
       }
       increment_visitor: { Args: { ip: string }; Returns: undefined }

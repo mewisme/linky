@@ -17,8 +17,6 @@ export namespace MediaAPI {
     }
   }
 
-  // S3 types are already defined in api.types.ts as S3API
-  // Re-export for consistency
   export namespace S3 {
     export namespace GetUploadUrl {
       export interface QueryParams {

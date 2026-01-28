@@ -9,12 +9,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/ui/components/ui/alert-dialog"
-import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@repo/ui/components/ui/button";
-import { ChatSidebar } from "./components/chat-sidebar";
 import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
 import { VideoContainer } from "./components/video-container";
+import { useChatPanelStore } from "@/stores/chat-panel-store";
+import { useChatUnreadIndicator } from "@/hooks/chat/use-chat-unread-indicator";
 import { useGlobalCallContext } from "@/components/providers/call/global-call-manager";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";
@@ -37,7 +37,6 @@ export default function ChatPage() {
   // Get only methods from context (these don't cause rerenders)
   const {
     isInActiveCall,
-    sendMessage,
     start,
     skip,
     endCall,
@@ -47,37 +46,9 @@ export default function ChatPage() {
     clearError,
   } = useGlobalCallContext();
 
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const lastReadMessageCountRef = useRef(0);
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-  const isInitialMountRef = useRef(true);
-
-  useEffect(() => {
-    if (isChatOpen) {
-      lastReadMessageCountRef.current = chatMessages.length;
-      setHasUnreadMessages(false);
-      isInitialMountRef.current = false;
-    } else {
-      if (isInitialMountRef.current) {
-        lastReadMessageCountRef.current = chatMessages.length;
-        setHasUnreadMessages(false);
-        isInitialMountRef.current = false;
-        return;
-      }
-
-      const unreadCount = chatMessages.length - lastReadMessageCountRef.current;
-      const newMessages = chatMessages.slice(lastReadMessageCountRef.current);
-      const hasNewMessagesFromOthers = newMessages.some((msg) => !msg.isOwn);
-      setHasUnreadMessages(unreadCount > 0 && hasNewMessagesFromOthers);
-    }
-  }, [isChatOpen, chatMessages]);
-
-  useEffect(() => {
-    if (chatMessages.length === 0) {
-      lastReadMessageCountRef.current = 0;
-      setHasUnreadMessages(false);
-    }
-  }, [chatMessages.length]);
+  const isChatOpen = useChatPanelStore((s) => s.isChatPanelOpen);
+  const toggleChatPanel = useChatPanelStore((s) => s.toggleChatPanel);
+  const { hasUnreadMessages } = useChatUnreadIndicator(chatMessages, isChatOpen);
 
   const handleRestoreFullUI = () => {
     useVideoChatStore.getState().setFloatingMode(false);
@@ -115,7 +86,7 @@ export default function ChatPage() {
             onEndCall={endCall}
             onToggleMute={toggleMute}
             onToggleVideo={toggleVideo}
-            onToggleChat={() => setIsChatOpen(!isChatOpen)}
+            onToggleChat={toggleChatPanel}
             sendFavoriteNotification={sendFavoriteNotification}
           />
         )}
@@ -129,16 +100,6 @@ export default function ChatPage() {
           </div>
         )}
       </main>
-
-      {!isFloatingMode && (
-        <ChatSidebar
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
-          chatMessages={chatMessages}
-          connectionStatus={connectionStatus}
-          onSendMessage={sendMessage}
-        />
-      )}
     </ReactionEffectProvider>
   );
 }

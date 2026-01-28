@@ -5,6 +5,7 @@ import { SidebarInset, SidebarProvider } from "@repo/ui/components/animate-ui/co
 
 import { AppHeader } from "@/components/header/app/app-header";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { ChatPanelHost } from "@/components/chat/chat-panel-host";
 import { FloatingCallProvider } from "@/components/floating-call/floating-call-provider";
 import { GlobalCallManager } from "@/components/providers/call/global-call-manager";
 import { Suspense } from "react";
@@ -40,6 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarInset>
             </div>
           </SidebarProvider>
+          <ChatPanelHost />
         </FloatingCallProvider>
       </GlobalCallManager>
     </QueryClientProvider>

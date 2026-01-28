@@ -1,12 +1,14 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import { FloatingVideoContainer } from "./floating-video";
 import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useAudioActivity } from "@/hooks/webrtc/use-audio-activity";
 import { useGlobalCallContext } from "@/components/providers/call/global-call-manager";
+import { useChatUnreadIndicator } from "@/hooks/chat/use-chat-unread-indicator";
+import { useChatPanelStore } from "@/stores/chat-panel-store";
 
 interface FloatingCallProviderProps {
   children: ReactNode;
@@ -16,7 +18,6 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isOnChatPage = pathname === "/chat";
-  const previousPathnameRef = useRef<string | null>(null);
 
   const localStream = useVideoChatStore((s) => s.localStream);
   const remoteStream = useVideoChatStore((s) => s.remoteStream);
@@ -25,7 +26,6 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
   const isVideoOff = useVideoChatStore((s) => s.isVideoOff);
   const remoteMuted = useVideoChatStore((s) => s.remoteMuted);
   const peerInfo = useVideoChatStore((s) => s.peerInfo);
-  const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
   const chatMessages = useVideoChatStore((s) => s.chatMessages);
 
   const {
@@ -40,62 +40,24 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
 
   const hasAudioActivity = useAudioActivity(remoteStream);
 
-  // Track chat open state for unread messages
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const lastReadMessageCountRef = useRef(0);
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
-  const isInitialMountRef = useRef(true);
+  const isChatOpen = useChatPanelStore((s) => s.isChatPanelOpen);
+  const toggleChatPanel = useChatPanelStore((s) => s.toggleChatPanel);
+  const { hasUnreadMessages } = useChatUnreadIndicator(chatMessages, isChatOpen);
 
   useEffect(() => {
-    if (isChatOpen) {
-      lastReadMessageCountRef.current = chatMessages.length;
-      setHasUnreadMessages(false);
-      isInitialMountRef.current = false;
-    } else {
-      if (isInitialMountRef.current) {
-        lastReadMessageCountRef.current = chatMessages.length;
-        setHasUnreadMessages(false);
-        isInitialMountRef.current = false;
-        return;
+    if (isOnChatPage) {
+      return;
+    }
+
+    if (!isInActiveCall) {
+      const currentFloatingMode = useVideoChatStore.getState().isFloatingMode;
+      if (currentFloatingMode) {
+        useVideoChatStore.getState().setFloatingMode(false);
       }
-
-      const unreadCount = chatMessages.length - lastReadMessageCountRef.current;
-      const newMessages = chatMessages.slice(lastReadMessageCountRef.current);
-      const hasNewMessagesFromOthers = newMessages.some((msg) => !msg.isOwn);
-      setHasUnreadMessages(unreadCount > 0 && hasNewMessagesFromOthers);
     }
-  }, [isChatOpen, chatMessages]);
+  }, [isInActiveCall, isOnChatPage]);
 
-  useEffect(() => {
-    if (chatMessages.length === 0) {
-      lastReadMessageCountRef.current = 0;
-      setHasUnreadMessages(false);
-    }
-  }, [chatMessages.length]);
-
-  useEffect(() => {
-    const previousPath = previousPathnameRef.current;
-    const wasOnChatPage = previousPath === "/chat";
-    const nowOnChatPage = isOnChatPage;
-
-    if (wasOnChatPage && !nowOnChatPage && isInActiveCall) {
-      useVideoChatStore.getState().setFloatingMode(true);
-    }
-
-    if (!wasOnChatPage && nowOnChatPage && isFloatingMode) {
-      useVideoChatStore.getState().setFloatingMode(false);
-    }
-
-    previousPathnameRef.current = pathname;
-  }, [pathname, isOnChatPage, isInActiveCall, isFloatingMode]);
-
-  useEffect(() => {
-    if (!isInActiveCall && isFloatingMode) {
-      useVideoChatStore.getState().setFloatingMode(false);
-    }
-  }, [isInActiveCall, isFloatingMode]);
-
-  const shouldShowFloating = isFloatingMode && isInActiveCall;
+  const shouldShowFloating = isInActiveCall && !isOnChatPage;
 
   const handleExpand = () => {
     if (isOnChatPage) {
@@ -126,7 +88,7 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
           onEndCall={endCall}
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
-          onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          onToggleChat={toggleChatPanel}
           sendFavoriteNotification={sendFavoriteNotification}
           onNavigateToChat={handleExpand}
         />

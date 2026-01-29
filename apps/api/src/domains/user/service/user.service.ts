@@ -1,7 +1,8 @@
-import { supabase } from "../../../infra/supabase/client.js";
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import type { Tables } from "../../../types/database/supabase.types.js";
 import { invalidate } from "../../../infra/redis/cache/index.js";
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import { scheduleEmbeddingRegeneration } from "./embedding-job.service.js";
+import { supabase } from "../../../infra/supabase/client.js";
 
 export async function fetchUserByClerkUserId(clerkUserId: string): Promise<{
   user: Tables<"users"> | null;
@@ -43,6 +44,7 @@ export async function tryUpdateUserCountryFromHeader(
 
   if (updatedUser?.id) {
     await invalidate(REDIS_CACHE_KEYS.userProfile(updatedUser.id));
+    scheduleEmbeddingRegeneration(updatedUser.id);
   }
 
   return { updatedUser, updateError: null };
@@ -67,6 +69,7 @@ export async function updateUserCountryByClerkUserId(
 
   if (user?.id) {
     await invalidate(REDIS_CACHE_KEYS.userProfile(user.id));
+    scheduleEmbeddingRegeneration(user.id);
   }
 
   return { user, error };

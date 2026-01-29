@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  putUserDetails,
-  patchUserDetailsForUser,
   addUserInterestTags,
+  clearUserInterestTags,
+  patchUserDetailsForUser,
+  putUserDetails,
   removeUserInterestTags,
   replaceUserInterestTags,
-  clearUserInterestTags,
 } from "../../../domains/user/service/user-details.service.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetUserDetailsByUserId = vi.fn();
 const mockCreateUserDetails = vi.fn();
@@ -18,6 +18,11 @@ const mockReplaceInterestTags = vi.fn();
 const mockClearInterestTags = vi.fn();
 const mockGetInterestTagsByIds = vi.fn();
 const mockInvalidate = vi.fn().mockResolvedValue(undefined);
+const mockScheduleEmbeddingRegeneration = vi.fn();
+
+vi.mock("../../../domains/user/service/embedding-job.service.js", () => ({
+  scheduleEmbeddingRegeneration: (...args: unknown[]) => mockScheduleEmbeddingRegeneration(...args),
+}));
 
 vi.mock("../../../infra/supabase/repositories/user-details.js", () => ({
   getUserDetailsByUserId: (...args: unknown[]) => mockGetUserDetailsByUserId(...args),
@@ -74,6 +79,7 @@ describe("putUserDetails", () => {
     expect(mockCreateUserDetails).toHaveBeenCalledWith("u1", { bio: "Hi" });
     expect(mockUpdateUserDetails).not.toHaveBeenCalled();
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 
   it("when existing: updates and invalidates", async () => {
@@ -87,6 +93,7 @@ describe("putUserDetails", () => {
     expect(mockUpdateUserDetails).toHaveBeenCalledWith("u1", { bio: "Updated" });
     expect(mockCreateUserDetails).not.toHaveBeenCalled();
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 
   it("valid interest_tags: getInterestTagsByIds matches length, then create/update proceeds", async () => {
@@ -98,6 +105,7 @@ describe("putUserDetails", () => {
 
     expect(mockCreateUserDetails).toHaveBeenCalledWith("u1", { interest_tags: ["id1", "id2"] });
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });
 
@@ -122,6 +130,7 @@ describe("patchUserDetailsForUser", () => {
     expect(mockCreateUserDetails).toHaveBeenCalledWith("u1", { bio: "x" });
     expect(mockPatchUserDetails).not.toHaveBeenCalled();
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 
   it("when existing: patches and invalidates", async () => {
@@ -132,6 +141,7 @@ describe("patchUserDetailsForUser", () => {
 
     expect(mockPatchUserDetails).toHaveBeenCalledWith("u1", { bio: "y" });
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });
 
@@ -143,6 +153,7 @@ describe("addUserInterestTags", () => {
 
     expect(mockAddInterestTags).toHaveBeenCalledWith("u1", ["t1", "t2"]);
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });
 
@@ -154,6 +165,7 @@ describe("removeUserInterestTags", () => {
 
     expect(mockRemoveInterestTags).toHaveBeenCalledWith("u1", ["t1"]);
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });
 
@@ -165,6 +177,7 @@ describe("replaceUserInterestTags", () => {
 
     expect(mockReplaceInterestTags).toHaveBeenCalledWith("u1", ["t1"]);
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });
 
@@ -176,5 +189,6 @@ describe("clearUserInterestTags", () => {
 
     expect(mockClearInterestTags).toHaveBeenCalledWith("u1");
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });

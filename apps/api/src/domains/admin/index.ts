@@ -9,6 +9,7 @@ import levelFeatureUnlocksRouter from "./http/level-feature-unlocks.route.js";
 import streakExpBonusesRouter from "./http/streak-exp-bonuses.route.js";
 import favoriteExpBoostRouter from "./http/favorite-exp-boost.route.js";
 import adminMediaRouter from "./http/admin-media.route.js";
+import embeddingsRouter from "./http/embeddings.route.js";
 import { createAdminReportsRouter } from "./http/reports.route.js";
 import { rateLimitMiddleware } from "../../middleware/rate-limit.js";
 
@@ -18,6 +19,7 @@ export function createAdminRouter(deps: { reportsRouter: ExpressRouter }): Expre
   router.use(rateLimitMiddleware);
 
   router.use("/users", usersRouter);
+  router.use("/embeddings", embeddingsRouter);
   router.use("/analytics", analyticsRouter);
   router.use("/visits", visitsRouter);
   router.use("/interest-tags", interestTagsRouter);

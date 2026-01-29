@@ -1,4 +1,3 @@
-import type { UserDetailsUpdate } from "../types/user-details.types.js";
 import {
   addInterestTags,
   clearInterestTags,
@@ -10,10 +9,13 @@ import {
   replaceInterestTags,
   updateUserDetails,
 } from "../../../infra/supabase/repositories/user-details.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import { getInterestTagsByIds } from "../../../infra/supabase/repositories/interest-tags.js";
-import { invalidate } from "../../../infra/redis/cache/index.js";
+
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import type { UserDetailsUpdate } from "../types/user-details.types.js";
+import { getInterestTagsByIds } from "../../../infra/supabase/repositories/interest-tags.js";
+import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import { invalidate } from "../../../infra/redis/cache/index.js";
+import { scheduleEmbeddingRegeneration } from "./embedding-job.service.js";
 
 type UserDetailsUpdateData = Omit<UserDetailsUpdate, "user_id">;
 
@@ -66,11 +68,13 @@ export async function putUserDetails(userId: string, updateData: UserDetailsUpda
   if (!existing) {
     const created = await createUserDetails(userId, updateData);
     await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    scheduleEmbeddingRegeneration(userId);
     return created;
   }
 
   const updated = await updateUserDetails(userId, updateData);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 
@@ -88,35 +92,41 @@ export async function patchUserDetailsForUser(userId: string, updateData: Partia
   if (!existing) {
     const created = await createUserDetails(userId, updateData);
     await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    scheduleEmbeddingRegeneration(userId);
     return created;
   }
 
   const updated = await patchUserDetails(userId, updateData);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 
 export async function addUserInterestTags(userId: string, tagIds: string[]) {
   const updated = await addInterestTags(userId, tagIds);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 
 export async function removeUserInterestTags(userId: string, tagIds: string[]) {
   const updated = await removeInterestTags(userId, tagIds);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 
 export async function replaceUserInterestTags(userId: string, tagIds: string[]) {
   const updated = await replaceInterestTags(userId, tagIds);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 
 export async function clearUserInterestTags(userId: string) {
   const updated = await clearInterestTags(userId);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 

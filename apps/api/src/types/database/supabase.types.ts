@@ -564,6 +564,58 @@ export type Database = {
           },
         ]
       }
+      user_embeddings: {
+        Row: {
+          created_at: string
+          embedding: number[] | null
+          id: string
+          model_name: string | null
+          source_hash: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          embedding?: number[] | null
+          id?: string
+          model_name?: string | null
+          source_hash?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: number[] | null
+          id?: string
+          model_name?: string | null
+          source_hash?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_embeddings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_embeddings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_embeddings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_exp_daily: {
         Row: {
           created_at: string

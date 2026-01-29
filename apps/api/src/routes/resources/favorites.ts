@@ -11,6 +11,7 @@ import {
   getFavoritesWithStats,
 } from "../../infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "../../infra/supabase/repositories/call-history.js";
+import { scheduleEmbeddingRegeneration } from "../../domains/user/service/embedding-job.service.js";
 import { createLogger } from "@repo/logger";
 import { getVideoChatContext } from "../../domains/video-chat/socket/video-chat.socket.js";
 import { supabase } from "../../infra/supabase/client.js";
@@ -120,8 +121,8 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
     const favorite = await createFavorite(userId, favorite_user_id);
     await incrementFavoriteLimit(userId);
 
-    // Invalidate cache after successful database update
     await invalidateCacheKey(CACHE_KEYS.userFavorites(userId));
+    scheduleEmbeddingRegeneration(userId);
 
     logger.info("Favorite created: %s -> %s", userId, favorite_user_id);
 
@@ -182,6 +183,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
     const isSameDay = createdDate === today;
 
     await deleteFavorite(userId, favorite_user_id);
+    scheduleEmbeddingRegeneration(userId);
 
     if (isSameDay) {
       try {

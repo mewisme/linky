@@ -206,3 +206,30 @@ export async function createUser(params: UserInsert) {
 
   return data;
 }
+
+export async function getUsersIdsPaginated(
+  options: { page?: number; limit?: number; deleted?: boolean } = {}
+): Promise<{ ids: string[]; hasMore: boolean }> {
+  const { page = 1, limit = 100, deleted = false } = options;
+  const offset = (page - 1) * limit;
+
+  let query = supabase
+    .from("users")
+    .select("id", { count: "exact" })
+    .eq("deleted", deleted)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    logger.error("Error fetching user IDs: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  const ids = (data || []).map((row: { id: string }) => row.id);
+  const total = count ?? 0;
+  const hasMore = offset + ids.length < total;
+
+  return { ids, hasMore };
+}

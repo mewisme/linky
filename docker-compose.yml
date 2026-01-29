@@ -9,15 +9,16 @@ services:
     environment:
       NODE_ENV: production
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      REDIS_PORT: ${REDIS_PORT:-6379}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
     restart: unless-stopped
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -qO- http://localhost:3001/healthz | grep -q 'ok'"]
+        ["CMD-SHELL", "wget -qO- http://localhost:7270/healthz | grep -q 'ok'"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+    profiles: ["app"]
     networks:
       - linky-network
     env_file:
@@ -36,17 +37,32 @@ services:
         redis-server
       fi
       "
+      - infra
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    profiles: ["infra"]
     volumes:
       - redis-data:/data
     restart: unless-stopped
     networks:
       - linky-network
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: linky-ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    profiles: ["ollama"]
+    networks:
+      - linky-network
+    volumes:
+      - ollama-data:/root/.ollama
+
 volumes:
   redis-data:
+  ollama-data:
 
 networks:
   linky-network:
-    driver: bridge
+    external: true

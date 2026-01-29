@@ -1,13 +1,15 @@
-import type { UserSettingsUpdate } from "../types/user-settings.types.js";
 import {
   createUserSettings,
   getUserSettingsByUserId,
   patchUserSettings,
   updateUserSettings,
 } from "../../../infra/supabase/repositories/user-settings.js";
+
+import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import type { UserSettingsUpdate } from "../types/user-settings.types.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { invalidate } from "../../../infra/redis/cache/index.js";
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
+import { scheduleEmbeddingRegeneration } from "./embedding-job.service.js";
 
 type UserSettingsUpdateData = Omit<UserSettingsUpdate, "user_id">;
 
@@ -25,11 +27,13 @@ export async function putUserSettings(userId: string, updateData: UserSettingsUp
   if (!existing) {
     const created = await createUserSettings(userId, updateData);
     await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    scheduleEmbeddingRegeneration(userId);
     return created;
   }
 
   const updated = await updateUserSettings(userId, updateData);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 
@@ -39,11 +43,13 @@ export async function patchUserSettingsForUser(userId: string, updateData: Parti
   if (!existing) {
     const created = await createUserSettings(userId, updateData);
     await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+    scheduleEmbeddingRegeneration(userId);
     return created;
   }
 
   const updated = await patchUserSettings(userId, updateData);
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
+  scheduleEmbeddingRegeneration(userId);
   return updated;
 }
 

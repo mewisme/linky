@@ -54,6 +54,4 @@ RUN pnpm install --prod --frozen-lockfile --filter @repo/api
 # Set working directory to the API app
 WORKDIR /app/apps/api
 
-EXPOSE 3001
-
 CMD ["node", "dist/index.js"]

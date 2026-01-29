@@ -1,11 +1,12 @@
-import { getUserById, getUsers, patchUser, updateUser } from "../../../infra/supabase/repositories/index.js";
 import { getOrSet, invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
+import { getUserById, getUsers, patchUser, updateUser } from "../../../infra/supabase/repositories/index.js";
 
 import type { AdminUserUpdate } from "../types/admin.types.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
 import { clerk } from "../../../infra/clerk/client.js";
 import { hashFilters } from "../../../infra/redis/cache/hash.js";
+import { scheduleEmbeddingRegeneration } from "../../user/service/embedding-job.service.js";
 
 export async function listUsers(params: {
   getAll: boolean;
@@ -49,6 +50,7 @@ export async function updateAdminUser(id: string, userData: AdminUserUpdate) {
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
     invalidate(REDIS_CACHE_KEYS.userProfile(id)),
   ]);
+  scheduleEmbeddingRegeneration(id);
   return updated;
 }
 
@@ -58,6 +60,7 @@ export async function patchAdminUser(id: string, userData: Partial<AdminUserUpda
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
     invalidate(REDIS_CACHE_KEYS.userProfile(id)),
   ]);
+  scheduleEmbeddingRegeneration(id);
   return updated;
 }
 

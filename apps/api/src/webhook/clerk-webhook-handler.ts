@@ -5,6 +5,7 @@ import {
   patchUser,
   softDeleteUserByClerkId,
 } from "../infra/supabase/repositories/index.js";
+import { invalidate, invalidateByPrefix } from "../infra/redis/cache/index.js";
 import {
   isUserCreatedEvent,
   isUserDeletedEvent,
@@ -13,7 +14,7 @@ import {
 
 import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
 import { REDIS_CACHE_KEYS } from "../infra/redis/cache/keys.js";
-import { invalidateByPrefix } from "../infra/redis/cache/index.js";
+import { scheduleEmbeddingRegeneration } from "../domains/user/service/embedding-job.service.js";
 
 export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<void> {
   const eventType = evt.type;
@@ -40,6 +41,8 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
                 deleted: false,
                 deleted_at: null,
               });
+              await invalidate(REDIS_CACHE_KEYS.userProfile(existing.id));
+              scheduleEmbeddingRegeneration(existing.id);
               return;
             }
             if ((existing.deleted === false || existing.deleted === null) && existing.clerk_user_id !== evt.data.id) {
@@ -50,6 +53,8 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
                 last_name: evt.data.last_name ?? null,
                 avatar_url: evt.data.image_url ?? null,
               });
+              await invalidate(REDIS_CACHE_KEYS.userProfile(existing.id));
+              scheduleEmbeddingRegeneration(existing.id);
               return;
             }
           }
@@ -70,6 +75,8 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
           last_name: evt.data.last_name ?? null,
           avatar_url: evt.data.image_url ?? null,
         });
+        await invalidate(REDIS_CACHE_KEYS.userProfile(existing.id));
+        scheduleEmbeddingRegeneration(existing.id);
       }
       break;
     }

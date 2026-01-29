@@ -1,46 +1,28 @@
 'use client';
 
 import type { AdminAPI } from '@/types/admin.types';
-import { Button } from '@repo/ui/components/ui/button';
 import { Checkbox } from '@repo/ui/components/ui/checkbox';
 import { Badge } from '@repo/ui/components/ui/badge';
+import { type ColumnDef } from "@tanstack/react-table"
+import { IconArrowsExchange, IconCircleCheckFilled, IconCircleXFilled, IconTrash, IconRefresh, IconUserPlus, IconUsersGroup, IconShieldLock, IconCopy } from '@tabler/icons-react';
 import {
-  type ColumnDef,
-} from "@tanstack/react-table"
-import { IconCircleCheckFilled, IconCircleXFilled, IconDotsVertical, IconTrash, IconRefresh, IconUserPlus } from '@tabler/icons-react';
-import {
-  DropdownMenu,
-  DropdownMenuSeparator,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@repo/ui/components/animate-ui/components/radix/alert-dialog';
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@repo/ui/components/animate-ui/components/radix/popover';
 import { toast } from "@repo/ui/components/ui/sonner";
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar';
 import { Status, StatusIndicator, StatusLabel } from "@repo/ui/components/kibo-ui/status";
-import { memo, useState } from 'react';
+import { ActionsButton, type ActionItem } from '@/components/common/actions-button';
+import { memo, useMemo } from 'react';
 
 export interface RowCallbacks {
   onSelectRole?: (user: AdminAPI.User, role: AdminAPI.UserRole) => void
   onDelete: (user: AdminAPI.User) => void
   onRestore?: (user: AdminAPI.User) => void
   onEmbeddingSync?: (user: AdminAPI.User) => void
+  onCompareEmbeddings?: (user: AdminAPI.User) => void
+  onFindSimilarUsers?: (user: AdminAPI.User) => void
   onBulkDelete?: (users: AdminAPI.User[]) => void
   onBulkRestore?: (users: AdminAPI.User[]) => void
   onBulkEmbeddingSync?: (users: AdminAPI.User[]) => void
@@ -63,114 +45,123 @@ const AvatarCell = memo(({ avatarUrl, firstName, lastName }: { avatarUrl: string
 
 AvatarCell.displayName = 'AvatarCell'
 
-function ActionsCell({ row, callbacks }: { row: { original: User }, callbacks?: RowCallbacks }) {
-  const [alertOpen, setAlertOpen] = useState(false);
-
+function UserActionsCell({ row, callbacks }: { row: { original: User }; callbacks?: RowCallbacks }) {
   const user = row.original;
   const isDeleted = user.deleted === true;
 
-  return (
-    <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-      <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon">
-              <span className="sr-only">Open menu</span>
-              <IconDotsVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className='overflow-hidden'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(user.id)
-                toast.success('User ID copied to clipboard')
-              }}
-            >
-              Copy user ID
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                navigator.clipboard.writeText(user.clerk_user_id)
-                toast.success('Clerk user ID copied to clipboard')
-              }}
-            >
-              Copy Clerk user ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                Select role
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup value={user.role} onValueChange={(value) => {
-                  callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole)
-                }}>
-                  <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="member">Member</DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            {isDeleted && callbacks?.onRestore && (
-              <DropdownMenuItem
-                onClick={() => callbacks.onRestore?.(user)}
-                data-testid="admin-user-restore-button"
-              >
-                <IconUserPlus />
-                Restore user
-              </DropdownMenuItem>
-            )}
-            {callbacks?.onEmbeddingSync && (
-              <DropdownMenuItem
-                onClick={() => callbacks.onEmbeddingSync?.(user)}
-                data-testid="admin-user-embedding-sync-button"
-              >
-                <IconRefresh />
-                Manual embedding sync
-              </DropdownMenuItem>
-            )}
-            {!isDeleted && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    setAlertOpen(true);
-                  }}
-                  variant='destructive'
-                  data-testid="admin-user-delete-button"
-                >
-                  <IconTrash />
-                  Delete user
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <AlertDialogContent data-testid="dialog-container">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel data-testid="dialog-cancel-button">No, go back</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                callbacks?.onDelete(user);
-                setAlertOpen(false);
-              }}
-              data-testid="admin-user-confirm-delete"
-            >Yes, delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  )
+  const actions: ActionItem[] = useMemo(() => {
+    const items: ActionItem[] = [
+      {
+        type: 'item',
+        label: 'Copy user ID',
+        icon: <IconCopy className="size-4" />,
+        onClick: () => {
+          navigator.clipboard.writeText(user.id);
+          toast.success('User ID copied to clipboard');
+        },
+      },
+      {
+        type: 'item',
+        label: 'Copy Clerk user ID',
+        icon: <IconCopy className="size-4" />,
+        onClick: () => {
+          navigator.clipboard.writeText(user.clerk_user_id);
+          toast.success('Clerk user ID copied to clipboard');
+        },
+      },
+      { type: 'separator' },
+      {
+        type: 'radio-group',
+        label: 'Select role',
+        value: user.role,
+        icon: <IconShieldLock className="size-4" />,
+        onValueChange: (value) => callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole),
+        options: [
+          {
+            value: 'admin', label: 'Admin',
+            drawerItemLabel: 'Set as Admin',
+            dropdownItemLabel: 'Set as Admin',
+            icon: <IconShieldLock className="size-4" />,
+            disabled: user.role === 'admin'
+          },
+          {
+            value: 'member', label: 'Member',
+            drawerItemLabel: 'Set as Member',
+            dropdownItemLabel: 'Set as Member',
+            icon: <IconUserPlus className="size-4" />,
+            disabled: user.role === 'member'
+          },
+        ],
+      },
+      { type: 'separator' },
+    ];
+
+    if (isDeleted && callbacks?.onRestore) {
+      items.push({
+        type: 'item',
+        label: 'Restore user',
+        icon: <IconUserPlus className="size-4" />,
+        onClick: () => callbacks.onRestore?.(user),
+        testId: 'admin-user-restore-button',
+      });
+    }
+
+    if (callbacks?.onEmbeddingSync) {
+      items.push({
+        type: 'item',
+        label: 'Manual embedding sync',
+        icon: <IconRefresh className="size-4" />,
+        onClick: () => callbacks.onEmbeddingSync?.(user),
+        testId: 'admin-user-embedding-sync-button',
+      });
+    }
+
+    if (callbacks?.onCompareEmbeddings || callbacks?.onFindSimilarUsers) {
+      items.push({ type: 'separator' });
+      items.push({ type: 'label', label: 'AI / Embeddings' });
+      if (callbacks?.onCompareEmbeddings) {
+        items.push({
+          type: 'item',
+          label: 'Compare embeddings',
+          icon: <IconArrowsExchange className="size-4" />,
+          onClick: () => callbacks.onCompareEmbeddings?.(user),
+          testId: 'admin-user-compare-embeddings-button',
+        });
+      }
+      if (callbacks?.onFindSimilarUsers) {
+        items.push({
+          type: 'item',
+          label: 'Find similar users',
+          icon: <IconUsersGroup className="size-4" />,
+          onClick: () => callbacks.onFindSimilarUsers?.(user),
+          testId: 'admin-user-find-similar-button',
+        });
+      }
+    }
+
+    if (!isDeleted) {
+      items.push({ type: 'separator' });
+      items.push({
+        type: 'item',
+        label: 'Delete user',
+        icon: <IconTrash className="size-4" />,
+        onClick: () => callbacks?.onDelete(user),
+        variant: 'destructive',
+        testId: 'admin-user-delete-button',
+        confirmAction: {
+          title: 'Are you sure?',
+          description: 'This action cannot be undone.',
+          confirmLabel: 'Yes, delete',
+          cancelLabel: 'No, go back',
+          variant: 'destructive',
+        },
+      });
+    }
+
+    return items;
+  }, [user, isDeleted, callbacks]);
+
+  return <ActionsButton actions={actions} title="Actions" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
@@ -274,17 +265,32 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
     accessorKey: "interest_tag_names",
     id: "interest_tag_names",
     header: "Interest Tags",
-    cell: ({ row }) => (
-      <div className="flex flex-wrap gap-1 max-w-[200px]">
-        {(row.original.interest_tag_names ?? []).length > 0
-          ? row.original.interest_tag_names.map((name) => (
-            <Badge key={name} variant="secondary" className="text-xs">
-              {name}
-            </Badge>
-          ))
-          : "-"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const interestTagNames = row.original.interest_tag_names ?? [];
+      return (
+        <div>
+          {interestTagNames.length === 0 && <Badge variant="secondary" className="text-center">No tag</Badge>}
+          {interestTagNames.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Badge variant="secondary" className="text-xs text-center">
+                  {interestTagNames.length} tags
+                </Badge>
+              </PopoverTrigger>
+              <PopoverContent>
+                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                  {interestTagNames.map((name) => (
+                    <Badge key={name} variant="secondary" className="text-xs">
+                      {name}
+                    </Badge>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      )
+    },
   },
   {
     accessorKey: "embedding",
@@ -331,11 +337,9 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      return (
-        <ActionsCell row={row} callbacks={callbacks} />
-      )
-    },
+    cell: ({ row }) => (
+      <UserActionsCell row={row} callbacks={callbacks} />
+    ),
     enableHiding: false,
     enableSorting: false,
   }

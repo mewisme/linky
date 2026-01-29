@@ -85,7 +85,6 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
           {leftColumnVisibilityContent && (
             leftColumnVisibilityContent
           )}
-          {bulkActionsContent && bulkActionsContent(table.getFilteredSelectedRowModel().rows.map((r) => r.original))}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto" size="sm">
@@ -115,6 +114,8 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
+          {bulkActionsContent && bulkActionsContent(table.getFilteredSelectedRowModel().rows.map((r) => r.original))}
+
           {rightColumnVisibilityContent && (
             rightColumnVisibilityContent
           )}

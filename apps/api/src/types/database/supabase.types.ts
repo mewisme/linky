@@ -623,7 +623,7 @@ export type Database = {
       user_embeddings: {
         Row: {
           created_at: string
-          embedding: number[] | null
+          embedding: string | null
           id: string
           model_name: string | null
           source_hash: string
@@ -632,7 +632,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          embedding?: number[] | null
+          embedding?: string | null
           id?: string
           model_name?: string | null
           source_hash?: string
@@ -641,7 +641,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          embedding?: number[] | null
+          embedding?: string | null
           id?: string
           model_name?: string | null
           source_hash?: string
@@ -1560,6 +1560,18 @@ export type Database = {
       }
     }
     Functions: {
+      find_similar_users_by_embedding: {
+        Args: {
+          p_exclude_user_ids?: string[]
+          p_limit?: number
+          p_threshold?: number
+          p_user_id: string
+        }
+        Returns: {
+          similarity_score: number
+          user_id: string
+        }[]
+      }
       increment_user_exp: {
         Args: { p_seconds: number; p_user_id: string }
         Returns: undefined

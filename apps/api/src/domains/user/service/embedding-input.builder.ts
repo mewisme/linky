@@ -1,16 +1,10 @@
-import type { Tables } from "../../../types/database/supabase.types.js";
+import { deriveAgeBucket } from "../../../logic/age-bucket-from-dob.js";
 
-type UserDetailsExpanded = {
+export type SemanticProfileInput = {
   bio: string | null;
-  date_of_birth: string | null;
+  interest_tag_names: string[];
   gender: string | null;
-  interest_tags: unknown;
-};
-
-type EmbeddingInputState = {
-  user: Pick<Tables<"users">, "country">;
-  details: UserDetailsExpanded | null;
-  favoriteUserIds: string[];
+  date_of_birth: string | null;
 };
 
 function normalizeText(value: string | null | undefined): string {
@@ -20,33 +14,6 @@ function normalizeText(value: string | null | undefined): string {
   return value.trim().toLowerCase();
 }
 
-function normalizeDate(value: string | null | undefined): string {
-  if (value == null || typeof value !== "string") {
-    return "";
-  }
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  try {
-    const d = new Date(trimmed);
-    return Number.isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0] ?? "";
-  } catch {
-    return "";
-  }
-}
-
-function extractInterestTagNames(interestTags: unknown): string[] {
-  if (!Array.isArray(interestTags)) {
-    return [];
-  }
-  const names: string[] = [];
-  for (const item of interestTags) {
-    if (item && typeof item === "object" && "name" in item && typeof (item as { name: unknown }).name === "string") {
-      names.push((item as { name: string }).name);
-    }
-  }
-  return names;
-}
-
 function normalizeStrings(values: string[]): string[] {
   return values
     .map((v) => normalizeText(v))
@@ -54,34 +21,15 @@ function normalizeStrings(values: string[]): string[] {
     .sort();
 }
 
-function normalizeFavoriteIds(ids: string[]): string[] {
-  return [...ids]
-    .filter((id) => typeof id === "string" && id.trim().length > 0)
-    .map((id) => id.trim().toLowerCase())
-    .sort();
-}
-
-export function buildEmbeddingInput(state: EmbeddingInputState): string {
+export function buildEmbeddingInput(input: SemanticProfileInput): string {
   const parts: string[] = [];
 
-  parts.push("country", normalizeText(state.user.country ?? ""));
+  parts.push("bio", normalizeText(input.bio));
+  parts.push("gender", normalizeText(input.gender));
+  parts.push("age_bucket", deriveAgeBucket(input.date_of_birth));
+  parts.push("interest_tags", normalizeStrings(input.interest_tag_names ?? []).join(","));
 
-  const details = state.details;
-  if (details) {
-    parts.push("bio", normalizeText(details.bio));
-    parts.push("date_of_birth", normalizeDate(details.date_of_birth));
-    parts.push("gender", normalizeText(details.gender));
-    const tagNames = extractInterestTagNames(details.interest_tags);
-    parts.push("interest_tags", normalizeStrings(tagNames).join(","));
-  } else {
-    parts.push("bio", "");
-    parts.push("date_of_birth", "");
-    parts.push("gender", "");
-    parts.push("interest_tags", "");
-  }
-
-  const favIds = normalizeFavoriteIds(state.favoriteUserIds);
-  parts.push("favorites", favIds.join(","));
-
-  return parts.join("\n");
+  const joined = parts.join("\n");
+  const hasContent = parts.some((_, i) => i % 2 === 1 && (parts[i] ?? "").length > 0);
+  return hasContent ? joined : "";
 }

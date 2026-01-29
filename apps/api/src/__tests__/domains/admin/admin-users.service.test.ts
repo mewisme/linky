@@ -17,12 +17,6 @@ const mockGetOrSet = vi.fn();
 const mockInvalidate = vi.fn().mockResolvedValue(undefined);
 const mockInvalidateByPrefix = vi.fn().mockResolvedValue(undefined);
 const mockClerkDeleteUser = vi.fn().mockResolvedValue(undefined);
-const mockScheduleEmbeddingRegeneration = vi.fn();
-
-vi.mock("../../../domains/user/service/embedding-job.service.js", () => ({
-  scheduleEmbeddingRegeneration: (...args: unknown[]) => mockScheduleEmbeddingRegeneration(...args),
-}));
-
 vi.mock("../../../infra/supabase/repositories/index.js", () => ({
   getAdminUsersUnified: (...args: unknown[]) => mockGetAdminUsersUnified(...args),
   getUserById: (...args: unknown[]) => mockGetUserById(...args),
@@ -128,7 +122,6 @@ describe("updateAdminUser", () => {
     expect(mockUpdateUser).toHaveBeenCalledWith("u1", { role: "admin" });
     expect(mockInvalidateByPrefix).toHaveBeenCalledWith("admin:users:");
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
-    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 
   it("when updateUser throws, does not call invalidate", async () => {
@@ -151,7 +144,6 @@ describe("patchAdminUser", () => {
     expect(mockPatchUser).toHaveBeenCalledWith("u1", { role: "member" });
     expect(mockInvalidateByPrefix).toHaveBeenCalledWith("admin:users:");
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
-    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });
 

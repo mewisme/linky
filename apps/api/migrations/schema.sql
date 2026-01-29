@@ -68,6 +68,33 @@ $$;
 ALTER FUNCTION "public"."create_user_embedding_on_user_insert"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."find_similar_users_by_embedding"("p_user_id" "uuid", "p_limit" integer DEFAULT 10, "p_threshold" double precision DEFAULT NULL::double precision, "p_exclude_user_ids" "uuid"[] DEFAULT NULL::"uuid"[]) RETURNS TABLE("user_id" "uuid", "similarity_score" double precision)
+    LANGUAGE "sql" STABLE
+    AS $$
+  WITH "base" AS (
+    SELECT "embedding"
+    FROM "public"."user_embeddings"
+    WHERE "user_id" = "p_user_id"
+      AND "embedding" IS NOT NULL
+    LIMIT 1
+  )
+  SELECT
+    "ue"."user_id",
+    (1 - ("ue"."embedding" <=> "b"."embedding"))::double precision AS "similarity_score"
+  FROM "public"."user_embeddings" "ue"
+  CROSS JOIN "base" "b"
+  WHERE "ue"."user_id" != "p_user_id"
+    AND "ue"."embedding" IS NOT NULL
+    AND ("p_threshold" IS NULL OR (1 - ("ue"."embedding" <=> "b"."embedding")) >= "p_threshold")
+    AND ("p_exclude_user_ids" IS NULL OR "ue"."user_id" != ALL("p_exclude_user_ids"))
+  ORDER BY "ue"."embedding" <=> "b"."embedding"
+  LIMIT "p_limit";
+$$;
+
+
+ALTER FUNCTION "public"."find_similar_users_by_embedding"("p_user_id" "uuid", "p_limit" integer, "p_threshold" double precision, "p_exclude_user_ids" "uuid"[]) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."fn_init_user_settings"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
@@ -522,6 +549,188 @@ SET default_tablespace = '';
 SET default_table_access_method = "heap";
 
 
+CREATE TABLE IF NOT EXISTS "public"."interest_tags" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "name" character varying(100) NOT NULL,
+    "description" "text",
+    "icon" character varying(50),
+    "category" character varying(50),
+    "is_active" boolean DEFAULT true NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."interest_tags" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."interest_tags" IS 'Defines available interest tags that users can select';
+
+
+
+COMMENT ON COLUMN "public"."interest_tags"."name" IS 'Unique name of the interest tag';
+
+
+
+COMMENT ON COLUMN "public"."interest_tags"."description" IS 'Description of what this interest tag represents';
+
+
+
+COMMENT ON COLUMN "public"."interest_tags"."icon" IS 'Icon identifier or emoji for the tag';
+
+
+
+COMMENT ON COLUMN "public"."interest_tags"."category" IS 'Category grouping for the tag (e.g., sports, music, technology)';
+
+
+
+COMMENT ON COLUMN "public"."interest_tags"."is_active" IS 'Whether this tag is currently active and available for selection';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_details" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "date_of_birth" "date",
+    "gender" character varying(20),
+    "languages" "text"[],
+    "interest_tags" "uuid"[],
+    "bio" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_age" CHECK ((("date_of_birth" IS NULL) OR ("date_of_birth" <= CURRENT_DATE)))
+);
+
+
+ALTER TABLE "public"."user_details" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_details" IS 'Stores detailed user information for personalized filters and matching. All users should have a corresponding record (created automatically via trigger or backfilled)';
+
+
+
+COMMENT ON COLUMN "public"."user_details"."user_id" IS 'Foreign key reference to users table (one-to-one relationship)';
+
+
+
+COMMENT ON COLUMN "public"."user_details"."date_of_birth" IS 'User date of birth for age calculation';
+
+
+
+COMMENT ON COLUMN "public"."user_details"."gender" IS 'User gender';
+
+
+
+COMMENT ON COLUMN "public"."user_details"."languages" IS 'Array of languages the user speaks';
+
+
+
+COMMENT ON COLUMN "public"."user_details"."interest_tags" IS 'Array of interest tag IDs (UUID) referencing interest_tags table';
+
+
+
+COMMENT ON COLUMN "public"."user_details"."bio" IS 'User biography or description';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_embeddings" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "embedding" "public"."vector"(768),
+    "model_name" character varying(100),
+    "source_hash" character varying(64) DEFAULT ''::character varying NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."user_embeddings" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_levels" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "total_exp_seconds" bigint DEFAULT 0 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "check_total_exp_seconds" CHECK (("total_exp_seconds" >= 0))
+);
+
+
+ALTER TABLE "public"."user_levels" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."user_levels" IS 'Stores user experience points accumulated from call duration';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."user_id" IS 'Foreign key reference to users table (one-to-one relationship)';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."total_exp_seconds" IS 'Total experience points in seconds accumulated from completed calls';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."created_at" IS 'Timestamp when the record was created';
+
+
+
+COMMENT ON COLUMN "public"."user_levels"."updated_at" IS 'Timestamp when the record was last updated';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."users" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "clerk_user_id" "text" NOT NULL,
+    "email" "text",
+    "first_name" "text",
+    "last_name" "text",
+    "avatar_url" "text",
+    "role" "public"."user_role" DEFAULT 'member'::"public"."user_role" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "country" "text",
+    "deleted" boolean DEFAULT false,
+    "deleted_at" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."users" OWNER TO "postgres";
+
+
+CREATE OR REPLACE VIEW "public"."admin_users_unified" AS
+ SELECT "u"."id" AS "user_id",
+    "u"."clerk_user_id",
+    "u"."email",
+    "u"."role",
+    "u"."deleted",
+    "u"."created_at",
+    "u"."first_name",
+    "u"."last_name",
+    "u"."avatar_url",
+    "u"."country",
+    "u"."updated_at",
+    "u"."deleted_at",
+    "ud"."bio",
+    "ud"."gender",
+    "ud"."date_of_birth",
+    COALESCE(( SELECT "array_agg"("it"."name" ORDER BY "it"."name") AS "array_agg"
+           FROM "public"."interest_tags" "it"
+          WHERE ("it"."id" = ANY (COALESCE("ud"."interest_tags", '{}'::"uuid"[])))), ('{}'::"text"[])::character varying[]) AS "interest_tags",
+    "ue"."model_name" AS "embedding_model",
+    "ue"."source_hash" AS "embedding_source_hash",
+    "ue"."updated_at" AS "embedding_updated_at",
+    "ul"."total_exp_seconds"
+   FROM ((("public"."users" "u"
+     LEFT JOIN "public"."user_details" "ud" ON (("u"."id" = "ud"."user_id")))
+     LEFT JOIN "public"."user_embeddings" "ue" ON (("u"."id" = "ue"."user_id")))
+     LEFT JOIN "public"."user_levels" "ul" ON (("u"."id" = "ul"."user_id")));
+
+
+ALTER VIEW "public"."admin_users_unified" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."call_history" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "caller_id" "uuid" NOT NULL,
@@ -614,25 +823,6 @@ COMMENT ON COLUMN "public"."changelogs"."order" IS 'Custom sorting order (higher
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."users" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "clerk_user_id" "text" NOT NULL,
-    "email" "text",
-    "first_name" "text",
-    "last_name" "text",
-    "avatar_url" "text",
-    "role" "public"."user_role" DEFAULT 'member'::"public"."user_role" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "country" "text",
-    "deleted" boolean DEFAULT false,
-    "deleted_at" timestamp with time zone
-);
-
-
-ALTER TABLE "public"."users" OWNER TO "postgres";
-
-
 CREATE OR REPLACE VIEW "public"."changelogs_with_creator" AS
  SELECT "c"."id",
     "c"."version",
@@ -666,45 +856,6 @@ ALTER TABLE "public"."favorite_exp_boost_rules" OWNER TO "postgres";
 
 
 COMMENT ON TABLE "public"."favorite_exp_boost_rules" IS 'Admin-defined EXP multipliers when calling with favorite (one-way vs mutual)';
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."interest_tags" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "name" character varying(100) NOT NULL,
-    "description" "text",
-    "icon" character varying(50),
-    "category" character varying(50),
-    "is_active" boolean DEFAULT true NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."interest_tags" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."interest_tags" IS 'Defines available interest tags that users can select';
-
-
-
-COMMENT ON COLUMN "public"."interest_tags"."name" IS 'Unique name of the interest tag';
-
-
-
-COMMENT ON COLUMN "public"."interest_tags"."description" IS 'Description of what this interest tag represents';
-
-
-
-COMMENT ON COLUMN "public"."interest_tags"."icon" IS 'Icon identifier or emoji for the tag';
-
-
-
-COMMENT ON COLUMN "public"."interest_tags"."category" IS 'Category grouping for the tag (e.g., sports, music, technology)';
-
-
-
-COMMENT ON COLUMN "public"."interest_tags"."is_active" IS 'Whether this tag is currently active and available for selection';
 
 
 
@@ -793,51 +944,6 @@ CREATE TABLE IF NOT EXISTS "public"."page_views" (
 
 
 ALTER TABLE "public"."page_views" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."user_details" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "date_of_birth" "date",
-    "gender" character varying(20),
-    "languages" "text"[],
-    "interest_tags" "uuid"[],
-    "bio" "text",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "check_age" CHECK ((("date_of_birth" IS NULL) OR ("date_of_birth" <= CURRENT_DATE)))
-);
-
-
-ALTER TABLE "public"."user_details" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."user_details" IS 'Stores detailed user information for personalized filters and matching. All users should have a corresponding record (created automatically via trigger or backfilled)';
-
-
-
-COMMENT ON COLUMN "public"."user_details"."user_id" IS 'Foreign key reference to users table (one-to-one relationship)';
-
-
-
-COMMENT ON COLUMN "public"."user_details"."date_of_birth" IS 'User date of birth for age calculation';
-
-
-
-COMMENT ON COLUMN "public"."user_details"."gender" IS 'User gender';
-
-
-
-COMMENT ON COLUMN "public"."user_details"."languages" IS 'Array of languages the user speaks';
-
-
-
-COMMENT ON COLUMN "public"."user_details"."interest_tags" IS 'Array of interest tag IDs (UUID) referencing interest_tags table';
-
-
-
-COMMENT ON COLUMN "public"."user_details"."bio" IS 'User biography or description';
-
 
 
 CREATE OR REPLACE VIEW "public"."public_user_info" AS
@@ -1048,20 +1154,6 @@ COMMENT ON VIEW "public"."user_details_expanded" IS 'User details with expanded 
 
 
 
-CREATE TABLE IF NOT EXISTS "public"."user_embeddings" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "embedding" real[],
-    "model_name" character varying(100),
-    "source_hash" character varying(64) DEFAULT ''::character varying NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."user_embeddings" OWNER TO "postgres";
-
-
 CREATE TABLE IF NOT EXISTS "public"."user_exp_daily" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
@@ -1222,39 +1314,6 @@ COMMENT ON COLUMN "public"."user_level_rewards"."level_reward_id" IS 'Foreign ke
 
 
 COMMENT ON COLUMN "public"."user_level_rewards"."granted_at" IS 'Timestamp when the reward was granted to the user';
-
-
-
-CREATE TABLE IF NOT EXISTS "public"."user_levels" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "user_id" "uuid" NOT NULL,
-    "total_exp_seconds" bigint DEFAULT 0 NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "check_total_exp_seconds" CHECK (("total_exp_seconds" >= 0))
-);
-
-
-ALTER TABLE "public"."user_levels" OWNER TO "postgres";
-
-
-COMMENT ON TABLE "public"."user_levels" IS 'Stores user experience points accumulated from call duration';
-
-
-
-COMMENT ON COLUMN "public"."user_levels"."user_id" IS 'Foreign key reference to users table (one-to-one relationship)';
-
-
-
-COMMENT ON COLUMN "public"."user_levels"."total_exp_seconds" IS 'Total experience points in seconds accumulated from completed calls';
-
-
-
-COMMENT ON COLUMN "public"."user_levels"."created_at" IS 'Timestamp when the record was created';
-
-
-
-COMMENT ON COLUMN "public"."user_levels"."updated_at" IS 'Timestamp when the record was last updated';
 
 
 
@@ -1799,6 +1858,10 @@ CREATE INDEX "idx_user_details_user_id" ON "public"."user_details" USING "btree"
 
 
 
+CREATE INDEX "idx_user_embeddings_embedding_ivfflat" ON "public"."user_embeddings" USING "ivfflat" ("embedding" "public"."vector_cosine_ops") WITH ("lists"='1');
+
+
+
 CREATE INDEX "idx_user_embeddings_source_hash" ON "public"."user_embeddings" USING "btree" ("source_hash");
 
 
@@ -2109,6 +2172,12 @@ GRANT ALL ON FUNCTION "public"."create_user_embedding_on_user_insert"() TO "serv
 
 
 
+GRANT ALL ON FUNCTION "public"."find_similar_users_by_embedding"("p_user_id" "uuid", "p_limit" integer, "p_threshold" double precision, "p_exclude_user_ids" "uuid"[]) TO "anon";
+GRANT ALL ON FUNCTION "public"."find_similar_users_by_embedding"("p_user_id" "uuid", "p_limit" integer, "p_threshold" double precision, "p_exclude_user_ids" "uuid"[]) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."find_similar_users_by_embedding"("p_user_id" "uuid", "p_limit" integer, "p_threshold" double precision, "p_exclude_user_ids" "uuid"[]) TO "service_role";
+
+
+
 GRANT ALL ON FUNCTION "public"."fn_init_user_settings"() TO "anon";
 GRANT ALL ON FUNCTION "public"."fn_init_user_settings"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."fn_init_user_settings"() TO "service_role";
@@ -2259,6 +2328,42 @@ GRANT ALL ON FUNCTION "public"."visitors_timeseries"("days" integer) TO "service
 
 
 
+GRANT ALL ON TABLE "public"."interest_tags" TO "anon";
+GRANT ALL ON TABLE "public"."interest_tags" TO "authenticated";
+GRANT ALL ON TABLE "public"."interest_tags" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_details" TO "anon";
+GRANT ALL ON TABLE "public"."user_details" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_details" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_embeddings" TO "anon";
+GRANT ALL ON TABLE "public"."user_embeddings" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_embeddings" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_levels" TO "anon";
+GRANT ALL ON TABLE "public"."user_levels" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_levels" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."users" TO "anon";
+GRANT ALL ON TABLE "public"."users" TO "authenticated";
+GRANT ALL ON TABLE "public"."users" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."admin_users_unified" TO "anon";
+GRANT ALL ON TABLE "public"."admin_users_unified" TO "authenticated";
+GRANT ALL ON TABLE "public"."admin_users_unified" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."call_history" TO "anon";
 GRANT ALL ON TABLE "public"."call_history" TO "authenticated";
 GRANT ALL ON TABLE "public"."call_history" TO "service_role";
@@ -2271,12 +2376,6 @@ GRANT ALL ON TABLE "public"."changelogs" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."users" TO "anon";
-GRANT ALL ON TABLE "public"."users" TO "authenticated";
-GRANT ALL ON TABLE "public"."users" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."changelogs_with_creator" TO "anon";
 GRANT ALL ON TABLE "public"."changelogs_with_creator" TO "authenticated";
 GRANT ALL ON TABLE "public"."changelogs_with_creator" TO "service_role";
@@ -2286,12 +2385,6 @@ GRANT ALL ON TABLE "public"."changelogs_with_creator" TO "service_role";
 GRANT ALL ON TABLE "public"."favorite_exp_boost_rules" TO "anon";
 GRANT ALL ON TABLE "public"."favorite_exp_boost_rules" TO "authenticated";
 GRANT ALL ON TABLE "public"."favorite_exp_boost_rules" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."interest_tags" TO "anon";
-GRANT ALL ON TABLE "public"."interest_tags" TO "authenticated";
-GRANT ALL ON TABLE "public"."interest_tags" TO "service_role";
 
 
 
@@ -2310,12 +2403,6 @@ GRANT ALL ON TABLE "public"."level_rewards" TO "service_role";
 GRANT ALL ON TABLE "public"."page_views" TO "anon";
 GRANT ALL ON TABLE "public"."page_views" TO "authenticated";
 GRANT ALL ON TABLE "public"."page_views" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."user_details" TO "anon";
-GRANT ALL ON TABLE "public"."user_details" TO "authenticated";
-GRANT ALL ON TABLE "public"."user_details" TO "service_role";
 
 
 
@@ -2349,12 +2436,6 @@ GRANT ALL ON TABLE "public"."user_details_expanded" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."user_embeddings" TO "anon";
-GRANT ALL ON TABLE "public"."user_embeddings" TO "authenticated";
-GRANT ALL ON TABLE "public"."user_embeddings" TO "service_role";
-
-
-
 GRANT ALL ON TABLE "public"."user_exp_daily" TO "anon";
 GRANT ALL ON TABLE "public"."user_exp_daily" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_exp_daily" TO "service_role";
@@ -2382,12 +2463,6 @@ GRANT ALL ON TABLE "public"."user_favorites_with_stats" TO "service_role";
 GRANT ALL ON TABLE "public"."user_level_rewards" TO "anon";
 GRANT ALL ON TABLE "public"."user_level_rewards" TO "authenticated";
 GRANT ALL ON TABLE "public"."user_level_rewards" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."user_levels" TO "anon";
-GRANT ALL ON TABLE "public"."user_levels" TO "authenticated";
-GRANT ALL ON TABLE "public"."user_levels" TO "service_role";
 
 
 

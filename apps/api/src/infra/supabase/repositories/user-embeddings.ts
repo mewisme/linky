@@ -32,7 +32,7 @@ export async function upsertUserEmbedding(
     .upsert(
       {
         user_id: userId,
-        embedding,
+        embedding: JSON.stringify(embedding),
         model_name: modelName,
         source_hash: sourceHash,
         updated_at: new Date().toISOString(),
@@ -91,6 +91,38 @@ export async function getAllUserEmbeddingsExcluding(excludeUserId: string) {
 
   if (error) {
     logger.error("Error fetching user embeddings: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export type FindSimilarUsersOptions = {
+  limit: number
+  threshold?: number
+  excludeUserIds?: string[]
+};
+
+export async function findSimilarUsersByEmbedding(
+  userId: string,
+  options: FindSimilarUsersOptions
+): Promise<Array<{ user_id: string; similarity_score: number }>> {
+  const rpcArgs: {
+    p_user_id: string
+    p_limit: number
+    p_threshold?: number
+    p_exclude_user_ids?: string[]
+  } = {
+    p_user_id: userId,
+    p_limit: options.limit,
+  };
+  if (options.threshold != null) rpcArgs.p_threshold = options.threshold;
+  if (options.excludeUserIds?.length) rpcArgs.p_exclude_user_ids = options.excludeUserIds;
+
+  const { data, error } = await supabase.rpc("find_similar_users_by_embedding", rpcArgs);
+
+  if (error) {
+    logger.error("Error finding similar users: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;
   }
 

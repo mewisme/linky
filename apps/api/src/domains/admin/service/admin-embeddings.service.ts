@@ -3,7 +3,7 @@ import {
   scheduleEmbeddingRegeneration,
 } from "../../user/service/embedding-job.service.js";
 import {
-  getAllUserEmbeddingsExcluding,
+  findSimilarUsersByEmbedding,
   getUserEmbeddingByUserId,
   getUserEmbeddingsByUserIds,
 } from "../../../infra/supabase/repositories/user-embeddings.js";
@@ -15,6 +15,22 @@ import { getUsersIdsPaginated } from "../../../infra/supabase/repositories/users
 const logger = createLogger("API:Admin:Embeddings:Service");
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function parseEmbedding(value: string | number[] | null | undefined): number[] | null {
+  if (value == null) return null;
+  if (Array.isArray(value)) {
+    return value.every((x) => typeof x === "number" && !Number.isNaN(x)) ? value : null;
+  }
+  try {
+    const parsed = JSON.parse(value as string) as unknown;
+    if (!Array.isArray(parsed) || !parsed.every((x) => typeof x === "number" && !Number.isNaN(x))) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 function isValidUserId(id: unknown): id is string {
   return typeof id === "string" && id.trim().length > 0 && UUID_REGEX.test(id.trim());
@@ -33,7 +49,13 @@ export async function compareUsers(userIdA: string, userIdB: string): Promise<Co
     return { ok: false, error: "One or both users have no embedding" };
   }
 
-  const score = cosineSimilarity(embA.embedding, embB.embedding);
+  const vecA = parseEmbedding(embA.embedding);
+  const vecB = parseEmbedding(embB.embedding);
+  if (!vecA || !vecB) {
+    return { ok: false, error: "Invalid embedding format" };
+  }
+
+  const score = cosineSimilarity(vecA, vecB);
   if (score === null) {
     return { ok: false, error: "Vectors have different lengths or are invalid" };
   }
@@ -55,34 +77,35 @@ export type FindSimilarResult =
   | { ok: true; base_user_id: string; results: Array<{ user_id: string; similarity_score: number }> }
   | { ok: false; error: string };
 
+export type FindSimilarUsersOptions = {
+  limit?: number
+  threshold?: number
+  excludeUserIds?: string[]
+};
+
 export async function findSimilarUsers(
   userId: string,
-  limit: number = DEFAULT_SIMILAR_LIMIT
+  options: FindSimilarUsersOptions | number = DEFAULT_SIMILAR_LIMIT
 ): Promise<FindSimilarResult> {
   const base = await getUserEmbeddingByUserId(userId);
   if (!base?.embedding) {
     return { ok: false, error: "Base user has no embedding" };
   }
 
+  const opts = typeof options === "number" ? { limit: options } : options;
+  const limit = opts.limit ?? DEFAULT_SIMILAR_LIMIT;
   const cappedLimit = Math.min(Math.max(1, Math.floor(limit)), MAX_SIMILAR_LIMIT);
-  const others = await getAllUserEmbeddingsExcluding(userId);
 
-  const scored: Array<{ user_id: string; similarity_score: number }> = [];
-  for (const other of others) {
-    if (!other.embedding) continue;
-    const score = cosineSimilarity(base.embedding, other.embedding);
-    if (score !== null) {
-      scored.push({ user_id: other.user_id, similarity_score: score });
-    }
-  }
-
-  scored.sort((a, b) => b.similarity_score - a.similarity_score);
-  const top = scored.slice(0, cappedLimit);
+  const results = await findSimilarUsersByEmbedding(userId, {
+    limit: cappedLimit,
+    threshold: opts.threshold,
+    excludeUserIds: opts.excludeUserIds,
+  });
 
   return {
     ok: true,
     base_user_id: userId,
-    results: top,
+    results,
   };
 }
 

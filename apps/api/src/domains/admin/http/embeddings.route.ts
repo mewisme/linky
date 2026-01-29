@@ -51,7 +51,7 @@ router.post("/compare", async (req: Request, res: Response) => {
 
 router.post("/similar", async (req: Request, res: Response) => {
   try {
-    const { user_id: userId, limit: rawLimit } = req.body;
+    const { user_id: userId, limit: rawLimit, threshold: rawThreshold } = req.body;
 
     if (!userId) {
       return res.status(400).json({
@@ -61,7 +61,8 @@ router.post("/similar", async (req: Request, res: Response) => {
     }
 
     const limit = typeof rawLimit === "number" ? rawLimit : 10;
-    const result = await findSimilarUsers(String(userId).trim(), limit);
+    const threshold = typeof rawThreshold === "number" ? rawThreshold : undefined;
+    const result = await findSimilarUsers(String(userId).trim(), { limit, threshold });
 
     if (!result.ok) {
       return res.status(404).json({

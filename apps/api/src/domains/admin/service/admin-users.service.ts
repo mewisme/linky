@@ -12,7 +12,6 @@ import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
 import { calculateLevelFromExp } from "../../../logic/level-from-exp.js";
 import { clerk } from "../../../infra/clerk/client.js";
 import { hashFilters } from "../../../infra/redis/cache/hash.js";
-import { scheduleEmbeddingRegeneration } from "../../user/service/embedding-job.service.js";
 
 export async function listUsers(params: {
   getAll: boolean;
@@ -45,46 +44,50 @@ export async function listUsers(params: {
       }),
   );
 
-  const enriched: AdminUnifiedUser[] = (raw.data || []).map((row) => {
-    const level = row.total_exp_seconds != null
-      ? calculateLevelFromExp(row.total_exp_seconds).level
-      : 1;
+  const enriched: AdminUnifiedUser[] = (raw.data || [])
+    .filter((row): row is typeof row & { user_id: string; clerk_user_id: string; role: "admin" | "member"; created_at: string; updated_at: string } =>
+      row.user_id != null && row.clerk_user_id != null && row.role != null && row.created_at != null && row.updated_at != null
+    )
+    .map((row) => {
+      const level = row.total_exp_seconds != null
+        ? calculateLevelFromExp(row.total_exp_seconds).level
+        : 1;
 
-    return {
-      id: row.user_id,
-      clerk_user_id: row.clerk_user_id,
-      email: row.email,
-      role: row.role,
-      deleted: row.deleted,
-      created_at: row.created_at,
-      first_name: row.first_name,
-      last_name: row.last_name,
-      avatar_url: row.avatar_url,
-      country: row.country,
-      updated_at: row.updated_at,
-      deleted_at: row.deleted_at,
-      details:
-        row.bio != null || row.gender != null || row.date_of_birth != null
-          ? {
-            bio: row.bio ?? null,
-            gender: row.gender ?? null,
-            date_of_birth: row.date_of_birth ?? null,
-          }
-          : null,
-      interest_tag_names: row.interest_tags ?? [],
-      embedding:
-        row.embedding_model != null ||
-          row.embedding_source_hash != null ||
-          row.embedding_updated_at != null
-          ? {
-            model: row.embedding_model ?? null,
-            source_hash: row.embedding_source_hash ?? "",
-            updated_at: row.embedding_updated_at ?? "",
-          }
-          : null,
-      level,
-    };
-  });
+      return {
+        id: row.user_id,
+        clerk_user_id: row.clerk_user_id,
+        email: row.email,
+        role: row.role,
+        deleted: row.deleted,
+        created_at: row.created_at,
+        first_name: row.first_name,
+        last_name: row.last_name,
+        avatar_url: row.avatar_url,
+        country: row.country,
+        updated_at: row.updated_at,
+        deleted_at: row.deleted_at,
+        details:
+          row.bio != null || row.gender != null || row.date_of_birth != null
+            ? {
+              bio: row.bio ?? null,
+              gender: row.gender ?? null,
+              date_of_birth: row.date_of_birth ?? null,
+            }
+            : null,
+        interest_tag_names: row.interest_tags ?? [],
+        embedding:
+          row.embedding_model != null ||
+            row.embedding_source_hash != null ||
+            row.embedding_updated_at != null
+            ? {
+              model: row.embedding_model ?? null,
+              source_hash: row.embedding_source_hash ?? "",
+              updated_at: row.embedding_updated_at ?? "",
+            }
+            : null,
+        level,
+      };
+    });
 
   return { data: enriched, count: raw.count };
 }
@@ -99,7 +102,6 @@ export async function updateAdminUser(id: string, userData: AdminUserUpdate) {
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
     invalidate(REDIS_CACHE_KEYS.userProfile(id)),
   ]);
-  scheduleEmbeddingRegeneration(id);
   return updated;
 }
 
@@ -109,7 +111,6 @@ export async function patchAdminUser(id: string, userData: Partial<AdminUserUpda
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
     invalidate(REDIS_CACHE_KEYS.userProfile(id)),
   ]);
-  scheduleEmbeddingRegeneration(id);
   return updated;
 }
 

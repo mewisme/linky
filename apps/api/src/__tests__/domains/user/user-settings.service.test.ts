@@ -9,12 +9,6 @@ const mockCreateUserSettings = vi.fn();
 const mockUpdateUserSettings = vi.fn();
 const mockPatchUserSettings = vi.fn();
 const mockInvalidate = vi.fn().mockResolvedValue(undefined);
-const mockScheduleEmbeddingRegeneration = vi.fn();
-
-vi.mock("../../../domains/user/service/embedding-job.service.js", () => ({
-  scheduleEmbeddingRegeneration: (...args: unknown[]) => mockScheduleEmbeddingRegeneration(...args),
-}));
-
 vi.mock("../../../infra/supabase/repositories/user-settings.js", () => ({
   getUserSettingsByUserId: (...args: unknown[]) => mockGetUserSettingsByUserId(...args),
   createUserSettings: (...args: unknown[]) => mockCreateUserSettings(...args),
@@ -55,7 +49,6 @@ describe("putUserSettings", () => {
     expect(mockUpdateUserSettings).toHaveBeenCalledWith("u1", { default_mute_mic: false });
     expect(mockCreateUserSettings).not.toHaveBeenCalled();
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
-    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });
 
@@ -69,7 +62,6 @@ describe("patchUserSettingsForUser", () => {
     expect(mockCreateUserSettings).toHaveBeenCalledWith("u1", { notification_sound_enabled: false });
     expect(mockPatchUserSettings).not.toHaveBeenCalled();
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
-    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 
   it("when existing: patches and invalidates", async () => {
@@ -80,6 +72,5 @@ describe("patchUserSettingsForUser", () => {
 
     expect(mockPatchUserSettings).toHaveBeenCalledWith("u1", { default_disable_camera: true });
     expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
-    expect(mockScheduleEmbeddingRegeneration).toHaveBeenCalledWith("u1");
   });
 });

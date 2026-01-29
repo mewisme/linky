@@ -2,37 +2,17 @@
 
 import { AdminAPI } from '@/types/admin.types'
 import { Badge } from '@repo/ui/components/ui/badge';
-import { Button } from '@repo/ui/components/ui/button';
 import { Checkbox } from '@repo/ui/components/ui/checkbox';
 import { type ColumnDef } from "@tanstack/react-table"
 import {
-  IconDotsVertical,
   IconCopy,
   IconEdit,
   IconTrash,
 } from '@tabler/icons-react';
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@repo/ui/components/animate-ui/components/radix/alert-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
+import { ActionsButton, type ActionItem } from '@/components/common/actions-button';
 import { toast } from "@repo/ui/components/ui/sonner";
-import { useState } from 'react';
+import { useMemo } from 'react';
 
 type LevelFeatureUnlock = AdminAPI.LevelFeatureUnlocks.LevelFeatureUnlock;
 
@@ -41,67 +21,43 @@ export interface RowCallbacks {
   onDelete: (unlock: LevelFeatureUnlock) => void
 }
 
-function ActionsCell({ row, callbacks }: { row: { original: LevelFeatureUnlock }, callbacks?: RowCallbacks }) {
-  const [alertOpen, setAlertOpen] = useState(false);
+function LevelFeatureUnlockActionsCell({ row, callbacks }: { row: { original: LevelFeatureUnlock }, callbacks?: RowCallbacks }) {
+  const unlock = row.original;
 
-  return (
-    <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-      <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon">
-              <span className="sr-only">Open menu</span>
-              <IconDotsVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => {
-                navigator.clipboard.writeText(row.original.id)
-                toast.success('Unlock ID copied to clipboard')
-              }}>
-                <IconCopy />
-                Copy unlock ID
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => callbacks?.onEdit(row.original)}>
-                <IconEdit />
-                Edit Details
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant='destructive'
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setAlertOpen(true);
-                }}
-              >
-                <IconTrash />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the level feature unlock.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No, go back</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              callbacks?.onDelete(row.original);
-              setAlertOpen(false);
-            }}>Yes, delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
+  const actions: ActionItem[] = useMemo(() => [
+    {
+      type: 'item',
+      label: 'Copy unlock ID',
+      icon: <IconCopy className="size-4" />,
+      onClick: () => {
+        navigator.clipboard.writeText(unlock.id);
+        toast.success('Unlock ID copied to clipboard');
+      },
+    },
+    {
+      type: 'item',
+      label: 'Edit Details',
+      icon: <IconEdit className="size-4" />,
+      onClick: () => callbacks?.onEdit(unlock),
+    },
+    { type: 'separator' },
+    {
+      type: 'item',
+      label: 'Delete',
+      icon: <IconTrash className="size-4" />,
+      onClick: () => callbacks?.onDelete(unlock),
+      variant: 'destructive',
+      confirmAction: {
+        title: 'Are you sure?',
+        description: 'This action cannot be undone. This will permanently delete the level feature unlock.',
+        confirmLabel: 'Yes, delete',
+        cancelLabel: 'No, go back',
+        variant: 'destructive',
+      },
+    },
+  ], [unlock, callbacks]);
+
+  return <ActionsButton actions={actions} title="Actions" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<LevelFeatureUnlock>[] => [
@@ -174,7 +130,7 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<LevelFeatureUnlock>
   {
     id: 'actions',
     cell: ({ row }) => {
-      return <ActionsCell row={row} callbacks={callbacks} />;
+      return <LevelFeatureUnlockActionsCell row={row} callbacks={callbacks} />;
     }
   }
 ]

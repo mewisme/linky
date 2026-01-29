@@ -2,13 +2,11 @@
 
 import { AdminAPI } from '@/types/admin.types'
 import { Badge } from '@repo/ui/components/ui/badge';
-import { Button } from '@repo/ui/components/ui/button';
 import { Checkbox } from '@repo/ui/components/ui/checkbox';
 import { type ColumnDef } from "@tanstack/react-table"
 import {
   IconCircleCheckFilled,
   IconCircleXFilled,
-  IconDotsVertical,
   IconCopy,
   IconEdit,
   IconTrash,
@@ -16,27 +14,9 @@ import {
   IconRestore,
 } from '@tabler/icons-react';
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from '@repo/ui/components/animate-ui/components/radix/alert-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
+import { ActionsButton, type ActionItem } from '@/components/common/actions-button';
 import { toast } from "@repo/ui/components/ui/sonner";
-import { useState } from 'react';
+import { useMemo } from 'react';
 
 type InterestTag = AdminAPI.InterestTags.InterestTag;
 
@@ -47,79 +27,68 @@ export interface RowCallbacks {
   onDeletePermanently: (tag: InterestTag) => void
 }
 
-function ActionsCell({ row, callbacks }: { row: { original: InterestTag }, callbacks?: RowCallbacks }) {
-  const [alertOpen, setAlertOpen] = useState(false);
+function InterestTagActionsCell({ row, callbacks }: { row: { original: InterestTag }, callbacks?: RowCallbacks }) {
+  const tag = row.original;
 
-  return (
-    <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-      <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon">
-              <span className="sr-only">Open menu</span>
-              <IconDotsVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => {
-                navigator.clipboard.writeText(row.original.id)
-                toast.success('Tag ID copied to clipboard')
-              }}>
-                <IconCopy />
-                Copy tag ID
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => callbacks?.onEdit(row.original)}>
-                <IconEdit />
-                Edit Details
-              </DropdownMenuItem>
-              {!row.original.is_active && (
-                <DropdownMenuItem onClick={() => callbacks?.onActivate(row.original)}>
-                  <IconRestore />
-                  Activate
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              {row.original.is_active && (
-                <DropdownMenuItem onClick={() => callbacks?.onDelete(row.original)} variant='destructive'>
-                  <IconTrash />
-                  Deactivate
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem
-                variant='destructive'
-                onSelect={(e) => {
-                  e.preventDefault();
-                  setAlertOpen(true);
-                }}
-              >
-                <IconTrashX />
-                Delete Permanently
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No, go back</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              callbacks?.onDeletePermanently(row.original);
-              setAlertOpen(false);
-            }}>Yes, delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
+  const actions: ActionItem[] = useMemo(() => {
+    const items: ActionItem[] = [
+      {
+        type: 'item',
+        label: 'Copy tag ID',
+        icon: <IconCopy className="size-4" />,
+        onClick: () => {
+          navigator.clipboard.writeText(tag.id);
+          toast.success('Tag ID copied to clipboard');
+        },
+      },
+      {
+        type: 'item',
+        label: 'Edit Details',
+        icon: <IconEdit className="size-4" />,
+        onClick: () => callbacks?.onEdit(tag),
+      },
+    ];
+
+    if (!tag.is_active) {
+      items.push({
+        type: 'item',
+        label: 'Activate',
+        icon: <IconRestore className="size-4" />,
+        onClick: () => callbacks?.onActivate(tag),
+      });
+    }
+
+    items.push({ type: 'separator' });
+
+    if (tag.is_active) {
+      items.push({
+        type: 'item',
+        label: 'Deactivate',
+        icon: <IconTrash className="size-4" />,
+        onClick: () => callbacks?.onDelete(tag),
+        variant: 'destructive',
+      });
+    }
+
+    items.push({
+      type: 'item',
+      label: 'Delete Permanently',
+      icon: <IconTrashX className="size-4" />,
+      onClick: () => callbacks?.onDeletePermanently(tag),
+      variant: 'destructive',
+      confirmAction: {
+        title: 'Are you sure?',
+        description: 'This action cannot be undone.',
+        confirmLabel: 'Yes, delete',
+        cancelLabel: 'No, go back',
+        variant: 'destructive',
+      },
+    });
+
+    return items;
+  }, [tag, callbacks]);
+
+  return <ActionsButton actions={actions} title="Actions" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<InterestTag>[] => [
@@ -195,7 +164,7 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<InterestTag>[] => [
   {
     id: 'actions',
     cell: ({ row }) => {
-      return <ActionsCell row={row} callbacks={callbacks} />;
+      return <InterestTagActionsCell row={row} callbacks={callbacks} />;
     }
   }
 ]

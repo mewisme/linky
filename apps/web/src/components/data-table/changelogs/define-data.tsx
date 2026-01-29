@@ -2,22 +2,31 @@
 
 import { AdminAPI } from '@/types/admin.types'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Badge } from '@repo/ui/components/ui/badge'
-import { Button } from '@repo/ui/components/ui/button'
 import { Checkbox } from '@repo/ui/components/ui/checkbox'
-import { IconDotsVertical, IconEdit, IconTrash, IconTrashX, IconRestore, IconCopy } from '@tabler/icons-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
-import { toast } from "@repo/ui/components/ui/sonner";
+import { IconCopy } from '@tabler/icons-react'
+import { ActionsButton, type ActionItem } from '@/components/common/actions-button'
+import { toast } from "@repo/ui/components/ui/sonner"
+import { useMemo } from 'react'
 
 export interface RowCallbacks {
+}
+
+function ChangelogsActionsCell({ row }: { row: { original: AdminAPI.Changelogs.Changelog } }) {
+  const changelog = row.original;
+
+  const actions: ActionItem[] = useMemo(() => [
+    {
+      type: 'item',
+      label: 'Copy changelog ID',
+      icon: <IconCopy className="size-4" />,
+      onClick: () => {
+        navigator.clipboard.writeText(changelog.id);
+        toast.success('Changelog ID copied to clipboard');
+      },
+    },
+  ], [changelog]);
+
+  return <ActionsButton actions={actions} title="Actions" className="flex justify-end" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<AdminAPI.Changelogs.Changelog>[] => [
@@ -88,30 +97,6 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<AdminAPI.Changelogs
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="sm">
-                <IconDotsVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => {
-                  navigator.clipboard.writeText(row.original.id)
-                  toast.success('Changelog ID copied to clipboard')
-                }}>
-                  <IconCopy />
-                  Copy changelog ID
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )
-    }
+    cell: ({ row }) => <ChangelogsActionsCell row={row} />,
   }
 ] 

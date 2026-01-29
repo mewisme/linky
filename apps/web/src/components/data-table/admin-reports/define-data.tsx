@@ -2,22 +2,15 @@
 
 import type { AdminAPI } from '@/types/admin.types'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Button } from '@repo/ui/components/ui/button'
 import { Checkbox } from '@repo/ui/components/ui/checkbox'
-import { IconDotsVertical, IconCopy, IconEye, IconCheck, IconAlertCircle } from '@tabler/icons-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
+import { IconCopy, IconEye, IconCheck, IconAlertCircle } from '@tabler/icons-react'
+import { ActionsButton, type ActionItem } from '@/components/common/actions-button'
 import { toast } from "@repo/ui/components/ui/sonner"
 import {
   Pill,
   PillStatus,
-} from "@repo/ui/components/kibo-ui/pill";
+} from "@repo/ui/components/kibo-ui/pill"
+import { useMemo } from 'react'
 
 export function getIconForStatus(status: AdminAPI.Reports.ReportStatus) {
   switch (status) {
@@ -34,6 +27,34 @@ export function getIconForStatus(status: AdminAPI.Reports.ReportStatus) {
 
 export interface RowCallbacks {
   onView?: (report: AdminAPI.Reports.Report) => void
+}
+
+function AdminReportsActionsCell({ row, callbacks }: { row: { original: AdminAPI.Reports.Report }; callbacks?: RowCallbacks }) {
+  const report = row.original;
+
+  const actions: ActionItem[] = useMemo(() => {
+    const items: ActionItem[] = [];
+    if (callbacks?.onView) {
+      items.push({
+        type: 'item',
+        label: 'View details',
+        icon: <IconEye className="size-4" />,
+        onClick: () => callbacks.onView?.(report),
+      });
+    }
+    items.push({
+      type: 'item',
+      label: 'Copy report ID',
+      icon: <IconCopy className="size-4" />,
+      onClick: () => {
+        navigator.clipboard.writeText(report.id);
+        toast.success('Report ID copied to clipboard');
+      },
+    });
+    return items;
+  }, [report, callbacks]);
+
+  return <ActionsButton actions={actions} title="Actions" className="flex justify-end" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<AdminAPI.Reports.Report>[] => [
@@ -118,37 +139,6 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<AdminAPI.Reports.Re
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const report = row.original
-      return (
-        <div className="flex justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="sm">
-                <IconDotsVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => {
-                  callbacks?.onView?.(report)
-                }}>
-                  <IconEye />
-                  View details
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  navigator.clipboard.writeText(report.id)
-                  toast.success('Report ID copied to clipboard')
-                }}>
-                  <IconCopy />
-                  Copy report ID
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )
-    }
+    cell: ({ row }) => <AdminReportsActionsCell row={row} callbacks={callbacks} />,
   }
 ]

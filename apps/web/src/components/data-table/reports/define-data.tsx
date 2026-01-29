@@ -2,22 +2,15 @@
 
 import type { ResourcesAPI } from '@/types/resources.types'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Button } from '@repo/ui/components/ui/button'
 import { Checkbox } from '@repo/ui/components/ui/checkbox'
-import { IconDotsVertical, IconCopy, IconCheck, IconAlertCircle } from '@tabler/icons-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
+import { IconCopy, IconCheck, IconAlertCircle } from '@tabler/icons-react'
+import { ActionsButton, type ActionItem } from '@/components/common/actions-button'
 import { toast } from "@repo/ui/components/ui/sonner"
 import {
   Pill,
   PillStatus,
-} from "@repo/ui/components/kibo-ui/pill";
+} from "@repo/ui/components/kibo-ui/pill"
+import { useMemo } from 'react'
 
 export function getIconForStatus(status: ResourcesAPI.Reports.ReportStatus) {
   switch (status) {
@@ -33,6 +26,24 @@ export function getIconForStatus(status: ResourcesAPI.Reports.ReportStatus) {
 }
 
 export interface RowCallbacks {
+}
+
+function ReportsActionsCell({ row }: { row: { original: ResourcesAPI.Reports.Report } }) {
+  const report = row.original;
+
+  const actions: ActionItem[] = useMemo(() => [
+    {
+      type: 'item',
+      label: 'Copy report ID',
+      icon: <IconCopy className="size-4" />,
+      onClick: () => {
+        navigator.clipboard.writeText(report.id);
+        toast.success('Report ID copied to clipboard');
+      },
+    },
+  ], [report]);
+
+  return <ActionsButton actions={actions} title="Actions" className="flex justify-end" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Reports.Report>[] => [
@@ -100,30 +111,6 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Report
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="sm">
-                <IconDotsVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => {
-                  navigator.clipboard.writeText(row.original.id)
-                  toast.success('Report ID copied to clipboard')
-                }}>
-                  <IconCopy />
-                  Copy report ID
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )
-    }
+    cell: ({ row }) => <ReportsActionsCell row={row} />,
   }
 ]

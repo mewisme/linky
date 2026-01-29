@@ -4,22 +4,33 @@ import { CountryFlag } from "@/components/common/country-flag";
 import type { CallHistoryRecord } from "@/types/call-history.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
 import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
 import { Checkbox } from "@repo/ui/components/ui/checkbox";
 import { type ColumnDef } from "@tanstack/react-table";
-import { IconPhoneOutgoing, IconPhoneIncoming, IconDotsVertical, IconCopy } from "@tabler/icons-react";
+import { IconPhoneOutgoing, IconPhoneIncoming, IconCopy } from "@tabler/icons-react";
 import { formatDuration } from "@/utils/call-history";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
+import { ActionsButton, type ActionItem } from "@/components/common/actions-button";
 import { toast } from "@repo/ui/components/ui/sonner";
+import { useMemo } from "react";
+
 export interface RowCallbacks {
+}
+
+function CallHistoryActionsCell({ row }: { row: { original: CallHistoryRecord } }) {
+  const record = row.original;
+
+  const actions: ActionItem[] = useMemo(() => [
+    {
+      type: 'item',
+      label: 'Copy call ID',
+      icon: <IconCopy className="size-4" />,
+      onClick: () => {
+        navigator.clipboard.writeText(record.id);
+        toast.success('Call ID copied to clipboard');
+      },
+    },
+  ], [record]);
+
+  return <ActionsButton actions={actions} title="Actions" className="flex justify-end" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<CallHistoryRecord>[] => [
@@ -99,30 +110,6 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<CallHistoryRecord>[
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="sm">
-                <IconDotsVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => {
-                  navigator.clipboard.writeText(row.original.id)
-                  toast.success('Call ID copied to clipboard')
-                }}>
-                  <IconCopy />
-                  Copy call ID
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )
-    }
+    cell: ({ row }) => <CallHistoryActionsCell row={row} />,
   }
 ]

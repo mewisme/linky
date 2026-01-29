@@ -3,22 +3,31 @@
 import { CountryFlag } from "@/components/common/country-flag";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
-import { Button } from "@repo/ui/components/ui/button";
 import { Checkbox } from "@repo/ui/components/ui/checkbox";
 import { type ColumnDef } from "@tanstack/react-table";
-import { IconDotsVertical, IconTrash } from "@tabler/icons-react";
+import { IconTrash } from "@tabler/icons-react";
 import { formatDuration } from "@/utils/call-history";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
+import { ActionsButton, type ActionItem } from "@/components/common/actions-button";
+import { useMemo } from "react";
 
 export interface RowCallbacks {
   onRemove?: (favorite: ResourcesAPI.Favorites.FavoriteWithStats) => void;
+}
+
+function FavoritesActionsCell({ row, callbacks }: { row: { original: ResourcesAPI.Favorites.FavoriteWithStats }; callbacks?: RowCallbacks }) {
+  const favorite = row.original;
+
+  const actions: ActionItem[] = useMemo(() => [
+    {
+      type: 'item',
+      label: 'Remove from favorites',
+      icon: <IconTrash className="size-4" />,
+      onClick: () => callbacks?.onRemove?.(favorite),
+      variant: 'destructive',
+    },
+  ], [favorite, callbacks]);
+
+  return <ActionsButton actions={actions} title="Actions" className="flex justify-end" />;
 }
 
 export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Favorites.FavoriteWithStats>[] => [
@@ -101,30 +110,6 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Favori
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      return (
-        <div className="flex justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="sm">
-                <IconDotsVertical />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  onClick={() => callbacks?.onRemove?.(row.original)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <IconTrash />
-                  Remove from favorites
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )
-    }
+    cell: ({ row }) => <FavoritesActionsCell row={row} callbacks={callbacks} />,
   }
 ]

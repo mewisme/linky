@@ -13,7 +13,10 @@ services:
     restart: unless-stopped
     healthcheck:
       test:
-        ["CMD-SHELL", "wget -qO- http://localhost:7270/healthz | grep -q 'ok'"]
+        [
+          "CMD-SHELL",
+          'node -e "const http=require(''http''); console.error(''[healthcheck] ping''); http.get(''http://127.0.0.1:7270/healthz'', r => { if (r.statusCode !== 200) process.exit(1); r.resume(); }).on(''error'', e => { console.error(e); process.exit(1); })"',
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

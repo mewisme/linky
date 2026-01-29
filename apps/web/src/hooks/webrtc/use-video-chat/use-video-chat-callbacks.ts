@@ -207,7 +207,6 @@ export function useVideoChatCallbacks({
         actionsRef.current.setConnectionStatus("connecting");
         actionsRef.current.setPeerInfo(data.peerInfo);
         actionsRef.current.setRemoteCameraEnabled(true);
-        toast.success("Peer matched! Connecting to peer...");
 
         const localStream = mediaStream.getStream();
         if (!localStream) {

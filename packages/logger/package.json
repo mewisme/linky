@@ -1,6 +1,6 @@
 {
   "name": "@repo/logger",
-  "version": "0.37.0",
+  "version": "0.37.3",
   "private": true,
   "type": "module",
   "scripts": {

@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import type { ResourcesAPI } from '@/types/resources.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface ReportsDataTableProps {
   initialData: ResourcesAPI.Reports.Report[]
@@ -13,7 +14,7 @@ interface ReportsDataTableProps {
   leftColumnVisibilityContent?: React.ReactNode
 }
 
-export function ReportsDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null }: ReportsDataTableProps) {
+export function ReportsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null }: ReportsDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -21,7 +22,7 @@ export function ReportsDataTable({ initialData, className = '', callbacks, leftC
       initialData={initialData}
       initialColumnVisibility={{}}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
     />
   )

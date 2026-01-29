@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import type { ResourcesAPI } from '@/types/resources.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface FavoritesDataTableProps {
   initialData: ResourcesAPI.Favorites.FavoriteWithStats[]
@@ -13,7 +14,7 @@ interface FavoritesDataTableProps {
   leftColumnVisibilityContent?: React.ReactNode
 }
 
-export function FavoritesDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null }: FavoritesDataTableProps) {
+export function FavoritesDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null }: FavoritesDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -21,7 +22,7 @@ export function FavoritesDataTable({ initialData, className = '', callbacks, lef
       initialData={initialData}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
     />
   )

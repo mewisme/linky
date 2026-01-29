@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import type { CallHistoryRecord } from '@/types/call-history.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface CallHistoryDataTableProps {
   initialData: CallHistoryRecord[]
@@ -13,7 +14,7 @@ interface CallHistoryDataTableProps {
   leftColumnVisibilityContent?: React.ReactNode
 }
 
-export function CallHistoryDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null }: CallHistoryDataTableProps) {
+export function CallHistoryDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null }: CallHistoryDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -21,7 +22,7 @@ export function CallHistoryDataTable({ initialData, className = '', callbacks, l
       initialData={initialData}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
     />
   )

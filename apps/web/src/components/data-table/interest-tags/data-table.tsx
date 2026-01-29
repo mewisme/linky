@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface InterestTagsDataTableProps {
   initialData: AdminAPI.InterestTags.InterestTag[]
@@ -14,7 +15,7 @@ interface InterestTagsDataTableProps {
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function InterestTagsDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: InterestTagsDataTableProps) {
+export function InterestTagsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: InterestTagsDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -25,7 +26,7 @@ export function InterestTagsDataTable({ initialData, className = '', callbacks, 
         filterPlaceholder="Search tags..."
         initialColumnVisibility={{ id: false }}
         columns={tableColumns}
-        className={className}
+        className={cn(className)}
         leftColumnVisibilityContent={leftColumnVisibilityContent}
         rightColumnVisibilityContent={rightColumnVisibilityContent}
       />

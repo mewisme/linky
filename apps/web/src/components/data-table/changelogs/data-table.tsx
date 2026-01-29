@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface ChangelogsDataTableProps {
   initialData: AdminAPI.Changelogs.Changelog[]
@@ -14,7 +15,7 @@ interface ChangelogsDataTableProps {
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function ChangelogsDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: ChangelogsDataTableProps) {
+export function ChangelogsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: ChangelogsDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -22,7 +23,7 @@ export function ChangelogsDataTable({ initialData, className = '', callbacks, le
       initialData={initialData}
       initialColumnVisibility={{ id: false, created_at: false, updated_at: false }}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
       rightColumnVisibilityContent={rightColumnVisibilityContent}
     />

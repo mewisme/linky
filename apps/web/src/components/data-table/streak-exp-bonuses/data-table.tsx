@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface StreakExpBonusesDataTableProps {
   initialData: AdminAPI.StreakExpBonuses.StreakExpBonus[]
@@ -14,7 +15,7 @@ interface StreakExpBonusesDataTableProps {
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function StreakExpBonusesDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: StreakExpBonusesDataTableProps) {
+export function StreakExpBonusesDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: StreakExpBonusesDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -24,7 +25,7 @@ export function StreakExpBonusesDataTable({ initialData, className = '', callbac
       filterPlaceholder="Search by multiplier..."
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
       rightColumnVisibilityContent={rightColumnVisibilityContent}
     />

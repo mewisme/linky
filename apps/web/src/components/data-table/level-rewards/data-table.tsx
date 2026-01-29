@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface LevelRewardsDataTableProps {
   initialData: AdminAPI.LevelRewards.LevelReward[]
@@ -14,7 +15,7 @@ interface LevelRewardsDataTableProps {
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function LevelRewardsDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: LevelRewardsDataTableProps) {
+export function LevelRewardsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: LevelRewardsDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -24,7 +25,7 @@ export function LevelRewardsDataTable({ initialData, className = '', callbacks, 
       filterPlaceholder="Search by reward type..."
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
       rightColumnVisibilityContent={rightColumnVisibilityContent}
     />

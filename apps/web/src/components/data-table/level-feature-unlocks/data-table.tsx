@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface LevelFeatureUnlocksDataTableProps {
   initialData: AdminAPI.LevelFeatureUnlocks.LevelFeatureUnlock[]
@@ -14,7 +15,7 @@ interface LevelFeatureUnlocksDataTableProps {
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function LevelFeatureUnlocksDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: LevelFeatureUnlocksDataTableProps) {
+export function LevelFeatureUnlocksDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: LevelFeatureUnlocksDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -24,7 +25,7 @@ export function LevelFeatureUnlocksDataTable({ initialData, className = '', call
       filterPlaceholder="Search by feature key..."
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
       rightColumnVisibilityContent={rightColumnVisibilityContent}
     />

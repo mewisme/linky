@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import type { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
+import { cn } from '@repo/ui/lib/utils'
 
 interface AdminReportsDataTableProps {
   initialData: AdminAPI.Reports.Report[]
@@ -14,7 +15,7 @@ interface AdminReportsDataTableProps {
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function AdminReportsDataTable({ initialData, className = '', callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: AdminReportsDataTableProps) {
+export function AdminReportsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: AdminReportsDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -26,7 +27,7 @@ export function AdminReportsDataTable({ initialData, className = '', callbacks, 
         reviewed_by: false,
       }}
       columns={tableColumns}
-      className={className}
+      className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
       rightColumnVisibilityContent={rightColumnVisibilityContent}
     />

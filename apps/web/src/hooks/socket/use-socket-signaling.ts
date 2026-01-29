@@ -109,6 +109,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     socket.on("skipped", (data) => {
       console.info("Skipped:", data.message, "Queue size:", data.queueSize);
       publishPresence('matching');
+      isInActiveCallRef.current = false;
       callbacks.onSkipped(data);
     });
 

@@ -158,6 +158,7 @@ export function useVideoChat(): UseVideoChatReturn {
   });
 
   useUnloadEndCall(
+    isInActiveCall,
     () => socketSignaling.isInActiveCallRef.current,
     () => socketSignaling.sendEndCall(),
     socketSignaling.getSocketId(),

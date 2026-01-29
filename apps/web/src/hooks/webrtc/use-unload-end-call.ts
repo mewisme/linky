@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -7,7 +6,8 @@ import { useEffect, useRef, type RefObject } from "react";
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
 
 export function useUnloadEndCall(
-  isInActiveCall: () => boolean,
+  isInActiveCall: boolean,
+  getIsInActiveCall: () => boolean,
   sendEndCall: () => void,
   socketId: string | null,
   socketRef: RefObject<{ connected: boolean; emit: (event: string, ...args: any[]) => void } | null>
@@ -20,7 +20,7 @@ export function useUnloadEndCall(
       return;
     }
 
-    if (!isInActiveCall()) {
+    if (!getIsInActiveCall()) {
       return;
     }
 
@@ -61,16 +61,21 @@ export function useUnloadEndCall(
   };
 
   useEffect(() => {
+    if (!isInActiveCall) {
+      return;
+    }
+
     hasSentUnloadSignalRef.current = false;
 
-    const handleBeforeUnload = (_event: BeforeUnloadEvent) => {
-      if (isInActiveCall()) {
-        sendUnloadEndCall();
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (getIsInActiveCall()) {
+        event.preventDefault();
+        event.returnValue = "";
       }
     };
 
     const handlePageHide = (event: PageTransitionEvent) => {
-      if (!event.persisted && isInActiveCall()) {
+      if (!event.persisted && getIsInActiveCall()) {
         console.info("[UnloadDetection] pagehide with persisted=false detected - TRUE EXIT");
         sendUnloadEndCall();
       } else if (event.persisted) {
@@ -86,5 +91,5 @@ export function useUnloadEndCall(
       window.removeEventListener("pagehide", handlePageHide);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInActiveCall, sendEndCall, socketId, socketRef]);
+  }, [isInActiveCall, getIsInActiveCall, socketId, socketRef]);
 }

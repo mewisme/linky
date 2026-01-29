@@ -4,7 +4,7 @@ import { config } from "../config/index.js";
 import { createLogger } from "@repo/logger";
 import { withRedisTimeout } from "../infra/redis/timeout-wrapper.js";
 
-const logger = createLogger("API:Middleware:RateLimit");
+const logger = createLogger("middleware:rate-limit");
 
 export function createRateLimitMiddleware(options?: {
   windowMs?: number;

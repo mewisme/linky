@@ -15,7 +15,7 @@ import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-ut
 import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:User:Details:Route");
+const logger = createLogger("api:user:details:route");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {

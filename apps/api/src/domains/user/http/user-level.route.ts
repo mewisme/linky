@@ -4,7 +4,7 @@ import { getUserLevelData } from "../service/user-level.service.js";
 import { getUserIdByClerkUserId } from "../service/user-settings.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:User:Level:Route");
+const logger = createLogger("api:user:level:route");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {

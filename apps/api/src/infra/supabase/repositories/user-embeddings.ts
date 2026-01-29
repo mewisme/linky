@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:UserEmbeddings:Repository");
+const logger = createLogger("infra:supabase:repositories:user-embeddings");
 
 export async function getUserEmbeddingByUserId(userId: string) {
   const { data, error } = await supabase

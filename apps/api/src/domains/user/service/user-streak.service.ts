@@ -20,7 +20,7 @@ import { addDays } from "../../../utils/date-helpers.js";
 import { createLogger } from "@repo/logger";
 import { toUserLocalDateString } from "../../../utils/timezone.js";
 
-const logger = createLogger("API:User:Streak:Service");
+const logger = createLogger("api:user:streak:service");
 
 export interface StreakCompletionResult {
   firstTimeValid: boolean;

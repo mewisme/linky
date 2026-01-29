@@ -4,7 +4,7 @@ import { createLogger } from "@repo/logger";
 import { redisClient } from "./client.js";
 import { withRedisTimeout } from "./timeout-wrapper.js";
 
-const logger = createLogger("API:Redis:CacheUtils");
+const logger = createLogger("infra:redis:cache-utils");
 
 
 export async function getCachedData<T>(

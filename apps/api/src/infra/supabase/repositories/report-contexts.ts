@@ -5,7 +5,7 @@ import { supabase } from "../client.js";
 
 type ReportContextInsert = TablesInsert<"report_contexts">;
 
-const logger = createLogger("API:Supabase:ReportContexts:Repository");
+const logger = createLogger("infra:supabase:repositories:report-contexts");
 
 export interface ReportContextWithReport {
   id: string;

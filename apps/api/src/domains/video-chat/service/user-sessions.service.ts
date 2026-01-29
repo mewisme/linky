@@ -6,7 +6,7 @@ export class UserSessionService {
   private activeSessions: Map<string, string> = new Map();
 
   private waitingQueues: Map<string, WaitingSession[]> = new Map();
-  private readonly logger = createLogger("API:VideoChat:UserSessions:Service");
+  private readonly logger = createLogger("api:video-chat:user-sessions:service");
 
   tryActivateSession(userId: string, socket: Socket): { activated: boolean; positionInQueue?: number } {
     const socketId = socket.id;

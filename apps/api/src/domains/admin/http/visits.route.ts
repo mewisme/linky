@@ -10,7 +10,7 @@ import {
 } from "../service/admin-visits.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:Visits:Route");
+const logger = createLogger("api:admin:visits:route");
 
 router.get("/visitor/:ip", async (req: Request, res: Response) => {
   try {

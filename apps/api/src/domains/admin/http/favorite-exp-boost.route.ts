@@ -9,7 +9,7 @@ import {
 } from "../service/admin-favorite-exp-boost.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:FavoriteExpBoost:Route");
+const logger = createLogger("api:admin:favorite-exp-boost:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

@@ -7,7 +7,7 @@ import {
 import { createLogger } from "@repo/logger";
 import { getLevelFeatureUnlocksAtLevel } from "../../../infra/supabase/repositories/level-feature-unlocks.js";
 
-const logger = createLogger("API:User:StreakFreeze:Service");
+const logger = createLogger("api:user:streak-freeze:service");
 
 const STREAK_FREEZE_FEATURE_KEY = "streak_freeze";
 

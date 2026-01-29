@@ -4,7 +4,7 @@ import { createLogger } from "@repo/logger";
 import { redisClient } from "../client.js";
 import { withRedisTimeout } from "../timeout-wrapper.js";
 
-const logger = createLogger("API:Redis:Cache");
+const logger = createLogger("infra:redis:cache");
 const SCAN_COUNT = 200;
 const DELETE_BATCH_SIZE = 500;
 

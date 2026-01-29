@@ -9,7 +9,7 @@ import {
 } from "../service/admin-embeddings.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:Embeddings:Route");
+const logger = createLogger("api:admin:embeddings:route");
 
 router.post("/compare", async (req: Request, res: Response) => {
   try {

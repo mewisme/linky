@@ -10,7 +10,7 @@ import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
 import { rateLimitMiddleware } from "../../../middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Reports:Route");
+const logger = createLogger("api:reports:route");
 
 router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {

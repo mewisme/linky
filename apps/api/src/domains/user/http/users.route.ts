@@ -8,7 +8,7 @@ import {
 } from "../service/user.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:User:Users:Route");
+const logger = createLogger("api:user:users:route");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {

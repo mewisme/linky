@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:FavoriteExpBoostRules:Repository");
+const logger = createLogger("infra:supabase:repositories:favorite-exp-boost-rules");
 
 export interface FavoriteExpBoostRulesRecord {
   id: string;

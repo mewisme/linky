@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:Changelogs:Repository");
+const logger = createLogger("infra:supabase:repositories:changelogs");
 
 export interface CreateChangelogParams {
   version: string;

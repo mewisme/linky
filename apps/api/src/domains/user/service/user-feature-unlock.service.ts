@@ -2,7 +2,7 @@ import type { UserUnlockedFeatures } from "../types/level-feature-unlock.types.j
 import { createLogger } from "@repo/logger";
 import { getLevelFeatureUnlocksUpToLevel } from "../../../infra/supabase/repositories/level-feature-unlocks.js";
 
-const logger = createLogger("API:User:FeatureUnlock:Service");
+const logger = createLogger("api:user:feature-unlock:service");
 
 export async function getUserUnlockedFeatures(userId: string, level: number): Promise<UserUnlockedFeatures> {
   if (!userId || typeof userId !== "string" || userId.trim() === "") {

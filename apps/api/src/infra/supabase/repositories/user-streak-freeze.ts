@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:UserStreakFreeze:Repository");
+const logger = createLogger("infra:supabase:repositories:user-streak-freeze");
 
 export interface UserStreakFreezeInventoryRecord {
   user_id: string;

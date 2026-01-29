@@ -4,7 +4,7 @@ import { supabase } from "../client.js";
 
 type AdminUsersUnifiedRow = Database["public"]["Views"]["admin_users_unified"]["Row"];
 
-const logger = createLogger("API:Supabase:AdminUsers:Repository");
+const logger = createLogger("infra:supabase:repositories:admin-users");
 
 export interface GetAdminUsersUnifiedOptions {
   page?: number;

@@ -7,7 +7,7 @@ import { handleClerkWebhookEvent } from "../webhook/clerk-webhook-handler.js";
 import { rateLimitMiddleware } from "../middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Webhook:Route");
+const logger = createLogger("routes:webhook");
 
 router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {

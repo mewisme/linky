@@ -17,7 +17,7 @@ import {
 } from "../../infra/s3/multipart.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Media:S3:Route");
+const logger = createLogger("routes:media:s3");
 
 router.get("/presigned/upload", async (req: Request, res: Response) => {
   try {

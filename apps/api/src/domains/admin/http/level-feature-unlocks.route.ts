@@ -13,7 +13,7 @@ import {
 } from "../service/admin-level-feature-unlocks.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:LevelFeatureUnlocks:Route");
+const logger = createLogger("api:admin:level-feature-unlocks:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

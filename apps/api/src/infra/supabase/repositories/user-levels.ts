@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:UserLevels:Repository");
+const logger = createLogger("infra:supabase:repositories:user-levels");
 
 export interface UserLevelRecord {
   id: string;

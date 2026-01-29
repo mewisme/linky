@@ -5,7 +5,7 @@ import { getChangelogs } from "../supabase/repositories/changelogs.js";
 import { getInterestTags } from "../supabase/repositories/interest-tags.js";
 import { updateCachedData } from "./cache-utils.js";
 
-const logger = createLogger("API:Redis:CachePreload");
+const logger = createLogger("infra:redis:cache-preload");
 
 export async function preloadReferenceData(): Promise<void> {
   logger.info("Starting cache preload for reference data...");

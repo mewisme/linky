@@ -5,7 +5,7 @@ import { redisClient } from "../../../infra/redis/client.js";
 import { deleteUser, getUser, listUsers, patchAdminUser, updateAdminUser } from "../service/admin-users.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:Users:Route");
+const logger = createLogger("api:admin:users:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

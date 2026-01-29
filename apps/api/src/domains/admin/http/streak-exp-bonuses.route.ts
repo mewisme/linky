@@ -10,7 +10,7 @@ import {
 } from "../service/admin-streak-exp-bonuses.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:StreakExpBonuses:Route");
+const logger = createLogger("api:admin:streak-exp-bonuses:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

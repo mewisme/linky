@@ -7,7 +7,7 @@ import {
 import { createLogger } from "@repo/logger";
 import { getLevelRewardsUpToLevel as getLevelRewards } from "../../../infra/supabase/repositories/level-rewards.js";
 
-const logger = createLogger("API:User:LevelReward:Service");
+const logger = createLogger("api:user:level-reward:service");
 
 export async function grantRewardsForLevel(userId: string, level: number): Promise<void> {
   if (!userId || typeof userId !== "string" || userId.trim() === "") {

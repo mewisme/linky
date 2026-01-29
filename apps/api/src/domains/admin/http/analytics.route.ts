@@ -3,7 +3,7 @@ import { createLogger } from "@repo/logger";
 import { getOverview, getPageViewsForAdmin, getTopPagesForAdmin, getVisitorStatsForAdmin, getVisitorsForAdmin } from "../service/admin-analytics.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:Analytics:Route");
+const logger = createLogger("api:admin:analytics:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

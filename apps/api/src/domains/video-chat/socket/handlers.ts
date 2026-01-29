@@ -16,7 +16,7 @@ import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-hi
 import { isValidTimezone } from "../../../utils/timezone.js";
 import { recordCallHistory } from "./call-history.socket.js";
 
-const logger = createLogger("API:VideoChat:Socket:Handlers");
+const logger = createLogger("api:video-chat:socket:handlers");
 
 async function getDbUserId(socket: AuthenticatedSocket): Promise<string | null> {
   const clerkUserId = socket.data.userId;

@@ -2,7 +2,7 @@ import { createLogger } from '@repo/logger'
 import { createSocketServer } from '@/socket/index.js'
 import { redisClient } from '../redis/client.js'
 
-const logger = createLogger("API:MQTT:PresenceHandler");
+const logger = createLogger("infra:mqtt:presence-handler");
 
 let ioRef: ReturnType<typeof createSocketServer> | null = null
 
@@ -16,8 +16,6 @@ export async function handlePresenceMessage(
   state: string
 ): Promise<void> {
   const now = Date.now()
-
-  logger.info(`Handling presence message for ${clientId} with state ${state}`)
 
   await redisClient.hSet('presence', clientId, state)
   await redisClient.hSet('presence:ts', clientId, now.toString())
@@ -52,6 +50,6 @@ function emitToAdminSockets(clientId: string, state: string, updatedAt: number):
     updatedAt,
   }
 
-  ioRef.of('/admin').emit('presence_update', presenceUpdate)
+  ioRef.of('/admin').emit('presence:update', presenceUpdate)
 }
 

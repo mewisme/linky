@@ -4,7 +4,7 @@ import { createLogger } from "@repo/logger";
 import type { CloudflareTurnResponse } from "../../domains/video-chat/types/call.types.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Media:IceServers:Route");
+const logger = createLogger("routes:media:ice-servers");
 
 router.get("/ice-servers", async (_req: Request, res: Response) => {
   logger.info("ICE servers request received");

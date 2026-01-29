@@ -8,7 +8,7 @@ import { createLogger } from "@repo/logger";
 
 export type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
 
-const logger = createLogger("API:Socket:Auth");
+const logger = createLogger("socket:auth");
 
 export async function socketAuthMiddleware(
   socket: Socket,

@@ -20,7 +20,7 @@ const MAX_QUEUE_WAIT_TIME = 5 * 60 * 1000;
 const MAX_MATCHING_CANDIDATES = 50;
 
 export class RedisMatchmakingService {
-  private readonly logger = createLogger("API:Matchmaking:Redis:Service");
+  private readonly logger = createLogger("api:matchmaking:redis:service");
 
   async enqueue(socket: Socket): Promise<boolean> {
     const socketId = socket.id;

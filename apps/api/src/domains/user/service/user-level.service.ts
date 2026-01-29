@@ -14,7 +14,7 @@ import { grantRewardsForLevel } from "./user-level-reward.service.js";
 import { incrExpToday } from "../../../infra/redis/cache/exp-today.js";
 import { incrementUserExpDaily } from "../../../infra/supabase/repositories/user-exp-daily.js";
 
-const logger = createLogger("API:User:Level:Service");
+const logger = createLogger("api:user:level:service");
 
 const DEFAULT_LEVEL_PARAMS: LevelCalculationParams = {
   base: 300,

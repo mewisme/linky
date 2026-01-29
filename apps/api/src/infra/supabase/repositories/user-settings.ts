@@ -6,7 +6,7 @@ import { supabase } from "../client.js";
 type UserSettingsInsert = TablesInsert<"user_settings">;
 type UserSettingsUpdate = TablesUpdate<"user_settings">;
 
-const logger = createLogger("API:Supabase:UserSettings:Repository");
+const logger = createLogger("infra:supabase:repositories:user-settings");
 
 export async function getUserSettingsByUserId(userId: string) {
   const { data, error } = await supabase

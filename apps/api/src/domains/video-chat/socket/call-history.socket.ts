@@ -7,7 +7,7 @@ import { recordCallHistoryInDatabase } from "../service/call-history.service.js"
 import { redisClient } from "../../../infra/redis/client.js";
 import { withRedisTimeout } from "../../../infra/redis/timeout-wrapper.js";
 
-const logger = createLogger("API:VideoChat:CallHistory:Socket");
+const logger = createLogger("api:video-chat:call-history:socket");
 
 const STREAK_COMPLETED_EVENT = "streak:completed";
 const IDEMPOTENCY_KEY_TTL_SECONDS = 300;

@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:CallHistory:Repository");
+const logger = createLogger("infra:supabase:repositories:call-history");
 
 export interface CreateCallHistoryParams {
   callerId: string;

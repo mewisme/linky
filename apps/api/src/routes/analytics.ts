@@ -8,7 +8,7 @@ import {
 } from "../infra/supabase/repositories/index.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Analytics:Route");
+const logger = createLogger("routes:analytics");
 
 router.post("/visitor", async (req: Request, res: Response) => {
   try {

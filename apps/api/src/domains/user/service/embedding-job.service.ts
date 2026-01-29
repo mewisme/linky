@@ -6,7 +6,7 @@ import { createLogger } from "@repo/logger";
 import { embedText } from "../../../infra/ollama/embedding.service.js";
 import { getUserProfileAggregateByUserId } from "./user-profile.service.js";
 
-const logger = createLogger("API:User:EmbeddingJob");
+const logger = createLogger("api:user:embedding-job:service");
 
 function computeSourceHash(input: string): string {
   return createHash("sha256").update(input, "utf8").digest("hex");

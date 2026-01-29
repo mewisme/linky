@@ -5,7 +5,7 @@ import { mqttClient } from "../infra/mqtt/client.js";
 import { config } from "../config/index.js";
 import { createLogger } from "@repo/logger";
 
-const logger = createLogger("API:Server:Shutdown");
+const logger = createLogger("middleware:graceful-shutdown");
 
 let isShuttingDown = false;
 let httpServer: HTTPServer | null = null;

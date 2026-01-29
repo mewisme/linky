@@ -5,7 +5,7 @@ import { createLogger } from "@repo/logger";
 import { verifyToken } from "@clerk/backend";
 
 export async function clerkMiddleware(req: Request, res: Response, next: NextFunction) {
-  const logger = createLogger("API:Clerk:Middleware");
+  const logger = createLogger("middleware:clerk");
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {

@@ -6,7 +6,7 @@ import { supabase } from "../client.js";
 type ReportInsert = TablesInsert<"reports">;
 type ReportUpdate = TablesUpdate<"reports">;
 
-const logger = createLogger("API:Supabase:Reports:Repository");
+const logger = createLogger("infra:supabase:repositories:reports");
 
 export interface GetReportsOptions {
   limit?: number;

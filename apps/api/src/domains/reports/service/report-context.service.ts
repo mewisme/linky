@@ -5,7 +5,7 @@ import type { Json } from "../../../types/database/supabase.types.js";
 import type { Namespace } from "socket.io";
 import { createLogger } from "@repo/logger";
 
-const logger = createLogger("API:Reports:Context:Service");
+const logger = createLogger("api:reports:context:service");
 
 export async function collectReportContext(
   params: CollectReportContextParams,

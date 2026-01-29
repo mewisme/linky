@@ -3,7 +3,7 @@ import { type MessageData, type RoomData } from "../types/socket/socket-event.ty
 import { createLogger } from "@repo/logger";
 import { type AuthenticatedSocket } from "./auth.js";
 
-const logger = createLogger("API:Socket:Handlers");
+const logger = createLogger("socket:handlers");
 
 export function setupSocketHandlers(io: Namespace): void {
   io.on("connection", (socket: AuthenticatedSocket) => {

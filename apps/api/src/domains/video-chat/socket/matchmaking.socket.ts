@@ -6,7 +6,7 @@ import { getPublicUserInfo } from "../../../infra/supabase/repositories/user-det
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import type { VideoChatMatchmaking, VideoChatRooms } from "./types.js";
 
-const logger = createLogger("API:VideoChat:Matchmaking:Socket");
+const logger = createLogger("api:video-chat:matchmaking:socket");
 
 export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMatchmaking, rooms: VideoChatRooms): void {
   setInterval(async () => {

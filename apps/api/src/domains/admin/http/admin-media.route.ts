@@ -5,7 +5,7 @@ import { getUploadUrl } from "../../../infra/s3/presigned.js";
 import { config } from "../../../config/index.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:Media:Route");
+const logger = createLogger("api:admin:media:route");
 
 const ALLOWED_CONTENT_TYPES = [
   "image/png",

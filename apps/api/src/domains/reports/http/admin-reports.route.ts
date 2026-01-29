@@ -6,7 +6,7 @@ import type { ReportUpdate } from "../types/report.types.js";
 import { fetchReportById, fetchReportWithContext, listReports, updateReportById } from "../service/reports.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Reports:Admin:Route");
+const logger = createLogger("api:reports:admin:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

@@ -7,7 +7,7 @@ import { createLogger } from "@repo/logger";
 import { invalidate } from "../../../infra/redis/cache/index.js";
 import { toUserLocalDateString } from "../../../utils/timezone.js";
 
-const logger = createLogger("API:VideoChat:CallHistory:Service");
+const logger = createLogger("api:video-chat:call-history:service");
 
 export type OnStreakCompleted = (userId: string, payload: { streakCount: number; date: string }) => void;
 

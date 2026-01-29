@@ -3,7 +3,7 @@ import type { TablesInsert, TablesUpdate } from "../../../types/database/supabas
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:LevelFeatureUnlocks:Repository");
+const logger = createLogger("infra:supabase:repositories:level-feature-unlocks");
 
 export interface LevelFeatureUnlockRecord {
   id: string;

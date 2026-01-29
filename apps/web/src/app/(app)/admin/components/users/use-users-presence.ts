@@ -18,9 +18,9 @@ export function useUsersPresence(users: AdminAPI.User[]) {
         return { ...m, [update.userId]: next };
       });
     };
-    adminSocket.on('presence_update', onPresenceUpdate);
+    adminSocket.on('presence:update', onPresenceUpdate);
     return () => {
-      adminSocket.off('presence_update', onPresenceUpdate);
+      adminSocket.off('presence:update', onPresenceUpdate);
     };
   }, [adminSocket]);
 

@@ -5,7 +5,7 @@ import { createLogger } from "@repo/logger";
 export class RoomService {
   private rooms: Map<string, VideoChatRoomRecord> = new Map();
   private userToRoom: Map<string, string> = new Map(); // socketId -> roomId
-  private readonly logger = createLogger("API:VideoChat:Rooms:Service");
+  private readonly logger = createLogger("api:video-chat:rooms:service");
 
   createRoom(user1SocketId: string, user2SocketId: string): string {
     const roomId = `room_${user1SocketId}_${user2SocketId}_${Date.now()}`;

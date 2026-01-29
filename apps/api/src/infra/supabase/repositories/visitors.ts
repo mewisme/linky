@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:Visitors:Repository");
+const logger = createLogger("infra:supabase:repositories:visitors");
 
 export async function getAllPageViews() {
   const { count: totalPageViews, error } = await supabase.from("page_views").select("*", { count: "exact", head: true });

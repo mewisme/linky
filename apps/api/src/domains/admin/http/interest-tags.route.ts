@@ -13,7 +13,7 @@ import {
 import type { InterestTagsImportRequestBody } from "../types/admin.types.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:InterestTags:Route");
+const logger = createLogger("api:admin:interest-tags:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

@@ -11,7 +11,7 @@ import { getUserExpDaily } from "../../../infra/supabase/repositories/user-exp-d
 import { getUserLevelData } from "./user-level.service.js";
 import { toUserLocalDateString } from "../../../utils/timezone.js";
 
-const logger = createLogger("API:User:Progress:Service");
+const logger = createLogger("api:user:progress:service");
 
 const STREAK_REQUIRED_SECONDS = 300;
 const RECENT_STREAK_DAYS = 10;

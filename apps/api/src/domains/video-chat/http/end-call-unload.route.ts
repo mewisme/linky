@@ -6,7 +6,7 @@ import { type AuthenticatedSocket } from "../../../socket/auth.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:VideoChat:EndCall:Unload:Route");
+const logger = createLogger("api:video-chat:end-call-unload:route");
 
 router.post("/end-call-unload", async (req: Request, res: Response) => {
   try {

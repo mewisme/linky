@@ -10,7 +10,7 @@ import { preloadReferenceData } from "./infra/redis/cache-preload.js";
 import { initializeMqttClient, attachSocketIO } from "./infra/mqtt/client.js";
 import { setupGracefulShutdown } from "./middleware/graceful-shutdown.js";
 
-const logger = createLogger("API:Server");
+const logger = createLogger("api:server");
 
 export function createApp(): Express {
   const app = express();

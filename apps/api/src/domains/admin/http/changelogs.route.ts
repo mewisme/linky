@@ -12,7 +12,7 @@ import {
 } from "../service/admin-changelogs.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:Changelogs:Route");
+const logger = createLogger("api:admin:changelogs:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

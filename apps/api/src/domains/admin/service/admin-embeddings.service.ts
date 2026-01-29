@@ -12,7 +12,7 @@ import { cosineSimilarity } from "../../embeddings/index.js";
 import { createLogger } from "@repo/logger";
 import { getUsersIdsPaginated } from "../../../infra/supabase/repositories/users.js";
 
-const logger = createLogger("API:Admin:Embeddings:Service");
+const logger = createLogger("api:admin:embeddings:service");
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 

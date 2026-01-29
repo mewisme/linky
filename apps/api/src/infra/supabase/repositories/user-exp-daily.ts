@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:UserExpDaily:Repository");
+const logger = createLogger("infra:supabase:repositories:user-exp-daily");
 
 export interface UserExpDailyRecord {
   id: string;

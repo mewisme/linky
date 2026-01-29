@@ -3,7 +3,7 @@ import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "../../../infra/admin-cache/index.js";
 import { createLogger } from "@repo/logger";
 
-const logger = createLogger("API:Admin:Socket:Auth");
+const logger = createLogger("api:admin:socket:auth");
 
 export async function adminNamespaceAuthMiddleware(socket: Socket, next: (err?: Error) => void): Promise<void> {
   const clerkUserId = (socket.data as { userId?: string } | undefined)?.userId;

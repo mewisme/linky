@@ -1,7 +1,7 @@
 import { config } from "../../config/index.js";
 import { createLogger } from "@repo/logger";
 
-const logger = createLogger("API:Redis:Timeout");
+const logger = createLogger("infra:redis:timeout-wrapper");
 
 export async function withRedisTimeout<T>(
   operation: () => Promise<T>,

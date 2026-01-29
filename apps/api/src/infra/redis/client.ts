@@ -3,7 +3,7 @@ import { RedisClientType, RedisFunctions, RedisModules, RedisScripts, RespVersio
 import { config } from '../../config/index.js'
 import { createLogger } from '@repo/logger'
 
-const logger = createLogger("API:Redis:Client");
+const logger = createLogger("infra:redis:client");
 
 const redisConfig = config.redisUrl && config.redisUrl.startsWith('redis://')
   ? {

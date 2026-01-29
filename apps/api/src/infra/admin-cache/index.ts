@@ -2,7 +2,7 @@ import { createLogger } from "@repo/logger";
 import { redisClient } from "../redis/client.js";
 import { supabase } from "../supabase/client.js";
 
-const logger = createLogger("API:AdminCache");
+const logger = createLogger("infra:admin-cache");
 
 const ADMIN_CACHE_TTL_SECONDS = 5 * 60;
 

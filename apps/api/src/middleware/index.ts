@@ -8,7 +8,7 @@ import { clientIpMiddleware } from "./client-ip.js";
 import { requestIdMiddleware } from "./request-id.js";
 import { jsonBodySizeLimitMiddleware } from "./json-body-size-limit.js";
 
-const logger = createLogger("API:Middleware");
+const logger = createLogger("middleware");
 
 morgan.token("custom", () => {
   return "";

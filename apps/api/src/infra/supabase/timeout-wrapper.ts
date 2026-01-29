@@ -1,7 +1,7 @@
 import { config } from "../../config/index.js";
 import { createLogger } from "@repo/logger";
 
-const logger = createLogger("API:Supabase:Timeout");
+const logger = createLogger("infra:supabase:timeout-wrapper");
 
 export async function withSupabaseTimeout<T>(
   operation: () => Promise<T>,

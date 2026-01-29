@@ -5,7 +5,7 @@ import { getUserIdByClerkUserId } from "../service/user-settings.service.js";
 import { isValidTimezone } from "../../../utils/timezone.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:User:Streak:Route");
+const logger = createLogger("api:user:streak:route");
 
 function getTimezone(req: Request): string {
   const fromHeader = req.headers["x-user-timezone"];

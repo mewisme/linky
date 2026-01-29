@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { startServer } from "./server.js";
 
-const logger = createLogger("API");
+const logger = createLogger("api");
 
 startServer().catch((error: Error) => {
   logger.fatal("Failed to start server: %o", error);

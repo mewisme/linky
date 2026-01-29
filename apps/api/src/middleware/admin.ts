@@ -4,7 +4,7 @@ import { checkIfUserIsAdmin } from "../infra/admin-cache/index.js";
 import { createLogger } from "@repo/logger";
 
 export async function adminMiddleware(req: Request, res: Response, next: NextFunction) {
-  const logger = createLogger("API:Admin:Middleware");
+  const logger = createLogger("middleware:admin");
   try {
     const clerkUserId = req.auth?.sub;
 

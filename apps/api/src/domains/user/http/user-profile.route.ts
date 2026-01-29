@@ -3,7 +3,7 @@ import { createLogger } from "@repo/logger";
 import { getUserProfileAggregateByClerkUserId } from "../service/user-profile.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:User:Profile:Route");
+const logger = createLogger("api:user:profile:route");
 
 router.get("/me", async (req: Request, res: Response) => {
   try {

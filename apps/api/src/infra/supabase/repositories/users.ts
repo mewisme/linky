@@ -5,7 +5,7 @@ import { supabase } from "../client.js";
 
 type UserUpdate = TablesUpdate<"users">;
 type UserInsert = TablesInsert<"users">;
-const logger = createLogger("API:Supabase:Users:Repository");
+const logger = createLogger("infra:supabase:repositories:users");
 
 export interface GetUsersOptions {
   page?: number;

@@ -6,7 +6,7 @@ import { createSocketServer } from '@/socket/index.js'
 import { initializeAdminCache } from '../admin-cache/index.js'
 import mqtt from 'mqtt'
 
-const logger = createLogger("API:MQTT:Client");
+const logger = createLogger("infra:mqtt:client");
 
 export const mqttClient = mqtt.connect(
   `mqtts://${config.mqttUrl}:${config.mqttPort}`,

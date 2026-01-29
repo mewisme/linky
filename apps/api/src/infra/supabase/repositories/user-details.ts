@@ -7,7 +7,7 @@ import { supabase } from "../client.js";
 type UserDetailsInsert = TablesInsert<"user_details">;
 type UserDetailsUpdate = TablesUpdate<"user_details">;
 
-const logger = createLogger("API:Supabase:UserDetails:Repository");
+const logger = createLogger("infra:supabase:repositories:user-details");
 
 export async function getUserDetailsByUserId(userId: string) {
   const { data, error } = await supabase

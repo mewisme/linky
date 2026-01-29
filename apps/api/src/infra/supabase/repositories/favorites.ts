@@ -1,7 +1,7 @@
 import { createLogger } from "@repo/logger";
 import { supabase } from "../client.js";
 
-const logger = createLogger("API:Supabase:Favorites:Repository");
+const logger = createLogger("infra:supabase:repositories:favorites");
 
 export interface FavoriteRecord {
   id: string;

@@ -10,7 +10,7 @@ import {
 } from "../service/admin-level-rewards.service.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Admin:LevelRewards:Route");
+const logger = createLogger("api:admin:level-rewards:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

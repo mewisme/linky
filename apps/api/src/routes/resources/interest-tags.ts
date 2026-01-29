@@ -5,7 +5,7 @@ import { getCachedData } from "../../infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("API:Resources:InterestTags:Route");
+const logger = createLogger("routes:resources:interest-tags");
 
 router.get("/", async (req: Request, res: Response) => {
   try {

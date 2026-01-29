@@ -6,6 +6,18 @@ export namespace AdminAPI {
   export type UserRole = "admin" | "member";
   export type PresenceState = "offline" | "online" | "available" | "matching" | "in_call" | "idle";
 
+  export interface UserDetails {
+    bio: string | null;
+    gender: string | null;
+    date_of_birth: string | null;
+  }
+
+  export interface UserEmbeddingMetadata {
+    model: string | null;
+    source_hash: string;
+    updated_at: string;
+  }
+
   export interface User {
     id: string;
     clerk_user_id: string;
@@ -14,10 +26,14 @@ export namespace AdminAPI {
     last_name: string | null;
     avatar_url: string | null;
     role: UserRole;
-    deleted: boolean;
+    deleted: boolean | null;
     presence: PresenceState;
     created_at: string;
     updated_at: string;
+    details: UserDetails | null;
+    interest_tag_names: string[];
+    embedding: UserEmbeddingMetadata | null;
+    level: number;
   }
 
   export namespace GetAnalytics {

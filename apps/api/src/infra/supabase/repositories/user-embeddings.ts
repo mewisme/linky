@@ -49,3 +49,50 @@ export async function upsertUserEmbedding(
 
   return data;
 }
+
+export async function getUserEmbeddingsByUserIds(userIds: string[]) {
+  if (userIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("user_embeddings")
+    .select("id, user_id, embedding, model_name, source_hash, created_at, updated_at")
+    .in("user_id", userIds);
+
+  if (error) {
+    logger.error("Error fetching user embeddings: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function getEmbeddingMetadataByUserIds(userIds: string[]) {
+  if (userIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("user_embeddings")
+    .select("user_id, model_name, source_hash, updated_at")
+    .in("user_id", userIds);
+
+  if (error) {
+    logger.error("Error fetching embedding metadata: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function getAllUserEmbeddingsExcluding(excludeUserId: string) {
+  const { data, error } = await supabase
+    .from("user_embeddings")
+    .select("id, user_id, embedding, model_name, source_hash, created_at, updated_at")
+    .neq("user_id", excludeUserId)
+    .not("embedding", "is", null);
+
+  if (error) {
+    logger.error("Error fetching user embeddings: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data ?? [];
+}

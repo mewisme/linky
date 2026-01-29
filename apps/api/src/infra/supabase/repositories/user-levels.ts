@@ -44,3 +44,21 @@ export async function getUserLevel(userId: string): Promise<UserLevelRecord | nu
 
   return data;
 }
+
+export async function getUserLevelsByUserIds(
+  userIds: string[]
+): Promise<Array<{ user_id: string; total_exp_seconds: number }>> {
+  if (userIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("user_levels")
+    .select("user_id, total_exp_seconds")
+    .in("user_id", userIds);
+
+  if (error) {
+    logger.error("Error fetching user levels batch: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data || [];
+}

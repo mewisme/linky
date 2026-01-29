@@ -1,9 +1,15 @@
+import type { AdminUnifiedUser, AdminUserUpdate } from "../types/admin.types.js";
+import {
+  getAdminUsersUnified,
+  getUserById,
+  patchUser,
+  updateUser,
+} from "../../../infra/supabase/repositories/index.js";
 import { getOrSet, invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
-import { getUserById, getUsers, patchUser, updateUser } from "../../../infra/supabase/repositories/index.js";
 
-import type { AdminUserUpdate } from "../types/admin.types.js";
 import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
+import { calculateLevelFromExp } from "../../../logic/level-from-exp.js";
 import { clerk } from "../../../infra/clerk/client.js";
 import { hashFilters } from "../../../infra/redis/cache/hash.js";
 import { scheduleEmbeddingRegeneration } from "../../user/service/embedding-job.service.js";
@@ -15,7 +21,7 @@ export async function listUsers(params: {
   role?: "admin" | "member";
   deleted?: boolean;
   search?: string;
-}) {
+}): Promise<{ data: AdminUnifiedUser[]; count: number | null }> {
   const filters = {
     getAll: params.getAll,
     page: params.page,
@@ -25,11 +31,11 @@ export async function listUsers(params: {
     search: params.search,
   };
 
-  return await getOrSet(
+  const raw = await getOrSet(
     REDIS_CACHE_KEYS.admin("users", hashFilters(filters)),
     REDIS_CACHE_TTL_SECONDS.ADMIN_LISTS,
     async () =>
-      await getUsers({
+      await getAdminUsersUnified({
         page: params.page,
         limit: params.limit,
         role: params.role,
@@ -38,6 +44,49 @@ export async function listUsers(params: {
         getAll: params.getAll,
       }),
   );
+
+  const enriched: AdminUnifiedUser[] = (raw.data || []).map((row) => {
+    const level = row.total_exp_seconds != null
+      ? calculateLevelFromExp(row.total_exp_seconds).level
+      : 1;
+
+    return {
+      id: row.user_id,
+      clerk_user_id: row.clerk_user_id,
+      email: row.email,
+      role: row.role,
+      deleted: row.deleted,
+      created_at: row.created_at,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      avatar_url: row.avatar_url,
+      country: row.country,
+      updated_at: row.updated_at,
+      deleted_at: row.deleted_at,
+      details:
+        row.bio != null || row.gender != null || row.date_of_birth != null
+          ? {
+            bio: row.bio ?? null,
+            gender: row.gender ?? null,
+            date_of_birth: row.date_of_birth ?? null,
+          }
+          : null,
+      interest_tag_names: row.interest_tags ?? [],
+      embedding:
+        row.embedding_model != null ||
+          row.embedding_source_hash != null ||
+          row.embedding_updated_at != null
+          ? {
+            model: row.embedding_model ?? null,
+            source_hash: row.embedding_source_hash ?? "",
+            updated_at: row.embedding_updated_at ?? "",
+          }
+          : null,
+      level,
+    };
+  });
+
+  return { data: enriched, count: raw.count };
 }
 
 export async function getUser(id: string) {

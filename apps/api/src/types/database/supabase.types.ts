@@ -56,6 +56,13 @@ export type Database = {
             foreignKeyName: "fk_call_history_callee"
             columns: ["callee_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_call_history_callee"
+            columns: ["callee_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -72,6 +79,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users_with_details"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_call_history_caller"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "fk_call_history_caller"
@@ -134,6 +148,13 @@ export type Database = {
           version?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_changelogs_created_by"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "fk_changelogs_created_by"
             columns: ["created_by"]
@@ -350,6 +371,13 @@ export type Database = {
             foreignKeyName: "fk_report_contexts_ended_by"
             columns: ["ended_by"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_report_contexts_ended_by"
+            columns: ["ended_by"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -418,6 +446,13 @@ export type Database = {
             foreignKeyName: "fk_reports_reported"
             columns: ["reported_user_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -439,6 +474,13 @@ export type Database = {
             foreignKeyName: "fk_reports_reporter"
             columns: ["reporter_user_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -455,6 +497,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users_with_details"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "fk_reports_reviewed_by"
@@ -545,6 +594,13 @@ export type Database = {
             foreignKeyName: "fk_user_details_user"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_details_user"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -593,6 +649,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_embeddings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "fk_user_embeddings_user"
             columns: ["user_id"]
@@ -670,6 +733,13 @@ export type Database = {
             foreignKeyName: "user_favorite_limits_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_favorite_limits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -713,6 +783,13 @@ export type Database = {
             foreignKeyName: "user_favorites_favorite_user_id_fkey"
             columns: ["favorite_user_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_favorites_favorite_user_id_fkey"
+            columns: ["favorite_user_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -729,6 +806,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users_with_details"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "user_favorites_user_id_fkey"
@@ -784,6 +868,13 @@ export type Database = {
             foreignKeyName: "fk_user_level_rewards_user"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_level_rewards_user"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -826,6 +917,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_levels_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "fk_user_levels_user"
             columns: ["user_id"]
@@ -885,6 +983,13 @@ export type Database = {
             foreignKeyName: "fk_user_settings_user"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_settings_user"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -930,6 +1035,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_streak_days_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "fk_user_streak_days_user"
             columns: ["user_id"]
@@ -981,6 +1093,13 @@ export type Database = {
             foreignKeyName: "fk_user_streak_freeze_grants_user"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_streak_freeze_grants_user"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -1020,6 +1139,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_streak_freeze_inventory_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "fk_user_streak_freeze_inventory_user"
             columns: ["user_id"]
@@ -1072,6 +1198,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_streaks_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "fk_user_streaks_user"
             columns: ["user_id"]
@@ -1166,6 +1299,31 @@ export type Database = {
       }
     }
     Views: {
+      admin_users_unified: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          clerk_user_id: string | null
+          country: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          deleted: boolean | null
+          deleted_at: string | null
+          email: string | null
+          embedding_model: string | null
+          embedding_source_hash: string | null
+          embedding_updated_at: string | null
+          first_name: string | null
+          gender: string | null
+          interest_tags: string[] | null
+          last_name: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          total_exp_seconds: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       changelogs_with_creator: {
         Row: {
           created_at: string | null
@@ -1233,6 +1391,13 @@ export type Database = {
             foreignKeyName: "fk_user_details_user"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_details_user"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -1273,6 +1438,13 @@ export type Database = {
             foreignKeyName: "user_favorites_favorite_user_id_fkey"
             columns: ["favorite_user_id"]
             isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_favorites_favorite_user_id_fkey"
+            columns: ["favorite_user_id"]
+            isOneToOne: false
             referencedRelation: "public_user_info"
             referencedColumns: ["id"]
           },
@@ -1289,6 +1461,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users_with_details"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "user_favorites_user_id_fkey"
@@ -1326,6 +1505,13 @@ export type Database = {
           user_id: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_settings_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "fk_user_settings_user"
             columns: ["user_id"]
@@ -1432,116 +1618,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   public: {

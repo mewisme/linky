@@ -83,6 +83,24 @@ export async function getInterestTagsByIds(ids: string[]) {
   return data || [];
 }
 
+export async function getInterestTagNamesByIds(ids: string[]) {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("interest_tags")
+    .select("id, name")
+    .in("id", ids);
+
+  if (error) {
+    logger.error("Error fetching interest tag names: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data || [];
+}
+
 type InterestTagInsert = TablesInsert<"interest_tags">;
 type InterestTagUpdate = TablesUpdate<"interest_tags">;
 

@@ -16,7 +16,12 @@ router.get("/", async (req: Request, res: Response) => {
 
     const role = req.query.role as "admin" | "member" | undefined;
     const deletedParam = req.query.deleted;
-    const deleted = deletedParam === "true" || deletedParam === "1" ? true : deletedParam === "false" || deletedParam === "0" ? false : undefined;
+    const deleted =
+      deletedParam === "true" || deletedParam === "1"
+        ? true
+        : deletedParam === "false" || deletedParam === "0"
+          ? false
+          : undefined;
     const search = req.query.search as string | undefined;
 
     const { data: users, count } = await listUsers({
@@ -24,7 +29,7 @@ router.get("/", async (req: Request, res: Response) => {
       page,
       limit,
       role: role === "admin" || role === "member" ? role : undefined,
-      deleted: deleted !== undefined ? deleted : false,
+      deleted,
       search,
     });
 

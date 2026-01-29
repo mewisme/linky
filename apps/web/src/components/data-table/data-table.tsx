@@ -30,9 +30,11 @@ interface DataTableProps<TData> {
   className?: string
   leftColumnVisibilityContent?: React.ReactNode
   rightColumnVisibilityContent?: React.ReactNode
+  bulkActionsContent?: (selectedRows: TData[]) => React.ReactNode
+  getRowClassName?: (row: TData) => string | undefined
 }
 
-export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: DataTableProps<TData>) {
+export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -83,6 +85,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
           {leftColumnVisibilityContent && (
             leftColumnVisibilityContent
           )}
+          {bulkActionsContent && bulkActionsContent(table.getFilteredSelectedRowModel().rows.map((r) => r.original))}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto" size="sm">
@@ -143,7 +146,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="group"
+                  className={cn("group", getRowClassName?.(row.original))}
                   data-testid={row.original && typeof row.original === 'object' && 'id' in row.original ? `admin-user-row-${row.original.id}` : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (

@@ -4,10 +4,87 @@ import {
   syncEmbeddingsForUsers,
   scheduleSyncAllEmbeddings,
   validateUserIds,
+  compareUsers,
+  findSimilarUsers,
 } from "../service/admin-embeddings.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("API:Admin:Embeddings:Route");
+
+router.post("/compare", async (req: Request, res: Response) => {
+  try {
+    const { user_id_a: userIdA, user_id_b: userIdB } = req.body;
+
+    if (!userIdA || !userIdB) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "user_id_a and user_id_b are required",
+      });
+    }
+
+    const result = await compareUsers(String(userIdA).trim(), String(userIdB).trim());
+
+    if (!result.ok) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: result.error,
+      });
+    }
+
+    return res.json({
+      similarity_score: result.similarity_score,
+      model_name: result.model_name,
+      user_a_updated_at: result.user_a_updated_at,
+      user_b_updated_at: result.user_b_updated_at,
+    });
+  } catch (error) {
+    logger.error(
+      "Unexpected error in POST /admin/embeddings/compare: %o",
+      error instanceof Error ? error : new Error(String(error))
+    );
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to compare embeddings",
+    });
+  }
+});
+
+router.post("/similar", async (req: Request, res: Response) => {
+  try {
+    const { user_id: userId, limit: rawLimit } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "user_id is required",
+      });
+    }
+
+    const limit = typeof rawLimit === "number" ? rawLimit : 10;
+    const result = await findSimilarUsers(String(userId).trim(), limit);
+
+    if (!result.ok) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: result.error,
+      });
+    }
+
+    return res.json({
+      base_user_id: result.base_user_id,
+      results: result.results,
+    });
+  } catch (error) {
+    logger.error(
+      "Unexpected error in POST /admin/embeddings/similar: %o",
+      error instanceof Error ? error : new Error(String(error))
+    );
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to find similar users",
+    });
+  }
+});
 
 router.post("/sync", async (req: Request, res: Response) => {
   try {

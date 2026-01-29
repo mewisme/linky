@@ -27,6 +27,22 @@ export async function getUserDetailsByUserId(userId: string) {
   return data;
 }
 
+export async function getUserDetailsByUserIds(userIds: string[]) {
+  if (userIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("user_details")
+    .select("user_id, bio, gender, date_of_birth, interest_tags")
+    .in("user_id", userIds);
+
+  if (error) {
+    logger.error("Error fetching user details batch: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return data || [];
+}
+
 export async function getUserDetailsWithTags(userId: string) {
   const { data, error } = await supabase
     .from("user_details_expanded")

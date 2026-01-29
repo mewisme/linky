@@ -9,7 +9,7 @@ import {
 
 import type { Database } from "../../../types/database/supabase.types.js";
 
-const mockGetUsers = vi.fn();
+const mockGetAdminUsersUnified = vi.fn();
 const mockGetUserById = vi.fn();
 const mockUpdateUser = vi.fn();
 const mockPatchUser = vi.fn();
@@ -24,7 +24,7 @@ vi.mock("../../../domains/user/service/embedding-job.service.js", () => ({
 }));
 
 vi.mock("../../../infra/supabase/repositories/index.js", () => ({
-  getUsers: (...args: unknown[]) => mockGetUsers(...args),
+  getAdminUsersUnified: (...args: unknown[]) => mockGetAdminUsersUnified(...args),
   getUserById: (...args: unknown[]) => mockGetUserById(...args),
   updateUser: (...args: unknown[]) => mockUpdateUser(...args),
   patchUser: (...args: unknown[]) => mockPatchUser(...args),
@@ -48,9 +48,32 @@ beforeEach(() => {
 });
 
 describe("listUsers", () => {
-  it("delegates to getUsers via getOrSet with hashed filters", async () => {
-    const list = { data: [{ id: "u1" }], count: 1 };
-    mockGetUsers.mockResolvedValue(list);
+  it("delegates to getAdminUsersUnified via getOrSet and maps view shape to AdminUnifiedUser", async () => {
+    const viewRows = [
+      {
+        user_id: "u1",
+        clerk_user_id: "c1",
+        email: "a@b.com",
+        role: "admin",
+        deleted: false,
+        created_at: "2024-01-01",
+        first_name: null,
+        last_name: null,
+        avatar_url: null,
+        country: null,
+        updated_at: "2024-01-01",
+        deleted_at: null,
+        bio: null,
+        gender: null,
+        date_of_birth: null,
+        interest_tags: [],
+        embedding_model: null,
+        embedding_source_hash: null,
+        embedding_updated_at: null,
+        total_exp_seconds: null,
+      },
+    ];
+    mockGetAdminUsersUnified.mockResolvedValue({ data: viewRows, count: 1 });
 
     const result = await listUsers({
       getAll: false,
@@ -61,9 +84,19 @@ describe("listUsers", () => {
       search: "x",
     });
 
-    expect(result).toEqual(list);
+    expect(result.data).toHaveLength(1);
+    expect(result.data[0]).toMatchObject({
+      id: "u1",
+      email: "a@b.com",
+      role: "admin",
+      deleted: false,
+      details: null,
+      interest_tag_names: [],
+      embedding: null,
+      level: 1,
+    });
     expect(mockGetOrSet).toHaveBeenCalledOnce();
-    expect(mockGetUsers).toHaveBeenCalledWith({
+    expect(mockGetAdminUsersUnified).toHaveBeenCalledWith({
       page: 1,
       limit: 10,
       role: "admin",

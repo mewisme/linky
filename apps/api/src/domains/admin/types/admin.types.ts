@@ -24,3 +24,34 @@ export interface InterestTagsImportResponse {
 
 export type AdminUserUpdate = TablesUpdate<"users">;
 
+export interface AdminUserDetails {
+  bio: string | null;
+  gender: string | null;
+  date_of_birth: string | null;
+}
+
+export interface AdminUserEmbeddingMetadata {
+  model: string | null;
+  source_hash: string;
+  updated_at: string;
+}
+
+export interface AdminUnifiedUser {
+  id: string;
+  clerk_user_id: string;
+  email: string | null;
+  role: "admin" | "member";
+  deleted: boolean | null;
+  created_at: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  country: string | null;
+  updated_at: string;
+  deleted_at: string | null;
+  details: AdminUserDetails | null;
+  interest_tag_names: string[];
+  embedding: AdminUserEmbeddingMetadata | null;
+  level: number;
+}
+

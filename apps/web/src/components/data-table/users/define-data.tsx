@@ -7,7 +7,7 @@ import { Badge } from '@repo/ui/components/ui/badge';
 import {
   type ColumnDef,
 } from "@tanstack/react-table"
-import { IconCircleCheckFilled, IconCircleXFilled, IconDotsVertical, IconTrash } from '@tabler/icons-react';
+import { IconCircleCheckFilled, IconCircleXFilled, IconDotsVertical, IconTrash, IconRefresh, IconUserPlus } from '@tabler/icons-react';
 import {
   DropdownMenu,
   DropdownMenuSeparator,
@@ -39,6 +39,11 @@ import { memo, useState } from 'react';
 export interface RowCallbacks {
   onSelectRole?: (user: AdminAPI.User, role: AdminAPI.UserRole) => void
   onDelete: (user: AdminAPI.User) => void
+  onRestore?: (user: AdminAPI.User) => void
+  onEmbeddingSync?: (user: AdminAPI.User) => void
+  onBulkDelete?: (users: AdminAPI.User[]) => void
+  onBulkRestore?: (users: AdminAPI.User[]) => void
+  onBulkEmbeddingSync?: (users: AdminAPI.User[]) => void
 }
 
 type User = AdminAPI.User;
@@ -62,6 +67,7 @@ function ActionsCell({ row, callbacks }: { row: { original: User }, callbacks?: 
   const [alertOpen, setAlertOpen] = useState(false);
 
   const user = row.original;
+  const isDeleted = user.deleted === true;
 
   return (
     <div className="flex justify-center opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -108,17 +114,40 @@ function ActionsCell({ row, callbacks }: { row: { original: User }, callbacks?: 
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={(e) => {
-                e.preventDefault();
-                setAlertOpen(true);
-              }}
-              variant='destructive'
-              data-testid="admin-user-delete-button"
-            >
-              <IconTrash />
-              Delete user
-            </DropdownMenuItem>
+            {isDeleted && callbacks?.onRestore && (
+              <DropdownMenuItem
+                onClick={() => callbacks.onRestore?.(user)}
+                data-testid="admin-user-restore-button"
+              >
+                <IconUserPlus />
+                Restore user
+              </DropdownMenuItem>
+            )}
+            {callbacks?.onEmbeddingSync && (
+              <DropdownMenuItem
+                onClick={() => callbacks.onEmbeddingSync?.(user)}
+                data-testid="admin-user-embedding-sync-button"
+              >
+                <IconRefresh />
+                Manual embedding sync
+              </DropdownMenuItem>
+            )}
+            {!isDeleted && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setAlertOpen(true);
+                  }}
+                  variant='destructive'
+                  data-testid="admin-user-delete-button"
+                >
+                  <IconTrash />
+                  Delete user
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
         <AlertDialogContent data-testid="dialog-container">
@@ -213,8 +242,13 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
     cell: ({ row }) => <div>{row.getValue("role")}</div>,
   },
   {
+    accessorKey: "level",
+    header: "Level",
+    cell: ({ row }) => <div>{row.original.level ?? 1}</div>,
+  },
+  {
     accessorKey: "deleted",
-    header: "Active",
+    header: "Deleted",
     cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
         {!row.original.deleted ? (
@@ -224,6 +258,48 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
         )}
         {row.original.deleted ? "Deleted" : "Active"}
       </Badge>
+    ),
+  },
+  {
+    accessorKey: "details.bio",
+    id: "bio",
+    header: "Bio",
+    cell: ({ row }) => (
+      <div className="max-w-[200px] truncate" title={row.original.details?.bio ?? undefined}>
+        {row.original.details?.bio ?? "-"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "interest_tag_names",
+    id: "interest_tag_names",
+    header: "Interest Tags",
+    cell: ({ row }) => (
+      <div className="flex flex-wrap gap-1 max-w-[200px]">
+        {(row.original.interest_tag_names ?? []).length > 0
+          ? row.original.interest_tag_names.map((name) => (
+            <Badge key={name} variant="secondary" className="text-xs">
+              {name}
+            </Badge>
+          ))
+          : "-"}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "embedding",
+    id: "embedding_status",
+    header: "Embedding",
+    cell: ({ row }) => (
+      <div>{row.original.embedding ? "Synced" : "None"}</div>
+    ),
+  },
+  {
+    accessorKey: "embedding.updated_at",
+    id: "embedding_updated_at",
+    header: "Embedding Updated",
+    cell: ({ row }) => (
+      <div>{row.original.embedding?.updated_at ?? "-"}</div>
     ),
   },
   {

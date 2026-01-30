@@ -24,8 +24,6 @@ router.get("/", async (req: Request, res: Response) => {
       reportedUserId,
     });
 
-    logger.info("Reports fetched by admin: %s", data.length);
-
     return res.json({
       data,
       count,
@@ -60,8 +58,6 @@ router.get("/:id", async (req: Request, res: Response) => {
         message: "Report not found",
       });
     }
-
-    logger.info("Report fetched by admin: %s", id);
 
     return res.json(reportWithContext);
   } catch (error) {
@@ -122,8 +118,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
     }
 
     const updated = await updateReportById(id, finalUpdateData);
-
-    logger.info("Report updated by admin: %s", id);
 
     return res.json(updated);
   } catch (error) {

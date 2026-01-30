@@ -16,8 +16,6 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const rewards = await listLevelRewards();
 
-    logger.info("Admin fetched level rewards: %d", rewards.length);
-
     return res.json({
       data: rewards,
     });
@@ -49,8 +47,6 @@ router.get("/:id", async (req: Request, res: Response) => {
         message: "Level reward not found",
       });
     }
-
-    logger.info("Admin fetched level reward: %s", id);
 
     return res.json(reward);
   } catch (error) {
@@ -95,8 +91,6 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     const created = await createAdminLevelReward(rewardData);
-
-    logger.info("Admin created level reward: %s", created.id);
 
     return res.status(201).json(created);
   } catch (error) {
@@ -164,8 +158,6 @@ router.put("/:id", async (req: Request, res: Response) => {
     }
 
     const updated = await updateAdminLevelReward(id, rewardData);
-
-    logger.info("Admin updated level reward: %s", id);
 
     return res.json(updated);
   } catch (error) {
@@ -241,8 +233,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const updated = await updateAdminLevelReward(id, rewardData);
 
-    logger.info("Admin patched level reward: %s", id);
-
     return res.json(updated);
   } catch (error) {
     logger.error("Unexpected error in PATCH /admin/level-rewards/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -280,8 +270,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
     }
 
     await deleteAdminLevelReward(id);
-
-    logger.info("Admin deleted level reward: %s", id);
 
     return res.json({
       message: "Level reward deleted successfully",

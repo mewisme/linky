@@ -56,7 +56,6 @@ router.post("/", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "mutual_multiplier must be >= 1" });
     }
     const created = await createFavoriteExpBoostRules({ one_way_multiplier: one, mutual_multiplier: mutual });
-    logger.info("Admin created favorite EXP boost rule: %s", created.id);
     return res.status(201).json(created);
   } catch (error) {
     logger.error(
@@ -88,7 +87,6 @@ router.put("/:id", async (req: Request, res: Response) => {
       patch.mutual_multiplier = body.mutual_multiplier;
     }
     const updated = await updateFavoriteExpBoostRules(id, patch);
-    logger.info("Admin updated favorite EXP boost rule: %s", id);
     return res.json(updated);
   } catch (error) {
     logger.error(
@@ -120,7 +118,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
       patch.mutual_multiplier = body.mutual_multiplier;
     }
     const updated = await updateFavoriteExpBoostRules(id, patch);
-    logger.info("Admin patched favorite EXP boost rule: %s", id);
     return res.json(updated);
   } catch (error) {
     logger.error(
@@ -138,7 +135,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "Invalid ID" });
     }
     await deleteFavoriteExpBoostRules(id);
-    logger.info("Admin deleted favorite EXP boost rule: %s", id);
     return res.json({ message: "Favorite EXP boost rule deleted successfully" });
   } catch (error) {
     logger.error(

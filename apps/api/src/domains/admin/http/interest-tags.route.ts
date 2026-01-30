@@ -41,8 +41,6 @@ router.get("/", async (req: Request, res: Response) => {
       offset,
     });
 
-    logger.info("Admin fetched interest tags: %d, %d, %d", count, limit, offset);
-
     return res.json({
       data,
       pagination: {
@@ -74,8 +72,6 @@ router.post("/import", async (req: Request, res: Response) => {
 
     const result = await importInterestTags(body as InterestTagsImportRequestBody);
 
-    logger.info("Admin imported interest tags: total=%d, created=%d, updated=%d, skipped_invalid=%d", result.total, result.created, result.updated, result.skipped_invalid);
-
     return res.json(result);
   } catch (error) {
     logger.error("Unexpected error in POST /admin/interest-tags/import: %o", error instanceof Error ? error : new Error(String(error)));
@@ -106,8 +102,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Admin fetched interest tag: %s", id);
-
     return res.json(tag);
   } catch (error) {
     logger.error("Unexpected error in GET /admin/interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -137,8 +131,6 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     const created = await createAdminInterestTag(tagData);
-
-    logger.info("Admin created interest tag: %s", created.id);
 
     return res.status(201).json(created);
   } catch (error) {
@@ -188,8 +180,6 @@ router.put("/:id", async (req: Request, res: Response) => {
     }
 
     const updated = await updateAdminInterestTag(id, tagData);
-
-    logger.info("Admin updated interest tag: %s", id);
 
     return res.json(updated);
   } catch (error) {
@@ -247,8 +237,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const updated = await updateAdminInterestTag(id, tagData);
 
-    logger.info("Admin patched interest tag: %s", id);
-
     return res.json(updated);
   } catch (error) {
     logger.error("Unexpected error in PATCH /admin/interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -287,8 +275,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     const deleted = await softDeleteInterestTag(id);
 
-    logger.info("Admin soft deleted interest tag: %s", id);
-
     return res.json({
       message: "Interest tag deactivated successfully",
       data: deleted,
@@ -322,8 +308,6 @@ router.delete("/:id/hard", async (req: Request, res: Response) => {
     }
 
     await hardDeleteInterestTag(id);
-
-    logger.info("Admin hard deleted interest tag: %s", id);
 
     return res.json({
       message: "Interest tag permanently deleted",

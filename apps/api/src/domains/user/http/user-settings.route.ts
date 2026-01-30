@@ -44,8 +44,6 @@ router.get("/me", async (req: Request, res: Response) => {
       CACHE_TTL.USER_SETTINGS
     );
 
-    logger.info("User settings fetched for user: %s", userId);
-
     return res.json(userSettings);
   } catch (error) {
     if (error instanceof Error && error.message === "User settings not found") {
@@ -140,8 +138,6 @@ router.patch("/me", async (req: Request, res: Response) => {
     await invalidateCacheKey(CACHE_KEYS.userSettings(userId));
 
     const userSettings = await fetchUserSettings(userId);
-
-    logger.info("User settings patched for user: %s", userId);
 
     return res.json(userSettings);
   } catch (error) {

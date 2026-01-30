@@ -37,8 +37,6 @@ router.get("/", async (req: Request, res: Response) => {
       }));
     }
 
-    logger.info("Published changelogs fetched: %d, %d, %d, %s", count || 0, limit, offset, shouldCache ? "cached" : "not cached");
-
     return res.json({
       data: changelogs,
       pagination: {
@@ -88,8 +86,6 @@ router.get("/:version", async (req: Request, res: Response) => {
         logger.warn("Failed to generate presigned URL for changelog: %s, %s, %o", version, changelog.s3_key, s3Error instanceof Error ? s3Error : new Error(String(s3Error)));
       }
     }
-
-    logger.info("Changelog fetched: %s", version);
 
     return res.json({
       ...changelog,

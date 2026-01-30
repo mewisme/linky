@@ -60,7 +60,6 @@ export async function addCallDurationToStreak(
     const dayAfter = await getStreakDayByUserAndDate(userId, dateStr);
     const completedValidDayWithoutFreeze = !usedPrepare && dayAfter?.is_valid === true;
     if (completedValidDayWithoutFreeze) clearLastContinuationUsedFreeze(userId);
-    logger.info("Added %d seconds to streak for user: %s on date: %s", durationSeconds, userId, dateStr);
 
     await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
 

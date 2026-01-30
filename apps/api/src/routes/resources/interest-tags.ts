@@ -40,8 +40,6 @@ router.get("/", async (req: Request, res: Response) => {
       }));
     }
 
-    logger.info("Interest tags fetched: %d, %d, %d, %s", count, limit, offset, shouldCache ? "cached" : "not cached");
-
     return res.json({
       data,
       pagination: {
@@ -82,8 +80,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       },
       CACHE_TTL.INTEREST_TAGS
     );
-
-    logger.info("Interest tag fetched: %s", id);
 
     return res.json(tag);
   } catch (error: unknown) {

@@ -19,8 +19,6 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const unlocks = await listLevelFeatureUnlocks();
 
-    logger.info("Admin fetched level feature unlocks: %d", unlocks.length);
-
     return res.json({
       data: unlocks,
     });
@@ -55,8 +53,6 @@ router.get("/:id", async (req: Request, res: Response) => {
         message: "Level feature unlock not found",
       });
     }
-
-    logger.info("Admin fetched level feature unlock: %s", id);
 
     return res.json(unlock);
   } catch (error) {
@@ -104,8 +100,6 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     const created = await createAdminLevelFeatureUnlock(unlockData);
-
-    logger.info("Admin created level feature unlock: %s", created.id);
 
     return res.status(201).json(created);
   } catch (error) {
@@ -176,8 +170,6 @@ router.put("/:id", async (req: Request, res: Response) => {
     }
 
     const updated = await updateAdminLevelFeatureUnlock(id, unlockData);
-
-    logger.info("Admin updated level feature unlock: %s", id);
 
     return res.json(updated);
   } catch (error) {
@@ -256,8 +248,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const updated = await updateAdminLevelFeatureUnlock(id, unlockData);
 
-    logger.info("Admin patched level feature unlock: %s", id);
-
     return res.json(updated);
   } catch (error) {
     logger.error(
@@ -298,8 +288,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
     }
 
     await deleteAdminLevelFeatureUnlock(id);
-
-    logger.info("Admin deleted level feature unlock: %s", id);
 
     return res.json({
       message: "Level feature unlock deleted successfully",

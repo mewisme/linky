@@ -23,22 +23,12 @@ export function createApp(): Express {
 }
 
 export async function startServer(): Promise<{ app: Express; httpServer: HTTPServer; io: ReturnType<typeof createSocketServer> }> {
-  logger.info("Initializing server...");
-
   const app = createApp();
-  logger.info("Express app created");
-
-  logger.info("Creating HTTP server...");
   const httpServer = createServer(app);
-  logger.info("HTTP server created");
-
-  logger.info("Initializing Socket.IO server...");
   const io = createSocketServer(httpServer);
-  logger.info("Socket.IO server created");
 
   attachSocketIO(io);
 
-  logger.info("Connecting to Redis...");
   try {
     await connectRedis();
     preloadReferenceData();
@@ -49,16 +39,7 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   initializeMqttClient();
 
   httpServer.listen(config.port, () => {
-    logger.info("=".repeat(50));
-    logger.info("Server started successfully");
-    logger.info("HTTP server running on %s", `http://localhost:${config.port}`);
-    logger.info("Socket.IO server ready for connections");
-    logger.info("Environment: %s", config.nodeEnv);
-    const corsOriginDisplay = Array.isArray(config.corsOrigin)
-      ? config.corsOrigin.join(", ")
-      : config.corsOrigin;
-    logger.info("CORS origin: %s", corsOriginDisplay);
-    logger.info("=".repeat(50));
+    logger.info("Server started: port=%d env=%s", config.port, config.nodeEnv);
   });
 
   httpServer.on("error", (error: Error) => {

@@ -8,10 +8,7 @@ import { updateCachedData } from "./cache-utils.js";
 const logger = createLogger("infra:redis:cache-preload");
 
 export async function preloadReferenceData(): Promise<void> {
-  logger.info("Starting cache preload for reference data...");
-
   try {
-    logger.info("Preloading interest tags...");
     const interestTagsData = await getInterestTags({
       isActive: true,
       limit: 1000,
@@ -32,9 +29,6 @@ export async function preloadReferenceData(): Promise<void> {
       );
     }
 
-    logger.info(`Preloaded ${interestTagsData.data.length} interest tags`);
-
-    logger.info("Preloading changelogs...");
     const changelogsData = await getChangelogs({
       limit: 1000,
       offset: 0,
@@ -54,9 +48,7 @@ export async function preloadReferenceData(): Promise<void> {
       );
     }
 
-    logger.info(`Preloaded ${changelogsData.data.length} changelogs`);
-
-    logger.info("Cache preload completed successfully");
+    logger.info("Cache preload completed: interest_tags=%d changelogs=%d", interestTagsData.data.length, changelogsData.data.length);
   } catch (error) {
     logger.error("Cache preload failed: %o", error instanceof Error ? error : new Error(String(error)));
   }

@@ -22,17 +22,13 @@ export class RoomService {
     this.userToRoom.set(user1SocketId, roomId);
     this.userToRoom.set(user2SocketId, roomId);
 
-    this.logger.info("Room created: %s for users: %s %s", roomId, user1SocketId, user2SocketId);
+    this.logger.info("Room created: %s", roomId);
 
     return roomId;
   }
 
   getRoom(roomId: string): VideoChatRoomRecord | undefined {
-    const room = this.rooms.get(roomId);
-    if (!room) {
-      this.logger.warn("Room not found: %s", roomId);
-    }
-    return room;
+    return this.rooms.get(roomId);
   }
 
   getRoomByUser(socketId: string): VideoChatRoomRecord | undefined {
@@ -46,19 +42,16 @@ export class RoomService {
   getPeer(socketId: string): string | null {
     const room = this.getRoomByUser(socketId);
     if (!room) {
-      this.logger.warn("Peer lookup failed: User not in room: %s", socketId);
       return null;
     }
 
     const peerId = room.user1 === socketId ? room.user2 : room.user1;
-    this.logger.info("Peer lookup: %s -> %s in room %s", socketId, peerId, room.id);
     return peerId;
   }
 
   deleteRoom(roomId: string): void {
     const room = this.rooms.get(roomId);
     if (!room) {
-      this.logger.warn("Attempted to delete non-existent room: %s", roomId);
       return;
     }
 
@@ -68,10 +61,8 @@ export class RoomService {
     this.rooms.delete(roomId);
 
     this.logger.info(
-      "Room deleted: %s (Users: %s, %s, Age: %ds, Active rooms: %d)",
+      "Room deleted: %s age=%ds active=%d",
       roomId,
-      room.user1,
-      room.user2,
       Math.round(roomAge / 1000),
       this.rooms.size,
     );
@@ -118,7 +109,6 @@ export class RoomService {
     this.userToRoom.delete(oldSocketId);
     this.userToRoom.set(newSocketId, roomId);
 
-    this.logger.info("Updated socket ID: %s -> %s in room: %s", oldSocketId, newSocketId, roomId);
     return true;
   }
 

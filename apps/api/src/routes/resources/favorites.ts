@@ -47,8 +47,6 @@ router.get("/", async (req: Request, res: Response) => {
       CACHE_TTL.USER_FAVORITES
     );
 
-    logger.info("Favorites fetched for user: %s, Count: %d", userId, favorites.length);
-
     return res.json({
       data: favorites,
       count: favorites.length,
@@ -122,8 +120,6 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
 
     await invalidateCacheKey(CACHE_KEYS.userFavorites(userId));
 
-    logger.info("Favorite created: %s -> %s", userId, favorite_user_id);
-
     return res.status(201).json({
       data: favorite,
       message: "User added to favorites",
@@ -185,7 +181,6 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
     if (isSameDay) {
       try {
         await decrementFavoriteLimit(userId);
-        logger.info("Daily limit refunded for user: %s", userId);
       } catch (error: unknown) {
         logger.error("Failed to refund daily limit: %o", error instanceof Error ? error : new Error(String(error)));
       }
@@ -194,12 +189,9 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
     try {
       const favoritesKey = `user:favorites:${userId}`;
       await redisClient.sRem(favoritesKey, favorite_user_id);
-      logger.info("Redis cache updated for user: %s", userId);
     } catch (error: unknown) {
       logger.error("Failed to update Redis cache: %o", error instanceof Error ? error : new Error(String(error)));
     }
-
-    logger.info("Favorite deleted: %s -> %s", userId, favorite_user_id);
 
     return res.json({
       message: "Favorite removed successfully",

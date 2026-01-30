@@ -45,8 +45,6 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("User streak fetched for user: %s", userId);
-
     return res.json(userStreak);
   } catch (error) {
     logger.error("Unexpected error in GET /user-streak/me: %o", error instanceof Error ? error : new Error(String(error)));
@@ -94,8 +92,6 @@ router.get("/me/history", async (req: Request, res: Response) => {
     }
 
     const result = await getUserStreakHistory(userId, { limit, offset });
-
-    logger.info("User streak history fetched for user: %s", userId);
 
     return res.json(result);
   } catch (error) {
@@ -152,8 +148,6 @@ router.get("/calendar", async (req: Request, res: Response) => {
 
     const timezone = getTimezone(req);
     const calendarData = await getUserStreakCalendar(userId, year, month, timezone);
-
-    logger.info("User streak calendar fetched for user: %s, year: %d, month: %d", userId, year, month);
 
     return res.json(calendarData);
   } catch (error) {

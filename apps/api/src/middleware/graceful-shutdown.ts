@@ -30,41 +30,30 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
     }, config.shutdownTimeout);
 
     try {
-      logger.info("Stopping HTTP server from accepting new connections...");
       await new Promise<void>((resolve) => {
         if (!httpServer) {
           resolve();
           return;
         }
 
-        httpServer.close(() => {
-          logger.info("HTTP server closed");
-          resolve();
-        });
+        httpServer.close(() => resolve());
       });
 
-      logger.info("Closing Socket.IO server...");
       if (io) {
-        io.close(() => {
-          logger.info("Socket.IO server closed");
-        });
+        io.close(() => { });
       }
 
-      logger.info("Closing Redis connection...");
       try {
         if (redisClient.isOpen) {
           await redisClient.quit();
-          logger.info("Redis connection closed");
         }
       } catch (error) {
         logger.warn("Error closing Redis connection: %o", error instanceof Error ? error : new Error(String(error)));
       }
 
-      logger.info("Closing MQTT connection...");
       try {
         if (mqttClient.connected) {
           mqttClient.end();
-          logger.info("MQTT connection closed");
         }
       } catch (error) {
         logger.warn("Error closing MQTT connection: %o", error instanceof Error ? error : new Error(String(error)));

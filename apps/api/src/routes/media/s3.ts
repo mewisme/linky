@@ -41,8 +41,6 @@ router.get("/presigned/upload", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Generating upload presigned URL for key: %s, %d", key, expiresIn);
-
     const url = await getUploadUrl(bucket, key, expiresIn);
 
     return res.json({
@@ -82,8 +80,6 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Generating download presigned URL for key: %s, %d", key, expiresIn);
-
     const url = await getDownloadUrl(bucket, key, expiresIn);
 
     return res.json({
@@ -113,8 +109,6 @@ router.get("/objects", async (req: Request, res: Response) => {
         message: "S3 bucket not configured",
       });
     }
-
-    logger.info("Listing objects: %s", prefix as string | undefined);
 
     const result = await listObjects(bucket, prefix as string | undefined);
 
@@ -160,8 +154,6 @@ router.delete("/objects/:key", async (req: Request, res: Response) => {
 
     const decodedKey = decodeURIComponent(key);
 
-    logger.info("Deleting object: %s", decodedKey);
-
     await deleteObject(bucket, decodedKey);
 
     return res.json({
@@ -198,8 +190,6 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
         message: "S3 bucket not configured",
       });
     }
-
-    logger.info("Starting multipart upload for key: %s", key);
 
     const uploadId = await startMultipart(bucket, key);
 
@@ -255,8 +245,6 @@ router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Re
       });
     }
 
-    logger.info("Getting part upload URL for multipart upload: %s, %d, %s", uploadId, partNum, key);
-
     const url = await getPartUploadUrl(bucket, key, uploadId, partNum);
 
     return res.json({
@@ -308,8 +296,6 @@ router.post("/multipart/complete", async (req: Request, res: Response) => {
         message: "S3 bucket not configured",
       });
     }
-
-    logger.info("Completing multipart upload: %s, %s, %s", uploadId, key, req.auth?.sub);
 
     await completeMultipart(
       bucket,
@@ -363,8 +349,6 @@ router.post("/multipart/abort", async (req: Request, res: Response) => {
         message: "S3 bucket not configured",
       });
     }
-
-    logger.info("Aborting multipart upload: %s, %s, %s", uploadId, key, req.auth?.sub);
 
     await abortMultipart(bucket, key as string, uploadId);
 

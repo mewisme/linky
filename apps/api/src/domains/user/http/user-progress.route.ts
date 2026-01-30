@@ -46,8 +46,6 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("User progress fetched for user: %s", userId);
-
     return res.json(progress);
   } catch (error) {
     logger.error("Unexpected error in GET /user-progress/me: %o", error instanceof Error ? error : new Error(String(error)));

@@ -78,8 +78,6 @@ router.get("/", async (req: Request, res: Response) => {
       })
     );
 
-    logger.info("Call history fetched for user: %s, Count: %d, cached: %s", userId, count || 0, shouldCache ? "cached" : "not cached");
-
     return res.json({
       data: enrichedData,
       count,
@@ -163,8 +161,6 @@ router.get("/:id", async (req: Request, res: Response) => {
       CACHE_TTL.CALL_HISTORY
     );
 
-    logger.info("Call history fetched: %s, for user: %s", id, userId);
-
     return res.json(enrichedData);
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -243,8 +239,6 @@ router.post("/", async (req: Request, res: Response) => {
     await invalidateCacheKey(CACHE_KEYS.callHistory(caller_id));
     await invalidateCacheKey(CACHE_KEYS.callHistory(callee_id));
     await invalidateCacheKey(CACHE_KEYS.callHistoryItem(callHistory.id));
-
-    logger.info("Call history created: %s, for users: %s -> %s", callHistory.id, caller_id, callee_id);
 
     return res.status(201).json(callHistory);
   } catch (error: unknown) {

@@ -48,8 +48,6 @@ router.get("/me", async (req: Request, res: Response) => {
       CACHE_TTL.USER_DETAILS
     );
 
-    logger.info("User details fetched for user: %s", userId);
-
     return res.json(userDetails);
   } catch (error) {
     if (error instanceof Error && error.message === "User details not found") {
@@ -96,8 +94,6 @@ router.put("/me", async (req: Request, res: Response) => {
     await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
 
     const userDetails = await fetchUserDetailsWithTags(userId);
-
-    logger.info("User details updated for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
@@ -160,8 +156,6 @@ router.patch("/me", async (req: Request, res: Response) => {
     await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
 
     const userDetails = await fetchUserDetailsWithTags(userId);
-
-    logger.info("User details patched for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {
@@ -230,8 +224,6 @@ router.post("/me/interest-tags", async (req: Request, res: Response) => {
 
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("Interest tags added for user: %s", userId);
-
     return res.json(userDetails);
   } catch (error) {
     logger.error(
@@ -295,8 +287,6 @@ router.delete("/me/interest-tags", async (req: Request, res: Response) => {
 
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("Interest tags removed for user: %s", userId);
-
     return res.json(userDetails);
   } catch (error) {
     logger.error(
@@ -353,8 +343,6 @@ router.put("/me/interest-tags", async (req: Request, res: Response) => {
 
     const userDetails = await fetchUserDetailsWithTags(userId);
 
-    logger.info("Interest tags replaced for user: %s", userId);
-
     return res.json(userDetails);
   } catch (error) {
     logger.error(
@@ -408,8 +396,6 @@ router.delete("/me/interest-tags/all", async (req: Request, res: Response) => {
     await invalidateCacheKey(CACHE_KEYS.userDetails(userId));
 
     const userDetails = await fetchUserDetailsWithTags(userId);
-
-    logger.info("Interest tags cleared for user: %s", userId);
 
     return res.json(userDetails);
   } catch (error) {

@@ -7,8 +7,6 @@ const router: ExpressRouter = Router();
 const logger = createLogger("routes:media:ice-servers");
 
 router.get("/ice-servers", async (_req: Request, res: Response) => {
-  logger.info("ICE servers request received");
-
   try {
     const apiToken = config.cloudflareTurnApiToken;
     const keyId = config.cloudflareTurnKeyId;
@@ -21,8 +19,6 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
         message: "Server configuration error",
       });
     }
-
-    logger.info("Fetching ICE servers from Cloudflare API...");
 
     const url = `https://rtc.live.cloudflare.com/v1/turn/keys/${keyId}/credentials/generate-ice-servers`;
 
@@ -53,7 +49,6 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
       const data = (await response.json()) as CloudflareTurnResponse;
 
-      logger.info("ICE servers fetched successfully");
       res.json(data);
     } catch (fetchError: unknown) {
       clearTimeout(timeoutId);

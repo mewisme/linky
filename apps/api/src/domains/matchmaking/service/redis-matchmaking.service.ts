@@ -1,12 +1,15 @@
 import type { Namespace, Socket } from "socket.io";
 import type { QueueUser, ScoredCandidatePair } from "../types/candidate.types.js";
-import { calculateFavoriteType, calculateRedisCandidateScore } from "./scoring.service.js";
+import { calculateEmbeddingSimilarities, createPairKey, getEmbeddingSimilarityFromMap } from "./embedding-score.service.js";
+import { calculateFavoriteType, calculateRedisCandidateScoreWithEmbedding } from "./scoring.service.js";
 
 import type { AuthenticatedSocket } from "../../../types/socket/socket-context.types.js";
+import type { EmbeddingPair } from "../types/embedding.types.js";
 import type { QueuedUser } from "../types/matchmaking.types.js";
 import { createLogger } from "@repo/logger";
 import { getFavoritesByUserId } from "../../../infra/supabase/repositories/favorites.js";
 import { getInterestTags } from "../../../infra/supabase/repositories/user-details.js";
+import { getUserEmbeddingsMap } from "../../../infra/supabase/repositories/user-embeddings.js";
 import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
 import { redisClient } from "../../../infra/redis/client.js";
 
@@ -27,29 +30,21 @@ export class RedisMatchmakingService {
     const authSocket = socket as AuthenticatedSocket;
     const clerkUserId = authSocket.data.userId;
 
-    this.logger.info("[ENQUEUE] Attempting to enqueue socket: %s, clerkUserId: %s", socketId, clerkUserId || "none");
-
     if (!clerkUserId) {
-      this.logger.warn("[ENQUEUE] Cannot enqueue user without Clerk ID: %s", socketId);
       return false;
     }
 
     try {
       const dbUserId = await getUserIdByClerkId(clerkUserId);
       if (!dbUserId) {
-        this.logger.warn("[ENQUEUE] Cannot enqueue user without database ID: %s Clerk ID: %s", socketId, clerkUserId);
         return false;
       }
-
-      this.logger.info("[ENQUEUE] Resolved dbUserId: %s for socket: %s", dbUserId, socketId);
 
       const existingScore = await redisClient.zScore(QUEUE_KEY, dbUserId);
       if (existingScore !== null) {
         await redisClient.set(`match:socket:${dbUserId}`, socketId, {
           EX: MAX_QUEUE_WAIT_TIME / 1000 + 60,
         });
-        const queueSize = await this.getQueueSize();
-        this.logger.info("[ENQUEUE] User already in queue, updated socket: %s %s (Queue size: %d)", dbUserId, socketId, queueSize);
         return true;
       }
 
@@ -66,32 +61,20 @@ export class RedisMatchmakingService {
         EX: MAX_QUEUE_WAIT_TIME / 1000 + 60,
       });
 
-      const queueSize = await this.getQueueSize();
-      this.logger.info("[ENQUEUE] User added to queue: %s socket: %s (Queue size: %d)", dbUserId, socketId, queueSize);
-
       return true;
     } catch (error) {
-      this.logger.error("[ENQUEUE] Failed to enqueue user: %s %o", socketId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Enqueue failed for user: %o", error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
 
   async dequeue(userId: string): Promise<boolean> {
-    this.logger.info("[DEQUEUE] Attempting to dequeue user: %s", userId);
     try {
       const removed = await redisClient.zRem(QUEUE_KEY, userId);
       await redisClient.del(`match:socket:${userId}`);
-
-      if (removed > 0) {
-        const queueSize = await this.getQueueSize();
-        this.logger.info("[DEQUEUE] User removed from queue: %s (Queue size: %d)", userId, queueSize);
-        return true;
-      }
-
-      this.logger.info("[DEQUEUE] User not in queue: %s", userId);
-      return false;
+      return removed > 0;
     } catch (error) {
-      this.logger.error("[DEQUEUE] Failed to dequeue user: %s %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Dequeue failed for user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
@@ -120,11 +103,9 @@ export class RedisMatchmakingService {
       const skipKey = `match:skip:${skipperUserId}`;
       await redisClient.sAdd(skipKey, skippedUserId);
       await redisClient.expire(skipKey, SKIP_COOLDOWN_TTL);
-
-      this.logger.info("Skip recorded: %s -> %s (Cooldown: %ds)", skipperUserId, skippedUserId, SKIP_COOLDOWN_TTL);
     } catch (error) {
       this.logger.error(
-        "Failed to record skip: %s -> %s %o",
+        "Failed to record skip %s -> %s: %o",
         skipperUserId,
         skippedUserId,
         error instanceof Error ? error : new Error(String(error)),
@@ -133,27 +114,21 @@ export class RedisMatchmakingService {
   }
 
   async tryMatch(io: Namespace): Promise<QueuedUser[] | null> {
-    this.logger.info("[MATCH] tryMatch started");
     const lockAcquired = await this.acquireLock();
     if (!lockAcquired) {
-      this.logger.warn("[MATCH] Failed to acquire lock, another matcher is running");
       return null;
     }
 
     try {
       const queueSize = await this.getQueueSize();
-      this.logger.info("[MATCH] Queue size: %d", queueSize);
       if (queueSize < 2) {
-        this.logger.info("[MATCH] Queue size < 2, no match possible");
         return null;
       }
 
       const candidateCount = Math.min(queueSize, MAX_MATCHING_CANDIDATES);
       const queueMembers = await redisClient.zRangeWithScores(QUEUE_KEY, 0, candidateCount - 1);
-      this.logger.info("[MATCH] Retrieved %d queue members", queueMembers.length);
 
       if (queueMembers.length < 2) {
-        this.logger.info("[MATCH] Queue members < 2 after retrieval");
         return null;
       }
 
@@ -161,6 +136,7 @@ export class RedisMatchmakingService {
       const skipSets = await this.loadSkipSets(userIds);
       const interestTagsMap = await this.loadInterestTags(userIds);
       const favoritesMap = await this.loadFavorites(userIds);
+      const embeddingsMap = await this.loadEmbeddings(userIds);
 
       const queueUsers: QueueUser[] = [];
       const now = Date.now();
@@ -170,14 +146,12 @@ export class RedisMatchmakingService {
         const socketId = await redisClient.get(`match:socket:${userId}`);
 
         if (!socketId) {
-          this.logger.warn("[MATCH] No socket ID for user %s, dequeuing", userId);
           await this.dequeue(userId);
           continue;
         }
 
         const socket = io.sockets.get(socketId);
         if (!socket || !socket.connected) {
-          this.logger.warn("[MATCH] Socket %s not found or disconnected for user %s, dequeuing", socketId, userId);
           await this.dequeue(userId);
           continue;
         }
@@ -191,14 +165,25 @@ export class RedisMatchmakingService {
         });
       }
 
-      this.logger.info("[MATCH] Valid queue users: %d", queueUsers.length);
       if (queueUsers.length < 2) {
-        this.logger.info("[MATCH] Valid queue users < 2 after socket validation");
         return null;
       }
 
-      const isForcedFallbackScenario = queueUsers.length === 2;
-      this.logger.info("[MATCH] Forced fallback scenario: %s", isForcedFallbackScenario);
+      const embeddingPairs: EmbeddingPair[] = [];
+      for (let i = 0; i < queueUsers.length; i++) {
+        for (let j = i + 1; j < queueUsers.length; j++) {
+          const userA = queueUsers[i]!;
+          const userB = queueUsers[j]!;
+          embeddingPairs.push({
+            userAId: userA.userId,
+            userBId: userB.userId,
+            embeddingA: embeddingsMap.get(userA.userId) ?? null,
+            embeddingB: embeddingsMap.get(userB.userId) ?? null,
+          });
+        }
+      }
+
+      const embeddingSimilarityMap = calculateEmbeddingSimilarities(embeddingPairs);
 
       const allCandidates: ScoredCandidatePair[] = [];
 
@@ -211,17 +196,23 @@ export class RedisMatchmakingService {
           const skipSetB = skipSets.get(userB.userId);
           const hasSkipCooldown = skipSetA?.has(userB.userId) || skipSetB?.has(userA.userId);
 
-          if (hasSkipCooldown && !isForcedFallbackScenario) {
-            this.logger.info("[MATCH] SKIP candidate %s <-> %s (reason: skip_cooldown)", userA.userId, userB.userId);
-            continue;
-          }
-
           const favoritesA = favoritesMap.get(userA.userId);
           const favoritesB = favoritesMap.get(userB.userId);
 
           const favoriteType = calculateFavoriteType(favoritesA, favoritesB, userA.userId, userB.userId);
 
-          const { score: baseScore, commonInterests } = calculateRedisCandidateScore(userA, userB, now);
+          const embeddingSimilarity = getEmbeddingSimilarityFromMap(
+            embeddingSimilarityMap,
+            userA.userId,
+            userB.userId
+          );
+
+          const { score: baseScore, commonInterests } = calculateRedisCandidateScoreWithEmbedding(
+            userA,
+            userB,
+            now,
+            embeddingSimilarity
+          );
 
           let finalScore = baseScore;
           if (favoriteType === "mutual") {
@@ -232,69 +223,97 @@ export class RedisMatchmakingService {
 
           const candidate: ScoredCandidatePair = { userA, userB, score: finalScore, commonInterests, favoriteType };
 
-          allCandidates.push(candidate);
-
-          this.logger.info(
-            "[MATCH] Candidate: %s <-> %s (score: %s, interests: %d, favorite: %s, skip: %s)",
-            userA.userId,
-            userB.userId,
-            finalScore.toFixed(2),
-            commonInterests,
-            favoriteType,
-            hasSkipCooldown ? "yes" : "no",
-          );
+          if (!hasSkipCooldown) {
+            allCandidates.push(candidate);
+          }
         }
+      }
+
+      if (allCandidates.length === 0 && queueUsers.length >= 2) {
+
+        let bestFallback: ScoredCandidatePair | null = null;
+        for (let i = 0; i < queueUsers.length; i++) {
+          for (let j = i + 1; j < queueUsers.length; j++) {
+            const userA = queueUsers[i]!;
+            const userB = queueUsers[j]!;
+
+            const favoritesA = favoritesMap.get(userA.userId);
+            const favoritesB = favoritesMap.get(userB.userId);
+            const favoriteType = calculateFavoriteType(favoritesA, favoritesB, userA.userId, userB.userId);
+
+            const embeddingSimilarity = getEmbeddingSimilarityFromMap(
+              embeddingSimilarityMap,
+              userA.userId,
+              userB.userId
+            );
+
+            const { score: baseScore, commonInterests } = calculateRedisCandidateScoreWithEmbedding(
+              userA,
+              userB,
+              now,
+              embeddingSimilarity
+            );
+
+            let finalScore = baseScore;
+            if (favoriteType === "mutual") {
+              finalScore += 10000;
+            } else if (favoriteType === "one-way") {
+              finalScore += 5000;
+            }
+
+            const candidate: ScoredCandidatePair = { userA, userB, score: finalScore, commonInterests, favoriteType };
+
+            if (!bestFallback || this.compareCandidates(candidate, bestFallback) > 0) {
+              bestFallback = candidate;
+            }
+          }
+        }
+
+        if (!bestFallback) {
+          return null;
+        }
+
+        const socketIdA = await redisClient.get(`match:socket:${bestFallback.userA.userId}`);
+        const socketIdB = await redisClient.get(`match:socket:${bestFallback.userB.userId}`);
+
+        if (!socketIdA || !socketIdB) {
+          return null;
+        }
+
+        const socketA = io.sockets.get(socketIdA);
+        const socketB = io.sockets.get(socketIdB);
+
+        if (!socketA || !socketB || !socketA.connected || !socketB.connected) {
+          return null;
+        }
+
+        await this.dequeue(bestFallback.userA.userId);
+        await this.dequeue(bestFallback.userB.userId);
+
+        this.logger.info("Match created (fallback): %s <-> %s", bestFallback.userA.userId, bestFallback.userB.userId);
+
+        return [
+          {
+            socketId: socketIdA,
+            socket: socketA,
+            joinedAt: new Date(bestFallback.userA.joinedAt),
+          },
+          {
+            socketId: socketIdB,
+            socket: socketB,
+            joinedAt: new Date(bestFallback.userB.joinedAt),
+          },
+        ];
       }
 
       if (allCandidates.length === 0) {
-        if (isForcedFallbackScenario && queueUsers.length === 2) {
-          this.logger.info("[MATCH] Forced fallback: creating match for exactly 2 users");
-          const userA = queueUsers[0]!;
-          const userB = queueUsers[1]!;
-
-          const socketIdA = await redisClient.get(`match:socket:${userA.userId}`);
-          const socketIdB = await redisClient.get(`match:socket:${userB.userId}`);
-
-          if (!socketIdA || !socketIdB) {
-            this.logger.warn("[MATCH] Forced fallback: missing socket IDs");
-            return null;
-          }
-
-          const socketA = io.sockets.get(socketIdA);
-          const socketB = io.sockets.get(socketIdB);
-
-          if (!socketA || !socketB || !socketA.connected || !socketB.connected) {
-            this.logger.warn("[MATCH] Forced fallback: sockets not connected");
-            return null;
-          }
-
-          await this.dequeue(userA.userId);
-          await this.dequeue(userB.userId);
-
-          this.logger.info("[MATCH] MATCHED (reason: forced_fallback) %s <-> %s", userA.userId, userB.userId);
-
-          return [
-            {
-              socketId: socketIdA,
-              socket: socketA,
-              joinedAt: new Date(userA.joinedAt),
-            },
-            {
-              socketId: socketIdB,
-              socket: socketB,
-              joinedAt: new Date(userB.joinedAt),
-            },
-          ];
-        }
-        this.logger.warn("[MATCH] No candidates found");
         return null;
       }
 
-      allCandidates.sort((a, b) => b.score - a.score);
+      allCandidates.sort((a, b) => this.compareCandidates(a, b));
 
       const bestMatch = allCandidates[0];
       if (!bestMatch) {
-        this.logger.warn("[MATCH] No best match after sorting");
         return null;
       }
 
@@ -302,7 +321,6 @@ export class RedisMatchmakingService {
       const socketIdB = await redisClient.get(`match:socket:${bestMatch.userB.userId}`);
 
       if (!socketIdA || !socketIdB) {
-        this.logger.warn("[MATCH] Missing socket IDs for best match");
         return null;
       }
 
@@ -310,15 +328,11 @@ export class RedisMatchmakingService {
       const socketB = io.sockets.get(socketIdB);
 
       if (!socketA || !socketB || !socketA.connected || !socketB.connected) {
-        this.logger.warn("[MATCH] Sockets not connected for best match");
         return null;
       }
 
       await this.dequeue(bestMatch.userA.userId);
       await this.dequeue(bestMatch.userB.userId);
-
-      const waitTimeMs = now - Math.min(bestMatch.userA.joinedAt, bestMatch.userB.joinedAt);
-      const waitTimeSec = (waitTimeMs / 1000).toFixed(1);
 
       let matchReason: string;
       if (bestMatch.favoriteType === "mutual") {
@@ -328,17 +342,15 @@ export class RedisMatchmakingService {
       } else if (bestMatch.commonInterests > 0) {
         matchReason = "common_interests";
       } else {
-        matchReason = "fallback";
+        matchReason = "general";
       }
 
       this.logger.info(
-        "[MATCH] MATCHED (reason: %s, score: %s, interests: %d, wait: %ss) %s <-> %s",
-        matchReason,
-        bestMatch.score.toFixed(2),
-        bestMatch.commonInterests,
-        waitTimeSec,
+        "Match created: %s <-> %s reason=%s interests=%d",
         bestMatch.userA.userId,
         bestMatch.userB.userId,
+        matchReason,
+        bestMatch.commonInterests,
       );
 
       return [
@@ -355,7 +367,6 @@ export class RedisMatchmakingService {
       ];
     } finally {
       await this.releaseLock();
-      this.logger.info("[MATCH] tryMatch completed, lock released");
     }
   }
 
@@ -385,7 +396,7 @@ export class RedisMatchmakingService {
         for (const userId of staleUserIds) {
           await this.dequeue(userId);
         }
-        this.logger.info("Cleaned up %d stale socket references", staleUserIds.length);
+        this.logger.info("Cleaned up stale sockets: count=%d", staleUserIds.length);
       }
     } catch (error) {
       this.logger.error("Failed to cleanup stale sockets: %o", error instanceof Error ? error : new Error(String(error)));
@@ -418,7 +429,7 @@ export class RedisMatchmakingService {
             }
           }
         }
-        this.logger.info("Cleaned up %d expired queue entries", expiredUserIds.length);
+        this.logger.info("Cleaned up expired queue entries: count=%d", expiredUserIds.length);
       }
     } catch (error) {
       this.logger.error("Failed to cleanup expired entries: %o", error instanceof Error ? error : new Error(String(error)));
@@ -554,6 +565,28 @@ export class RedisMatchmakingService {
     } catch (error) {
       this.logger.error("Failed to release lock: %o", error instanceof Error ? error : new Error(String(error)));
     }
+  }
+
+  private async loadEmbeddings(userIds: string[]): Promise<Map<string, number[]>> {
+    try {
+      return await getUserEmbeddingsMap(userIds);
+    } catch (error) {
+      this.logger.error("Failed to load embeddings: %o", error instanceof Error ? error : new Error(String(error)));
+      return new Map();
+    }
+  }
+
+  private compareCandidates(a: ScoredCandidatePair, b: ScoredCandidatePair): number {
+    if (a.favoriteType !== b.favoriteType) {
+      const favoriteOrder = { mutual: 3, "one-way": 2, none: 1 };
+      return favoriteOrder[a.favoriteType] - favoriteOrder[b.favoriteType];
+    }
+
+    if (a.commonInterests !== b.commonInterests) {
+      return a.commonInterests - b.commonInterests;
+    }
+
+    return a.score - b.score;
   }
 }
 

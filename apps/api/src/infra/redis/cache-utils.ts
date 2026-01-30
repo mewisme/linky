@@ -20,11 +20,8 @@ export async function getCachedData<T>(
       `get-cached-${cacheKey}`
     );
     if (cached) {
-      logger.info(`Cache hit for key: ${cacheKey}`);
       return JSON.parse(cached) as T;
     }
-
-    logger.info(`Cache miss for key: ${cacheKey}`);
   } catch (error) {
     logger.warn(`Redis cache read failed for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
   }
@@ -37,7 +34,6 @@ export async function getCachedData<T>(
         () => redisClient.set(cacheKey, JSON.stringify(data), { EX: ttl }),
         `set-cached-${cacheKey}`
       );
-      logger.info(`Data cached for key: ${cacheKey}`);
     } catch (error) {
       logger.warn(`Failed to cache data for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
     }
@@ -54,7 +50,6 @@ export async function invalidateCacheKey(key: string): Promise<void> {
       () => redisClient.del(cacheKey),
       `invalidate-${cacheKey}`
     );
-    logger.info(`Cache invalidated for key: ${cacheKey}`);
   } catch (error) {
     logger.warn(`Failed to invalidate cache for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
   }
@@ -70,7 +65,6 @@ export async function invalidateCacheKeys(keys: string[]): Promise<void> {
       () => redisClient.del(cacheKeys),
       `invalidate-multiple`
     );
-    logger.info(`Cache invalidated for keys: %s`, cacheKeys.join(", "));
   } catch (error) {
     logger.warn(`Failed to invalidate cache for keys ${cacheKeys.join(", ")}: %o`, error instanceof Error ? error : new Error(String(error)));
   }
@@ -84,7 +78,6 @@ export async function updateCachedData<T>(key: string, data: T, ttl?: number): P
       () => redisClient.set(cacheKey, JSON.stringify(data), ttl ? { EX: ttl } : undefined),
       `update-cached-${cacheKey}`
     );
-    logger.info(`Cache updated for key: ${cacheKey}`);
   } catch (error) {
     logger.warn(`Failed to update cache for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
   }

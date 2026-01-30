@@ -86,7 +86,6 @@ export async function recordCallHistory(
     const lockAcquired = await acquireIdempotencyLock(idempotencyKey);
 
     if (!lockAcquired) {
-      logger.info("Call history already processed for users %s and %s, skipping duplicate", dbUserId1, dbUserId2);
       return;
     }
 
@@ -118,11 +117,10 @@ export async function recordCallHistory(
           streakCount: payload.streakCount,
           date: payload.date,
         });
-        logger.info("Emitted %s to user %s streak %s", STREAK_COMPLETED_EVENT, userId, payload.streakCount);
       },
     });
 
-    logger.info("Call history recorded: %s %s %d", callerId, calleeId, durationSeconds);
+    logger.info("Call history recorded: duration=%ds", durationSeconds);
   } catch (error) {
     logger.error("Error recording call history: %o", error instanceof Error ? error : new Error(String(error)));
   }

@@ -63,8 +63,6 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
     // Invalidate cache after successful database update
     await invalidateCacheKey(CACHE_KEYS.userReports(reporterUserId));
 
-    logger.info("Report created: %s", report.id);
-
     try {
       const contextData = await collectReportContext({
         reporterUserId,
@@ -79,7 +77,6 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
         ...contextData,
       });
 
-      logger.info("Report context created for report: %s", report.id);
     } catch (error) {
       logger.error("Error creating report context: %o", error instanceof Error ? error : new Error(String(error)));
     }
@@ -138,8 +135,6 @@ router.get("/me", async (req: Request, res: Response) => {
     } else {
       ({ data, count } = await listUserReports({ userId, limit, offset }));
     }
-
-    logger.info("User reports fetched for user: %s cached: %s", userId, shouldCache);
 
     return res.json({
       data,

@@ -57,14 +57,6 @@ export async function addCallExp(
       const bonus = await getStreakExpBonusForStreak(streakData.current_streak);
       if (bonus) {
         expToAdd = Math.floor(durationSeconds * bonus.bonus_multiplier);
-        logger.info(
-          "Applied streak bonus %d for streak %d: %d -> %d EXP for user: %s",
-          bonus.bonus_multiplier,
-          streakData.current_streak,
-          durationSeconds,
-          expToAdd,
-          userId,
-        );
       }
     }
 
@@ -79,12 +71,6 @@ export async function addCallExp(
         const mult = aFavB && bFavA ? rules.mutual_multiplier : aFavB || bFavA ? rules.one_way_multiplier : 1;
         if (mult > 1) {
           expToAdd = Math.floor(expToAdd * mult);
-          logger.info(
-            "Applied favorite EXP boost %d (mutual=%s) for user: %s",
-            mult,
-            Boolean(aFavB && bFavA),
-            userId,
-          );
         }
       }
     }
@@ -111,10 +97,8 @@ export async function addCallExp(
     if (levelAfterValue > levelBeforeValue) {
       await grantRewardsForLevel(userId, levelAfterValue);
       await grantFreezesForLevel(userId, levelAfterValue);
-      logger.info("User %s leveled up from %d to %d", userId, levelBeforeValue, levelAfterValue);
+      logger.info("User leveled up: user=%s from=%d to=%d", userId, levelBeforeValue, levelAfterValue);
     }
-
-    logger.info("Added %d seconds of EXP (base: %d) for user: %s", expToAdd, durationSeconds, userId);
   } catch (error) {
     logger.error("Error adding call exp: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;

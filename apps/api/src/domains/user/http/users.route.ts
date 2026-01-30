@@ -21,8 +21,6 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Fetching user data: %s", clerkUserId);
-
     const { user, error } = await fetchUserByClerkUserId(clerkUserId);
 
     if (error) {
@@ -52,20 +50,15 @@ router.get("/me", async (req: Request, res: Response) => {
       const countryHeader = req.headers["cf-ipcountry"] || req.headers["x-cf-ipcountry"];
 
       if (countryHeader && typeof countryHeader === "string") {
-        logger.info("Updating user country from header: %s", countryHeader);
-
         const { updatedUser, updateError } = await tryUpdateUserCountryFromHeader(clerkUserId, countryHeader);
 
         if (updateError) {
           logger.error("Error updating user country: %o", updateError instanceof Error ? updateError : new Error(String(updateError)));
         } else if (updatedUser) {
-          logger.info("User country updated successfully: %s", countryHeader);
           return res.json(updatedUser);
         }
       }
     }
-
-    logger.info("User data fetched successfully: %s", user.id);
 
     return res.json(user);
   } catch (error) {
@@ -95,8 +88,6 @@ router.patch("/me/country", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("Updating user country: %s %s", clerk_user_id, country);
-
     const { user, error } = await updateUserCountryByClerkUserId(clerk_user_id, country);
 
     if (error) {
@@ -113,8 +104,6 @@ router.patch("/me/country", async (req: Request, res: Response) => {
         message: "User not found in database",
       });
     }
-
-    logger.info("User country updated successfully: %s", user.id);
 
     return res.json(user);
   } catch (error) {

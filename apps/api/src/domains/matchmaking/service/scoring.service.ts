@@ -1,3 +1,6 @@
+import { DEFAULT_EMBEDDING_CONFIG, calculateEmbeddingScore } from "./embedding-score.service.js";
+
+import type { EmbeddingScoreConfig } from "../types/embedding.types.js";
 import type { FavoriteType } from "../types/scoring.types.js";
 import type { QueueUser } from "../types/candidate.types.js";
 
@@ -73,6 +76,28 @@ export function calculateRedisCandidateScore(userA: QueueUser, userB: QueueUser,
   });
 
   return { score, commonInterests };
+}
+
+export function calculateRedisCandidateScoreWithEmbedding(
+  userA: QueueUser,
+  userB: QueueUser,
+  now: number,
+  embeddingSimilarity: number | null,
+  embeddingConfig: EmbeddingScoreConfig = DEFAULT_EMBEDDING_CONFIG
+): {
+  score: number;
+  commonInterests: number;
+  embeddingScore: number;
+} {
+  const { score: baseScore, commonInterests } = calculateRedisCandidateScore(userA, userB, now);
+
+  const embeddingScore = calculateEmbeddingScore(embeddingSimilarity, embeddingConfig);
+
+  return {
+    score: baseScore + embeddingScore,
+    commonInterests,
+    embeddingScore,
+  };
 }
 
 export function calculateFavoriteType(

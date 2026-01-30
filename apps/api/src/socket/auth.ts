@@ -46,8 +46,6 @@ export async function socketAuthMiddleware(
       auth: payload,
     };
 
-    logger.info("Socket authenticated: %s, User: %s", socket.id, userName);
-
     next();
   } catch (error: unknown) {
     logger.error("Socket authentication failed: %o", error instanceof Error ? error : new Error(String(error)));

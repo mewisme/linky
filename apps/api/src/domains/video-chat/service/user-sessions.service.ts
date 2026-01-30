@@ -14,12 +14,10 @@ export class UserSessionService {
 
     if (!activeSocketId) {
       this.activeSessions.set(userId, socketId);
-      this.logger.info("Session activated for user: %s socket: %s", userId, socketId);
       return { activated: true };
     }
 
     if (activeSocketId === socketId) {
-      this.logger.info("Session already active for user: %s socket: %s", userId, socketId);
       return { activated: true };
     }
 
@@ -27,7 +25,6 @@ export class UserSessionService {
 
     if (queue.some((session) => session.socketId === socketId)) {
       const position = queue.findIndex((s) => s.socketId === socketId) + 1;
-      this.logger.warn("Session already in waiting queue: %s socket: %s position: %d", userId, socketId, position);
       return { activated: false, positionInQueue: position };
     }
 
@@ -41,7 +38,6 @@ export class UserSessionService {
     this.waitingQueues.set(userId, queue);
     const position = queue.length;
 
-    this.logger.info("Session queued for user: %s socket: %s position in queue: %d", userId, socketId, position);
     return { activated: false, positionInQueue: position };
   }
 
@@ -58,13 +54,11 @@ export class UserSessionService {
         } else {
           this.waitingQueues.set(userId, queue);
         }
-        this.logger.info("Session removed from waiting queue: %s socket: %s", userId, socketId);
       }
       return;
     }
 
     this.activeSessions.delete(userId);
-    this.logger.info("Session deactivated for user: %s socket: %s", userId, socketId);
 
     const queue = this.waitingQueues.get(userId) || [];
     if (queue.length > 0) {
@@ -76,8 +70,6 @@ export class UserSessionService {
       } else {
         this.waitingQueues.set(userId, queue);
       }
-
-      this.logger.info("Next session activated for user: %s socket: %s", userId, nextSession.socketId);
 
       nextSession.socket.emit("session-activated", {
         message: "Your session is now active. You can proceed.",
@@ -112,7 +104,6 @@ export class UserSessionService {
       });
     });
     this.waitingQueues.delete(userId);
-    this.logger.info("All sessions cleaned up for user: %s", userId);
   }
 }
 

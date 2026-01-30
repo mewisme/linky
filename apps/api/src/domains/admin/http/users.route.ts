@@ -143,7 +143,6 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const user = await updateAdminUser(id, userData);
 
-    logger.info("User updated successfully: %s", id);
     return res.json(user);
   } catch (error: any) {
     logger.error("Unexpected error in PUT /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -182,7 +181,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const user = await patchAdminUser(id, userData);
 
-    logger.info("User updated successfully: %s", id);
     return res.json(user);
   } catch (error: any) {
     logger.error("Unexpected error in PATCH /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -220,7 +218,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     await deleteUser(id);
 
-    logger.info("User deleted successfully: %s", id);
     return res.json({ success: true, message: "User deleted successfully" });
   } catch (error: any) {
     logger.error("Unexpected error in DELETE /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));

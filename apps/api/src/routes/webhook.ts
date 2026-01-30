@@ -50,7 +50,6 @@ router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) =
       });
     }
 
-    logger.info("Webhook event received: %s", evt.type);
     await handleClerkWebhookEvent(evt);
 
     return res.status(200).json({

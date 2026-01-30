@@ -15,7 +15,7 @@ morgan.token("custom", () => {
 });
 
 const morganFormat = config.nodeEnv === "production"
-  ? ":method :url :status :res[content-length] - :response-time ms"
+  ? ":remote-addr - :remote-user \":method :url HTTP/:http-version\" :status :res[content-length] - :response-time ms \":referrer\" \":user-agent\""
   : ":method :url :status :response-time ms";
 
 export function setupMiddleware(app: Express): void {

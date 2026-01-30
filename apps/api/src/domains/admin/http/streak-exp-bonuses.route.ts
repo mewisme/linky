@@ -16,8 +16,6 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const bonuses = await listStreakExpBonuses();
 
-    logger.info("Admin fetched streak EXP bonuses: %d", bonuses.length);
-
     return res.json({
       data: bonuses,
     });
@@ -49,8 +47,6 @@ router.get("/:id", async (req: Request, res: Response) => {
         message: "Streak EXP bonus not found",
       });
     }
-
-    logger.info("Admin fetched streak EXP bonus: %s", id);
 
     return res.json(bonus);
   } catch (error) {
@@ -92,8 +88,6 @@ router.post("/", async (req: Request, res: Response) => {
     }
 
     const created = await createAdminStreakExpBonus(bonusData);
-
-    logger.info("Admin created streak EXP bonus: %s", created.id);
 
     return res.status(201).json(created);
   } catch (error) {
@@ -155,8 +149,6 @@ router.put("/:id", async (req: Request, res: Response) => {
     }
 
     const updated = await updateAdminStreakExpBonus(id, bonusData);
-
-    logger.info("Admin updated streak EXP bonus: %s", id);
 
     return res.json(updated);
   } catch (error) {
@@ -226,8 +218,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const updated = await updateAdminStreakExpBonus(id, bonusData);
 
-    logger.info("Admin patched streak EXP bonus: %s", id);
-
     return res.json(updated);
   } catch (error) {
     logger.error("Unexpected error in PATCH /admin/streak-exp-bonuses/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -258,8 +248,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
     }
 
     await deleteAdminStreakExpBonus(id);
-
-    logger.info("Admin deleted streak EXP bonus: %s", id);
 
     return res.json({
       message: "Streak EXP bonus deleted successfully",

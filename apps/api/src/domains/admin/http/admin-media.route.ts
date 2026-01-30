@@ -72,8 +72,6 @@ router.post("/presigned-upload", async (req: Request, res: Response) => {
 
     const uploadUrl = await getUploadUrl(bucket, resourceKey, expiresIn);
 
-    logger.info("Admin presigned upload: intent=%s, key=%s", body.intent, resourceKey);
-
     return res.json({
       upload_url: uploadUrl,
       resource_key: resourceKey,

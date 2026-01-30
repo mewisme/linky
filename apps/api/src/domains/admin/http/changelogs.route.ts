@@ -142,7 +142,6 @@ router.post("/", async (req: Request, res: Response) => {
 
     const changelog = await createAdminChangelog(params);
 
-    logger.info("Changelog created successfully: %s", changelog.id);
     return res.status(201).json(changelog);
   } catch (error: any) {
     logger.error("Unexpected error in POST /admin/changelogs: %o", error instanceof Error ? error : new Error(String(error)));
@@ -183,7 +182,6 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     const changelog = await updateAdminChangelog(id, params);
 
-    logger.info("Changelog updated successfully: %s", id);
     return res.json(changelog);
   } catch (error: any) {
     logger.error("Unexpected error in PUT /admin/changelogs/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -231,7 +229,6 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const changelog = await updateAdminChangelog(id, params);
 
-    logger.info("Changelog updated successfully: %s", id);
     return res.json(changelog);
   } catch (error: any) {
     logger.error("Unexpected error in PATCH /admin/changelogs/:id: %o", error instanceof Error ? error : new Error(String(error)));
@@ -277,7 +274,6 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     await deleteAdminChangelog(id);
 
-    logger.info("Changelog deleted successfully: %s", id);
     return res.json({
       success: true,
       message: "Changelog deleted successfully",

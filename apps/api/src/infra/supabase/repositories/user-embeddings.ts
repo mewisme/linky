@@ -128,3 +128,34 @@ export async function findSimilarUsersByEmbedding(
 
   return data ?? [];
 }
+
+export async function getUserEmbeddingsMap(userIds: string[]): Promise<Map<string, number[]>> {
+  if (userIds.length === 0) {
+    return new Map();
+  }
+
+  const embeddings = await getUserEmbeddingsByUserIds(userIds);
+  const result = new Map<string, number[]>();
+
+  for (const record of embeddings) {
+    if (record.embedding) {
+      try {
+        const parsed = typeof record.embedding === "string"
+          ? JSON.parse(record.embedding)
+          : record.embedding;
+
+        if (Array.isArray(parsed)) {
+          result.set(record.user_id, parsed);
+        }
+      } catch (error) {
+        logger.error(
+          "Failed to parse embedding for user %s: %o",
+          record.user_id,
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+    }
+  }
+
+  return result;
+}

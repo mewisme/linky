@@ -34,8 +34,6 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.info("User level fetched for user: %s", userId);
-
     return res.json(userLevel);
   } catch (error) {
     logger.error("Unexpected error in GET /user-level/me: %o", error instanceof Error ? error : new Error(String(error)));

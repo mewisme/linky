@@ -29,13 +29,11 @@ async function getDbUserId(socket: AuthenticatedSocket): Promise<string | null> 
 export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoChatContext): void {
   const { io, matchmaking, rooms, userSessions } = context;
   const userId = socket.data.userId || "unknown";
-  logger.info("Client connected: %s User: %s", socket.id, userId);
 
   socket.on("client:timezone:init", (payload: { timezone?: string }) => {
     const tz = typeof payload?.timezone === "string" ? payload.timezone.trim() : "";
     if (tz && isValidTimezone(tz)) {
       socket.data.timezone = tz;
-      logger.info("Timezone set for socket %s: %s", socket.id, tz);
     }
   });
 
@@ -50,7 +48,6 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
       positionInQueue: sessionResult.positionInQueue || 0,
       queueSize: userSessions.getQueueSize(userId),
     });
-    logger.info("Session queued for user: %s socket: %s position: %d", userId, socket.id, sessionResult.positionInQueue || 0);
   } else {
     socket.emit("session-activated", {
       message: "Your session is now active. You can proceed.",
@@ -87,26 +84,19 @@ function setupJoinHandler(
   rooms: VideoChatRooms,
 ): void {
   socket.on("join", async () => {
-    const userId = socket.data.userId || "unknown";
-    logger.info("[JOIN] Join request received from socket: %s user: %s", socket.id, userId);
-
     if (!checkActiveSession()) {
-      logger.warn("[JOIN] Session check failed for socket: %s", socket.id);
       return;
     }
 
     if (rooms.isInRoom(socket.id)) {
-      logger.warn("[JOIN] User already in room, cannot join queue: %s Active rooms: %d", socket.id, rooms.getRoomCount());
       socket.emit("error", {
         message: "Already in a room. Please disconnect first.",
       });
       return;
     }
 
-    logger.info("[JOIN] Calling matchmaking.enqueue for socket: %s", socket.id);
     const added = await matchmaking.enqueue(socket);
     if (!added) {
-      logger.warn("[JOIN] Enqueue returned false for socket: %s", socket.id);
       socket.emit("error", {
         message: "Already in queue.",
       });
@@ -118,14 +108,6 @@ function setupJoinHandler(
       message: "Waiting for a match...",
       queueSize,
     });
-
-    logger.info(
-      "[JOIN] User successfully joined queue: %s user: %s (Queue size: %d, Active rooms: %d)",
-      socket.id,
-      userId,
-      queueSize,
-      rooms.getRoomCount(),
-    );
   });
 }
 
@@ -137,15 +119,12 @@ function setupSkipHandler(
   rooms: VideoChatRooms,
 ): void {
   socket.on("skip", async () => {
-    logger.info("Skip request received from: %s", socket.id);
-
     if (!checkActiveSession()) {
       return;
     }
 
     const dbUserId = await getDbUserId(socket);
     if (!dbUserId) {
-      logger.warn("Skip: Cannot resolve dbUserId for socket: %s", socket.id);
       return;
     }
 
@@ -164,7 +143,6 @@ function setupSkipHandler(
         }
 
         rooms.deleteRoom(room.id);
-        logger.info("Room cleaned up after skip: %s", socket.id);
 
         if (peerSocket) {
           const peerDbUserId = await getDbUserId(peerSocket);
@@ -181,22 +159,14 @@ function setupSkipHandler(
                 message: "Peer skipped. Re-entering queue for next match...",
                 queueSize: peerQueueSize,
               });
-              logger.info("Peer re-queued after skip: %s (Queue size: %d)", peerId, peerQueueSize);
             } else {
-              logger.warn("Skip: Failed to re-queue peer: %s", peerId);
               io.to(peerId).emit("peer-left", {
                 message: "Peer skipped",
               });
             }
           }
-        } else {
-          logger.warn("Skip: Peer socket not found: %s in room: %s", peerId, room.id);
         }
-      } else {
-        logger.warn("Skip: Peer not found for user: %s in room: %s", socket.id, room.id);
       }
-    } else {
-      logger.warn("Skip: User not in room: %s", socket.id);
     }
 
     const isInQueue = await matchmaking.isInQueue(dbUserId);
@@ -206,7 +176,7 @@ function setupSkipHandler(
 
     const added = await matchmaking.enqueue(socket);
     if (!added) {
-      logger.warn("Skip: Failed to re-queue user: %s", socket.id);
+      logger.warn("Failed to re-queue user after skip: %s", socket.id);
     }
 
     const queueSize = await matchmaking.getQueueSize();
@@ -214,8 +184,6 @@ function setupSkipHandler(
       message: "Skipped. Looking for new match...",
       queueSize,
     });
-
-    logger.info("User skipped and re-queued: %s (Queue size: %d)", socket.id, queueSize);
   });
 }
 
@@ -226,16 +194,12 @@ function setupSignalHandler(
   rooms: VideoChatRooms,
 ): void {
   socket.on("signal", (data: SignalPayload) => {
-    const signalType = data.type || "unknown";
-    logger.info("Signal received: %s from %s", signalType, socket.id);
-
     if (!checkActiveSession()) {
       return;
     }
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      logger.warn("Signal received from user not in room: %s Signal type: %s", socket.id, signalType);
       socket.emit("error", {
         message: "Not in a room. Cannot send signal.",
       });
@@ -244,13 +208,11 @@ function setupSignalHandler(
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      logger.error("No peer found for signal: %s in room: %s Signal type: %s", socket.id, room.id, signalType);
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cannot relay signal", peerId);
       socket.emit("error", {
         message: "Peer disconnected. Cannot send signal.",
       });
@@ -258,7 +220,6 @@ function setupSignalHandler(
     }
 
     io.to(peerId).emit("signal", data);
-    logger.info("Signal relayed: %s from %s to %s in room %s", signalType, socket.id, peerId, room.id);
   });
 }
 
@@ -269,15 +230,12 @@ function setupChatMessageHandler(
   rooms: VideoChatRooms,
 ): void {
   socket.on("chat-message", (data: ChatMessageInputPayload) => {
-    logger.info("Chat message received from: %s", socket.id);
-
     if (!checkActiveSession()) {
       return;
     }
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      logger.warn("Chat message received from user not in room: %s", socket.id);
       socket.emit("error", {
         message: "Not in a room. Cannot send chat message.",
       });
@@ -286,13 +244,11 @@ function setupChatMessageHandler(
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      logger.error("No peer found for chat message: %s in room: %s", socket.id, room.id);
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cannot relay chat message", peerId);
       return;
     }
 
@@ -303,88 +259,71 @@ function setupChatMessageHandler(
       senderName: socket.data.userName || "Anonymous",
       senderImageUrl: socket.data.userImageUrl,
     });
-    logger.info("Chat message relayed from %s to %s in room %s", socket.id, peerId, room.id);
   });
 }
 
 function setupMuteToggleHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
   socket.on("mute-toggle", (data: MuteTogglePayload) => {
-    logger.info("Mute toggle received from: %s muted: %s", socket.id, data.muted);
-
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      logger.warn("Mute toggle received from user not in room: %s", socket.id);
       return;
     }
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      logger.error("No peer found for mute toggle: %s in room: %s", socket.id, room.id);
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cannot relay mute toggle", peerId);
       return;
     }
 
     io.to(peerId).emit("mute-toggle", {
       muted: data.muted,
     });
-    logger.info("Mute toggle relayed from %s to %s muted: %s", socket.id, peerId, data.muted);
   });
 }
 
 function setupVideoToggleHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
   socket.on("video-toggle", (data: VideoTogglePayload) => {
-    logger.info("Video toggle received from: %s videoOff: %s", socket.id, data.videoOff);
-
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      logger.warn("Video toggle received from user not in room: %s", socket.id);
       return;
     }
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      logger.error("No peer found for video toggle: %s in room: %s", socket.id, room.id);
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cannot relay video toggle", peerId);
       return;
     }
 
     io.to(peerId).emit("video-toggle", {
       videoOff: data.videoOff,
     });
-    logger.info("Video toggle relayed from %s to %s videoOff: %s", socket.id, peerId, data.videoOff);
   });
 }
 
 function setupReactionHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
   socket.on("reaction:triggered", (data: ReactionPayload) => {
     const reactionType = data.type || "heart";
-    logger.info("Reaction received from: %s count: %d type: %s", socket.id, data.count, reactionType);
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      logger.warn("Reaction received from user not in room: %s", socket.id);
       return;
     }
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      logger.error("No peer found for reaction: %s in room: %s", socket.id, room.id);
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cannot relay reaction", peerId);
       return;
     }
 
@@ -393,29 +332,23 @@ function setupReactionHandler(socket: AuthenticatedSocket, io: Namespace, rooms:
       type: reactionType,
       timestamp: data.timestamp || Date.now(),
     });
-    logger.info("Reaction relayed from %s to %s in room %s", socket.id, peerId, room.id);
   });
 }
 
 function setupFavoriteNotificationHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
   socket.on("favorite:notify-peer", (data: FavoriteNotifyPeerPayload) => {
-    logger.info("Favorite notification request received from: %s action: %s", socket.id, data.action);
-
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      logger.warn("Favorite notification from user not in room: %s", socket.id);
       return;
     }
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      logger.error("No peer found for favorite notification: %s in room: %s", socket.id, room.id);
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cannot send favorite notification", peerId);
       return;
     }
 
@@ -424,7 +357,6 @@ function setupFavoriteNotificationHandler(socket: AuthenticatedSocket, io: Names
       from_user_id: data.peer_user_id,
       from_user_name: data.user_name,
     });
-    logger.info("Favorite notification relayed: %s from %s to %s", eventName, socket.id, peerId);
   });
 }
 
@@ -436,8 +368,6 @@ function setupEndCallHandler(
   rooms: VideoChatRooms,
 ): void {
   socket.on("end-call", async () => {
-    logger.info("End call request received from: %s", socket.id);
-
     if (!checkActiveSession()) {
       return;
     }
@@ -447,7 +377,6 @@ function setupEndCallHandler(
       const wasInQueue = await matchmaking.isInQueue(dbUserId);
       if (wasInQueue) {
         await matchmaking.removeUser(dbUserId);
-        logger.info("User removed from queue on end call: %s", socket.id);
       }
     }
 
@@ -465,29 +394,16 @@ function setupEndCallHandler(
       });
 
       if (peerId) {
-        logger.info("Notifying peer of end call: %s from %s", peerId, socket.id);
         const peerSocket = io.sockets.get(peerId);
         if (peerSocket && peerSocket.connected) {
           io.to(peerId).emit("end-call", {
             message: "Call ended by peer",
           });
-        } else {
-          logger.warn("Peer socket not found or disconnected: %s - cannot send end-call", peerId);
         }
-      } else {
-        logger.warn("Peer not found for user: %s in room: %s", socket.id, room.id);
       }
 
       rooms.deleteRoom(room.id);
-      const queueSize = await matchmaking.getQueueSize();
-      logger.info(
-        "Room cleaned up after end call: %s (Active rooms: %d, Queue size: %d)",
-        socket.id,
-        rooms.getRoomCount(),
-        queueSize,
-      );
-    } else {
-      logger.info("End call: User not in room: %s", socket.id);
+      logger.info("Call ended by user: %s", socket.id);
     }
   });
 }
@@ -505,22 +421,17 @@ function setupResyncHandler(
   });
 
   socket.on("resync-session", async (data: ResyncSessionPayload) => {
-    logger.info("Resync request received from: %s User: %s Timestamp: %d", socket.id, userId, data.timestamp || 0);
-
     if (!checkActiveSession()) {
-      logger.warn("Session not active, ignoring resync request");
       return;
     }
 
     const existingRoom = rooms.getRoomByUser(socket.id);
     if (existingRoom) {
-      logger.info("Socket already in room: %s", existingRoom.id);
       return;
     }
 
     const roomWithUserId = rooms.findRoomByUserId(userId, io);
     if (!roomWithUserId) {
-      logger.info("No active room found for user: %s", userId);
       socket.emit("error", {
         message: "No active room to resync. Please start a new call.",
       });
@@ -537,15 +448,11 @@ function setupResyncHandler(
     const peerSocketId = isUser1 ? peerOldSocketId : oldSocketId;
 
     if (socketIdToReplace === socket.id) {
-      logger.info("Socket ID matches, no update needed");
       return;
     }
 
-    logger.info("Re-binding socket: %s to room: %s replacing: %s", socket.id, roomWithUserId.id, socketIdToReplace);
-
     const peerSocket = io.sockets.get(peerSocketId) as AuthenticatedSocket | undefined;
     if (!peerSocket || !peerSocket.connected) {
-      logger.warn("Peer socket not found or disconnected: %s - cleaning up orphaned room", peerSocketId);
       rooms.deleteRoom(roomWithUserId.id);
       socket.emit("peer-left", {
         message: "Peer disconnected. Room cleaned up.",
@@ -559,7 +466,7 @@ function setupResyncHandler(
       return;
     }
 
-    logger.info("Successfully re-bound socket to room: %s", roomWithUserId.id);
+    logger.info("Session resynced: user=%s room=%s", userId, roomWithUserId.id);
 
     const peerId = rooms.getPeer(socket.id);
     if (peerId) {
@@ -576,7 +483,6 @@ function setupResyncHandler(
         peerInfo: null,
         myInfo: null,
       });
-      logger.info("Sent matched event to reconnected socket: %s peer: %s", socket.id, peerId);
     }
   });
 }
@@ -590,8 +496,6 @@ function setupDisconnectHandler(
   userSessions: VideoChatUserSessions,
 ): void {
   socket.on("disconnect", async (reason: string) => {
-    logger.warn("Client disconnected: %s User: %s Reason: %s", socket.id, userId, reason);
-
     const wasInRoom = rooms.isInRoom(socket.id);
     const room = wasInRoom ? rooms.getRoomByUser(socket.id) : undefined;
 
@@ -602,7 +506,6 @@ function setupDisconnectHandler(
       const wasInQueue = await matchmaking.isInQueue(dbUserId);
       if (wasInQueue) {
         await matchmaking.removeUser(dbUserId);
-        logger.info("User removed from queue on disconnect: %s", socket.id);
       }
     }
 
@@ -615,7 +518,6 @@ function setupDisconnectHandler(
       });
 
       if (peerId && peerSocket && peerSocket.connected) {
-        logger.info("Notifying peer of end-call due to disconnect: %s from %s", peerId, socket.id);
         io.to(peerId).emit("end-call", {
           message: "Call ended - peer disconnected",
         });
@@ -635,29 +537,16 @@ function setupDisconnectHandler(
           setTimeout(async () => {
             const stillConnected = peerSocket.connected && io.sockets.get(peerId);
             if (stillConnected) {
-              const peerAdded = await matchmaking.enqueue(peerSocket);
-              if (peerAdded) {
-                const peerQueueSize = await matchmaking.getQueueSize();
-                logger.info("Peer re-queued after disconnect cooldown: %s (Queue size: %d)", peerId, peerQueueSize);
-              }
+              await matchmaking.enqueue(peerSocket);
             }
           }, 5000);
         }
-      } else if (peerId) {
-        logger.warn("Peer socket not found or disconnected: %s", peerId);
       }
 
       rooms.deleteRoom(room.id);
-      const queueSize = await matchmaking.getQueueSize();
-      logger.info(
-        "Room cleaned up immediately after disconnect: %s (Active rooms: %d, Queue size: %d)",
-        socket.id,
-        rooms.getRoomCount(),
-        queueSize,
-      );
-    } else {
-      logger.info("User disconnected (not in room or queue): %s", socket.id);
     }
+
+    logger.info("Client disconnected: socket=%s user=%s reason=%s", socket.id, userId, reason);
   });
 }
 

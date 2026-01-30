@@ -7,7 +7,7 @@ import { TEST_USERS } from '../../fixtures/users.fixtures';
 import { authenticateUser } from '../../fixtures/auth.fixtures';
 
 async function globalSetup(config: FullConfig) {
-  const baseURL = config.projects[0].use.baseURL || 'https://www.linkynow.site';
+  const baseURL = config.projects[0].use.baseURL;
   const storageDir = path.dirname(TEST_USERS.user1.storageStatePath);
 
   if (!fs.existsSync(storageDir)) {

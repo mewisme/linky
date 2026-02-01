@@ -28,7 +28,7 @@ services:
       - ${LINKY_API_ENV_FILE}
 
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: linky-redis
     ports:
       - "6379:6379"
@@ -40,7 +40,6 @@ services:
         redis-server
       fi
       "
-      - infra
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     profiles: ["infra"]

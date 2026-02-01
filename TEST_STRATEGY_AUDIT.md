@@ -1,350 +1,280 @@
 # LINKY Test Strategy Audit
 
-## 1. Project Overview
+## 1. Project Overview (Testing Perspective)
 
-LINKY is a real-time video chat platform built as a monorepo with domain-driven architecture. It enables peer-to-peer video calls, real-time messaging, user matchmaking based on interests and embeddings, and comprehensive user management including streaks, levels, and gamification.
+### System Type
 
-### High-Level Architecture
+LINKY is a **realtime**, **stateful**, and **distributed** system:
 
-| Layer | Technology | Responsibility |
-|-------|------------|----------------|
-| **Backend** | Node.js, TypeScript, Express | REST APIs (`/api/v1`), domain services, business logic |
-| **Frontend** | Next.js 16 (App Router), React, Zustand, React Query | Pages, components, client state |
-| **Realtime** | Socket.IO (`/ws`), WebRTC | Matchmaking, signaling, peer-to-peer video/audio |
-| **Infrastructure** | Redis, Supabase (Postgres), MQTT, S3, Clerk | Cache, persistence, presence, storage, auth |
+- **Realtime**: Socket.IO for matchmaking and signaling; WebRTC for peer-to-peer media; MQTT for presence. Events are time-sensitive and order-dependent.
+- **Stateful**: Redis holds matchmaking queues, presence, and short-lived caches. In-memory rooms track active calls. Session activation limits one active session per user.
+- **Distributed**: Backend (Express), frontend (Next.js), Redis, Supabase, MQTT broker, S3, Clerk. Multiple components must stay consistent.
 
-Domains: `user`, `video-chat`, `matchmaking`, `reports`, `admin`, `embeddings`.
+### Key Technical Risks Affecting Testing
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| WebRTC requires real or fake media devices | Automation cannot verify actual video/audio quality | Use fake devices in CI; manual test real devices |
+| Browser permission prompts (camera/mic) | Cannot reliably automate across browsers | Pre-grant permissions or use fake devices; manual test denial flows |
+| Socket.IO + Redis + matchmaking timing | Race conditions, flaky matches | Unit test logic; integration test with controlled timing |
+| Cache invalidation on writes | Stale data if invalidation fails | Unit test invalidation calls; integration test cache + repo |
+| MQTT presence updates Redis and admin sockets | Presence state can diverge | Integration test MQTT handler; manual verify admin dashboard |
+| Multi-user synchronization | Two users must match and stay in sync | Automation with two browser contexts; avoid >2 users in automation |
+| Clerk auth (third-party) | Cannot assert on Clerk UI internals | Test app state before/after auth; exclude Clerk UI from automation |
+| Background intervals (matchmaking, heartbeat) | Side effects, non-deterministic | Integration test with test server; avoid unit testing intervals |
 
 ---
 
-## 2. Test Type Definitions
+## 2. Test Level Definitions
 
 ### Unit Test
 
-Tests a single module or function in isolation with mocked dependencies. Uses Vitest, mocks Supabase/Redis/Clerk. Appropriate for: pure logic (matcher, scoring, cosine similarity), derivation functions (level-from-exp, add-days), service logic with mocked repositories, cache helpers.
+**Definition**: Tests a single module or function in isolation with mocked dependencies (Supabase, Redis, Clerk, Ollama).
+
+**Appropriate when**:
+- Logic is pure (matcher, scoring, cosine similarity, level-from-exp, add-days).
+- Service logic depends only on injected repositories; repositories are mocked.
+- No HTTP, Socket.IO, or browser involved.
+- Deterministic, fast, no external I/O.
+
+**Not appropriate when**: Multiple components interact, real I/O required, or side effects (intervals, sockets).
 
 ### Integration Test
 
-Tests multiple components together with real or test doubles (e.g., HTTP API + DB, Socket.IO + Redis). Not currently implemented. Appropriate for: API route + service + repository flows, socket handlers + matchmaking + rooms, webhook handlers with mocked Clerk.
+**Definition**: Tests multiple components together (HTTP route + service + repository, Socket.IO handler + matchmaking + rooms, webhook + user sync) with real or test doubles.
 
-### Automation Test (UI)
+**Appropriate when**:
+- Verifying API route flows end-to-end within backend.
+- Verifying socket handlers with a real Socket.IO client against a test server.
+- Verifying cache + repository consistency.
+- Verifying MQTT handler updates Redis and emits to admin sockets.
 
-End-to-end browser tests using Playwright. Drives real UI, requires running app and test users. Appropriate for: auth flows, video chat flows (matching, controls, chat), navigation, form validation. Uses 2 browser contexts for multi-user scenarios.
+**Not appropriate when**: Pure logic (use unit) or full UI flow (use automation).
+
+### Automation UI Test
+
+**Definition**: End-to-end browser tests using Playwright. Drives real UI, requires running app and test users.
+
+**Appropriate when**:
+- Auth flows (sign-in, sign-up) excluding Clerk UI internals.
+- Video chat flows: join queue, match, in-call, end, skip, mute, camera, chat, favorite.
+- Navigation, form validation, toast feedback.
+- Two-user scenarios via separate browser contexts.
+
+**Not appropriate when**: WebRTC media quality, permission prompts, drag gestures, or Clerk modal internals.
 
 ### Manual Test
 
-Human-driven verification. Appropriate when: automation is unreliable (WebRTC media quality, device permissions, network instability), exploratory testing, visual/UX verification, or when setup cost exceeds value.
+**Definition**: Human-driven verification without automation.
+
+**Appropriate when**:
+- WebRTC video/audio quality, latency, codec behavior.
+- Camera/microphone permission denied, device switching, device-in-use.
+- Floating video drag, corner snapping, PiP behavior.
+- Connection quality indicator under varying network.
+- Admin dashboard flows requiring admin user setup.
+- Exploratory testing, UX verification, subjective match quality.
+- Multi-device, multi-browser compatibility.
+
+**Not appropriate when**: Automation is feasible and reliable (e.g., sign-in, matching, chat).
 
 ---
 
-## 3. Backend Audit
+## 3. Feature-by-Feature Audit
 
-### User Domain
+### User Authentication Lifecycle (excluding Clerk UI internals)
 
-| Module | Unit Test | Integration Test | Manual Test |
-|--------|-----------|------------------|-------------|
-| user-details.service | Yes – pure logic, mock repo | Yes – HTTP + service + repo | No |
-| user-profile.service | Yes – mock repo | Yes – profile route flow | No |
-| user-settings.service | Yes – mock repo | Yes – settings route flow | No |
-| user-streak.service | Yes – mock repo, cache | Yes – streak + streak-freeze | No |
-| user-streak-freeze.service | Yes – mock repo | Yes – freeze consumption flow | No |
-| user-level.service | Yes – mock repo | Yes – level + exp flow | No |
-| user-level-reward.service | Yes – mock repo | Yes – reward claim flow | No |
-| user-progress.service | Yes – mock repo | Yes – progress route flow | No |
-| user-feature-unlock.service | Yes – mock repo | Yes – unlock check flow | No |
-| user.service | Yes – mock repo | Yes – user CRUD flow | No |
-| embedding-input.builder | Yes – pure logic | No | No |
-| embedding-job.service | Yes – mock infra | Yes – job orchestration | No |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Sign-in (email, password, errors), sign-up (validation, OTP), session persistence, logout. Clerk handles UI; app integrates via tokens and redirects. |
+| **Suitable levels** | Automation UI, Manual (2FA/MFA, session across tabs) |
+| **Justification** | Automation: email/password flows, error messages, redirects are deterministic. Manual: 2FA, MFA, cross-tab session are fragile to automate. Unit/Integration: auth logic is in Clerk; app only consumes tokens. |
 
-### Video-Chat Domain
+### User Profile & Settings
 
-| Module | Unit Test | Integration Test | Manual Test |
-|--------|-----------|------------------|-------------|
-| rooms.service | Yes – in-memory state, mock-free | Yes – socket + rooms | No |
-| user-sessions.service | Yes – session queue logic | Yes – socket + sessions | No |
-| call-history.service | Yes – mock repo, streak/level | Yes – record + progress flow | No |
-| Socket handlers (handlers.ts) | Partial – complex, many deps | Yes – socket + matchmaking + rooms | No |
-| matchmaking.socket (interval) | No – interval, side effects | Yes – full matchmaking loop | No |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Profile page (avatar, name, bio, personal info, interest tags). Settings page. Updates via API. |
+| **Suitable levels** | Unit (services), Integration (API + service + repo), Automation UI (page load, form submit), Manual (UX, validation edge cases) |
+| **Justification** | Unit: profile/settings services with mocked repos. Integration: full API flow. Automation: auth required; form flows automatable. Manual: visual verification, complex validation. |
 
-### Matchmaking Domain
+### Interest Tags
 
-| Module | Unit Test | Integration Test | Manual Test |
-|--------|-----------|------------------|-------------|
-| matcher.service | Yes – pure findBestMatch logic | No | No |
-| scoring.service | Yes – pure calculation | No | No |
-| redis-matchmaking.service | Yes – mock Redis | Yes – Redis + matchmaking | No |
-| embedding-score.service | Yes – mock embedding fetch | Yes – embedding + scoring | No |
+| Attribute | Value |
+|----------|-------|
+| **Description** | User selects interest tags on profile. Admin CRUD for interest tags. Tags affect matchmaking scoring. |
+| **Suitable levels** | Unit (scoring, tag logic), Integration (API, admin routes), Automation UI (user tag selection if exposed), Manual (admin CRUD, import) |
+| **Justification** | Unit: scoring uses tags. Integration: admin interest-tags routes. Automation: user profile tag selection if stable selectors exist. Manual: admin flows, JSON import. |
 
-### Reports Domain
+### Favorites
 
-| Module | Unit Test | Integration Test | Manual Test |
-|--------|-----------|------------------|-------------|
-| reports.service | Yes – mock repo, cache | Yes – create/list/update flow | No |
-| report-context.service | Yes – mock video context | Yes – context collection flow | No |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Add/remove favorite during call (socket event). Favorites list page. Favorite affects matchmaking scoring. |
+| **Suitable levels** | Unit (scoring with favorites), Integration (favorites API), Automation UI (add/remove during call, list page) |
+| **Justification** | Unit: scoring service with favorite weighting. Integration: favorites CRUD API. Automation: add/remove in-call and list page are automatable. Manual: not needed if automation covers flows. |
 
-### Admin Domain
+### Matching Logic (Redis, Scoring, Fallback)
 
-| Module | Unit Test | Integration Test | Manual Test |
-|--------|-----------|------------------|-------------|
-| admin-users.service | Yes – mock repo | Yes – admin users route | No |
-| admin-visits.service | Yes – mock repo | Yes – visits analytics | No |
-| admin-interest-tags.service | Yes – mock repo | Yes – CRUD flow | No |
-| admin-analytics.service | Yes – mock repo | Yes – analytics route | No |
-| admin-changelogs.service | Yes – mock repo | Yes – changelogs route | No |
-| admin-reports (via reports) | Yes | Yes | No |
-| admin-embeddings.service | Yes – mock repo | Yes – embedding sync/compare | No |
-| Other admin services | Yes – mock repo | Yes – route flows | No |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Redis-backed queue, enqueue/dequeue, tryMatch. Scoring: common interests, fairness bonus, skip cooldown. Deadlock fallback when only two users and both skipped. |
+| **Suitable levels** | Unit, Integration |
+| **Justification** | Unit: matcher, scoring are pure logic; redis-matchmaking with mocked Redis. Integration: real Redis + matchmaking loop. Automation: matching flow is UI-level; backend logic tested separately. |
 
-### Embeddings Domain
+### Video Call Lifecycle
 
-| Module | Unit Test | Integration Test | Manual Test |
-|--------|-----------|------------------|-------------|
-| cosine-similarity.service | Yes – pure math, no mocks | No | No |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Join queue, searching state, match, in-call (video container, timer), end call, skip, disconnect. Room creation, heartbeat, cleanup. |
+| **Suitable levels** | Unit (rooms, sessions, call-history services), Integration (socket handlers + matchmaking + rooms), Automation UI (full flow with two users) |
+| **Justification** | Unit: rooms, sessions, call-history with mocks. Integration: socket + matchmaking. Automation: two-context flow from idle to in-call to end/skip. Manual: media quality only. |
 
-### Infrastructure & Cross-Cutting
+### Media Controls (Camera, Mic, Mute, Switch)
 
-| Module | Unit Test | Integration Test | Manual Test |
-|--------|-----------|------------------|-------------|
-| Cache (exp-today, getOrSet, hash) | Yes – mock Redis | Yes – cache + repo | No |
-| clerk-webhook-handler | Yes – mock Svix/verify | Yes – webhook + user sync | No |
-| embedding.service (Ollama) | Yes – mock Ollama client | Yes – real Ollama (optional) | No |
-| logic (add-days, level-from-exp) | Yes – pure functions | No | No |
-| helpers (timezone) | Yes – pure logic | No | No |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Mute/unmute audio, camera on/off. Socket events to peer. UI reflects state. |
+| **Suitable levels** | Automation UI, Manual (actual media behavior) |
+| **Justification** | Automation: toggle buttons, UI state (muted/camera-off indicators) are deterministic. Manual: actual audio/video propagation, device switching. |
 
----
+### Floating / PiP Video Behavior
 
-## 4. Frontend Audit
-
-### Authentication & Session
-
-| Area | Automation | Manual | Out of Scope |
-|------|------------|--------|--------------|
-| Sign-in: email validation | Yes | No | No |
-| Sign-in: password validation | Yes | No | No |
-| Sign-in: error messages (not found, wrong password) | Yes | No | No |
-| Sign-in: successful flow | Yes | No | No |
-| Sign-up: client validation | Yes | No | No |
-| Sign-up: server validation (email taken, weak password) | Yes | No | No |
-| Sign-up: OTP flow | Yes | No | No |
-| Sign-up: successful flow | Yes | No | No |
-| Session persistence, logout | Partial | Yes – verify across tabs | Clerk internals |
-| 2FA / MFA flows | No | Yes | Automation fragile |
-
-### Video Chat Page
-
-| Area | Automation | Manual | Out of Scope |
-|------|------------|--------|--------------|
-| Idle state, start button | Yes | No | No |
-| Searching state | Yes | No | No |
-| In-call: video container, timer | Yes | No | No |
-| Start call (join queue) | Yes | No | No |
-| Match two users, enter in-call | Yes | No | No |
-| End call, return to idle | Yes | No | No |
-| Skip call, return to idle | Yes | No | No |
-| Skip then start new call | Yes | No | No |
-| Mute/unmute toggle, UI state | Yes | No | No |
-| Camera on/off toggle, UI state | Yes | No | No |
-| Reconnect after reload (resync) | Yes | No | No |
-| Mobile viewport layout | Yes | No | No |
-| Actual video/audio quality | No | Yes | WebRTC, devices |
-| Connection quality indicator | Partial | Yes | Network-dependent |
-
-### Floating Video
-
-| Area | Automation | Manual | Out of Scope |
-|------|------------|--------|--------------|
-| Overlay visibility, position | Partial | Yes | Drag/resize hard to automate |
-| Corner snapping on drag | No | Yes | Gesture automation unreliable |
-| Mobile overlay size/position | No | Yes | Viewport-specific |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Draggable overlay for local video. Corner snapping. Mobile overlay size/position. |
+| **Suitable levels** | Manual |
+| **Justification** | Drag and corner-snap gestures are unreliable in Playwright. Manual verification required. |
 
 ### Chat Messaging
 
-| Area | Automation | Manual | Out of Scope |
-|------|------------|--------|--------------|
-| Open/close chat sidebar | Yes | No | No |
-| Send message, receive on peer | Yes | No | No |
-| Message list, timestamps | Yes | No | No |
-| Long messages, scroll | Partial | Yes | Edge cases |
-| Emoji, special characters | Partial | Yes | Encoding edge cases |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Open/close sidebar, send message, receive on peer. Message list, timestamps. |
+| **Suitable levels** | Automation UI |
+| **Justification** | Two-context automation: send from one, assert on both. Deterministic. Manual: not needed. |
 
-### Admin Dashboard
+### Streaks & Levels
 
-| Area | Automation | Manual | Out of Scope |
-|------|------------|--------|--------------|
-| Admin layout, navigation | Partial | Yes | Requires admin user |
-| Users list, pagination | Partial | Yes | Data-dependent |
-| Interest tags CRUD | Partial | Yes | Admin-only |
-| Reports list, filters | Partial | Yes | Admin-only |
-| Changelogs, level rewards, etc. | Partial | Yes | Admin-only |
-| Embedding compare, find similar | No | Yes | Complex, admin-only |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Streak calculation, freeze consumption, level from EXP, rewards. Progress page displays level, exp, streak. |
+| **Suitable levels** | Unit (services), Integration (API + call-history progress), Automation UI (progress page display) |
+| **Justification** | Unit: streak, level, reward services with mocked repos. Integration: call-history applies progress. Automation: progress page has data-testids. Manual: edge cases, UX. |
 
-### User Profile & Progress
+### Admin Dashboards
 
-| Area | Automation | Manual | Out of Scope |
-|------|------------|--------|--------------|
-| Profile page load | Partial | Yes | Auth required |
-| Progress page: level, exp, streak | Partial | Yes | data-testid present |
-| Profile edit, save | Partial | Yes | Form flows |
-| Favorites list | Partial | Yes | Auth required |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Users list, reports, interest tags, level rewards, streak bonuses, changelogs, visitors, embeddings. Admin-only routes. |
+| **Suitable levels** | Unit (admin services), Integration (admin routes), Automation UI (with admin user), Manual (exploratory, complex flows) |
+| **Justification** | Unit: services with mocks. Integration: admin API flows. Automation: feasible with admin test user. Manual: embedding compare, find similar, bulk actions. |
 
-### Settings & Security
+### Background Jobs & Cache Refresh
 
-| Area | Automation | Manual | Out of Scope |
-|------|------------|--------|--------------|
-| Settings page load | Partial | Yes | Auth required |
-| Password change flow | Partial | Yes | Clerk modal |
-| Active sessions list | No | Yes | Session management |
-| Provider list (OAuth) | No | Yes | Clerk-managed |
+| Attribute | Value |
+|----------|-------|
+| **Description** | Matchmaking interval (1s), cleanup expired entries (30s), room heartbeat (4s). Cache TTLs and invalidation on writes. |
+| **Suitable levels** | Unit (cleanup logic if extractable), Integration (intervals with test server) |
+| **Justification** | Unit: cleanup logic with mocked Redis. Integration: full interval loop. Automation/Manual: not applicable; backend-only. |
 
----
+### Socket & MQTT Events
 
-## 5. Realtime & Media Constraints
+| Attribute | Value |
+|----------|-------|
+| **Description** | Socket: join, skip, signal, chat-message, mute-toggle, video-toggle, reaction, favorite:notify-peer, end-call, resync, disconnect. MQTT: presence updates Redis and admin sockets. |
+| **Suitable levels** | Unit (handler logic if isolated), Integration (socket + MQTT handlers) |
+| **Justification** | Unit: complex handlers have many deps; partial. Integration: real Socket.IO client + MQTT handler. Automation: exercises socket via UI. Manual: not needed for event correctness. |
 
-### WebRTC Limitations
+### Error Recovery & Reconnect Flows
 
-- **getUserMedia**: Requires real camera/mic or virtual devices. Playwright can run with `--use-fake-device-for-media-stream` but does not verify real device behavior.
-- **RTCPeerConnection**: Offer/answer and ICE exchange are automatable; actual media flow and quality are not.
-- **ICE/TURN**: NAT traversal depends on network; automation cannot reliably assert connection success across environments.
-
-**Conclusion**: Unit test signaling logic; automation test that matched users reach in-call state and controls work. Do not automate media quality, latency, or codec behavior.
-
-### Media Device Permissions
-
-- Browser prompts for camera/microphone cannot be reliably automated across browsers.
-- Denied permissions, no device, or device-in-use require manual verification.
-- Test users must have permissions pre-granted or use fake devices in CI.
-
-**Conclusion**: Manual test permission flows, device switching, and error states.
-
-### Network Instability
-
-- Socket disconnects, reconnects, and resync are partially automatable (e.g., page reload).
-- Flaky networks, packet loss, and latency require manual or chaos-style testing.
-- Automation should use retries and timeouts for normal conditions only.
-
-**Conclusion**: Automation for happy-path reconnect; manual for failure modes.
-
-### Multi-User Synchronization
-
-- Two Playwright browser contexts can simulate two users; matching and chat work.
-- More than two users, or specific match ordering, is harder and may need backend simulation.
-- Session activation (single session per user) is testable with two contexts.
-
-**Conclusion**: Two-context automation is sufficient for core flows; avoid over-complex multi-user scenarios in automation.
+| Attribute | Value |
+|----------|-------|
+| **Description** | Page reload during call triggers resync. Peer disconnect triggers end-call for peer. Session activation queue when multiple tabs. |
+| **Suitable levels** | Integration (resync handler), Automation UI (page reload during call) |
+| **Justification** | Integration: resync handler with rooms. Automation: reload during call, assert return to in-call. Manual: network failure, prolonged disconnect. |
 
 ---
 
-## 6. Matching & Multi-User Scenarios
+## 4. Automation vs Manual Decision Matrix
 
-### Matching Logic (Backend)
+### Flows That SHOULD NOT Have Manual Tests (Automation Sufficient)
 
-| What | Unit Test | Integration Test | Automation | Manual |
-|------|-----------|------------------|------------|--------|
-| findBestMatch: empty, single user | Yes | No | No | No |
-| findBestMatch: common interests, skip cooldown | Yes | No | No | No |
-| findBestMatch: deadlock fallback | Yes | No | No | No |
-| Scoring: fairness bonus, common interests | Yes | No | No | No |
-| Redis matchmaking: enqueue, tryMatch | Yes | Yes | No | No |
-| Full matchmaking loop (interval) | No | Yes | No | No |
+| Flow | Reason |
+|------|--------|
+| Sign-in (email, password, errors, success) | Deterministic; Playwright handles form and redirects |
+| Sign-up (validation, OTP, success) | Deterministic; test users available |
+| Join queue, match two users, in-call | Two-context automation; no media quality assertion |
+| End call, skip call | Deterministic; both users return to idle |
+| Mute/unmute, camera on/off | UI state and socket events are deterministic |
+| Chat: send, receive | Two-context; message delivery is deterministic |
+| Favorite add/remove during call | Toast and button state are deterministic |
+| Reconnect (page reload) | Reload and wait for in-call; deterministic |
+| Mobile viewport layout | Playwright viewport; layout assertions |
+| Favorites list page | API + UI; deterministic |
+| Progress page (level, exp, streak) | data-testids present; deterministic |
 
-### Matching Behavior (Frontend)
+### Flows That SHOULD NOT Have Automation Tests (Manual Required)
 
-| What | Unit Test | Integration Test | Automation | Manual |
-|------|-----------|------------------|------------|--------|
-| Join queue, see searching | No | No | Yes | No |
-| Two users matched, in-call | No | No | Yes | No |
-| Skip, both return to idle | No | No | Yes | No |
-| Match quality (interest-based) | No | No | No | Yes |
+| Flow | Reason |
+|------|--------|
+| WebRTC video/audio quality | Requires real devices; automation uses fake devices |
+| Camera/mic permission denied | Browser prompts cannot be reliably automated |
+| Device switching (camera/mic) | Device selection UI is browser-specific |
+| Floating video drag and corner snap | Gesture automation is unreliable |
+| Connection quality indicator | Network-dependent; non-deterministic |
+| 2FA / MFA flows | Clerk UI; fragile across environments |
+| Admin embedding compare, find similar | Complex, admin-only; high setup cost |
+| Match quality (interest-based relevance) | Subjective; no automated assertion |
+| Multi-device, multi-browser compatibility | Exploratory; manual matrix |
+| Session persistence across tabs | Clerk + app state; manual verification |
 
-### Multi-User Automation Strategy
+### Flows With Both (Justified)
 
-- Use `createUserContext(browser, user)` to get separate contexts per test user.
-- Use `createAuthenticatedContext` with different `TEST_USERS` (user1, user2).
-- Run both users through: open chat page, wait for idle, start call, wait for in-call.
-- Assert on both pages (video container, timer, controls).
-- For chat: send from one, assert received on both.
-- For skip/end: act on one, assert both return to idle.
-
-**Conclusion**: Unit tests own matching algorithm; automation owns two-user matching flow; manual owns subjective match quality.
-
----
-
-## 7. Test Coverage Matrix
-
-| Feature / Flow | Unit | Integration | Automation | Manual | Notes |
-|----------------|------|-------------|------------|--------|------|
-| Matcher: findBestMatch | X | | | | Pure logic |
-| Scoring: fairness, interests | X | | | | Pure logic |
-| Redis matchmaking | X | X | | | Mock Redis in unit |
-| User streak service | X | X | | | Mock repo |
-| User level service | X | X | | | Mock repo |
-| Call history + progress | X | X | | | Mock repo |
-| Reports CRUD | X | X | | | Mock repo |
-| Clerk webhook | X | X | | | Mock Svix |
-| Cache helpers | X | X | | | Mock Redis |
-| Cosine similarity | X | | | | Pure math |
-| Sign-in flow | | | X | | Playwright |
-| Sign-up flow | | | X | | Playwright |
-| Video chat: match, in-call | | | X | | 2 contexts |
-| Video chat: end call | | | X | | 2 contexts |
-| Video chat: skip | | | X | | 2 contexts |
-| Video chat: mute, camera | | | X | | UI state |
-| Video chat: chat messages | | | X | | 2 contexts |
-| Video chat: favorite add/remove | | | X | | Toast, UI |
-| Video chat: reconnect | | | X | | Page reload |
-| Mobile viewport | | | X | | iPhone 13 |
-| WebRTC media quality | | | | X | Devices |
-| Permission denied | | | | X | Browser prompts |
-| Floating video drag/snap | | | | X | Gestures |
-| Admin dashboard flows | | | X | X | Admin auth |
-| Profile, progress pages | | | X | X | Auth required |
-| Settings, security | | | X | X | Clerk modals |
-| Connection quality indicator | | | | X | Network-dependent |
+| Flow | Automation | Manual | Justification |
+|------|------------|--------|---------------|
+| Admin dashboard navigation | Yes (with admin user) | Yes (exploratory) | Automation for smoke; manual for deep flows |
+| Profile edit, save | Yes (form submit) | Yes (UX, validation) | Automation for happy path; manual for edge cases |
+| Settings, security | Yes (page load) | Yes (Clerk modals) | Automation for navigation; manual for Clerk UI |
 
 ---
 
-## 8. Recommended Test Count (For Academic Submission)
+## 5. Risk-Based Coverage Summary
 
-| Test Type | Minimum Features | Suggested Scope |
-|-----------|------------------|------------------|
-| **Unit Test** | 5 | Matcher, scoring, user-streak, user-level, call-history, reports, cache, cosine-similarity, level-from-exp, add-days (10+ covered) |
-| **Automation Test** | 5 | Sign-in, sign-up, matching flow, end-call, skip, mute/camera, chat, favorite, reconnect, mobile (10+ covered) |
-| **Manual Test** | 10 | WebRTC quality, permissions, floating video drag, connection indicator, admin flows, profile/progress, settings, multi-device, network failure, match quality |
+### High-Risk Areas
 
-**Satisfaction of Requirements**
+| Area | Risk | Test Depth |
+|------|------|------------|
+| Matching logic | Incorrect pairing, deadlock, skip cooldown bypass | Unit: matcher, scoring. Integration: Redis + matchmaking |
+| Video call lifecycle | Room leak, orphaned sockets, inconsistent state | Unit: rooms, sessions. Integration: socket handlers. Automation: full flow |
+| Call history + progress | Streak/level/exp incorrect after call | Unit: call-history, streak, level. Integration: record flow |
+| Cache invalidation | Stale profile, progress, admin lists | Unit: invalidate calls. Integration: cache + repo |
+| Socket disconnect / resync | Peer not notified, room not cleaned | Integration: disconnect handler. Automation: reload |
 
-- Unit Test >= 5: Satisfied (existing 30+ unit tests across 5+ domains).
-- Automation Test >= 5: Satisfied (auth + video-chat specs cover 10+ flows).
-- Manual Test >= 10: Satisfied (10+ manual-only areas identified above).
+### Medium-Risk Areas
 
----
+| Area | Risk | Test Depth |
+|------|------|------------|
+| Authentication integration | Token not passed, redirect wrong | Automation: sign-in, sign-up |
+| Favorites CRUD | Add/remove fails, list stale | Unit: scoring. Integration: API. Automation: in-call + list |
+| Reports | Create/update wrong status | Unit: reports service. Integration: API |
+| Admin routes | Unauthorized access, wrong data | Unit: admin services. Integration: admin API. Manual: complex flows |
+| MQTT presence | Redis/admin state wrong | Integration: MQTT handler |
 
-## 9. Academic Suitability Statement
+### Low-Risk Areas
 
-LINKY is well-suited for a Software Testing course and group project. The system combines REST APIs, real-time Socket.IO, WebRTC, and multiple domains (user, matchmaking, video-chat, reports, admin), providing a realistic context for unit, integration, and end-to-end testing. Unit tests use mocks for Supabase and Redis, demonstrating isolation and determinism. Playwright automation covers authentication and multi-user video chat flows using two browser contexts, illustrating end-to-end and cross-user scenarios. Manual testing is explicitly required for WebRTC media quality, device permissions, and UX verification, reflecting real-world constraints. The project satisfies typical academic requirements (unit >= 5, automation >= 5, manual >= 10) and offers sufficient complexity to discuss test strategy, coverage trade-offs, and the limits of automation in media-heavy applications.
+| Area | Risk | Test Depth |
+|------|------|------------|
+| Cosine similarity | Math error | Unit only |
+| Level-from-exp, add-days | Derivation error | Unit only |
+| Timezone helpers | Wrong date | Unit only |
+| Interest tags (user selection) | UI only | Automation or Manual |
+| Changelogs, level rewards (admin) | CRUD | Unit + Integration |
 
----
+### Mapping Risk to Test Depth
 
-## 10. Final Recommendations
-
-### What to Improve in Testing
-
-1. **Integration tests**: Add HTTP API tests (e.g., supertest) for key routes (user profile, reports, call history) with a test database or in-memory store.
-2. **Socket integration**: Add tests for socket handlers with a real Socket.IO client against a test server.
-3. **Admin automation**: Add Playwright tests for admin flows using an admin test user.
-4. **data-testid coverage**: Ensure all critical UI elements (profile, progress, settings) have stable selectors for automation.
-
-### What NOT to Over-Test
-
-1. **WebRTC internals**: Do not automate media quality, codec selection, or ICE candidate behavior.
-2. **Clerk flows**: Rely on Clerk for auth; test integration points, not OAuth internals.
-3. **Third-party UI**: Do not assert on Clerk modal internals; assert on app state before/after.
-4. **Duplicate coverage**: Avoid testing the same behavior in unit, integration, and automation; assign ownership per layer.
-
-### How to Present This Project Professionally
-
-1. **Test Strategy Document**: Use this audit as the main strategy document; reference it in the report.
-2. **Coverage Matrix**: Include the matrix (Section 7) to show systematic coverage decisions.
-3. **Manual Test Artifacts**: Maintain a separate manual test checklist (Excel/Sheets) for the 10+ manual items.
-4. **Traceability**: Map requirements/features to test types and test files for traceability.
-5. **Limitations**: Clearly state WebRTC and permission limitations and why manual testing is required.
+| Risk Level | Unit | Integration | Automation | Manual |
+|------------|------|-------------|------------|--------|
+| High | Required | Required | Required where applicable | For media, permissions |
+| Medium | Required | Recommended | Required for user flows | For admin complex flows |
+| Low | Required | Optional | Optional | Optional |

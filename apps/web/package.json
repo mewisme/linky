@@ -1,6 +1,6 @@
 {
   "name": "@repo/web",
-  "version": "0.37.3",
+  "version": "0.38.4",
   "private": true,
   "scripts": {
     "dev": "next dev",

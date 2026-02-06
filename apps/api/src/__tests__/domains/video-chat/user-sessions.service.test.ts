@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { UserSessionService } from "../../../domains/video-chat/service/user-sessions.service.js";
 import type { Namespace, Socket } from "socket.io";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { UserSessionService } from "../../../domains/video-chat/service/user-sessions.service.js";
 
 function mockSocket(id: string, connected = true): Socket {
   return {

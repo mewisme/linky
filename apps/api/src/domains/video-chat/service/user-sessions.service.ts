@@ -54,7 +54,7 @@ export class UserSessionService {
   }
 
   private clearStaleActiveSessions(userId: string, io: Namespace): void {
-    for (;;) {
+    for (; ;) {
       const activeSocketId = this.activeSessions.get(userId);
       if (!activeSocketId) break;
       const s = io.sockets.get(activeSocketId);

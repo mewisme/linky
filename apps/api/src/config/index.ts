@@ -3,7 +3,7 @@ import 'dotenv/config';
 import { parseCorsOrigin } from '../utils/cors.js';
 
 export const config = {
-  port: Number(process.env.PORT) || 3001,
+  port: Number(process.env.PORT) || 7270,
   nodeEnv: process.env.NODE_ENV || "development",
   corsOrigin: parseCorsOrigin(process.env.CORS_ORIGIN),
   // Cloudflare TURN

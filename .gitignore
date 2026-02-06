@@ -54,3 +54,5 @@ local/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+docker-compose.local.yml

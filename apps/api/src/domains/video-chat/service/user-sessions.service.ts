@@ -1,4 +1,4 @@
-import { type Socket } from "socket.io";
+import { type Namespace, type Socket } from "socket.io";
 import { createLogger } from "@repo/logger";
 import type { WaitingSession } from "@/domains/video-chat/types/session.types.js";
 
@@ -8,7 +8,19 @@ export class UserSessionService {
   private waitingQueues: Map<string, WaitingSession[]> = new Map();
   private readonly logger = createLogger("api:video-chat:user-sessions:service");
 
-  tryActivateSession(userId: string, socket: Socket): { activated: boolean; positionInQueue?: number } {
+  tryActivateSession(
+    userId: string,
+    socket: Socket,
+    io?: Namespace,
+  ): { activated: boolean; positionInQueue?: number } {
+    if (!userId || userId === "unknown") {
+      return { activated: true };
+    }
+
+    if (io) {
+      this.clearStaleActiveSessions(userId, io);
+    }
+
     const socketId = socket.id;
     const activeSocketId = this.activeSessions.get(userId);
 
@@ -41,6 +53,16 @@ export class UserSessionService {
     return { activated: false, positionInQueue: position };
   }
 
+  private clearStaleActiveSessions(userId: string, io: Namespace): void {
+    for (;;) {
+      const activeSocketId = this.activeSessions.get(userId);
+      if (!activeSocketId) break;
+      const s = io.sockets.get(activeSocketId);
+      if (s?.connected) break;
+      this.deactivateSession(userId, activeSocketId);
+    }
+  }
+
   deactivateSession(userId: string, socketId: string): void {
     const activeSocketId = this.activeSessions.get(userId);
 
@@ -61,19 +83,23 @@ export class UserSessionService {
     this.activeSessions.delete(userId);
 
     const queue = this.waitingQueues.get(userId) || [];
-    if (queue.length > 0) {
+    while (queue.length > 0) {
       const nextSession = queue.shift()!;
-      this.activeSessions.set(userId, nextSession.socketId);
-
-      if (queue.length === 0) {
-        this.waitingQueues.delete(userId);
-      } else {
-        this.waitingQueues.set(userId, queue);
+      if (nextSession.socket.connected) {
+        this.activeSessions.set(userId, nextSession.socketId);
+        if (queue.length === 0) {
+          this.waitingQueues.delete(userId);
+        } else {
+          this.waitingQueues.set(userId, queue);
+        }
+        nextSession.socket.emit("session-activated", {
+          message: "Your session is now active. You can proceed.",
+        });
+        return;
       }
-
-      nextSession.socket.emit("session-activated", {
-        message: "Your session is now active. You can proceed.",
-      });
+    }
+    if (queue.length === 0) {
+      this.waitingQueues.delete(userId);
     }
   }
 

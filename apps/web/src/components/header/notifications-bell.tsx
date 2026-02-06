@@ -65,9 +65,9 @@ export function NotificationsBell() {
 
   if (isMobile) {
     return (
-      <Drawer>
+      <Drawer >
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-        <DrawerContent>
+        <DrawerContent className="z-150!">
           <div className="max-h-[70vh] overflow-hidden">{panelContent}</div>
         </DrawerContent>
       </Drawer>
@@ -78,7 +78,7 @@ export function NotificationsBell() {
     <Popover>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
-        className="w-[380px] p-0"
+        className="w-[380px] p-0 z-150!"
         align="end"
         sideOffset={8}
       >

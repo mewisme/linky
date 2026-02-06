@@ -27,7 +27,11 @@ export interface VideoChatRooms {
 }
 
 export interface VideoChatUserSessions {
-  tryActivateSession(userId: string, socket: unknown): { activated: boolean; positionInQueue?: number };
+  tryActivateSession(
+    userId: string,
+    socket: unknown,
+    io?: Namespace,
+  ): { activated: boolean; positionInQueue?: number };
   isActiveSession(userId: string, socketId: string): boolean;
   getQueueSize(userId: string): number;
   deactivateSession(userId: string, socketId: string): void;

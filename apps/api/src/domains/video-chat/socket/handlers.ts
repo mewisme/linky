@@ -42,7 +42,7 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
     logger.error("Failed to cleanup stale sockets: %o", error instanceof Error ? error : new Error(String(error)));
   });
 
-  const sessionResult = userSessions.tryActivateSession(userId, socket);
+  const sessionResult = userSessions.tryActivateSession(userId, socket, io);
   if (!sessionResult.activated) {
     socket.emit("session-waiting", {
       message: "Another session is active. Please wait...",

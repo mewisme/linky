@@ -1,13 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { UserSessionService } from "../../../domains/video-chat/service/user-sessions.service.js";
-import type { Socket } from "socket.io";
+import type { Namespace, Socket } from "socket.io";
 
-function mockSocket(id: string): Socket {
+function mockSocket(id: string, connected = true): Socket {
   return {
     id,
     emit: vi.fn(),
-    connected: true,
+    connected,
   } as unknown as Socket;
+}
+
+function mockNamespace(getSocket: (id: string) => Socket | undefined): Namespace {
+  return {
+    sockets: {
+      get: getSocket,
+    },
+  } as unknown as Namespace;
 }
 
 describe("UserSessionService", () => {
@@ -60,6 +68,25 @@ describe("UserSessionService", () => {
       const again = svc.tryActivateSession("u1", s2);
       expect(again.activated).toBe(false);
       expect(again.positionInQueue).toBe(1);
+    });
+
+    it("when io provided and active socket is disconnected: clears stale and activates new socket", () => {
+      const s1 = mockSocket("s1", false);
+      const s2 = mockSocket("s2");
+      svc.tryActivateSession("u1", s1);
+      const io = mockNamespace((id) => (id === "s1" ? s1 : id === "s2" ? s2 : undefined));
+      const result = svc.tryActivateSession("u1", s2, io);
+
+      expect(result).toEqual({ activated: true });
+      expect(svc.getActiveSocketId("u1")).toBe("s2");
+    });
+
+    it("when userId is unknown: returns activated true without storing", () => {
+      const socket = mockSocket("s1");
+      const result = svc.tryActivateSession("unknown", socket);
+
+      expect(result).toEqual({ activated: true });
+      expect(svc.getActiveSocketId("unknown")).toBeUndefined();
     });
   });
 

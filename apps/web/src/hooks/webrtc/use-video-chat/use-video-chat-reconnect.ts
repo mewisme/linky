@@ -16,7 +16,10 @@ export function useVideoChatReconnect({
   const isReconnectingRef = useRef(false);
 
   const startReconnecting = useCallback(() => {
-    const isInCall = connectionStatus === "connected" || connectionStatus === "reconnecting";
+    const isInCall =
+      connectionStatus === "matched" ||
+      connectionStatus === "in_call" ||
+      connectionStatus === "reconnecting";
     if (!isInCall || isReconnectingRef.current) {
       if (process.env.NODE_ENV === "development") {
         console.log("[ReconnectUX] startReconnecting skipped", {
@@ -54,7 +57,10 @@ export function useVideoChatReconnect({
   }, []);
 
   useEffect(() => {
-    const isInCall = connectionStatus === "connected" || connectionStatus === "reconnecting";
+    const isInCall =
+      connectionStatus === "matched" ||
+      connectionStatus === "in_call" ||
+      connectionStatus === "reconnecting";
     if (isInCall && !isSocketHealthy && !isReconnectingRef.current) {
       console.warn("[SocketHealth] Socket unhealthy during active call");
       startReconnecting();

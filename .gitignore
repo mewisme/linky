@@ -56,3 +56,5 @@ local/
 /playwright/.auth/
 
 docker-compose.local.yml
+
+.claude/

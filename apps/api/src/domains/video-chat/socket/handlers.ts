@@ -38,25 +38,13 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
     }
   });
 
-  matchmaking.cleanupStaleSockets(io).catch((error) => {
-    logger.error("Failed to cleanup stale sockets: %o", error instanceof Error ? error : new Error(String(error)));
+  userSessions.tryActivateSession(userId, socket, io);
+  socket.emit("session-activated", {
+    message: "Your session is now active. You can proceed.",
   });
 
-  const sessionResult = userSessions.tryActivateSession(userId, socket, io);
-  if (!sessionResult.activated) {
-    socket.emit("session-waiting", {
-      message: "Another session is active. Please wait...",
-      positionInQueue: sessionResult.positionInQueue || 0,
-      queueSize: userSessions.getQueueSize(userId),
-    });
-  } else {
-    socket.emit("session-activated", {
-      message: "Your session is now active. You can proceed.",
-    });
-  }
-
   const checkActiveSession = (): boolean => {
-    if (!userSessions.isActiveSession(userId, socket.id)) {
+    if (!userSessions.isActiveSession(userId, socket.id, io)) {
       socket.emit("error", {
         message: "Session is not active. Please wait for your turn.",
       });
@@ -432,7 +420,7 @@ function setupEndCallHandler(
       }
 
       rooms.deleteRoom(room.id);
-      logger.info("Call ended by user: %s", socket.id);
+      logger.debug("Call ended by user: %s", socket.id);
     }
   });
 }
@@ -525,6 +513,13 @@ function setupDisconnectHandler(
   userSessions: VideoChatUserSessions,
 ): void {
   socket.on("disconnect", async (reason: string) => {
+    const wasReplaced = userSessions.isReplacedSocket(socket.id);
+    if (wasReplaced) {
+      userSessions.acknowledgeReplacedSocket(socket.id);
+      logger.debug("Replaced socket disconnected: socket=%s user=%s", socket.id, userId);
+      return;
+    }
+
     const wasInRoom = rooms.isInRoom(socket.id);
     const room = wasInRoom ? rooms.getRoomByUser(socket.id) : undefined;
 
@@ -575,7 +570,11 @@ function setupDisconnectHandler(
       rooms.deleteRoom(room.id);
     }
 
-    logger.info("Client disconnected: socket=%s user=%s reason=%s", socket.id, userId, reason);
+    if (reason !== "client namespace disconnect" && reason !== "server namespace disconnect") {
+      logger.info("Client disconnected: socket=%s user=%s reason=%s wasInRoom=%s", socket.id, userId, reason, wasInRoom);
+    } else {
+      logger.debug("Client disconnected: socket=%s user=%s reason=%s", socket.id, userId, reason);
+    }
   });
 }
 

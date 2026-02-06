@@ -41,10 +41,10 @@ export function getConnectionStatusMessage(status: ConnectionStatus): string {
   const statusMessages: Record<ConnectionStatus, string> = {
     idle: "Ready",
     searching: "Searching...",
-    connecting: "Connecting...",
-    connected: "Connected",
+    matched: "Matched",
+    in_call: "In call",
     reconnecting: "Reconnecting...",
-    "peer-disconnected": "Disconnected",
+    ended: "Ended",
   };
   return statusMessages[status];
 }

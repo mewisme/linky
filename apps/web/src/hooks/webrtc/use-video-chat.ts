@@ -95,43 +95,11 @@ export function useVideoChat(): UseVideoChatReturn {
   const isInActiveCall = useMemo(() => {
     return (
       state.callStartedAt !== null &&
-      (state.connectionStatus === "connected" ||
-        state.connectionStatus === "reconnecting" ||
-        (state.connectionStatus === "connecting" && !!state.remoteStream))
+      (state.connectionStatus === "matched" ||
+        state.connectionStatus === "in_call" ||
+        state.connectionStatus === "reconnecting")
     );
-  }, [state.callStartedAt, state.connectionStatus, state.remoteStream]);
-
-  useEffect(() => {
-    const shouldStartCall =
-      !!state.remoteStream &&
-      state.connectionStatus === "connected" &&
-      state.callStartedAt === null;
-
-    const shouldEndCall =
-      state.callStartedAt !== null &&
-      (state.connectionStatus === "idle" ||
-        state.connectionStatus === "peer-disconnected");
-
-    if (shouldStartCall) {
-      const callStartedAt = Date.now();
-      actionsRef.current.setCallStartedAt(callStartedAt);
-      if (process.env.NODE_ENV === "development") {
-        console.log("[UIHydration] Call started - setting callStartedAt", {
-          callStartedAt,
-          remoteStream: !!state.remoteStream,
-          connectionStatus: state.connectionStatus,
-        });
-      }
-    } else if (shouldEndCall) {
-      actionsRef.current.setCallStartedAt(null);
-      if (process.env.NODE_ENV === "development") {
-        console.log("[UIHydration] Call ended - clearing callStartedAt", {
-          remoteStream: !!state.remoteStream,
-          connectionStatus: state.connectionStatus,
-        });
-      }
-    }
-  }, [state.remoteStream, state.connectionStatus, state.callStartedAt]);
+  }, [state.callStartedAt, state.connectionStatus]);
 
   const lifecycle = useVideoChatLifecycle({
     user,

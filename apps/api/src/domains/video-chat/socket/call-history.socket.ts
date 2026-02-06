@@ -120,7 +120,7 @@ export async function recordCallHistory(
       },
     });
 
-    logger.info("Call history recorded: duration=%ds", durationSeconds);
+    logger.debug("Call history recorded: duration=%ds", durationSeconds);
   } catch (error) {
     logger.error("Error recording call history: %o", error instanceof Error ? error : new Error(String(error)));
   }

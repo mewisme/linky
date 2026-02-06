@@ -10,6 +10,7 @@ import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
 import { toast } from "@repo/ui/components/ui/sonner";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useMemo } from "react";
+import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useWebRTCMonitoring } from "../use-webrtc-monitoring";
 
 interface UseVideoChatCallbacksParams {
@@ -53,14 +54,14 @@ export function useVideoChatCallbacks({
     () => ({
       onTrack: (stream: MediaStream) => {
         actionsRef.current.setRemoteStream(stream);
-        actionsRef.current.setConnectionStatus("connected");
+        actionsRef.current.setConnectionStatus("in_call");
         console.info("Received remote track:", stream.getTracks().length, "tracks");
 
         if (process.env.NODE_ENV === "development") {
           console.log("[VideoChatState] onTrack - remote track received", {
             isReconnecting: isReconnectingRef.current,
             hasShownToast: hasShownConnectedToastRef.current,
-            connectionStatus: "connected",
+            connectionStatus: "in_call",
           });
         }
 
@@ -80,13 +81,13 @@ export function useVideoChatCallbacks({
           return;
         }
         if (connectionState === "failed") {
-          actionsRef.current.setConnectionStatus("peer-disconnected");
+          actionsRef.current.setConnectionStatus("reconnecting");
           hasShownConnectedToastRef.current = false;
           recoveryController.stop();
         } else if (connectionState === "connected") {
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier === "none") {
-            actionsRef.current.setConnectionStatus("connected");
+            actionsRef.current.setConnectionStatus("in_call");
           } else {
             actionsRef.current.setConnectionStatus("reconnecting");
           }
@@ -96,7 +97,7 @@ export function useVideoChatCallbacks({
           if (currentTier !== "none") {
             actionsRef.current.setConnectionStatus("reconnecting");
           } else {
-            actionsRef.current.setConnectionStatus("connecting");
+            actionsRef.current.setConnectionStatus("reconnecting");
           }
         }
       },
@@ -105,11 +106,13 @@ export function useVideoChatCallbacks({
         if (peerConnection.getIceRestartInProgress?.() && (iceConnectionState === "checking" || iceConnectionState === "disconnected")) {
           return;
         }
-        const isInCall = connectionStatus === "connected" || connectionStatus === "reconnecting";
-        const isConnecting = connectionStatus === "connecting";
+        const isInCall =
+          connectionStatus === "matched" ||
+          connectionStatus === "in_call" ||
+          connectionStatus === "reconnecting";
 
         if (iceConnectionState === "failed") {
-          actionsRef.current.setConnectionStatus("peer-disconnected");
+          actionsRef.current.setConnectionStatus("reconnecting");
           hasShownConnectedToastRef.current = false;
           recoveryController.stop();
           isReconnectingRef.current = false;
@@ -118,7 +121,7 @@ export function useVideoChatCallbacks({
           recoveryController.markIceRestartComplete();
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier === "none") {
-            actionsRef.current.setConnectionStatus("connected");
+            actionsRef.current.setConnectionStatus("in_call");
             if (isReconnectingRef.current) {
               completeReconnection();
             }
@@ -126,14 +129,14 @@ export function useVideoChatCallbacks({
             actionsRef.current.setConnectionStatus("reconnecting");
           }
         } else if (iceConnectionState === "disconnected" || iceConnectionState === "checking") {
-          if (isInCall && !isConnecting) {
+          if (isInCall) {
             startReconnecting();
           }
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier !== "none") {
             actionsRef.current.setConnectionStatus("reconnecting");
           } else {
-            actionsRef.current.setConnectionStatus("connecting");
+            actionsRef.current.setConnectionStatus("reconnecting");
           }
         }
       },
@@ -144,7 +147,10 @@ export function useVideoChatCallbacks({
   const socketCallbacks = useMemo(
     () => ({
       onConnect: () => {
-        const isInCall = connectionStatus === "connected" || connectionStatus === "reconnecting";
+        const isInCall =
+          connectionStatus === "matched" ||
+          connectionStatus === "in_call" ||
+          connectionStatus === "reconnecting";
         if (isInCall && isReconnectingRef.current) {
           const pc = peerConnection.getPeerConnection();
           if (pc) {
@@ -158,16 +164,26 @@ export function useVideoChatCallbacks({
 
       onDisconnect: (reason: string) => {
         console.warn("[SocketHealth] Socket disconnected:", reason);
-        const isInCall = connectionStatus === "connected" || connectionStatus === "reconnecting";
+        const isInCall =
+          connectionStatus === "matched" ||
+          connectionStatus === "in_call" ||
+          connectionStatus === "reconnecting";
         if (isInCall) {
           console.info("[SocketHealth] Disconnect during active call - will resync on reconnect");
           startReconnecting();
+          actionsRef.current.setConnectionStatus("reconnecting");
         }
-        actionsRef.current.setConnectionStatus("peer-disconnected");
       },
 
       onBackendRestart: () => {
         console.warn("[BackendRestart] Resetting runtime state due to backend restart");
+        const isInCall =
+          connectionStatus === "matched" ||
+          connectionStatus === "in_call" ||
+          connectionStatus === "reconnecting";
+        if (isInCall) {
+          actionsRef.current.setConnectionStatus("reconnecting");
+        }
         resetRuntimeState();
       },
 
@@ -179,7 +195,7 @@ export function useVideoChatCallbacks({
       onSessionWaiting: (data: { message: string; positionInQueue: number; queueSize: number }) => {
         actionsRef.current.setError(`Session queued - ${data.message}. Position in queue: ${data.positionInQueue}/${data.queueSize}`);
         toast(`Session queued - ${data.message}. Position in queue: ${data.positionInQueue}/${data.queueSize}`);
-        actionsRef.current.setConnectionStatus("idle");
+        actionsRef.current.setConnectionStatus("searching");
       },
 
       onSessionActivated: (data: { message: string }) => {
@@ -204,9 +220,12 @@ export function useVideoChatCallbacks({
         hasShownConnectedToastRef.current = false;
 
         actionsRef.current.setError(null);
-        actionsRef.current.setConnectionStatus("connecting");
+        actionsRef.current.setConnectionStatus("in_call");
         actionsRef.current.setPeerInfo(data.peerInfo);
         actionsRef.current.setRemoteCameraEnabled(true);
+        if (useVideoChatStore.getState().callStartedAt === null) {
+          actionsRef.current.setCallStartedAt(Date.now());
+        }
 
         const localStream = mediaStream.getStream();
         if (!localStream) {
@@ -301,9 +320,9 @@ export function useVideoChatCallbacks({
                 const pcState = pc.connectionState;
                 const iceState = pc.iceConnectionState;
                 if (pcState === "connected" && (iceState === "connected" || iceState === "completed")) {
-                  actionsRef.current.setConnectionStatus("connected");
+                  actionsRef.current.setConnectionStatus("in_call");
                 } else {
-                  actionsRef.current.setConnectionStatus("connecting");
+                  actionsRef.current.setConnectionStatus("reconnecting");
                 }
               } else {
                 actionsRef.current.setConnectionStatus("reconnecting");
@@ -324,7 +343,7 @@ export function useVideoChatCallbacks({
           } catch (err) {
             console.error("Error creating offer:", err);
             actionsRef.current.setError("Failed to establish connection. Please try again.");
-            actionsRef.current.setConnectionStatus("peer-disconnected");
+            actionsRef.current.setConnectionStatus("ended");
             recoveryController.stop();
           }
         } else {
@@ -355,7 +374,7 @@ export function useVideoChatCallbacks({
             });
             console.log("Answer created and sent to peer");
             if (!isIceRestart) {
-              actionsRef.current.setConnectionStatus("connecting");
+              actionsRef.current.setConnectionStatus("in_call");
             }
           } else if (data.type === "answer") {
             console.info("Received answer, setting remote description...");
@@ -366,7 +385,7 @@ export function useVideoChatCallbacks({
             } else {
               const currentTier = recoveryController.getCurrentTier();
               if (currentTier === "none") {
-                actionsRef.current.setConnectionStatus("connecting");
+                actionsRef.current.setConnectionStatus("in_call");
               } else {
                 actionsRef.current.setConnectionStatus("reconnecting");
               }
@@ -394,13 +413,13 @@ export function useVideoChatCallbacks({
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
+        actionsRef.current.setCallStartedAt(null);
+        actionsRef.current.setConnectionStatus("ended");
 
         if (data.queueSize !== undefined) {
-          actionsRef.current.setConnectionStatus("searching");
           actionsRef.current.setError(null);
           toast(`Peer disconnected - ${data.message}`);
         } else {
-          actionsRef.current.setConnectionStatus("peer-disconnected");
           toast.error(`Peer disconnected - ${data.message}`);
         }
       },
@@ -414,6 +433,7 @@ export function useVideoChatCallbacks({
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
+        actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setError(null);
         toast(`Peer skipped - ${data.message}`);
         refreshUserProgress();
@@ -429,6 +449,7 @@ export function useVideoChatCallbacks({
         isOffererRef.current = false;
         actionsRef.current.clearChatMessages();
         actionsRef.current.setRemoteMuted(false);
+        actionsRef.current.setCallStartedAt(null);
         refreshUserProgress();
       },
 
@@ -438,6 +459,8 @@ export function useVideoChatCallbacks({
         recoveryController.stop();
         toast(`Call ended - ${data.message}`);
         isOffererRef.current = false;
+        actionsRef.current.setConnectionStatus("ended");
+        actionsRef.current.setCallStartedAt(null);
         resetPeerState();
         refreshUserProgress();
       },

@@ -10,6 +10,7 @@ const logger = createLogger("api:video-chat:matchmaking:socket");
 
 export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMatchmaking, rooms: VideoChatRooms): void {
   setInterval(async () => {
+    await matchmaking.cleanupStaleSockets(io);
     await matchmaking.cleanupExpiredEntries(io);
   }, 30 * 1000);
 
@@ -97,32 +98,19 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
         roomId: room.id,
       } satisfies RoomPingPayload;
 
-      let roomHeartbeatFailed = 0;
+      const user1Connected = user1Socket?.connected ?? false;
+      const user2Connected = user2Socket?.connected ?? false;
 
-      if (user1Socket && user1Socket.connected) {
-        try {
-          user1Socket.emit("room-ping", payload);
-        } catch (err) {
-          logger.warn("Failed to send heartbeat: %s %o", room.user1, err instanceof Error ? err : new Error(String(err)));
-          roomHeartbeatFailed++;
-        }
-      } else {
-        roomHeartbeatFailed++;
+      if (user1Connected) {
+        user1Socket!.emit("room-ping", payload);
       }
 
-      if (user2Socket && user2Socket.connected) {
-        try {
-          user2Socket.emit("room-ping", payload);
-        } catch (err) {
-          logger.warn("Failed to send heartbeat: %s %o", room.user2, err instanceof Error ? err : new Error(String(err)));
-          roomHeartbeatFailed++;
-        }
-      } else {
-        roomHeartbeatFailed++;
+      if (user2Connected) {
+        user2Socket!.emit("room-ping", payload);
       }
 
-      if (roomHeartbeatFailed === 2) {
-        logger.warn("Both sockets disconnected in room %s - cleaning up", room.id);
+      if (!user1Connected && !user2Connected) {
+        logger.info("Both sockets disconnected in room %s - cleaning up", room.id);
         rooms.deleteRoom(room.id);
       }
     }

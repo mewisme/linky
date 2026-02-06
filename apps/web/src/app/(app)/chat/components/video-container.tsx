@@ -71,7 +71,7 @@ export function VideoContainer({
   const tapCaptureRef = useRef<HTMLDivElement>(null);
   const [mousePosition, mousePositionRef] = useMousePosition<HTMLDivElement>();
   const isMobile = useIsMobile();
-  const hasPeer = !!remoteStream;
+  const hasPeer = isInActiveCall;
   const remoteAspectRatio = useStreamAspectRatio(remoteStream);
   const localAspectRatio = useStreamAspectRatio(localStream);
   const containerHeight = useViewportHeight(64);
@@ -80,7 +80,7 @@ export function VideoContainer({
   const isVideoStalled = useVideoChatStore((s) => s.isVideoStalled);
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
 
-  const isRemoteCameraOn = hasPeer && remoteCameraEnabled && !isVideoStalled;
+  const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled && !isVideoStalled;
   const isLocalCameraOn = !isVideoOff;
 
   const isActive = isInActiveCall;
@@ -125,7 +125,8 @@ export function VideoContainer({
     [mousePositionRef]
   );
 
-  const displayAspectRatio = hasPeer ? remoteAspectRatio : localAspectRatio;
+  const displayAspectRatio =
+    remoteStream && hasPeer ? remoteAspectRatio : localAspectRatio;
 
   return (
     <div
@@ -207,7 +208,7 @@ export function VideoContainer({
         </>
       ) : (
         <>
-          {connectionStatus === "searching" || connectionStatus === "connecting" ? (
+          {connectionStatus === "searching" ? (
             <VideoChatSearchingState />
           ) : localStream ? (
             <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
@@ -226,7 +227,7 @@ export function VideoContainer({
                 </div>
               )}
             </div>
-          ) : connectionStatus === "idle" ? (
+          ) : connectionStatus === "idle" || connectionStatus === "ended" ? (
             <VideoChatIdleState onStart={onStart} />
           ) : (
             <div className="h-full w-full" />

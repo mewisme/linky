@@ -312,7 +312,7 @@ export function VideoControls({
         label: "Start",
         variant: "default",
         onClick: onStart,
-        visible: connectionStatus === "idle",
+        visible: connectionStatus === "idle" || connectionStatus === "ended",
       },
       {
         id: "mute",
@@ -357,12 +357,12 @@ export function VideoControls({
         variant: "destructive",
         onClick: onEndCall,
         visible:
-          connectionStatus === "connected" ||
+          connectionStatus === "in_call" ||
           connectionStatus === "reconnecting" ||
           connectionStatus === "searching" ||
-          connectionStatus === "connecting" ||
+          connectionStatus === "matched" ||
           hasLocalStream,
-        testId: (ctx) => ctx.connectionStatus === "searching" || ctx.connectionStatus === "connecting"
+        testId: (ctx) => ctx.connectionStatus === "searching"
           ? "chat-cancel-search-button"
           : "chat-end-call-button",
       },

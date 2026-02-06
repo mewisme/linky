@@ -8,10 +8,10 @@ import { create } from "zustand";
 export type ConnectionStatus =
   | "idle"
   | "searching"
-  | "connecting"
-  | "connected"
+  | "matched"
+  | "in_call"
   | "reconnecting"
-  | "peer-disconnected";
+  | "ended";
 
 export interface ChatMessage {
   id: string;
@@ -143,13 +143,13 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
       remoteMuted: false,
       remoteCameraEnabled: true,
       chatMessages: [],
-      connectionStatus: "idle",
       callStartedAt: null,
       error: null,
       peerInfo: null,
       networkQuality: "excellent",
       isVideoStalled: false,
       currentQualityTier: "high",
+      isPeerSharingScreen: false,
     }),
   resetRuntimeState: () =>
     set({
@@ -157,17 +157,13 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
       remoteStream: null,
       remoteMuted: false,
       chatMessages: [],
-      connectionStatus: "idle",
-      callStartedAt: null,
       error: null,
       peerInfo: null,
-      overlayPosition: null,
-      overlayCorner: null,
-      isFloatingMode: false,
-      floatingPosition: null,
-      floatingCorner: null,
       networkQuality: "excellent",
       isVideoStalled: false,
       currentQualityTier: "high",
+      isSharingScreen: false,
+      isPeerSharingScreen: false,
+      screenStream: null,
     }),
 }));

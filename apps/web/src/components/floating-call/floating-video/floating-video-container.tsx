@@ -149,7 +149,7 @@ export function FloatingVideoContainer({
   const positionRef = useRef<OverlayPosition | null>(null);
   positionRef.current = position;
 
-  const isRemoteCameraOn = remoteCameraEnabled;
+  const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled;
   const isLocalCameraOn = !isVideoOff;
 
   const layoutMode = useMemo(

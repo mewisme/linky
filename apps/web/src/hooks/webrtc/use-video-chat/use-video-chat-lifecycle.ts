@@ -155,6 +155,8 @@ export function useVideoChatLifecycle({
     actionsRef.current.setRemoteStream(null);
     actionsRef.current.clearChatMessages();
     actionsRef.current.setRemoteMuted(false);
+    actionsRef.current.setCallStartedAt(null);
+    actionsRef.current.setConnectionStatus("searching");
     socketSignaling.skipPeer();
     setTimeout(() => refreshUserProgress(), 400);
   }, [peerConnection, socketSignaling, refreshUserProgress, actionsRef]);
@@ -163,6 +165,8 @@ export function useVideoChatLifecycle({
     recoveryController.stop();
     socketSignaling.sendEndCall();
     toast("Call ended - You have ended the call.");
+    actionsRef.current.setConnectionStatus("ended");
+    actionsRef.current.setCallStartedAt(null);
     resetPeerState();
     setTimeout(() => refreshUserProgress(), 400);
   }, [socketSignaling, resetPeerState, refreshUserProgress]);

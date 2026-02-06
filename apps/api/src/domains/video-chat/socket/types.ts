@@ -30,11 +30,12 @@ export interface VideoChatUserSessions {
   tryActivateSession(
     userId: string,
     socket: unknown,
-    io?: Namespace,
-  ): { activated: boolean; positionInQueue?: number };
-  isActiveSession(userId: string, socketId: string): boolean;
-  getQueueSize(userId: string): number;
+    io: Namespace,
+  ): { activated: boolean; sessionId?: string };
+  isActiveSession(userId: string, socketId: string, io: Namespace): boolean;
   deactivateSession(userId: string, socketId: string): void;
+  isReplacedSocket(socketId: string): boolean;
+  acknowledgeReplacedSocket(socketId: string): void;
 }
 
 export interface VideoChatContext {

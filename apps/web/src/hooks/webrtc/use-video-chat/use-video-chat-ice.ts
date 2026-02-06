@@ -64,7 +64,10 @@ export function useVideoChatIce({
       return;
     }
 
-    const isInActiveCall = connectionStatus === "connected" || connectionStatus === "reconnecting";
+    const isInActiveCall =
+      connectionStatus === "matched" ||
+      connectionStatus === "in_call" ||
+      connectionStatus === "reconnecting";
 
     try {
       console.info("[IceServerCache] Refreshing TURN credentials before expiration");
@@ -112,7 +115,11 @@ export function useVideoChatIce({
 
     const checkAndRefreshCredentials = () => {
       const pc = peerConnection.getPeerConnection();
-      if (pc && pc.signalingState !== "closed" && connectionStatus === "connected") {
+      if (
+        pc &&
+        pc.signalingState !== "closed" &&
+        (connectionStatus === "in_call" || connectionStatus === "reconnecting")
+      ) {
         refreshTurnCredentials();
       }
     };

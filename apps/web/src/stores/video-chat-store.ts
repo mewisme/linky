@@ -50,6 +50,9 @@ interface VideoChatStore {
   networkQuality: NetworkQuality;
   isVideoStalled: boolean;
   currentQualityTier: QualityTier;
+  isSharingScreen: boolean;
+  isPeerSharingScreen: boolean;
+  screenStream: MediaStream | null;
 
   setLocalStream: (stream: MediaStream | null) => void;
   setRemoteStream: (stream: MediaStream | null) => void;
@@ -71,6 +74,9 @@ interface VideoChatStore {
   setNetworkQuality: (quality: NetworkQuality) => void;
   setVideoStalled: (stalled: boolean) => void;
   setQualityTier: (tier: QualityTier) => void;
+  setSharingScreen: (sharing: boolean) => void;
+  setPeerSharingScreen: (sharing: boolean) => void;
+  setScreenStream: (stream: MediaStream | null) => void;
 
   resetState: () => void;
   resetPeerState: () => void;
@@ -97,6 +103,9 @@ const initialState = {
   networkQuality: "excellent" as NetworkQuality,
   isVideoStalled: false,
   currentQualityTier: "high" as QualityTier,
+  isSharingScreen: false,
+  isPeerSharingScreen: false,
+  screenStream: null as MediaStream | null,
 };
 
 export const useVideoChatStore = create<VideoChatStore>((set) => ({
@@ -123,6 +132,9 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setNetworkQuality: (quality) => set({ networkQuality: quality }),
   setVideoStalled: (stalled) => set({ isVideoStalled: stalled }),
   setQualityTier: (tier) => set({ currentQualityTier: tier }),
+  setSharingScreen: (sharing) => set({ isSharingScreen: sharing }),
+  setPeerSharingScreen: (sharing) => set({ isPeerSharingScreen: sharing }),
+  setScreenStream: (stream) => set({ screenStream: stream }),
 
   resetState: () => set(initialState),
   resetPeerState: () =>

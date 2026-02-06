@@ -1,5 +1,5 @@
 import type { Namespace } from "socket.io";
-import type { VideoChatRoomRecord } from "../types/room.types.js";
+import type { VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 import { createLogger } from "@repo/logger";
 
 export class RoomService {

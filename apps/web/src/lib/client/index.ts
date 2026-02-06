@@ -65,7 +65,7 @@ export const client = {
     req<T>("PUT", url, { ...cfg, body }),
   patch: <T>(url: string, body?: unknown, cfg?: { headers?: Record<string, string> }) =>
     req<T>("PATCH", url, { ...cfg, body }),
-  delete: <T>(url: string, cfg?: { headers?: Record<string, string> }) =>
+  delete: <T>(url: string, cfg?: { headers?: Record<string, string>; body?: unknown }) =>
     req<T>("DELETE", url, cfg),
 };
 

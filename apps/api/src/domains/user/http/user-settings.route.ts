@@ -1,14 +1,14 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import type { UserSettingsUpdate } from "../types/user-settings.types.js";
+import type { UserSettingsUpdate } from "@/domains/user/types/user-settings.types.js";
 import {
   fetchUserSettings,
   getUserIdByClerkUserId,
   patchUserSettingsForUser,
   putUserSettings,
-} from "../service/user-settings.service.js";
-import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-utils.js";
-import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
+} from "@/domains/user/service/user-settings.service.js";
+import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:user:settings:route");

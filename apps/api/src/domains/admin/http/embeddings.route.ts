@@ -6,7 +6,7 @@ import {
   validateUserIds,
   compareUsers,
   findSimilarUsers,
-} from "../service/admin-embeddings.service.js";
+} from "@/domains/admin/service/admin-embeddings.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:embeddings:route");

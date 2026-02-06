@@ -1,10 +1,10 @@
 import type { Namespace } from "socket.io";
 import { createLogger } from "@repo/logger";
-import type { AuthenticatedSocket } from "../../../socket/auth.js";
-import type { MatchedPayload, RoomPingPayload } from "../types/socket-event.types.js";
-import { getPublicUserInfo } from "../../../infra/supabase/repositories/user-details.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import type { VideoChatMatchmaking, VideoChatRooms } from "./types.js";
+import type { AuthenticatedSocket } from "@/socket/auth.js";
+import type { MatchedPayload, RoomPingPayload } from "@/domains/video-chat/types/socket-event.types.js";
+import { getPublicUserInfo } from "@/infra/supabase/repositories/user-details.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import type { VideoChatMatchmaking, VideoChatRooms } from "@/domains/video-chat/socket/types.js";
 
 const logger = createLogger("api:video-chat:matchmaking:socket");
 

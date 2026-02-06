@@ -1,7 +1,7 @@
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import type { Tables } from "../../../types/database/supabase.types.js";
-import { invalidate } from "../../../infra/redis/cache/index.js";
-import { supabase } from "../../../infra/supabase/client.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import type { Tables } from "@/types/database/supabase.types.js";
+import { invalidate } from "@/infra/redis/cache/index.js";
+import { supabase } from "@/infra/supabase/client.js";
 
 export async function fetchUserByClerkUserId(clerkUserId: string): Promise<{
   user: Tables<"users"> | null;

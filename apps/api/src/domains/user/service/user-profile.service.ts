@@ -1,10 +1,10 @@
-import { getUserById, getUserDetailsWithTags, getUserSettingsByUserId } from "../../../infra/supabase/repositories/index.js";
+import { getUserById, getUserDetailsWithTags, getUserSettingsByUserId } from "@/infra/supabase/repositories/index.js";
 
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
-import type { UserProfileAggregate } from "../types/user-profile.types.js";
-import { getOrSet } from "../../../infra/redis/cache/index.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
+import type { UserProfileAggregate } from "@/domains/user/types/user-profile.types.js";
+import { getOrSet } from "@/infra/redis/cache/index.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 
 export async function getUserProfileAggregateByUserId(userId: string): Promise<UserProfileAggregate | null> {
   return getOrSet(

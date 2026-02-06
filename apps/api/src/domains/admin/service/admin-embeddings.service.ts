@@ -1,16 +1,16 @@
 import {
   checkEmbeddingRegenerationNeeded,
   scheduleEmbeddingRegeneration,
-} from "../../user/service/embedding-job.service.js";
+} from "@/domains/user/service/embedding-job.service.js";
 import {
   findSimilarUsersByEmbedding,
   getUserEmbeddingByUserId,
   getUserEmbeddingsByUserIds,
-} from "../../../infra/supabase/repositories/user-embeddings.js";
+} from "@/infra/supabase/repositories/user-embeddings.js";
 
-import { cosineSimilarity } from "../../embeddings/index.js";
+import { cosineSimilarity } from "@/domains/embeddings/index.js";
 import { createLogger } from "@repo/logger";
-import { getUsersIdsPaginated } from "../../../infra/supabase/repositories/users.js";
+import { getUsersIdsPaginated } from "@/infra/supabase/repositories/users.js";
 
 const logger = createLogger("api:admin:embeddings:service");
 

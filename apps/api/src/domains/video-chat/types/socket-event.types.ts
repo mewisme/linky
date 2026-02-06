@@ -86,3 +86,8 @@ export interface RoomPingPayload {
   roomId: string;
 }
 
+export interface ScreenShareTogglePayload {
+  sharing: boolean;
+  streamId?: string;
+}
+

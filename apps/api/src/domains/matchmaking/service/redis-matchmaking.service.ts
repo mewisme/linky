@@ -1,23 +1,25 @@
 import type { Namespace, Socket } from "socket.io";
-import type { QueueUser, ScoredCandidatePair } from "../types/candidate.types.js";
-import { calculateEmbeddingSimilarities, createPairKey, getEmbeddingSimilarityFromMap } from "./embedding-score.service.js";
+import type { QueueUser, ScoredCandidatePair } from "@/domains/matchmaking/types/candidate.types.js";
+import { calculateEmbeddingSimilarities, getEmbeddingSimilarityFromMap } from "./embedding-score.service.js";
 import { calculateFavoriteType, calculateRedisCandidateScoreWithEmbedding } from "./scoring.service.js";
 
-import type { AuthenticatedSocket } from "../../../types/socket/socket-context.types.js";
-import type { EmbeddingPair } from "../types/embedding.types.js";
-import type { QueuedUser } from "../types/matchmaking.types.js";
+import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
+import type { EmbeddingPair } from "@/domains/matchmaking/types/embedding.types.js";
+import type { QueuedUser } from "@/domains/matchmaking/types/matchmaking.types.js";
 import { createLogger } from "@repo/logger";
-import { getFavoritesByUserId } from "../../../infra/supabase/repositories/favorites.js";
-import { getInterestTags } from "../../../infra/supabase/repositories/user-details.js";
-import { getUserEmbeddingsMap } from "../../../infra/supabase/repositories/user-embeddings.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import { redisClient } from "../../../infra/redis/client.js";
+import { getBlockedUserIds } from "@/infra/supabase/repositories/user-blocks.js";
+import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
+import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";
+import { getUserEmbeddingsMap } from "@/infra/supabase/repositories/user-embeddings.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { redisClient } from "@/infra/redis/client.js";
 
 const QUEUE_KEY = "match:queue";
 const LOCK_KEY = "match:lock";
 const LOCK_TTL = 2;
 const INTEREST_TAGS_TTL = 15 * 60;
 const FAVORITES_TTL = 10 * 60;
+const BLOCKS_TTL = 30 * 60;
 const SKIP_COOLDOWN_TTL = 10;
 const MAX_QUEUE_WAIT_TIME = 5 * 60 * 1000;
 const MAX_MATCHING_CANDIDATES = 50;
@@ -50,6 +52,7 @@ export class RedisMatchmakingService {
 
       await this.cacheUserInterests(dbUserId);
       await this.cacheUserFavorites(dbUserId);
+      await this.cacheUserBlocks(dbUserId);
 
       const now = Date.now();
       await redisClient.zAdd(QUEUE_KEY, {
@@ -134,6 +137,7 @@ export class RedisMatchmakingService {
 
       const userIds = queueMembers.map((m) => m.value);
       const skipSets = await this.loadSkipSets(userIds);
+      const blockedSets = await this.loadBlockedSets(userIds);
       const interestTagsMap = await this.loadInterestTags(userIds);
       const favoritesMap = await this.loadFavorites(userIds);
       const embeddingsMap = await this.loadEmbeddings(userIds);
@@ -196,6 +200,10 @@ export class RedisMatchmakingService {
           const skipSetB = skipSets.get(userB.userId);
           const hasSkipCooldown = skipSetA?.has(userB.userId) || skipSetB?.has(userA.userId);
 
+          const blockedSetA = blockedSets.get(userA.userId);
+          const blockedSetB = blockedSets.get(userB.userId);
+          const isBlocked = blockedSetA?.has(userB.userId) || blockedSetB?.has(userA.userId);
+
           const favoritesA = favoritesMap.get(userA.userId);
           const favoritesB = favoritesMap.get(userB.userId);
 
@@ -223,7 +231,7 @@ export class RedisMatchmakingService {
 
           const candidate: ScoredCandidatePair = { userA, userB, score: finalScore, commonInterests, favoriteType };
 
-          if (!hasSkipCooldown) {
+          if (!hasSkipCooldown && !isBlocked) {
             allCandidates.push(candidate);
           }
         }
@@ -236,6 +244,14 @@ export class RedisMatchmakingService {
           for (let j = i + 1; j < queueUsers.length; j++) {
             const userA = queueUsers[i]!;
             const userB = queueUsers[j]!;
+
+            const blockedSetA = blockedSets.get(userA.userId);
+            const blockedSetB = blockedSets.get(userB.userId);
+            const isBlocked = blockedSetA?.has(userB.userId) || blockedSetB?.has(userA.userId);
+
+            if (isBlocked) {
+              continue;
+            }
 
             const favoritesA = favoritesMap.get(userA.userId);
             const favoritesB = favoritesMap.get(userB.userId);
@@ -541,6 +557,50 @@ export class RedisMatchmakingService {
       }
     } catch (error) {
       this.logger.error("Failed to load favorites: %o", error instanceof Error ? error : new Error(String(error)));
+    }
+
+    return result;
+  }
+
+  private async cacheUserBlocks(dbUserId: string): Promise<void> {
+    try {
+      const blocks = await getBlockedUserIds(dbUserId);
+      const key = `user:blocks:${dbUserId}`;
+
+      await redisClient.del(key);
+
+      if (blocks.length > 0) {
+        await redisClient.sAdd(key, blocks);
+        await redisClient.expire(key, BLOCKS_TTL);
+      }
+    } catch (error) {
+      this.logger.error(
+        "Failed to cache user blocks: %s %o",
+        dbUserId,
+        error instanceof Error ? error : new Error(String(error)),
+      );
+    }
+  }
+
+  private async loadBlockedSets(userIds: string[]): Promise<Map<string, Set<string>>> {
+    const result = new Map<string, Set<string>>();
+
+    try {
+      const operations = userIds.map(async (userId) => {
+        const key = `user:blocks:${userId}`;
+        const blockedUserIds = await redisClient.sMembers(key);
+        return { userId, blockedUserIds };
+      });
+
+      const results = await Promise.all(operations);
+
+      for (const { userId, blockedUserIds } of results) {
+        if (blockedUserIds.length > 0) {
+          result.set(userId, new Set(blockedUserIds));
+        }
+      }
+    } catch (error) {
+      this.logger.error("Failed to load blocked sets: %o", error instanceof Error ? error : new Error(String(error)));
     }
 
     return result;

@@ -2,10 +2,10 @@ import {
   addAvailableFreezes,
   getGrantedFreezeUnlockIds,
   insertFreezeGrant,
-} from "../../../infra/supabase/repositories/user-streak-freeze.js";
+} from "@/infra/supabase/repositories/user-streak-freeze.js";
 
 import { createLogger } from "@repo/logger";
-import { getLevelFeatureUnlocksAtLevel } from "../../../infra/supabase/repositories/level-feature-unlocks.js";
+import { getLevelFeatureUnlocksAtLevel } from "@/infra/supabase/repositories/level-feature-unlocks.js";
 
 const logger = createLogger("api:user:streak-freeze:service");
 

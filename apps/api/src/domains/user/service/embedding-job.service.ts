@@ -1,9 +1,9 @@
-import { getUserEmbeddingByUserId, upsertUserEmbedding } from "../../../infra/supabase/repositories/user-embeddings.js";
+import { getUserEmbeddingByUserId, upsertUserEmbedding } from "@/infra/supabase/repositories/user-embeddings.js";
 
 import { buildEmbeddingInput, type SemanticProfileInput } from "./embedding-input.builder.js";
 import { createHash } from "node:crypto";
 import { createLogger } from "@repo/logger";
-import { embedText } from "../../../infra/ollama/embedding.service.js";
+import { embedText } from "@/infra/ollama/embedding.service.js";
 import { getUserProfileAggregateByUserId } from "./user-profile.service.js";
 
 const logger = createLogger("api:user:embedding-job:service");

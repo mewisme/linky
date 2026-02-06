@@ -1,13 +1,13 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import type { AdminStreakExpBonusInsert, AdminStreakExpBonusUpdate } from "../types/streak-exp-bonus.types.js";
+import type { AdminStreakExpBonusInsert, AdminStreakExpBonusUpdate } from "@/domains/admin/types/streak-exp-bonus.types.js";
 import {
   createAdminStreakExpBonus,
   deleteAdminStreakExpBonus,
   getStreakExpBonus,
   listStreakExpBonuses,
   updateAdminStreakExpBonus,
-} from "../service/admin-streak-exp-bonuses.service.js";
+} from "@/domains/admin/service/admin-streak-exp-bonuses.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:streak-exp-bonuses:route");

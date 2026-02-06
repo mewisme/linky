@@ -1,4 +1,4 @@
-import type { TablesUpdate } from "../../../types/database/supabase.types.js";
+import type { TablesUpdate } from "@/types/database/supabase.types.js";
 
 export type UserDetailsUpdate = TablesUpdate<"user_details">;
 

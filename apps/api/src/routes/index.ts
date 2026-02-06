@@ -1,7 +1,4 @@
 import { type Express, type Request, type Response } from "express";
-import { readFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 import apiRouter from "./api.js";
 import analyticsRouter from "./analytics.js";
 import interestTagsRouter from "./resources/interest-tags.js";
@@ -11,21 +8,14 @@ import s3Router from "./media/s3.js";
 import webhookRouter from "./webhook.js";
 import healthRouter from "./health.js";
 import { createAdminRouter } from "../domains/admin/index.js";
-import reportsAdminRouter from "../domains/reports/http/admin-reports.route.js";
-import { clerkMiddleware } from "../middleware/clerk.js";
-import { adminMiddleware } from "../middleware/admin.js";
-import { config } from "../config/index.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const packageJsonPath = join(__dirname, "../../package.json");
-const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+import reportsAdminRouter from "@/domains/reports/http/admin-reports.route.js";
+import { clerkMiddleware } from "@/middleware/clerk.js";
+import { adminMiddleware } from "@/middleware/admin.js";
+import { config } from "@/config/index.js";
 
 export function setupRoutes(app: Express): void {
   app.get("/", (_req: Request, res: Response) => {
     res.json({
-      name: packageJson.name,
-      version: packageJson.version,
       environment: config.nodeEnv,
       timestamp: new Date().toISOString(),
       status: "running",

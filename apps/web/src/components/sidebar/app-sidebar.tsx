@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
 import {
+  IconBan,
+  IconBell,
   IconBolt,
   IconChartLine,
   IconContract,
@@ -26,8 +28,10 @@ import {
   IconLock,
   IconLogout,
   IconMessages,
+  IconPalette,
   IconSettings,
   IconShield,
+  IconSpeakerphone,
   IconTags,
   IconUser,
   IconUserShield,
@@ -200,7 +204,14 @@ export const menuItems: MenuItem[] = [
         description: 'Manage streak EXP bonus multipliers',
         href: '/admin/streak-exp-bonuses',
         category: 'Admin',
-      }
+      },
+      {
+        label: 'Broadcasts',
+        icon: IconSpeakerphone,
+        description: 'Send announcements to all users',
+        href: '/admin/broadcasts',
+        category: 'Admin',
+      },
     ],
   },
   {
@@ -209,6 +220,29 @@ export const menuItems: MenuItem[] = [
     description: 'View the settings',
     href: '/settings',
     category: 'Settings',
+    subItems: [
+      {
+        label: 'Appearance',
+        icon: IconPalette,
+        description: 'Manage the appearance settings',
+        href: '/settings/appearance',
+        category: 'Settings',
+      },
+      {
+        label: 'Blocked Users',
+        icon: IconBan,
+        description: 'Manage blocked users',
+        href: '/settings/blocked-users',
+        category: 'Settings',
+      },
+      {
+        label: 'Notifications',
+        icon: IconBell,
+        description: 'Push notification settings',
+        href: '/settings/notifications',
+        category: 'Settings',
+      },
+    ],
   },
 ]
 

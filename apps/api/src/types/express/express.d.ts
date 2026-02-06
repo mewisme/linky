@@ -1,4 +1,4 @@
-import type { Request } from "express";
+
 import type { verifyToken } from "@clerk/backend";
 
 declare global {

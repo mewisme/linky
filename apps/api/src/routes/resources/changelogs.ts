@@ -1,10 +1,10 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getChangelogs, getChangelogByVersion } from "../../infra/supabase/repositories/changelogs.js";
-import { getDownloadUrl } from "../../infra/s3/presigned.js";
-import { config } from "../../config/index.js";
-import { getCachedData } from "../../infra/redis/cache-utils.js";
-import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
+import { getChangelogs, getChangelogByVersion } from "@/infra/supabase/repositories/changelogs.js";
+import { getDownloadUrl } from "@/infra/s3/presigned.js";
+import { config } from "@/config/index.js";
+import { getCachedData } from "@/infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:resources:changelogs");

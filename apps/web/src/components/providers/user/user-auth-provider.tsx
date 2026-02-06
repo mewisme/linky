@@ -6,7 +6,7 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 type UserAuthContextValue = {
   auth: ReturnType<typeof useAuth>;
   user: ReturnType<typeof useUser>;
-  getClerkToken: () => Promise<string | null>;
+  getClerkToken: (options?: { skipCache?: boolean }) => Promise<string | null>;
 };
 
 const UserAuthContext = createContext<UserAuthContextValue | null>(null);
@@ -15,10 +15,12 @@ export function UserAuthProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const user = useUser();
 
-  const getClerkToken = useCallback(() => {
-    return auth.getToken({ template: "custom" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.getToken]);
+  const getClerkToken = useCallback(
+    (options?: { skipCache?: boolean }) => {
+      return auth.getToken({ template: "custom", skipCache: options?.skipCache ?? false });
+    },
+    [auth]
+  );
 
   const value = useMemo<UserAuthContextValue>(() => {
     return { auth, user, getClerkToken };

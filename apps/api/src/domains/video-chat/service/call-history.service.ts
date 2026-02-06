@@ -1,11 +1,11 @@
-import { createCallHistory, getUserCountry } from "../../../infra/supabase/repositories/call-history.js";
+import { createCallHistory, getUserCountry } from "@/infra/supabase/repositories/call-history.js";
 
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import { addCallDurationToStreak } from "../../user/service/user-streak.service.js";
-import { addCallExp } from "../../user/service/user-level.service.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { addCallDurationToStreak } from "@/domains/user/service/user-streak.service.js";
+import { addCallExp } from "@/domains/user/service/user-level.service.js";
 import { createLogger } from "@repo/logger";
-import { invalidate } from "../../../infra/redis/cache/index.js";
-import { toUserLocalDateString } from "../../../utils/timezone.js";
+import { invalidate } from "@/infra/redis/cache/index.js";
+import { toUserLocalDateString } from "@/utils/timezone.js";
 
 const logger = createLogger("api:video-chat:call-history:service");
 

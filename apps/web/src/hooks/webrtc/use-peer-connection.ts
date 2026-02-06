@@ -18,6 +18,7 @@ export interface UsePeerConnectionReturn {
   addIceCandidate: (candidate: RTCIceCandidateInit) => Promise<void>;
   updateIceServers: (newIceServers: RTCIceServer[]) => Promise<void>;
   restartIce: () => Promise<RTCSessionDescriptionInit>;
+  replaceVideoTrack: (newTrack: MediaStreamTrack) => Promise<void>;
   closePeer: () => void;
   isConnectionValid: () => boolean;
   getPeerConnection: () => RTCPeerConnection | null;
@@ -295,6 +296,19 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     }
   }, [createOffer]);
 
+  const replaceVideoTrack = useCallback(async (newTrack: MediaStreamTrack): Promise<void> => {
+    const pc = pcRef.current;
+    if (!pc) {
+      throw new Error("Peer connection not initialized");
+    }
+
+    const senders = pc.getSenders();
+    const videoSender = senders.find((s) => s.track?.kind === "video");
+    if (videoSender) {
+      await videoSender.replaceTrack(newTrack);
+    }
+  }, []);
+
   const closePeer = useCallback(() => {
     closePeerConnection(pcRef.current);
     pcRef.current = null;
@@ -326,6 +340,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
       addIceCandidate,
       updateIceServers,
       restartIce,
+      replaceVideoTrack,
       closePeer,
       isConnectionValid,
       getPeerConnection,

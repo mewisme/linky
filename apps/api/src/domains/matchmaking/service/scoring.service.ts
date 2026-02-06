@@ -1,8 +1,8 @@
 import { DEFAULT_EMBEDDING_CONFIG, calculateEmbeddingScore } from "./embedding-score.service.js";
 
-import type { EmbeddingScoreConfig } from "../types/embedding.types.js";
-import type { FavoriteType } from "../types/scoring.types.js";
-import type { QueueUser } from "../types/candidate.types.js";
+import type { EmbeddingScoreConfig } from "@/domains/matchmaking/types/embedding.types.js";
+import type { FavoriteType } from "@/domains/matchmaking/types/scoring.types.js";
+import type { QueueUser } from "@/domains/matchmaking/types/candidate.types.js";
 
 const SCORE_PER_COMMON_INTEREST = 100;
 const BONUS_BOTH_HAVE_TAGS = 50;

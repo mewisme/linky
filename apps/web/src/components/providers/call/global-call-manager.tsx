@@ -12,6 +12,8 @@ interface GlobalCallContextValue {
   endCall: () => void;
   toggleMute: () => void;
   toggleVideo: () => void;
+  toggleScreenShare: () => Promise<void>;
+  isSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   clearError: () => void;
 }
@@ -33,6 +35,8 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     endCall: videoChat.endCall,
     toggleMute: videoChat.toggleMute,
     toggleVideo: videoChat.toggleVideo,
+    toggleScreenShare: videoChat.toggleScreenShare,
+    isSharingScreen: videoChat.isSharingScreen,
     sendFavoriteNotification: videoChat.sendFavoriteNotification,
     clearError: videoChat.clearError,
   }), [
@@ -43,6 +47,8 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     videoChat.endCall,
     videoChat.toggleMute,
     videoChat.toggleVideo,
+    videoChat.toggleScreenShare,
+    videoChat.isSharingScreen,
     videoChat.sendFavoriteNotification,
     videoChat.clearError,
   ]);

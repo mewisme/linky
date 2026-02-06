@@ -1,4 +1,5 @@
-import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
+import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
+
 import type { ReportStatus } from "./report-status.types.js";
 
 export type ReportRecord = TablesInsert<"reports">;

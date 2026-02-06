@@ -13,6 +13,7 @@ import {
 import { Button } from "@repo/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
 import { VideoContainer } from "./components/video-container";
+import { useBlockUser } from "@/hooks/user/use-block-user";
 import { useChatPanelStore } from "@/stores/chat-panel-store";
 import { useChatUnreadIndicator } from "@/hooks/chat/use-chat-unread-indicator";
 import { useGlobalCallContext } from "@/components/providers/call/global-call-manager";
@@ -40,9 +41,13 @@ export default function ChatPage() {
     endCall,
     toggleMute,
     toggleVideo,
+    toggleScreenShare,
+    isSharingScreen,
     sendFavoriteNotification,
     clearError,
   } = useGlobalCallContext();
+
+  const { blockUser: handleBlockUser } = useBlockUser();
 
   const isChatOpen = useChatPanelStore((s) => s.isChatPanelOpen);
   const toggleChatPanel = useChatPanelStore((s) => s.toggleChatPanel);
@@ -85,6 +90,12 @@ export default function ChatPage() {
             onToggleMute={toggleMute}
             onToggleVideo={toggleVideo}
             onToggleChat={toggleChatPanel}
+            onToggleScreenShare={toggleScreenShare}
+            isSharingScreen={isSharingScreen}
+            onBlockUser={async (userId) => {
+              await handleBlockUser(userId);
+              endCall();
+            }}
             sendFavoriteNotification={sendFavoriteNotification}
           />
         )}

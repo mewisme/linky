@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getUploadUrl } from "../../../infra/s3/presigned.js";
-import { config } from "../../../config/index.js";
+import { getUploadUrl } from "@/infra/s3/presigned.js";
+import { config } from "@/config/index.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:media:route");

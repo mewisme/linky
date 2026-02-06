@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import type { InterestTagsBody, UserDetailsUpdate } from "../types/user-details.types.js";
+import type { InterestTagsBody, UserDetailsUpdate } from "@/domains/user/types/user-details.types.js";
 import {
   addUserInterestTags,
   clearUserInterestTags,
@@ -10,9 +10,9 @@ import {
   putUserDetails,
   removeUserInterestTags,
   replaceUserInterestTags,
-} from "../service/user-details.service.js";
-import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-utils.js";
-import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
+} from "@/domains/user/service/user-details.service.js";
+import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:user:details:route");

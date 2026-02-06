@@ -1,3 +1,9 @@
+import type {
+  AdminInterestTagInsert,
+  AdminInterestTagUpdate,
+  InterestTagsImportRequestBody,
+  InterestTagsImportResponse,
+} from "@/domains/admin/types/admin.types.js";
 import {
   createInterestTag,
   deleteInterestTag,
@@ -5,13 +11,7 @@ import {
   getInterestTagById,
   getInterestTags,
   updateInterestTag,
-} from "../../../infra/supabase/repositories/interest-tags.js";
-import type {
-  AdminInterestTagInsert,
-  AdminInterestTagUpdate,
-  InterestTagsImportRequestBody,
-  InterestTagsImportResponse,
-} from "../types/admin.types.js";
+} from "@/infra/supabase/repositories/interest-tags.js";
 
 export async function listInterestTags(params: {
   category?: string;

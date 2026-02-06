@@ -1,12 +1,11 @@
-import { clerk, verifyToken } from '../infra/clerk/client.js';
+import { clerk, verifyToken } from "@/infra/clerk/client.js";
 
-import type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
+import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
 import type { Socket } from "socket.io";
-import { checkIfUserIsAdmin } from "../infra/admin-cache/index.js";
-import { config } from "../config/index.js";
+import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
 import { createLogger } from "@repo/logger";
 
-export type { AuthenticatedSocket } from "../types/socket/socket-context.types.js";
+export type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
 
 const logger = createLogger("socket:auth");
 

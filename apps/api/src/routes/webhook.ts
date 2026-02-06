@@ -1,10 +1,10 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { Webhook } from "svix";
-import { config } from "../config/index.js";
+import { config } from "@/config/index.js";
 import { createLogger } from "@repo/logger";
-import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
-import { handleClerkWebhookEvent } from "../webhook/clerk-webhook-handler.js";
-import { rateLimitMiddleware } from "../middleware/rate-limit.js";
+import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
+import { handleClerkWebhookEvent } from "@/webhook/clerk-webhook-handler.js";
+import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:webhook");

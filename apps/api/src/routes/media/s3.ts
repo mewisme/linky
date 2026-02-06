@@ -1,20 +1,20 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { config } from "../../config/index.js";
+import { config } from "@/config/index.js";
 import { createLogger } from "@repo/logger";
 import {
   getUploadUrl,
   getDownloadUrl,
-} from "../../infra/s3/presigned.js";
+} from "@/infra/s3/presigned.js";
 import {
   deleteObject,
   listObjects,
-} from "../../infra/s3/object.js";
+} from "@/infra/s3/object.js";
 import {
   startMultipart,
   getPartUploadUrl,
   completeMultipart,
   abortMultipart,
-} from "../../infra/s3/multipart.js";
+} from "@/infra/s3/multipart.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:media:s3");
@@ -133,7 +133,7 @@ router.get("/objects", async (req: Request, res: Response) => {
 
 router.delete("/objects/:key", async (req: Request, res: Response) => {
   try {
-    const { key } = req.params;
+    const { key } = req.params as { key: string };
 
     if (!key) {
       return res.status(400).json({
@@ -208,7 +208,7 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
 
 router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Response) => {
   try {
-    const { uploadId, partNumber } = req.params;
+    const { uploadId, partNumber } = req.params as { uploadId: string; partNumber: string };
 
     if (!uploadId || !partNumber) {
       return res.status(400).json({

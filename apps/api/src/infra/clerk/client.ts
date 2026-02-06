@@ -1,6 +1,6 @@
 import { createClerkClient, verifyToken as verifyClerkToken } from "@clerk/backend";
 
-import { config } from "../../config/index.js";
+import { config } from "@/config/index.js";
 
 export const clerk = createClerkClient({ secretKey: config.clerkSecretKey });
 

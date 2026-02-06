@@ -1,8 +1,8 @@
-import { getCacheKey, shouldVersionKey } from "./cache-namespace.js";
+import { getCacheKey, shouldVersionKey } from "@/infra/redis/cache-namespace.js";
 
 import { createLogger } from "@repo/logger";
-import { redisClient } from "./client.js";
-import { withRedisTimeout } from "./timeout-wrapper.js";
+import { redisClient } from "@/infra/redis/client.js";
+import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
 const logger = createLogger("infra:redis:cache-utils");
 

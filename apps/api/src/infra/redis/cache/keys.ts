@@ -4,6 +4,7 @@ export const REDIS_CACHE_KEYS = {
   userStreakCalendar: (userId: string, year: number, month: number, timezone: string) =>
     `user:streak:calendar:${userId}:${year}:${month}:${timezone}`,
   userExpToday: (userId: string, dateStr: string) => `user:exp_today:${userId}:${dateStr}`,
+  userBlocks: (userId: string) => `user:blocks:${userId}`,
   admin: (resource: string, filtersHash: string) => `admin:${resource}:${filtersHash}`,
   adminPrefix: (resource: string) => `admin:${resource}:`,
 } as const;

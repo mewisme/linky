@@ -1,5 +1,5 @@
 import { Ollama } from "ollama";
-import { config } from "../../config/index.js";
+import { config } from "@/config/index.js";
 import { createLogger } from "@repo/logger";
 
 const logger = createLogger("infra:ollama:embedding:service");

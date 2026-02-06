@@ -1,1 +1,1 @@
-export { collectReportContext } from "../contexts/report-context.js";
+export { collectReportContext } from "@/contexts/report-context.js";

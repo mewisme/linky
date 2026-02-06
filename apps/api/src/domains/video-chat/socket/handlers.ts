@@ -4,17 +4,18 @@ import type {
   MuteTogglePayload,
   ReactionPayload,
   ResyncSessionPayload,
+  ScreenShareTogglePayload,
   SignalPayload,
   VideoTogglePayload,
-} from "../types/socket-event.types.js";
+} from "@/domains/video-chat/types/socket-event.types.js";
 import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms, VideoChatUserSessions } from "./types.js";
 
-import type { AuthenticatedSocket } from "../../../socket/auth.js";
+import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import { createLogger } from "@repo/logger";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import { isValidTimezone } from "../../../utils/timezone.js";
-import { recordCallHistory } from "./call-history.socket.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { isValidTimezone } from "@/utils/timezone.js";
+import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
 
 const logger = createLogger("api:video-chat:socket:handlers");
 
@@ -70,6 +71,7 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
   setupChatMessageHandler(socket, checkActiveSession, io, rooms);
   setupMuteToggleHandler(socket, io, rooms);
   setupVideoToggleHandler(socket, io, rooms);
+  setupScreenShareHandler(socket, io, rooms);
   setupReactionHandler(socket, io, rooms);
   setupFavoriteNotificationHandler(socket, io, rooms);
   setupEndCallHandler(socket, checkActiveSession, io, matchmaking, rooms);
@@ -304,6 +306,33 @@ function setupVideoToggleHandler(socket: AuthenticatedSocket, io: Namespace, roo
 
     io.to(peerId).emit("video-toggle", {
       videoOff: data.videoOff,
+    });
+  });
+}
+
+function setupScreenShareHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
+  socket.on("screen-share:toggle", (data: ScreenShareTogglePayload) => {
+    const room = rooms.getRoomByUser(socket.id);
+    if (!room) {
+      socket.emit("error", {
+        message: "Not in a room",
+      });
+      return;
+    }
+
+    const peerId = rooms.getPeer(socket.id);
+    if (!peerId) {
+      return;
+    }
+
+    const peerSocket = io.sockets.get(peerId);
+    if (!peerSocket || !peerSocket.connected) {
+      return;
+    }
+
+    io.to(peerId).emit("screen-share:toggle", {
+      sharing: data.sharing,
+      streamId: data.streamId,
     });
   });
 }

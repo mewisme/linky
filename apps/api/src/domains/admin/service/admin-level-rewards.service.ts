@@ -1,11 +1,11 @@
+import type { AdminLevelRewardInsert, AdminLevelRewardUpdate } from "@/domains/admin/types/level-reward.types.js";
 import {
   createLevelReward,
   deleteLevelReward,
   getAllLevelRewards,
   getLevelRewardById,
   updateLevelReward,
-} from "../../../infra/supabase/repositories/level-rewards.js";
-import type { AdminLevelRewardInsert, AdminLevelRewardUpdate } from "../types/level-reward.types.js";
+} from "@/infra/supabase/repositories/level-rewards.js";
 
 export async function listLevelRewards() {
   return await getAllLevelRewards();

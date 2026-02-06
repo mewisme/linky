@@ -1,6 +1,6 @@
+import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
-import type { AuthenticatedSocket } from "../../../socket/auth.js";
-import type { VideoChatRoom } from "../types/room.types.js";
+import type { VideoChatRoom } from "@/domains/video-chat/types/room.types.js";
 
 export interface VideoChatMatchmaking {
   enqueue(socket: AuthenticatedSocket): Promise<boolean>;

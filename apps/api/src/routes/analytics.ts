@@ -5,7 +5,7 @@ import {
   createVisitor as createVisitorQuery,
   incrementVisitor as incrementVisitorQuery,
   getVisitor,
-} from "../infra/supabase/repositories/index.js";
+} from "@/infra/supabase/repositories/index.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:analytics");

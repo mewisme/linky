@@ -6,7 +6,7 @@ import {
   createFavoriteExpBoostRules,
   updateFavoriteExpBoostRules,
   deleteFavoriteExpBoostRules,
-} from "../service/admin-favorite-exp-boost.service.js";
+} from "@/domains/admin/service/admin-favorite-exp-boost.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:favorite-exp-boost:route");

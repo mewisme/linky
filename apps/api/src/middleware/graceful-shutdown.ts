@@ -1,8 +1,8 @@
 import { type Server as HTTPServer } from "http";
 import { type Server as SocketIOServer } from "socket.io";
-import { redisClient } from "../infra/redis/client.js";
-import { mqttClient } from "../infra/mqtt/client.js";
-import { config } from "../config/index.js";
+import { redisClient } from "@/infra/redis/client.js";
+import { mqttClient } from "@/infra/mqtt/client.js";
+import { config } from "@/config/index.js";
 import { createLogger } from "@repo/logger";
 
 const logger = createLogger("middleware:graceful-shutdown");

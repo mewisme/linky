@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { config } from "../../config/index.js";
+import { config } from "@/config/index.js";
 import { createLogger } from "@repo/logger";
-import type { CloudflareTurnResponse } from "../../domains/video-chat/types/call.types.js";
+import type { CloudflareTurnResponse } from "@/domains/video-chat/types/call.types.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:media:ice-servers");

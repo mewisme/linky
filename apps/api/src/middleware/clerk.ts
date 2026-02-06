@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { config } from "../config/index.js";
+import { config } from "@/config/index.js";
 import { createLogger } from "@repo/logger";
 import { verifyToken } from "@clerk/backend";
 

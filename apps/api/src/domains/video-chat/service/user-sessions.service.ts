@@ -1,6 +1,6 @@
 import { type Socket } from "socket.io";
 import { createLogger } from "@repo/logger";
-import type { WaitingSession } from "../types/session.types.js";
+import type { WaitingSession } from "@/domains/video-chat/types/session.types.js";
 
 export class UserSessionService {
   private activeSessions: Map<string, string> = new Map();

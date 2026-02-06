@@ -32,3 +32,6 @@ export * from "./level-feature-unlocks.js";
 export * from "./streak-exp-bonuses.js";
 export * from "./favorite-exp-boost-rules.js";
 export * from "./user-embeddings.js";
+export * from "./user-blocks.js";
+export * from "./notifications.js";
+export * from "./push-subscriptions.js";

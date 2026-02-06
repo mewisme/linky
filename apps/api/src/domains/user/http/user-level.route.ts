@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getUserLevelData } from "../service/user-level.service.js";
-import { getUserIdByClerkUserId } from "../service/user-settings.service.js";
+import { getUserLevelData } from "@/domains/user/service/user-level.service.js";
+import { getUserIdByClerkUserId } from "@/domains/user/service/user-settings.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:user:level:route");

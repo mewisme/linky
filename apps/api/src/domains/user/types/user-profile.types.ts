@@ -1,4 +1,4 @@
-import type { Tables } from "../../../types/database/supabase.types.js";
+import type { Tables } from "@/types/database/supabase.types.js";
 
 export type UserProfileAggregate = {
   user: Tables<"users">;

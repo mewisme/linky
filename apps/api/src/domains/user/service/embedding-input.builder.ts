@@ -1,4 +1,4 @@
-import { deriveAgeBucket } from "../../../logic/age-bucket-from-dob.js";
+import { deriveAgeBucket } from "@/logic/age-bucket-from-dob.js";
 
 export type SemanticProfileInput = {
   bio: string | null;

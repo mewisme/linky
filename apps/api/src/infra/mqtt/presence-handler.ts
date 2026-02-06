@@ -1,5 +1,5 @@
 import { createSocketServer } from '@/socket/index.js'
-import { redisClient } from '../redis/client.js'
+import { redisClient } from '@/infra/redis/client.js'
 
 let ioRef: ReturnType<typeof createSocketServer> | null = null
 

@@ -1,4 +1,4 @@
-import type { Json } from "../../../types/database/supabase.types.js";
+import type { Json } from "@/types/database/supabase.types.js";
 import type { Namespace } from "socket.io";
 
 export interface CollectReportContextParams {

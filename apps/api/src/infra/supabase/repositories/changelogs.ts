@@ -1,5 +1,5 @@
 import { createLogger } from "@repo/logger";
-import { supabase } from "../client.js";
+import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:changelogs");
 

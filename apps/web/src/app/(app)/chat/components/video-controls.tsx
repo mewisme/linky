@@ -21,6 +21,9 @@ import {
   IconFlag,
   IconStar,
   IconPictureInPicture,
+  IconScreenShare,
+  IconScreenShareOff,
+  IconBan,
 } from "@tabler/icons-react";
 import {
   Tooltip,
@@ -89,6 +92,9 @@ interface VideoControlsProps {
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onToggleChat: () => void;
+  onToggleScreenShare?: () => void;
+  isSharingScreen?: boolean;
+  onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
 }
 
@@ -169,6 +175,9 @@ export function VideoControls({
   onToggleMute,
   onToggleVideo,
   onToggleChat,
+  onToggleScreenShare,
+  isSharingScreen = false,
+  onBlockUser,
   sendFavoriteNotification,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
@@ -398,6 +407,20 @@ export function VideoControls({
         visible: isInActiveCall && !!peerInfo,
       },
       {
+        id: "screen-share",
+        priority: "overflow",
+        icon: IconScreenShare,
+        label: "Share Screen",
+        variant: "outline",
+        onClick: () => onToggleScreenShare?.(),
+        visible: isInActiveCall && !isMobile && !!onToggleScreenShare,
+        disabled: !isInActiveCall,
+        dynamicIcon: () => (isSharingScreen ? IconScreenShareOff : IconScreenShare),
+        dynamicLabel: () => (isSharingScreen ? "Stop Sharing" : "Share Screen"),
+        dynamicVariant: () => (isSharingScreen ? "destructive" : "outline"),
+        testId: "chat-screen-share-button",
+      },
+      {
         id: "picture-in-picture",
         priority: "overflow",
         icon: IconPictureInPicture,
@@ -409,6 +432,20 @@ export function VideoControls({
         visible: isInActiveCall,
         dynamicLabel: () => isFloatingMode ? "Exit Picture in Picture" : "Picture in Picture",
         testId: "chat-pip-toggle-button",
+      },
+      {
+        id: "block-user",
+        priority: "overflow",
+        icon: IconBan,
+        label: "Block User",
+        variant: "outline",
+        onClick: () => {
+          if (peerInfo?.id && onBlockUser) {
+            onBlockUser(peerInfo.id);
+          }
+        },
+        visible: isInActiveCall && !!peerInfo && !!onBlockUser,
+        testId: "chat-block-user-button",
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -422,11 +459,15 @@ export function VideoControls({
       onToggleChat,
       onToggleMute,
       onToggleVideo,
+      onToggleScreenShare,
+      isSharingScreen,
+      onBlockUser,
       peerInfo,
       handleToggleFavorite,
       isFavorite,
       isFavoriteLoading,
       isFloatingMode,
+      isMobile,
     ]
   );
 

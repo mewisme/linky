@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@repo/ui/components/ui/select'
-import { IconBell, IconLoader2, IconMicrophone, IconVideo } from '@tabler/icons-react'
+import { IconLoader2, IconMicrophone, IconVideo } from '@tabler/icons-react'
 import { useEffect, useState, useTransition } from 'react'
 
 import { AppLayout } from '@/components/layouts/app-layout'
@@ -86,7 +86,7 @@ function SidebarSettings() {
   );
 }
 
-export default function SettingsPage() {
+export default function AppearanceSettingsPage() {
   const {
     user: { isLoaded, user },
     store: { userSettings },
@@ -97,13 +97,11 @@ export default function SettingsPage() {
   const [isPending, startTransition] = useTransition()
   const [defaultMuteMic, setDefaultMuteMic] = useState(false)
   const [defaultDisableCamera, setDefaultDisableCamera] = useState(false)
-  const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(false)
 
   useEffect(() => {
     if (userSettings) {
       setDefaultMuteMic(userSettings.default_mute_mic ?? false)
       setDefaultDisableCamera(userSettings.default_disable_camera ?? false)
-      setNotificationSoundEnabled(userSettings.notification_sound_enabled ?? false)
     }
   }, [userSettings])
 
@@ -115,7 +113,6 @@ export default function SettingsPage() {
         await updateUserSettings({
           default_mute_mic: defaultMuteMic,
           default_disable_camera: defaultDisableCamera,
-          notification_sound_enabled: notificationSoundEnabled,
         })
         playSound('success')
         toast.success('Settings updated successfully')
@@ -128,16 +125,15 @@ export default function SettingsPage() {
   const hasChanges =
     userSettings &&
     (defaultMuteMic !== userSettings.default_mute_mic ||
-      defaultDisableCamera !== userSettings.default_disable_camera ||
-      notificationSoundEnabled !== userSettings.notification_sound_enabled)
+      defaultDisableCamera !== userSettings.default_disable_camera)
 
   return (
-    <AppLayout label="Settings" description="Manage your settings">
+    <AppLayout label="Appearance Settings" description="Manage your appearance settings">
       <Card>
         <CardHeader>
-          <CardTitle>Application Settings</CardTitle>
+          <CardTitle>Appearance Settings</CardTitle>
           <CardDescription>
-            Configure your default preferences and notification settings
+            Configure your default preferences and appearance settings
           </CardDescription>
         </CardHeader>
 
@@ -186,33 +182,6 @@ export default function SettingsPage() {
                   disabled={isPending}
                 />
               </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Notification Settings */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Notifications
-            </h3>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="notification-sound" className="flex items-center gap-2">
-                  <IconBell className="size-4" />
-                  Notification Sound
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Enable sound notifications for incoming calls and messages
-                </p>
-              </div>
-              <Switch
-                id="notification-sound"
-                checked={notificationSoundEnabled}
-                onCheckedChange={setNotificationSoundEnabled}
-                disabled={isPending}
-              />
             </div>
           </div>
 

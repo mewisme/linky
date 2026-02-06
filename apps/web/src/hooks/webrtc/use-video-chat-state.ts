@@ -29,6 +29,9 @@ export interface VideoChatActions {
   setNetworkQuality: (quality: NetworkQuality) => void;
   setVideoStalled: (stalled: boolean) => void;
   setQualityTier: (tier: QualityTier) => void;
+  setSharingScreen: (sharing: boolean) => void;
+  setPeerSharingScreen: (sharing: boolean) => void;
+  setScreenStream: (stream: MediaStream | null) => void;
   resetState: () => void;
   resetPeerState: () => void;
   resetRuntimeState: () => void;
@@ -116,6 +119,12 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setVideoStalled(stalled),
       setQualityTier: (tier: QualityTier) =>
         useVideoChatStore.getState().setQualityTier(tier),
+      setSharingScreen: (sharing: boolean) =>
+        useVideoChatStore.getState().setSharingScreen(sharing),
+      setPeerSharingScreen: (sharing: boolean) =>
+        useVideoChatStore.getState().setPeerSharingScreen(sharing),
+      setScreenStream: (stream: MediaStream | null) =>
+        useVideoChatStore.getState().setScreenStream(stream),
       resetState: () => useVideoChatStore.getState().resetState(),
       resetPeerState: () => useVideoChatStore.getState().resetPeerState(),
       resetRuntimeState: () => useVideoChatStore.getState().resetRuntimeState(),

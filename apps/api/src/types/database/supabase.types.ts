@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      broadcast_history: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          id: string
+          message: string
+          title: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          message: string
+          title?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          message?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_history_created_by_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "broadcast_history_created_by_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "broadcast_history_created_by_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "broadcast_history_created_by_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_history: {
         Row: {
           callee_country: string | null
@@ -289,6 +342,62 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          payload: Json
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          payload?: Json
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          payload?: Json
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_views: {
         Row: {
           created_at: string
@@ -309,6 +418,62 @@ export type Database = {
           path?: string
         }
         Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_user_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_contexts: {
         Row: {
@@ -554,6 +719,84 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_blocks: {
+        Row: {
+          blocked_user_id: string
+          blocker_user_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_user_id: string
+          blocker_user_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_user_id?: string
+          blocker_user_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_blocks_blocked_fkey"
+            columns: ["blocked_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocked_fkey"
+            columns: ["blocked_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocked_fkey"
+            columns: ["blocked_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocked_fkey"
+            columns: ["blocked_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocker_fkey"
+            columns: ["blocker_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocker_fkey"
+            columns: ["blocker_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocker_fkey"
+            columns: ["blocker_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_blocks_blocker_fkey"
+            columns: ["blocker_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_details: {
         Row: {
@@ -1297,6 +1540,42 @@ export type Database = {
         }
         Relationships: []
       }
+      wrappers_fdw_stats: {
+        Row: {
+          bytes_in: number | null
+          bytes_out: number | null
+          create_times: number | null
+          created_at: string
+          fdw_name: string
+          metadata: Json | null
+          rows_in: number | null
+          rows_out: number | null
+          updated_at: string
+        }
+        Insert: {
+          bytes_in?: number | null
+          bytes_out?: number | null
+          create_times?: number | null
+          created_at?: string
+          fdw_name: string
+          metadata?: Json | null
+          rows_in?: number | null
+          rows_out?: number | null
+          updated_at?: string
+        }
+        Update: {
+          bytes_in?: number | null
+          bytes_out?: number | null
+          create_times?: number | null
+          created_at?: string
+          fdw_name?: string
+          metadata?: Json | null
+          rows_in?: number | null
+          rows_out?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       admin_users_unified: {
@@ -1560,6 +1839,90 @@ export type Database = {
       }
     }
     Functions: {
+      airtable_fdw_handler: { Args: never; Returns: unknown }
+      airtable_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      airtable_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      auth0_fdw_handler: { Args: never; Returns: unknown }
+      auth0_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      auth0_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      big_query_fdw_handler: { Args: never; Returns: unknown }
+      big_query_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      big_query_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      click_house_fdw_handler: { Args: never; Returns: unknown }
+      click_house_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      click_house_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      cognito_fdw_handler: { Args: never; Returns: unknown }
+      cognito_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      cognito_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      duckdb_fdw_handler: { Args: never; Returns: unknown }
+      duckdb_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      duckdb_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
       find_similar_users_by_embedding: {
         Args: {
           p_exclude_user_ids?: string[]
@@ -1572,6 +1935,48 @@ export type Database = {
           user_id: string
         }[]
       }
+      firebase_fdw_handler: { Args: never; Returns: unknown }
+      firebase_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      firebase_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      hello_world_fdw_handler: { Args: never; Returns: unknown }
+      hello_world_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      hello_world_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      iceberg_fdw_handler: { Args: never; Returns: unknown }
+      iceberg_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      iceberg_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
       increment_user_exp: {
         Args: { p_seconds: number; p_user_id: string }
         Returns: undefined
@@ -1581,6 +1986,35 @@ export type Database = {
         Returns: undefined
       }
       increment_visitor: { Args: { ip: string }; Returns: undefined }
+      logflare_fdw_handler: { Args: never; Returns: unknown }
+      logflare_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      logflare_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      metadata_filter: { Args: { _left: Json; _right: Json }; Returns: boolean }
+      mssql_fdw_handler: { Args: never; Returns: unknown }
+      mssql_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      mssql_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
       page_views_timeseries: {
         Args: { days: number }
         Returns: {
@@ -1590,6 +2024,66 @@ export type Database = {
       }
       prepare_streak_freeze: {
         Args: { p_gap_date: string; p_user_id: string }
+        Returns: undefined
+      }
+      redis_fdw_handler: { Args: never; Returns: unknown }
+      redis_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      redis_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      s3_fdw_handler: { Args: never; Returns: unknown }
+      s3_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      s3_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      s3_vectors_fdw_handler: { Args: never; Returns: unknown }
+      s3_vectors_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      s3_vectors_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
+      }
+      s3vec_distance: { Args: { s3vec: unknown }; Returns: number }
+      s3vec_in: { Args: { input: unknown }; Returns: unknown }
+      s3vec_knn: { Args: { _left: unknown; _right: unknown }; Returns: boolean }
+      s3vec_out: { Args: { input: unknown }; Returns: unknown }
+      stripe_fdw_handler: { Args: never; Returns: unknown }
+      stripe_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      stripe_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
         Returns: undefined
       }
       update_user_streak_summary: {
@@ -1613,6 +2107,20 @@ export type Database = {
           day: string
           visitors: number
         }[]
+      }
+      wasm_fdw_handler: { Args: never; Returns: unknown }
+      wasm_fdw_meta: {
+        Args: never
+        Returns: {
+          author: string
+          name: string
+          version: string
+          website: string
+        }[]
+      }
+      wasm_fdw_validator: {
+        Args: { catalog: unknown; options: string[] }
+        Returns: undefined
       }
     }
     Enums: {

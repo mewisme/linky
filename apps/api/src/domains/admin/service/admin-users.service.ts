@@ -1,17 +1,17 @@
-import type { AdminUnifiedUser, AdminUserUpdate } from "../types/admin.types.js";
+import type { AdminUnifiedUser, AdminUserUpdate } from "@/domains/admin/types/admin.types.js";
 import {
   getAdminUsersUnified,
   getUserById,
   patchUser,
   updateUser,
-} from "../../../infra/supabase/repositories/index.js";
-import { getOrSet, invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
+} from "@/infra/supabase/repositories/index.js";
+import { getOrSet, invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
 
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
-import { calculateLevelFromExp } from "../../../logic/level-from-exp.js";
-import { clerk } from "../../../infra/clerk/client.js";
-import { hashFilters } from "../../../infra/redis/cache/hash.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
+import { calculateLevelFromExp } from "@/logic/level-from-exp.js";
+import { clerk } from "@/infra/clerk/client.js";
+import { hashFilters } from "@/infra/redis/cache/hash.js";
 
 export async function listUsers(params: {
   getAll: boolean;

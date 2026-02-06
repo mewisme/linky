@@ -6,9 +6,9 @@ import {
   updateChangelog,
   type CreateChangelogParams,
   type UpdateChangelogParams,
-} from "../../../infra/supabase/repositories/changelogs.js";
+} from "@/infra/supabase/repositories/changelogs.js";
 
-export type { CreateChangelogParams, UpdateChangelogParams } from "../../../infra/supabase/repositories/changelogs.js";
+export type { CreateChangelogParams, UpdateChangelogParams } from "@/infra/supabase/repositories/changelogs.js";
 
 export async function listChangelogs(params: { limit: number; offset: number; orderBy: "release_date" | "order" }) {
   return await getAllChangelogsForAdmin(params);

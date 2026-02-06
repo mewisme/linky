@@ -46,4 +46,8 @@ export const config = {
   // Ollama
   ollamaUrl: process.env.OLLAMA_URL as string,
   ollamaEmbeddingTimeout: Number(process.env.OLLAMA_EMBEDDING_TIMEOUT) || 60000,
+  // Web Push (VAPID)
+  vapidSubject: process.env.VAPID_SUBJECT as string,
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY as string,
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY as string,
 } as const;

@@ -464,6 +464,10 @@ export function useVideoChatCallbacks({
         actionsRef.current.setRemoteCameraEnabled(!data.videoOff);
       },
 
+      onScreenShareToggle: (data: { sharing: boolean; streamId?: string }) => {
+        actionsRef.current.setPeerSharingScreen(data.sharing);
+      },
+
       onQueueTimeout: (data: { message: string }) => {
         actionsRef.current.setError(data.message);
         actionsRef.current.setConnectionStatus("idle");

@@ -3,9 +3,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useUserAuthContext } from "./user-auth-provider";
 
+type GetTokenOptions = { skipCache?: boolean };
+
 type UserTokenContextValue = {
   token: string | null;
-  getToken: () => Promise<string | null>;
+  getToken: (options?: GetTokenOptions) => Promise<string | null>;
 };
 
 const UserTokenContext = createContext<UserTokenContextValue | null>(null);
@@ -15,16 +17,19 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const inFlightRef = useRef<Promise<string | null> | null>(null);
 
-  const getToken = useCallback(async () => {
-    if (inFlightRef.current) return inFlightRef.current;
+  const getToken = useCallback(
+    async (options?: GetTokenOptions) => {
+      if (!options?.skipCache && inFlightRef.current) return inFlightRef.current;
 
-    const promise = getClerkToken().finally(() => {
-      inFlightRef.current = null;
-    });
+      const promise = getClerkToken(options).finally(() => {
+        inFlightRef.current = null;
+      });
 
-    inFlightRef.current = promise;
-    return promise;
-  }, [getClerkToken]);
+      if (!options?.skipCache) inFlightRef.current = promise;
+      return promise;
+    },
+    [getClerkToken]
+  );
 
   const refreshToken = useCallback(async () => {
     const next = await getToken();

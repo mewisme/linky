@@ -4,6 +4,7 @@ export { default as userSettingsRouter } from "./http/user-settings.route.js";
 export { default as userProfileRouter } from "./http/user-profile.route.js";
 export { default as userLevelRouter } from "./http/user-level.route.js";
 export { default as userStreakRouter } from "./http/user-streak.route.js";
+export { default as userBlocksRouter } from "./http/user-blocks.route.js";
 
 export type { UpdateUserCountryBody, UserUpdate } from "./types/user.types.js";
 export type { InterestTagsBody, UserDetailsUpdate } from "./types/user-details.types.js";
@@ -22,4 +23,13 @@ export {
 
 export type { UserLevel, LevelCalculationParams } from "./types/user-level.types.js";
 export type { UserStreak, UserStreakDay } from "./types/user-streak.types.js";
+
+export {
+  blockUser,
+  unblockUser,
+  getBlockedUsers,
+  isInteractionAllowed,
+} from "./service/user-block.service.js";
+
+export type { BlockRecord, BlockUserBody } from "./types/user-block.types.js";
 

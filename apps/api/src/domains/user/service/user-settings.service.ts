@@ -3,12 +3,12 @@ import {
   getUserSettingsByUserId,
   patchUserSettings,
   updateUserSettings,
-} from "../../../infra/supabase/repositories/user-settings.js";
+} from "@/infra/supabase/repositories/user-settings.js";
 
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import type { UserSettingsUpdate } from "../types/user-settings.types.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import { invalidate } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import type { UserSettingsUpdate } from "@/domains/user/types/user-settings.types.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { invalidate } from "@/infra/redis/cache/index.js";
 
 type UserSettingsUpdateData = Omit<UserSettingsUpdate, "user_id">;
 

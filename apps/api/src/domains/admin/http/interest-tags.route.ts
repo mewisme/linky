@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import type { AdminInterestTagInsert, AdminInterestTagUpdate } from "../types/admin.types.js";
+import type { AdminInterestTagInsert, AdminInterestTagUpdate } from "@/domains/admin/types/admin.types.js";
 import {
   createAdminInterestTag,
   getInterestTag,
@@ -9,8 +9,8 @@ import {
   listInterestTags,
   softDeleteInterestTag,
   updateAdminInterestTag,
-} from "../service/admin-interest-tags.service.js";
-import type { InterestTagsImportRequestBody } from "../types/admin.types.js";
+} from "@/domains/admin/service/admin-interest-tags.service.js";
+import type { InterestTagsImportRequestBody } from "@/domains/admin/types/admin.types.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:interest-tags:route");

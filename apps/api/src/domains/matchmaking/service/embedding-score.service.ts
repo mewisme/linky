@@ -1,4 +1,4 @@
-import type { EmbeddingPair, EmbeddingScoreConfig, EmbeddingSimilarityResult } from "../types/embedding.types.js";
+import type { EmbeddingPair, EmbeddingScoreConfig, EmbeddingSimilarityResult } from "@/domains/matchmaking/types/embedding.types.js";
 
 export const DEFAULT_EMBEDDING_CONFIG: EmbeddingScoreConfig = {
   embeddingWeight: 25,

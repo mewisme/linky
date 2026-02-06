@@ -1,6 +1,6 @@
 import { RedisClientType, RedisFunctions, RedisModules, RedisScripts, RespVersions, TypeMapping, createClient } from 'redis'
 
-import { config } from '../../config/index.js'
+import { config } from '@/config/index.js'
 import { createLogger } from '@repo/logger'
 
 const logger = createLogger("infra:redis:client");

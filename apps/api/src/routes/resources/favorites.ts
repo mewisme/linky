@@ -1,6 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import {
-  getFavoritesByUserId,
   checkFavoriteExists,
   createFavorite,
   deleteFavorite,
@@ -9,15 +8,13 @@ import {
   getFavoriteCreationDate,
   decrementFavoriteLimit,
   getFavoritesWithStats,
-} from "../../infra/supabase/repositories/favorites.js";
-import { getUserIdByClerkId } from "../../infra/supabase/repositories/call-history.js";
+} from "@/infra/supabase/repositories/favorites.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { createLogger } from "@repo/logger";
-import { getVideoChatContext } from "../../domains/video-chat/socket/video-chat.socket.js";
-import { supabase } from "../../infra/supabase/client.js";
-import { redisClient } from "../../infra/redis/client.js";
-import { getCachedData, invalidateCacheKey } from "../../infra/redis/cache-utils.js";
-import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
-import { rateLimitMiddleware } from "../../middleware/rate-limit.js";
+import { redisClient } from "@/infra/redis/client.js";
+import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
+import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:resources:favorites");
@@ -139,7 +136,7 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
 router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
-    const { favorite_user_id } = req.params;
+    const { favorite_user_id } = req.params as { favorite_user_id: string };
 
     if (!clerkUserId) {
       return res.status(401).json({

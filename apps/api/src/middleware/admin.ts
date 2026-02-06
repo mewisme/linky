@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { checkIfUserIsAdmin } from "../infra/admin-cache/index.js";
+import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
 import { createLogger } from "@repo/logger";
 
 export async function adminMiddleware(req: Request, res: Response, next: NextFunction) {

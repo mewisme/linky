@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import {
   createAdminChangelog,
   deleteAdminChangelog,
@@ -9,7 +9,7 @@ import {
   updateAdminChangelog,
   type CreateChangelogParams,
   type UpdateChangelogParams,
-} from "../service/admin-changelogs.service.js";
+} from "@/domains/admin/service/admin-changelogs.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:changelogs:route");

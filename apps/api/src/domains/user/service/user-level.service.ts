@@ -1,18 +1,18 @@
-import type { LevelCalculationParams, UserLevel } from "../types/user-level.types.js";
-import { getUserLevel, incrementUserExp } from "../../../infra/supabase/repositories/user-levels.js";
-import { invalidate, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
+import type { LevelCalculationParams, UserLevel } from "@/domains/user/types/user-level.types.js";
+import { getUserLevel, incrementUserExp } from "@/infra/supabase/repositories/user-levels.js";
+import { invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
 
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import { calculateLevelFromExp as calcLevel } from "../../../logic/level-from-exp.js";
-import { checkFavoriteExists } from "../../../infra/supabase/repositories/favorites.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { calculateLevelFromExp as calcLevel } from "@/logic/level-from-exp.js";
+import { checkFavoriteExists } from "@/infra/supabase/repositories/favorites.js";
 import { createLogger } from "@repo/logger";
-import { getActiveFavoriteExpBoostRules } from "../../../infra/supabase/repositories/favorite-exp-boost-rules.js";
-import { getStreakExpBonusForStreak } from "../../../infra/supabase/repositories/streak-exp-bonuses.js";
-import { getUserStreak } from "../../../infra/supabase/repositories/user-streaks.js";
+import { getActiveFavoriteExpBoostRules } from "@/infra/supabase/repositories/favorite-exp-boost-rules.js";
+import { getStreakExpBonusForStreak } from "@/infra/supabase/repositories/streak-exp-bonuses.js";
+import { getUserStreak } from "@/infra/supabase/repositories/user-streaks.js";
 import { grantFreezesForLevel } from "./user-streak-freeze.service.js";
 import { grantRewardsForLevel } from "./user-level-reward.service.js";
-import { incrExpToday } from "../../../infra/redis/cache/exp-today.js";
-import { incrementUserExpDaily } from "../../../infra/supabase/repositories/user-exp-daily.js";
+import { incrExpToday } from "@/infra/redis/cache/exp-today.js";
+import { incrementUserExpDaily } from "@/infra/supabase/repositories/user-exp-daily.js";
 
 const logger = createLogger("api:user:level:service");
 

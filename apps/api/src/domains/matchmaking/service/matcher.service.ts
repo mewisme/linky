@@ -1,4 +1,4 @@
-import type { MatchOptions, MatchResult, QueueUser } from "../types/candidate.types.js";
+import type { MatchOptions, MatchResult, QueueUser } from "@/domains/matchmaking/types/candidate.types.js";
 import { calculateCommonInterestsFromTags, calculateFairnessBonus } from "./scoring.service.js";
 
 const SCORE_PER_COMMON_INTEREST = 100;

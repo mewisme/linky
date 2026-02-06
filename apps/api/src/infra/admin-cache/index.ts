@@ -1,6 +1,6 @@
 import { createLogger } from "@repo/logger";
-import { redisClient } from "../redis/client.js";
-import { supabase } from "../supabase/client.js";
+import { redisClient } from "@/infra/redis/client.js";
+import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:admin-cache");
 

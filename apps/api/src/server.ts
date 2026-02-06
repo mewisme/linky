@@ -1,14 +1,14 @@
 import express, { type Express } from "express";
 import { createServer, type Server as HTTPServer } from "http";
-import { setupMiddleware, setupErrorHandlers } from "./middleware/index.js";
-import { setupRoutes } from "./routes/index.js";
-import { createSocketServer } from "./socket/index.js";
-import { config } from "./config/index.js";
+import { setupMiddleware, setupErrorHandlers } from "@/middleware/index.js";
+import { setupRoutes } from "@/routes/index.js";
+import { createSocketServer } from "@/socket/index.js";
+import { config } from "@/config/index.js";
 import { createLogger } from "@repo/logger";
-import { connectRedis } from "./infra/redis/client.js";
-import { preloadReferenceData } from "./infra/redis/cache-preload.js";
-import { initializeMqttClient, attachSocketIO } from "./infra/mqtt/client.js";
-import { setupGracefulShutdown } from "./middleware/graceful-shutdown.js";
+import { connectRedis } from "@/infra/redis/client.js";
+import { preloadReferenceData } from "@/infra/redis/cache-preload.js";
+import { initializeMqttClient, attachSocketIO } from "@/infra/mqtt/client.js";
+import { setupGracefulShutdown } from "@/middleware/graceful-shutdown.js";
 
 const logger = createLogger("api:server");
 

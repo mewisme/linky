@@ -1,14 +1,14 @@
+import type {
+  AdminLevelFeatureUnlockInsert,
+  AdminLevelFeatureUnlockUpdate,
+} from "@/domains/admin/types/level-feature-unlock.types.js";
 import {
   createLevelFeatureUnlock,
   deleteLevelFeatureUnlock,
   getAllLevelFeatureUnlocks,
   getLevelFeatureUnlockById,
   updateLevelFeatureUnlock,
-} from "../../../infra/supabase/repositories/level-feature-unlocks.js";
-import type {
-  AdminLevelFeatureUnlockInsert,
-  AdminLevelFeatureUnlockUpdate,
-} from "../types/level-feature-unlock.types.js";
+} from "@/infra/supabase/repositories/level-feature-unlocks.js";
 
 export async function listLevelFeatureUnlocks() {
   return await getAllLevelFeatureUnlocks();

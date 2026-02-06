@@ -6,8 +6,9 @@ import {
   getVisitor,
   getVisitorStats,
   incrementVisitor as incrementVisitorQuery,
-} from "../../../infra/supabase/repositories/index.js";
-import { supabase } from "../../../infra/supabase/client.js";
+} from "@/infra/supabase/repositories/index.js";
+
+import { supabase } from "@/infra/supabase/client.js";
 
 export async function getVisitorDetails(ip: string) {
   const visitor = await getVisitor(ip);

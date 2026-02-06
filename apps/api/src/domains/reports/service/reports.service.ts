@@ -4,14 +4,15 @@ import {
   getReports,
   getUserReports,
   updateReport,
-} from "../../../infra/supabase/repositories/reports.js";
-import { getReportWithContext } from "../../../infra/supabase/repositories/report-contexts.js";
-import type { ReportStatus } from "../types/report-status.types.js";
-import type { ReportUpdate } from "../types/report.types.js";
-import { getOrSet, invalidateByPrefix } from "../../../infra/redis/cache/index.js";
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
-import { hashFilters } from "../../../infra/redis/cache/hash.js";
+} from "@/infra/supabase/repositories/reports.js";
+import { getOrSet, invalidateByPrefix } from "@/infra/redis/cache/index.js";
+
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
+import type { ReportStatus } from "@/domains/reports/types/report-status.types.js";
+import type { ReportUpdate } from "@/domains/reports/types/report.types.js";
+import { getReportWithContext } from "@/infra/supabase/repositories/report-contexts.js";
+import { hashFilters } from "@/infra/redis/cache/hash.js";
 
 export async function createUserReport(params: { reporterUserId: string; reportedUserId: string; reason: string }) {
   const created = await createReport({

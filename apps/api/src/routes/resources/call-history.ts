@@ -1,15 +1,15 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { supabase } from "../../infra/supabase/client.js";
+import { supabase } from "@/infra/supabase/client.js";
 import {
   createCallHistory,
   getCallHistoryByUserId,
   getCallHistoryById,
   getUserIdByClerkId,
   getUserCountry,
-} from "../../infra/supabase/repositories/call-history.js";
+} from "@/infra/supabase/repositories/call-history.js";
 import { createLogger } from "@repo/logger";
-import { getCachedData, invalidateCacheKey } from "../../infra/redis/cache-utils.js";
-import { CACHE_KEYS, CACHE_TTL } from "../../infra/redis/cache-config.js";
+import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:resources:call-history");
@@ -100,7 +100,7 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     if (!clerkUserId) {
       return res.status(401).json({

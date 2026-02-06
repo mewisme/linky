@@ -1,9 +1,9 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { getVideoChatContext } from "../socket/video-chat.socket.js";
+import { getVideoChatContext } from "@/domains/video-chat/socket/video-chat.socket.js";
 import { createLogger } from "@repo/logger";
-import { recordCallHistory } from "../socket/call-history.socket.js";
-import { type AuthenticatedSocket } from "../../../socket/auth.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
+import { type AuthenticatedSocket } from "@/socket/auth.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:video-chat:end-call-unload:route");

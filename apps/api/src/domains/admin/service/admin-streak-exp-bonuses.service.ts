@@ -1,11 +1,11 @@
+import type { AdminStreakExpBonusInsert, AdminStreakExpBonusUpdate } from "@/domains/admin/types/streak-exp-bonus.types.js";
 import {
   createStreakExpBonus,
   deleteStreakExpBonus,
   getAllStreakExpBonuses,
   getStreakExpBonusById,
   updateStreakExpBonus,
-} from "../../../infra/supabase/repositories/streak-exp-bonuses.js";
-import type { AdminStreakExpBonusInsert, AdminStreakExpBonusUpdate } from "../types/streak-exp-bonus.types.js";
+} from "@/infra/supabase/repositories/streak-exp-bonuses.js";
 
 export async function listStreakExpBonuses() {
   return await getAllStreakExpBonuses();

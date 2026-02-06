@@ -20,6 +20,7 @@ export interface SocketCallbacks {
   onChatMessage: (data: { message: string; timestamp: number; senderId: string; senderName?: string; senderImageUrl?: string }) => void;
   onMuteToggle: (data: { muted: boolean }) => void;
   onVideoToggle: (data: { videoOff: boolean }) => void;
+  onScreenShareToggle: (data: { sharing: boolean; streamId?: string }) => void;
   onQueueTimeout: (data: { message: string }) => void;
   onError: (data: { message: string }) => void;
   onConnect: () => void;
@@ -43,6 +44,7 @@ export interface UseSocketSignalingReturn {
   sendChatMessage: (message: string, timestamp: number) => void;
   sendMuteToggle: (muted: boolean) => void;
   sendVideoToggle: (videoOff: boolean) => void;
+  sendScreenShareToggle: (sharing: boolean, streamId?: string) => void;
   sendReaction: (count: number, type?: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   removeAllListeners: () => void;
@@ -142,6 +144,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onVideoToggle(data);
     });
 
+    socket.on("screen-share:toggle", (data) => {
+      publishPresence('in_call');
+      socketHealthMonitor.markEventReceived();
+      callbacks.onScreenShareToggle(data);
+    });
+
     socket.on("queue-timeout", (data) => {
       console.info("Queue timeout:", data.message);
       publishPresence('available');
@@ -194,6 +202,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socket.removeAllListeners("end-call");
       socket.removeAllListeners("chat-message");
       socket.removeAllListeners("mute-toggle");
+      socket.removeAllListeners("screen-share:toggle");
       socket.removeAllListeners("queue-timeout");
       socket.removeAllListeners("error");
       socket.removeAllListeners("favorite:added");
@@ -297,6 +306,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
+  const sendScreenShareToggle = useCallback((sharing: boolean, streamId?: string) => {
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit("screen-share:toggle", { sharing, streamId });
+    }
+  }, []);
+
   const sendReaction = useCallback((count: number, type: string = "heart") => {
     if (socketRef.current && socketRef.current.connected) {
       socketRef.current.emit("reaction:triggered", { count, type, timestamp: Date.now() });
@@ -326,6 +341,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socketRef.current.removeAllListeners("chat-message");
       socketRef.current.removeAllListeners("mute-toggle");
       socketRef.current.removeAllListeners("video-toggle");
+      socketRef.current.removeAllListeners("screen-share:toggle");
       socketRef.current.removeAllListeners("queue-timeout");
       socketRef.current.removeAllListeners("error");
       socketRef.current.removeAllListeners("favorite:added");
@@ -374,6 +390,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendChatMessage,
       sendMuteToggle,
       sendVideoToggle,
+      sendScreenShareToggle,
       sendReaction,
       sendFavoriteNotification,
       removeAllListeners,
@@ -395,6 +412,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendChatMessage,
       sendMuteToggle,
       sendVideoToggle,
+      sendScreenShareToggle,
       sendReaction,
       sendFavoriteNotification,
       removeAllListeners,

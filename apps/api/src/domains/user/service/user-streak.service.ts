@@ -1,4 +1,4 @@
-import type { UserStreak, UserStreakDay } from "../types/user-streak.types.js";
+import type { UserStreak, UserStreakDay } from "@/domains/user/types/user-streak.types.js";
 import {
   clearLastContinuationUsedFreeze,
   getStreakDayByUserAndDate,
@@ -6,19 +6,19 @@ import {
   getUserStreakDays,
   getUserStreakDaysByMonth,
   upsertUserStreakDay,
-} from "../../../infra/supabase/repositories/user-streaks.js";
+} from "@/infra/supabase/repositories/user-streaks.js";
 import {
   consumeFreeze,
   getFreezeInventory,
   prepareStreakFreeze,
-} from "../../../infra/supabase/repositories/user-streak-freeze.js";
-import { getOrSet, invalidate } from "../../../infra/redis/cache/index.js";
+} from "@/infra/supabase/repositories/user-streak-freeze.js";
+import { getOrSet, invalidate } from "@/infra/redis/cache/index.js";
 
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
-import { addDays } from "../../../utils/date-helpers.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
+import { addDays } from "@/utils/date-helpers.js";
 import { createLogger } from "@repo/logger";
-import { toUserLocalDateString } from "../../../utils/timezone.js";
+import { toUserLocalDateString } from "@/utils/timezone.js";
 
 const logger = createLogger("api:user:streak:service");
 

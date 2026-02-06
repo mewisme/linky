@@ -1,8 +1,8 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { redisClient } from "../infra/redis/client.js";
-import { supabase } from "../infra/supabase/client.js";
-import { withRedisTimeout } from "../infra/redis/timeout-wrapper.js";
-import { withSupabaseTimeout } from "../infra/supabase/timeout-wrapper.js";
+import { redisClient } from "@/infra/redis/client.js";
+import { supabase } from "@/infra/supabase/client.js";
+import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
+import { withSupabaseTimeout } from "@/infra/supabase/timeout-wrapper.js";
 
 const router: ExpressRouter = Router();
 

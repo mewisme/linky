@@ -7,11 +7,12 @@ import {
   getVisitorStats,
   getVisitors,
   getVisitorsTimeseries,
-} from "../../../infra/supabase/repositories/index.js";
-import { getOrSet } from "../../../infra/redis/cache/index.js";
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import { REDIS_CACHE_TTL_SECONDS } from "../../../infra/redis/cache/policy.js";
-import { hashFilters } from "../../../infra/redis/cache/hash.js";
+} from "@/infra/supabase/repositories/index.js";
+
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
+import { getOrSet } from "@/infra/redis/cache/index.js";
+import { hashFilters } from "@/infra/redis/cache/hash.js";
 
 export async function getOverview(days: number) {
   return await getOrSet(

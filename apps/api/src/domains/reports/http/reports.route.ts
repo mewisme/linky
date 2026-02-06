@@ -1,13 +1,13 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import { createReportContext } from "../../../infra/supabase/repositories/report-contexts.js";
-import { collectReportContext } from "../../../services/report-context.js";
-import type { CreateReportBody } from "../types/report.types.js";
-import { createUserReport, listUserReports } from "../service/reports.service.js";
-import { getCachedData, invalidateCacheKey } from "../../../infra/redis/cache-utils.js";
-import { CACHE_KEYS, CACHE_TTL } from "../../../infra/redis/cache-config.js";
-import { rateLimitMiddleware } from "../../../middleware/rate-limit.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { createReportContext } from "@/infra/supabase/repositories/report-contexts.js";
+import { collectReportContext } from "@/services/report-context.js";
+import type { CreateReportBody } from "@/domains/reports/types/report.types.js";
+import { createUserReport, listUserReports } from "@/domains/reports/service/reports.service.js";
+import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
+import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
+import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:route");

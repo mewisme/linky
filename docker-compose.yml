@@ -21,7 +21,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    profiles: ["app"]
     networks:
       - linky-network
     env_file:
@@ -30,19 +29,11 @@ services:
   redis:
     image: redis:8-alpine
     container_name: linky-redis
-    ports:
-      - "6379:6379"
-    command: >
-      sh -c "
-      if [ -n \"$$REDIS_PASSWORD\" ]; then
-        redis-server --requirepass $$REDIS_PASSWORD
-      else
-        redis-server
-      fi
-      "
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-    profiles: ["infra"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     volumes:
       - redis-data:/data
     restart: unless-stopped
@@ -50,12 +41,19 @@ services:
       - linky-network
 
   ollama:
-    image: ollama/ollama:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.ollama
     container_name: linky-ollama
     ports:
       - "11434:11434"
     restart: unless-stopped
-    profiles: ["ollama"]
+    healthcheck:
+      test: "ollama --version && ollama ps || exit 1"
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     networks:
       - linky-network
     volumes:

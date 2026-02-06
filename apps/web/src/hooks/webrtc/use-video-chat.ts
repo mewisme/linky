@@ -7,8 +7,10 @@ import type { UsersAPI } from "@/types/users.types";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useMediaStream } from "./use-media-stream";
 import { usePeerConnection } from "./use-peer-connection";
+import { useScreenShare } from "./use-screen-share";
 import { useSocketSignaling } from "../socket/use-socket-signaling";
 import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./use-video-chat-state";
+import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useUnloadEndCall } from "./use-unload-end-call";
 import { useSocket } from "../socket/use-socket";
 import { useVideoChatIce } from "./use-video-chat/use-video-chat-ice";
@@ -33,6 +35,9 @@ export interface UseVideoChatReturn {
   endCall: () => void;
   toggleMute: () => void;
   toggleVideo: () => void;
+  toggleScreenShare: () => Promise<void>;
+  isSharingScreen: boolean;
+  isPeerSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   error: string | null;
   clearError: () => void;
@@ -56,6 +61,9 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const mediaStream = useMediaStream();
   const socketSignaling = useSocketSignaling();
+  const screenShare = useScreenShare();
+  const isSharingScreen = useVideoChatStore((s) => s.isSharingScreen);
+  const isPeerSharingScreen = useVideoChatStore((s) => s.isPeerSharingScreen);
 
   const refreshUserProgress = () => {
     queryClient.invalidateQueries({ queryKey: ["user-progress"] });
@@ -167,6 +175,51 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const startWrapped = () => lifecycle.start(peerCallbacks, socketCallbacks as Record<string, (...args: unknown[]) => void>);
 
+  const toggleScreenShare = async () => {
+    if (isSharingScreen) {
+      screenShare.stopScreenShare();
+      actionsRef.current.setSharingScreen(false);
+      actionsRef.current.setScreenStream(null);
+      socketSignaling.sendScreenShareToggle(false);
+
+      const localStream = mediaStream.getStream();
+      if (localStream) {
+        const cameraTrack = localStream.getVideoTracks()[0];
+        if (cameraTrack) {
+          await peerConnection.replaceVideoTrack(cameraTrack);
+        }
+      }
+    } else {
+      try {
+        const stream = await screenShare.startScreenShare();
+        const screenTrack = stream.getVideoTracks()[0];
+
+        if (screenTrack) {
+          screenTrack.addEventListener("ended", () => {
+            actionsRef.current.setSharingScreen(false);
+            actionsRef.current.setScreenStream(null);
+            socketSignaling.sendScreenShareToggle(false);
+
+            const localStream = mediaStream.getStream();
+            if (localStream) {
+              const cameraTrack = localStream.getVideoTracks()[0];
+              if (cameraTrack) {
+                void peerConnection.replaceVideoTrack(cameraTrack);
+              }
+            }
+          });
+
+          await peerConnection.replaceVideoTrack(screenTrack);
+          actionsRef.current.setSharingScreen(true);
+          actionsRef.current.setScreenStream(stream);
+          socketSignaling.sendScreenShareToggle(true, stream.id);
+        }
+      } catch {
+        actionsRef.current.setSharingScreen(false);
+      }
+    }
+  };
+
   return {
     localStream: state.localStream,
     remoteStream: state.remoteStream,
@@ -184,6 +237,9 @@ export function useVideoChat(): UseVideoChatReturn {
     endCall: lifecycle.endCall,
     toggleMute: lifecycle.toggleMute,
     toggleVideo: lifecycle.toggleVideo,
+    toggleScreenShare,
+    isSharingScreen,
+    isPeerSharingScreen,
     sendFavoriteNotification: socketSignaling.sendFavoriteNotification,
     error: state.error,
     clearError: lifecycle.clearError,

@@ -1,6 +1,6 @@
-import type { UserUnlockedFeatures } from "../types/level-feature-unlock.types.js";
+import type { UserUnlockedFeatures } from "@/domains/user/types/level-feature-unlock.types.js";
 import { createLogger } from "@repo/logger";
-import { getLevelFeatureUnlocksUpToLevel } from "../../../infra/supabase/repositories/level-feature-unlocks.js";
+import { getLevelFeatureUnlocksUpToLevel } from "@/infra/supabase/repositories/level-feature-unlocks.js";
 
 const logger = createLogger("api:user:feature-unlock:service");
 

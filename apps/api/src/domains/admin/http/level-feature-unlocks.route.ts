@@ -3,14 +3,14 @@ import { createLogger } from "@repo/logger";
 import type {
   AdminLevelFeatureUnlockInsert,
   AdminLevelFeatureUnlockUpdate,
-} from "../types/level-feature-unlock.types.js";
+} from "@/domains/admin/types/level-feature-unlock.types.js";
 import {
   createAdminLevelFeatureUnlock,
   deleteAdminLevelFeatureUnlock,
   getLevelFeatureUnlock,
   listLevelFeatureUnlocks,
   updateAdminLevelFeatureUnlock,
-} from "../service/admin-level-feature-unlocks.service.js";
+} from "@/domains/admin/service/admin-level-feature-unlocks.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:level-feature-unlocks:route");

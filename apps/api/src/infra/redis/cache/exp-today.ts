@@ -1,6 +1,6 @@
-import { redisClient } from "../client.js";
-import { REDIS_CACHE_KEYS } from "./keys.js";
-import { withRedisTimeout } from "../timeout-wrapper.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { redisClient } from "@/infra/redis/client.js";
+import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
 const EXP_TODAY_TTL_SECONDS = 7 * 24 * 60 * 60;
 const USER_LOCAL_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;

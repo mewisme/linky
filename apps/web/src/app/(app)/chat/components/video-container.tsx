@@ -38,6 +38,9 @@ interface VideoContainerProps {
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onToggleChat: () => void;
+  onToggleScreenShare?: () => void;
+  isSharingScreen?: boolean;
+  onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
 }
 
@@ -58,6 +61,9 @@ export function VideoContainer({
   onToggleMute,
   onToggleVideo,
   onToggleChat,
+  onToggleScreenShare,
+  isSharingScreen,
+  onBlockUser,
   sendFavoriteNotification,
 }: VideoContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -244,6 +250,9 @@ export function VideoContainer({
           onToggleMute={onToggleMute}
           onToggleVideo={onToggleVideo}
           onToggleChat={onToggleChat}
+          onToggleScreenShare={onToggleScreenShare}
+          isSharingScreen={isSharingScreen}
+          onBlockUser={onBlockUser}
           sendFavoriteNotification={sendFavoriteNotification}
         />
       </div>

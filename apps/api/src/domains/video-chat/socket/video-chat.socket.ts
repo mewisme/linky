@@ -1,8 +1,9 @@
+import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms, VideoChatUserSessions } from "@/domains/video-chat/socket/types.js";
+import { setupMatchmakingInterval, setupRoomHeartbeat } from "@/domains/video-chat/socket/matchmaking.socket.js";
+
+import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
-import type { AuthenticatedSocket } from "../../../socket/auth.js";
-import { setupSocketHandlers } from "./handlers.js";
-import { setupMatchmakingInterval, setupRoomHeartbeat } from "./matchmaking.socket.js";
-import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms, VideoChatUserSessions } from "./types.js";
+import { setupSocketHandlers } from "@/domains/video-chat/socket/handlers.js";
 
 let videoChatContext: VideoChatContext | null = null;
 

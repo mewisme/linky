@@ -1,7 +1,7 @@
-import type { CollectReportContextParams, LiveVideoChatContext, ReportContextData } from "../types/report-context.types.js";
-import { getCallHistoryById, getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
+import type { CollectReportContextParams, LiveVideoChatContext, ReportContextData } from "@/domains/reports/types/report-context.types.js";
+import { getCallHistoryById, getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 
-import type { Json } from "../../../types/database/supabase.types.js";
+import type { Json } from "@/types/database/supabase.types.js";
 import type { Namespace } from "socket.io";
 import { createLogger } from "@repo/logger";
 

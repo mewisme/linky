@@ -1,9 +1,9 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import type { ReportStatus } from "../types/report-status.types.js";
-import type { ReportUpdate } from "../types/report.types.js";
-import { fetchReportById, fetchReportWithContext, listReports, updateReportById } from "../service/reports.service.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import type { ReportStatus } from "@/domains/reports/types/report-status.types.js";
+import type { ReportUpdate } from "@/domains/reports/types/report.types.js";
+import { fetchReportById, fetchReportWithContext, listReports, updateReportById } from "@/domains/reports/service/reports.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:admin:route");
@@ -41,7 +41,7 @@ router.get("/", async (req: Request, res: Response) => {
 
 router.get("/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     if (!id) {
       return res.status(400).json({
@@ -88,7 +88,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     if (!id) {
       return res.status(400).json({

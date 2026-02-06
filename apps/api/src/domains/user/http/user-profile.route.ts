@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getUserProfileAggregateByClerkUserId } from "../service/user-profile.service.js";
+import { getUserProfileAggregateByClerkUserId } from "@/domains/user/service/user-profile.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:user:profile:route");

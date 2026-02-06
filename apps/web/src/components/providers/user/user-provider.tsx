@@ -17,7 +17,7 @@ interface State {
   fetchUserDetails: () => Promise<void>;
   fetchUserData: () => Promise<void>;
   fetchUserSettings: () => Promise<void>;
-  getToken: () => Promise<string | null>;
+  getToken: (options?: { skipCache?: boolean }) => Promise<string | null>;
 }
 
 interface UserContextData {

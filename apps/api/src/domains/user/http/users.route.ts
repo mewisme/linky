@@ -1,11 +1,11 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import type { UpdateUserCountryBody } from "../types/user.types.js";
+import type { UpdateUserCountryBody } from "@/domains/user/types/user.types.js";
 import {
   fetchUserByClerkUserId,
   tryUpdateUserCountryFromHeader,
   updateUserCountryByClerkUserId,
-} from "../service/user.service.js";
+} from "@/domains/user/service/user.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:user:users:route");

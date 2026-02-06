@@ -1,8 +1,8 @@
-import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
+import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@repo/logger";
 import { getInterestTagsByIds } from "./interest-tags.js";
-import { supabase } from "../client.js";
+import { supabase } from "@/infra/supabase/client.js";
 
 type UserDetailsInsert = TablesInsert<"user_details">;
 type UserDetailsUpdate = TablesUpdate<"user_details">;

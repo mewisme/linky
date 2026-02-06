@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import { getOverview, getPageViewsForAdmin, getTopPagesForAdmin, getVisitorStatsForAdmin, getVisitorsForAdmin } from "../service/admin-analytics.service.js";
+import { getOverview, getPageViewsForAdmin, getTopPagesForAdmin, getVisitorStatsForAdmin, getVisitorsForAdmin } from "@/domains/admin/service/admin-analytics.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:analytics:route");

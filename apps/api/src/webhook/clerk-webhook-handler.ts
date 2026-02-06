@@ -4,16 +4,16 @@ import {
   getUserByEmail,
   patchUser,
   softDeleteUserByClerkId,
-} from "../infra/supabase/repositories/index.js";
-import { invalidate, invalidateByPrefix } from "../infra/redis/cache/index.js";
+} from "@/infra/supabase/repositories/index.js";
+import { invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
 import {
   isUserCreatedEvent,
   isUserDeletedEvent,
   isUserUpdatedEvent,
-} from "../types/webhook/webhook.types.js";
+} from "@/types/webhook/webhook.types.js";
 
-import type { ClerkWebhookEvent } from "../types/webhook/webhook.types.js";
-import { REDIS_CACHE_KEYS } from "../infra/redis/cache/keys.js";
+import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 
 export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<void> {
   const eventType = evt.type;

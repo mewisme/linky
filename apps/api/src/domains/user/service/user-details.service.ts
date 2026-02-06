@@ -8,13 +8,13 @@ import {
   removeInterestTags,
   replaceInterestTags,
   updateUserDetails,
-} from "../../../infra/supabase/repositories/user-details.js";
+} from "@/infra/supabase/repositories/user-details.js";
 
-import { REDIS_CACHE_KEYS } from "../../../infra/redis/cache/keys.js";
-import type { UserDetailsUpdate } from "../types/user-details.types.js";
-import { getInterestTagsByIds } from "../../../infra/supabase/repositories/interest-tags.js";
-import { getUserIdByClerkId } from "../../../infra/supabase/repositories/call-history.js";
-import { invalidate } from "../../../infra/redis/cache/index.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import type { UserDetailsUpdate } from "@/domains/user/types/user-details.types.js";
+import { getInterestTagsByIds } from "@/infra/supabase/repositories/interest-tags.js";
+import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { invalidate } from "@/infra/redis/cache/index.js";
 import { scheduleEmbeddingRegeneration } from "./embedding-job.service.js";
 
 type UserDetailsUpdateData = Omit<UserDetailsUpdate, "user_id">;

@@ -4,7 +4,7 @@ import {
   getAllFavoriteExpBoostRules,
   getFavoriteExpBoostRulesById,
   updateFavoriteExpBoostRules as updateFavoriteExpBoostRulesRepo,
-} from "../../../infra/supabase/repositories/favorite-exp-boost-rules.js";
+} from "@/infra/supabase/repositories/favorite-exp-boost-rules.js";
 
 export async function listFavoriteExpBoostRules() {
   return await getAllFavoriteExpBoostRules();

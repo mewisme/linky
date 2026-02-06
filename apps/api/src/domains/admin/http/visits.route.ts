@@ -7,14 +7,14 @@ import {
   getRecentVisits,
   getVisitStats,
   getVisitorDetails,
-} from "../service/admin-visits.service.js";
+} from "@/domains/admin/service/admin-visits.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:visits:route");
 
 router.get("/visitor/:ip", async (req: Request, res: Response) => {
   try {
-    const { ip } = req.params;
+    const { ip } = req.params as { ip: string };
 
     if (!ip) {
       return res.status(400).json({
@@ -51,7 +51,7 @@ router.get("/visitor/:ip", async (req: Request, res: Response) => {
 
 router.get("/path/:path", async (req: Request, res: Response) => {
   try {
-    const { path } = req.params;
+    const { path } = req.params as { path: string };
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
 
@@ -129,7 +129,7 @@ router.post("/page-view", async (req: Request, res: Response) => {
 
 router.delete("/page-view/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
 
     if (!id) {
       return res.status(400).json({

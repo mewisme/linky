@@ -1,13 +1,13 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@repo/logger";
-import type { AdminLevelRewardInsert, AdminLevelRewardUpdate } from "../types/level-reward.types.js";
+import type { AdminLevelRewardInsert, AdminLevelRewardUpdate } from "@/domains/admin/types/level-reward.types.js";
 import {
   createAdminLevelReward,
   deleteAdminLevelReward,
   getLevelReward,
   listLevelRewards,
   updateAdminLevelReward,
-} from "../service/admin-level-rewards.service.js";
+} from "@/domains/admin/service/admin-level-rewards.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:level-rewards:route");

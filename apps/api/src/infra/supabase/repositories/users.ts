@@ -1,7 +1,7 @@
-import type { TablesInsert, TablesUpdate } from "../../../types/database/supabase.types.js";
+import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@repo/logger";
-import { supabase } from "../client.js";
+import { supabase } from "@/infra/supabase/client.js";
 
 type UserUpdate = TablesUpdate<"users">;
 type UserInsert = TablesInsert<"users">;
@@ -58,6 +58,20 @@ export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersR
   }
 
   return { data: data || [], count };
+}
+
+export async function getActiveUserIds(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .or("deleted.is.null,deleted.eq.false");
+
+  if (error) {
+    logger.error("Error fetching active user IDs: %o", error instanceof Error ? error : new Error(String(error)));
+    throw error;
+  }
+
+  return (data || []).map((row) => row.id);
 }
 
 export async function getUserById(id: string) {

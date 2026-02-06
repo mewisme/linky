@@ -13,6 +13,7 @@ import { CommandBox } from './command-box'
 import Link from "next/link"
 import { Logo } from "../landing/logo"
 import { ModeToggle } from "../mode-toggle"
+import { NotificationsBell } from "../notifications-bell"
 import { Search } from 'lucide-react'
 import { SidebarTrigger } from '@repo/ui/components/animate-ui/components/radix/sidebar'
 import { useIsMobile } from "@repo/ui/hooks/use-mobile"
@@ -62,8 +63,7 @@ export function AppHeader() {
           </InputGroup>
         </div>
         <div className='flex items-center space-x-4'>
-          {/* placeholder same width with Logo size="sm" */}
-          <div className='w-16 h-8 hidden md:block' />
+          <NotificationsBell />
           <ModeToggle />
         </div>
       </div>

@@ -48,6 +48,11 @@ export async function sendPushToUser(userId: string, notification: NotificationR
         ? broadcastPayload.title
         : getNotificationTitle(notification.type);
 
+    const url =
+      notification.type === "admin_broadcast" && typeof broadcastPayload?.url === "string"
+        ? broadcastPayload.url
+        : "/notifications";
+
     const payload = {
       notification: {
         title,
@@ -55,7 +60,7 @@ export async function sendPushToUser(userId: string, notification: NotificationR
         icon: "/icon-192x192.png",
         badge: "/badge-72x72.png",
         data: {
-          url: "/notifications",
+          url,
           notificationId: notification.id,
         },
       },

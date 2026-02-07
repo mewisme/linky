@@ -16,6 +16,7 @@ import { createLogger } from "@repo/logger";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { isValidTimezone } from "@/utils/timezone.js";
 import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
+import { sendPeerActionPush } from "@/contexts/peer-action-notification-context.js";
 
 const logger = createLogger("api:video-chat:socket:handlers");
 
@@ -178,7 +179,7 @@ function setupChatMessageHandler(
   io: Namespace,
   rooms: VideoChatRooms,
 ): void {
-  socket.on("chat-message", (data: ChatMessageInputPayload) => {
+  socket.on("chat-message", async (data: ChatMessageInputPayload) => {
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
       socket.emit("error", {
@@ -204,6 +205,16 @@ function setupChatMessageHandler(
       senderName: socket.data.userName || "Anonymous",
       senderImageUrl: socket.data.userImageUrl,
     });
+
+    const peerDbUserId = await getDbUserId(peerSocket);
+    if (peerDbUserId) {
+      void sendPeerActionPush({
+        userId: peerDbUserId,
+        title: "New chat message",
+        body: `${socket.data.userName || "Anonymous"}: ${data.message}`,
+        url: "/chat?open_chat_panel=true",
+      });
+    }
   });
 }
 
@@ -254,7 +265,7 @@ function setupVideoToggleHandler(socket: AuthenticatedSocket, io: Namespace, roo
 }
 
 function setupScreenShareHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
-  socket.on("screen-share:toggle", (data: ScreenShareTogglePayload) => {
+  socket.on("screen-share:toggle", async (data: ScreenShareTogglePayload) => {
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
       socket.emit("error", {
@@ -277,6 +288,18 @@ function setupScreenShareHandler(socket: AuthenticatedSocket, io: Namespace, roo
       sharing: data.sharing,
       streamId: data.streamId,
     });
+
+    if (data.sharing) {
+      const peerDbUserId = await getDbUserId(peerSocket);
+      if (peerDbUserId) {
+        void sendPeerActionPush({
+          userId: peerDbUserId,
+          title: "Screen sharing started",
+          body: `${socket.data.userName || "Anonymous"} started sharing their screen`,
+          url: "/chat",
+        });
+      }
+    }
   });
 }
 

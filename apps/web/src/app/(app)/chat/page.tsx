@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@repo/ui/components/ui/alert-dialog"
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@repo/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
@@ -16,6 +17,7 @@ import { VideoContainer } from "./components/video-container";
 import { useBlockUser } from "@/hooks/user/use-block-user";
 import { useChatPanelStore } from "@/stores/chat-panel-store";
 import { useChatUnreadIndicator } from "@/hooks/chat/use-chat-unread-indicator";
+import { useEffect } from "react";
 import { useGlobalCallContext } from "@/components/providers/call/global-call-manager";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";
@@ -51,7 +53,25 @@ export default function ChatPage() {
 
   const isChatOpen = useChatPanelStore((s) => s.isChatPanelOpen);
   const toggleChatPanel = useChatPanelStore((s) => s.toggleChatPanel);
+  const openChatPanel = useChatPanelStore((s) => s.openChatPanel);
   const { hasUnreadMessages } = useChatUnreadIndicator(chatMessages, isChatOpen);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const shouldOpen = searchParams.get("open_chat_panel") === "true";
+    if (!shouldOpen) {
+      return;
+    }
+
+    openChatPanel();
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("open_chat_panel");
+    const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    router.replace(nextUrl);
+  }, [openChatPanel, pathname, router, searchParams]);
 
   const handleRestoreFullUI = () => {
     useVideoChatStore.getState().setFloatingMode(false);

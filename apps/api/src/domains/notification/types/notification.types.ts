@@ -34,6 +34,7 @@ export interface StreakExpiringPayload {
 export interface AdminBroadcastPayload {
   message: string;
   title?: string;
+  url?: string;
 }
 
 export type NotificationPayload =

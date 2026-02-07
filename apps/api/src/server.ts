@@ -9,6 +9,7 @@ import { connectRedis } from "@/infra/redis/client.js";
 import { preloadReferenceData } from "@/infra/redis/cache-preload.js";
 import { initializeMqttClient, attachSocketIO } from "@/infra/mqtt/client.js";
 import { setupGracefulShutdown } from "@/middleware/graceful-shutdown.js";
+import { initializeWebPush } from "@/infra/push/web-push.client.js";
 
 const logger = createLogger("api:server");
 
@@ -28,6 +29,8 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   const io = createSocketServer(httpServer);
 
   attachSocketIO(io);
+
+  initializeWebPush();
 
   try {
     await connectRedis();

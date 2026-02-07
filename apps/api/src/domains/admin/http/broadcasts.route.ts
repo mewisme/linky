@@ -10,6 +10,8 @@ const logger = createLogger("api:admin:broadcasts:route");
 interface BroadcastBody {
   message: string;
   title?: string;
+  deliveryMode?: "push_only" | "push_and_save";
+  url?: string;
 }
 
 router.get("/", async (req: Request, res: Response) => {
@@ -56,7 +58,7 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    const { message, title } = req.body as BroadcastBody;
+    const { message, title, deliveryMode, url } = req.body as BroadcastBody;
 
     if (!message || typeof message !== "string" || !message.trim()) {
       return res.status(400).json({
@@ -65,15 +67,48 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
+    if (deliveryMode && deliveryMode !== "push_only" && deliveryMode !== "push_and_save") {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "deliveryMode must be push_only or push_and_save",
+      });
+    }
+
+    let trimmedUrl: string | undefined;
+    if (url !== undefined) {
+      if (typeof url !== "string") {
+        return res.status(400).json({
+          error: "Bad Request",
+          message: "url must be a string",
+        });
+      }
+      trimmedUrl = url.trim();
+      if (trimmedUrl) {
+        if (!trimmedUrl.startsWith("/")) {
+          return res.status(400).json({
+            error: "Bad Request",
+            message: "url must start with /",
+          });
+        }
+      } else {
+        trimmedUrl = undefined;
+      }
+    }
+
     const { sent } = await sendBroadcastToAllUsers({
       message: message.trim(),
       title: typeof title === "string" ? title.trim() || undefined : undefined,
       createdByUserId,
+      deliveryMode,
+      url: trimmedUrl,
     });
 
     return res.status(201).json({
       sent,
-      message: `Broadcast sent to ${sent} user(s).`,
+      message:
+        deliveryMode === "push_only"
+          ? `Push sent to ${sent} user(s).`
+          : `Broadcast sent to ${sent} user(s).`,
     });
   } catch (error) {
     logger.error("Unexpected error in POST /admin/broadcasts: %o", error instanceof Error ? error : new Error(String(error)));

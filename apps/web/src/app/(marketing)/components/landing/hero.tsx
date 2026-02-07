@@ -115,7 +115,11 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
             onClick={handleStartChat}
             className="mx-auto font-semibold text-sm sm:text-base md:text-md"
           >
-            Start Chatting Now
+            {
+              isSignedIn && isLoaded
+                ? "Start Chatting Now"
+                : "Sign in to Start Chatting"
+            }
           </RainbowButton>
         </MotionEffect>
 

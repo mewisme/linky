@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@repo/ui/components/ui/card";
 import { IconRefresh, IconSend } from "@tabler/icons-react";
+import { RadioGroup, RadioGroupItem } from "@repo/ui/components/ui/radio-group";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
@@ -32,6 +33,8 @@ export default function AdminBroadcastsPage() {
   const { play: playSound } = useSoundWithSettings();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [pushUrl, setPushUrl] = useState("");
+  const [deliveryMode, setDeliveryMode] = useState<"push_and_save" | "push_only">("push_and_save");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [token, setToken] = useState<string | null>(null);
 
@@ -60,8 +63,13 @@ export default function AdminBroadcastsPage() {
       e.preventDefault();
 
       const trimmedMessage = message.trim();
+      const trimmedUrl = pushUrl.trim();
       if (!trimmedMessage) {
         toast.error("Message is required");
+        return;
+      }
+      if (trimmedUrl && !trimmedUrl.startsWith("/")) {
+        toast.error("URL must start with /");
         return;
       }
 
@@ -82,6 +90,8 @@ export default function AdminBroadcastsPage() {
           body: JSON.stringify({
             message: trimmedMessage,
             title: title.trim() || undefined,
+            deliveryMode,
+            url: trimmedUrl || undefined,
           }),
         });
 
@@ -96,6 +106,7 @@ export default function AdminBroadcastsPage() {
         toast.success(body.message ?? `Broadcast sent to ${body.sent} user(s).`);
         setMessage("");
         setTitle("");
+        setPushUrl("");
         void refetch();
       } catch (error) {
         toast.error(
@@ -105,7 +116,7 @@ export default function AdminBroadcastsPage() {
         setIsSubmitting(false);
       }
     },
-    [message, title, state, playSound, refetch]
+    [message, title, pushUrl, deliveryMode, state, playSound, refetch]
   );
 
   const history = data?.data ?? [];
@@ -113,16 +124,15 @@ export default function AdminBroadcastsPage() {
   return (
     <AppLayout
       label="Broadcasts"
-      description="Send an announcement to all users (in-app and push)"
+      description="Send an announcement to all users"
     >
       <div className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>New broadcast</CardTitle>
             <CardDescription>
-              All active users will receive this as an in-app notification and a
-              push notification if they are not online. Only admins can create
-              broadcasts.
+              Choose whether to save a broadcast to in-app notifications or send
+              a push-only announcement.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -148,6 +158,33 @@ export default function AdminBroadcastsPage() {
                   required
                   className="bg-background resize-y min-h-[120px]"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="broadcast-url">Push URL (optional)</Label>
+                <Input
+                  id="broadcast-url"
+                  placeholder="/notifications"
+                  value={pushUrl}
+                  onChange={(e) => setPushUrl(e.target.value)}
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Delivery</Label>
+                <RadioGroup
+                  value={deliveryMode}
+                  onValueChange={(value) => setDeliveryMode(value as "push_and_save" | "push_only")}
+                  className="grid gap-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="push_and_save" id="delivery-push-and-save" />
+                    <Label htmlFor="delivery-push-and-save">Push + in-app (save)</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="push_only" id="delivery-push-only" />
+                    <Label htmlFor="delivery-push-only">Push only (no in-app)</Label>
+                  </div>
+                </RadioGroup>
               </div>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (

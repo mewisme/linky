@@ -2,12 +2,11 @@
 
 ✨ Features
 
-- Implement push notification enhancements and new delivery options ([7f5a8e8](../../commit/7f5a8e8))
+- Enhance chat functionality with message snapshots and improved notification handling ([d9bc37c](../../commit/d9bc37c))
 
 🔨 Other Changes
 
-- Remove sourcemap and dts options from tsup configuration ([25b0cea](../../commit/25b0cea))
-- Bump package versions to 0.40.0 and update version lock ([ed24068](../../commit/ed24068))
+- Bump package versions to 0.41.0 and update version lock ([939bcbe](../../commit/939bcbe))
 
 
-📋 Full Changelog: [ed24068...7f5a8e8](../../compare/ed24068...7f5a8e8)
+📋 Full Changelog: [939bcbe...d9bc37c](../../compare/939bcbe...d9bc37c)

@@ -25,6 +25,7 @@ export interface SocketCallbacks {
   onVideoToggle: (data: { videoOff: boolean }) => void;
   onScreenShareToggle: (data: { sharing: boolean; streamId?: string }) => void;
   onQueueTimeout: (data: { message: string }) => void;
+  onDequeued: (data: { reason: string }) => void;
   onError: (data: { message: string }) => void;
   onConnect: () => void;
   onDisconnect: (reason: string) => void;
@@ -155,6 +156,11 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onQueueTimeout(data);
     });
 
+    socket.on("dequeued", (data) => {
+      publishPresence('available');
+      callbacks.onDequeued(data);
+    });
+
     socket.on("error", (data) => {
       console.error("Socket error:", data.message);
       publishPresence('offline');
@@ -206,6 +212,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         socket.removeAllListeners("video-toggle");
         socket.removeAllListeners("screen-share:toggle");
         socket.removeAllListeners("queue-timeout");
+        socket.removeAllListeners("dequeued");
         socket.removeAllListeners("error");
         socket.removeAllListeners("favorite:added");
         socket.removeAllListeners("favorite:added:self");

@@ -398,7 +398,10 @@ export function useVideoChat(): UseVideoChatReturn {
           currentStatus === "matched" ||
           currentStatus === "in_call" ||
           currentStatus === "reconnecting";
-        if (isInCall && isReconnectingRef.current) {
+
+        if (currentStatus === "searching") {
+          socketSignaling.joinQueue();
+        } else if (isInCall && isReconnectingRef.current) {
           socketSignaling.requestResync();
           const pc = peerConnection.getPeerConnection();
           if (pc) {
@@ -417,7 +420,15 @@ export function useVideoChat(): UseVideoChatReturn {
           currentStatus === "matched" ||
           currentStatus === "in_call" ||
           currentStatus === "reconnecting";
-        if (isInCall) {
+
+        if (currentStatus === "searching") {
+          const isTransportClose = reason === "transport close" || reason === "transport error";
+          if (isTransportClose) {
+            actionsRef.current.setConnectionStatus("idle");
+            actionsRef.current.setError("Connection lost during matchmaking. Please try again.");
+            toast.error("Connection lost. Please try again.");
+          }
+        } else if (isInCall) {
           startReconnecting();
           actionsRef.current.setConnectionStatus("reconnecting");
         }
@@ -741,6 +752,16 @@ export function useVideoChat(): UseVideoChatReturn {
         toast.error(`Queue timeout - ${data.message}`);
       },
 
+      onDequeued: (data: { reason: string }) => {
+        const currentStatus = connectionStatusRef.current;
+        if (currentStatus === "searching") {
+          actionsRef.current.setConnectionStatus("idle");
+          if (!data.reason.includes("matched")) {
+            toast.error("Removed from matchmaking queue");
+          }
+        }
+      },
+
       onError: (data: { message: string }) => {
         actionsRef.current.setError(data.message);
         toast.error(`Error - ${data.message}`);
@@ -793,6 +814,13 @@ export function useVideoChat(): UseVideoChatReturn {
       const token = await getToken();
       if (!token) {
         actionsRef.current.setError("Authentication required. Please sign in.");
+        return;
+      }
+
+      const socket = socketSignaling.getSocket();
+      if (!socket?.connected) {
+        actionsRef.current.setError("Connection not ready. Please wait a moment and try again.");
+        toast.error("Connection not ready. Please wait...");
         return;
       }
 

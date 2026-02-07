@@ -24,7 +24,7 @@ export function setupDisconnectHandler(
     const shouldDequeueFromMatchmaking = !isNamespaceDisconnect || wasInRoom;
 
     if (dbUserId && shouldDequeueFromMatchmaking) {
-      await matchmaking.dequeueIfOwner(dbUserId, socket.id, `disconnect:${reason}`);
+      await matchmaking.dequeueIfOwner(dbUserId, socket.id, `disconnect:${reason}`, io);
       logger.info(
         "Dequeued on disconnect: socket=%s user=%s reason=%s wasInRoom=%s",
         socket.id,
@@ -61,7 +61,7 @@ export function setupDisconnectHandler(
         }
 
         if (peerDbUserId) {
-          await matchmaking.dequeueIfOwner(peerDbUserId, peerSocket.id, "peer-disconnect");
+          await matchmaking.dequeueIfOwner(peerDbUserId, peerSocket.id, "peer-disconnect", io);
         }
       }
 

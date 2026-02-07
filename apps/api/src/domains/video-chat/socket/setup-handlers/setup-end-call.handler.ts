@@ -15,7 +15,7 @@ export function setupEndCallHandler(
   socket.on("end-call", async () => {
     const dbUserId = await getDbUserId(socket);
     if (dbUserId) {
-      await matchmaking.dequeueIfOwner(dbUserId, socket.id, "end-call");
+      await matchmaking.dequeueIfOwner(dbUserId, socket.id, "end-call", io);
     }
 
     const room = rooms.getRoomByUser(socket.id);

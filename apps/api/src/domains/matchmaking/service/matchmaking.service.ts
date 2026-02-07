@@ -47,12 +47,32 @@ export class MatchmakingService {
     return await this.store.enqueueUser(dbUserId, socket.id, socket);
   }
 
-  async dequeue(userId: string, reason?: string): Promise<boolean> {
-    return await this.store.dequeueUser(userId, reason);
+  async dequeue(userId: string, reason?: string, io?: Namespace): Promise<boolean> {
+    const queuedUsers = await this.store.getQueuedUsers(MAX_MATCHING_CANDIDATES);
+    const queueEntry = queuedUsers.find((u) => u.userId === userId);
+    const socketId = queueEntry?.socketId;
+
+    const removed = await this.store.dequeueUser(userId, reason);
+    if (removed && io && socketId) {
+      this.emitDequeued(io, socketId, reason || "unknown");
+    }
+    return removed;
   }
 
-  async dequeueIfOwner(userId: string, socketId: string, reason?: string): Promise<boolean> {
-    return await this.store.dequeueUserIfOwner(userId, socketId, reason);
+  async dequeueIfOwner(userId: string, socketId: string, reason?: string, io?: Namespace): Promise<boolean> {
+    const removed = await this.store.dequeueUserIfOwner(userId, socketId, reason);
+    if (removed && io) {
+      this.emitDequeued(io, socketId, reason || "unknown");
+    }
+    return removed;
+  }
+
+  private emitDequeued(io: Namespace, socketId: string, reason: string): void {
+    const socket = io.sockets.get(socketId);
+    if (socket?.connected) {
+      socket.emit("dequeued", { reason });
+      this.logger.debug("Emitted dequeued event: socketId=%s reason=%s", socketId, reason);
+    }
   }
 
   async isInQueue(userId: string): Promise<boolean> {
@@ -126,7 +146,13 @@ export class MatchmakingService {
       }
 
       if (staleUserIds.length > 0) {
-        await Promise.all(staleUserIds.map((userId) => this.store.dequeueUser(userId, "tryMatch:stale")));
+        await Promise.all(staleUserIds.map(async (userId) => {
+          const entry = queueEntries.find((e) => e.userId === userId);
+          await this.store.dequeueUser(userId, "tryMatch:stale");
+          if (entry?.socketId) {
+            this.emitDequeued(io, entry.socketId, "tryMatch:stale");
+          }
+        }));
       }
 
       if (queueUsers.length < 2) {
@@ -378,8 +404,8 @@ export class MatchmakingService {
     }
   }
 
-  async removeUser(userId: string): Promise<void> {
-    await this.store.dequeueUser(userId, "removeUser");
+  async removeUser(userId: string, io?: Namespace): Promise<void> {
+    await this.dequeue(userId, "removeUser", io);
   }
 
   async cleanupStaleSockets(io: Namespace): Promise<void> {
@@ -396,6 +422,7 @@ export class MatchmakingService {
         const socket = io.sockets.get(entry.socketId);
         if (!socket || !socket.connected) {
           await this.store.dequeueUser(entry.userId, "cleanup:stale-socket");
+          this.emitDequeued(io, entry.socketId, "cleanup:stale-socket");
         }
       }
     } catch (error) {
@@ -429,6 +456,7 @@ export class MatchmakingService {
               socket.emit("queue-timeout", {
                 message: "Queue timeout. Please try again.",
               });
+              this.emitDequeued(io, socketId, "queue-timeout");
             }
           }
         }

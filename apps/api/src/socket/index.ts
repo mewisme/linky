@@ -20,6 +20,7 @@ export function createSocketServer(httpServer: HTTPServer): SocketIOServer {
       methods: ["GET", "POST"],
       credentials: true,
     },
+    maxHttpBufferSize: config.socketMaxHttpBufferSize,
   });
 
   const chat = io.of("/chat");

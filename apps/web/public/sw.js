@@ -11,16 +11,37 @@ self.addEventListener("push", (event) => {
 
   const data = event.data.json();
   const { notification } = data;
+  const notifData = notification.data || {};
+  const onlyWhenBlurred = notifData.onlyWhenBlurred === true;
 
-  event.waitUntil(
-    self.registration.showNotification(notification.title, {
+  const showIfAllowed = () => {
+    if (onlyWhenBlurred) {
+      return self.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((clientList) => {
+          const hasFocusedTab = clientList.some(
+            (c) => c.visibilityState === "visible" && c.focused === true
+          );
+          if (hasFocusedTab) return;
+          return self.registration.showNotification(notification.title, {
+            body: notification.body,
+            icon: notification.icon || "/android-chrome-192x192.png",
+            badge: notification.badge || "/badge-72x72.png",
+            data: notifData,
+            tag: notifData.notificationId || undefined,
+          });
+        });
+    }
+    return self.registration.showNotification(notification.title, {
       body: notification.body,
       icon: notification.icon || "/android-chrome-192x192.png",
       badge: notification.badge || "/badge-72x72.png",
-      data: notification.data,
-      tag: notification.data?.notificationId || undefined,
-    })
-  );
+      data: notifData,
+      tag: notifData.notificationId || undefined,
+    });
+  };
+
+  event.waitUntil(showIfAllowed());
 });
 
 self.addEventListener("notificationclick", (event) => {

@@ -28,4 +28,5 @@ export interface PushOnlyOptions {
   body: string;
   url?: string;
   data?: Record<string, unknown>;
+  onlyWhenBlurred?: boolean;
 }

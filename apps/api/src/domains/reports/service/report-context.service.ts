@@ -76,6 +76,7 @@ export async function collectReportContext(
           const io: Namespace = videoChatContext.io;
           const user1Socket = io.sockets.get(room.user1);
           const user2Socket = io.sockets.get(room.user2);
+          const chatSnapshot = videoChatContext.rooms.getChatSnapshot(roomId);
 
           if (user1Socket && (user1Socket as any).data?.userId) {
             const user1ClerkId = (user1Socket as any).data.userId;
@@ -87,6 +88,10 @@ export async function collectReportContext(
               context.reporter_role = "callee";
               context.reported_role = "caller";
             }
+          }
+
+          if (chatSnapshot.length > 0) {
+            context.chat_snapshot = chatSnapshot as unknown as Json;
           }
         }
       }

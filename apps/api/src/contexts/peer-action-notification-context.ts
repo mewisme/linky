@@ -16,6 +16,7 @@ export async function sendPeerActionPush(params: PeerActionPushParams): Promise<
       title: params.title,
       body: params.body,
       url: params.url ?? "/chat?open_chat_panel=true",
+      onlyWhenBlurred: true,
     });
   } catch (error) {
     logger.warn("Failed to send peer action push to user %s: %o", params.userId, error instanceof Error ? error : new Error(String(error)));

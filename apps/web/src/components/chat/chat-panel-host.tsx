@@ -17,8 +17,9 @@ export function ChatPanelHost() {
   const chatMessages = useVideoChatStore((s) => s.chatMessages);
   const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
   const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
+  const isPeerTyping = useVideoChatStore((s) => s.isPeerTyping);
 
-  const { isInActiveCall, sendMessage } = useGlobalCallContext();
+  const { isInActiveCall, sendMessage, sendTyping } = useGlobalCallContext();
 
   useEffect(() => {
     if (!isInActiveCall && isChatPanelOpen) closeChatPanel();
@@ -35,7 +36,9 @@ export function ChatPanelHost() {
       onClose={() => setChatPanelOpen(false)}
       chatMessages={chatMessages}
       connectionStatus={connectionStatus}
+      isPeerTyping={isPeerTyping}
       onSendMessage={sendMessage}
+      onSendTyping={sendTyping}
     />
   );
 }

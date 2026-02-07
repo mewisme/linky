@@ -23,6 +23,7 @@ export interface VideoChatActions {
   setRemoteMuted: (muted: boolean) => void;
   setRemoteCameraEnabled: (enabled: boolean) => void;
   addChatMessage: (message: ChatMessage) => void;
+  updateChatMessageStatus: (id: string, status: "sending" | "sent" | "failed") => void;
   clearChatMessages: () => void;
   setError: (error: string | null) => void;
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
@@ -32,6 +33,7 @@ export interface VideoChatActions {
   setSharingScreen: (sharing: boolean) => void;
   setPeerSharingScreen: (sharing: boolean) => void;
   setScreenStream: (stream: MediaStream | null) => void;
+  setPeerTyping: (isTyping: boolean) => void;
   resetState: () => void;
   resetPeerState: () => void;
   resetRuntimeState: () => void;
@@ -58,6 +60,7 @@ export function useVideoChatState() {
   const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
   const callStartedAt = useVideoChatStore((s) => s.callStartedAt);
   const chatMessages = useVideoChatStore((s) => s.chatMessages);
+  const isPeerTyping = useVideoChatStore((s) => s.isPeerTyping);
   const error = useVideoChatStore((s) => s.error);
   const peerInfo = useVideoChatStore((s) => s.peerInfo);
 
@@ -71,6 +74,7 @@ export function useVideoChatState() {
       connectionStatus,
       callStartedAt,
       chatMessages,
+      isPeerTyping,
       error,
       peerInfo,
     }),
@@ -83,6 +87,7 @@ export function useVideoChatState() {
       connectionStatus,
       callStartedAt,
       chatMessages,
+      isPeerTyping,
       error,
       peerInfo,
     ]
@@ -107,6 +112,8 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setRemoteCameraEnabled(enabled),
       addChatMessage: (message: ChatMessage) =>
         useVideoChatStore.getState().addChatMessage(message),
+      updateChatMessageStatus: (id: string, status: "sending" | "sent" | "failed") =>
+        useVideoChatStore.getState().updateChatMessageStatus(id, status),
       clearChatMessages: () =>
         useVideoChatStore.getState().clearChatMessages(),
       setError: (error: string | null) =>
@@ -125,6 +132,8 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setPeerSharingScreen(sharing),
       setScreenStream: (stream: MediaStream | null) =>
         useVideoChatStore.getState().setScreenStream(stream),
+      setPeerTyping: (isTyping: boolean) =>
+        useVideoChatStore.getState().setPeerTyping(isTyping),
       resetState: () => useVideoChatStore.getState().resetState(),
       resetPeerState: () => useVideoChatStore.getState().resetPeerState(),
       resetRuntimeState: () => useVideoChatStore.getState().resetRuntimeState(),

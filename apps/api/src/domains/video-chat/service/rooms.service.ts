@@ -1,3 +1,4 @@
+import type { ChatMessageSnapshot } from "@/domains/video-chat/types/chat-message.types.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 import { createLogger } from "@repo/logger";
@@ -5,6 +6,7 @@ import { createLogger } from "@repo/logger";
 export class RoomService {
   private rooms: Map<string, VideoChatRoomRecord> = new Map();
   private userToRoom: Map<string, string> = new Map(); // socketId -> roomId
+  private readonly chatSnapshotLimit = 20;
   private readonly logger = createLogger("api:video-chat:rooms:service");
 
   createRoom(user1SocketId: string, user2SocketId: string): string {
@@ -16,6 +18,7 @@ export class RoomService {
       user2: user2SocketId,
       createdAt: new Date(),
       startedAt: new Date(),
+      recentChatMessages: [],
     };
 
     this.rooms.set(roomId, room);
@@ -29,6 +32,25 @@ export class RoomService {
 
   getRoom(roomId: string): VideoChatRoomRecord | undefined {
     return this.rooms.get(roomId);
+  }
+
+  addChatSnapshot(roomId: string, message: ChatMessageSnapshot): void {
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      return;
+    }
+    room.recentChatMessages.push(message);
+    if (room.recentChatMessages.length > this.chatSnapshotLimit) {
+      room.recentChatMessages = room.recentChatMessages.slice(-this.chatSnapshotLimit);
+    }
+  }
+
+  getChatSnapshot(roomId: string): ChatMessageSnapshot[] {
+    const room = this.rooms.get(roomId);
+    if (!room) {
+      return [];
+    }
+    return room.recentChatMessages.slice();
   }
 
   getRoomByUser(socketId: string): VideoChatRoomRecord | undefined {

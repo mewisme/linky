@@ -2,11 +2,13 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useVideoChat } from "@/hooks/webrtc/use-video-chat";
+import type { ChatMessageDraft } from "@/types/chat-message.types";
 
 interface GlobalCallContextValue {
   isInActiveCall: boolean;
 
-  sendMessage: (message: string) => void;
+  sendMessage: (draft: ChatMessageDraft) => void;
+  sendTyping: (isTyping: boolean) => void;
   start: () => Promise<void>;
   skip: () => void;
   endCall: () => void;
@@ -30,6 +32,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
   const contextValue = useMemo<GlobalCallContextValue>(() => ({
     isInActiveCall: videoChat.isInActiveCall,
     sendMessage: videoChat.sendMessage,
+    sendTyping: videoChat.sendTyping,
     start: videoChat.start,
     skip: videoChat.skip,
     endCall: videoChat.endCall,
@@ -42,6 +45,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
   }), [
     videoChat.isInActiveCall,
     videoChat.sendMessage,
+    videoChat.sendTyping,
     videoChat.start,
     videoChat.skip,
     videoChat.endCall,

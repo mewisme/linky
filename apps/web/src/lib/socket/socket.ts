@@ -1,3 +1,4 @@
+import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
 
 import type { UsersAPI } from "@/types/users.types";
@@ -144,7 +145,9 @@ export interface SocketEvents {
   "joined-queue": (data: { message: string; queueSize: number }) => void;
   matched: (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => void;
   signal: (data: SignalData) => void;
-  "chat-message": (data: { message: string; timestamp: number; senderId: string }) => void;
+  "chat:message": (data: ChatMessagePayload) => void;
+  "chat:typing": (data: ChatTypingPayload) => void;
+  "chat:error": (data: ChatErrorPayload) => void;
   "peer-left": (data: { message: string }) => void;
   "peer-skipped": (data: { message: string; queueSize: number }) => void;
   "end-call": (data: { message: string }) => void;

@@ -39,6 +39,7 @@ export const config = {
   // Server
   shutdownTimeout: Number(process.env.SHUTDOWN_TIMEOUT) || 30000,
   jsonBodySizeLimit: process.env.JSON_BODY_SIZE_LIMIT || "500kb",
+  socketMaxHttpBufferSize: Number(process.env.SOCKET_MAX_HTTP_BUFFER_SIZE) || 8 * 1024 * 1024,
   // Timeouts
   redisTimeout: Number(process.env.REDIS_TIMEOUT) || 5000,
   supabaseTimeout: Number(process.env.SUPABASE_TIMEOUT) || 10000,

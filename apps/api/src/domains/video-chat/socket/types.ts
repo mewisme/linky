@@ -1,4 +1,5 @@
 import type { AuthenticatedSocket } from "@/socket/auth.js";
+import type { ChatMessageSnapshot } from "@/domains/video-chat/types/chat-message.types.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoom } from "@/domains/video-chat/types/room.types.js";
 
@@ -25,6 +26,8 @@ export interface VideoChatRooms {
   getRoomCount(): number;
   getAllRooms(): Array<VideoChatRoom & { id: string; createdAt: Date }>;
   createRoom(user1SocketId: string, user2SocketId: string): string;
+  addChatSnapshot(roomId: string, message: ChatMessageSnapshot): void;
+  getChatSnapshot(roomId: string): ChatMessageSnapshot[];
 }
 
 export interface VideoChatContext {

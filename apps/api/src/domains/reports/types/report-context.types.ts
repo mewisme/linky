@@ -1,3 +1,4 @@
+import type { ChatMessageSnapshot } from "@/domains/video-chat/types/chat-message.types.js";
 import type { Json } from "@/types/database/supabase.types.js";
 import type { Namespace } from "socket.io";
 
@@ -35,6 +36,7 @@ export interface ReportContextData {
 
 export interface LiveVideoChatRooms {
   getRoom(roomId: string): { user1: string; user2: string; startedAt: Date } | undefined;
+  getChatSnapshot(roomId: string): ChatMessageSnapshot[];
 }
 
 export interface LiveVideoChatContext {

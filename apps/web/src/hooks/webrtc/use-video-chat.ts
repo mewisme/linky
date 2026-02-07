@@ -7,13 +7,21 @@ import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 
 import type { UsersAPI } from "@/types/users.types";
 import type { SignalData } from "@/lib/socket/socket";
+import type {
+  ChatMessage,
+  ChatMessageDraft,
+  ChatErrorPayload,
+  ChatMessageInputPayload,
+  ChatMessagePayload,
+  ChatTypingPayload,
+} from "@/types/chat-message.types";
 
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useMediaStream } from "./use-media-stream";
 import { usePeerConnection } from "./use-peer-connection";
 import { useScreenShare } from "./use-screen-share";
 import { useSocketSignaling } from "../socket/use-socket-signaling";
-import { useVideoChatState, type ConnectionStatus, type ChatMessage } from "./use-video-chat-state";
+import { useVideoChatState, type ConnectionStatus } from "./use-video-chat-state";
 import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useUnloadEndCall } from "./use-unload-end-call";
 import { useSocket } from "../socket/use-socket";
@@ -32,8 +40,10 @@ export interface UseVideoChatReturn {
   isVideoOff: boolean;
   remoteMuted: boolean;
   chatMessages: ChatMessage[];
+  isPeerTyping: boolean;
   peerInfo: UsersAPI.PublicUserInfo | null;
-  sendMessage: (message: string) => void;
+  sendMessage: (draft: ChatMessageDraft) => void;
+  sendTyping: (isTyping: boolean) => void;
   start: () => Promise<void>;
   skip: () => void;
   endCall: () => void;
@@ -635,6 +645,7 @@ export function useVideoChat(): UseVideoChatReturn {
         isOffererRef.current = false;
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
+        actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setConnectionStatus("ended");
@@ -655,6 +666,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
+        actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setError(null);
@@ -671,6 +683,7 @@ export function useVideoChat(): UseVideoChatReturn {
         peerConnection.closePeer();
         isOffererRef.current = false;
         actionsRef.current.clearChatMessages();
+        actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
         refreshUserProgress();
@@ -683,22 +696,31 @@ export function useVideoChat(): UseVideoChatReturn {
         isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("ended");
         actionsRef.current.setCallStartedAt(null);
+        actionsRef.current.setPeerTyping(false);
         resetPeerState();
         refreshUserProgress();
       },
 
-      onChatMessage: (data: { message: string; timestamp: number; senderId: string; senderName?: string; senderImageUrl?: string }) => {
+      onChatMessage: (data: ChatMessagePayload) => {
         const socketId = socketSignaling.getSocketId();
+        const isOwn = data.sender.socketId === socketId;
         const newMessage: ChatMessage = {
-          id: `${data.senderId}-${data.timestamp}`,
-          message: data.message,
-          timestamp: data.timestamp,
-          senderId: data.senderId,
-          senderName: data.senderName,
-          senderImageUrl: data.senderImageUrl,
-          isOwn: data.senderId === socketId,
+          ...data,
+          isOwn,
+          localStatus: isOwn ? "sent" : undefined,
         };
         actionsRef.current.addChatMessage(newMessage);
+        if (!isOwn) {
+          actionsRef.current.setPeerTyping(false);
+        }
+      },
+
+      onChatTyping: (data: ChatTypingPayload) => {
+        actionsRef.current.setPeerTyping(!!data.isTyping);
+      },
+
+      onChatError: (data: ChatErrorPayload) => {
+        toast.error(data.message);
       },
 
       onMuteToggle: (data: { muted: boolean }) => {
@@ -849,27 +871,80 @@ export function useVideoChat(): UseVideoChatReturn {
     socketSignaling.sendVideoToggle(newVideoOffState);
   }, [mediaStream, socketSignaling]);
 
+  const createMessageId = useCallback(() => {
+    if (globalThis.crypto?.randomUUID) {
+      return globalThis.crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }, []);
+
   const sendMessage = useCallback(
-    (message: string) => {
-      if (!message.trim()) return;
-
-      const timestamp = Date.now();
+    (draft: ChatMessageDraft) => {
       const socketId = socketSignaling.getSocketId();
+      const timestamp = Date.now();
+      const messageText = draft.message?.trim() || null;
 
-      const newMessage: ChatMessage = {
-        id: `${socketId}-${timestamp}`,
-        message: message.trim(),
+      if (draft.type === "text" && !messageText) {
+        return;
+      }
+
+      const id = createMessageId();
+      const payload: ChatMessageInputPayload = {
+        id,
+        type: draft.type,
+        message: messageText,
+        attachment: draft.attachment || null,
+        metadata: draft.metadata || null,
         timestamp,
-        senderId: socketId || "unknown",
-        senderName: user?.firstName || user?.username || "You",
-        senderImageUrl: user?.imageUrl,
-        isOwn: true,
       };
-      actionsRef.current.addChatMessage(newMessage);
 
-      socketSignaling.sendChatMessage(message.trim(), timestamp);
+      const localMessage: ChatMessage = {
+        id,
+        type: payload.type,
+        sender: {
+          socketId: socketId || "unknown",
+          userId: user?.id || "unknown",
+          displayName: user?.firstName || user?.username || "You",
+          avatarUrl: user?.imageUrl || null,
+        },
+        timestamp,
+        message: payload.message,
+        attachment: payload.attachment,
+        metadata: payload.metadata,
+        isOwn: true,
+        localStatus: "sending",
+      };
+
+      actionsRef.current.addChatMessage(localMessage);
+
+      const sendOperation =
+        payload.type === "text"
+          ? socketSignaling.sendChatMessage(payload)
+          : socketSignaling.sendChatAttachment(payload);
+
+      sendOperation
+        .then((ack) => {
+          if (ack.ok) {
+            actionsRef.current.updateChatMessageStatus(id, "sent");
+          } else {
+            actionsRef.current.updateChatMessageStatus(id, "failed");
+            if (ack.error) {
+              toast.error(ack.error);
+            }
+          }
+        })
+        .catch(() => {
+          actionsRef.current.updateChatMessageStatus(id, "failed");
+        });
     },
-    [socketSignaling, user]
+    [socketSignaling, user, createMessageId]
+  );
+
+  const sendTyping = useCallback(
+    (isTyping: boolean) => {
+      socketSignaling.sendChatTyping(isTyping);
+    },
+    [socketSignaling]
   );
 
   const clearError = useCallback(() => {
@@ -943,8 +1018,10 @@ export function useVideoChat(): UseVideoChatReturn {
     isVideoOff: state.isVideoOff,
     remoteMuted: state.remoteMuted,
     chatMessages: state.chatMessages,
+    isPeerTyping: state.isPeerTyping,
     peerInfo: state.peerInfo,
     sendMessage,
+    sendTyping,
     start,
     skip,
     endCall,

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { ChatMessage } from "@/hooks/webrtc/use-video-chat";
+import type { ChatMessage } from "@/types/chat-message.types";
 
 export function useChatUnreadIndicator(chatMessages: ChatMessage[], isChatOpen: boolean) {
   const lastReadMessageCountRef = useRef(0);

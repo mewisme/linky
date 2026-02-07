@@ -3,6 +3,7 @@
 import { useRef, useCallback, useEffect, useMemo, type MutableRefObject } from "react";
 import { publishPresence } from "@/lib/mqtt/client";
 import { type SignalData } from "@/lib/socket/socket";
+import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/types/chat-message.types";
 import { socketHealthMonitor } from "@/lib/socket/socket-health";
 import type { Socket } from "socket.io-client";
 import type { UsersAPI } from "@/types/users.types";
@@ -17,7 +18,9 @@ export interface SocketCallbacks {
   onPeerSkipped: (data: { message: string; queueSize: number }) => void;
   onSkipped: (data: { message: string; queueSize: number }) => void;
   onEndCall: (data: { message: string }) => void;
-  onChatMessage: (data: { message: string; timestamp: number; senderId: string; senderName?: string; senderImageUrl?: string }) => void;
+  onChatMessage: (data: ChatMessagePayload) => void;
+  onChatTyping: (data: ChatTypingPayload) => void;
+  onChatError: (data: ChatErrorPayload) => void;
   onMuteToggle: (data: { muted: boolean }) => void;
   onVideoToggle: (data: { videoOff: boolean }) => void;
   onScreenShareToggle: (data: { sharing: boolean; streamId?: string }) => void;
@@ -41,7 +44,9 @@ export interface UseSocketSignalingReturn {
   joinQueue: () => void;
   skipPeer: () => void;
   sendEndCall: () => void;
-  sendChatMessage: (message: string, timestamp: number) => void;
+  sendChatMessage: (payload: ChatMessageInputPayload) => Promise<ChatSendAck>;
+  sendChatAttachment: (payload: ChatMessageInputPayload) => Promise<ChatSendAck>;
+  sendChatTyping: (isTyping: boolean) => void;
   sendMuteToggle: (muted: boolean) => void;
   sendVideoToggle: (videoOff: boolean) => void;
   sendScreenShareToggle: (sharing: boolean, streamId?: string) => void;
@@ -111,10 +116,20 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onEndCall(data);
     });
 
-    socket.on("chat-message", (data) => {
+    socket.on("chat:message", (data) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onChatMessage(data);
+    });
+
+    socket.on("chat:typing", (data) => {
+      publishPresence('in_call');
+      socketHealthMonitor.markEventReceived();
+      callbacks.onChatTyping(data);
+    });
+
+    socket.on("chat:error", (data) => {
+      callbacks.onChatError(data);
     });
 
     socket.on("mute-toggle", (data) => {
@@ -184,7 +199,9 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         socket.removeAllListeners("peer-skipped");
         socket.removeAllListeners("skipped");
         socket.removeAllListeners("end-call");
-        socket.removeAllListeners("chat-message");
+        socket.removeAllListeners("chat:message");
+        socket.removeAllListeners("chat:typing");
+        socket.removeAllListeners("chat:error");
         socket.removeAllListeners("mute-toggle");
         socket.removeAllListeners("video-toggle");
         socket.removeAllListeners("screen-share:toggle");
@@ -268,9 +285,53 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
-  const sendChatMessage = useCallback((message: string, timestamp: number) => {
+  const emitWithAck = useCallback(
+    (eventName: "chat:send" | "chat:attachment:send", payload: ChatMessageInputPayload): Promise<ChatSendAck> => {
+      return new Promise((resolve) => {
+        if (!socketRef.current) {
+          resolve({ ok: false, error: "Socket not available." });
+          return;
+        }
+        let settled = false;
+        const timeoutId = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            resolve({ ok: false, error: "Message send timeout." });
+          }
+        }, 8000);
+
+        socketRef.current.emit(eventName, payload, (ack: ChatSendAck) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeoutId);
+          if (ack && typeof ack.ok === "boolean") {
+            resolve(ack);
+          } else {
+            resolve({ ok: true });
+          }
+        });
+      });
+    },
+    []
+  );
+
+  const sendChatMessage = useCallback(
+    async (payload: ChatMessageInputPayload) => {
+      return await emitWithAck("chat:send", payload);
+    },
+    [emitWithAck]
+  );
+
+  const sendChatAttachment = useCallback(
+    async (payload: ChatMessageInputPayload) => {
+      return await emitWithAck("chat:attachment:send", payload);
+    },
+    [emitWithAck]
+  );
+
+  const sendChatTyping = useCallback((isTyping: boolean) => {
     if (socketRef.current) {
-      socketRef.current.emit("chat-message", { message, timestamp });
+      socketRef.current.emit("chat:typing", { isTyping, timestamp: Date.now() });
     }
   }, []);
 
@@ -317,7 +378,9 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socketRef.current.removeAllListeners("peer-skipped");
       socketRef.current.removeAllListeners("skipped");
       socketRef.current.removeAllListeners("end-call");
-      socketRef.current.removeAllListeners("chat-message");
+      socketRef.current.removeAllListeners("chat:message");
+      socketRef.current.removeAllListeners("chat:typing");
+      socketRef.current.removeAllListeners("chat:error");
       socketRef.current.removeAllListeners("mute-toggle");
       socketRef.current.removeAllListeners("video-toggle");
       socketRef.current.removeAllListeners("screen-share:toggle");
@@ -364,6 +427,8 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       skipPeer,
       sendEndCall,
       sendChatMessage,
+      sendChatAttachment,
+      sendChatTyping,
       sendMuteToggle,
       sendVideoToggle,
       sendScreenShareToggle,
@@ -385,6 +450,8 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       skipPeer,
       sendEndCall,
       sendChatMessage,
+      sendChatAttachment,
+      sendChatTyping,
       sendMuteToggle,
       sendVideoToggle,
       sendScreenShareToggle,

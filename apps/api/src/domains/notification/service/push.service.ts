@@ -109,6 +109,7 @@ export async function sendPushOnly(userId: string, options: PushOnlyOptions): Pr
         badge: "/badge-72x72.png",
         data: {
           url: options.url ?? "/",
+          onlyWhenBlurred: options.onlyWhenBlurred ?? false,
           ...options.data,
         },
       },

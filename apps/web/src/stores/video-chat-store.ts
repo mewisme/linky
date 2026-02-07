@@ -1,5 +1,7 @@
 "use client";
 
+import type { ChatMessage, ChatMessageDeliveryStatus } from "@/types/chat-message.types";
+
 import type { NetworkQuality } from "@/lib/webrtc/network-monitor";
 import type { QualityTier } from "@/lib/webrtc/adaptive-encoding";
 import type { UsersAPI } from "@/types/users.types";
@@ -12,16 +14,6 @@ export type ConnectionStatus =
   | "in_call"
   | "reconnecting"
   | "ended";
-
-export interface ChatMessage {
-  id: string;
-  message: string;
-  timestamp: number;
-  senderId: string;
-  senderName?: string;
-  senderImageUrl?: string;
-  isOwn: boolean;
-}
 
 export type OverlayCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
@@ -53,6 +45,7 @@ interface VideoChatStore {
   isSharingScreen: boolean;
   isPeerSharingScreen: boolean;
   screenStream: MediaStream | null;
+  isPeerTyping: boolean;
 
   setLocalStream: (stream: MediaStream | null) => void;
   setRemoteStream: (stream: MediaStream | null) => void;
@@ -63,6 +56,7 @@ interface VideoChatStore {
   setConnectionStatus: (status: ConnectionStatus) => void;
   setCallStartedAt: (timestamp: number | null) => void;
   addChatMessage: (message: ChatMessage) => void;
+  updateChatMessageStatus: (id: string, status: ChatMessageDeliveryStatus) => void;
   clearChatMessages: () => void;
   setError: (error: string | null) => void;
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
@@ -77,11 +71,14 @@ interface VideoChatStore {
   setSharingScreen: (sharing: boolean) => void;
   setPeerSharingScreen: (sharing: boolean) => void;
   setScreenStream: (stream: MediaStream | null) => void;
+  setPeerTyping: (isTyping: boolean) => void;
 
   resetState: () => void;
   resetPeerState: () => void;
   resetRuntimeState: () => void;
 }
+
+const chatMessageLimit = 200;
 
 const initialState = {
   localStream: null as MediaStream | null,
@@ -106,6 +103,7 @@ const initialState = {
   isSharingScreen: false,
   isPeerSharingScreen: false,
   screenStream: null as MediaStream | null,
+  isPeerTyping: false,
 };
 
 export const useVideoChatStore = create<VideoChatStore>((set) => ({
@@ -120,7 +118,16 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setCallStartedAt: (timestamp) => set({ callStartedAt: timestamp }),
   addChatMessage: (message) =>
-    set((s) => ({ chatMessages: [...s.chatMessages, message] })),
+    set((s) => {
+      const next = [...s.chatMessages, message];
+      return { chatMessages: next.slice(-chatMessageLimit) };
+    }),
+  updateChatMessageStatus: (id, status) =>
+    set((s) => ({
+      chatMessages: s.chatMessages.map((message) =>
+        message.id === id ? { ...message, localStatus: status } : message
+      ),
+    })),
   clearChatMessages: () => set({ chatMessages: [] }),
   setError: (error) => set({ error }),
   setPeerInfo: (peerInfo) => set({ peerInfo }),
@@ -135,6 +142,7 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setSharingScreen: (sharing) => set({ isSharingScreen: sharing }),
   setPeerSharingScreen: (sharing) => set({ isPeerSharingScreen: sharing }),
   setScreenStream: (stream) => set({ screenStream: stream }),
+  setPeerTyping: (isTyping) => set({ isPeerTyping: isTyping }),
 
   resetState: () => set(initialState),
   resetPeerState: () =>
@@ -150,6 +158,7 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
       isVideoStalled: false,
       currentQualityTier: "high",
       isPeerSharingScreen: false,
+      isPeerTyping: false,
     }),
   resetRuntimeState: () =>
     set({
@@ -165,5 +174,6 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
       isSharingScreen: false,
       isPeerSharingScreen: false,
       screenStream: null,
+      isPeerTyping: false,
     }),
 }));

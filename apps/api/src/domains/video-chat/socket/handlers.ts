@@ -1,5 +1,11 @@
 import type {
+  ChatAttachment,
+  ChatErrorPayload,
   ChatMessageInputPayload,
+  ChatMessagePayload,
+  ChatMessageSnapshot,
+  ChatMessageType,
+  ChatTypingPayload,
   FavoriteNotifyPeerPayload,
   MuteTogglePayload,
   ReactionPayload,
@@ -19,6 +25,12 @@ import { recordCallHistory } from "@/domains/video-chat/socket/call-history.sock
 import { sendPeerActionPush } from "@/contexts/peer-action-notification-context.js";
 
 const logger = createLogger("api:video-chat:socket:handlers");
+const maxAttachmentBytes = 5 * 1024 * 1024;
+const maxMessageLength = 2000;
+const messageRateLimit = { windowMs: 10_000, maxCount: 20 };
+const attachmentRateLimit = { windowMs: 60_000, maxCount: 6 };
+const messageRateState = new Map<string, { count: number; resetAt: number }>();
+const attachmentRateState = new Map<string, { count: number; resetAt: number }>();
 
 async function getDbUserId(socket: AuthenticatedSocket): Promise<string | null> {
   const clerkUserId = socket.data.userId;
@@ -26,6 +38,78 @@ async function getDbUserId(socket: AuthenticatedSocket): Promise<string | null> 
     return null;
   }
   return await getUserIdByClerkId(clerkUserId);
+}
+
+function sanitizeMessageText(message: string | null): string | null {
+  if (typeof message !== "string") return null;
+  const trimmed = message.trim();
+  if (!trimmed) return null;
+  const cleaned = trimmed.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
+  return cleaned.length > maxMessageLength ? cleaned.slice(0, maxMessageLength) : cleaned;
+}
+
+function stripDataUrlPrefix(data: string): string {
+  const commaIndex = data.indexOf(",");
+  if (commaIndex === -1) {
+    return data;
+  }
+  return data.slice(commaIndex + 1);
+}
+
+function estimateAttachmentSize(attachment: ChatAttachment | null): number {
+  if (!attachment) return 0;
+  const declaredSize = typeof attachment.size === "number" && Number.isFinite(attachment.size) ? attachment.size : 0;
+  const data = typeof attachment.data === "string" ? stripDataUrlPrefix(attachment.data) : "";
+  const dataSize = data ? Buffer.byteLength(data, "base64") : 0;
+  return Math.max(declaredSize, dataSize);
+}
+
+function isAllowedType(type: string): type is ChatMessageType {
+  return ["text", "image", "gif", "sticker", "system"].includes(type);
+}
+
+function createChatSnapshot(message: ChatMessagePayload): ChatMessageSnapshot {
+  const attachment = message.attachment
+    ? {
+      mimeType: message.attachment.mimeType,
+      size: message.attachment.size,
+      width: message.attachment.width,
+      height: message.attachment.height,
+      duration: message.attachment.duration,
+    }
+    : null;
+  return {
+    id: message.id,
+    type: message.type,
+    sender: message.sender,
+    timestamp: message.timestamp,
+    message: message.message,
+    attachment,
+    metadata: message.metadata || null,
+  };
+}
+
+function checkRateLimit(
+  state: Map<string, { count: number; resetAt: number }>,
+  socketId: string,
+  limit: { windowMs: number; maxCount: number },
+): boolean {
+  const now = Date.now();
+  const current = state.get(socketId);
+  if (!current || current.resetAt <= now) {
+    state.set(socketId, { count: 1, resetAt: now + limit.windowMs });
+    return true;
+  }
+  if (current.count >= limit.maxCount) {
+    return false;
+  }
+  current.count += 1;
+  return true;
+}
+
+function emitChatError(socket: AuthenticatedSocket, message: string): void {
+  const payload: ChatErrorPayload = { message };
+  socket.emit("chat:error", payload);
 }
 
 export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoChatContext): void {
@@ -179,42 +263,135 @@ function setupChatMessageHandler(
   io: Namespace,
   rooms: VideoChatRooms,
 ): void {
-  socket.on("chat-message", async (data: ChatMessageInputPayload) => {
+  const handleChatSend = async (
+    data: ChatMessageInputPayload,
+    acknowledge?: (response: { ok: boolean; error?: string }) => void,
+  ) => {
+    if (!checkRateLimit(messageRateState, socket.id, messageRateLimit)) {
+      emitChatError(socket, "Message rate limit exceeded.");
+      acknowledge?.({ ok: false, error: "Message rate limit exceeded." });
+      return;
+    }
+
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      socket.emit("error", {
-        message: "Not in a room. Cannot send chat message.",
-      });
+      emitChatError(socket, "Not in a room. Cannot send chat message.");
+      acknowledge?.({ ok: false, error: "Not in a room." });
       return;
     }
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
+      acknowledge?.({ ok: false, error: "Peer not found." });
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
+      acknowledge?.({ ok: false, error: "Peer disconnected." });
       return;
     }
 
-    io.to(peerId).emit("chat-message", {
-      message: data.message,
+    if (!data || typeof data !== "object" || !isAllowedType(data.type)) {
+      emitChatError(socket, "Invalid chat message.");
+      acknowledge?.({ ok: false, error: "Invalid chat message." });
+      return;
+    }
+
+    if (typeof data.id !== "string" || data.id.length < 4) {
+      emitChatError(socket, "Invalid chat message id.");
+      acknowledge?.({ ok: false, error: "Invalid chat message id." });
+      return;
+    }
+
+    const sanitizedMessage = sanitizeMessageText(data.message);
+    const attachmentSize = estimateAttachmentSize(data.attachment);
+    if (data.attachment && attachmentSize > maxAttachmentBytes) {
+      emitChatError(socket, "Attachment exceeds size limit.");
+      acknowledge?.({ ok: false, error: "Attachment exceeds size limit." });
+      return;
+    }
+
+    if (data.attachment && !checkRateLimit(attachmentRateState, socket.id, attachmentRateLimit)) {
+      emitChatError(socket, "Attachment rate limit exceeded.");
+      acknowledge?.({ ok: false, error: "Attachment rate limit exceeded." });
+      return;
+    }
+
+    if (data.type === "text" && !sanitizedMessage) {
+      emitChatError(socket, "Message cannot be empty.");
+      acknowledge?.({ ok: false, error: "Message cannot be empty." });
+      return;
+    }
+
+    if (data.type === "image" && typeof data.attachment?.data !== "string") {
+      emitChatError(socket, "Attachment data missing.");
+      acknowledge?.({ ok: false, error: "Attachment data missing." });
+      return;
+    }
+
+    if ((data.type === "gif" || data.type === "sticker") && !data.metadata?.url) {
+      emitChatError(socket, "Media reference missing.");
+      acknowledge?.({ ok: false, error: "Media reference missing." });
+      return;
+    }
+
+    const payload: ChatMessagePayload = {
+      id: data.id,
+      type: data.type,
+      sender: {
+        socketId: socket.id,
+        userId: socket.data.userId || "unknown",
+        displayName: socket.data.userName || "Anonymous",
+        avatarUrl: socket.data.userImageUrl || null,
+      },
       timestamp: data.timestamp || Date.now(),
-      senderId: socket.id,
-      senderName: socket.data.userName || "Anonymous",
-      senderImageUrl: socket.data.userImageUrl,
-    });
+      message: sanitizedMessage,
+      attachment: data.attachment || null,
+      metadata: data.metadata || null,
+    };
+
+    rooms.addChatSnapshot(room.id, createChatSnapshot(payload));
+
+    io.to(peerId).emit("chat:message", payload);
+    acknowledge?.({ ok: true });
 
     const peerDbUserId = await getDbUserId(peerSocket);
     if (peerDbUserId) {
+      const notificationBody =
+        payload.type === "text"
+          ? `${payload.sender.displayName}: ${payload.message || ""}`
+          : `${payload.sender.displayName} sent an attachment`;
       void sendPeerActionPush({
         userId: peerDbUserId,
         title: "New chat message",
-        body: `${socket.data.userName || "Anonymous"}: ${data.message}`,
+        body: notificationBody,
         url: "/chat?open_chat_panel=true",
       });
     }
+  };
+
+  socket.on("chat:send", (data: ChatMessageInputPayload, acknowledge) => {
+    void handleChatSend(data, acknowledge);
+  });
+
+  socket.on("chat:attachment:send", (data: ChatMessageInputPayload, acknowledge) => {
+    void handleChatSend(data, acknowledge);
+  });
+
+  socket.on("chat:typing", (data: ChatTypingPayload) => {
+    const room = rooms.getRoomByUser(socket.id);
+    if (!room) {
+      return;
+    }
+    const peerId = rooms.getPeer(socket.id);
+    if (!peerId) {
+      return;
+    }
+    io.to(peerId).emit("chat:typing", {
+      isTyping: !!data?.isTyping,
+      timestamp: Date.now(),
+    });
   });
 }
 
@@ -513,6 +690,9 @@ function setupDisconnectHandler(
 
       rooms.deleteRoom(room.id);
     }
+
+    messageRateState.delete(socket.id);
+    attachmentRateState.delete(socket.id);
 
     if (!isNamespaceDisconnect) {
       logger.info("Client disconnected: socket=%s user=%s reason=%s wasInRoom=%s", socket.id, userId, reason, wasInRoom);

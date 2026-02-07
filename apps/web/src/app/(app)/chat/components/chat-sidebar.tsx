@@ -1,8 +1,8 @@
 "use client";
 
-import { Activity, useEffect, useRef, useState } from "react";
+import { Activity, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
-import type { ChatMessage, ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
+import type { ChatMessage, ChatMessageDraft } from "@/types/chat-message.types";
 import {
   Drawer,
   DrawerContent,
@@ -16,10 +16,10 @@ import {
   SheetTitle,
 } from "@repo/ui/components/ui/sheet";
 
-import { AnimateIcon } from "@repo/ui/components/animate-ui/icons/icon";
-import { Button } from "@repo/ui/components/ui/button";
+import { ChatInputBar } from "./chat-input-bar";
+import { ChatMessageBubble } from "./chat-message-bubble";
+import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { ScrollArea } from "@repo/ui/components/ui/scroll-area";
-import { Send } from "@repo/ui/components/animate-ui/icons/send";
 import { cn } from "@repo/ui/lib/utils";
 import { motion } from "motion/react";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
@@ -32,7 +32,7 @@ function isSameGroup(
 ) {
   if (!a || !b) return false;
   return (
-    a.senderId === b.senderId &&
+    a.sender.socketId === b.sender.socketId &&
     Math.abs(a.timestamp - b.timestamp) < GROUP_TIME_GAP
   );
 }
@@ -59,44 +59,23 @@ function ChatContent({
   chatMessages,
   connectionStatus,
   onSendMessage,
+  onSendTyping,
+  isPeerTyping,
   scrollAreaRef,
 }: {
   chatMessages: ChatMessage[];
   connectionStatus: ConnectionStatus;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (draft: ChatMessageDraft) => void;
+  onSendTyping: (isTyping: boolean) => void;
+  isPeerTyping: boolean;
   scrollAreaRef: React.RefObject<HTMLDivElement | null>;
 }) {
-  const inputRef = useRef<HTMLDivElement>(null);
-  const [isComposing, setIsComposing] = useState(false);
-
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector(
       '[data-slot="scroll-area-viewport"]'
     );
     if (viewport) viewport.scrollTop = viewport.scrollHeight;
   }, [chatMessages, scrollAreaRef]);
-
-  const sendMessage = () => {
-    const el = inputRef.current;
-    if (
-      !el ||
-      (connectionStatus !== "in_call" && connectionStatus !== "reconnecting")
-    )
-      return;
-
-    const text = el.innerText.trim();
-    if (!text) return;
-
-    onSendMessage(text);
-    el.innerText = "";
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !isComposing) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
 
   return (
     <div className="flex h-full min-h-0 flex-col text-base" data-testid="chat-sidebar">
@@ -117,6 +96,28 @@ function ChatContent({
             const isLast = sameAsPrev && !sameAsNext;
             const isSingle = !sameAsPrev && !sameAsNext;
 
+            if (msg.type === "system") {
+              return (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.18 }}
+                  layout={false}
+                  className="mt-4"
+                >
+                  <ChatMessageBubble message={msg} />
+                </motion.div>
+              );
+            }
+
+            const statusLabel =
+              msg.localStatus === "failed"
+                ? "Failed to send"
+                : msg.localStatus === "sending"
+                  ? "Sending..."
+                  : null;
+
             return (
               <motion.div
                 key={msg.id}
@@ -132,11 +133,11 @@ function ChatContent({
                 {!msg.isOwn && !sameAsPrev ? (
                   <Avatar className="size-8 shrink-0">
                     <AvatarImage
-                      src={msg.senderImageUrl}
-                      alt={msg.senderName || "User"}
+                      src={msg.sender.avatarUrl || undefined}
+                      alt={msg.sender.displayName || "User"}
                     />
                     <AvatarFallback className="text-xs font-medium">
-                      {(msg.senderName || msg.senderId).slice(0, 2).toUpperCase()}
+                      {(msg.sender.displayName || msg.sender.socketId).slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
@@ -154,10 +155,9 @@ function ChatContent({
                   )}
                   data-testid={`chat-message-${msg.id}`}
                 >
-                  <div
+                  <ChatMessageBubble
+                    message={msg}
                     className={cn(
-                      "px-4 py-2 text-base shadow-sm",
-                      "whitespace-pre-wrap break-all",
                       "max-w-full",
                       msg.isOwn
                         ? "bg-primary text-primary-foreground"
@@ -166,9 +166,7 @@ function ChatContent({
                         ? ownBubbleRadius(isFirst, isMiddle, isLast)
                         : peerBubbleRadius(isFirst, isMiddle, isLast)
                     )}
-                  >
-                    {msg.message}
-                  </div>
+                  />
 
                   {(isLast || isSingle) && (
                     <span
@@ -181,45 +179,26 @@ function ChatContent({
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
+                      {statusLabel ? ` · ${statusLabel}` : ""}
                     </span>
                   )}
                 </div>
               </motion.div>
             );
           })}
+          {isPeerTyping && (
+            <div className="mt-3 text-xs text-muted-foreground">
+              Peer is typing...
+            </div>
+          )}
         </div>
       </ScrollArea>
 
-      <div className="flex items-end gap-2 border-t bg-background/80 backdrop-blur px-3 py-2 pb-safe">
-        <div
-          ref={inputRef}
-          contentEditable
-          role="textbox"
-          spellCheck
-          data-placeholder="Type a message..."
-          data-testid="chat-input"
-          onKeyDown={handleKeyDown}
-          onCompositionStart={() => setIsComposing(true)}
-          onCompositionEnd={() => setIsComposing(false)}
-          className={cn(
-            "no-ios-zoom relative max-h-40 min-h-[40px] flex-1 overflow-y-auto rounded-2xl border bg-background px-4 py-2 text-base outline-none",
-            "focus:border-primary focus-visible:ring-1 focus-visible:ring-primary/30",
-            "empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground empty:before:pointer-events-none"
-          )}
-        />
-
-        <AnimateIcon animateOnTap animateOnHover>
-          <Button
-            size="icon"
-            className="rounded-full shrink-0"
-            disabled={connectionStatus !== "in_call" && connectionStatus !== "reconnecting"}
-            onClick={sendMessage}
-            data-testid="chat-send-button"
-          >
-            <Send size={16} />
-          </Button>
-        </AnimateIcon>
-      </div>
+      <ChatInputBar
+        connectionStatus={connectionStatus}
+        onSendMessage={onSendMessage}
+        onSendTyping={onSendTyping}
+      />
     </div>
   );
 }
@@ -230,12 +209,16 @@ export function ChatSidebar({
   chatMessages,
   connectionStatus,
   onSendMessage,
+  onSendTyping,
+  isPeerTyping,
 }: {
   isOpen: boolean;
   onClose: () => void;
   chatMessages: ChatMessage[];
   connectionStatus: ConnectionStatus;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (draft: ChatMessageDraft) => void;
+  onSendTyping: (isTyping: boolean) => void;
+  isPeerTyping: boolean;
 }) {
   const isMobile = useIsMobile();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -251,6 +234,8 @@ export function ChatSidebar({
             chatMessages={chatMessages}
             connectionStatus={connectionStatus}
             onSendMessage={onSendMessage}
+            onSendTyping={onSendTyping}
+            isPeerTyping={isPeerTyping}
             scrollAreaRef={scrollAreaRef}
           />
         </DrawerContent>
@@ -271,6 +256,8 @@ export function ChatSidebar({
           chatMessages={chatMessages}
           connectionStatus={connectionStatus}
           onSendMessage={onSendMessage}
+          onSendTyping={onSendTyping}
+          isPeerTyping={isPeerTyping}
           scrollAreaRef={scrollAreaRef}
         />
       </SheetContent>

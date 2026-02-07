@@ -17,17 +17,24 @@ export interface SignalPayload {
   candidate?: unknown;
 }
 
-export interface ChatMessageInputPayload {
-  message: string;
-  timestamp?: number;
+export type {
+  ChatAttachment,
+  ChatAttachmentSnapshot,
+  ChatMessageInputPayload,
+  ChatMessageMetadata,
+  ChatMessagePayload,
+  ChatMessageSender,
+  ChatMessageSnapshot,
+  ChatMessageType,
+} from "./chat-message.types.js";
+
+export interface ChatTypingPayload {
+  isTyping: boolean;
+  timestamp: number;
 }
 
-export interface ChatMessagePayload {
+export interface ChatErrorPayload {
   message: string;
-  timestamp: number;
-  senderId: string;
-  senderName?: string;
-  senderImageUrl?: string;
 }
 
 export interface MuteTogglePayload {

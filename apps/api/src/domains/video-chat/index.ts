@@ -6,8 +6,16 @@ export type { CloudflareTurnResponse } from "./types/call.types.js";
 export type { WaitingSession } from "./types/session.types.js";
 export type { VideoChatRoom, VideoChatRoomRecord } from "./types/room.types.js";
 export type {
+  ChatAttachment,
+  ChatAttachmentSnapshot,
+  ChatErrorPayload,
   ChatMessageInputPayload,
+  ChatMessageMetadata,
   ChatMessagePayload,
+  ChatMessageSender,
+  ChatMessageSnapshot,
+  ChatMessageType,
+  ChatTypingPayload,
   EndCallPayload,
   FavoriteEventPayload,
   FavoriteNotifyPeerPayload,

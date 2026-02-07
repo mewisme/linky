@@ -10,6 +10,7 @@ import {
   AlertDialogTitle,
 } from "@repo/ui/components/ui/alert-dialog"
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 import { Button } from "@repo/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
@@ -22,7 +23,7 @@ import { useGlobalCallContext } from "@/components/providers/call/global-call-ma
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";
 
-export default function ChatPage() {
+function ChatPageContent() {
   const { authLoading } = useUserContext();
 
   const localStream = useVideoChatStore((s) => s.localStream);
@@ -130,5 +131,13 @@ export default function ChatPage() {
         )}
       </main>
     </ReactionEffectProvider>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<main className="relative flex flex-1 flex-col overflow-hidden h-full" />}>
+      <ChatPageContent />
+    </Suspense>
   );
 }

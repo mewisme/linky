@@ -5,11 +5,11 @@ import { useMemo } from "react";
 import type { UsersAPI } from "@/types/users.types";
 import {
   useVideoChatStore,
-  type ChatMessage,
   type ConnectionStatus,
 } from "@/stores/video-chat-store";
 import type { NetworkQuality } from "@/lib/webrtc/network-monitor";
 import type { QualityTier } from "@/lib/webrtc/adaptive-encoding";
+import type { ChatMessage } from "@/types/chat-message.types";
 
 export type { ConnectionStatus, ChatMessage };
 

@@ -1,4 +1,4 @@
-import "../styles/globals.css";
+import "@/styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@/components/providers/clerk/clerk-provider";

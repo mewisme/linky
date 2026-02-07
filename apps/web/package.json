@@ -1,6 +1,6 @@
 {
   "name": "@repo/web",
-  "version": "0.43.2",
+  "version": "0.45.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -35,6 +35,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.6.0",
+    "react-hotkeys-hook": "^5.2.4",
     "react-image-crop": "^11.0.10",
     "react-markdown": "^10.1.0",
     "recharts": "3.6.0",

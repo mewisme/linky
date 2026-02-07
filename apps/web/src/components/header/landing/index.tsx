@@ -7,6 +7,7 @@ import { motion, type Variants } from "motion/react"
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { ModeToggle } from "../mode-toggle";
 import { useUserContext } from "@/components/providers/user/user-provider";
+import { CommandMenu } from '@/components/header/command-menu'
 import { Activity } from "react";
 
 const UserButton = dynamic(() => import("../../auth/user-button").then(mod => ({ default: mod.UserButton })), {
@@ -62,6 +63,32 @@ export const Header = ({ transition }: { transition: boolean }) => {
             <Logo size={isMobile ? 'lg' : 'xxl'} draw />
           </motion.div>
         )}
+
+        <motion.div
+          layoutId="command-menu"
+          initial={{
+            opacity: 0,
+            top: 18,
+            left: '35%',
+            right: '35%',
+          }}
+          animate={
+            transition ? {
+              opacity: 1,
+              top: 18,
+              left: '35%',
+              right: '35%',
+            } : {
+              opacity: 0,
+              top: 18,
+              left: '35%',
+              right: '35%',
+            }
+          }
+          transition={{ type: 'spring', stiffness: 200, damping: 30 }}
+          className="absolute z-110">
+          <CommandMenu />
+        </motion.div>
 
         <motion.div
           initial={{

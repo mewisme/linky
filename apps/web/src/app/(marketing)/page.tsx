@@ -15,7 +15,6 @@ import { LandingSafety } from "./components/landing/landing-safety";
 import { LandingPreview } from "./components/landing/landing-preview";
 import { LandingVision } from "./components/landing/landing-vision";
 import { LandingFooter } from "@/app/(marketing)/components/landing/footer";
-import { Separator } from "@repo/ui/components/ui/separator";
 import { ShapeBackground } from "./components/landing/shapes-background";
 
 const CONTENT_VARIANTS: Variants = {
@@ -25,16 +24,6 @@ const CONTENT_VARIANTS: Variants = {
   visible: {
     opacity: 1,
     transition: { type: 'spring', stiffness: 100, damping: 30 },
-  },
-};
-
-const BACKGROUND_VARIANTS: Variants = {
-  hidden: {
-    opacity: 0,
-  },
-  visible: {
-    opacity: 1,
-    transition: { type: 'spring', stiffness: 100, damping: 30, delay: 0.75 },
   },
 };
 
@@ -79,7 +68,7 @@ export default function Home() {
               !transition && 'fixed inset-0'
             )}
           >
-            <ShapeBackground transition={transition} />
+            <ShapeBackground transition={transition} className="hidden sm:block" />
             <div className="relative z-10 container mx-auto px-4 py-6 mt-8">
               <Hero handleStartChat={handleStartChat} isSignedIn={isSignedIn} isLoaded={isLoaded} key={String(transition)} />
               <div className="space-y-12 max-w-5xl mx-auto">

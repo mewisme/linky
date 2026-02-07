@@ -106,6 +106,13 @@ export const menuItems: MenuItem[] = [
         href: '/connections/favorites',
         category: 'Account',
       },
+      {
+        label: 'Blocked Users',
+        icon: IconBan,
+        description: 'Manage blocked users',
+        href: '/connections/blocked-users',
+        category: 'Connections',
+      },
     ]
   },
   {
@@ -226,13 +233,6 @@ export const menuItems: MenuItem[] = [
         icon: IconPalette,
         description: 'Manage the appearance settings',
         href: '/settings/appearance',
-        category: 'Settings',
-      },
-      {
-        label: 'Blocked Users',
-        icon: IconBan,
-        description: 'Manage blocked users',
-        href: '/settings/blocked-users',
         category: 'Settings',
       },
       {

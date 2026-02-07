@@ -22,11 +22,11 @@ const TITLE = "Meet the World. Live.";
 
 export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
   return (
-    <div className={cn(outfit.className, 'min-h-dvh flex flex-col items-center justify-center')}>
+    <div className={cn(outfit.className, 'min-h-dvh')}>
       <div className="h-[calc(100dvh-16rem)]">
 
         {/* Header */}
-        <div className="space-y-4 text-center sm:space-y-5 sm:py-8 md:space-y-6">
+        <div className="space-y-4 text-center py-6 sm:space-y-5 sm:py-8 md:space-y-6">
           <MotionEffect slide={{ direction: "down" }} fade zoom inView>
             <motion.div
               initial={{ opacity: 0, y: 15, scale: 0.95 }}

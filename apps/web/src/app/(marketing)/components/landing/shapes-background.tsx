@@ -88,15 +88,17 @@ function ElegantShape({
 
 export function ShapeBackground({
   transition,
+  className,
 }: {
   transition: boolean;
+  className?: string;
 }) {
   return (
     <motion.div
       variants={BACKGROUND_VARIANTS}
       initial="hidden"
       animate={transition ? 'visible' : 'hidden'}
-      className="pointer-events-none fixed inset-0 overflow-hidden">
+      className={cn("pointer-events-none fixed inset-0 overflow-hidden", className)}>
       <div className="absolute inset-0 bg-linear-to-br from-indigo-500/2 via-transparent to-rose-500/2 blur-3xl dark:from-indigo-500/5 dark:via-transparent dark:to-rose-500/5" />
 
       <div className="absolute inset-0 overflow-hidden">

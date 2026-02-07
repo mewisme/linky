@@ -58,7 +58,7 @@ The API follows strict domain-driven design. Key rule: **domains must NOT import
 
 ### Layer Structure (apps/api/src/)
 
-- **domains/** - Business logic grouped by domain (user, video-chat, matchmaking, reports, admin, embeddings). Each domain has: `http/` (route handlers), `service/` (business logic), `socket/` (realtime handlers), `types/`, `index.ts` (public exports)
+- **domains/** - Business logic grouped by domain (user, video-chat, matchmaking, reports, admin, embeddings, notification). Each domain has: `http/` (route handlers), `service/` (business logic), `socket/` (realtime handlers), `types/`, `index.ts` (public exports)
 - **infra/** - External system integrations (Redis, Supabase/Postgres, MQTT, S3, Clerk, Ollama). No business logic here.
 - **routes/** - Express route composition and mounting. Wires domain routers to URL paths. No business logic.
 - **socket/** - Socket.IO server setup, namespace wiring (`/chat`, `/admin`, `/video-chat`), auth middleware

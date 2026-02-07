@@ -1,5 +1,6 @@
 import type { ChatMessage } from "@/types/chat-message.types";
 import Image from "next/image";
+import { ImageZoom } from "@repo/ui/components/kibo-ui/image-zoom";
 import { cn } from "@repo/ui/lib/utils";
 
 export function ChatMessageBubble({
@@ -30,24 +31,28 @@ export function ChatMessageBubble({
     >
       {message.type === "text" && message.message}
       {message.type === "image" && attachmentUrl && (
-        <Image
-          src={attachmentUrl}
-          alt="Chat attachment"
-          width={attachment?.width || 320}
-          height={attachment?.height || 240}
-          className="max-h-64 w-auto rounded-lg"
-          unoptimized
-        />
+        <ImageZoom>
+          <Image
+            src={attachmentUrl}
+            alt="Chat attachment"
+            width={attachment?.width || 320}
+            height={attachment?.height || 240}
+            className="max-h-64 w-auto rounded-lg"
+            unoptimized
+          />
+        </ImageZoom>
       )}
       {(message.type === "gif" || message.type === "sticker") && attachmentUrl && (
-        <Image
-          src={attachmentUrl}
-          alt="Chat media"
-          width={attachment?.width || 320}
-          height={attachment?.height || 240}
-          className="max-h-64 w-auto rounded-lg"
-          unoptimized
-        />
+        <ImageZoom>
+          <Image
+            src={attachmentUrl}
+            alt="Chat media"
+            width={attachment?.width || 320}
+            height={attachment?.height || 240}
+            className="max-h-64 w-auto rounded-lg"
+            unoptimized
+          />
+        </ImageZoom>
       )}
       {message.type !== "text" && message.message && (
         <p className="mt-2">{message.message}</p>

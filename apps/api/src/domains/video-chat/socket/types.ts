@@ -8,6 +8,7 @@ export interface VideoChatMatchmaking {
   tryMatch(io: Namespace): Promise<Array<{ socketId: string; socket: unknown; joinedAt: Date }> | null>;
   getQueueSize(): Promise<number>;
   isInQueue(userId: string): Promise<boolean>;
+  isQueueOwner(userId: string, socketId: string): Promise<boolean>;
   dequeueIfOwner(userId: string, socketId: string, reason?: string): Promise<boolean>;
   removeUser(userId: string): Promise<void>;
   recordSkip(userId: string, skippedUserId: string): Promise<void>;

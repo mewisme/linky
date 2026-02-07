@@ -7,11 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/components/ui/card";
-import {
-  Globe,
-  Shield,
-  Zap,
-} from "lucide-react";
+import { IconWorld, IconShieldCheck, IconBolt } from "@tabler/icons-react";
 
 import { Badge } from "@repo/ui/components/ui/badge";
 import { BorderBeam } from "@repo/ui/components/ui/border-beam"
@@ -91,8 +87,8 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
           delay={0.3}
         >
           <CardDescription className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-lg">
-            Instantly connect with people around the world through secure,
-            real-time video conversations. No registration required to start.
+            Connect with people around the world through secure, real-time video conversations.
+            Sign in with Clerk to start chatting instantly.
           </CardDescription>
         </MotionEffect>
       </CardHeader>
@@ -152,7 +148,7 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
           >
             <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
               <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                <Globe className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                <IconWorld className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
               </div>
               <div>
                 <span className="text-sm font-semibold sm:text-base">Global Reach</span>
@@ -173,7 +169,7 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
           >
             <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
               <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                <Zap className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                <IconBolt className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
               </div>
               <div>
                 <span className="text-sm font-semibold sm:text-base">Instant Connection</span>
@@ -195,7 +191,7 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
 
             <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
               <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                <Shield className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                <IconShieldCheck className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
               </div>
               <div>
                 <span className="text-sm font-semibold sm:text-base">Secure & Private</span>

@@ -18,8 +18,6 @@ export type {
   ReactionPayload,
   ResyncSessionPayload,
   RoomPingPayload,
-  SessionActivatedPayload,
-  SessionWaitingPayload,
   SignalPayload,
   SocketErrorPayload,
 } from "./types/socket-event.types.js";

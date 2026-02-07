@@ -2,16 +2,6 @@ export interface SocketErrorPayload {
   message: string;
 }
 
-export interface SessionWaitingPayload {
-  message: string;
-  positionInQueue: number;
-  queueSize: number;
-}
-
-export interface SessionActivatedPayload {
-  message: string;
-}
-
 export interface QueueStatusPayload {
   message: string;
   queueSize: number;

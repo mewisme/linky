@@ -9,13 +9,17 @@ export interface NamespaceSockets {
 
 let manager: Manager | null = null;
 let managerBaseUrl: string | null = null;
+let chatSocket: Socket | null = null;
+let adminSocket: Socket | null = null;
 
 function getSocketManager(baseUrl: string): Manager {
   if (manager && managerBaseUrl === baseUrl) {
     return manager;
   }
 
-  manager?.removeAllListeners();
+  if (manager) {
+    manager.removeAllListeners();
+  }
 
   managerBaseUrl = baseUrl;
   manager = new Manager(baseUrl, {
@@ -35,17 +39,55 @@ export async function createNamespaceSockets(token?: string | null): Promise<Nam
     throw new Error("NEXT_PUBLIC_API_URL is not set");
   }
 
+  if (chatSocket && adminSocket) {
+    if (chatSocket.connected || chatSocket.active) {
+      if (token && chatSocket.auth && typeof chatSocket.auth === 'object') {
+        chatSocket.auth.token = token;
+      }
+      if (token && adminSocket.auth && typeof adminSocket.auth === 'object') {
+        adminSocket.auth.token = token;
+      }
+      return { chat: chatSocket, admin: adminSocket };
+    }
+
+    if (!chatSocket.connected && !chatSocket.active) {
+      chatSocket.connect();
+    }
+    if (!adminSocket.connected && !adminSocket.active) {
+      adminSocket.connect();
+    }
+    return { chat: chatSocket, admin: adminSocket };
+  }
+
   const socketManager = getSocketManager(baseUrl);
 
-  const chat = socketManager.socket("/chat", {
-    auth: { token },
-  });
+  if (!chatSocket) {
+    chatSocket = socketManager.socket("/chat", {
+      auth: { token },
+    });
+  } else {
+    if (token && chatSocket.auth && typeof chatSocket.auth === 'object') {
+      chatSocket.auth.token = token;
+    }
+    if (!chatSocket.connected && !chatSocket.active) {
+      chatSocket.connect();
+    }
+  }
 
-  const admin = socketManager.socket("/admin", {
-    auth: { token },
-  });
+  if (!adminSocket) {
+    adminSocket = socketManager.socket("/admin", {
+      auth: { token },
+    });
+  } else {
+    if (token && adminSocket.auth && typeof adminSocket.auth === 'object') {
+      adminSocket.auth.token = token;
+    }
+    if (!adminSocket.connected && !adminSocket.active) {
+      adminSocket.connect();
+    }
+  }
 
-  return { chat, admin };
+  return { chat: chatSocket, admin: adminSocket };
 }
 
 export async function createSocket(token?: string | null): Promise<Socket> {
@@ -77,13 +119,29 @@ export function updateToken(socket: Socket, token: string | null): void {
   }
 }
 
+export function destroySockets(): void {
+  if (chatSocket) {
+    chatSocket.removeAllListeners();
+    chatSocket.disconnect();
+    chatSocket = null;
+  }
+  if (adminSocket) {
+    adminSocket.removeAllListeners();
+    adminSocket.disconnect();
+    adminSocket = null;
+  }
+  if (manager) {
+    manager.removeAllListeners();
+    manager = null;
+  }
+  managerBaseUrl = null;
+}
+
 export interface SocketEvents {
   join: () => void;
   skip: () => void;
   disconnect: () => void;
   "joined-queue": (data: { message: string; queueSize: number }) => void;
-  "session-waiting": (data: { message: string; positionInQueue: number; queueSize: number }) => void;
-  "session-activated": (data: { message: string }) => void;
   matched: (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => void;
   signal: (data: SignalData) => void;
   "chat-message": (data: { message: string; timestamp: number; senderId: string }) => void;

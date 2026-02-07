@@ -26,8 +26,6 @@ export interface SocketCallbacks {
   onConnect: () => void;
   onDisconnect: (reason: string) => void;
   onConnectError: (error: Error) => void;
-  onSessionWaiting: (data: { message: string; positionInQueue: number; queueSize: number }) => void;
-  onSessionActivated: (data: { message: string }) => void;
   onBackendRestart: () => void;
   onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => void;
   onFavoriteAddedSelf: (data: { favorite_user_id: string }) => void;
@@ -65,6 +63,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const currentSocketIdRef = useRef<string | null>(null);
   const isInActiveCallRef = useRef<boolean>(false);
   const resyncPendingRef = useRef<boolean>(false);
+  const listenersRegisteredRef = useRef<boolean>(false);
 
   useEffect(() => {
     socketRef.current = globalSocket;
@@ -75,13 +74,11 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const registerSocketListeners = useCallback((socket: Socket, callbacks: SocketCallbacks) => {
     socket.on("joined-queue", (data) => {
-      console.log("Joined queue:", data);
       publishPresence('matching');
       callbacks.onJoinedQueue(data);
     });
 
     socket.on("matched", (data) => {
-      console.log("Matched with peer:", data.peerId, "Room:", data.roomId, "Is offerer:", data.isOfferer);
       publishPresence('in_call');
       isInActiveCallRef.current = true;
       socketHealthMonitor.markEventReceived();
@@ -95,7 +92,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("peer-left", (data) => {
-      console.info("Peer left:", data.message);
       publishPresence('matching');
       isInActiveCallRef.current = false;
       socketHealthMonitor.markEventReceived();
@@ -103,20 +99,17 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("peer-skipped", (data) => {
-      console.info("Peer skipped:", data.message, "Queue size:", data.queueSize);
       publishPresence('matching');
       callbacks.onPeerSkipped(data);
     });
 
     socket.on("skipped", (data) => {
-      console.info("Skipped:", data.message, "Queue size:", data.queueSize);
       publishPresence('matching');
       isInActiveCallRef.current = false;
       callbacks.onSkipped(data);
     });
 
     socket.on("end-call", (data) => {
-      console.info("End call received from peer:", data.message);
       publishPresence('available');
       isInActiveCallRef.current = false;
       socketHealthMonitor.markEventReceived();
@@ -124,21 +117,18 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("chat-message", (data) => {
-      console.info("Chat message received:", data.message);
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onChatMessage(data);
     });
 
     socket.on("mute-toggle", (data) => {
-      console.info("Peer mute state changed:", data.muted);
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onMuteToggle(data);
     });
 
     socket.on("video-toggle", (data) => {
-      console.info("Peer video state changed:", data.videoOff);
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onVideoToggle(data);
@@ -151,7 +141,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("queue-timeout", (data) => {
-      console.info("Queue timeout:", data.message);
       publishPresence('available');
       callbacks.onQueueTimeout(data);
     });
@@ -163,22 +152,18 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("favorite:added", (data) => {
-      console.info("Added to favorites by:", data.from_user_name);
       callbacks.onFavoriteAdded(data);
     });
 
     socket.on("favorite:added:self", (data) => {
-      console.info("Favorite added successfully:", data.favorite_user_id);
       callbacks.onFavoriteAddedSelf(data);
     });
 
     socket.on("favorite:removed", (data) => {
-      console.info("Removed from favorites by:", data.from_user_name);
       callbacks.onFavoriteRemoved(data);
     });
 
     socket.on("favorite:removed:self", (data) => {
-      console.info("Favorite removed successfully:", data.favorite_user_id);
       callbacks.onFavoriteRemovedSelf(data);
     });
   }, []);
@@ -190,49 +175,52 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         throw new Error("Socket not available");
       }
 
+      if (listenersRegisteredRef.current && callbacksRef.current === callbacks) {
+        return;
+      }
+
       const socket = socketRef.current;
 
-      console.info("Initializing socket signaling listeners...");
-      socket.removeAllListeners("joined-queue");
-      socket.removeAllListeners("matched");
-      socket.removeAllListeners("signal");
-      socket.removeAllListeners("peer-left");
-      socket.removeAllListeners("peer-skipped");
-      socket.removeAllListeners("skipped");
-      socket.removeAllListeners("end-call");
-      socket.removeAllListeners("chat-message");
-      socket.removeAllListeners("mute-toggle");
-      socket.removeAllListeners("screen-share:toggle");
-      socket.removeAllListeners("queue-timeout");
-      socket.removeAllListeners("error");
-      socket.removeAllListeners("favorite:added");
-      socket.removeAllListeners("favorite:added:self");
-      socket.removeAllListeners("favorite:removed");
-      socket.removeAllListeners("favorite:removed:self");
+      if (listenersRegisteredRef.current) {
+        socket.removeAllListeners("joined-queue");
+        socket.removeAllListeners("matched");
+        socket.removeAllListeners("signal");
+        socket.removeAllListeners("peer-left");
+        socket.removeAllListeners("peer-skipped");
+        socket.removeAllListeners("skipped");
+        socket.removeAllListeners("end-call");
+        socket.removeAllListeners("chat-message");
+        socket.removeAllListeners("mute-toggle");
+        socket.removeAllListeners("video-toggle");
+        socket.removeAllListeners("screen-share:toggle");
+        socket.removeAllListeners("queue-timeout");
+        socket.removeAllListeners("error");
+        socket.removeAllListeners("favorite:added");
+        socket.removeAllListeners("favorite:added:self");
+        socket.removeAllListeners("favorite:removed");
+        socket.removeAllListeners("favorite:removed:self");
+        unregisterCallbacks('socket-signaling');
+      }
 
       callbacksRef.current = callbacks;
       registerSocketListeners(socket, callbacks);
+      listenersRegisteredRef.current = true;
 
       registerCallbacks('socket-signaling', {
         onConnect: callbacks.onConnect,
         onDisconnect: callbacks.onDisconnect,
         onBackendRestart: callbacks.onBackendRestart,
         onConnectError: callbacks.onConnectError,
-        onSessionWaiting: callbacks.onSessionWaiting,
-        onSessionActivated: callbacks.onSessionActivated,
       });
     },
-    [registerSocketListeners, registerCallbacks]
+    [registerSocketListeners, registerCallbacks, unregisterCallbacks]
   );
 
   const sendSignal = useCallback((data: SignalData) => {
     if (socketRef.current) {
       if (!socketHealthMonitor.isHealthy()) {
-        console.warn("[SocketHealth] Socket unhealthy, deferring signal send");
         if (socketRef.current.connected) {
           socketRef.current.emit("signal", data);
-        } else {
-          console.error("[SocketHealth] Cannot send signal - socket disconnected");
         }
       } else {
         socketRef.current.emit("signal", data);
@@ -243,13 +231,10 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const joinQueue = useCallback(() => {
     if (socketRef.current) {
       if (socketRef.current.connected) {
-        console.log("Socket already connected, joining queue...");
         socketRef.current.emit("join");
         publishPresence('matching');
       } else {
-        console.log("Waiting for socket connection before joining queue...");
         socketRef.current.once("connect", () => {
-          console.log("Socket connected, joining queue...");
           socketRef.current!.emit("join");
           publishPresence('matching');
         });
@@ -282,7 +267,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       if (socketHealthMonitor.isHealthy() || socketRef.current.connected) {
         sendEndCallWithRetry();
       } else {
-        console.warn("[SocketHealth] Socket unhealthy, queuing end-call for retry");
         sendEndCallWithRetry();
       }
     }
@@ -325,7 +309,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         peer_user_id: peerUserId,
         user_name: userName,
       });
-      console.info("Favorite notification sent to server:", action, "for peer:", peerUserId);
     }
   }, []);
 
@@ -354,6 +337,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const disconnectSocket = useCallback(() => {
     isInActiveCallRef.current = false;
     resyncPendingRef.current = false;
+    listenersRegisteredRef.current = false;
     removeAllListeners();
     unregisterCallbacks('socket-signaling');
   }, [removeAllListeners, unregisterCallbacks]);
@@ -372,7 +356,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const requestResync = useCallback(() => {
     if (socketRef.current && socketRef.current.connected) {
-      console.info("[SocketResync] Explicit resync requested");
       resyncPendingRef.current = true;
       socketRef.current.emit("resync-session", {
         timestamp: Date.now(),

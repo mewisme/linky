@@ -8,7 +8,7 @@ import type {
   SignalPayload,
   VideoTogglePayload,
 } from "@/domains/video-chat/types/socket-event.types.js";
-import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms, VideoChatUserSessions } from "./types.js";
+import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms } from "./types.js";
 
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
@@ -28,7 +28,7 @@ async function getDbUserId(socket: AuthenticatedSocket): Promise<string | null> 
 }
 
 export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoChatContext): void {
-  const { io, matchmaking, rooms, userSessions } = context;
+  const { io, matchmaking, rooms } = context;
   const userId = socket.data.userId || "unknown";
 
   socket.on("client:timezone:init", (payload: { timezone?: string }) => {
@@ -38,46 +38,26 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
     }
   });
 
-  userSessions.tryActivateSession(userId, socket, io);
-  socket.emit("session-activated", {
-    message: "Your session is now active. You can proceed.",
-  });
-
-  const checkActiveSession = (): boolean => {
-    if (!userSessions.isActiveSession(userId, socket.id, io)) {
-      socket.emit("error", {
-        message: "Session is not active. Please wait for your turn.",
-      });
-      return false;
-    }
-    return true;
-  };
-
-  setupJoinHandler(socket, checkActiveSession, matchmaking, rooms);
-  setupSkipHandler(socket, checkActiveSession, io, matchmaking, rooms);
-  setupSignalHandler(socket, checkActiveSession, io, rooms);
-  setupChatMessageHandler(socket, checkActiveSession, io, rooms);
+  setupJoinHandler(socket, matchmaking, rooms);
+  setupSkipHandler(socket, io, matchmaking, rooms);
+  setupSignalHandler(socket, io, rooms);
+  setupChatMessageHandler(socket, io, rooms);
   setupMuteToggleHandler(socket, io, rooms);
   setupVideoToggleHandler(socket, io, rooms);
   setupScreenShareHandler(socket, io, rooms);
   setupReactionHandler(socket, io, rooms);
   setupFavoriteNotificationHandler(socket, io, rooms);
-  setupEndCallHandler(socket, checkActiveSession, io, matchmaking, rooms);
-  setupResyncHandler(socket, userId, checkActiveSession, io, matchmaking, rooms);
-  setupDisconnectHandler(socket, userId, io, matchmaking, rooms, userSessions);
+  setupEndCallHandler(socket, io, matchmaking, rooms);
+  setupResyncHandler(socket, userId, io, matchmaking, rooms);
+  setupDisconnectHandler(socket, userId, io, matchmaking, rooms);
 }
 
 function setupJoinHandler(
   socket: AuthenticatedSocket,
-  checkActiveSession: () => boolean,
   matchmaking: VideoChatMatchmaking,
   rooms: VideoChatRooms,
 ): void {
   socket.on("join", async () => {
-    if (!checkActiveSession()) {
-      return;
-    }
-
     if (rooms.isInRoom(socket.id)) {
       socket.emit("error", {
         message: "Already in a room. Please disconnect first.",
@@ -103,16 +83,11 @@ function setupJoinHandler(
 
 function setupSkipHandler(
   socket: AuthenticatedSocket,
-  checkActiveSession: () => boolean,
   io: Namespace,
   matchmaking: VideoChatMatchmaking,
   rooms: VideoChatRooms,
 ): void {
   socket.on("skip", async () => {
-    if (!checkActiveSession()) {
-      return;
-    }
-
     const dbUserId = await getDbUserId(socket);
     if (!dbUserId) {
       return;
@@ -134,14 +109,9 @@ function setupSkipHandler(
 
         rooms.deleteRoom(room.id);
 
-        if (peerSocket) {
+        if (peerSocket && peerSocket.connected) {
           const peerDbUserId = await getDbUserId(peerSocket);
           if (peerDbUserId) {
-            const isPeerInQueue = await matchmaking.isInQueue(peerDbUserId);
-            if (isPeerInQueue) {
-              await matchmaking.removeUser(peerDbUserId);
-            }
-
             const peerAdded = await matchmaking.enqueue(peerSocket);
             if (peerAdded) {
               const peerQueueSize = await matchmaking.getQueueSize();
@@ -159,14 +129,9 @@ function setupSkipHandler(
       }
     }
 
-    const isInQueue = await matchmaking.isInQueue(dbUserId);
-    if (isInQueue) {
-      await matchmaking.removeUser(dbUserId);
-    }
-
     const added = await matchmaking.enqueue(socket);
     if (!added) {
-      logger.warn("Failed to re-queue user after skip: %s", socket.id);
+      logger.warn("Failed to re-queue user after skip: socket=%s userId=%s", socket.id, dbUserId);
     }
 
     const queueSize = await matchmaking.getQueueSize();
@@ -179,15 +144,10 @@ function setupSkipHandler(
 
 function setupSignalHandler(
   socket: AuthenticatedSocket,
-  checkActiveSession: () => boolean,
   io: Namespace,
   rooms: VideoChatRooms,
 ): void {
   socket.on("signal", (data: SignalPayload) => {
-    if (!checkActiveSession()) {
-      return;
-    }
-
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
       socket.emit("error", {
@@ -215,15 +175,10 @@ function setupSignalHandler(
 
 function setupChatMessageHandler(
   socket: AuthenticatedSocket,
-  checkActiveSession: () => boolean,
   io: Namespace,
   rooms: VideoChatRooms,
 ): void {
   socket.on("chat-message", (data: ChatMessageInputPayload) => {
-    if (!checkActiveSession()) {
-      return;
-    }
-
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
       socket.emit("error", {
@@ -379,16 +334,11 @@ function setupFavoriteNotificationHandler(socket: AuthenticatedSocket, io: Names
 
 function setupEndCallHandler(
   socket: AuthenticatedSocket,
-  checkActiveSession: () => boolean,
   io: Namespace,
   matchmaking: VideoChatMatchmaking,
   rooms: VideoChatRooms,
 ): void {
   socket.on("end-call", async () => {
-    if (!checkActiveSession()) {
-      return;
-    }
-
     const dbUserId = await getDbUserId(socket);
     if (dbUserId) {
       const wasInQueue = await matchmaking.isInQueue(dbUserId);
@@ -428,7 +378,6 @@ function setupEndCallHandler(
 function setupResyncHandler(
   socket: AuthenticatedSocket,
   userId: string,
-  checkActiveSession: () => boolean,
   io: Namespace,
   _matchmaking: VideoChatMatchmaking,
   rooms: VideoChatRooms,
@@ -438,10 +387,6 @@ function setupResyncHandler(
   });
 
   socket.on("resync-session", async (data: ResyncSessionPayload) => {
-    if (!checkActiveSession()) {
-      return;
-    }
-
     const existingRoom = rooms.getRoomByUser(socket.id);
     if (existingRoom) {
       return;
@@ -510,22 +455,14 @@ function setupDisconnectHandler(
   io: Namespace,
   matchmaking: VideoChatMatchmaking,
   rooms: VideoChatRooms,
-  userSessions: VideoChatUserSessions,
 ): void {
   socket.on("disconnect", async (reason: string) => {
-    const wasReplaced = userSessions.isReplacedSocket(socket.id);
-    if (wasReplaced) {
-      userSessions.acknowledgeReplacedSocket(socket.id);
-      logger.debug("Replaced socket disconnected: socket=%s user=%s", socket.id, userId);
-      return;
-    }
-
+    const isNamespaceDisconnect = reason === "client namespace disconnect" || reason === "server namespace disconnect";
     const wasInRoom = rooms.isInRoom(socket.id);
     const room = wasInRoom ? rooms.getRoomByUser(socket.id) : undefined;
 
-    userSessions.deactivateSession(userId, socket.id);
-
     const dbUserId = await getDbUserId(socket);
+
     if (dbUserId) {
       const wasInQueue = await matchmaking.isInQueue(dbUserId);
       if (wasInQueue) {
@@ -557,23 +494,16 @@ function setupDisconnectHandler(
           if (isPeerInQueue) {
             await matchmaking.removeUser(peerDbUserId);
           }
-
-          setTimeout(async () => {
-            const stillConnected = peerSocket.connected && io.sockets.get(peerId);
-            if (stillConnected) {
-              await matchmaking.enqueue(peerSocket);
-            }
-          }, 5000);
         }
       }
 
       rooms.deleteRoom(room.id);
     }
 
-    if (reason !== "client namespace disconnect" && reason !== "server namespace disconnect") {
+    if (!isNamespaceDisconnect) {
       logger.info("Client disconnected: socket=%s user=%s reason=%s wasInRoom=%s", socket.id, userId, reason, wasInRoom);
     } else {
-      logger.debug("Client disconnected: socket=%s user=%s reason=%s", socket.id, userId, reason);
+      logger.debug("Namespace disconnect (in-room): socket=%s user=%s reason=%s", socket.id, userId, reason);
     }
   });
 }

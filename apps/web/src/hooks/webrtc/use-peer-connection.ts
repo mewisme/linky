@@ -11,7 +11,7 @@ export interface PeerConnectionCallbacks {
 }
 
 export interface UsePeerConnectionReturn {
-  initializePeerConnection: (localStream: MediaStream, callbacks: PeerConnectionCallbacks) => RTCPeerConnection;
+  initializePeerConnection: (localStream: MediaStream, callbacks: PeerConnectionCallbacks, servers?: RTCIceServer[]) => RTCPeerConnection;
   createOffer: () => Promise<RTCSessionDescriptionInit>;
   handleOffer: (offer: RTCSessionDescriptionInit, isIceRestart?: boolean) => Promise<RTCSessionDescriptionInit>;
   handleAnswer: (answer: RTCSessionDescriptionInit, isIceRestart?: boolean) => Promise<void>;
@@ -56,7 +56,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
   }, []);
 
   const initializePeerConnection = useCallback(
-    (localStream: MediaStream, callbacks: PeerConnectionCallbacks): RTCPeerConnection => {
+    (localStream: MediaStream, callbacks: PeerConnectionCallbacks, servers?: RTCIceServer[]): RTCPeerConnection => {
       if (initializingRef.current) {
         console.warn("PeerConnection initialization already in progress, skipping");
         return pcRef.current!;
@@ -64,6 +64,10 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
 
       if (pcRef.current) {
         closePeerConnection(pcRef.current);
+      }
+
+      if (servers && servers.length > 0) {
+        iceServersRef.current = servers;
       }
 
       const currentIceServers = iceServersRef.current;

@@ -1,4 +1,4 @@
-import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms, VideoChatUserSessions } from "@/domains/video-chat/socket/types.js";
+import type { VideoChatContext, VideoChatMatchmaking, VideoChatRooms } from "@/domains/video-chat/socket/types.js";
 import { setupMatchmakingInterval, setupRoomHeartbeat } from "@/domains/video-chat/socket/matchmaking.socket.js";
 
 import type { AuthenticatedSocket } from "@/socket/auth.js";
@@ -19,13 +19,11 @@ export function setupVideoChatHandlers(
   io: Namespace,
   matchmaking: VideoChatMatchmaking,
   rooms: VideoChatRooms,
-  userSessions: VideoChatUserSessions,
 ): void {
   const context: VideoChatContext = {
     io,
     matchmaking,
     rooms,
-    userSessions,
   };
 
   setVideoChatContext(context);

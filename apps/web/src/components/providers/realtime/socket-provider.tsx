@@ -18,8 +18,6 @@ type SocketEventCallback = {
   onDisconnect?: (reason: string) => void;
   onBackendRestart?: () => void;
   onConnectError?: (error: Error) => void;
-  onSessionWaiting?: (data: { message: string; positionInQueue: number; queueSize: number }) => void;
-  onSessionActivated?: (data: { message: string }) => void;
 };
 
 export interface SocketContextValue {
@@ -74,17 +72,14 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   const initializeSocket = useCallback(async (tokenOverride?: string) => {
     if (initializingRef.current) {
-      console.info("[SocketProvider] Already initializing, skipping...");
       return;
     }
 
-    if (socketRef.current?.connected) {
-      console.info("[SocketProvider] Socket already connected:", socketRef.current.id);
+    if (socketRef.current && (socketRef.current.connected || socketRef.current.active)) {
       return;
     }
 
     if (!isLoaded) {
-      console.info("[SocketProvider] Auth not loaded yet, waiting...");
       return;
     }
 
@@ -92,93 +87,96 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     try {
       const token = tokenOverride || await getToken();
-      console.info("[SocketProvider] Initializing global socket...");
       useSocketStore.getState().setConnectionState("connecting");
       const { chat: chatSocket, admin: adminNamespaceSocket } = await createNamespaceSockets(token);
+
+      if (socketRef.current && socketRef.current !== chatSocket) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+      }
+      if (adminSocketRef.current && adminSocketRef.current !== adminNamespaceSocket) {
+        adminSocketRef.current.removeAllListeners();
+        adminSocketRef.current.disconnect();
+      }
+
       socketRef.current = chatSocket;
       setSocket(chatSocket);
       adminSocketRef.current = adminNamespaceSocket;
       setAdminSocket(adminNamespaceSocket);
 
       adminNamespaceSocket.on("connect", () => {
-        console.info("[SocketProvider] Admin namespace connected:", adminNamespaceSocket.id);
       });
 
       adminNamespaceSocket.on("disconnect", () => {
-        console.info("[SocketProvider] Admin namespace disconnected");
       });
 
       adminNamespaceSocket.on("connect_error", () => {
         setAdminSocket(adminNamespaceSocket);
       });
 
-      chatSocket.on("connect", () => {
-        console.log("[SocketProvider] Socket connected:", chatSocket.id);
-        chatSocket.emit("client:timezone:init", { timezone: getUserTimezone() });
+      const existingConnectListeners = chatSocket.listeners("connect").length;
+      if (existingConnectListeners === 0) {
+        chatSocket.on("connect", () => {
+          chatSocket.emit("client:timezone:init", { timezone: getUserTimezone() });
 
-        const isBackendRestart = backendRestartDetector.recordConnect(chatSocket);
+          const isBackendRestart = backendRestartDetector.recordConnect(chatSocket);
 
-        const newSocketId = chatSocket.id || null;
-        setSocketId(newSocketId);
-        socketIdRef.current = newSocketId;
-        useSocketStore.getState().setConnectionState("connected");
-        publishPresence('online');
-        socketHealthMonitor.markEventReceived();
+          const newSocketId = chatSocket.id || null;
+          setSocketId(newSocketId);
+          socketIdRef.current = newSocketId;
+          useSocketStore.getState().setConnectionState("connected");
+          publishPresence('online');
+          socketHealthMonitor.markEventReceived();
 
-        if (isBackendRestart) {
-          console.warn("[SocketProvider] Backend restart detected");
-          isInActiveCallRef.current = false;
-          resyncPendingRef.current = false;
-          callbacksRef.current.forEach(cb => cb.onBackendRestart?.());
-        } else if (resyncPendingRef.current && isInActiveCallRef.current) {
-          console.info("[SocketProvider] Reconnecting - requesting resync");
-          resyncPendingRef.current = false;
-          if (chatSocket.connected) {
-            chatSocket.emit("resync-session", { timestamp: Date.now() });
+          if (isBackendRestart) {
+            isInActiveCallRef.current = false;
+            resyncPendingRef.current = false;
+            callbacksRef.current.forEach(cb => cb.onBackendRestart?.());
+          } else if (resyncPendingRef.current && isInActiveCallRef.current) {
+            resyncPendingRef.current = false;
+            if (chatSocket.connected) {
+              chatSocket.emit("resync-session", { timestamp: Date.now() });
+            }
           }
-        }
 
-        callbacksRef.current.forEach(cb => cb.onConnect?.());
-      });
+          callbacksRef.current.forEach(cb => cb.onConnect?.());
+        });
+      }
 
-      chatSocket.on("disconnect", (reason) => {
-        console.info("[SocketProvider] Socket disconnected:", reason);
-        const wasConnected = socketIdRef.current !== null;
-        backendRestartDetector.recordDisconnect(reason, wasConnected);
-        useSocketStore.getState().setConnectionState("disconnected");
-        publishPresence('offline');
+      const existingDisconnectListeners = chatSocket.listeners("disconnect").length;
+      if (existingDisconnectListeners === 0) {
+        chatSocket.on("disconnect", (reason) => {
+          const wasConnected = socketIdRef.current !== null;
+          backendRestartDetector.recordDisconnect(reason, wasConnected);
+          useSocketStore.getState().setConnectionState("disconnected");
+          publishPresence('offline');
 
-        if (healthCheckIntervalRef.current) {
-          clearInterval(healthCheckIntervalRef.current);
-          healthCheckIntervalRef.current = null;
-        }
+          if (healthCheckIntervalRef.current) {
+            clearInterval(healthCheckIntervalRef.current);
+            healthCheckIntervalRef.current = null;
+          }
 
-        callbacksRef.current.forEach(cb => cb.onDisconnect?.(reason));
-      });
+          callbacksRef.current.forEach(cb => cb.onDisconnect?.(reason));
+        });
+      }
 
-      chatSocket.on("connect_error", (error) => {
-        console.error("[SocketProvider] Connection error:", error);
-        useSocketStore.getState().setConnectionState("disconnected");
-        publishPresence('offline');
-        callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
-      });
+      const existingConnectErrorListeners = chatSocket.listeners("connect_error").length;
+      if (existingConnectErrorListeners === 0) {
+        chatSocket.on("connect_error", (error) => {
+          console.error("[SocketProvider] Connection error:", error);
+          useSocketStore.getState().setConnectionState("disconnected");
+          publishPresence('offline');
+          callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
+        });
+      }
 
-      chatSocket.on("reconnect_attempt", () => {
-        console.info("[SocketProvider] Reconnecting...");
-        useSocketStore.getState().setConnectionState("reconnecting");
-      });
+      const existingReconnectAttemptListeners = chatSocket.listeners("reconnect_attempt").length;
+      if (existingReconnectAttemptListeners === 0) {
+        chatSocket.on("reconnect_attempt", () => {
+          useSocketStore.getState().setConnectionState("reconnecting");
+        });
+      }
 
-      chatSocket.on("session-waiting", (data) => {
-        console.info("[SocketProvider] Session queued:", data.message, "Position:", data.positionInQueue);
-        publishPresence('online');
-        callbacksRef.current.forEach(cb => cb.onSessionWaiting?.(data));
-      });
-
-      chatSocket.on("session-activated", (data) => {
-        console.info("[SocketProvider] Session activated:", data.message);
-        publishPresence('available');
-        callbacksRef.current.forEach(cb => cb.onSessionActivated?.(data));
-      });
 
       socketHealthMonitor.stop();
       socketHealthMonitor.start({
@@ -186,18 +184,15 @@ export function SocketProvider({ children }: SocketProviderProps) {
         isInActiveCall: () => isInActiveCallRef.current,
         getRoomInfo: () => null,
         onHalfDeadDetected: () => {
-          console.warn("[SocketProvider] Half-dead socket detected");
           useSocketStore.getState().setIsHealthy(false);
         },
         onResyncRequired: () => {
-          console.info("[SocketProvider] Resync required");
           resyncPendingRef.current = true;
           if (chatSocket.connected) {
             chatSocket.emit("resync-session", { timestamp: Date.now() });
           }
         },
         onForcedTeardown: () => {
-          console.error("[SocketProvider] Forced teardown");
           isInActiveCallRef.current = false;
         },
       });
@@ -213,15 +208,16 @@ export function SocketProvider({ children }: SocketProviderProps) {
     } finally {
       initializingRef.current = false;
     }
-  }, [isLoaded, getToken]);
+  }, [isLoaded]);
 
   useEffect(() => {
-    if (isLoaded) {
+    if (isLoaded && !socketRef.current) {
       initializeSocket();
     }
+  }, [isLoaded]);
 
+  useEffect(() => {
     return () => {
-      console.info("[SocketProvider] Cleaning up socket...");
       socketHealthMonitor.stop();
       isInActiveCallRef.current = false;
       resyncPendingRef.current = false;
@@ -248,11 +244,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
         setAdminSocket(null);
       }
     };
-  }, [initializeSocket, isLoaded]);
+  }, []);
 
   const updateSocketToken = useCallback((token: string) => {
     if (!socketRef.current) {
-      console.warn("[SocketProvider] Cannot update token: socket not initialized");
       initializeSocket(token);
       return;
     }
@@ -261,12 +256,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
     if (adminSocketRef.current) {
       updateToken(adminSocketRef.current, token);
     }
-    console.info("[SocketProvider] Token updated");
   }, [initializeSocket]);
 
   const requestResync = useCallback(() => {
     if (socketRef.current?.connected) {
-      console.info("[SocketProvider] Explicit resync requested");
       resyncPendingRef.current = true;
       socketRef.current.emit("resync-session", { timestamp: Date.now() });
     }

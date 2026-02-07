@@ -3,8 +3,8 @@ import type { Namespace } from "socket.io";
 import type { VideoChatRoom } from "@/domains/video-chat/types/room.types.js";
 
 export interface VideoChatMatchmaking {
-  enqueue(socket: AuthenticatedSocket): Promise<boolean>;
-  tryMatch(io: Namespace): Promise<Array<{ socketId: string; socket: unknown }> | null>;
+  enqueue(socket: unknown): Promise<boolean>;
+  tryMatch(io: Namespace): Promise<Array<{ socketId: string; socket: unknown; joinedAt: Date }> | null>;
   getQueueSize(): Promise<number>;
   isInQueue(userId: string): Promise<boolean>;
   removeUser(userId: string): Promise<void>;
@@ -26,22 +26,9 @@ export interface VideoChatRooms {
   createRoom(user1SocketId: string, user2SocketId: string): string;
 }
 
-export interface VideoChatUserSessions {
-  tryActivateSession(
-    userId: string,
-    socket: unknown,
-    io: Namespace,
-  ): { activated: boolean; sessionId?: string };
-  isActiveSession(userId: string, socketId: string, io: Namespace): boolean;
-  deactivateSession(userId: string, socketId: string): void;
-  isReplacedSocket(socketId: string): boolean;
-  acknowledgeReplacedSocket(socketId: string): void;
-}
-
 export interface VideoChatContext {
   io: Namespace;
   matchmaking: VideoChatMatchmaking;
   rooms: VideoChatRooms;
-  userSessions: VideoChatUserSessions;
 }
 

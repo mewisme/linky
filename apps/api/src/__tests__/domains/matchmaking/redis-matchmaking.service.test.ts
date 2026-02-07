@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Namespace } from "socket.io";
-import { RedisMatchmakingService } from "../../../domains/matchmaking/service/redis-matchmaking.service.js";
+import { MatchmakingService } from "../../../domains/matchmaking/service/matchmaking.service.js";
+import { RedisMatchStateStore } from "../../../domains/matchmaking/store/redis-match-state-store.js";
 
 const mockGetUserIdByClerkId = vi.fn();
 const mockZScore = vi.fn();
@@ -12,9 +13,11 @@ const mockDel = vi.fn();
 const mockZCard = vi.fn();
 const mockZRangeWithScores = vi.fn();
 const mockGet = vi.fn();
+const mockMGet = vi.fn();
 const mockSAdd = vi.fn();
 const mockExpire = vi.fn();
 const mockSMembers = vi.fn();
+const mockSIsMember = vi.fn();
 const mockSDel = vi.fn();
 
 vi.mock("../../../infra/supabase/repositories/call-history.js", () => ({
@@ -31,9 +34,11 @@ vi.mock("../../../infra/redis/client.js", () => ({
     zCard: (...args: unknown[]) => mockZCard(...args),
     zRangeWithScores: (...args: unknown[]) => mockZRangeWithScores(...args),
     get: (...args: unknown[]) => mockGet(...args),
+    mGet: (...args: unknown[]) => mockMGet(...args),
     sAdd: (...args: unknown[]) => mockSAdd(...args),
     expire: (...args: unknown[]) => mockExpire(...args),
     sMembers: (...args: unknown[]) => mockSMembers(...args),
+    sIsMember: (...args: unknown[]) => mockSIsMember(...args),
   },
 }));
 
@@ -43,6 +48,12 @@ vi.mock("../../../infra/supabase/repositories/user-details.js", () => ({
 vi.mock("../../../infra/supabase/repositories/favorites.js", () => ({
   getFavoritesByUserId: vi.fn(() => Promise.resolve([])),
 }));
+vi.mock("../../../infra/supabase/repositories/user-blocks.js", () => ({
+  getBlockedUserIds: vi.fn(() => Promise.resolve([])),
+}));
+vi.mock("../../../infra/supabase/repositories/user-embeddings.js", () => ({
+  getUserEmbeddingsMap: vi.fn(() => Promise.resolve(new Map())),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -50,13 +61,16 @@ beforeEach(() => {
   mockDel.mockResolvedValue(1);
   mockZRem.mockResolvedValue(1);
   mockSMembers.mockResolvedValue([]);
+  mockSIsMember.mockResolvedValue(false);
 });
 
-describe("RedisMatchmakingService", () => {
-  let svc: RedisMatchmakingService;
+describe("MatchmakingService with RedisMatchStateStore", () => {
+  let svc: MatchmakingService;
+  let store: RedisMatchStateStore;
 
   beforeEach(() => {
-    svc = new RedisMatchmakingService();
+    store = new RedisMatchStateStore();
+    svc = new MatchmakingService(store);
   });
 
   describe("enqueue", () => {
@@ -71,7 +85,7 @@ describe("RedisMatchmakingService", () => {
 
     it("returns false when getUserIdByClerkId returns null", async () => {
       mockGetUserIdByClerkId.mockResolvedValue(null);
-      const socket = { id: "s1", data: { userId: "clerk_1" } } as any;
+      const socket = { id: "s1", data: { userId: "clerk_1" }, connected: true } as any;
 
       const result = await svc.enqueue(socket);
 
@@ -82,6 +96,7 @@ describe("RedisMatchmakingService", () => {
 
   describe("dequeue", () => {
     it("returns false when zRem removes 0 and del is called", async () => {
+      mockGet.mockResolvedValue(null);
       mockZRem.mockResolvedValue(0);
       mockDel.mockResolvedValue(undefined);
 
@@ -90,9 +105,11 @@ describe("RedisMatchmakingService", () => {
       expect(result).toBe(false);
       expect(mockZRem).toHaveBeenCalledWith("match:queue", "u1");
       expect(mockDel).toHaveBeenCalledWith("match:socket:u1");
+      
     });
 
     it("returns true when zRem removes 1", async () => {
+      mockGet.mockResolvedValue("socket1");
       mockZRem.mockResolvedValue(1);
       mockDel.mockResolvedValue(undefined);
 
@@ -199,11 +216,7 @@ describe("RedisMatchmakingService", () => {
         { value: "user1", score: now - 1000 },
         { value: "user2", score: now - 500 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2");
+      mockMGet.mockResolvedValue(["socket1", "socket2"]);
       mockSMembers.mockResolvedValue([]);
 
       const result = await svc.tryMatch(io);
@@ -232,9 +245,7 @@ describe("RedisMatchmakingService", () => {
         { value: "user1", score: now - 1000 },
         { value: "user2", score: now - 500 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2");
+      mockMGet.mockResolvedValue(["socket1", "socket2"]);
       mockSMembers.mockResolvedValue([]);
 
       const result = await svc.tryMatch(io);
@@ -259,11 +270,7 @@ describe("RedisMatchmakingService", () => {
         { value: "user1", score: now - 1000 },
         { value: "user2", score: now - 500 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2");
+      mockMGet.mockResolvedValue(["socket1", "socket2"]);
       mockSMembers
         .mockResolvedValueOnce(["tag1", "tag2"])
         .mockResolvedValueOnce(["tag2", "tag3"])
@@ -294,17 +301,11 @@ describe("RedisMatchmakingService", () => {
         { value: "user2", score: now - 500 },
         { value: "user3", score: now - 200 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3")
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket3");
-      mockSMembers
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce(["user1"])
-        .mockResolvedValueOnce([])
-        .mockResolvedValue([]);
+      mockMGet.mockResolvedValue(["socket1", "socket2", "socket3"]);
+      mockSMembers.mockResolvedValue([]);
+      mockSIsMember.mockImplementation(async (key: string, value: string) => {
+        return (key === "match:skip:user2" && value === "user1");
+      });
 
       const result = await svc.tryMatch(io);
 
@@ -328,15 +329,9 @@ describe("RedisMatchmakingService", () => {
         { value: "user1", score: now - 1000 },
         { value: "user2", score: now - 500 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2");
-      mockSMembers
-        .mockResolvedValueOnce(["user2"])
-        .mockResolvedValueOnce(["user1"])
-        .mockResolvedValue([]);
+      mockMGet.mockResolvedValue(["socket1", "socket2"]);
+      mockSMembers.mockResolvedValue([]);
+      mockSIsMember.mockResolvedValue(true);
 
       const result = await svc.tryMatch(io);
 
@@ -374,12 +369,7 @@ describe("RedisMatchmakingService", () => {
         { value: "user2", score: now - 500 },
         { value: "user3", score: now - 200 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3")
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2");
+      mockMGet.mockResolvedValue(["socket1", "socket2", "socket3"]);
       mockSMembers
         .mockResolvedValueOnce(["tag1", "tag2"])
         .mockResolvedValueOnce([])
@@ -408,11 +398,7 @@ describe("RedisMatchmakingService", () => {
         { value: "user1", score: now - 1000 },
         { value: "user2", score: now - 500 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2");
+      mockMGet.mockResolvedValue(["socket1", "socket2"]);
       mockSMembers
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
@@ -447,20 +433,11 @@ describe("RedisMatchmakingService", () => {
         { value: "user2", score: now - 500 },
         { value: "user3", score: now - 200 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3")
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket3");
-      mockSMembers
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce(["user2"])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValue([]);
+      mockMGet.mockResolvedValue(["socket1", "socket2", "socket3"]);
+      mockSMembers.mockResolvedValue([]);
+      mockSIsMember.mockImplementation(async (key: string, value: string) => {
+        return (key === "match:skip:user1" && value === "user2");
+      });
 
       const result = await svc.tryMatch(io);
 
@@ -492,24 +469,14 @@ describe("RedisMatchmakingService", () => {
         { value: "user3", score: now - 800 },
         { value: "user4", score: now - 700 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3")
-        .mockResolvedValueOnce("socket4")
-        .mockResolvedValueOnce("socket3")
-        .mockResolvedValueOnce("socket4");
-      mockSMembers
-        .mockResolvedValueOnce(["tag1"])
-        .mockResolvedValueOnce(["tag1"])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce(["user4"])
-        .mockResolvedValueOnce(["user3"])
-        .mockResolvedValue([]);
+      mockMGet.mockResolvedValue(["socket1", "socket2", "socket3", "socket4"]);
+      mockSMembers.mockImplementation(async (key: string) => {
+        if (key === "user:interests:user1") return ["tag1"];
+        if (key === "user:interests:user2") return ["tag1"];
+        if (key === "user:favorites:user3") return ["user4"];
+        if (key === "user:favorites:user4") return ["user3"];
+        return [];
+      });
 
       const result = await svc.tryMatch(io);
 
@@ -537,22 +504,13 @@ describe("RedisMatchmakingService", () => {
         { value: "user2", score: now - 900 },
         { value: "user3", score: now - 800 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3");
-      mockSMembers
-        .mockResolvedValueOnce(["tag1"])
-        .mockResolvedValueOnce(["tag1"])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([])
-        .mockResolvedValueOnce(["user3"])
-        .mockResolvedValueOnce([])
-        .mockResolvedValue([]);
+      mockMGet.mockResolvedValue(["socket1", "socket2", "socket3"]);
+      mockSMembers.mockImplementation(async (key: string) => {
+        if (key === "user:interests:user1") return ["tag1"];
+        if (key === "user:interests:user2") return ["tag1"];
+        if (key === "user:favorites:user2") return ["user3"];
+        return [];
+      });
 
       const result = await svc.tryMatch(io);
 
@@ -580,12 +538,7 @@ describe("RedisMatchmakingService", () => {
         { value: "user2", score: now - 900 },
         { value: "user3", score: now - 800 },
       ]);
-      mockGet
-        .mockResolvedValueOnce("socket1")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3")
-        .mockResolvedValueOnce("socket2")
-        .mockResolvedValueOnce("socket3");
+      mockMGet.mockResolvedValue(["socket1", "socket2", "socket3"]);
       mockSMembers
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce(["tag1"])

@@ -12,9 +12,14 @@ import {
 
 const AVATARS = [
   {
-    src: 'https://pbs.twimg.com/profile_images/1948770261848756224/oPwqXMD6_400x400.jpg',
-    fallback: 'SK',
-    tooltip: 'Skyleen',
+    src: 'https://github.com/mewisme.png',
+    fallback: 'Mew',
+    tooltip: 'Mewisme',
+  },
+  {
+    src: 'https://github.com/Ninhowi.png',
+    fallback: 'NL',
+    tooltip: 'Ninhowi',
   },
   {
     src: 'https://pbs.twimg.com/profile_images/1593304942210478080/TUYae5z7_400x400.jpg',

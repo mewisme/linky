@@ -42,6 +42,10 @@ const sizes = {
     svg: 'h-14',
     betaTag: 'bottom-[7px] left-[calc(100%+15px)] px-2.5 py-1 text-base',
   },
+  xxl: {
+    svg: 'h-20',
+    betaTag: 'bottom-[10px] left-[calc(100%+20px)] px-3 py-1.5 text-lg',
+  },
 };
 
 export const Logo = ({

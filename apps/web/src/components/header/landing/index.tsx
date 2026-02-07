@@ -59,7 +59,7 @@ export const Header = ({ transition }: { transition: boolean }) => {
             layoutId="logo"
             className="absolute z-110 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
           >
-            <Logo size={isMobile ? 'lg' : 'xl'} draw />
+            <Logo size={isMobile ? 'lg' : 'xxl'} draw />
           </motion.div>
         )}
 

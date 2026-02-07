@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@repo/ui/components/ui/card";
 import { Header } from "@/components/header/landing/index";
-import { LandingFooter } from "@/components/landing/footer";
+import { LandingFooter } from "@/app/(marketing)/components/landing/footer";
 import { cn } from "@repo/ui/lib/utils";
 
 interface LegalLayoutProps {

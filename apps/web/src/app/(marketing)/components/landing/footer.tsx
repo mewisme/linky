@@ -3,7 +3,7 @@ import { TextHoverEffect } from '@repo/ui/components/ui/text-hover-effect';
 
 export const LandingFooter = () => {
   return (
-    <footer className="flex flex-col relative items-center justify-center pt-16 pb-8 md:pb-0 px-6 lg:px-8 w-full max-w-7xl mx-auto">
+    <footer className="flex flex-col relative items-center justify-center pb-8 md:pb-0 px-6 lg:px-8 w-full max-w-7xl mx-auto">
       <div className="h-72 hidden md:flex items-center justify-center w-full">
         <TextHoverEffect text="LINKY" />
       </div>

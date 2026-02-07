@@ -3,7 +3,8 @@
 import { Alert, AlertDescription } from "@repo/ui/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@repo/ui/components/ui/collapsible";
-import { IconShieldCheck, IconAlertCircle, IconUserX, IconLock, IconChevronDown } from "@tabler/icons-react";
+import { IconAlertCircle, IconChevronDown, IconLock, IconShieldCheck, IconUserX } from "@tabler/icons-react";
+
 import { MotionEffect } from "@/components/effects/motion-effect";
 import { useState } from "react";
 
@@ -65,7 +66,7 @@ export function LandingSafety() {
                 inView
                 delay={0.15 + 0.1 * index}
               >
-                <Card className="p-5 sm:p-6 h-full border-border/50">
+                <Card className="p-5 sm:p-6 h-full border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
                   <div className="space-y-3 sm:space-y-4 text-center">
                     <div className="mx-auto rounded-full bg-primary/10 p-3 w-fit">
                       <Icon className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
@@ -87,7 +88,7 @@ export function LandingSafety() {
 
         <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.45}>
           <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-            <Card className="border-border/50">
+            <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
               <CardHeader>
                 <CollapsibleTrigger className="flex items-center justify-between w-full hover:opacity-80 transition-opacity">
                   <div className="text-left">
@@ -97,9 +98,8 @@ export function LandingSafety() {
                     </CardDescription>
                   </div>
                   <IconChevronDown
-                    className={`h-5 w-5 text-muted-foreground transition-transform ${
-                      detailsOpen ? "rotate-180" : ""
-                    }`}
+                    className={`h-5 w-5 text-muted-foreground transition-transform ${detailsOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </CollapsibleTrigger>
               </CardHeader>

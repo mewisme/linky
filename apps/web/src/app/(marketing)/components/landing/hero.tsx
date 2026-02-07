@@ -1,23 +1,15 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@repo/ui/components/ui/card";
-import { IconWorld, IconShieldCheck, IconBolt } from "@tabler/icons-react";
+import { IconBolt, IconShieldCheck, IconWorld } from "@tabler/icons-react";
 
-import { Badge } from "@repo/ui/components/ui/badge";
-import { BorderBeam } from "@repo/ui/components/ui/border-beam"
+import { BorderBeamSimple } from "@repo/ui/components/ui/border-beam-simple";
 import { MotionEffect } from "@/components/effects/motion-effect";
 import { Outfit } from "next/font/google";
 import { RainbowButton } from "@repo/ui/components/ui/rainbow-button";
-import { Separator } from "@repo/ui/components/ui/separator";
-import { SocialProof } from "@/components/landing/social-proof";
+import { SocialProof } from "@/app/(marketing)/components/landing/social-proof";
 import { SplittingText } from "@repo/ui/components/animate-ui/primitives/texts/splitting";
 import { cn } from "@repo/ui/lib/utils";
+import { motion } from "motion/react";
 
 interface HeroProps {
   handleStartChat: () => void;
@@ -25,193 +17,134 @@ interface HeroProps {
   isLoaded: boolean;
 }
 
-const outfit = Outfit({ subsets: ['latin'] });
-const TITLE = "Connecting you everywhere";
+const outfit = Outfit({ subsets: ["latin"] });
+const TITLE = "Meet the World. Live.";
 
 export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
   return (
-    <Card className={cn("border-none bg-transparent backdrop-blur-xl", outfit.className)}>
-      <CardHeader className="space-y-4 px-4 text-center sm:space-y-5 sm:px-6 sm:py-8 md:space-y-6 md:px-8">
-        <MotionEffect
-          slide={{
-            direction: 'down',
-          }}
-          fade
-          zoom
-          inView
-        >
-          <div className="flex items-center justify-center gap-2 mt-4 md:mt-0">
-            <Badge variant="secondary" className="gap-1 px-2.5 py-0.5 text-xs sm:px-3 sm:py-1 sm:text-sm">
-              Live · Global · Instant
-            </Badge>
+    <div className={cn(outfit.className, 'min-h-dvh flex flex-col items-center justify-center')}>
+      <div className="h-[calc(100dvh-16rem)]">
+
+        {/* Header */}
+        <div className="space-y-4 text-center sm:space-y-5 sm:py-8 md:space-y-6">
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView>
+            <motion.div
+              initial={{ opacity: 0, y: 15, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              className="relative inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-100 mb-8 backdrop-blur-sm shadow-sm overflow-hidden"
+            >
+              <BorderBeamSimple
+                size={40}
+                duration={3}
+                delay={0}
+                borderWidth={1.5}
+                colorFrom="rgba(0, 0, 0, 0.5)"
+                colorTo="transparent"
+                className="dark:hidden"
+              />
+              <BorderBeamSimple
+                size={40}
+                duration={3}
+                delay={0}
+                borderWidth={1.5}
+                colorFrom="rgba(255, 255, 255, 0.5)"
+                colorTo="transparent"
+                className="hidden dark:block"
+              />
+              <span className="tracking-widest uppercase text-zinc-500 dark:text-zinc-400 z-10 pointer-events-none">Live · Global · Instant</span>
+            </motion.div>
+          </MotionEffect>
+
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.15}>
+            <div className="relative z-10 pointer-events-none">
+              <h1 className="mx-auto pointer-events-none">
+                <SplittingText
+                  text={TITLE}
+                  aria-hidden="true"
+                  className="block xl:text-7xl lg:text-6xl md:text-5xl text-4xl font-medium text-center text-neutral-200 dark:text-neutral-800"
+                  disableAnimation
+                />
+              </h1>
+
+              <div className="absolute inset-0 mx-auto flex items-center justify-center">
+                <SplittingText
+                  text={TITLE}
+                  className="block xl:text-7xl lg:text-6xl md:text-5xl text-4xl font-medium text-center"
+                  type="chars"
+                  delay={400}
+                  initial={{ opacity: 0, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, filter: "blur(0px)" }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+              </div>
+            </div>
+          </MotionEffect>
+
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.3}>
+            <p className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-xl text-muted-foreground">
+              Secure, real-time video conversations — anywhere.
+            </p>
+          </MotionEffect>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 md:px-8">
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.45} className="w-full flex">
+            <RainbowButton
+              size="lg"
+              variant="outline"
+              onClick={handleStartChat}
+              className="mx-auto font-semibold text-sm sm:text-base md:text-md"
+            >
+              {isSignedIn && isLoaded ? "Start Chatting Now" : "Sign in to Start Chatting"}
+            </RainbowButton>
+          </MotionEffect>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 md:gap-6">
+            {[
+              {
+                icon: IconWorld,
+                title: "GLOBAL",
+                desc: "Connect with people worldwide",
+              },
+              {
+                icon: IconBolt,
+                title: "INSTANT",
+                desc: "Start chatting in seconds",
+              },
+              {
+                icon: IconShieldCheck,
+                title: "SECURE",
+                desc: "Your conversations are protected",
+              },
+            ].map(({ icon: Icon, title, desc }) => (
+              <MotionEffect key={title} slide={{ direction: "down" }} fade zoom delay={0.75}>
+                <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
+                  <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
+                    <Icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold sm:text-base text-foreground opacity-70">{title}</span>
+                    <p className="text-xs text-muted-foreground sm:text-sm opacity-80">{desc}</p>
+                  </div>
+                </div>
+              </MotionEffect>
+            ))}
           </div>
-        </MotionEffect>
-        <MotionEffect
-          slide={{
-            direction: 'down',
-          }}
-          fade
-          zoom
-          inView
-          delay={0.15}
-        >
-          <CardTitle className="relative z-10">
-            <h1 className="md:max-w-[800px] max-w-[320px]">
-              <SplittingText
-                text={TITLE}
-                aria-hidden="true"
-                className="block md:text-5xl text-4xl font-medium text-center text-neutral-200 dark:text-neutral-800"
-                disableAnimation
-              />
-            </h1>
-            <div className="md:max-w-[800px] max-w-[320px] absolute inset-0 flex items-center justify-center">
-              <SplittingText
-                text={TITLE}
-                className="block md:text-5xl text-4xl font-medium text-center"
-                type="chars"
-                delay={400}
-                initial={{ y: 0, opacity: 0, x: 0, filter: 'blur(10px)' }}
-                animate={{ y: 0, opacity: 1, x: 0, filter: 'blur(0px)' }}
-                transition={{ duration: 0.4, ease: 'easeOut' }}
-              />
-            </div>
-          </CardTitle>
-        </MotionEffect>
-        <MotionEffect
-          slide={{
-            direction: 'down',
-          }}
-          fade
-          zoom
-          inView
-          delay={0.3}
-        >
-          <CardDescription className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-lg">
-            Connect with people around the world through secure, real-time video conversations.
-            Sign in with Clerk to start chatting instantly.
-          </CardDescription>
-        </MotionEffect>
-      </CardHeader>
 
-      <CardContent className="flex flex-col gap-6 px-4 pb-6 sm:gap-7 sm:px-6 sm:pb-8 md:gap-8 md:px-8">
-        <MotionEffect
-          slide={{
-            direction: 'down',
-          }}
-          fade
-          zoom
-          inView
-          delay={0.45}
-          className="w-full flex"
-        >
-
-          <RainbowButton
-            size={'lg'}
-            variant={'outline'}
-            onClick={handleStartChat}
-            className="mx-auto font-semibold text-sm sm:text-base md:text-md"
-          >
-            {
-              isSignedIn && isLoaded
-                ? "Start Chatting Now"
-                : "Sign in to Start Chatting"
-            }
-          </RainbowButton>
-        </MotionEffect>
-
-        <MotionEffect
-          slide={{
-            direction: 'down',
-          }}
-          fade
-          zoom
-          inView
-          delay={0.6}
-        >
-          <p className="text-center text-xs text-muted-foreground sm:text-sm">
-            {isSignedIn && isLoaded
-              ? "Jump into a new random video session"
-              : "Sign in to start chatting instantly"}
-          </p>
-        </MotionEffect>
-
-        <Separator className="my-2 sm:my-4" />
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 md:gap-6">
-          <MotionEffect
-            slide={{
-              direction: 'down',
-            }}
-            fade
-            zoom
-            delay={0.75}
-          >
-            <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
-              <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                <IconWorld className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-              </div>
-              <div>
-                <span className="text-sm font-semibold sm:text-base">Global Reach</span>
-                <p className="text-xs text-muted-foreground sm:text-sm">
-                  Connect with people worldwide
-                </p>
-              </div>
-            </div>
-          </MotionEffect>
-
-          <MotionEffect
-            slide={{
-              direction: 'down',
-            }}
-            fade
-            zoom
-            delay={0.75}
-          >
-            <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
-              <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                <IconBolt className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-              </div>
-              <div>
-                <span className="text-sm font-semibold sm:text-base">Instant Connection</span>
-                <p className="text-xs text-muted-foreground sm:text-sm">
-                  Start chatting in seconds
-                </p>
-              </div>
-            </div>
-          </MotionEffect>
-
-          <MotionEffect
-            slide={{
-              direction: 'down',
-            }}
-            fade
-            zoom
-            delay={0.75}
-          >
-
-            <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
-              <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                <IconShieldCheck className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
-              </div>
-              <div>
-                <span className="text-sm font-semibold sm:text-base">Secure & Private</span>
-                <p className="text-xs text-muted-foreground sm:text-sm">
-                  Your conversations are protected
-                </p>
-              </div>
-            </div>
-          </MotionEffect>
+          <div className="flex flex-col items-center gap-3 pt-2 sm:gap-4 sm:pt-4">
+            <MotionEffect slide={{ direction: "down" }} fade zoom delay={0.85}>
+              <SocialProof />
+            </MotionEffect>
+            <MotionEffect slide={{ direction: "down" }} fade zoom delay={0.9}>
+              <p className="text-xs text-muted-foreground sm:text-sm">
+                Join <span className="font-semibold text-foreground">1,000+</span> people chatting right now
+              </p>
+            </MotionEffect>
+          </div>
         </div>
-
-        <div className="flex flex-col items-center gap-3 pt-2 sm:gap-4 sm:pt-4">
-          <SocialProof />
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            Join <span className="font-semibold text-foreground">1,000+</span> people
-            chatting right now
-          </p>
-        </div>
-      </CardContent>
-      <BorderBeam duration={8} size={100} />
-    </Card>
-  )
+      </div>
+    </div>
+  );
 }

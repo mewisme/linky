@@ -1,18 +1,10 @@
 "use client";
 
-import { Card } from "@repo/ui/components/ui/card";
 import { AspectRatio } from "@repo/ui/components/ui/aspect-ratio";
 import { Badge } from "@repo/ui/components/ui/badge";
-import { IconVideo, IconMessage, IconPhoneOff, IconHeart, IconArrowsShuffle } from "@tabler/icons-react";
+import { Card } from "@repo/ui/components/ui/card";
+import { IconVideo } from "@tabler/icons-react";
 import { MotionEffect } from "@/components/effects/motion-effect";
-
-const UI_FEATURES = [
-  { icon: IconVideo, label: "HD Video" },
-  { icon: IconMessage, label: "Live Chat" },
-  { icon: IconArrowsShuffle, label: "Quick Skip" },
-  { icon: IconHeart, label: "Add Favorite" },
-  { icon: IconPhoneOff, label: "End Call" },
-];
 
 export function LandingPreview() {
   return (
@@ -33,8 +25,8 @@ export function LandingPreview() {
         </MotionEffect>
 
         <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.1}>
-          <Card className="overflow-hidden border-border/50">
-            <AspectRatio ratio={16 / 9} className="bg-gradient-to-br from-muted/50 to-muted">
+          <Card className="overflow-hidden border-border/50 bg-gradient-to-br from-primary/10 to-transparent">
+            <AspectRatio ratio={16 / 6}>
               <div className="relative w-full h-full flex items-center justify-center p-8 sm:p-12 md:p-16">
                 <div className="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-4xl">
                   <div className="aspect-video rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/30 flex items-center justify-center">
@@ -49,22 +41,6 @@ export function LandingPreview() {
                       <p className="text-xs sm:text-sm text-muted-foreground">Peer Video</p>
                     </div>
                   </div>
-                </div>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 flex-wrap justify-center px-4">
-                  {UI_FEATURES.map((feature) => {
-                    const Icon = feature.icon;
-                    return (
-                      <div
-                        key={feature.label}
-                        className="flex items-center gap-1.5 bg-background/80 backdrop-blur-sm rounded-full px-2.5 py-1.5 sm:px-3 sm:py-2 border border-border/50"
-                      >
-                        <Icon className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                        <span className="text-xs sm:text-sm text-muted-foreground">
-                          {feature.label}
-                        </span>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             </AspectRatio>

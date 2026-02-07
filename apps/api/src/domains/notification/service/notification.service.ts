@@ -37,7 +37,7 @@ export async function createNotification(
   const delivered = await tryDeliverViaSocket(userId, notification);
 
   if (!delivered) {
-    logger.debug("User %s not online, attempting push notification", userId);
+    logger.info("User %s not online, attempting push notification", userId);
     try {
       await sendPushToUser(userId, notification);
     } catch (error) {
@@ -91,7 +91,7 @@ async function tryDeliverViaSocket(userId: string, notification: NotificationRec
 
     if (socket && socket.connected) {
       socket.emit("notification:new", notification);
-      logger.debug("Notification delivered via socket to user %s", userId);
+      logger.info("Notification delivered via socket to user %s", userId);
       return true;
     }
   } catch (error) {
@@ -111,7 +111,7 @@ async function tryEmitToSocket(userId: string, event: string, data: unknown): Pr
 
     if (socket && socket.connected) {
       socket.emit(event, data);
-      logger.debug("Event %s emitted to user %s", event, userId);
+      logger.info("Event %s emitted to user %s", event, userId);
     }
   } catch (error) {
     logger.error("Error emitting to socket: %o", error instanceof Error ? error : new Error(String(error)));

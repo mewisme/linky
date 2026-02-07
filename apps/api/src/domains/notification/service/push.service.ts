@@ -38,7 +38,7 @@ export async function sendPushToUser(userId: string, notification: NotificationR
     const subscriptions = await getUserSubscriptions(userId);
 
     if (subscriptions.length === 0) {
-      logger.debug("No push subscriptions found for user %s", userId);
+      logger.info("No push subscriptions found for user %s", userId);
       return;
     }
 
@@ -97,7 +97,7 @@ export async function sendPushOnly(userId: string, options: PushOnlyOptions): Pr
     const subscriptions = await getUserSubscriptions(userId);
 
     if (subscriptions.length === 0) {
-      logger.debug("No push subscriptions found for user %s", userId);
+      logger.info("No push subscriptions found for user %s", userId);
       return;
     }
 

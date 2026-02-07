@@ -1,10 +1,11 @@
+import type { VideoChatMatchmaking, VideoChatRooms } from "../types.js";
+import { attachmentRateState, messageRateState } from "../helpers/rate-limit.helper.js";
+
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
-import type { VideoChatMatchmaking, VideoChatRooms } from "../types.js";
-import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
-import { logger } from "../helpers/logger.helper.js";
 import { getDbUserId } from "../helpers/user.helper.js";
-import { messageRateState, attachmentRateState } from "../helpers/rate-limit.helper.js";
+import { logger } from "../helpers/logger.helper.js";
+import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
 
 export function setupDisconnectHandler(
   socket: AuthenticatedSocket,
@@ -24,7 +25,7 @@ export function setupDisconnectHandler(
 
     if (dbUserId && shouldDequeueFromMatchmaking) {
       await matchmaking.dequeueIfOwner(dbUserId, socket.id, `disconnect:${reason}`);
-      logger.debug(
+      logger.info(
         "Dequeued on disconnect: socket=%s user=%s reason=%s wasInRoom=%s",
         socket.id,
         userId,
@@ -32,7 +33,7 @@ export function setupDisconnectHandler(
         wasInRoom,
       );
     } else if (dbUserId && isNamespaceDisconnect && !wasInRoom) {
-      logger.debug(
+      logger.info(
         "Skipped dequeue (transient namespace disconnect): socket=%s user=%s reason=%s",
         socket.id,
         userId,
@@ -71,9 +72,9 @@ export function setupDisconnectHandler(
     attachmentRateState.delete(socket.id);
 
     if (isNamespaceDisconnect && !wasInRoom) {
-      logger.debug("Namespace disconnect (queued): socket=%s user=%s reason=%s dequeued=%s", socket.id, userId, reason, false);
+      logger.info("Namespace disconnect (queued): socket=%s user=%s reason=%s dequeued=%s", socket.id, userId, reason, false);
     } else if (isNamespaceDisconnect && wasInRoom) {
-      logger.debug("Namespace disconnect (in-room): socket=%s user=%s reason=%s dequeued=%s", socket.id, userId, reason, true);
+      logger.info("Namespace disconnect (in-room): socket=%s user=%s reason=%s dequeued=%s", socket.id, userId, reason, true);
     } else {
       logger.info("Client disconnected: socket=%s user=%s reason=%s wasInRoom=%s dequeued=%s", socket.id, userId, reason, wasInRoom, shouldDequeueFromMatchmaking);
     }

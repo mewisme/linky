@@ -25,7 +25,7 @@ export class RoomService {
     this.userToRoom.set(user1SocketId, roomId);
     this.userToRoom.set(user2SocketId, roomId);
 
-    this.logger.debug("Room created: %s", roomId);
+    this.logger.info("Room created: %s", roomId);
 
     return roomId;
   }
@@ -82,7 +82,7 @@ export class RoomService {
     this.userToRoom.delete(room.user2);
     this.rooms.delete(roomId);
 
-    this.logger.debug(
+    this.logger.info(
       "Room deleted: %s age=%ds active=%d",
       roomId,
       Math.round(roomAge / 1000),

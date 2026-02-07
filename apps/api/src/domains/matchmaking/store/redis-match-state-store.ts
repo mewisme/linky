@@ -53,7 +53,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
   async enqueueUser(userId: string, socketId: string, socket: Socket): Promise<boolean> {
     if (!socket.connected) {
-      this.logger.debug("Enqueue rejected: socket not connected userId=%s socketId=%s", userId, socketId);
+      this.logger.warn("Enqueue rejected: socket not connected userId=%s socketId=%s", userId, socketId);
       return false;
     }
 
@@ -68,11 +68,11 @@ export class RedisMatchStateStore implements MatchStateStore {
 
       const existingSocketId = result?.[1] || null;
       if (existingSocketId && existingSocketId !== socketId) {
-        this.logger.debug("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, existingSocketId, socketId);
+        this.logger.info("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, existingSocketId, socketId);
       } else if (existingSocketId === socketId) {
-        this.logger.debug("Enqueue idempotent: already enqueued userId=%s socketId=%s", userId, socketId);
+        this.logger.info("Enqueue idempotent: already enqueued userId=%s socketId=%s", userId, socketId);
       } else {
-        this.logger.debug("Enqueued user: userId=%s socketId=%s", userId, socketId);
+        this.logger.info("Enqueued user: userId=%s socketId=%s", userId, socketId);
       }
       return true;
     } catch (error) {
@@ -88,7 +88,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       await redisClient.del(`${SOCKET_KEY_PREFIX}${userId}`);
 
       if (removed > 0) {
-        this.logger.debug("Dequeued user: userId=%s socketId=%s reason=%s", userId, socketId || "none", reason || "unspecified");
+        this.logger.info("Dequeued user: userId=%s socketId=%s reason=%s", userId, socketId || "none", reason || "unspecified");
       }
 
       return removed > 0;
@@ -107,7 +107,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       })) as number;
 
       if (removed > 0) {
-        this.logger.debug("Dequeued user by owner: userId=%s socketId=%s reason=%s", userId, socketId, reason || "unspecified");
+        this.logger.info("Dequeued user by owner: userId=%s socketId=%s reason=%s", userId, socketId, reason || "unspecified");
       }
 
       return removed > 0;
@@ -170,7 +170,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
   async setUserSocketId(userId: string, socketId: string, socket: Socket): Promise<void> {
     if (!socket.connected) {
-      this.logger.debug("setUserSocketId rejected: socket not connected userId=%s socketId=%s", userId, socketId);
+      this.logger.warn("setUserSocketId rejected: socket not connected userId=%s socketId=%s", userId, socketId);
       return;
     }
 

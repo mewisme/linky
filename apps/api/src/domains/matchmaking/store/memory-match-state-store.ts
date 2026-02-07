@@ -50,7 +50,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
 
   async enqueueUser(userId: string, socketId: string, socket: Socket): Promise<boolean> {
     if (!socket.connected) {
-      this.logger.debug("Enqueue rejected: socket not connected userId=%s socketId=%s", userId, socketId);
+      this.logger.warn("Enqueue rejected: socket not connected userId=%s socketId=%s", userId, socketId);
       return false;
     }
 
@@ -58,7 +58,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
     if (existingEntry) {
       const previousSocketId = existingEntry.socketId;
       if (existingEntry.socketId === socketId) {
-        this.logger.debug("Enqueue idempotent: already enqueued userId=%s socketId=%s", userId, socketId);
+        this.logger.info("Enqueue idempotent: already enqueued userId=%s socketId=%s", userId, socketId);
         return true;
       }
 
@@ -68,7 +68,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
       });
       existingEntry.socketId = socketId;
       existingEntry.joinedAt = Date.now();
-      this.logger.debug("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, previousSocketId, socketId);
+      this.logger.info("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, previousSocketId, socketId);
       return true;
     }
 
@@ -84,7 +84,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
       lastSeen: now,
     });
 
-    this.logger.debug("Enqueued user: userId=%s socketId=%s", userId, socketId);
+    this.logger.info("Enqueued user: userId=%s socketId=%s", userId, socketId);
     return true;
   }
 
@@ -97,7 +97,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
     this.socketMap.delete(userId);
 
     if (existed) {
-      this.logger.debug("Dequeued user: userId=%s socketId=%s reason=%s", userId, socketId, reason || "unspecified");
+      this.logger.info("Dequeued user: userId=%s socketId=%s reason=%s", userId, socketId, reason || "unspecified");
     }
 
     return existed;
@@ -128,7 +128,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
 
   async setUserSocketId(userId: string, socketId: string, socket: Socket): Promise<void> {
     if (!socket.connected) {
-      this.logger.debug("setUserSocketId rejected: socket not connected userId=%s socketId=%s", userId, socketId);
+      this.logger.warn("setUserSocketId rejected: socket not connected userId=%s socketId=%s", userId, socketId);
       return;
     }
 
@@ -249,7 +249,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
       if (age > MAX_QUEUE_WAIT_TIME) {
         this.queue.delete(userId);
         this.socketMap.delete(userId);
-        this.logger.debug("Cleanup: removed expired queue entry userId=%s age=%dms", userId, age);
+        this.logger.info("Cleanup: removed expired queue entry userId=%s age=%dms", userId, age);
       }
     }
 

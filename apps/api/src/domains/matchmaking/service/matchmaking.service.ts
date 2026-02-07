@@ -30,7 +30,7 @@ export class MatchmakingService {
     }
 
     if (!socket.connected) {
-      this.logger.debug("Enqueue rejected: socket not connected clerkUserId=%s socketId=%s", clerkUserId, socket.id);
+      this.logger.warn("Enqueue rejected: socket not connected clerkUserId=%s socketId=%s", clerkUserId, socket.id);
       return false;
     }
 
@@ -73,7 +73,7 @@ export class MatchmakingService {
 
   async tryMatch(io: Namespace): Promise<QueuedUser[] | null> {
     if (this.matchLock) {
-      this.logger.debug("tryMatch: lock held, skipping cycle");
+      this.logger.warn("tryMatch: lock held, skipping cycle");
       return null;
     }
 
@@ -134,7 +134,7 @@ export class MatchmakingService {
       }
 
       const now = Date.now();
-      this.logger.debug(
+      this.logger.info(
         "tryMatch: queue snapshot queueSize=%d validUsers=%d stale=%d users=%o",
         queueSize,
         queueUsers.length,
@@ -203,16 +203,16 @@ export class MatchmakingService {
           }
 
           if (isBlocked) {
-            this.logger.debug(
-              "tryMatch: pair BLOCKED %s <-> %s",
+            this.logger.info(
+              "tryMatch: pair blocked %s <-> %s",
               userA.userId,
               userB.userId,
             );
             continue;
           }
 
-          this.logger.debug(
-            "tryMatch: pair %o",
+          this.logger.info(
+            "tryMatch: pair scored %o",
             {
               userA: userA.userId,
               userB: userB.userId,
@@ -241,7 +241,7 @@ export class MatchmakingService {
         return null;
       }
 
-      this.logger.debug(
+      this.logger.info(
         "tryMatch: candidates total=%d sorted=%o",
         allCandidates.length,
         allCandidates.map((c) => ({

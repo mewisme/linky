@@ -43,7 +43,7 @@ export async function sendPushNotification(
       JSON.stringify(payload)
     );
 
-    logger.debug("Push notification sent successfully to %s", subscription.endpoint);
+    logger.info("Push notification sent successfully to %s", subscription.endpoint);
   } catch (error) {
     logger.error("Error sending push notification: %o", error instanceof Error ? error : new Error(String(error)));
     throw error;

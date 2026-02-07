@@ -1,13 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Implement MatchmakingService and update matchmaking logic ([6f792a7](../../commit/6f792a7))
+- Enhance matchmaking service with owner-specific dequeue functionality ([683816d](../../commit/683816d))
 
 🔨 Other Changes
 
-- Update user session management and logging in video chat service ([3b1e854](../../commit/3b1e854))
-- Bump package versions to 0.39.0 and update version lock ([5dd4ed6](../../commit/5dd4ed6))
+- Bump package versions to 0.39.1 and update version lock ([fc58120](../../commit/fc58120))
 
 
-📋 Full Changelog: [5dd4ed6...6f792a7](../../compare/5dd4ed6...6f792a7)
+📋 Full Changelog: [fc58120...683816d](../../compare/fc58120...683816d)

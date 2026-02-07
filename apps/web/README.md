@@ -194,8 +194,6 @@ apps/web/
 
 **Server → Client:**
 - `joined-queue` - Successfully added to queue
-- `session-waiting` - Session is queued (when queue is full)
-- `session-activated` - Session activated from queue
 - `matched` - Matched with a peer
 - `signal` - Receive signaling data from peer
 - `chat-message` - Receive text message from peer

@@ -53,9 +53,6 @@ sequenceDiagram
     SocketIO->>Hook: connect event
     Hook->>MQTT: publishPresence('online')
     
-    Note over Hook,Backend: Session Management
-    Backend->>Hook: session-waiting OR session-activated
-    
     Hook->>SocketIO: emit('join')
     SocketIO->>Backend: join event
     Backend->>Backend: Enqueue in matchmaking
@@ -83,8 +80,6 @@ sequenceDiagram
 | `connect` | Socket connected | None | `onConnect()` |
 | `disconnect` | Socket disconnected | `reason: string` | `onDisconnect()` |
 | `connect_error` | Connection error | `Error` | `onConnectError()` |
-| `session-waiting` | Session queued | `{ message, positionInQueue, queueSize }` | `onSessionWaiting()` |
-| `session-activated` | Session activated | `{ message }` | `onSessionActivated()` |
 | `joined-queue` | Successfully joined queue | `{ message, queueSize }` | `onJoinedQueue()` |
 | `matched` | Peer matched | `{ roomId, peerId, isOfferer }` | `onMatched()` |
 | `signal` | WebRTC signaling data | `SignalData` | `onSignal()` |
@@ -251,7 +246,6 @@ The hook automatically publishes presence status to MQTT broker on various event
 | `connect` | `online` | Socket connected |
 | `disconnect` | `offline` | Socket disconnected |
 | `connect_error` | `offline` | Connection error |
-| `session-activated` | `available` | Session activated |
 | `joined-queue` | `matching` | Joined matchmaking queue |
 | `matched` | `in_call` | Peer matched |
 | `signal` | `in_call` | Signaling during call |

@@ -27,6 +27,8 @@ export interface SocketCallbacks {
   onDisconnect: (reason: string) => void;
   onConnectError: (error: Error) => void;
   onBackendRestart: () => void;
+  onResyncRequired: () => void;
+  onForcedTeardown: () => void;
   onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => void;
   onFavoriteAddedSelf: (data: { favorite_user_id: string }) => void;
   onFavoriteRemoved: (data: { from_user_id: string; from_user_name: string }) => void;
@@ -53,7 +55,6 @@ export interface UseSocketSignalingReturn {
   requestResync: () => void;
   socketRef: MutableRefObject<Socket | null>;
   currentSocketIdRef: MutableRefObject<string | null>;
-  isInActiveCallRef: MutableRefObject<boolean>;
 }
 
 export function useSocketSignaling(): UseSocketSignalingReturn {
@@ -61,8 +62,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const socketRef = useRef<Socket | null>(globalSocket);
   const callbacksRef = useRef<SocketCallbacks | null>(null);
   const currentSocketIdRef = useRef<string | null>(null);
-  const isInActiveCallRef = useRef<boolean>(false);
-  const resyncPendingRef = useRef<boolean>(false);
   const listenersRegisteredRef = useRef<boolean>(false);
 
   useEffect(() => {
@@ -80,7 +79,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("matched", (data) => {
       publishPresence('in_call');
-      isInActiveCallRef.current = true;
       socketHealthMonitor.markEventReceived();
       callbacks.onMatched(data);
     });
@@ -93,7 +91,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("peer-left", (data) => {
       publishPresence('matching');
-      isInActiveCallRef.current = false;
       socketHealthMonitor.markEventReceived();
       callbacks.onPeerLeft(data);
     });
@@ -105,13 +102,11 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
     socket.on("skipped", (data) => {
       publishPresence('matching');
-      isInActiveCallRef.current = false;
       callbacks.onSkipped(data);
     });
 
     socket.on("end-call", (data) => {
       publishPresence('available');
-      isInActiveCallRef.current = false;
       socketHealthMonitor.markEventReceived();
       callbacks.onEndCall(data);
     });
@@ -211,6 +206,8 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         onDisconnect: callbacks.onDisconnect,
         onBackendRestart: callbacks.onBackendRestart,
         onConnectError: callbacks.onConnectError,
+        onResyncRequired: callbacks.onResyncRequired,
+        onForcedTeardown: callbacks.onForcedTeardown,
       });
     },
     [registerSocketListeners, registerCallbacks, unregisterCallbacks]
@@ -251,7 +248,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const sendEndCall = useCallback(() => {
     if (socketRef.current) {
-      isInActiveCallRef.current = false;
       const sendEndCallWithRetry = () => {
         if (socketRef.current && socketRef.current.connected) {
           socketRef.current.emit("end-call");
@@ -335,8 +331,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   }, []);
 
   const disconnectSocket = useCallback(() => {
-    isInActiveCallRef.current = false;
-    resyncPendingRef.current = false;
     listenersRegisteredRef.current = false;
     removeAllListeners();
     unregisterCallbacks('socket-signaling');
@@ -356,7 +350,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const requestResync = useCallback(() => {
     if (socketRef.current && socketRef.current.connected) {
-      resyncPendingRef.current = true;
       socketRef.current.emit("resync-session", {
         timestamp: Date.now(),
       });
@@ -384,7 +377,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       requestResync,
       socketRef,
       currentSocketIdRef,
-      isInActiveCallRef,
     }),
     [
       initializeSocket,

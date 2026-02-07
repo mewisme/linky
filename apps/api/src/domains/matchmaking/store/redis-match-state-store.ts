@@ -1,12 +1,14 @@
-import type { Socket } from "socket.io";
 import type { MatchStateStore, QueueEntry } from "./match-state-store.interface.js";
+
+import type { Socket } from "socket.io";
 import { createLogger } from "@repo/logger";
-import { redisClient } from "@/infra/redis/client.js";
-import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";
-import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
 import { getBlockedUserIds } from "@/infra/supabase/repositories/user-blocks.js";
+import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
+import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";
+import { redisClient } from "@/infra/redis/client.js";
 
 const QUEUE_KEY = "match:queue";
+const SOCKET_KEY_PREFIX = "match:socket:";
 const SKIP_COOLDOWN_TTL = 10;
 const MAX_QUEUE_WAIT_TIME = 5 * 60 * 1000;
 const INTEREST_TAGS_TTL = 15 * 60;
@@ -15,6 +17,39 @@ const BLOCKS_TTL = 30 * 60;
 
 export class RedisMatchStateStore implements MatchStateStore {
   private readonly logger = createLogger("api:matchmaking:redis:store");
+  private readonly enqueueScript = `
+    local queueKey = KEYS[1]
+    local socketKey = KEYS[2]
+    local userId = ARGV[1]
+    local socketId = ARGV[2]
+    local now = tonumber(ARGV[3])
+    local ttl = tonumber(ARGV[4])
+    local existingSocket = redis.call("GET", socketKey)
+    local existingScore = redis.call("ZSCORE", queueKey, userId)
+
+    if existingSocket == socketId and existingScore then
+      return {1, existingSocket, existingScore}
+    end
+
+    redis.call("ZADD", queueKey, now, userId)
+    redis.call("SET", socketKey, socketId, "EX", ttl)
+    return {1, existingSocket or "", existingScore or ""}
+  `;
+  private readonly dequeueIfOwnerScript = `
+    local queueKey = KEYS[1]
+    local socketKey = KEYS[2]
+    local userId = ARGV[1]
+    local socketId = ARGV[2]
+    local existingSocket = redis.call("GET", socketKey)
+
+    if existingSocket ~= socketId then
+      return 0
+    end
+
+    redis.call("ZREM", queueKey, userId)
+    redis.call("DEL", socketKey)
+    return 1
+  `;
 
   async enqueueUser(userId: string, socketId: string, socket: Socket): Promise<boolean> {
     if (!socket.connected) {
@@ -23,33 +58,22 @@ export class RedisMatchStateStore implements MatchStateStore {
     }
 
     try {
-      const existingScore = await redisClient.zScore(QUEUE_KEY, userId);
-      if (existingScore !== null) {
-        const currentSocketId = await redisClient.get(`match:socket:${userId}`);
-        if (currentSocketId === socketId) {
-          this.logger.debug("Enqueue idempotent: already enqueued userId=%s socketId=%s", userId, socketId);
-          return true;
-        }
-
-        await redisClient.set(`match:socket:${userId}`, socketId, {
-          EX: Math.floor(MAX_QUEUE_WAIT_TIME / 1000) + 60,
-        });
-
-        this.logger.debug("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, currentSocketId, socketId);
-        return true;
-      }
-
       const now = Date.now();
-      await redisClient.zAdd(QUEUE_KEY, {
-        score: now,
-        value: userId,
-      });
+      const ttlSeconds = Math.floor(MAX_QUEUE_WAIT_TIME / 1000) + 60;
+      const socketKey = `${SOCKET_KEY_PREFIX}${userId}`;
+      const result = (await redisClient.eval(this.enqueueScript, {
+        keys: [QUEUE_KEY, socketKey],
+        arguments: [userId, socketId, String(now), String(ttlSeconds)],
+      })) as [number, string | null, string | null];
 
-      await redisClient.set(`match:socket:${userId}`, socketId, {
-        EX: Math.floor(MAX_QUEUE_WAIT_TIME / 1000) + 60,
-      });
-
-      this.logger.debug("Enqueued user: userId=%s socketId=%s", userId, socketId);
+      const existingSocketId = result?.[1] || null;
+      if (existingSocketId && existingSocketId !== socketId) {
+        this.logger.debug("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, existingSocketId, socketId);
+      } else if (existingSocketId === socketId) {
+        this.logger.debug("Enqueue idempotent: already enqueued userId=%s socketId=%s", userId, socketId);
+      } else {
+        this.logger.debug("Enqueued user: userId=%s socketId=%s", userId, socketId);
+      }
       return true;
     } catch (error) {
       this.logger.error("Enqueue failed for user: %o", error instanceof Error ? error : new Error(String(error)));
@@ -59,9 +83,9 @@ export class RedisMatchStateStore implements MatchStateStore {
 
   async dequeueUser(userId: string, reason?: string): Promise<boolean> {
     try {
-      const socketId = await redisClient.get(`match:socket:${userId}`);
+      const socketId = await redisClient.get(`${SOCKET_KEY_PREFIX}${userId}`);
       const removed = await redisClient.zRem(QUEUE_KEY, userId);
-      await redisClient.del(`match:socket:${userId}`);
+      await redisClient.del(`${SOCKET_KEY_PREFIX}${userId}`);
 
       if (removed > 0) {
         this.logger.debug("Dequeued user: userId=%s socketId=%s reason=%s", userId, socketId || "none", reason || "unspecified");
@@ -70,6 +94,25 @@ export class RedisMatchStateStore implements MatchStateStore {
       return removed > 0;
     } catch (error) {
       this.logger.error("Dequeue failed for user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      return false;
+    }
+  }
+
+  async dequeueUserIfOwner(userId: string, socketId: string, reason?: string): Promise<boolean> {
+    try {
+      const socketKey = `${SOCKET_KEY_PREFIX}${userId}`;
+      const removed = (await redisClient.eval(this.dequeueIfOwnerScript, {
+        keys: [QUEUE_KEY, socketKey],
+        arguments: [userId, socketId],
+      })) as number;
+
+      if (removed > 0) {
+        this.logger.debug("Dequeued user by owner: userId=%s socketId=%s reason=%s", userId, socketId, reason || "unspecified");
+      }
+
+      return removed > 0;
+    } catch (error) {
+      this.logger.error("Dequeue-if-owner failed for user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
@@ -83,7 +126,7 @@ export class RedisMatchStateStore implements MatchStateStore {
         return [];
       }
 
-      const socketIds = await redisClient.mGet(userIds.map((userId) => `match:socket:${userId}`));
+      const socketIds = await redisClient.mGet(userIds.map((userId) => `${SOCKET_KEY_PREFIX}${userId}`));
 
       const entries: QueueEntry[] = [];
       for (let i = 0; i < queueMembers.length; i++) {
@@ -108,10 +151,20 @@ export class RedisMatchStateStore implements MatchStateStore {
 
   async getUserSocketId(userId: string): Promise<string | null> {
     try {
-      return await redisClient.get(`match:socket:${userId}`);
+      return await redisClient.get(`${SOCKET_KEY_PREFIX}${userId}`);
     } catch (error) {
       this.logger.error("Failed to get socket ID for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
       return null;
+    }
+  }
+
+  async isQueueOwner(userId: string, socketId: string): Promise<boolean> {
+    try {
+      const currentSocketId = await redisClient.get(`${SOCKET_KEY_PREFIX}${userId}`);
+      return currentSocketId === socketId;
+    } catch (error) {
+      this.logger.error("Failed to check queue owner for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      return false;
     }
   }
 
@@ -122,7 +175,7 @@ export class RedisMatchStateStore implements MatchStateStore {
     }
 
     try {
-      await redisClient.set(`match:socket:${userId}`, socketId, {
+      await redisClient.set(`${SOCKET_KEY_PREFIX}${userId}`, socketId, {
         EX: Math.floor(MAX_QUEUE_WAIT_TIME / 1000) + 60,
       });
     } catch (error) {
@@ -132,7 +185,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
   async removeUserSocket(userId: string): Promise<void> {
     try {
-      await redisClient.del(`match:socket:${userId}`);
+      await redisClient.del(`${SOCKET_KEY_PREFIX}${userId}`);
       await this.dequeueUser(userId, "socket-removed");
     } catch (error) {
       this.logger.error("Failed to remove socket for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));

@@ -10,6 +10,7 @@ import { getUserTimezone } from "@/utils/timezone";
 
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useSocketStore } from "@/stores/socket-store";
+import { useVideoChatStore } from "@/stores/video-chat-store";
 
 export type ConnectionState = "disconnected" | "connecting" | "connected" | "reconnecting";
 
@@ -18,6 +19,8 @@ type SocketEventCallback = {
   onDisconnect?: (reason: string) => void;
   onBackendRestart?: () => void;
   onConnectError?: (error: Error) => void;
+  onResyncRequired?: () => void;
+  onForcedTeardown?: () => void;
 };
 
 export interface SocketContextValue {
@@ -27,10 +30,8 @@ export interface SocketContextValue {
   socketId: string | null;
   isHealthy: boolean;
   updateToken: (token: string) => void;
-  requestResync: () => void;
   registerCallbacks: (key: string, callbacks: SocketEventCallback) => void;
   unregisterCallbacks: (key: string) => void;
-  setInActiveCall: (active: boolean) => void;
 }
 
 type SocketContextValueFromProvider = Omit<
@@ -52,8 +53,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const [adminSocket, setAdminSocket] = useState<Socket | null>(null);
   const [socketId, setSocketId] = useState<string | null>(null);
   const socketIdRef = useRef<string | null>(null);
-  const isInActiveCallRef = useRef(false);
-  const resyncPendingRef = useRef(false);
   const initializingRef = useRef(false);
   const callbacksRef = useRef<Map<string, SocketEventCallback>>(new Map());
   const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -64,10 +63,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
   const unregisterCallbacks = useCallback((key: string) => {
     callbacksRef.current.delete(key);
-  }, []);
-
-  const setInActiveCall = useCallback((active: boolean) => {
-    isInActiveCallRef.current = active;
   }, []);
 
   const initializeSocket = useCallback(async (tokenOverride?: string) => {
@@ -129,14 +124,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
           socketHealthMonitor.markEventReceived();
 
           if (isBackendRestart) {
-            isInActiveCallRef.current = false;
-            resyncPendingRef.current = false;
             callbacksRef.current.forEach(cb => cb.onBackendRestart?.());
-          } else if (resyncPendingRef.current && isInActiveCallRef.current) {
-            resyncPendingRef.current = false;
-            if (chatSocket.connected) {
-              chatSocket.emit("resync-session", { timestamp: Date.now() });
-            }
           }
 
           callbacksRef.current.forEach(cb => cb.onConnect?.());
@@ -181,19 +169,19 @@ export function SocketProvider({ children }: SocketProviderProps) {
       socketHealthMonitor.stop();
       socketHealthMonitor.start({
         socket: chatSocket,
-        isInActiveCall: () => isInActiveCallRef.current,
+        isInActiveCall: () => {
+          const status = useVideoChatStore.getState().connectionStatus;
+          return status === "matched" || status === "in_call" || status === "reconnecting";
+        },
         getRoomInfo: () => null,
         onHalfDeadDetected: () => {
           useSocketStore.getState().setIsHealthy(false);
         },
         onResyncRequired: () => {
-          resyncPendingRef.current = true;
-          if (chatSocket.connected) {
-            chatSocket.emit("resync-session", { timestamp: Date.now() });
-          }
+          callbacksRef.current.forEach(cb => cb.onResyncRequired?.());
         },
         onForcedTeardown: () => {
-          isInActiveCallRef.current = false;
+          callbacksRef.current.forEach(cb => cb.onForcedTeardown?.());
         },
       });
 
@@ -219,8 +207,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
   useEffect(() => {
     return () => {
       socketHealthMonitor.stop();
-      isInActiveCallRef.current = false;
-      resyncPendingRef.current = false;
       backendRestartDetector.reset();
       useSocketStore.getState().setConnectionState("disconnected");
       useSocketStore.getState().setIsHealthy(false);
@@ -258,22 +244,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
     }
   }, [initializeSocket]);
 
-  const requestResync = useCallback(() => {
-    if (socketRef.current?.connected) {
-      resyncPendingRef.current = true;
-      socketRef.current.emit("resync-session", { timestamp: Date.now() });
-    }
-  }, []);
-
   const value = {
     socket,
     adminSocket,
     socketId,
     updateToken: updateSocketToken,
-    requestResync,
     registerCallbacks,
     unregisterCallbacks,
-    setInActiveCall,
   };
 
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;

@@ -9,8 +9,10 @@ export interface QueueEntry {
 export interface MatchStateStore {
   enqueueUser(userId: string, socketId: string, socket: Socket): Promise<boolean>;
   dequeueUser(userId: string, reason?: string): Promise<boolean>;
+  dequeueUserIfOwner(userId: string, socketId: string, reason?: string): Promise<boolean>;
   getQueuedUsers(limit?: number): Promise<QueueEntry[]>;
   getUserSocketId(userId: string): Promise<string | null>;
+  isQueueOwner(userId: string, socketId: string): Promise<boolean>;
   setUserSocketId(userId: string, socketId: string, socket: Socket): Promise<void>;
   removeUserSocket(userId: string): Promise<void>;
   recordSkip(skipperUserId: string, skippedUserId: string): Promise<void>;

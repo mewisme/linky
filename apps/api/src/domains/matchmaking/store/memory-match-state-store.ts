@@ -1,9 +1,10 @@
-import type { Socket } from "socket.io";
 import type { MatchStateStore, QueueEntry } from "./match-state-store.interface.js";
+
+import type { Socket } from "socket.io";
 import { createLogger } from "@repo/logger";
-import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";
-import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
 import { getBlockedUserIds } from "@/infra/supabase/repositories/user-blocks.js";
+import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
+import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";
 
 const SKIP_COOLDOWN_TTL = 10 * 1000;
 const MAX_QUEUE_WAIT_TIME = 5 * 60 * 1000;
@@ -55,6 +56,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
 
     const existingEntry = this.queue.get(userId);
     if (existingEntry) {
+      const previousSocketId = existingEntry.socketId;
       if (existingEntry.socketId === socketId) {
         this.logger.debug("Enqueue idempotent: already enqueued userId=%s socketId=%s", userId, socketId);
         return true;
@@ -65,7 +67,8 @@ export class MemoryMatchStateStore implements MatchStateStore {
         lastSeen: Date.now(),
       });
       existingEntry.socketId = socketId;
-      this.logger.debug("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, existingEntry.socketId, socketId);
+      existingEntry.joinedAt = Date.now();
+      this.logger.debug("Enqueue socket update: userId=%s oldSocket=%s newSocket=%s", userId, previousSocketId, socketId);
       return true;
     }
 
@@ -100,6 +103,14 @@ export class MemoryMatchStateStore implements MatchStateStore {
     return existed;
   }
 
+  async dequeueUserIfOwner(userId: string, socketId: string, reason?: string): Promise<boolean> {
+    const currentSocketId = this.socketMap.get(userId)?.socketId;
+    if (currentSocketId !== socketId) {
+      return false;
+    }
+    return await this.dequeueUser(userId, reason);
+  }
+
   async getQueuedUsers(limit?: number): Promise<QueueEntry[]> {
     const entries = Array.from(this.queue.values()).sort((a, b) => a.joinedAt - b.joinedAt);
     return limit ? entries.slice(0, limit) : entries;
@@ -108,6 +119,11 @@ export class MemoryMatchStateStore implements MatchStateStore {
   async getUserSocketId(userId: string): Promise<string | null> {
     const entry = this.socketMap.get(userId);
     return entry?.socketId || null;
+  }
+
+  async isQueueOwner(userId: string, socketId: string): Promise<boolean> {
+    const entry = this.socketMap.get(userId);
+    return entry?.socketId === socketId;
   }
 
   async setUserSocketId(userId: string, socketId: string, socket: Socket): Promise<void> {

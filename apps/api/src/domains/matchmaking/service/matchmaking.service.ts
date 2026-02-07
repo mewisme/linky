@@ -1,11 +1,12 @@
 import type { Namespace, Socket } from "socket.io";
 import type { QueueUser, ScoredCandidatePair } from "@/domains/matchmaking/types/candidate.types.js";
-import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
-import type { EmbeddingPair } from "@/domains/matchmaking/types/embedding.types.js";
-import type { QueuedUser } from "@/domains/matchmaking/types/matchmaking.types.js";
-import type { MatchStateStore } from "@/domains/matchmaking/store/index.js";
 import { calculateEmbeddingSimilarities, getEmbeddingSimilarityFromMap } from "./embedding-score.service.js";
 import { calculateFavoriteType, calculateRedisCandidateScoreWithEmbedding } from "./scoring.service.js";
+
+import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
+import type { EmbeddingPair } from "@/domains/matchmaking/types/embedding.types.js";
+import type { MatchStateStore } from "@/domains/matchmaking/store/index.js";
+import type { QueuedUser } from "@/domains/matchmaking/types/matchmaking.types.js";
 import { createLogger } from "@repo/logger";
 import { getUserEmbeddingsMap } from "@/infra/supabase/repositories/user-embeddings.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
@@ -18,7 +19,7 @@ export class MatchmakingService {
   private readonly logger = createLogger("api:matchmaking:service");
   private matchLock = false;
 
-  constructor(private readonly store: MatchStateStore) {}
+  constructor(private readonly store: MatchStateStore) { }
 
   async enqueue(socket: Socket): Promise<boolean> {
     const authSocket = socket as AuthenticatedSocket;
@@ -50,8 +51,16 @@ export class MatchmakingService {
     return await this.store.dequeueUser(userId, reason);
   }
 
+  async dequeueIfOwner(userId: string, socketId: string, reason?: string): Promise<boolean> {
+    return await this.store.dequeueUserIfOwner(userId, socketId, reason);
+  }
+
   async isInQueue(userId: string): Promise<boolean> {
     return await this.store.isInQueue(userId);
+  }
+
+  async isQueueOwner(userId: string, socketId: string): Promise<boolean> {
+    return await this.store.isQueueOwner(userId, socketId);
   }
 
   async getQueueSize(): Promise<number> {

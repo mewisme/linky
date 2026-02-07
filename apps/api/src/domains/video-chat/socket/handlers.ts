@@ -341,10 +341,7 @@ function setupEndCallHandler(
   socket.on("end-call", async () => {
     const dbUserId = await getDbUserId(socket);
     if (dbUserId) {
-      const wasInQueue = await matchmaking.isInQueue(dbUserId);
-      if (wasInQueue) {
-        await matchmaking.removeUser(dbUserId);
-      }
+      await matchmaking.dequeueIfOwner(dbUserId, socket.id, "end-call");
     }
 
     const room = rooms.getRoomByUser(socket.id);
@@ -464,10 +461,7 @@ function setupDisconnectHandler(
     const dbUserId = await getDbUserId(socket);
 
     if (dbUserId) {
-      const wasInQueue = await matchmaking.isInQueue(dbUserId);
-      if (wasInQueue) {
-        await matchmaking.removeUser(dbUserId);
-      }
+      await matchmaking.dequeueIfOwner(dbUserId, socket.id, "disconnect");
     }
 
     if (room) {
@@ -490,10 +484,7 @@ function setupDisconnectHandler(
         }
 
         if (peerDbUserId) {
-          const isPeerInQueue = await matchmaking.isInQueue(peerDbUserId);
-          if (isPeerInQueue) {
-            await matchmaking.removeUser(peerDbUserId);
-          }
+          await matchmaking.dequeueIfOwner(peerDbUserId, peerSocket.id, "peer-disconnect");
         }
       }
 

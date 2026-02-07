@@ -138,7 +138,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
     try {
       const newServers = await iceServerCache.getIceServers(
-        async () => await getToken(),
+        getToken,
         "expired"
       );
 
@@ -228,7 +228,6 @@ export function useVideoChat(): UseVideoChatReturn {
       return;
     }
 
-    toast.success("Reconnected");
     isReconnectingRef.current = false;
     console.info("[ReconnectUX] Reconnected toast shown");
     if (process.env.NODE_ENV === "development") {
@@ -390,6 +389,7 @@ export function useVideoChat(): UseVideoChatReturn {
           currentStatus === "in_call" ||
           currentStatus === "reconnecting";
         if (isInCall && isReconnectingRef.current) {
+          socketSignaling.requestResync();
           const pc = peerConnection.getPeerConnection();
           if (pc) {
             const iceState = pc.iceConnectionState;
@@ -430,9 +430,26 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setError("Failed to connect to server. Please refresh the page.");
         toast.error("Failed to connect. Please refresh the page.");
       },
+      onResyncRequired: () => {
+        const currentStatus = connectionStatusRef.current;
+        const isInCall =
+          currentStatus === "matched" ||
+          currentStatus === "in_call" ||
+          currentStatus === "reconnecting";
+        if (isInCall) {
+          startReconnecting();
+          actionsRef.current.setConnectionStatus("reconnecting");
+          socketSignaling.requestResync();
+        }
+      },
+      onForcedTeardown: () => {
+        actionsRef.current.setConnectionStatus("ended");
+        resetPeerState();
+      },
 
       onJoinedQueue: (data: { message: string; queueSize: number }) => {
         actionsRef.current.setConnectionStatus("searching");
+        console.log("[VideoChatState] onJoinedQueue - joined queue", data);
       },
 
       onMatched: async (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => {
@@ -463,7 +480,7 @@ export function useVideoChat(): UseVideoChatReturn {
         if (iceServersRef.current.length === 0) {
           try {
             iceServersRef.current = await iceServerCache.getIceServers(
-              async () => await getToken(),
+              getToken,
               "initial"
             );
           } catch (err) {
@@ -493,7 +510,7 @@ export function useVideoChat(): UseVideoChatReturn {
           recoveryController.start({
             pc,
             isOfferer: data.isOfferer,
-            onIceRestart: async (offer, useRelay) => {
+            onIceRestart: async (offer) => {
               peerConnection.setIceRestartInProgress?.(true);
               if (!socketSignaling.isSocketHealthy()) {
                 await new Promise<void>((resolve) => {
@@ -646,6 +663,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onSkipped: (data: { message: string; queueSize: number }) => {
+        console.log("[VideoChatState] onSkipped - skipped", data);
         monitoring.stopMonitoring();
         recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");
@@ -909,7 +927,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   useUnloadEndCall(
     isInActiveCall,
-    () => socketSignaling.isInActiveCallRef.current,
+    () => isInActiveCall,
     () => socketSignaling.sendEndCall(),
     socketSignaling.getSocketId(),
     socketSignaling.socketRef

@@ -412,19 +412,6 @@ onConnectError: () => {
 },
 ```
 
-### Session Events
-
-```typescript
-onSessionWaiting: (data) => {
-  actions.setError(`Session queued - ${data.message}. Position: ${data.positionInQueue}/${data.queueSize}`);
-  actions.setConnectionStatus("idle");
-},
-onSessionActivated: (data) => {
-  actions.setError(null);
-  toast.success(data.message);
-},
-```
-
 ### Matchmaking Events
 
 ```typescript

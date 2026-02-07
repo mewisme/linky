@@ -76,8 +76,6 @@ sequenceDiagram
     participant Peer
 
     Client->>SocketIO: connect (with auth token)
-    SocketIO->>Client: session-waiting / session-activated
-    
     Client->>SocketIO: join
     SocketIO->>Matchmaking: enqueue user
     SocketIO->>Client: joined-queue
@@ -123,8 +121,6 @@ sequenceDiagram
 
 | Event | Description | Payload |
 |-------|-------------|---------|
-| `session-waiting` | Session queued | `{ message, positionInQueue, queueSize }` |
-| `session-activated` | Session activated | `{ message }` |
 | `joined-queue` | Successfully joined queue | `{ message, queueSize }` |
 | `matched` | Peer matched | `{ roomId, peerId, isOfferer }` |
 | `signal` | WebRTC signaling data | `{ type, sdp?, candidate? }` |

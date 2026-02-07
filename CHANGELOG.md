@@ -1,16 +1,13 @@
 ## What's Changed
 
-✨ Features
-
-- Enhance user session management in video chat service ([48b608a](../../commit/48b608a))
-
 ♻️ Refactoring
 
-- Reorganize imports and improve loop syntax in user session tests and service ([5437546](../../commit/5437546))
+- Implement MatchmakingService and update matchmaking logic ([6f792a7](../../commit/6f792a7))
 
 🔨 Other Changes
 
-- Bump package versions to 0.38.4 and update version lock ([8e26975](../../commit/8e26975))
+- Update user session management and logging in video chat service ([3b1e854](../../commit/3b1e854))
+- Bump package versions to 0.39.0 and update version lock ([5dd4ed6](../../commit/5dd4ed6))
 
 
-📋 Full Changelog: [8e26975...5437546](../../compare/8e26975...5437546)
+📋 Full Changelog: [5dd4ed6...6f792a7](../../compare/5dd4ed6...6f792a7)

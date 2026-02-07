@@ -12,10 +12,12 @@ function formatTime(seconds: number): string {
 
 interface CallTimerProps {
   isInActiveCall: boolean;
+  overrideStartTime?: number | null;
 }
 
-export function CallTimer({ isInActiveCall }: CallTimerProps) {
-  const callStartedAt = useVideoChatStore((s) => s.callStartedAt);
+export function CallTimer({ isInActiveCall, overrideStartTime }: CallTimerProps) {
+  const storeCallStartedAt = useVideoChatStore((s) => s.callStartedAt);
+  const callStartedAt = overrideStartTime !== undefined ? overrideStartTime : storeCallStartedAt;
 
   const shouldShowTimer = isInActiveCall && callStartedAt != null;
 

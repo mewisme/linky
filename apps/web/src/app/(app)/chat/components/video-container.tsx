@@ -20,6 +20,7 @@ import { useReactionTrigger } from "@/hooks/webrtc/use-reaction-trigger";
 import { useStreamAspectRatio } from "@/hooks/webrtc/use-stream-aspect-ratio";
 import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useViewportHeight } from "@/hooks/ui/use-viewport-height";
+import { PassiveTabBanner } from "./passive-tab-banner";
 
 interface VideoContainerProps {
   localStream: MediaStream | null;
@@ -42,6 +43,7 @@ interface VideoContainerProps {
   isSharingScreen?: boolean;
   onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  isPassive?: boolean;
 }
 
 export function VideoContainer({
@@ -65,6 +67,7 @@ export function VideoContainer({
   isSharingScreen,
   onBlockUser,
   sendFavoriteNotification,
+  isPassive = false,
 }: VideoContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const remoteVideoContainerRef = useRef<HTMLDivElement>(null);
@@ -127,6 +130,18 @@ export function VideoContainer({
 
   const displayAspectRatio =
     remoteStream && hasPeer ? remoteAspectRatio : localAspectRatio;
+
+  if (isPassive) {
+    return (
+      <div
+        className="relative w-full overflow-hidden bg-transparent"
+        style={{ height: `${containerHeight}px` }}
+        data-testid="chat-video-container-passive"
+      >
+        <PassiveTabBanner />
+      </div>
+    );
+  }
 
   return (
     <div

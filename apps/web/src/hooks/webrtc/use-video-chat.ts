@@ -26,6 +26,7 @@ import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useUnloadEndCall } from "./use-unload-end-call";
 import { useSocket } from "../socket/use-socket";
 import { useWebRTCMonitoring } from "./use-webrtc-monitoring";
+import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordination";
 
 import { iceServerCache } from "@/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
@@ -56,6 +57,7 @@ export interface UseVideoChatReturn {
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   error: string | null;
   clearError: () => void;
+  isPassive: boolean;
 }
 
 export function useVideoChat(): UseVideoChatReturn {
@@ -85,6 +87,24 @@ export function useVideoChat(): UseVideoChatReturn {
   const refreshUserProgress = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["user-progress"] });
   }, [queryClient]);
+
+  const tabCoordination = useCallTabCoordination({
+    onOwnershipLost: () => {
+      recoveryController.stop();
+      iceServerCache.resetSession();
+      mediaStream.releaseMedia();
+      peerConnection.closePeer();
+      actionsRef.current.resetPeerState();
+      actionsRef.current.setLocalStream(null);
+      actionsRef.current.setMuted(false);
+      actionsRef.current.setVideoOff(false);
+    },
+    onSwitchApproved: () => {
+      if (state.connectionStatus === "in_call" || state.connectionStatus === "reconnecting") {
+        void start();
+      }
+    },
+  });
 
   const peerConnection = usePeerConnection([]);
 
@@ -497,6 +517,8 @@ export function useVideoChat(): UseVideoChatReturn {
         }
         trackEvent({ name: "matchmaking_matched" });
 
+        tabCoordination.claimOwnership(data.roomId);
+
         const localStream = mediaStream.getStream();
         if (!localStream) {
           console.error("No local stream available for match");
@@ -829,6 +851,13 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
+      const claimed = tabCoordination.claimOwnership(null);
+      if (!claimed) {
+        actionsRef.current.setError("Another tab owns the call. Please close other tabs or switch the call.");
+        toast.error("Call is active in another tab");
+        return;
+      }
+
       actionsRef.current.setConnectionStatus("searching");
 
       if (iceServersRef.current.length === 0) {
@@ -857,6 +886,7 @@ export function useVideoChat(): UseVideoChatReturn {
       console.error("Error starting video chat:", err);
       actionsRef.current.setError(err instanceof Error ? err.message : "Failed to start video chat");
       actionsRef.current.setConnectionStatus("idle");
+      tabCoordination.releaseOwnership();
       cleanup();
     }
   }, [
@@ -869,6 +899,7 @@ export function useVideoChat(): UseVideoChatReturn {
     initializeConnectionRef,
     peerCallbacks,
     socketCallbacks,
+    tabCoordination,
   ]);
 
   const skip = useCallback(() => {
@@ -890,9 +921,10 @@ export function useVideoChat(): UseVideoChatReturn {
     toast("Call ended - You have ended the call.");
     actionsRef.current.setConnectionStatus("ended");
     actionsRef.current.setCallStartedAt(null);
+    tabCoordination.releaseOwnership();
     resetPeerState();
     setTimeout(() => refreshUserProgress(), 400);
-  }, [socketSignaling, resetPeerState, refreshUserProgress]);
+  }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination]);
 
   const toggleMute = useCallback(() => {
     const newMutedState = mediaStream.toggleMute();
@@ -1044,7 +1076,8 @@ export function useVideoChat(): UseVideoChatReturn {
     () => isInActiveCall,
     () => socketSignaling.sendEndCall(),
     socketSignaling.getSocketId(),
-    socketSignaling.socketRef
+    socketSignaling.socketRef,
+    () => tabCoordination.releaseOwnership()
   );
 
   return {
@@ -1072,6 +1105,7 @@ export function useVideoChat(): UseVideoChatReturn {
     sendFavoriteNotification: socketSignaling.sendFavoriteNotification,
     error: state.error,
     clearError,
+    isPassive: tabCoordination.isPassive,
   };
 }
 

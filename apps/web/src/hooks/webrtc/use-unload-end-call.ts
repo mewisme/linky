@@ -10,7 +10,8 @@ export function useUnloadEndCall(
   getIsInActiveCall: () => boolean,
   sendEndCall: () => void,
   socketId: string | null,
-  socketRef: RefObject<{ connected: boolean; emit: (event: string, ...args: any[]) => void } | null>
+  socketRef: RefObject<{ connected: boolean; emit: (event: string, ...args: any[]) => void } | null>,
+  releaseOwnership?: () => void
 ): void {
   const hasSentUnloadSignalRef = useRef(false);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -27,6 +28,7 @@ export function useUnloadEndCall(
     hasSentUnloadSignalRef.current = true;
     console.info("[UnloadDetection] TRUE EXIT detected during active call - sending end-call signal");
 
+    releaseOwnership?.();
     recoveryController.stop();
 
     if (socketRef.current?.connected && socketId) {

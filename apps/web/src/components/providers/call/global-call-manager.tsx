@@ -18,6 +18,7 @@ interface GlobalCallContextValue {
   isSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   clearError: () => void;
+  isPassive: boolean;
 }
 
 const GlobalCallContext = createContext<GlobalCallContextValue | null>(null);
@@ -42,6 +43,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     isSharingScreen: videoChat.isSharingScreen,
     sendFavoriteNotification: videoChat.sendFavoriteNotification,
     clearError: videoChat.clearError,
+    isPassive: videoChat.isPassive,
   }), [
     videoChat.isInActiveCall,
     videoChat.sendMessage,
@@ -55,6 +57,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     videoChat.isSharingScreen,
     videoChat.sendFavoriteNotification,
     videoChat.clearError,
+    videoChat.isPassive,
   ]);
 
   return (

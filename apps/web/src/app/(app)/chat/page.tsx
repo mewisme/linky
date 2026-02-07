@@ -48,6 +48,7 @@ function ChatPageContent() {
     isSharingScreen,
     sendFavoriteNotification,
     clearError,
+    isPassive,
   } = useGlobalCallContext();
 
   const { blockUser: handleBlockUser } = useBlockUser();
@@ -118,6 +119,7 @@ function ChatPageContent() {
               endCall();
             }}
             sendFavoriteNotification={sendFavoriteNotification}
+            isPassive={isPassive}
           />
         )}
 

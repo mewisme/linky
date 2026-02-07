@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Add loading component with animated loader ([eee6f33](../../commit/eee6f33))
+- Remove visitor tracking and analytics components ([a915770](../../commit/a915770))
 
 🔨 Other Changes
 
-- Bump package versions to 0.45.2 and update version lock ([cef6688](../../commit/cef6688))
+- Bump package versions to 0.46.0 and update version lock ([1ba506c](../../commit/1ba506c))
 
 
-📋 Full Changelog: [cef6688...eee6f33](../../compare/cef6688...eee6f33)
+📋 Full Changelog: [1ba506c...a915770](../../compare/1ba506c...a915770)

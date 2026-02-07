@@ -1,10 +1,12 @@
 import { createLogger } from "@repo/logger";
 import { sendPushOnly } from "@/domains/notification/service/push.service.js";
+import type { AuthenticatedSocket } from "@/socket/auth.js";
 
 const logger = createLogger("context:peer-action-notification");
 
 export type PeerActionPushParams = {
   userId: string;
+  peerSocket: AuthenticatedSocket;
   title: string;
   body: string;
   url?: string;
@@ -12,6 +14,23 @@ export type PeerActionPushParams = {
 
 export async function sendPeerActionPush(params: PeerActionPushParams): Promise<void> {
   try {
+    const visibility = params.peerSocket.data.visibility;
+
+    if (visibility === "foreground") {
+      logger.debug(
+        "Skipping push for user %s: tab is focused (visibility: %s)",
+        params.userId,
+        visibility
+      );
+      return;
+    }
+
+    logger.debug(
+      "Sending push to user %s: visibility=%s",
+      params.userId,
+      visibility || "unknown"
+    );
+
     await sendPushOnly(params.userId, {
       title: params.title,
       body: params.body,

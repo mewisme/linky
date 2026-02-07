@@ -130,6 +130,7 @@ export function setupChatMessageHandler(
           : `${payload.sender.displayName} sent an attachment`;
       void sendPeerActionPush({
         userId: peerDbUserId,
+        peerSocket: peerSocket as AuthenticatedSocket,
         title: "New chat message",
         body: notificationBody,
         url: "/chat?open_chat_panel=true",

@@ -114,6 +114,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
         chatSocket.on("connect", () => {
           chatSocket.emit("client:timezone:init", { timezone: getUserTimezone() });
 
+          const visibility = document.visibilityState === "visible" ? "foreground" : "background";
+          chatSocket.emit(`client:visibility:${visibility}`);
+
           const isBackendRestart = backendRestartDetector.recordConnect(chatSocket);
 
           const newSocketId = chatSocket.id || null;
@@ -193,6 +196,24 @@ export function SocketProvider({ children }: SocketProviderProps) {
       healthCheckIntervalRef.current = setInterval(() => {
         useSocketStore.getState().setIsHealthy(socketHealthMonitor.isHealthy());
       }, 1000);
+
+      const handleVisibilityChange = () => {
+        if (!chatSocket || !chatSocket.connected) {
+          return;
+        }
+        const visibility = document.visibilityState === "visible" ? "foreground" : "background";
+        chatSocket.emit(`client:visibility:${visibility}`);
+      };
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
+      const cleanupVisibility = () => {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      };
+
+      if (socketRef.current) {
+        (socketRef.current as any)._visibilityCleanup = cleanupVisibility;
+      }
     } finally {
       initializingRef.current = false;
     }
@@ -217,6 +238,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
       }
 
       if (socketRef.current) {
+        if ((socketRef.current as any)._visibilityCleanup) {
+          (socketRef.current as any)._visibilityCleanup();
+        }
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;

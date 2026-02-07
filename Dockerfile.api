@@ -25,7 +25,6 @@ COPY --from=builder /app/packages/logger/package.json ./packages/logger/
 COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/scripts ./apps/api/scripts
 
 RUN pnpm install --prod --frozen-lockfile
 WORKDIR /app/apps/api

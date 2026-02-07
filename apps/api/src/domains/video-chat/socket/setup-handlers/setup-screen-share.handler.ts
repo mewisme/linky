@@ -35,6 +35,7 @@ export function setupScreenShareHandler(socket: AuthenticatedSocket, io: Namespa
       if (peerDbUserId) {
         void sendPeerActionPush({
           userId: peerDbUserId,
+          peerSocket: peerSocket as AuthenticatedSocket,
           title: "Screen sharing started",
           body: `${socket.data.userName || "Anonymous"} started sharing their screen`,
           url: "/chat",

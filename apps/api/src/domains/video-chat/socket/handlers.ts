@@ -25,6 +25,14 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
     }
   });
 
+  socket.on("client:visibility:foreground", () => {
+    socket.data.visibility = "foreground";
+  });
+
+  socket.on("client:visibility:background", () => {
+    socket.data.visibility = "background";
+  });
+
   setupJoinHandler(socket, matchmaking, rooms);
   setupSkipHandler(socket, io, matchmaking, rooms);
   setupSignalHandler(socket, io, rooms);

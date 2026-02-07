@@ -1,7 +1,7 @@
-const http = require("http");
+import http from "node:http";
 
 const port = Number(process.env.PORT) || 7270;
-const url = `http://127.0.0.1:${port}/healthz`;
+const url = `http://0.0.0.0:${port}/healthz`;
 
 const req = http.get(url, (res) => {
   res.resume();

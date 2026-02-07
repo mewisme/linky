@@ -40,7 +40,11 @@ export async function sendPushNotification(
           auth: subscription.keys.auth,
         },
       },
-      JSON.stringify(payload)
+      JSON.stringify(payload),
+      {
+        urgency: "high",
+        TTL: 60,
+      }
     );
 
     logger.info("Push notification sent successfully to %s", subscription.endpoint);

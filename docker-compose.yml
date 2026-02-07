@@ -12,7 +12,7 @@ services:
       OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "node scripts/healthcheck.js"]
+      test: ["CMD-SHELL", "node dist/scripts/healthcheck.js"]
       interval: 30s
       timeout: 5s
       retries: 3

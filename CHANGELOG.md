@@ -1,8 +1,12 @@
 ## What's Changed
 
+✨ Features
+
+- Add loading component with animated loader ([eee6f33](../../commit/eee6f33))
+
 🔨 Other Changes
 
-- Bump package versions to 0.45.1 and update version lock ([04e42a5](../../commit/04e42a5))
+- Bump package versions to 0.45.2 and update version lock ([cef6688](../../commit/cef6688))
 
 
-📋 Full Changelog: [04e42a5...04e42a5](../../compare/04e42a5...04e42a5)
+📋 Full Changelog: [cef6688...eee6f33](../../compare/cef6688...eee6f33)

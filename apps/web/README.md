@@ -1,344 +1,331 @@
-# Linky - Frontend Application
+# Linky Frontend
 
-A Next.js frontend application for random 1-to-1 video chat using WebRTC and Socket.IO. This application enables users to connect with people around the world through secure, real-time video conversations with integrated text chat functionality.
+Next.js 16 application providing the user interface for Linky's real-time video chat platform. Handles WebRTC peer connections, real-time messaging, matchmaking UI, user profiles, and admin dashboard.
 
-## Features
+## Purpose
 
-- **Clerk Authentication** - Secure user authentication with email verification, password, and passkey support
-- **WebRTC Video Chat** - Peer-to-peer video and audio communication with low latency
-- **Real-time Signaling** - Socket.IO-based signaling for WebRTC connection setup and management
-- **Text Chat** - Real-time text messaging during video calls with message history
-- **Admin Dashboard** - User management interface with role-based access control and presence monitoring
-- **Presence System** - MQTT-based presence tracking for user status (online, offline, available, matching, in_call, idle)
-- **Modern UI** - Built with shadcn/ui components and responsive design
-- **Theme Support** - Dark and light mode with system preference detection
-- **File Storage** - S3 integration for file uploads and downloads
-- **Responsive Design** - Works seamlessly on desktop and mobile devices
+This application serves as the client-side interface for users to:
+- Join random 1-to-1 video chat sessions
+- Manage video/audio controls during calls
+- Send real-time text messages and attachments
+- Track progress (streaks, levels, favorites)
+- Manage profile and preferences
+- Monitor system health (admin users only)
 
-## Tech Stack
+## Core Features
 
-- **Next.js 16+** (App Router) - React framework with server-side rendering
-- **TypeScript** - Type-safe development
-- **Clerk** - Authentication and user management
-- **Socket.IO Client** - Real-time signaling and communication
-- **WebRTC** - Peer-to-peer video and audio streaming
-- **MQTT** - Presence and status updates
-- **shadcn/ui** - UI component library from `@repo/ui`
-- **Zustand** - Lightweight state management
-- **React Hot Toast** - Toast notifications
-- **Motion** - Animation library
-- **Axios** - HTTP client for API requests
-- **Tailwind CSS** - Utility-first CSS framework
+### Video Chat
 
-## Prerequisites
+**Matching lifecycle:**
+1. User clicks "Start" to join matchmaking queue
+2. Browser requests camera and microphone permissions
+3. Frontend connects to Socket.IO `/chat` namespace with auth token
+4. Backend pairs user with another from queue
+5. WebRTC establishes peer-to-peer connection using STUN/TURN servers
+6. Video streams render in UI with controls for mute, video toggle, skip, end call
 
-- Node.js 18+ and pnpm
-- Clerk account (for authentication)
-- Backend API running (see `apps/api/README.md`)
-- MQTT broker (for presence system, optional)
+**Floating video behavior:**
+- Users can navigate away from `/chat` while in active call
+- Video minimizes to draggable picture-in-picture overlay
+- Call persists until user explicitly ends or peer disconnects
+- Navigation back to `/chat` restores full video UI
 
-## Installation
+**Reconnection handling:**
+- Socket.IO auto-reconnects on transient disconnects
+- Frontend updates socketId in matchmaking queue on reconnection
+- Users remain queued during brief network interruptions
+- Active calls end on transport-level disconnect (real network failure)
 
-1. Install dependencies:
+### Chat Messaging
 
-```bash
-pnpm install
-```
+Real-time text chat runs alongside video calls:
+- Message input with typing indicators
+- File attachments (images, documents) via S3 upload
+- Message history persisted to database
+- Reactions and message snapshots
+- Chat panel toggles open/closed without affecting video
 
-2. Set up environment variables:
+### User Progress
 
-Create a `.env.local` file in `apps/web/`:
+**Streaks**: Days of consecutive usage, displayed on profile. Resets if user misses a day.
 
-```env
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
+**Levels**: Calculated from total call time and other metrics. Unlocks badges and UI customizations.
 
-# Backend API URL (default: http://localhost:3001)
-NEXT_PUBLIC_API_URL=http://localhost:3001
-
-# MQTT Configuration (optional, for presence system)
-NEXT_PUBLIC_MQTT_CLIENT_URL=mqtt://localhost
-NEXT_PUBLIC_MQTT_CLIENT_PORT=1883
-NEXT_PUBLIC_MQTT_CLIENT_USERNAME=your_username
-NEXT_PUBLIC_MQTT_CLIENT_PASSWORD=your_password
-```
-
-3. Configure Clerk:
-
-- Sign up at [clerk.com](https://clerk.com)
-- Create a new application
-- Enable the following authentication methods:
-  - Email (required)
-  - Email verification code (magic code)
-  - Password (minimum 8 characters, reject compromised passwords)
-  - Passkeys
-- Copy your publishable key and secret key to `.env.local`
-
-4. Start the development server:
-
-```bash
-pnpm dev
-```
-
-The app will be available at `http://localhost:3000`.
-
-## Project Structure
-
-```
-apps/web/
-├── app/                          # Next.js App Router pages
-│   ├── (auth)/                   # Authentication routes
-│   │   ├── sign-in/              # Clerk sign-in page
-│   │   ├── sign-up/              # Clerk sign-up page
-│   │   └── user-profile/          # User profile management
-│   ├── admin/                     # Admin dashboard (protected)
-│   │   ├── _components/           # Admin-specific components
-│   │   │   ├── data-table.tsx     # User data table
-│   │   │   └── define-data.tsx    # Data definition utilities
-│   │   ├── layout.tsx             # Admin layout
-│   │   └── page.tsx               # Admin dashboard page
-│   ├── chat/                      # Video chat page (protected)
-│   │   ├── _components/           # Chat-specific components
-│   │   │   ├── chat-sidebar.tsx   # Text chat sidebar
-│   │   │   ├── draggable-video-overlay.tsx
-│   │   │   ├── video-container.tsx
-│   │   │   ├── video-controls.tsx
-│   │   │   └── video-player.tsx
-│   │   └── page.tsx               # Main chat page
-│   ├── layout.tsx                 # Root layout with providers
-│   └── page.tsx                   # Landing page
-├── components/                    # Shared React components
-│   ├── auth/                      # Authentication components
-│   │   └── user-button.tsx        # User profile button
-│   ├── header/                    # Header components
-│   │   ├── index.tsx
-│   │   ├── logo.tsx
-│   │   └── mode-toggle.tsx        # Theme toggle
-│   ├── landing/                   # Landing page components
-│   │   ├── footer.tsx
-│   │   └── social-proof.tsx
-│   ├── layouts/                   # Layout components
-│   │   └── with-header.tsx        # Layout with header
-│   └── providers/                 # Context providers
-│       ├── mqtt.tsx               # MQTT provider
-│       ├── theme.tsx              # Theme provider
-│       └── user-provider.tsx      # User data provider
-├── hooks/                         # Custom React hooks
-│   ├── use-media-stream.ts        # Media stream management
-│   ├── use-peer-connection.ts     # WebRTC peer connection
-│   ├── use-socket-signaling.ts    # Socket.IO signaling
-│   ├── use-video-chat-state.ts    # Video chat state management
-│   └── use-video-chat.ts          # Main video chat hook
-├── lib/                           # Utility libraries
-│   ├── api/                       # API utilities
-│   │   ├── index.ts
-│   │   └── s3.ts                  # S3 file operations
-│   ├── mqtt/                      # MQTT client
-│   │   └── client.ts
-│   ├── client.ts                  # Axios HTTP client
-│   ├── socket.ts                  # Socket.IO utilities
-│   └── webrtc.ts                  # WebRTC utilities
-├── stores/                        # Zustand state stores
-│   ├── auth-store.ts              # Authentication state
-│   └── user-store.ts               # User data state
-├── types/                         # TypeScript type definitions
-│   ├── api.types.ts               # API type definitions
-│   └── globals.d.ts               # Global type declarations
-├── utils/                         # Utility functions
-│   ├── logger.ts                  # Logging utilities
-│   └── roles.ts                   # Role management
-├── shared/                        # Shared configuration
-│   └── config.ts                  # Application configuration
-├── proxy.ts                       # Clerk authentication proxy (Next.js 16)
-├── next.config.ts                 # Next.js configuration
-├── tsconfig.json                  # TypeScript configuration
-└── package.json                   # Dependencies and scripts
-```
-
-## How It Works
-
-### Authentication Flow
-
-1. User visits landing page (`/`)
-2. Clicks "Start Chatting Now" button
-3. If not authenticated → redirected to Clerk sign-in
-4. If authenticated → navigated to `/chat`
-
-### Video Chat Flow
-
-1. **Initialization**: User clicks "Start" button on chat page
-2. **Media Access**: Browser requests camera and microphone permissions
-3. **ICE Servers**: Frontend fetches ICE server configuration from backend API
-4. **Socket Connection**: Connects to Socket.IO signaling server with authentication token
-5. **Matchmaking**: Joins matchmaking queue via `join` event
-6. **Matching**: When matched, receives `matched` event with peer information
-7. **WebRTC Setup**:
-   - Creates `RTCPeerConnection` with ICE servers
-   - Adds local media tracks (video and audio)
-   - Creates and sends SDP offer (if offerer)
-   - Handles SDP answer and ICE candidates
-8. **Connection**: When connection established, remote video stream appears
-9. **Controls**: User can mute/unmute, toggle video, send text messages, skip to next peer, or end call
-
-### Signaling Events
-
-**Client → Server:**
-- `join` - Join matchmaking queue
-- `skip` - Skip current peer and re-queue
-- `signal` - Send WebRTC signaling data (offer/answer/ICE candidate)
-- `chat-message` - Send text message to peer
-- `mute-toggle` - Notify peer of mute state change
-- `end-call` - End the current call
-- `disconnect` - Disconnect from server
-
-**Server → Client:**
-- `joined-queue` - Successfully added to queue
-- `matched` - Matched with a peer
-- `signal` - Receive signaling data from peer
-- `chat-message` - Receive text message from peer
-- `peer-left` - Peer disconnected or skipped
-- `peer-skipped` - Peer skipped the connection
-- `skipped` - Your skip request was processed
-- `end-call` - Peer ended the call
-- `mute-toggle` - Peer mute state changed
-- `error` - Error occurred
-- `queue-timeout` - Queue timeout (5 minutes)
-
-### Presence System
-
-The application uses MQTT for real-time presence updates:
-- Users publish their presence state (online, offline, available, matching, in_call, idle)
-- Admin dashboard receives real-time presence updates via Socket.IO
-- Presence is automatically updated based on user actions
+**Favorites**: Users can favorite peers during or after calls. Favorites increase chance of future matches.
 
 ### Admin Dashboard
 
-The admin dashboard (`/admin`) provides:
-- User list with pagination and search
-- User role management (admin/member)
-- User allow/deny status management
-- Real-time presence monitoring
-- User profile information display
+High-level view for admin users:
+- User table with pagination, search, and filtering
+- Real-time presence monitoring via Socket.IO `/admin` namespace
+- Role management (admin/member)
+- User allow/deny status updates
+- Visit statistics and call history
+
+## State Management
+
+**Zustand stores** (client-side state):
+- `user-store.ts`: Current user profile, preferences
+- `video-chat-store.ts`: Call state, peer info, room ID
+- `socket-store.ts`: Socket connection status
+- `notifications-store.ts`: Toast notifications queue
+- `chat-panel-store.ts`: Chat sidebar open/closed state
+
+**TanStack React Query** (server state):
+- Fetches user data, favorites, progress from REST API
+- Caches responses with stale-while-revalidate
+- Automatic refetch on window focus or network reconnection
+- Mutation hooks for updates (add favorite, update profile)
+
+**Custom hooks**:
+- `use-socket-signaling.ts`: Socket.IO event handling
+- `use-peer-connection.ts`: WebRTC RTCPeerConnection lifecycle
+- `use-media-stream.ts`: Camera/microphone access and track management
+- `use-video-chat.ts`: Orchestrates signaling, peer connection, media stream
+
+## Socket Usage
+
+**Connection initialization:**
+- `SocketProvider` establishes Socket.IO connection on app load
+- Auth token from Clerk passed in connection handshake
+- Single shared socket instance stored in module-level singleton
+- Listeners registered once per component mount with idempotency guards
+
+**Event flow (client to server):**
+- `join`: Enter matchmaking queue
+- `skip`: Leave current peer, re-enter queue
+- `end-call`: End call gracefully, do NOT re-enter queue
+- `signal`: Send WebRTC signaling data (offer, answer, ICE candidate)
+- `chat:send`: Send text message
+- `chat:attachment:send`: Send file attachment
+- `mute-toggle`, `video-toggle`, `screen-share:toggle`: Notify peer of control changes
+- `favorite:notify-peer`: Notify peer they've been favorited
+
+**Event flow (server to client):**
+- `joined-queue`: Confirmation of queue entry
+- `matched`: Paired with peer (includes `roomId`, `peerId`, `isOfferer`, peer info)
+- `signal`: Receive WebRTC signaling data from peer
+- `peer-left`: Peer disconnected
+- `peer-skipped`: Peer clicked skip
+- `end-call`: Peer ended call
+- `chat:message`: Incoming text message
+- `chat:typing`: Peer typing indicator
+- `mute-toggle`, `video-toggle`, `screen-share:toggle`: Peer control changes
+- `favorite:added`, `favorite:removed`: Peer favorited/unfavorited you
+
+## Clerk Authentication
+
+**Integration:**
+- `@clerk/nextjs` provides middleware, components, hooks
+- `<SignIn />` and `<SignUp />` components render auth UI
+- `clerkMiddleware` redirects unauthenticated users to sign-in
+- Custom JWT template includes user metadata for backend validation
+
+**Token refresh:**
+- Tokens auto-refresh every 5 minutes
+- Frontend re-initializes Socket.IO connection on token expiry
+- Backend validates tokens via Clerk SDK on protected routes
+
+**User profile:**
+- `<UserButton />` component provides profile dropdown
+- Profile page allows bio, location, interests, photo upload
+- Changes persist to Supabase via backend API
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | Yes |
-| `CLERK_SECRET_KEY` | Clerk secret key | Yes |
-| `NEXT_PUBLIC_API_URL` | Backend API URL | No (default: `http://localhost:3001`) |
-| `NEXT_PUBLIC_MQTT_CLIENT_URL` | MQTT broker URL | No |
-| `NEXT_PUBLIC_MQTT_CLIENT_PORT` | MQTT broker port | No |
-| `NEXT_PUBLIC_MQTT_CLIENT_USERNAME` | MQTT username | No |
-| `NEXT_PUBLIC_MQTT_CLIENT_PASSWORD` | MQTT password | No |
+Frontend requires these environment variables in `apps/web/.env.local`:
+
+```env
+# Clerk authentication (required)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+
+# Backend API URL (required)
+NEXT_PUBLIC_API_URL=http://localhost:3001
+
+# MQTT presence (optional)
+NEXT_PUBLIC_MQTT_CLIENT_URL=mqtt://localhost
+NEXT_PUBLIC_MQTT_CLIENT_PORT=1883
+NEXT_PUBLIC_MQTT_CLIENT_USERNAME=
+NEXT_PUBLIC_MQTT_CLIENT_PASSWORD=
+
+# App URL (optional, defaults to localhost:3000)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Obtain Clerk keys from [clerk.com](https://clerk.com) dashboard. Create application and enable email, password, and passkey authentication methods.
 
 ## Development
 
-### Running the App
+**Run frontend only:**
 
 ```bash
-# Development mode
+cd apps/web
 pnpm dev
-
-# Production build
-pnpm build
-pnpm start
 ```
 
-### Linting
+App runs on `http://localhost:3000`.
+
+**Prerequisites:**
+- Backend API must be running on port 3001 (or `NEXT_PUBLIC_API_URL`)
+- Clerk account configured with correct redirect URLs
+- Valid Clerk publishable and secret keys
+
+**Hot reload:**
+- Next.js watches file changes and hot-reloads
+- React components update without full page refresh
+- Shared `@repo/ui` components also hot-reload via Turborepo
+
+**Type checking:**
+
+```bash
+pnpm check-types
+```
+
+**Linting:**
 
 ```bash
 pnpm lint
 ```
 
-## Integration Details
+**Building:**
 
-### Authentication (Clerk)
+```bash
+pnpm build
+pnpm start
+```
 
-- Uses Clerk's `<SignIn />` and `<SignUp />` components for authentication UI
-- Protected routes use Clerk middleware to redirect unauthenticated users
-- User profile accessible via `<UserButton />` component
-- Custom JWT template for backend authentication
-- Token refresh handled automatically every 5 minutes
+## Development Constraints
 
-### Signaling (Socket.IO)
+**Network layer:**
+- Use native `fetch` for API requests
+- Do NOT install or use `axios`
+- API client in `lib/client.ts` wraps fetch with auth headers
 
-- Connects to backend Socket.IO server for WebRTC signaling
-- Handles all WebRTC signaling events (offers, answers, ICE candidates)
-- Manages matchmaking queue and peer matching
-- Supports text chat and presence updates
-- Automatic reconnection on connection loss
+**Shared components:**
+- Import UI primitives from `@repo/ui/components/*`
+- Import date utilities from `@repo/ui/internal-lib/date-fns`
+- Do NOT install dependencies already in `@repo/ui/package.json`
 
-### WebRTC
+**Icons:**
+- Use `@tabler/icons-react` for new icons
+- Avoid `lucide-react` (legacy usage exists but should not be extended)
 
-- Uses native WebRTC APIs for peer-to-peer communication
-- Fetches ICE servers from backend API endpoint
-- Handles media streams (video/audio tracks)
-- Properly manages connection lifecycle
-- Supports connection state monitoring and error handling
+**Redis:**
+- Frontend has NO access to Redis
+- All cache reads/writes happen via backend API
+- Do NOT install `redis` or `ioredis` in frontend
 
-### MQTT (Presence)
+**File naming:**
+- Use kebab-case for all files: `user-profile.tsx`, `use-socket-signaling.ts`
 
-- Connects to MQTT broker for presence updates
-- Publishes user presence state changes
-- Automatically disconnects on user sign-out
-- Used for real-time user status tracking
+## Navigation During Calls
 
-### State Management
+**Supported routes while in call:**
+- `/chat`: Full video chat UI
+- `/`: Landing page (video minimizes to PiP)
+- `/profile`: User profile (video minimizes to PiP)
+- Any other route (video minimizes to PiP)
 
-- Zustand stores for authentication and user data
-- React hooks for video chat state management
-- Local component state for UI interactions
+**Unsupported routes (end call automatically):**
+- `/sign-in`, `/sign-up`: Auth pages
+- `/admin`: Admin dashboard (different Socket.IO namespace)
 
-## Cleanup
+**Implementation:**
+- `DraggableVideoOverlay` component tracks call state in `video-chat-store`
+- Component conditionally renders based on route and call status
+- User can click PiP overlay to navigate back to `/chat`
+- Clicking "End Call" in PiP destroys overlay and tears down peer connection
 
-The application properly cleans up resources:
-- Stops all media tracks on unmount or disconnect
-- Closes RTCPeerConnection
-- Disconnects Socket.IO client
-- Disconnects MQTT client
-- Handles page unload events
-- Clears timers and intervals
+## WebRTC Connection Flow
 
-## Troubleshooting
+1. **ICE servers fetch**: `GET /api/ice-servers` returns Cloudflare TURN credentials
+2. **Peer connection setup**: Create `RTCPeerConnection` with ICE servers
+3. **Media tracks**: Add local video and audio tracks from `getUserMedia`
+4. **Offer/Answer (if offerer)**: Create SDP offer, send via `signal` event
+5. **Offer/Answer (if answerer)**: Receive SDP offer, create answer, send via `signal` event
+6. **ICE candidates**: Both peers exchange ICE candidates via `signal` event
+7. **Connection established**: `ontrack` fires with remote media stream
+8. **Render remote video**: Attach remote stream to `<video>` element
 
-### Camera/Microphone Not Working
+**Cleanup on disconnect:**
+- Stop all local media tracks
+- Close `RTCPeerConnection`
+- Remove Socket.IO event listeners
+- Disconnect MQTT client
+- Clear peer info from state
 
-- Ensure browser permissions are granted
-- Check if HTTPS is required (some browsers require HTTPS for media access)
-- Verify camera/microphone are not in use by another application
-- Check browser console for permission errors
+## Project Structure
 
-### Connection Issues
+```
+apps/web/src/
+├── app/                       Next.js App Router
+│   ├── (app)/                 Authenticated pages
+│   │   ├── chat/              Video chat UI
+│   │   ├── profile/           User profile
+│   │   ├── favorites/         Favorites list
+│   │   ├── history/           Call history
+│   │   └── admin/             Admin dashboard
+│   ├── (auth)/                Auth pages
+│   │   ├── sign-in/           Clerk sign-in
+│   │   └── sign-up/           Clerk sign-up
+│   ├── (marketing)/           Public pages
+│   │   └── page.tsx           Landing page
+│   └── api/                   Next.js API routes (proxies to backend)
+│
+├── components/                React components
+│   ├── header/                App header, logo, theme toggle
+│   ├── landing/               Landing page sections
+│   └── layouts/               Layout wrappers
+│
+├── hooks/                     Custom React hooks
+│   ├── socket/                Socket.IO hooks
+│   ├── webrtc/                WebRTC hooks
+│   ├── chat/                  Chat message hooks
+│   ├── user/                  User data hooks
+│   └── notifications/         Notification hooks
+│
+├── lib/                       Client libraries
+│   ├── api/                   Backend API client
+│   ├── socket/                Socket.IO client setup
+│   ├── webrtc/                WebRTC utilities
+│   ├── mqtt/                  MQTT client
+│   └── client.ts              Fetch wrapper with auth
+│
+├── stores/                    Zustand stores
+│   ├── user-store.ts
+│   ├── video-chat-store.ts
+│   ├── socket-store.ts
+│   ├── notifications-store.ts
+│   └── chat-panel-store.ts
+│
+├── types/                     TypeScript types
+│   ├── api.types.ts           API response types
+│   ├── chat-message.types.ts  Chat message types
+│   └── users.types.ts         User types
+│
+└── utils/                     Utility functions
+    ├── logger.ts              Console logging wrapper
+    └── roles.ts               Role checking helpers
+```
 
-- Verify backend API is running and accessible
-- Check `NEXT_PUBLIC_API_URL` environment variable
-- Check browser console for WebRTC errors
-- Ensure ICE servers are properly configured on backend
-- Verify Socket.IO connection is established
+## Testing
 
-### Authentication Issues
+E2E tests run via Playwright from repository root:
 
-- Verify Clerk keys are correct in `.env.local`
-- Check Clerk dashboard for application configuration
-- Ensure email verification is properly configured
-- Verify custom JWT template is set up in Clerk
+```bash
+pnpm test          # All tests
+pnpm test:ui       # UI mode
+pnpm test:debug    # Debug mode
+```
 
-### MQTT Connection Issues
+Tests cover:
+- Authentication flow (sign-in, sign-up, sign-out)
+- Video chat matching
+- Chat messaging
+- User profile updates
+- Admin dashboard (for admin users)
 
-- Verify MQTT broker is running and accessible
-- Check MQTT configuration in environment variables
-- Ensure MQTT credentials are correct
-- Check browser console for MQTT connection errors
-
-### Admin Dashboard Issues
-
-- Verify user has admin role in the system
-- Check backend API is accessible
-- Ensure Socket.IO connection is established for presence updates
-- Verify authentication token is valid
-
-## License
-
-Private - Internal use only
+Test configuration in `playwright.config.ts`. Global setup authenticates test users via Clerk.

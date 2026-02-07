@@ -50,7 +50,7 @@ export const Header = ({ transition }: { transition: boolean }) => {
             layoutId="logo"
             className="absolute z-110 left-5"
             animate={{
-              top: 28,
+              top: 24,
             }}
           >
             <Logo size="sm" />

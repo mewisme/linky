@@ -3,6 +3,7 @@
 import type { Notification, NotificationType } from "@/types/notifications.types";
 
 import { NotificationIcon } from "./notification-icon";
+import { trackEvent } from "@/lib/analytics/events";
 
 const titleMap: Record<NotificationType, string> = {
   favorite_added: "New Favorite",
@@ -64,20 +65,21 @@ export function NotificationItem({
       onClick={() => {
         if (!notification.is_read) {
           onMarkAsRead(notification.id);
+          trackEvent({ name: "notification_clicked", properties: { type: notification.type } });
         }
       }}
       className={`flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors hover:bg-accent ${notification.is_read ? "opacity-60" : ""
         }`}
       data-testid={`notification-item-${notification.id}`}
     >
-      <div className="mt-0.5 flex-shrink-0">
+      <div className="mt-0.5 shrink-0">
         <NotificationIcon type={notification.type} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-medium truncate">{title}</p>
           {!notification.is_read && (
-            <span className="flex-shrink-0 h-2 w-2 rounded-full bg-primary" />
+            <span className="shrink-0 h-2 w-2 rounded-full bg-primary" />
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">

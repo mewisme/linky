@@ -36,34 +36,6 @@ export namespace AdminAPI {
     level: number;
   }
 
-  export namespace GetAnalytics {
-    export interface QueryParams {
-      days?: number;
-    }
-
-    export interface TimeseriesDataPoint {
-      day: string;
-      views: number;
-    }
-
-    export interface VisitorsTimeseriesDataPoint {
-      day: string;
-      visitors: number;
-    }
-
-    export interface Response {
-      overview: {
-        totalPageViews: number;
-        totalVisitors: number;
-      };
-      timeseries: {
-        pageViews: TimeseriesDataPoint[];
-        visitors: VisitorsTimeseriesDataPoint[];
-        days: number;
-      };
-    }
-  }
-
   export namespace GetUsers {
     export interface QueryParams {
       page?: number;

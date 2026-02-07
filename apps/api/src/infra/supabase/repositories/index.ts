@@ -1,8 +1,6 @@
 export * from "./users.js";
 export * from "./admin-users.repository.js";
 
-export * from "./visitors.js";
-
 export * from "./user-details.js";
 
 export * from "./user-settings.js";

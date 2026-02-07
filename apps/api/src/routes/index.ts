@@ -1,6 +1,5 @@
 import { type Express, type Request, type Response } from "express";
 import apiRouter from "./api.js";
-import analyticsRouter from "./analytics.js";
 import interestTagsRouter from "./resources/interest-tags.js";
 import changelogsRouter from "./resources/changelogs.js";
 import iceServersRouter from "./media/ice-servers.js";
@@ -36,7 +35,6 @@ export function setupRoutes(app: Express): void {
     res.json({ message: "API is running" });
   });
 
-  app.use("/api/v1/analytics", analyticsRouter);
   app.use("/api/v1/interest-tags", interestTagsRouter);
   app.use("/api/v1/changelogs", changelogsRouter);
 

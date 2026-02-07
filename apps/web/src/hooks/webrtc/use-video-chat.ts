@@ -29,6 +29,7 @@ import { useWebRTCMonitoring } from "./use-webrtc-monitoring";
 
 import { iceServerCache } from "@/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
+import { trackEvent } from "@/lib/analytics/events";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -239,6 +240,7 @@ export function useVideoChat(): UseVideoChatReturn {
     }
 
     isReconnectingRef.current = false;
+    trackEvent({ name: "call_reconnected" });
     console.info("[ReconnectUX] Reconnected toast shown");
     if (process.env.NODE_ENV === "development") {
       console.log("[ReconnectUX] completeReconnection - showing reconnected toast");
@@ -470,6 +472,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onJoinedQueue: (data: { message: string; queueSize: number }) => {
         actionsRef.current.setConnectionStatus("searching");
+        trackEvent({ name: "matchmaking_started" });
         console.log("[VideoChatState] onJoinedQueue - joined queue", data);
       },
 
@@ -490,7 +493,9 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setRemoteCameraEnabled(true);
         if (useVideoChatStore.getState().callStartedAt === null) {
           actionsRef.current.setCallStartedAt(Date.now());
+          trackEvent({ name: "call_started" });
         }
+        trackEvent({ name: "matchmaking_matched" });
 
         const localStream = mediaStream.getStream();
         if (!localStream) {
@@ -874,12 +879,14 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setCallStartedAt(null);
     actionsRef.current.setConnectionStatus("searching");
     socketSignaling.skipPeer();
+    trackEvent({ name: "matchmaking_skipped" });
     setTimeout(() => refreshUserProgress(), 400);
   }, [peerConnection, socketSignaling, refreshUserProgress]);
 
   const endCall = useCallback(() => {
     recoveryController.stop();
     socketSignaling.sendEndCall();
+    trackEvent({ name: "call_ended" });
     toast("Call ended - You have ended the call.");
     actionsRef.current.setConnectionStatus("ended");
     actionsRef.current.setCallStartedAt(null);
@@ -945,6 +952,8 @@ export function useVideoChat(): UseVideoChatReturn {
 
       actionsRef.current.addChatMessage(localMessage);
 
+      trackEvent({ name: payload.type === "text" ? "chat_message_sent" : "chat_attachment_sent" });
+
       const sendOperation =
         payload.type === "text"
           ? socketSignaling.sendChatMessage(payload)
@@ -984,6 +993,7 @@ export function useVideoChat(): UseVideoChatReturn {
       screenShare.stopScreenShare();
       actionsRef.current.setSharingScreen(false);
       actionsRef.current.setScreenStream(null);
+      trackEvent({ name: "screen_share_stopped" });
       socketSignaling.sendScreenShareToggle(false);
 
       const localStream = mediaStream.getStream();
@@ -1016,6 +1026,7 @@ export function useVideoChat(): UseVideoChatReturn {
           await peerConnection.replaceVideoTrack(screenTrack);
           actionsRef.current.setSharingScreen(true);
           actionsRef.current.setScreenStream(stream);
+          trackEvent({ name: "screen_share_started" });
           socketSignaling.sendScreenShareToggle(true, stream.id);
         }
       } catch (error) {

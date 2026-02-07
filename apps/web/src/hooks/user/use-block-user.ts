@@ -8,6 +8,7 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 
 import { toast } from "@repo/ui/components/ui/sonner";
+import { trackEvent } from "@/lib/analytics/events";
 import { useBlockedUsersStore } from "@/stores/blocked-users-store";
 import { useUserContext } from "@/components/providers/user/user-provider";
 
@@ -52,6 +53,7 @@ export function useBlockUser() {
       try {
         await blockUserAPI(userId, token);
         useBlockedUsersStore.getState().blockUser(userId);
+        trackEvent({ name: "user_blocked" });
         toast.success("User blocked");
       } catch (error) {
         toast.error(
@@ -71,6 +73,7 @@ export function useBlockUser() {
       try {
         await unblockUserAPI(userId, token);
         useBlockedUsersStore.getState().unblockUser(userId);
+        trackEvent({ name: "user_unblocked" });
         toast.success("User unblocked");
       } catch (error) {
         toast.error(

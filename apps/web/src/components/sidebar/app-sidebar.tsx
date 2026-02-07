@@ -19,7 +19,6 @@ import {
   IconBolt,
   IconChartLine,
   IconContract,
-  IconEyeCog,
   IconFlag,
   IconGift,
   IconHeart,
@@ -161,13 +160,6 @@ export const menuItems: MenuItem[] = [
         icon: IconUsers,
         description: 'View the users list',
         href: '/admin/users',
-        category: 'Admin',
-      },
-      {
-        label: 'Visitors',
-        icon: IconEyeCog,
-        description: 'View the visitors list',
-        href: '/admin/visitors',
         category: 'Admin',
       },
       {

@@ -8,6 +8,7 @@ import {
 
 import { Button } from "@repo/ui/components/ui/button";
 import { Outfit } from "next/font/google";
+import { trackEvent } from "@/lib/analytics/events";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -25,6 +26,7 @@ export default function Error({
   const router = useRouter();
   useEffect(() => {
     console.error(error);
+    trackEvent({ name: "error_occurred", properties: { message: error.message, digest: error.digest ?? null } });
   }, [error]);
 
   return (

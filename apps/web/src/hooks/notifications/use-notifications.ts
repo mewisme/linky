@@ -9,6 +9,7 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 
 import type { Notification } from "@/types/notifications.types";
+import { trackEvent } from "@/lib/analytics/events";
 import { useNotificationsStore } from "@/stores/notifications-store";
 import { useSocket } from "@/hooks/socket/use-socket";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -105,6 +106,7 @@ export function useNotifications() {
 
     const handleNewNotification = (notification: Notification) => {
       useNotificationsStore.getState().addNotification(notification);
+      trackEvent({ name: "notification_received", properties: { type: notification.type } });
     };
 
     const handleNotificationRead = (data: { notificationId: string }) => {

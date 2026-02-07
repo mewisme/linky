@@ -45,6 +45,7 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "react";
 
+import { trackEvent } from "@/lib/analytics/events";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";
 
@@ -257,6 +258,7 @@ export function VideoControls({
 
         if (response.ok) {
           setIsFavorite(true);
+          trackEvent({ name: "favorite_added" });
           toast.success("Added to favorites ❤️");
 
           const userName = user.user?.fullName || user.user?.firstName || "Someone";
@@ -275,6 +277,7 @@ export function VideoControls({
 
         if (response.ok) {
           setIsFavorite(false);
+          trackEvent({ name: "favorite_removed" });
           toast.success("Removed from favorites");
 
           const userName = user.user?.fullName || user.user?.firstName || "Someone";

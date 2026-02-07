@@ -17,7 +17,6 @@ import {
   IconBolt,
   IconChartLine,
   IconContract,
-  IconEyeCog,
   IconFlag,
   IconGift,
   IconHeart,
@@ -45,6 +44,7 @@ import { useCallback, useMemo } from 'react'
 
 import { Logo } from '@/components/header/landing/logo'
 import { Separator } from '@repo/ui/components/ui/separator'
+import { trackEvent } from '@/lib/analytics/events'
 import { useCommandMenuStore } from '@/stores/command-menu-store'
 import { useRouter } from 'next/navigation'
 import { useSidebarStore } from '@/stores/sidebar-store'
@@ -212,13 +212,6 @@ export function CommandMenu() {
           keywords: ['users', 'accounts'],
         },
         {
-          id: 'admin-visitors',
-          label: 'Manage Visitors',
-          icon: IconEyeCog,
-          href: '/admin/visitors',
-          keywords: ['visitors', 'analytics'],
-        },
-        {
           id: 'admin-tags',
           label: 'Interest Tags',
           icon: IconTags,
@@ -361,6 +354,7 @@ export function CommandMenu() {
     } else if (action.href) {
       router.push(action.href)
     }
+    trackEvent({ name: "command_executed", properties: { command: action.id } })
   }, [router, setOpen])
 
   return (

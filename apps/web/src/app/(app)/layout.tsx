@@ -8,17 +8,8 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { ChatPanelHost } from "@/components/chat/chat-panel-host";
 import { FloatingCallProvider } from "@/components/floating-call/floating-call-provider";
 import { GlobalCallManager } from "@/components/providers/call/global-call-manager";
-import { Suspense } from "react";
 import { useCommandMenuStore } from "@/stores/command-menu-store";
 import { useHotkeys } from 'react-hotkeys-hook';
-import { usePageView } from "@/hooks/ui/use-page-view";
-import { useVisitorTracking } from "@/hooks/analytics/use-visitor-tracking";
-
-function VisitorTracker() {
-  usePageView();
-  useVisitorTracking();
-  return null;
-}
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient();
@@ -43,9 +34,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="w-full flex flex-col h-full">
               <SidebarInset className="container mx-auto">
                 <AppHeader />
-                <Suspense fallback={null}>
-                  <VisitorTracker />
-                </Suspense>
                 {children}
               </SidebarInset>
             </div>

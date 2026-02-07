@@ -1,14 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Header } from "@/components/header/landing/index";
 import { cn } from "@repo/ui/lib/utils";
 import { motion, type Variants } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { usePageView } from "@/hooks/ui/use-page-view";
-import { useVisitorTracking } from "@/hooks/analytics/use-visitor-tracking";
 import { Hero } from "./components/landing/hero";
 import { LandingDifferentiation } from "./components/landing/landing-differentiation";
 import { LandingSafety } from "./components/landing/landing-safety";
@@ -27,17 +25,10 @@ const CONTENT_VARIANTS: Variants = {
   },
 };
 
-function PageTracker() {
-  usePageView();
-  return null;
-}
-
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
   const router = useRouter();
   const [transition, setTransition] = useState(false);
-
-  useVisitorTracking();
 
   useEffect(() => {
     const timer = setTimeout(() => setTransition(true), 1250);
@@ -52,9 +43,6 @@ export default function Home() {
 
   return (
     <>
-      <Suspense fallback={null}>
-        <PageTracker />
-      </Suspense>
       <main className="relative min-h-dvh">
 
         <Header transition={transition} />
@@ -69,9 +57,9 @@ export default function Home() {
             )}
           >
             <ShapeBackground transition={transition} className="hidden sm:block" />
-            <div className="relative z-10 container mx-auto px-4 py-6 mt-8">
+            <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 mt-8">
               <Hero handleStartChat={handleStartChat} isSignedIn={isSignedIn} isLoaded={isLoaded} key={String(transition)} />
-              <div className="space-y-12 max-w-5xl mx-auto">
+              <div className="space-y-12">
                 <LandingDifferentiation />
                 <LandingSafety />
                 <LandingPreview />

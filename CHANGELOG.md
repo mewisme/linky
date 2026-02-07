@@ -2,11 +2,12 @@
 
 ✨ Features
 
-- Enhance matchmaking service with owner-specific dequeue functionality ([683816d](../../commit/683816d))
+- Implement push notification enhancements and new delivery options ([7f5a8e8](../../commit/7f5a8e8))
 
 🔨 Other Changes
 
-- Bump package versions to 0.39.1 and update version lock ([fc58120](../../commit/fc58120))
+- Remove sourcemap and dts options from tsup configuration ([25b0cea](../../commit/25b0cea))
+- Bump package versions to 0.40.0 and update version lock ([ed24068](../../commit/ed24068))
 
 
-📋 Full Changelog: [fc58120...683816d](../../compare/fc58120...683816d)
+📋 Full Changelog: [ed24068...7f5a8e8](../../compare/ed24068...7f5a8e8)

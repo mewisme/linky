@@ -10,10 +10,10 @@ import {
   AlertDialogTitle,
 } from "@repo/ui/components/ui/alert-dialog"
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 
 import { Button } from "@repo/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
+import { Suspense } from "react";
 import { VideoContainer } from "./components/video-container";
 import { useBlockUser } from "@/hooks/user/use-block-user";
 import { useChatPanelStore } from "@/stores/chat-panel-store";

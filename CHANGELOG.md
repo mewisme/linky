@@ -1,12 +1,13 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Remove visitor tracking and analytics components ([a915770](../../commit/a915770))
+- Implement multi-tab call coordination for video calls ([12f6976](../../commit/12f6976))
 
 🔨 Other Changes
 
-- Bump package versions to 0.46.0 and update version lock ([1ba506c](../../commit/1ba506c))
+- Update Docker Compose configuration and add GitHub Actions workflow ([7ad626a](../../commit/7ad626a))
+- Bump package versions to 0.46.1 and update version lock ([e7ef66c](../../commit/e7ef66c))
 
 
-📋 Full Changelog: [1ba506c...a915770](../../compare/1ba506c...a915770)
+📋 Full Changelog: [e7ef66c...7ad626a](../../compare/e7ef66c...7ad626a)

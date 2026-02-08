@@ -1,8 +1,6 @@
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
+    image: mewthedev/linky-api:latest
     container_name: linky-api
     ports:
       - "7270:7270"
@@ -42,9 +40,7 @@ services:
       - linky-network
 
   ollama:
-    build:
-      context: .
-      dockerfile: Dockerfile.ollama
+    image: mewthedev/ollama-nomic-1.5:latest
     container_name: linky-ollama
     restart: unless-stopped
     healthcheck:

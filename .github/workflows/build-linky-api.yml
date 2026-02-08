@@ -1,0 +1,74 @@
+name: Build & Push Linky API Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-api:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Read version from package.json
+        id: pkg
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Check if version image already exists
+        id: check
+        run: |
+          IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/linky-api:${{ steps.pkg.outputs.version }}
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip build (version already exists)
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "Docker image version already exists. Skipping build."
+
+      - name: Build API image
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          docker build \
+            -f Dockerfile.api \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/linky-api:${{ steps.pkg.outputs.version }} \
+            .
+
+      - name: Push version image
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/linky-api:${{ steps.pkg.outputs.version }}
+
+      - name: Install slimtoolkit
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          curl -sL https://raw.githubusercontent.com/slimtoolkit/slim/master/scripts/install-slim.sh | sudo bash
+
+      - name: Build slim image
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          slim build \
+            --target ${{ secrets.DOCKERHUB_USERNAME }}/linky-api:${{ steps.pkg.outputs.version }} \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/linky-api:${{ steps.pkg.outputs.version }}-slim \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/linky-api:latest \
+            --dockerfile Dockerfile.api
+
+      - name: Push slim & latest tags
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/linky-api:${{ steps.pkg.outputs.version }}-slim
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/linky-api:latest

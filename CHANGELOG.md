@@ -1,13 +1,10 @@
 ## What's Changed
 
-✨ Features
-
-- Implement multi-tab call coordination for video calls ([12f6976](../../commit/12f6976))
-
 🔨 Other Changes
 
-- Update Docker Compose configuration and add GitHub Actions workflow ([7ad626a](../../commit/7ad626a))
-- Bump package versions to 0.46.1 and update version lock ([e7ef66c](../../commit/e7ef66c))
+- Enhance GitHub Actions workflow for Docker image builds ([77febcd](../../commit/77febcd))
+- Update Docker configuration and GitHub Actions workflow ([5efb03f](../../commit/5efb03f))
+- Bump package versions to 0.47.0 and update version lock ([b70d883](../../commit/b70d883))
 
 
-📋 Full Changelog: [e7ef66c...7ad626a](../../compare/e7ef66c...7ad626a)
+📋 Full Changelog: [b70d883...77febcd](../../compare/b70d883...77febcd)

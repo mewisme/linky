@@ -23,52 +23,7 @@ pipeline {
 
     stage('Wait for GitHub Actions') {
       steps {
-        withCredentials([string(credentialsId: 'linky-github-token', variable: 'GITHUB_TOKEN')]) {
-          sh '''
-            set +e
-            REMOTE=$(git remote get-url origin)
-            OWNER=$(echo "$REMOTE" | sed -n "s|.*github.com[:/]\\([^/]*\\)/\\([^/]*\\)\\.git|\\1|p" | head -1)
-            REPO=$(echo "$REMOTE" | sed -n "s|.*github.com[:/]\\([^/]*\\)/\\([^/]*\\)\\.git|\\2|p" | head -1)
-            [ -z "$REPO" ] && REPO=$(echo "$REMOTE" | sed -n "s|.*github.com[:/][^/]*/\\([^/]*\\)|\\1|p" | head -1)
-            WORKFLOW="build-docker-images.yml"
-            BRANCH="${GIT_BRANCH#origin/}"
-            COMMIT="$GIT_COMMIT"
-            export COMMIT
-            echo "Waiting for workflow $WORKFLOW (owner=$OWNER repo=$REPO branch=$BRANCH commit=$COMMIT)..."
-            for i in $(seq 1 60); do
-              RUN=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW/runs?branch=$BRANCH&per_page=5" \
-                | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); const r=(d.workflow_runs||[]).find(x=>x.head_sha===process.env.COMMIT); console.log(r?r.id:'')")
-              if [ -n "$RUN" ]; then
-                echo "Found run $RUN for this commit."
-                for j in $(seq 1 90); do
-                  RESULT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                    "https://api.github.com/repos/$OWNER/$REPO/actions/runs/$RUN" \
-                    | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); console.log((d.status||'')+' '+(d.conclusion||''))")
-                  STATUS="${RESULT%% *}"
-                  CONCLUSION="${RESULT#* }"
-                  if [ "$STATUS" = "completed" ]; then
-                    if [ "$CONCLUSION" = "success" ]; then
-                      echo "Workflow completed successfully."
-                      exit 0
-                    else
-                      echo "Workflow completed with conclusion: $CONCLUSION"
-                      exit 1
-                    fi
-                  fi
-                  echo "Run status: $STATUS (attempt $j/90). Sleeping 10s..."
-                  sleep 10
-                done
-                echo "Timeout waiting for run to complete."
-                exit 1
-              fi
-              echo "No run for this commit yet (attempt $i/60). Sleeping 15s..."
-              sleep 15
-            done
-            echo "Timeout: no workflow run found for this commit."
-            exit 1
-          '''
-        }
+        sleep time: 120, unit: 'SECONDS'
       }
     }
 

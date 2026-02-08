@@ -33,20 +33,20 @@ pipeline {
             WORKFLOW="build-docker-images.yml"
             BRANCH="${GIT_BRANCH#origin/}"
             COMMIT="$GIT_COMMIT"
+            export COMMIT
             echo "Waiting for workflow $WORKFLOW (owner=$OWNER repo=$REPO branch=$BRANCH commit=$COMMIT)..."
             for i in $(seq 1 60); do
               RUN=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                 "https://api.github.com/repos/$OWNER/$REPO/actions/workflows/$WORKFLOW/runs?branch=$BRANCH&per_page=5" \
-                | jq -r ".workflow_runs[] | select(.head_sha == \"$COMMIT\") | .id" | head -1)
+                | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); const r=(d.workflow_runs||[]).find(x=>x.head_sha===process.env.COMMIT); console.log(r?r.id:'')")
               if [ -n "$RUN" ]; then
                 echo "Found run $RUN for this commit."
                 for j in $(seq 1 90); do
-                  STATUS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+                  RESULT=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
                     "https://api.github.com/repos/$OWNER/$REPO/actions/runs/$RUN" \
-                    | jq -r '.status')
-                  CONCLUSION=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-                    "https://api.github.com/repos/$OWNER/$REPO/actions/runs/$RUN" \
-                    | jq -r '.conclusion')
+                    | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')); console.log((d.status||'')+' '+(d.conclusion||''))")
+                  STATUS="${RESULT%% *}"
+                  CONCLUSION="${RESULT#* }"
                   if [ "$STATUS" = "completed" ]; then
                     if [ "$CONCLUSION" = "success" ]; then
                       echo "Workflow completed successfully."

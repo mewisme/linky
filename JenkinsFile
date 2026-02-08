@@ -23,7 +23,7 @@ pipeline {
 
     stage('Wait for GitHub Actions') {
       steps {
-        sleep time: 120, unit: 'SECONDS'
+        sleep time: 150, unit: 'SECONDS'
       }
     }
 

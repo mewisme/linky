@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Consolidate Docker image build workflows into a single file ([01bc570](../../commit/01bc570))
-- Bump package versions to 0.47.2 and update version lock ([461bb19](../../commit/461bb19))
+- Remove Dockerfile reference from image build workflow ([a21c034](../../commit/a21c034))
+- Bump package versions to 0.47.3 and update version lock ([5d36f8c](../../commit/5d36f8c))
 
 
-📋 Full Changelog: [461bb19...01bc570](../../compare/461bb19...01bc570)
+📋 Full Changelog: [5d36f8c...a21c034](../../compare/5d36f8c...a21c034)

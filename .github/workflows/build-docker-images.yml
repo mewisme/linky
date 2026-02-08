@@ -28,7 +28,7 @@ jobs:
         id: check
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/tags/${{ steps.pkg.outputs.version }}-slim)
+            https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/tags/${{ steps.pkg.outputs.version }})
 
           if [ "$STATUS" = "200" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -61,32 +61,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-linky-api-
 
-      - name: Build fat image
+      - name: Build and tag image
         if: steps.check.outputs.exists != 'true'
         run: |
           docker build \
             -f Dockerfile.api \
-            -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}-fat \
+            -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }} \
+            -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
             .
 
-      - name: Install slimtoolkit (mint)
+      - name: Push version and latest
         if: steps.check.outputs.exists != 'true'
         run: |
-          curl -sL https://raw.githubusercontent.com/slimtoolkit/slim/master/scripts/install-slim.sh | sudo bash
-
-      - name: Build slim image and push
-        if: steps.check.outputs.exists != 'true'
-        run: |
-          slim build \
-            --target ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}-fat \
-            --tag ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}-slim \
-            --tag ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
-            --http-probe=false
-
-      - name: Push slim & latest
-        if: steps.check.outputs.exists != 'true'
-        run: |
-          docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}-slim
+          docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
           docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
   build-ollama-nomic:

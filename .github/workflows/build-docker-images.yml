@@ -81,7 +81,6 @@ jobs:
             --target ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}-fat \
             --tag ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}-slim \
             --tag ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
-            --dockerfile Dockerfile.api \
             --http-probe=false
 
       - name: Push slim & latest

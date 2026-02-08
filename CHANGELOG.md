@@ -2,9 +2,8 @@
 
 🔨 Other Changes
 
-- Enhance GitHub Actions workflow for Docker image builds ([77febcd](../../commit/77febcd))
-- Update Docker configuration and GitHub Actions workflow ([5efb03f](../../commit/5efb03f))
-- Bump package versions to 0.47.0 and update version lock ([b70d883](../../commit/b70d883))
+- Update Docker image version checks in GitHub Actions workflows ([64fb4e6](../../commit/64fb4e6))
+- Bump package versions to 0.47.1 and update version lock ([2155375](../../commit/2155375))
 
 
-📋 Full Changelog: [b70d883...77febcd](../../compare/b70d883...77febcd)
+📋 Full Changelog: [2155375...64fb4e6](../../compare/2155375...64fb4e6)

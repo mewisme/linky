@@ -2,11 +2,11 @@
 
 ♻️ Refactoring
 
-- Remove obsolete ollama build steps from GitHub Actions workflow ([8816b61](../../commit/8816b61))
+- Clean up sidebar component and update VSCode settings ([6aac1f6](../../commit/6aac1f6))
 
 🔨 Other Changes
 
-- Bump package versions to 0.49.0 and update version lock ([7562155](../../commit/7562155))
+- Bump package versions to 0.49.1 and update version lock ([0b294a5](../../commit/0b294a5))
 
 
-📋 Full Changelog: [7562155...8816b61](../../compare/7562155...8816b61)
+📋 Full Changelog: [0b294a5...6aac1f6](../../compare/0b294a5...6aac1f6)

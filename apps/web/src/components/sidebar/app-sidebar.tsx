@@ -423,7 +423,7 @@ export function AppSidebar() {
 
       <Separator />
 
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size='lg'>
@@ -432,7 +432,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarFooter> */}
       <SidebarRail className='h-[98%] my-auto' />
     </Sidebar>
   )

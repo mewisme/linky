@@ -40,9 +40,7 @@ services:
       - linky-network
 
   ollama:
-    build:
-      context: .
-      dockerfile: Dockerfile.ollama
+    image: mewthedev/ollama-nomic-1.5:latest
     container_name: linky-ollama
     restart: unless-stopped
     healthcheck:

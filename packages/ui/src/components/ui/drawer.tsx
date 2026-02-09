@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Drawer as DrawerPrimitive } from "vaul"
 
-import { cn } from "@repo/ui/lib/utils"
+import { Drawer as DrawerPrimitive } from "vaul"
+import { cn } from "@ws/ui/lib/utils"
 
 function Drawer({
   ...props

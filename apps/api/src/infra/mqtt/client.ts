@@ -1,7 +1,7 @@
 import { attachSocketIO as attachSocketIOToPresenceHandler, handlePresenceMessage } from './presence-handler.js'
 
 import { config } from '@/config/index.js'
-import { createLogger } from '@repo/logger'
+import { createLogger } from '@ws/logger'
 import { createSocketServer } from '@/socket/index.js'
 import { initializeAdminCache } from '@/infra/admin-cache/index.js'
 import mqtt from 'mqtt'

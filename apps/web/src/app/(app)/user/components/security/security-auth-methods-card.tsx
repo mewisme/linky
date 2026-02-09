@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@repo/ui/components/ui/card'
+} from '@ws/ui/components/ui/card'
 import {
   IconBrandApple,
   IconBrandFacebook,

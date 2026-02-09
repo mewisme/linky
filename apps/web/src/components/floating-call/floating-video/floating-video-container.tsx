@@ -8,7 +8,7 @@ import { FloatingVideoControls } from "./floating-video-controls";
 import { getFloatingVideoMetrics } from "./floating-video-metrics";
 import { deriveFloatingLayoutMode } from "./floating-video-state";
 import { useVideoChatStore, type OverlayCorner, type OverlayPosition } from "@/stores/video-chat-store";
-import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
 

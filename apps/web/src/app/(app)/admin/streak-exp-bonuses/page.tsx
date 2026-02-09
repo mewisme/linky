@@ -1,18 +1,18 @@
 "use client";
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
-import { StreakExpBonusesDataTable } from '@/components/data-table/streak-exp-bonuses/data-table';
-import { Label } from "@repo/ui/components/ui/label";
+import { Button } from "@ws/ui/components/ui/button";
+import { Input } from "@ws/ui/components/ui/input";
+import { Label } from "@ws/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { StreakExpBonusesDataTable } from '@/components/data-table/streak-exp-bonuses/data-table';
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import { useUserContext } from "@/components/providers/user/user-provider";
 

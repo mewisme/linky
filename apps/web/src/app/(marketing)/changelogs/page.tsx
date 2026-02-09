@@ -1,17 +1,17 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 import { LucideChevronRight, LucideInfo, LucideLoader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Button } from "@ws/ui/components/ui/button";
 import { LegalLayout } from "@/components/layouts/legal-layout";
 import Link from "next/link";
 import { MarkdownContent } from "@/components/render/markdown-content";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { Separator } from "@repo/ui/components/ui/separator";
-import { Skeleton } from "@repo/ui/components/ui/skeleton";
+import { Separator } from "@ws/ui/components/ui/separator";
+import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 const LIMIT = 10;
@@ -27,7 +27,6 @@ export default function ChangelogsPage() {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-    isError,
   } = useInfiniteQuery({
     queryKey: ["changelogs", "public"],
     queryFn: async ({ pageParam = 0 }) => {
@@ -101,7 +100,7 @@ export default function ChangelogsPage() {
 
   return (
     <LegalLayout title="Changelogs" description="Stay updated with the latest improvements and features." lastUpdated="January 2026">
-      <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+      <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-border before:to-transparent">
 
         {isLoading && Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
@@ -112,7 +111,7 @@ export default function ChangelogsPage() {
           </div>
         ))}
 
-        {allChangelogs.map((changelog, index) => (
+        {allChangelogs.map((changelog) => (
           <div key={changelog.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
             <div className="flex items-center justify-center w-10 h-10 rounded-full border bg-background shadow-sm shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -179,7 +178,7 @@ export default function ChangelogsPage() {
                 <LucideInfo className="w-5 h-5 text-muted-foreground" />
               </div>
               <p className="text-sm text-muted-foreground italic">
-                You've reached the beginning of our journey.
+                You&apos;ve reached the beginning of our journey.
               </p>
             </div>
           )}

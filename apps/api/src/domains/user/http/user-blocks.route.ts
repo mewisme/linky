@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { blockUser, unblockUser, getBlockedUsersWithDetails } from "@/domains/user/service/user-block.service.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import type { BlockUserBody } from "@/domains/user/types/user-block.types.js";

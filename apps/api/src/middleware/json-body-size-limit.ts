@@ -1,6 +1,6 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { config } from "@/config/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 
 const logger = createLogger("middleware:json-body-size-limit");
 

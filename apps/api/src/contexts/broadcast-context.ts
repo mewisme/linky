@@ -1,5 +1,5 @@
 import { createBroadcastHistory } from "@/infra/supabase/repositories/broadcast-history.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { createNotification } from "@/domains/notification/service/notification.service.js";
 import { getActiveUserIds } from "@/infra/supabase/repositories/users.js";
 import { sendPushOnly } from "@/domains/notification/service/push.service.js";

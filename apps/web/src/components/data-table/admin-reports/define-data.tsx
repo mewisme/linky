@@ -2,14 +2,14 @@
 
 import type { AdminAPI } from '@/types/admin.types'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Checkbox } from '@repo/ui/components/ui/checkbox'
+import { Checkbox } from '@ws/ui/components/ui/checkbox'
 import { IconCopy, IconEye, IconCheck, IconAlertCircle } from '@tabler/icons-react'
 import { ActionsButton, type ActionItem } from '@/components/common/actions-button'
-import { toast } from "@repo/ui/components/ui/sonner"
+import { toast } from "@ws/ui/components/ui/sonner"
 import {
   Pill,
   PillStatus,
-} from "@repo/ui/components/kibo-ui/pill"
+} from "@ws/ui/components/kibo-ui/pill"
 import { useMemo } from 'react'
 
 export function getIconForStatus(status: AdminAPI.Reports.ReportStatus) {

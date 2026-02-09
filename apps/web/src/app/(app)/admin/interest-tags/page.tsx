@@ -1,31 +1,31 @@
 "use client";
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@repo/ui/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
 import {
   EmojiPicker,
   EmojiPickerContent,
   EmojiPickerFooter,
   EmojiPickerSearch,
-} from "@repo/ui/components/ui/emoji-picker";
+} from "@ws/ui/components/ui/emoji-picker";
 import { IconFileImport, IconMoodSearch, IconPlus, IconRefresh } from "@tabler/icons-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/ui/components/animate-ui/components/radix/popover";
+} from "@ws/ui/components/animate-ui/components/radix/popover";
 import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { ImportInterestTagsDialog } from '@/components/data-table/interest-tags/import-interest-tags-dialog';
-import { Input } from "@repo/ui/components/ui/input";
+import { Input } from "@ws/ui/components/ui/input";
 import { InterestTagsDataTable } from '@/components/data-table/interest-tags/data-table';
-import { Label } from "@repo/ui/components/ui/label";
+import { Label } from "@ws/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { Switch } from "@repo/ui/components/ui/switch";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { Switch } from "@ws/ui/components/ui/switch";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import { useUserContext } from "@/components/providers/user/user-provider";
 

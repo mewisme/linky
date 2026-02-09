@@ -4,21 +4,21 @@ import * as React from "react";
 import Image from "next/image";
 import { IconSearch } from "@tabler/icons-react";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/ui/components/ui/popover";
-import { ScrollArea } from "@repo/ui/components/ui/scroll-area";
-import { cn } from "@repo/ui/lib/utils";
+} from "@ws/ui/components/ui/popover";
+import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
+import { cn } from "@ws/ui/lib/utils";
 
 import {
   searchGiphy,
   trendingGiphy,
   type GiphyMediaItem,
 } from "@/lib/chat/giphy-client";
-import { ButtonGroup } from "@repo/ui/components/ui/button-group";
+import { ButtonGroup } from "@ws/ui/components/ui/button-group";
 
 /* -------------------------------------------------- */
 /* GiphyPickerContent                                 */

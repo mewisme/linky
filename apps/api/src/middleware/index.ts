@@ -3,7 +3,7 @@ import cors from "cors";
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import morgan from "morgan";
 import { config } from "@/config/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { clientIpMiddleware } from "./client-ip.js";
 import { requestIdMiddleware } from "./request-id.js";
 import { jsonBodySizeLimitMiddleware } from "./json-body-size-limit.js";

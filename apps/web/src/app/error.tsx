@@ -6,7 +6,7 @@ import {
   IconRefresh
 } from "@tabler/icons-react";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { Outfit } from "next/font/google";
 import { trackEvent } from "@/lib/analytics/events";
 import { useEffect } from "react";

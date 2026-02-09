@@ -1,8 +1,8 @@
 import { LegalLayout } from "@/components/layouts/legal-layout";
 import { MarkdownContent } from "@/components/render/markdown-content";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { Separator } from "@repo/ui/components/ui/separator";
-import { Skeleton } from "@repo/ui/components/ui/skeleton";
+import { Separator } from "@ws/ui/components/ui/separator";
+import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import { notFound } from "next/navigation";
 
 async function getChangelog(version: string): Promise<ResourcesAPI.Changelogs.GetByVersion.Response | null> {

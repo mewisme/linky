@@ -5,7 +5,7 @@ import { invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { calculateLevelFromExp as calcLevel } from "@/logic/level-from-exp.js";
 import { checkFavoriteExists } from "@/infra/supabase/repositories/favorites.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getActiveFavoriteExpBoostRules } from "@/infra/supabase/repositories/favorite-exp-boost-rules.js";
 import { getStreakExpBonusForStreak } from "@/infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "@/infra/supabase/repositories/user-streaks.js";

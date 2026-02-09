@@ -9,7 +9,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@repo/ui/components/ui/command'
+} from '@ws/ui/components/ui/command'
 import { CornerDownLeftIcon, Search } from 'lucide-react'
 import {
   IconBan,
@@ -38,12 +38,12 @@ import {
   IconVersions,
   IconVideo,
 } from '@tabler/icons-react'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@repo/ui/components/ui/input-group'
-import { Kbd, KbdGroup } from '@repo/ui/components/ui/kbd'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@ws/ui/components/ui/input-group'
+import { Kbd, KbdGroup } from '@ws/ui/components/ui/kbd'
 import { useCallback, useMemo } from 'react'
 
 import { Logo } from '@/components/header/landing/logo'
-import { Separator } from '@repo/ui/components/ui/separator'
+import { Separator } from '@ws/ui/components/ui/separator'
 import { trackEvent } from '@/lib/analytics/events'
 import { useCommandMenuStore } from '@/stores/command-menu-store'
 import { useRouter } from 'next/navigation'
@@ -74,7 +74,7 @@ function CommandMenuFooter() {
       <div className="flex h-10" />
 
       <div className="absolute inset-x-0 bottom-0 flex h-10 items-center justify-between gap-2 rounded-b-2xl border-t bg-zinc-100/30 px-4 text-xs font-medium dark:bg-zinc-800/30">
-        <Logo className="size-10 text-muted-foreground" aria-hidden />
+        <Logo className="size-10 text-muted-foreground" aria-hidden draw />
 
         <div className="flex shrink-0 items-center gap-2">
           <span>Enter to open</span>
@@ -360,8 +360,7 @@ export function CommandMenu() {
   return (
     <>
       <InputGroup onClick={open}>
-        <InputGroupInput className='cursor-pointer ring-0 hidden sm:block' placeholder="Search..." readOnly />
-        <div className='size-8 sm:hidden' />
+        <InputGroupInput className='cursor-pointer ring-0' placeholder="Search..." readOnly />
         <InputGroupAddon>
           <Search />
         </InputGroupAddon>

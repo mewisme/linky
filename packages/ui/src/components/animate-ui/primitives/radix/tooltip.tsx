@@ -12,8 +12,8 @@ import {
   type MotionValue,
 } from 'motion/react';
 
-import { getStrictContext } from '@repo/lib/get-strict-context';
-import { useControlledState } from '@repo/hooks/use-controlled-state';
+import { getStrictContext } from '@ws/ui/lib/get-strict-context';
+import { useControlledState } from '@ws/oks/use-controlled-state';
 
 type TooltipContextType = {
   isOpen: boolean;

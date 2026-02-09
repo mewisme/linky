@@ -4,7 +4,7 @@ import {
   insertFreezeGrant,
 } from "@/infra/supabase/repositories/user-streak-freeze.js";
 
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getLevelFeatureUnlocksAtLevel } from "@/infra/supabase/repositories/level-feature-unlocks.js";
 
 const logger = createLogger("api:user:streak-freeze:service");

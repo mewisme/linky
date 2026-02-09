@@ -1,6 +1,6 @@
 "use client";
 
-import { Checkbox } from "@repo/ui/components/ui/checkbox";
+import { Checkbox } from "@ws/ui/components/ui/checkbox";
 import { type ColumnDef } from "@tanstack/react-table";
 
 export interface BroadcastHistoryRow {

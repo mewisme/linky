@@ -11,7 +11,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -20,13 +20,13 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@repo/ui/components/ui/command";
+} from "@ws/ui/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/ui/components/ui/popover";
-import { cn } from "@repo/ui/lib/utils";
+} from "@ws/ui/components/ui/popover";
+import { cn } from "@ws/ui/lib/utils";
 
 type ComboboxData = {
   label: string;

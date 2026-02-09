@@ -1,13 +1,13 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@repo/ui/components/ui/dialog";
+} from "@ws/ui/components/ui/dialog";
 import {
   IconMessageCircle,
   IconMicrophone,
@@ -30,19 +30,19 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@repo/ui/components/ui/tooltip";
+} from "@ws/ui/components/ui/tooltip";
 import { MoreOptionsMenu } from "./more-options-menu";
 import { MoreOptionsDrawer } from "./more-options-drawer";
 
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
-import { Textarea } from "@repo/ui/components/ui/textarea";
-import { Label } from "@repo/ui/components/ui/label";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Button } from "@ws/ui/components/ui/button";
+import { Textarea } from "@ws/ui/components/ui/textarea";
+import { Label } from "@ws/ui/components/ui/label";
+import { toast } from "@ws/ui/components/ui/sonner";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/types/users.types";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "react";
 
 import { trackEvent } from "@/lib/analytics/events";

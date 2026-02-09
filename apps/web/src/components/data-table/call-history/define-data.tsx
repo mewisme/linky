@@ -2,14 +2,14 @@
 
 import { CountryFlag } from "@/components/common/country-flag";
 import type { CallHistoryRecord } from "@/types/call-history.types";
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Checkbox } from "@repo/ui/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Checkbox } from "@ws/ui/components/ui/checkbox";
 import { type ColumnDef } from "@tanstack/react-table";
 import { IconPhoneOutgoing, IconPhoneIncoming, IconCopy } from "@tabler/icons-react";
 import { formatDuration } from "@/utils/call-history";
 import { ActionsButton, type ActionItem } from "@/components/common/actions-button";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useMemo } from "react";
 
 export interface RowCallbacks {

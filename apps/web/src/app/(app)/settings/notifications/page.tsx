@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@repo/ui/components/ui/card";
+} from "@ws/ui/components/ui/card";
 import {
   IconBell,
   IconBellOff,
@@ -16,11 +16,11 @@ import {
 import { useEffect, useState, useTransition } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Button } from "@repo/ui/components/ui/button";
-import { Label } from "@repo/ui/components/ui/label";
-import { Separator } from "@repo/ui/components/ui/separator";
-import { Switch } from "@repo/ui/components/ui/switch";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { Button } from "@ws/ui/components/ui/button";
+import { Label } from "@ws/ui/components/ui/label";
+import { Separator } from "@ws/ui/components/ui/separator";
+import { Switch } from "@ws/ui/components/ui/switch";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { usePushNotifications } from "@/hooks/push/use-push-notifications";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/components/providers/user/user-provider";

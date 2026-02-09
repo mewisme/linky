@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { CallHistoryDataTable } from "@/components/data-table/call-history/data-table";
 import type { CallHistoryResponse } from "@/types/call-history.types";
 import {

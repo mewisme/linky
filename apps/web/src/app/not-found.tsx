@@ -6,7 +6,7 @@ import {
   IconHomeLink,
 } from "@tabler/icons-react";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { Outfit } from "next/font/google";
 import { useRouter } from "next/navigation";
 

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getUserLevelData } from "@/domains/user/service/user-level.service.js";
 import { getUserIdByClerkUserId } from "@/domains/user/service/user-settings.service.js";
 

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { sendBroadcastToAllUsers } from "@/contexts/broadcast-context.js";
 import { listBroadcastHistory } from "@/infra/supabase/repositories/broadcast-history.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";

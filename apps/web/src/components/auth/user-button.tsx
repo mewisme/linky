@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger
-} from "@repo/ui/components/animate-ui/components/radix/dropdown-menu";
+} from "@ws/ui/components/animate-ui/components/radix/dropdown-menu";
 import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
 
-import { Kbd } from "@repo/ui/components/ui/kbd";
+import { Kbd } from "@ws/ui/components/ui/kbd";
 import { SignOutButton } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";

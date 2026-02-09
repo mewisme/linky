@@ -10,7 +10,7 @@ import {
   getFavoritesWithStats,
 } from "@/infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { redisClient } from "@/infra/redis/client.js";
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";

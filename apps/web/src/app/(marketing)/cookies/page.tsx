@@ -2,7 +2,7 @@ import { LegalLayout } from "@/components/layouts/legal-layout";
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Metadata } from "next";
-import { Separator } from "@repo/ui/components/ui/separator";
+import { Separator } from "@ws/ui/components/ui/separator";
 
 export async function generateMetadata(): Promise<Metadata> {
   const title = "Cookies Policy";

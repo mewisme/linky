@@ -7,15 +7,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@repo/ui/components/ui/dialog";
-import { Dropzone, DropzoneEmptyState } from "@repo/ui/components/kibo-ui/dropzone";
+} from "@ws/ui/components/ui/dialog";
+import { Dropzone, DropzoneEmptyState } from "@ws/ui/components/kibo-ui/dropzone";
 import { useCallback, useState } from "react";
 
 import type { AdminAPI } from "@/types/admin.types";
-import { Button } from "@repo/ui/components/ui/button";
-import { Label } from "@repo/ui/components/ui/label";
+import { Button } from "@ws/ui/components/ui/button";
+import { Label } from "@ws/ui/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
 
 const EXAMPLE_JSON = `{

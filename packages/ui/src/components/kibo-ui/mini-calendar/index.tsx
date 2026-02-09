@@ -13,8 +13,8 @@ import {
   type ReactNode,
   useContext,
 } from "react";
-import { Button } from "@repo/ui/components/ui/button";
-import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@ws/ui/components/ui/button";
+import { cn } from "@ws/ui/lib/utils";
 
 // Context for sharing state between components
 type MiniCalendarContextType = {

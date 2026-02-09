@@ -12,7 +12,7 @@ import {
 import {
   useIsInView,
   type UseIsInViewOptions,
-} from '@repo/ui/hooks/use-is-in-view';
+} from '@ws/ui/hooks/use-is-in-view';
 
 type DefaultSplittingTextProps = Omit<
   HTMLMotionProps<'div'>,

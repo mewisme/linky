@@ -4,11 +4,11 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from '@repo/ui/components/ui/avatar';
+} from '@ws/ui/components/ui/avatar';
 import {
   AvatarGroup,
   AvatarGroupTooltip,
-} from '@repo/ui/components/animate-ui/components/animate/avatar-group';
+} from '@ws/ui/components/animate-ui/components/animate/avatar-group';
 
 const AVATARS = [
   {

@@ -9,14 +9,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@repo/ui/components/ui/dialog"
+} from "@ws/ui/components/ui/dialog"
 import {
   InputGroup,
   InputGroupAddon,
-} from "@repo/ui/components/ui/input-group"
+} from "@ws/ui/components/ui/input-group"
 
 import { Command as CommandPrimitive } from "cmdk"
-import { cn } from "@repo/ui/lib/utils"
+import { cn } from "@ws/ui/lib/utils"
 
 function Command({
   className,

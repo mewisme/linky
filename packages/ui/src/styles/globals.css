@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@repo/ui/legacy-themes.css";
+@import "@ws/ui/legacy-themes.css";
 
 @plugin "@tailwindcss/typography";
 

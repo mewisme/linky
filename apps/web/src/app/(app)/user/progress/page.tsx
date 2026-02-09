@@ -1,21 +1,21 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@repo/ui/components/ui/dialog";
+} from "@ws/ui/components/ui/dialog";
 import { IconClock, IconFlame, IconSnowflake, IconStar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Button } from "@ws/ui/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { Progress } from "@repo/ui/components/ui/progress";
+import { Progress } from "@ws/ui/components/ui/progress";
 import { StreakCalendar } from "@/components/user/streak-calendar";
 import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";

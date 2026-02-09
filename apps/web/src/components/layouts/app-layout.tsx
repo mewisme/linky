@@ -7,7 +7,7 @@ interface AppLayoutProps {
   backButton?: boolean;
 }
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 

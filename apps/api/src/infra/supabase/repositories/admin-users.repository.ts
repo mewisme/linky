@@ -1,5 +1,5 @@
 import type { Database } from "@/types/database/supabase.types.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { supabase } from "@/infra/supabase/client.js";
 
 type AdminUsersUnifiedRow = Database["public"]["Views"]["admin_users_unified"]["Row"];

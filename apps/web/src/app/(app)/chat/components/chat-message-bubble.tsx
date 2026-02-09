@@ -1,7 +1,7 @@
 import type { ChatMessage } from "@/types/chat-message.types";
 import Image from "next/image";
-import { ImageZoom } from "@repo/ui/components/kibo-ui/image-zoom";
-import { cn } from "@repo/ui/lib/utils";
+import { ImageZoom } from "@ws/ui/components/kibo-ui/image-zoom";
+import { cn } from "@ws/ui/lib/utils";
 
 export function ChatMessageBubble({
   message,

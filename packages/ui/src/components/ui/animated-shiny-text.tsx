@@ -1,6 +1,6 @@
-import { ComponentPropsWithoutRef, CSSProperties, FC } from "react"
+import { CSSProperties, ComponentPropsWithoutRef, FC } from "react"
 
-import { cn } from "@repo/ui/lib/utils"
+import { cn } from "@ws/ui/lib/utils"
 
 export interface AnimatedShinyTextProps extends ComponentPropsWithoutRef<"span"> {
   shimmerWidth?: number

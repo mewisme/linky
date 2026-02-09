@@ -1,8 +1,8 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@repo/ui/components/animate-ui/primitives/radix/collapsible'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@ws/ui/components/animate-ui/primitives/radix/collapsible'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
+} from '@ws/ui/components/animate-ui/components/radix/dropdown-menu'
 import {
   IconBan,
   IconBell,
@@ -40,6 +40,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -49,15 +50,15 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
   useSidebar
-} from '@repo/ui/components/animate-ui/components/radix/sidebar';
+} from '@ws/ui/components/animate-ui/components/radix/sidebar';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation'
 
-import { Kbd } from '@repo/ui/components/ui/kbd';
-import { Separator } from '@repo/ui/components/ui/separator';
+import { Kbd } from '@ws/ui/components/ui/kbd';
+import { Separator } from '@ws/ui/components/ui/separator';
 import { SignOutButton } from '@clerk/nextjs'
-import { cn } from '@repo/ui/lib/utils';
-import { useIsMobile } from '@repo/ui/hooks/use-mobile';
+import { cn } from '@ws/ui/lib/utils';
+import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useSidebarStore } from '@/stores/sidebar-store';
 import { useUserContext } from '@/components/providers/user/user-provider';
 import { useUserStore } from '@/stores/user-store';
@@ -342,31 +343,29 @@ export function AppSidebar() {
         <SidebarMenu>
           {menuItemsFiltered.map((item) => {
             const isSubItemActive = item.subItems?.some(subItem => pathname === subItem.href);
-
             return (
               <div key={item.label ?? item.href}>
                 {item.subItems ? (
-                  <Collapsible defaultOpen={item.open ?? false} className="group/collapsible">
-                    <SidebarMenuItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && isSubItemActive ? 'bg-sidebar-accent text-primary' : '')}>
+                  <Collapsible defaultOpen={isMobile ? true : item.open ?? false} className="group/collapsible">
+                    <SidebarMenuItem className={cn(
+                      state === 'collapsed' && 'cursor-pointer transition-colors duration-300',
+                      isMobile && 'py-1'
+                    )}>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton className={cn(
                           state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
-                          state === 'expanded' && isSubItemActive ? 'bg-sidebar-accent text-primary' : '',
                           isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
-                        )}>
+                        )} isActive={state === 'expanded' && isSubItemActive}>
                           <item.icon className={cn(
                             'size-6 mx-2 transition-colors duration-300',
-                            isSubItemActive ? 'text-primary' : 'text-muted-foreground',
                             isMobile && 'size-7'
                           )} />
                           <span className={cn(
                             'transition-colors duration-300',
-                            isSubItemActive ? 'text-primary' : 'text-muted-foreground',
                             isMobile && 'text-base'
                           )}>{item.label}</span>
                           <ChevronRight className={cn(
                             "ml-auto transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90",
-                            isSubItemActive ? 'text-primary' : 'text-muted-foreground',
                             isMobile && 'size-5'
                           )} />
                         </SidebarMenuButton>
@@ -374,19 +373,21 @@ export function AppSidebar() {
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.subItems?.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.label ?? subItem.href} className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : '', state === 'collapsed' && pathname !== subItem.href ? 'text-muted-foreground' : '')}>
+                            <SidebarMenuSubItem key={subItem.label ?? subItem.href} className={cn(
+                              state === 'collapsed' && 'cursor-pointer transition-colors duration-300'
+                            )}>
                               <SidebarMenuSubButton className={cn(
                                 state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
-                                state === 'expanded' && pathname === subItem.href ? 'bg-sidebar-accent text-primary' : 'text-muted-foreground',
                                 isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
                               )} onClick={() => {
                                 if (subItem.href) {
                                   router.push(subItem.href)
                                 }
-                              }}>
+                              }}
+                                isActive={state === 'expanded' && pathname === subItem.href}
+                              >
                                 <subItem.icon className={cn(
                                   'size-6 mx-2 transition-colors duration-300',
-                                  pathname === subItem.href ? 'text-primary' : 'text-muted-foreground!',
                                   isMobile && 'size-7'
                                 )} />
                                 <span className={cn(isMobile && 'text-base')}>{subItem.label}</span>
@@ -401,13 +402,14 @@ export function AppSidebar() {
                   <SidebarMenuItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && pathname === item.href ? 'bg-sidebar-accent text-primary' : '', state === 'collapsed' && pathname !== item.href ? 'text-muted-foreground' : '')}>
                     <SidebarMenuButton className={cn(
                       state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
-                      state === 'expanded' && pathname === item.href ? 'bg-sidebar-accent text-primary' : 'text-muted-foreground',
                       isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
                     )} onClick={() => {
                       if (item.href) {
                         router.push(item.href)
                       }
-                    }}>
+                    }}
+                      isActive={state === 'expanded' && pathname === item.href}
+                    >
                       <item.icon className={cn('size-6 mx-2', isMobile && 'size-7')} />
                       <span className={cn(isMobile && 'text-base')}>{item.label}</span>
                     </SidebarMenuButton>
@@ -418,6 +420,19 @@ export function AppSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
+
+      <Separator />
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size='lg'>
+              <IconSettings className='size-8 mx-2' />
+              <span className='text-base'>Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail className='h-[98%] my-auto' />
     </Sidebar>
   )

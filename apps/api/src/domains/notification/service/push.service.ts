@@ -7,7 +7,7 @@ import {
 } from "@/infra/supabase/repositories/push-subscriptions.js";
 
 import type { NotificationRecord } from "@/domains/notification/types/notification.types.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { sendPushNotification } from "@/infra/push/web-push.client.js";
 
 const logger = createLogger("api:notification:service:push");

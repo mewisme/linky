@@ -1,7 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SidebarInset, SidebarProvider } from "@repo/ui/components/animate-ui/components/radix/sidebar";
+import { SidebarInset, SidebarProvider } from "@ws/ui/components/animate-ui/components/radix/sidebar";
 
 import { AppHeader } from "@/components/header/app/app-header";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";

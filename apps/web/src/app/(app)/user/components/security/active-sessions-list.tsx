@@ -4,11 +4,11 @@ import { Fragment, useState } from 'react'
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react'
 import { formatDeviceLabel, formatLocation } from './security-utils'
 
-import { Badge } from '@repo/ui/components/ui/badge'
-import { Button } from '@repo/ui/components/ui/button'
-import { Separator } from '@repo/ui/components/ui/separator'
-import { cn } from '@repo/ui/lib/utils'
-import { formatDistanceToNow } from '@repo/ui/internal-lib/date-fns'
+import { Badge } from '@ws/ui/components/ui/badge'
+import { Button } from '@ws/ui/components/ui/button'
+import { Separator } from '@ws/ui/components/ui/separator'
+import { cn } from '@ws/ui/lib/utils'
+import { formatDistanceToNow } from '@ws/ui/internal-lib/date-fns'
 
 const COLLAPSED_EXTRA = 1
 

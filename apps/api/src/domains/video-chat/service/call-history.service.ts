@@ -3,7 +3,7 @@ import { createCallHistory, getUserCountry } from "@/infra/supabase/repositories
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { addCallDurationToStreak } from "@/domains/user/service/user-streak.service.js";
 import { addCallExp } from "@/domains/user/service/user-level.service.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { invalidate } from "@/infra/redis/cache/index.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
 

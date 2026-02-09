@@ -8,10 +8,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@repo/ui/components/ui/alert-dialog"
+} from "@ws/ui/components/ui/alert-dialog"
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
 import { Suspense } from "react";
 import { VideoContainer } from "./components/video-container";

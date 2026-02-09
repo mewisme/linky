@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -25,14 +25,14 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@repo/ui/components/ui/command";
+} from "@ws/ui/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/ui/components/ui/popover";
-import { cn } from "@repo/ui/lib/utils";
-import { ButtonGroup } from "@repo/ui/components/ui/button-group";
+} from "@ws/ui/components/ui/popover";
+import { cn } from "@ws/ui/lib/utils";
+import { ButtonGroup } from "@ws/ui/components/ui/button-group";
 
 export type CalendarState = {
   month: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;

@@ -18,7 +18,7 @@ import {
   useContext,
   useState,
 } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 
 type ImageComparisonContextType = {
   sliderPosition: number;

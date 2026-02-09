@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 
 export function useScreenShare() {
   const [isSharing, setIsSharing] = useState(false);

@@ -251,7 +251,7 @@ if (isPassive) {
 
 Enable debug logging:
 ```typescript
-import { logger } from "@repo/logger";
+import { logger } from "@ws/logger";
 
 // CallTabCoordinator logs all:
 // - Tab ID generation

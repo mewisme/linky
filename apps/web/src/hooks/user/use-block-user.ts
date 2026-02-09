@@ -7,7 +7,7 @@ import {
 } from "@/lib/api/user-blocks";
 import { useCallback, useEffect, useRef } from "react";
 
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { trackEvent } from "@/lib/analytics/events";
 import { useBlockedUsersStore } from "@/stores/blocked-users-store";
 import { useUserContext } from "@/components/providers/user/user-provider";

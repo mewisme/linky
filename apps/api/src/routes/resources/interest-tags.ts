@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getInterestTags, getInterestTagById } from "@/infra/supabase/repositories/interest-tags.js";
 import { getCachedData } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";

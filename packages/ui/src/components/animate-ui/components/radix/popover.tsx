@@ -10,8 +10,8 @@ import {
   type PopoverTriggerProps as PopoverTriggerPrimitiveProps,
   type PopoverContentProps as PopoverContentPrimitiveProps,
   type PopoverCloseProps as PopoverClosePrimitiveProps,
-} from '@repo/ui/components/animate-ui/primitives/radix/popover';
-import { cn } from '@repo/ui/lib/utils';
+} from '@ws/ui/components/animate-ui/primitives/radix/popover';
+import { cn } from '@ws/ui/lib/utils';
 
 type PopoverProps = PopoverPrimitiveProps;
 

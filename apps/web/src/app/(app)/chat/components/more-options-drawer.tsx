@@ -8,15 +8,15 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@repo/ui/components/ui/drawer";
+} from "@ws/ui/components/ui/drawer";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@repo/ui/components/ui/tooltip";
+} from "@ws/ui/components/ui/tooltip";
 import { useEffect, useState } from "react";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { IconDotsVertical } from "@tabler/icons-react";
 
 export interface MoreOptionsDrawerProps {

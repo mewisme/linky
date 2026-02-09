@@ -1,8 +1,8 @@
 "use client";
 
-import { AspectRatio } from "@repo/ui/components/ui/aspect-ratio";
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Card } from "@repo/ui/components/ui/card";
+import { AspectRatio } from "@ws/ui/components/ui/aspect-ratio";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Card } from "@ws/ui/components/ui/card";
 import { IconVideo } from "@tabler/icons-react";
 import { MotionEffect } from "@/components/effects/motion-effect";
 

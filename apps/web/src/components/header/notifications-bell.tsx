@@ -4,18 +4,18 @@ import {
   Drawer,
   DrawerContent,
   DrawerTrigger,
-} from "@repo/ui/components/ui/drawer";
+} from "@ws/ui/components/ui/drawer";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/ui/components/ui/popover";
+} from "@ws/ui/components/ui/popover";
 
-import { Badge } from "@repo/ui/components/ui/badge";
-import { Button } from "@repo/ui/components/ui/button";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Button } from "@ws/ui/components/ui/button";
 import { IconBell } from "@tabler/icons-react";
 import { NotificationsPanel } from "@/components/notifications/notifications-panel";
-import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useNotifications } from "@/hooks/notifications/use-notifications";
 
 export function NotificationsBell() {

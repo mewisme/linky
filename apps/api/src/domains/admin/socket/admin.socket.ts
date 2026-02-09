@@ -1,7 +1,7 @@
 import type { Namespace } from "socket.io";
 import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 
 const logger = createLogger("api:admin:socket:auth");
 

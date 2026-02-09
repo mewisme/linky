@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { IconMaximize } from "@tabler/icons-react";
 
 interface ExpandOverlayProps {

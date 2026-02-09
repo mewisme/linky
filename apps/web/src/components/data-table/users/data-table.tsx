@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import type { AdminAPI } from '@/types/admin.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
-import { cn } from '@repo/ui/lib/utils'
+import { cn } from '@ws/ui/lib/utils'
 
 interface UsersDataTableProps {
   initialData: AdminAPI.User[]

@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { IconRefresh, IconRefreshDot, IconTrash, IconUserPlus } from '@tabler/icons-react';
-import { toast } from '@repo/ui/components/ui/sonner';
+import { toast } from '@ws/ui/components/ui/sonner';
 
 import type { AdminAPI } from '@/types/admin.types';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { Button } from '@repo/ui/components/ui/button';
+import { Button } from '@ws/ui/components/ui/button';
 import { UsersDataTable } from '@/components/data-table/users/data-table';
 
 import { useUsersQuery } from './use-users-query';

@@ -2,10 +2,10 @@
 
 import { AdminAPI } from '@/types/admin.types'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Checkbox } from '@repo/ui/components/ui/checkbox'
+import { Checkbox } from '@ws/ui/components/ui/checkbox'
 import { IconCopy } from '@tabler/icons-react'
 import { ActionsButton, type ActionItem } from '@/components/common/actions-button'
-import { toast } from "@repo/ui/components/ui/sonner"
+import { toast } from "@ws/ui/components/ui/sonner"
 import { useMemo } from 'react'
 
 export interface RowCallbacks {

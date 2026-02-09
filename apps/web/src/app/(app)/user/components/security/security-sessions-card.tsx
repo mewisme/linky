@@ -6,9 +6,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@repo/ui/components/ui/card'
+} from '@ws/ui/components/ui/card'
 import { IconDeviceDesktop } from '@tabler/icons-react'
-import { Skeleton } from '@repo/ui/components/ui/skeleton'
+import { Skeleton } from '@ws/ui/components/ui/skeleton'
 import { ActiveSessionsList, type SessionWithActivity } from './active-sessions-list'
 
 interface SecuritySessionsCardProps {

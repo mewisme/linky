@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import type { BlockedUserWithDetails } from '@/types/notifications.types'
 import { columns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
-import { cn } from '@repo/ui/lib/utils'
+import { cn } from '@ws/ui/lib/utils'
 
 interface BlockedUsersDataTableProps {
   initialData: BlockedUserWithDetails[]

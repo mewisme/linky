@@ -4,13 +4,13 @@ import {
   MiniCalendar,
   MiniCalendarDay,
   MiniCalendarDays,
-} from "@repo/ui/components/kibo-ui/mini-calendar";
-import { format, subDays } from "@repo/ui/internal-lib/date-fns";
-import { getLocalDate } from "@repo/ui/internal-lib/date-utils";
+} from "@ws/ui/components/kibo-ui/mini-calendar";
+import { format, subDays } from "@ws/ui/internal-lib/date-fns";
 import { useEffect, useMemo, useState } from "react";
 
 import { IconFlameFilled } from "@tabler/icons-react";
 import type { UsersAPI } from "@/types/users.types";
+import { getLocalDate } from "@ws/ui/internal-lib/date-utils";
 
 interface StreakMiniCalendarProps {
   progressData: UsersAPI.Progress.GetMe.Response;

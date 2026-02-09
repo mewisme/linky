@@ -1,4 +1,4 @@
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { sendPushOnly } from "@/domains/notification/service/push.service.js";
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 

@@ -11,9 +11,9 @@ import {
   type HTMLMotionProps,
 } from 'motion/react';
 
-import { cn } from '@repo/ui/lib/utils';
-import { useIsInView } from '@repo/ui/hooks/use-is-in-view';
-import { Slot, type WithAsChild } from '@repo/ui/components/animate-ui/primitives/animate/slot';
+import { cn } from '@ws/ui/lib/utils';
+import { useIsInView } from '@ws/ui/hooks/use-is-in-view';
+import { Slot, type WithAsChild } from '@ws/ui/components/animate-ui/primitives/animate/slot';
 
 const staticAnimations = {
   path: {

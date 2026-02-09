@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { TextHoverEffect } from '@repo/ui/components/ui/text-hover-effect';
+import { TextHoverEffect } from '@ws/ui/components/ui/text-hover-effect';
 
 export const LandingFooter = () => {
   return (

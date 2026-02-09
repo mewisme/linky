@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, CardContent } from "@repo/ui/components/ui/card";
-import { IconTrendingUp, IconBrain, IconUsers } from "@tabler/icons-react";
+import { Card, CardContent } from "@ws/ui/components/ui/card";
+import { IconBrain, IconTrendingUp, IconUsers } from "@tabler/icons-react";
+
 import { MotionEffect } from "@/components/effects/motion-effect";
 
 const VISION_POINTS = [

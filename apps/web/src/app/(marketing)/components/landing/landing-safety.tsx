@@ -1,8 +1,8 @@
 "use client";
 
-import { Alert, AlertDescription } from "@repo/ui/components/ui/alert";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@repo/ui/components/ui/collapsible";
+import { Alert, AlertDescription } from "@ws/ui/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ws/ui/components/ui/collapsible";
 import { IconAlertCircle, IconChevronDown, IconLock, IconShieldCheck, IconUserX } from "@tabler/icons-react";
 
 import { MotionEffect } from "@/components/effects/motion-effect";

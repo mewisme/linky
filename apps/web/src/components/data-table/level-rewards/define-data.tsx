@@ -1,8 +1,8 @@
 'use client'
 
 import { AdminAPI } from '@/types/admin.types'
-import { Badge } from '@repo/ui/components/ui/badge';
-import { Checkbox } from '@repo/ui/components/ui/checkbox';
+import { Badge } from '@ws/ui/components/ui/badge';
+import { Checkbox } from '@ws/ui/components/ui/checkbox';
 import { type ColumnDef } from "@tanstack/react-table"
 import {
   IconCopy,
@@ -11,7 +11,7 @@ import {
 } from '@tabler/icons-react';
 
 import { ActionsButton, type ActionItem } from '@/components/common/actions-button';
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useMemo } from 'react';
 
 type LevelReward = AdminAPI.LevelRewards.LevelReward;

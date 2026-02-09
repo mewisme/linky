@@ -11,20 +11,20 @@ import {
   TagsList,
   TagsTrigger,
   TagsValue,
-} from '@repo/ui/components/kibo-ui/tags'
+} from '@ws/ui/components/kibo-ui/tags'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@repo/ui/components/ui/tooltip'
+} from '@ws/ui/components/ui/tooltip'
 import { useEffect, useState, useTransition } from 'react'
 
-import { Badge } from '@repo/ui/components/ui/badge'
-import { Button } from '@repo/ui/components/ui/button'
+import { Badge } from '@ws/ui/components/ui/badge'
+import { Button } from '@ws/ui/components/ui/button'
 import type { ResourcesAPI } from '@/types/resources.types'
 import type { UserDetails } from '@/stores/user-store'
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
 interface InterestTagsSectionProps {

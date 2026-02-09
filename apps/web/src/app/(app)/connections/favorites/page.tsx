@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/components/layouts/app-layout'
-import { Button } from '@repo/ui/components/ui/button'
+import { Button } from '@ws/ui/components/ui/button'
 import { FavoritesDataTable } from '@/components/data-table/favorites/data-table'
 import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/types/resources.types'
-import { toast } from '@repo/ui/components/ui/sonner'
+import { toast } from '@ws/ui/components/ui/sonner'
 import { useQuery } from '@tanstack/react-query'
 import { useUserContext } from '@/components/providers/user/user-provider'
 

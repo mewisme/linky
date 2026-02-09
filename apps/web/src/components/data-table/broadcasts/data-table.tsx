@@ -4,7 +4,7 @@ import { useMemo } from "react";
 
 import { DataTable } from "../data-table";
 import { columns, type BroadcastHistoryRow } from "./define-data";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 
 interface BroadcastsDataTableProps {
   initialData: BroadcastHistoryRow[];

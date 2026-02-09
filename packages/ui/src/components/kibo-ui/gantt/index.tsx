@@ -13,7 +13,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from "@repo/ui/components/ui/context-menu";
+} from "@ws/ui/components/ui/context-menu";
 import {
   DndContext,
   MouseSensor,
@@ -52,8 +52,8 @@ import {
 } from "react";
 import { useMouse, useThrottle, useWindowScroll } from "@uidotdev/usehooks";
 
-import { Card } from "@repo/ui/components/ui/card";
-import { cn } from "@repo/ui/lib/utils";
+import { Card } from "@ws/ui/components/ui/card";
+import { cn } from "@ws/ui/lib/utils";
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import throttle from "lodash.throttle";
 

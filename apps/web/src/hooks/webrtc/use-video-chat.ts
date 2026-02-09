@@ -2,8 +2,8 @@
 
 import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "@repo/ui/components/ui/sonner";
-import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { toast } from "@ws/ui/components/ui/sonner";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 
 import type { UsersAPI } from "@/types/users.types";
 import type { SignalData } from "@/lib/socket/socket";

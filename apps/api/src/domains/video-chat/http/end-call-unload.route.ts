@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { getVideoChatContext } from "@/domains/video-chat/socket/video-chat.socket.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
 import { type AuthenticatedSocket } from "@/socket/auth.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";

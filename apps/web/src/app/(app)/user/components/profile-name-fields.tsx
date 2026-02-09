@@ -9,15 +9,15 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from '@repo/ui/components/kibo-ui/combobox'
+} from '@ws/ui/components/kibo-ui/combobox'
 import { CountryFlag, countries } from '@/components/common/country-flag'
 import { IconCheck, IconChevronDown, IconLoader2, IconPencil, IconX } from '@tabler/icons-react'
 import React, { useTransition } from 'react'
 
-import { Button } from '@repo/ui/components/ui/button'
-import { Input } from '@repo/ui/components/ui/input'
+import { Button } from '@ws/ui/components/ui/button'
+import { Input } from '@ws/ui/components/ui/input'
 import type { UserResource } from '@clerk/types'
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
 interface ProfileNameFieldsProps {
@@ -124,7 +124,7 @@ export function ProfileNameFields({
                 </Button>
               </div>
             ) : (
-                <div className="flex-1 flex items-center gap-2 group">
+              <div className="flex-1 flex items-center gap-2 group">
                 <p className="text-lg font-semibold">{displayName}</p>
                 <Button
                   size="sm"

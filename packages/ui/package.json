@@ -1,5 +1,5 @@
 {
-  "name": "@repo/ui",
+  "name": "@ws/ui",
   "version": "0.48.0",
   "private": true,
   "exports": {
@@ -20,8 +20,8 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
+    "@ws/eslint-config": "workspace:*",
+    "@ws/typescript-config": "workspace:*",
     "@types/color": "^4.2.0",
     "@types/culori": "^4.0.1",
     "@types/lodash.throttle": "^4.1.9",

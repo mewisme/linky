@@ -1,5 +1,5 @@
 import { config } from "@/config/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 
 const logger = createLogger("infra:redis:timeout-wrapper");
 

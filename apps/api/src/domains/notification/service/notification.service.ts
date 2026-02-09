@@ -1,4 +1,4 @@
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import {
   createNotification as createNotificationRepo,
   getUserNotifications as getUserNotificationsRepo,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { CropIcon, RotateCcwIcon } from "lucide-react";
 import { Slot } from "radix-ui";
 import {
@@ -24,7 +24,7 @@ import ReactCrop, {
   type PixelCrop,
   type ReactCropProps,
 } from "react-image-crop";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 
 import "react-image-crop/dist/ReactCrop.css";
 

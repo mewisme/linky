@@ -6,10 +6,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@repo/ui/components/animate-ui/components/radix/popover"
+} from "@ws/ui/components/animate-ui/components/radix/popover"
 
-import { Button } from "@repo/ui/components/ui/button"
-import { Calendar } from "@repo/ui/components/ui/calendar"
+import { Button } from "@ws/ui/components/ui/button"
+import { Calendar } from "@ws/ui/components/ui/calendar"
 import { ChevronDownIcon } from "lucide-react"
 
 interface DatePickerProps {

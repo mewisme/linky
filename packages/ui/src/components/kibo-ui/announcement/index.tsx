@@ -1,7 +1,7 @@
 import type { ComponentProps, HTMLAttributes } from "react";
 
-import { Badge } from "@repo/ui/components/ui/badge";
-import { cn } from "@repo/ui/lib/utils";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { cn } from "@ws/ui/lib/utils";
 
 export type AnnouncementProps = ComponentProps<typeof Badge> & {
   themed?: boolean;

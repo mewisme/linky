@@ -1,18 +1,18 @@
 'use client';
 
 import type { AdminAPI } from '@/types/admin.types';
-import { Checkbox } from '@repo/ui/components/ui/checkbox';
-import { Badge } from '@repo/ui/components/ui/badge';
+import { Checkbox } from '@ws/ui/components/ui/checkbox';
+import { Badge } from '@ws/ui/components/ui/badge';
 import { type ColumnDef } from "@tanstack/react-table"
 import { IconArrowsExchange, IconCircleCheckFilled, IconCircleXFilled, IconTrash, IconRefresh, IconUserPlus, IconUsersGroup, IconShieldLock, IconCopy } from '@tabler/icons-react';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from '@repo/ui/components/animate-ui/components/radix/popover';
-import { toast } from "@repo/ui/components/ui/sonner";
-import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/ui/avatar';
-import { Status, StatusIndicator, StatusLabel } from "@repo/ui/components/kibo-ui/status";
+} from '@ws/ui/components/animate-ui/components/radix/popover';
+import { toast } from "@ws/ui/components/ui/sonner";
+import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar';
+import { Status, StatusIndicator, StatusLabel } from "@ws/ui/components/kibo-ui/status";
 import { ActionsButton, type ActionItem } from '@/components/common/actions-button';
 import { memo, useMemo } from 'react';
 

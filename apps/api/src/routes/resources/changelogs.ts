@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getChangelogs, getChangelogByVersion } from "@/infra/supabase/repositories/changelogs.js";
 import { getDownloadUrl } from "@/infra/s3/presigned.js";
 import { config } from "@/config/index.js";

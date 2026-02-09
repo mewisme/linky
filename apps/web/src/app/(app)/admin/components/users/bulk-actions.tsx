@@ -7,18 +7,18 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@repo/ui/components/ui/drawer';
+} from '@ws/ui/components/ui/drawer';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu';
+} from '@ws/ui/components/animate-ui/components/radix/dropdown-menu';
 
 import type { AdminAPI } from '@/types/admin.types';
-import { Button } from '@repo/ui/components/ui/button';
+import { Button } from '@ws/ui/components/ui/button';
 import { IconProps } from '@tabler/icons-react';
-import { useIsMobile } from '@repo/ui/hooks/use-mobile';
+import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 
 export interface BulkAction {
   label: string;

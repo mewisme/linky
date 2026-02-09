@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import type { InterestTagsBody, UserDetailsUpdate } from "@/domains/user/types/user-details.types.js";
 import {
   addUserInterestTags,

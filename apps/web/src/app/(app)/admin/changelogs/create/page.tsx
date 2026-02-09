@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 import { FileText, Save, Settings2 } from "lucide-react";
 import {
   Form,
@@ -10,21 +10,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@repo/ui/components/ui/form"
-import { HookFormZodPrimitive, ReactHookFormPrimitive, ZodPrimitive } from "@repo/ui/components/ui/form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/ui/tabs";
+} from "@ws/ui/components/ui/form"
+import { HookFormZodPrimitive, ReactHookFormPrimitive, ZodPrimitive } from "@ws/ui/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ws/ui/components/ui/tabs";
 import { getUploadUrl, uploadToS3 } from "@/lib/api/s3";
 import { useEffect, useState } from "react";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { DatePicker } from "@/components/common/date-picker";
 import { Editor } from "@/components/editor/editor";
-import { Input } from "@repo/ui/components/ui/input";
-import { Switch } from "@repo/ui/components/ui/switch";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { Input } from "@ws/ui/components/ui/input";
+import { Switch } from "@ws/ui/components/ui/switch";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import { useUserContext } from "@/components/providers/user/user-provider";

@@ -9,7 +9,7 @@ import {
 } from "@/infra/supabase/repositories/user-embeddings.js";
 
 import { cosineSimilarity } from "@/domains/embeddings/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getUsersIdsPaginated } from "@/infra/supabase/repositories/users.js";
 
 const logger = createLogger("api:admin:embeddings:service");

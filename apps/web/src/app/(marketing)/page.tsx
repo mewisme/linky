@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Header } from "@/components/header/landing/index";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 import { motion, type Variants } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";

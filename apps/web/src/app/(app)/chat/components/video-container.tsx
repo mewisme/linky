@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
 import { useCallback, useRef } from "react";
 
@@ -8,19 +8,19 @@ import { CallTimer } from "./call-timer";
 import { ConnectionQualityIndicator } from "./connection-quality-indicator";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
+import { PassiveTabBanner } from "./passive-tab-banner";
 import { ReactionOverlay } from "./overlays/reaction-overlay";
 import type { UsersAPI } from "@/types/users.types";
 import { VideoChatIdleState } from "./video-chat-idle-state";
 import { VideoChatSearchingState } from "./video-chat-searching-state";
 import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
-import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useMousePosition } from "@/hooks/ui/use-mouse-move";
 import { useReactionTrigger } from "@/hooks/webrtc/use-reaction-trigger";
 import { useStreamAspectRatio } from "@/hooks/webrtc/use-stream-aspect-ratio";
 import { useVideoChatStore } from "@/stores/video-chat-store";
 import { useViewportHeight } from "@/hooks/ui/use-viewport-height";
-import { PassiveTabBanner } from "./passive-tab-banner";
 
 interface VideoContainerProps {
   localStream: MediaStream | null;

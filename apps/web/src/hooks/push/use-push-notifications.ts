@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/push-subscriptions";
 import { useCallback, useEffect, useRef } from "react";
 
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { usePushSubscriptionStore } from "@/stores/push-subscription-store";
 import { useUserContext } from "@/components/providers/user/user-provider";
 

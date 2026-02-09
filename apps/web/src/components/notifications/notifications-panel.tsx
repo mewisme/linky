@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { IconBellOff } from "@tabler/icons-react";
 import type { Notification } from "@/types/notifications.types";
 import { NotificationItem } from "./notification-item";
-import { ScrollArea } from "@repo/ui/components/ui/scroll-area";
+import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
 
 interface NotificationsPanelProps {
   notifications: Notification[];

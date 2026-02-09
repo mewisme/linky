@@ -47,7 +47,7 @@ apps/
   web/          Next.js 16 frontend (App Router)
 packages/
   ui/           Shared React component library (Radix UI + shadcn)
-  logger/       Pino-based logging (@repo/logger)
+  logger/       Pino-based logging (@ws/logger)
   eslint-config/      Shared ESLint configs
   typescript-config/  Shared TypeScript configs
 ```
@@ -87,8 +87,8 @@ State: Zustand stores + TanStack React Query for server data. Real-time: Socket.
 ### Import Aliases
 
 - `@/*` maps to `src/*` (both apps)
-- `@repo/ui/*` maps to shared UI components
-- Workspace packages use `@repo/<package>` imports
+- `@ws/ui/*` maps to shared UI components
+- Workspace packages use `@ws/<package>` imports
 
 ## Code Conventions
 
@@ -113,7 +113,7 @@ State: Zustand stores + TanStack React Query for server data. Real-time: Socket.
 | UI | Radix UI + shadcn + Tailwind CSS 4 |
 | State | Zustand + TanStack React Query |
 | Testing | Vitest (unit) + Playwright (e2e) |
-| Logging | Pino (@repo/logger) |
+| Logging | Pino (@ws/logger) |
 
 ## Docker
 

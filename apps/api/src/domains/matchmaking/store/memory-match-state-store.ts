@@ -1,7 +1,7 @@
 import type { MatchStateStore, QueueEntry } from "./match-state-store.interface.js";
 
 import type { Socket } from "socket.io";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getBlockedUserIds } from "@/infra/supabase/repositories/user-blocks.js";
 import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
 import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";

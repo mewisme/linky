@@ -2,7 +2,7 @@
 
 import { Variants, motion } from "motion/react";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 
 const BACKGROUND_VARIANTS: Variants = {
   hidden: {

@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@repo/ui/components/animate-ui/components/radix/alert-dialog'
+} from '@ws/ui/components/animate-ui/components/radix/alert-dialog'
 import {
   Drawer,
   DrawerClose,
@@ -17,7 +17,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@repo/ui/components/ui/drawer'
+} from '@ws/ui/components/ui/drawer'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -31,13 +31,13 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@repo/ui/components/animate-ui/components/radix/dropdown-menu'
+} from '@ws/ui/components/animate-ui/components/radix/dropdown-menu'
 import { Fragment, useMemo, useState } from 'react'
 
-import { Button } from '@repo/ui/components/ui/button'
+import { Button } from '@ws/ui/components/ui/button'
 import { IconDotsVertical } from '@tabler/icons-react'
-import { cn } from '@repo/ui/lib/utils'
-import { useIsMobile } from '@repo/ui/hooks/use-mobile'
+import { cn } from '@ws/ui/lib/utils'
+import { useIsMobile } from '@ws/ui/hooks/use-mobile'
 
 export type ActionItem =
   | ActionItemSimple

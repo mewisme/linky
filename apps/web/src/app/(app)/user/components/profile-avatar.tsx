@@ -4,11 +4,11 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from '@repo/ui/components/ui/avatar'
+} from '@ws/ui/components/ui/avatar'
 
 import { IconCamera } from '@tabler/icons-react'
 import type { UserResource } from '@clerk/types'
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import { useTransition } from 'react'
 

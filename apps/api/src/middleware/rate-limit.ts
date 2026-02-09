@@ -1,7 +1,7 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { redisClient } from "@/infra/redis/client.js";
 import { config } from "@/config/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
 const logger = createLogger("middleware:rate-limit");

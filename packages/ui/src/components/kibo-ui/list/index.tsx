@@ -9,7 +9,7 @@ import {
 } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import type { ReactNode } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 
 export type { DragEndEvent } from "@dnd-kit/core";
 
@@ -40,13 +40,13 @@ export const ListItems = ({ children, className }: ListItemsProps) => (
 
 export type ListHeaderProps =
   | {
-      children: ReactNode;
-    }
+    children: ReactNode;
+  }
   | {
-      name: Status["name"];
-      color: Status["color"];
-      className?: string;
-    };
+    name: Status["name"];
+    color: Status["color"];
+    className?: string;
+  };
 
 export const ListHeader = (props: ListHeaderProps) =>
   "children" in props ? (

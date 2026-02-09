@@ -2,9 +2,9 @@
 
 import { menuItems, type MenuItem } from "@/components/sidebar/app-sidebar";
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 import { useRouter } from "next/navigation";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 
 export default function AdminPage() {
   const router = useRouter();

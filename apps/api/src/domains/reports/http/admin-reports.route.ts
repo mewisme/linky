@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import type { ReportStatus } from "@/domains/reports/types/report-status.types.js";
 import type { ReportUpdate } from "@/domains/reports/types/report.types.js";

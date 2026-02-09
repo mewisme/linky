@@ -8,7 +8,7 @@ import {
   useAnimateIconContext,
   IconWrapper,
   type IconProps,
-} from '@repo/ui/components/animate-ui/icons/icon';
+} from '@ws/ui/components/animate-ui/icons/icon';
 
 type ChartLineProps = IconProps<keyof typeof animations>;
 

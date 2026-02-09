@@ -206,7 +206,7 @@ Next.js App Router with route groups for clean URL structure:
 
 **Frontend restrictions:**
 - Do NOT hardcode backend business logic
-- Do NOT install dependencies that exist in `@repo/ui`
+- Do NOT install dependencies that exist in `@ws/ui`
 - Do NOT use `axios` (native fetch only)
 - Do NOT use `lucide-react` for new icons (use `@tabler/icons-react`)
 

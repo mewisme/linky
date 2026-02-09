@@ -176,7 +176,7 @@ App runs on `http://localhost:3000`.
 **Hot reload:**
 - Next.js watches file changes and hot-reloads
 - React components update without full page refresh
-- Shared `@repo/ui` components also hot-reload via Turborepo
+- Shared `@ws/ui` components also hot-reload via Turborepo
 
 **Type checking:**
 
@@ -205,9 +205,9 @@ pnpm start
 - API client in `lib/client.ts` wraps fetch with auth headers
 
 **Shared components:**
-- Import UI primitives from `@repo/ui/components/*`
-- Import date utilities from `@repo/ui/internal-lib/date-fns`
-- Do NOT install dependencies already in `@repo/ui/package.json`
+- Import UI primitives from `@ws/ui/components/*`
+- Import date utilities from `@ws/ui/internal-lib/date-fns`
+- Do NOT install dependencies already in `@ws/ui/package.json`
 
 **Icons:**
 - Use `@tabler/icons-react` for new icons

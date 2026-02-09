@@ -12,8 +12,8 @@ import {
   type SpringOptions,
 } from 'motion/react';
 
-import { getStrictContext } from '@repo/ui/lib/get-strict-context';
-import { useControlledState } from '@repo/ui/hooks/use-controlled-state';
+import { getStrictContext } from '@ws/ui/lib/get-strict-context';
+import { useControlledState } from '@ws/ui/hooks/use-controlled-state';
 
 type HoverCardContextType = {
   isOpen: boolean;

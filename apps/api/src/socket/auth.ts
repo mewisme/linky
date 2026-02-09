@@ -3,7 +3,7 @@ import { clerk, verifyToken } from "@/infra/clerk/client.js";
 import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
 import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 
 export type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
 

@@ -1,6 +1,6 @@
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getChangelogs } from "@/infra/supabase/repositories/changelogs.js";
 import { getInterestTags } from "@/infra/supabase/repositories/interest-tags.js";
 import { updateCachedData } from "@/infra/redis/cache-utils.js";

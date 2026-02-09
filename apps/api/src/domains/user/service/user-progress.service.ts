@@ -3,7 +3,7 @@ import { getUserStreakData, getUserStreakHistory } from "./user-streak.service.j
 
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getCallDurationsForUserOnLocalDate } from "@/infra/supabase/repositories/call-history.js";
 import { getExpToday } from "@/infra/redis/cache/exp-today.js";
 import { getOrSet } from "@/infra/redis/cache/index.js";

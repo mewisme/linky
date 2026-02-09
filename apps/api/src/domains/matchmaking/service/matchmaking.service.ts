@@ -7,7 +7,7 @@ import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js
 import type { EmbeddingPair } from "@/domains/matchmaking/types/embedding.types.js";
 import type { MatchStateStore } from "@/domains/matchmaking/store/index.js";
 import type { QueuedUser } from "@/domains/matchmaking/types/matchmaking.types.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { getUserEmbeddingsMap } from "@/infra/supabase/repositories/user-embeddings.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 

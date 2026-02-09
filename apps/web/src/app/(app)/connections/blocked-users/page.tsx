@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layouts/app-layout";
 import type { BlockedUserWithDetails } from "@/types/notifications.types";
 import { BlockedUsersDataTable } from "@/components/data-table/blocked-users/data-table";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { IconRefresh } from "@tabler/icons-react";
 import { client } from "@/lib/client";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useBlockUser } from "@/hooks/user/use-block-user";
 import { useUserContext } from "@/components/providers/user/user-provider";
 

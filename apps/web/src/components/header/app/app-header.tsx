@@ -1,13 +1,13 @@
 'use client'
 
-import { Button } from "@repo/ui/components/ui/button"
+import { Button } from "@ws/ui/components/ui/button"
 import { CommandMenu } from '@/components/header/command-menu'
 import Link from "next/link"
 import { Logo } from "../landing/logo"
 import { ModeToggle } from "../mode-toggle"
 import { NotificationsBell } from "../notifications-bell"
-import { SidebarTrigger } from '@repo/ui/components/animate-ui/components/radix/sidebar'
-import { useIsMobile } from "@repo/ui/hooks/use-mobile"
+import { SidebarTrigger } from '@ws/ui/components/animate-ui/components/radix/sidebar'
+import { useIsMobile } from "@ws/ui/hooks/use-mobile"
 
 export function AppHeader() {
   const isMobile = useIsMobile()

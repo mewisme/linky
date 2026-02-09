@@ -2,7 +2,7 @@
 
 import { FavoritesDataTable } from "@/components/data-table/favorites/data-table";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useState } from "react";
 import { useUserContext } from "@/components/providers/user/user-provider";
 

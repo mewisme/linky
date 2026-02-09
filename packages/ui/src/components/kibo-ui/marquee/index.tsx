@@ -1,9 +1,9 @@
 "use client";
 
-import type { HTMLAttributes } from "react";
-import type { MarqueeProps as FastMarqueeProps } from "react-fast-marquee";
 import FastMarquee from "react-fast-marquee";
-import { cn } from "@repo/ui/lib/utils";
+import type { MarqueeProps as FastMarqueeProps } from "react-fast-marquee";
+import type { HTMLAttributes } from "react";
+import { cn } from "@ws/ui/lib/utils";
 
 export type MarqueeProps = HTMLAttributes<HTMLDivElement>;
 

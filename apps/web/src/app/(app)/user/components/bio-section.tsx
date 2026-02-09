@@ -3,10 +3,10 @@
 import { IconInfoCircle, IconLoader2, IconPencil } from '@tabler/icons-react'
 import { useEffect, useState, useTransition } from 'react'
 
-import { Button } from '@repo/ui/components/ui/button'
-import { Textarea } from '@repo/ui/components/ui/textarea'
+import { Button } from '@ws/ui/components/ui/button'
+import { Textarea } from '@ws/ui/components/ui/textarea'
 import type { UserDetails } from '@/stores/user-store'
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
 interface BioSectionProps {

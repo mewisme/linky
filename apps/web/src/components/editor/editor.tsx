@@ -5,21 +5,21 @@ import { useCreateBlockNote, useEditorChange } from "@blocknote/react";
 import { useEffect, useRef } from "react";
 
 import { BlockNoteView, type ShadCNComponents } from "@blocknote/shadcn";
-import { cn } from "@repo/ui/lib/utils";
-import * as Button from "@repo/ui/components/ui/button";
-import * as Badge from "@repo/ui/components/ui/badge";
-import * as Avatar from "@repo/ui/components/ui/avatar";
-import * as Card from "@repo/ui/components/ui/card";
-import * as DropdownMenu from "@repo/ui/components/ui/dropdown-menu";
-import * as Input from "@repo/ui/components/ui/input";
-import * as Label from "@repo/ui/components/ui/label";
-import * as Popover from "@repo/ui/components/ui/popover";
-import * as Tooltip from "@repo/ui/components/ui/tooltip";
-import * as Select from "@repo/ui/components/ui/select";
-import * as Skeleton from "@repo/ui/components/ui/skeleton";
-import * as Tabs from "@repo/ui/components/ui/tabs";
-import * as Toggle from "@repo/ui/components/ui/toggle";
-import * as Form from "@repo/ui/components/ui/form";
+import { cn } from "@ws/ui/lib/utils";
+import * as Button from "@ws/ui/components/ui/button";
+import * as Badge from "@ws/ui/components/ui/badge";
+import * as Avatar from "@ws/ui/components/ui/avatar";
+import * as Card from "@ws/ui/components/ui/card";
+import * as DropdownMenu from "@ws/ui/components/ui/dropdown-menu";
+import * as Input from "@ws/ui/components/ui/input";
+import * as Label from "@ws/ui/components/ui/label";
+import * as Popover from "@ws/ui/components/ui/popover";
+import * as Tooltip from "@ws/ui/components/ui/tooltip";
+import * as Select from "@ws/ui/components/ui/select";
+import * as Skeleton from "@ws/ui/components/ui/skeleton";
+import * as Tabs from "@ws/ui/components/ui/tabs";
+import * as Toggle from "@ws/ui/components/ui/toggle";
+import * as Form from "@ws/ui/components/ui/form";
 
 interface EditorProps {
   className?: string;

@@ -2,13 +2,13 @@
 
 import { IconBolt, IconShieldCheck, IconWorld } from "@tabler/icons-react";
 
-import { BorderBeamSimple } from "@repo/ui/components/ui/border-beam-simple";
+import { BorderBeamSimple } from "@ws/ui/components/ui/border-beam-simple";
 import { MotionEffect } from "@/components/effects/motion-effect";
 import { Outfit } from "next/font/google";
-import { RainbowButton } from "@repo/ui/components/ui/rainbow-button";
+import { RainbowButton } from "@ws/ui/components/ui/rainbow-button";
 import { SocialProof } from "@/app/(marketing)/components/landing/social-proof";
-import { SplittingText } from "@repo/ui/components/animate-ui/primitives/texts/splitting";
-import { cn } from "@repo/ui/lib/utils";
+import { SplittingText } from "@ws/ui/components/animate-ui/primitives/texts/splitting";
+import { cn } from "@ws/ui/lib/utils";
 import { motion } from "motion/react";
 
 interface HeroProps {

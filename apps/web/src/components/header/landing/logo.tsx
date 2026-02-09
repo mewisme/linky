@@ -1,6 +1,6 @@
 'use client'
 
-import { cn } from "@repo/ui/lib/utils"
+import { cn } from "@ws/ui/lib/utils"
 import { motion, type Variants, type SVGMotionProps } from "motion/react"
 
 const logoData = {

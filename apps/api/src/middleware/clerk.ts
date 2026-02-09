@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { config } from "@/config/index.js";
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 import { verifyToken } from "@clerk/backend";
 
 export async function clerkMiddleware(req: Request, res: Response, next: NextFunction) {

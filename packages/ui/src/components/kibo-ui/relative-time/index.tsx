@@ -7,7 +7,7 @@ import {
   useContext,
   useEffect,
 } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 
 const formatDate = (
   date: Date,

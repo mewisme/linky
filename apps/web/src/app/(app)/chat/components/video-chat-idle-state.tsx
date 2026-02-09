@@ -1,10 +1,10 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import { IconFlame, IconPlayerPlay, IconStar } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import type { UsersAPI } from "@/types/users.types";
 import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";

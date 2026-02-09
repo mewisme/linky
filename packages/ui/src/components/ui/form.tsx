@@ -13,8 +13,8 @@ import {
   type FieldValues,
 } from "react-hook-form"
 
-import { cn } from "@repo/ui/lib/utils"
-import { Label } from "@repo/ui/components/ui/label"
+import { cn } from "@ws/ui/lib/utils"
+import { Label } from "@ws/ui/components/ui/label"
 export * as ReactHookFormPrimitive from "react-hook-form"
 export * as HookFormZodPrimitive from "@hookform/resolvers/zod"
 export * as ZodPrimitive from "zod"

@@ -9,13 +9,13 @@ import {
   CalendarYearPicker,
   useCalendarMonth,
   useCalendarYear,
-} from "@repo/ui/components/kibo-ui/calendar";
-import { format, getDay, getDaysInMonth, isToday } from "@repo/ui/internal-lib/date-fns";
+} from "@ws/ui/components/kibo-ui/calendar";
+import { format, getDay, getDaysInMonth, isToday } from "@ws/ui/internal-lib/date-fns";
 import { useEffect, useMemo, useState } from "react";
 
 import { IconFlameFilled } from "@tabler/icons-react";
 import type { UsersAPI } from "@/types/users.types";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";
 import { useUserContext } from "@/components/providers/user/user-provider";

@@ -7,17 +7,17 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@repo/ui/components/ui/command';
+} from '@ws/ui/components/ui/command';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@repo/ui/components/ui/popover';
+} from '@ws/ui/components/ui/popover';
 
 import type { AdminAPI } from '@/types/admin.types';
-import { Button } from '@repo/ui/components/ui/button';
+import { Button } from '@ws/ui/components/ui/button';
 import { IconChevronDown } from '@tabler/icons-react';
-import { cn } from '@repo/ui/lib/utils';
+import { cn } from '@ws/ui/lib/utils';
 import { useState } from 'react';
 
 function formatUserLabel(user: AdminAPI.User): string {
@@ -82,7 +82,7 @@ export function UserSearchSelect({
           <IconChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search by email or name..."

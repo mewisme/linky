@@ -6,19 +6,19 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@repo/ui/components/ui/card";
+} from "@ws/ui/components/ui/card";
 import { IconRefresh, IconSend } from "@tabler/icons-react";
-import { RadioGroup, RadioGroupItem } from "@repo/ui/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@ws/ui/components/ui/radio-group";
 import { useCallback, useEffect, useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
 import type { BroadcastHistoryRow } from "@/components/data-table/broadcasts/define-data";
 import { BroadcastsDataTable } from "@/components/data-table/broadcasts/data-table";
-import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
-import { Label } from "@repo/ui/components/ui/label";
-import { Textarea } from "@repo/ui/components/ui/textarea";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { Button } from "@ws/ui/components/ui/button";
+import { Input } from "@ws/ui/components/ui/input";
+import { Label } from "@ws/ui/components/ui/label";
+import { Textarea } from "@ws/ui/components/ui/textarea";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useQuery } from "@tanstack/react-query";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/components/providers/user/user-provider";

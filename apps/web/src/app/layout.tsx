@@ -11,7 +11,7 @@ import ProgressBarProvider from "@/components/providers/ui/progress-bar-provider
 import { SocketProvider } from "@/components/providers/realtime/socket-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/providers/ui/theme-provider";
-import { Toaster } from "@repo/ui/components/ui/sonner";
+import { Toaster } from "@ws/ui/components/ui/sonner";
 import { UserProvider } from "@/components/providers/user/user-provider";
 
 const outfit = Outfit({

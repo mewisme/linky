@@ -3,10 +3,10 @@
 import type { DropEvent, DropzoneOptions, FileRejection } from "react-dropzone";
 import { createContext, useContext } from "react";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import type { ReactNode } from "react";
 import { UploadIcon } from "lucide-react";
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 import { useDropzone } from "react-dropzone";
 
 type DropzoneContextType = {

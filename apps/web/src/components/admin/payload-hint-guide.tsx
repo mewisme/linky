@@ -1,14 +1,15 @@
 "use client";
 
+import { Alert, AlertDescription, AlertTitle } from "@ws/ui/components/ui/alert";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@repo/ui/components/ui/collapsible";
-import { Alert, AlertDescription, AlertTitle } from "@repo/ui/components/ui/alert";
-import { Button } from "@repo/ui/components/ui/button";
-import { Info } from "lucide-react";
+} from "@ws/ui/components/ui/collapsible";
 import React, { useState } from "react";
+
+import { Button } from "@ws/ui/components/ui/button";
+import { Info } from "lucide-react";
 
 type HintContent = {
   title: string;

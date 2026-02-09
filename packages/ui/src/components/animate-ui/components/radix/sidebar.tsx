@@ -6,30 +6,30 @@ import { cva, VariantProps } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
 import { type Transition } from 'motion/react';
 
-import { useIsMobile } from '@repo/ui/hooks/use-mobile';
-import { cn } from '@repo/ui/lib/utils';
-import { Button } from '@repo/ui/components/ui/button';
-import { Input } from '@repo/ui/components/ui/input';
-import { Separator } from '@repo/ui/components/ui/separator';
-import { Skeleton } from '@repo/ui/components/ui/skeleton';
+import { useIsMobile } from '@ws/ui/hooks/use-mobile';
+import { cn } from '@ws/ui/lib/utils';
+import { Button } from '@ws/ui/components/ui/button';
+import { Input } from '@ws/ui/components/ui/input';
+import { Separator } from '@ws/ui/components/ui/separator';
+import { Skeleton } from '@ws/ui/components/ui/skeleton';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@repo/ui/components/animate-ui/components/radix/sheet';
+} from '@ws/ui/components/animate-ui/components/radix/sheet';
 import {
   TooltipProvider,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@repo/ui/components/animate-ui/components/animate/tooltip';
+} from '@ws/ui/components/animate-ui/components/animate/tooltip';
 import {
   Highlight,
   HighlightItem,
-} from '@repo/ui/components/animate-ui/primitives/effects/highlight';
-import { getStrictContext } from '@repo/ui/lib/get-strict-context';
+} from '@ws/ui/components/animate-ui/primitives/effects/highlight';
+import { getStrictContext } from '@ws/ui/lib/get-strict-context';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

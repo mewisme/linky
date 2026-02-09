@@ -1,28 +1,28 @@
 "use client";
 
 import { Activity, useEffect, useRef } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import type { ChatMessage, ChatMessageDraft } from "@/types/chat-message.types";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
-} from "@repo/ui/components/ui/drawer";
+} from "@ws/ui/components/ui/drawer";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@repo/ui/components/ui/sheet";
+} from "@ws/ui/components/ui/sheet";
 
 import { ChatInputBar } from "./chat-input-bar";
 import { ChatMessageBubble } from "./chat-message-bubble";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
-import { ScrollArea } from "@repo/ui/components/ui/scroll-area";
-import { cn } from "@repo/ui/lib/utils";
+import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
+import { cn } from "@ws/ui/lib/utils";
 import { motion } from "motion/react";
-import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 
 const GROUP_TIME_GAP = 2 * 60 * 1000;
 

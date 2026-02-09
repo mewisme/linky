@@ -1,21 +1,22 @@
 "use client";
 
-import { PayloadHintGuide } from "@/components/admin/payload-hint-guide";
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@repo/ui/components/kibo-ui/dropzone";
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@ws/ui/components/kibo-ui/dropzone";
+import React, { useEffect, useState } from "react";
+
 import { AppLayout } from "@/components/layouts/app-layout";
+import { Button } from "@ws/ui/components/ui/button";
+import { Input } from "@ws/ui/components/ui/input";
+import { Label } from "@ws/ui/components/ui/label";
+import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import { PayloadHintGuide } from "@/components/admin/payload-hint-guide";
+import { Textarea } from "@ws/ui/components/ui/textarea";
 import { getAdminPresignedUpload } from "@/lib/api/admin-media";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { uploadToS3 } from "@/lib/api/s3";
-import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
-import { Label } from "@repo/ui/components/ui/label";
-import { Textarea } from "@repo/ui/components/ui/textarea";
-import { toast } from "@repo/ui/components/ui/sonner";
+import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/components/providers/user/user-provider";
-import { Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
 
 const IMAGE_ACCEPT = {
   "image/png": [".png"],

@@ -6,25 +6,25 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@repo/ui/components/ui/dialog'
+} from '@ws/ui/components/ui/dialog'
 import {
   Drawer,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-} from '@repo/ui/components/ui/drawer'
+} from '@ws/ui/components/ui/drawer'
 import { IconEye, IconEyeOff, IconLoader2 } from '@tabler/icons-react'
 import { getClerkErrorMessage, getPasswordStrength } from './security-utils'
 import { isClerkRuntimeError, isReverificationCancelledError } from '@clerk/nextjs/errors'
 import { useEffect, useState, useTransition } from 'react'
 
-import { Button } from '@repo/ui/components/ui/button'
-import { Input } from '@repo/ui/components/ui/input'
-import { Label } from '@repo/ui/components/ui/label'
+import { Button } from '@ws/ui/components/ui/button'
+import { Input } from '@ws/ui/components/ui/input'
+import { Label } from '@ws/ui/components/ui/label'
 import type { UserResource } from '@clerk/types'
-import { toast } from '@repo/ui/components/ui/sonner'
-import { useIsMobile } from '@repo/ui/hooks/use-mobile'
+import { toast } from '@ws/ui/components/ui/sonner'
+import { useIsMobile } from '@ws/ui/hooks/use-mobile'
 import { useReverification } from '@clerk/nextjs'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 

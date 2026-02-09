@@ -2,7 +2,7 @@
 
 import { IconHeart, IconSparkles, IconTrophy, IconUserCheck } from "@tabler/icons-react";
 
-import { Card } from "@repo/ui/components/ui/card";
+import { Card } from "@ws/ui/components/ui/card";
 import { MotionEffect } from "@/components/effects/motion-effect";
 
 const FEATURES = [

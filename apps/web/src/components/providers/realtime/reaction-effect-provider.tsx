@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
-import { toast } from "@repo/ui/components/ui/sonner";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useSocket } from "@/hooks/socket/use-socket";
 import { useUserContext } from "@/components/providers/user/user-provider";
 

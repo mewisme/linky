@@ -15,16 +15,16 @@ import {
   useRef,
   useState,
 } from "react";
-import { Button } from "@repo/ui/components/ui/button";
-import { Input } from "@repo/ui/components/ui/input";
+import { Button } from "@ws/ui/components/ui/button";
+import { Input } from "@ws/ui/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@repo/ui/components/ui/select";
-import { cn } from "@repo/ui/lib/utils";
+} from "@ws/ui/components/ui/select";
+import { cn } from "@ws/ui/lib/utils";
 
 type ColorPickerContextValue = {
   hue: number;

@@ -6,16 +6,16 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@repo/ui/components/ui/card'
+} from '@ws/ui/components/ui/card'
 import { IconEye, IconEyeOff, IconLoader2, IconLock } from '@tabler/icons-react'
 import { getClerkErrorMessage, getPasswordStrength } from './security-utils'
 import { useState, useTransition } from 'react'
 
-import { Button } from '@repo/ui/components/ui/button'
-import { Input } from '@repo/ui/components/ui/input'
-import { Label } from '@repo/ui/components/ui/label'
+import { Button } from '@ws/ui/components/ui/button'
+import { Input } from '@ws/ui/components/ui/input'
+import { Label } from '@ws/ui/components/ui/label'
 import type { UserResource } from '@clerk/types'
-import { toast } from '@repo/ui/components/ui/sonner'
+import { toast } from '@ws/ui/components/ui/sonner'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
 interface SecurityPasswordCardProps {

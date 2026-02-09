@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@repo/ui/lib/utils";
+import { cn } from "@ws/ui/lib/utils";
 import { motion } from "motion/react";
 
 interface LoaderProps extends React.HTMLAttributes<HTMLDivElement> {

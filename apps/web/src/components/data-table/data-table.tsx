@@ -6,19 +6,19 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger
-} from "@repo/ui/components/animate-ui/components/radix/dropdown-menu"
+} from "@ws/ui/components/animate-ui/components/radix/dropdown-menu"
 import { IconChevronDown, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconLayoutColumns, IconSearch } from "@tabler/icons-react"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from '@repo/ui/components/ui/input-group'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@repo/ui/components/ui/table"
+} from '@ws/ui/components/ui/input-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ws/ui/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@ws/ui/components/ui/table"
 
-import { Button } from "@repo/ui/components/ui/button"
-import { Label } from "@repo/ui/components/ui/label"
-import { cn } from "@repo/ui/lib/utils"
+import { Button } from "@ws/ui/components/ui/button"
+import { Label } from "@ws/ui/components/ui/label"
+import { cn } from "@ws/ui/lib/utils"
 import { useState } from "react"
 
 interface DataTableProps<TData> {

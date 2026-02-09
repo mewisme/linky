@@ -1,6 +1,6 @@
 'use client'
 
-import { Badge } from '@repo/ui/components/ui/badge'
+import { Badge } from '@ws/ui/components/ui/badge'
 import { IconLanguage } from '@tabler/icons-react'
 import type { UserDetails } from '@/stores/user-store'
 

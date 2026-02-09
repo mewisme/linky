@@ -1,5 +1,5 @@
 {
-  "extends": "@repo/typescript-config/nextjs.json",
+  "extends": "@ws/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "target": "ESNext",
@@ -25,7 +25,7 @@
       "@/*": [
         "./src/*"
       ],
-      "@repo/ui/*": [
+      "@ws/ui/*": [
         "../../packages/ui/src/*"
       ]
     },

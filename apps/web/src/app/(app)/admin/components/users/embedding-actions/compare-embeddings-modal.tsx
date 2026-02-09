@@ -6,21 +6,21 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@repo/ui/components/ui/dialog';
+} from '@ws/ui/components/ui/dialog';
 import {
   Drawer,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-} from '@repo/ui/components/ui/drawer';
+} from '@ws/ui/components/ui/drawer';
 
 import type { AdminAPI } from '@/types/admin.types';
-import { Button } from '@repo/ui/components/ui/button';
+import { Button } from '@ws/ui/components/ui/button';
 import { IconLoader2 } from '@tabler/icons-react';
-import { Label } from '@repo/ui/components/ui/label';
+import { Label } from '@ws/ui/components/ui/label';
 import { UserSearchSelect } from './user-search-select';
-import { useIsMobile } from '@repo/ui/hooks/use-mobile';
+import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useState } from 'react';
 
 interface CompareResult {

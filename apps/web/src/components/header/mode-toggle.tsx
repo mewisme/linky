@@ -7,10 +7,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@repo/ui/components/ui/dropdown-menu"
+} from "@ws/ui/components/ui/dropdown-menu"
 import { Moon, Sun } from "lucide-react"
 
-import { Button } from "@repo/ui/components/ui/button"
+import { Button } from "@ws/ui/components/ui/button"
 import { useTheme } from "next-themes"
 
 export function ModeToggle() {

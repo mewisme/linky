@@ -2,12 +2,12 @@ import { GiphyPicker, useGiphyPicker } from "@/app/(app)/chat/components/giphy";
 import { IconMoodSmile, IconPhoto, IconSend, IconX } from "@tabler/icons-react";
 import { useMemo, useRef, useState } from "react";
 
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import type { ChatMessageDraft } from "@/types/chat-message.types";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import Image from "next/image";
-import { Textarea } from "@repo/ui/components/ui/textarea";
-import { cn } from "@repo/ui/lib/utils";
+import { Textarea } from "@ws/ui/components/ui/textarea";
+import { cn } from "@ws/ui/lib/utils";
 import { compressImageFile } from "@/lib/chat/image-compression";
 import { dataUrlByteSize } from "@/lib/chat/blob-utils";
 import { maxAttachmentBytes } from "@/lib/chat/attachment-limits";

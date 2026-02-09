@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import type { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
-import { Button } from "@repo/ui/components/ui/button";
+import { Button } from "@ws/ui/components/ui/button";
 import { ChangelogsDataTable } from "@/components/data-table/changelogs/data-table";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";

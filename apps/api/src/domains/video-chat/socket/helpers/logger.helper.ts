@@ -1,3 +1,3 @@
-import { createLogger } from "@repo/logger";
+import { createLogger } from "@ws/logger";
 
 export const logger: ReturnType<typeof createLogger> = createLogger("api:video-chat:socket:handlers");

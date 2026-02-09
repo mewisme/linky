@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 import { Logo } from "./logo";
 import { motion, type Variants } from "motion/react"
-import { useIsMobile } from "@repo/ui/hooks/use-mobile";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { ModeToggle } from "../mode-toggle";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { CommandMenu } from '@/components/header/command-menu'

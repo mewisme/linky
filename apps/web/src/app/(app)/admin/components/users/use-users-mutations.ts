@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { AdminAPI } from '@/types/admin.types';
-import { toast } from '@repo/ui/components/ui/sonner';
+import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 
 interface UseUsersMutationsParams {

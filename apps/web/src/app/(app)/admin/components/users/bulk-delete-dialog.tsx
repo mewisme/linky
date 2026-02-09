@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@repo/ui/components/animate-ui/components/radix/alert-dialog';
+} from '@ws/ui/components/animate-ui/components/radix/alert-dialog';
 
 import type { AdminAPI } from '@/types/admin.types';
 

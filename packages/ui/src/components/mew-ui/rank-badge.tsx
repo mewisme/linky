@@ -1,5 +1,5 @@
-import { cn } from "@repo/ui/lib/utils"
-import { Badge } from "@repo/ui/components/ui/badge"
+import { cn } from "@ws/ui/lib/utils"
+import { Badge } from "@ws/ui/components/ui/badge"
 import { ComponentProps } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 

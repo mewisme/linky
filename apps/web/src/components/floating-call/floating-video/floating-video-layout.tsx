@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@repo/ui/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 
 import type { FloatingLayoutMode } from "./floating-video-state";
 import { IconMicrophoneOff } from "@tabler/icons-react";

@@ -1,5 +1,5 @@
 {
-  "extends": "@repo/typescript-config/react-library.json",
+  "extends": "@ws/typescript-config/react-library.json",
   "compilerOptions": {
     "baseUrl": ".",
     "typeRoots": [
@@ -10,7 +10,7 @@
       "@/*": [
         "./src/*"
       ],
-      "@repo/ui/*": [
+      "@ws/ui/*": [
         "./src/*"
       ]
     }

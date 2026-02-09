@@ -32,8 +32,8 @@ import {
   type DropdownMenuSubContentProps as DropdownMenuSubContentPrimitiveProps,
   type DropdownMenuSubTriggerProps as DropdownMenuSubTriggerPrimitiveProps,
   type DropdownMenuTriggerProps as DropdownMenuTriggerPrimitiveProps,
-} from '@repo/ui/components/animate-ui/primitives/radix/dropdown-menu';
-import { cn } from '@repo/ui/lib/utils';
+} from '@ws/ui/components/animate-ui/primitives/radix/dropdown-menu';
+import { cn } from '@ws/ui/lib/utils';
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
 
 type DropdownMenuProps = DropdownMenuPrimitiveProps;

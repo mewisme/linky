@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Add Dockerfile for ollama service ([ff44624](../../commit/ff44624))
+- Remove obsolete ollama build steps from GitHub Actions workflow ([8816b61](../../commit/8816b61))
 
 🔨 Other Changes
 
-- Bump package versions to 0.48.4 and update version lock ([ef44969](../../commit/ef44969))
+- Bump package versions to 0.49.0 and update version lock ([7562155](../../commit/7562155))
 
 
-📋 Full Changelog: [ef44969...ff44624](../../compare/ef44969...ff44624)
+📋 Full Changelog: [7562155...8816b61](../../compare/7562155...8816b61)

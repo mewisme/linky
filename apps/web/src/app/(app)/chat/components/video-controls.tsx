@@ -47,7 +47,10 @@ import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "r
 
 import { trackEvent } from "@/lib/analytics/events";
 import { useUserContext } from "@/components/providers/user/user-provider";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData, postData } from "@/lib/api/fetch/client-api";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
@@ -182,7 +185,8 @@ export function VideoControls({
   sendFavoriteNotification,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
-  const { state, user } = useUserContext();
+  const { user } = useUserContext();
+  const { token } = useUserTokenContext();
   const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -200,19 +204,16 @@ export function VideoControls({
     let mounted = true;
 
     const checkIfFavorited = async () => {
+      if (!token || !mounted) return;
+
       try {
-        const token = await state.getToken();
-        if (!token || !mounted) return;
+        const data = await fetchData<ResourcesAPI.Favorites.Get.Response>(
+          apiUrl.resources.favorites(),
+          { token }
+        );
 
-        const response = await fetch("/api/resources/favorites", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        if (!mounted) return;
 
-        if (!response.ok || !mounted) return;
-
-        const data = await response.json();
         const favorites = data.data || [];
         const isFavorited = favorites.some(
           (fav: { favorite_user_id: string }) => fav.favorite_user_id === peerInfo.id
@@ -231,10 +232,10 @@ export function VideoControls({
     return () => {
       mounted = false;
     };
-  }, [peerInfo?.id, state]);
+  }, [peerInfo?.id, token]);
 
   const handleToggleFavorite = async () => {
-    if (!peerInfo?.id || isFavoriteLoading) {
+    if (!peerInfo?.id || isFavoriteLoading || !token) {
       return;
     }
 
@@ -242,50 +243,32 @@ export function VideoControls({
     const isAdding = !isFavorite;
 
     try {
-      const token = await state.getToken();
-
       if (isAdding) {
-        const response = await fetch("/api/resources/favorites", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        await postData(apiUrl.resources.favorites(), {
+          token,
+          body: {
             favorite_user_id: peerInfo.id,
-          }),
-        });
-
-        if (response.ok) {
-          setIsFavorite(true);
-          trackEvent({ name: "favorite_added" });
-          toast.success("Added to favorites ❤️");
-
-          const userName = user.user?.fullName || user.user?.firstName || "Someone";
-          sendFavoriteNotification("added", peerInfo.id, userName || "Someone");
-        } else {
-          const error = await response.json();
-          toast.error(error.message || "Failed to add favorite");
-        }
-      } else {
-        const response = await fetch(`/api/resources/favorites/${peerInfo.id}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
           },
         });
 
-        if (response.ok) {
-          setIsFavorite(false);
-          trackEvent({ name: "favorite_removed" });
-          toast.success("Removed from favorites");
+        setIsFavorite(true);
+        trackEvent({ name: "favorite_added" });
+        toast.success("Added to favorites ❤️");
 
-          const userName = user.user?.fullName || user.user?.firstName || "Someone";
-          sendFavoriteNotification("removed", peerInfo.id, userName || "Someone");
-        } else {
-          const error = await response.json();
-          toast.error(error.message || "Failed to remove favorite");
-        }
+        const userName = user.user?.fullName || user.user?.firstName || "Someone";
+        sendFavoriteNotification("added", peerInfo.id, userName || "Someone");
+      } else {
+        await fetchData(apiUrl.resources.favoriteByUserId(peerInfo.id), {
+          token,
+          method: "DELETE",
+        });
+
+        setIsFavorite(false);
+        trackEvent({ name: "favorite_removed" });
+        toast.success("Removed from favorites");
+
+        const userName = user.user?.fullName || user.user?.firstName || "Someone";
+        sendFavoriteNotification("removed", peerInfo.id, userName || "Someone");
       }
     } catch (error: unknown) {
       console.error("Failed to toggle favorite", error);
@@ -656,37 +639,26 @@ export function VideoControls({
                     return;
                   }
 
+                  if (!token) {
+                    toast.error("Authentication required");
+                    return;
+                  }
+
                   setIsSubmittingReport(true);
                   try {
-                    const token = await state.getToken();
-                    if (!token) {
-                      toast.error("Authentication required");
-                      return;
-                    }
-
-                    const response = await fetch("/api/resources/reports", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                      },
-                      body: JSON.stringify({
+                    await postData(apiUrl.resources.reports(), {
+                      token,
+                      body: {
                         reported_user_id: peerInfo.id,
                         reason: reportReason.trim(),
-                      } as ResourcesAPI.Reports.Create.Body),
+                      } as ResourcesAPI.Reports.Create.Body,
                     });
-
-                    if (!response.ok) {
-                      const error = await response.json();
-                      toast.error(error.message || "Failed to submit report");
-                      return;
-                    }
 
                     toast.success("Report submitted successfully");
                     setIsReportOpen(false);
                     setReportReason("");
-                  } catch {
-                    toast.error("Failed to submit report");
+                  } catch (error) {
+                    toast.error(error instanceof Error ? error.message : "Failed to submit report");
                   } finally {
                     setIsSubmittingReport(false);
                   }

@@ -1,33 +1,35 @@
 import type { VapidPublicKeyResponse } from "@/types/notifications.types";
-import { client } from "@/lib/client";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { deleteData, fetchData, postData } from "@/lib/api/fetch/client-api";
 
 export async function subscribeToPush(
   subscription: PushSubscriptionJSON,
   token: string
 ): Promise<void> {
-  return client.post<void>(
-    "/api/push/subscribe",
-    {
+  return postData<void>(apiUrl.push.subscribe(), {
+    token,
+    body: {
       subscription: {
         endpoint: subscription.endpoint,
         keys: subscription.keys,
       },
     },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  });
 }
 
 export async function unsubscribeFromPush(
   endpoint: string,
   token: string
 ): Promise<void> {
-  return client.delete<void>("/api/push/unsubscribe", {
-    headers: { Authorization: `Bearer ${token}` },
+  return deleteData<void>(apiUrl.push.unsubscribe(), {
+    token,
     body: { endpoint },
   });
 }
 
 export async function getVapidPublicKey(token?: string): Promise<VapidPublicKeyResponse> {
-  const opts = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
-  return client.get<VapidPublicKeyResponse>("/api/push/vapid-public-key", opts);
+  return fetchData<VapidPublicKeyResponse>(
+    apiUrl.push.vapidPublicKey(),
+    token ? { token } : {}
+  );
 }

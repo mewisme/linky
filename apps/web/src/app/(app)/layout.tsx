@@ -10,9 +10,10 @@ import { FloatingCallProvider } from "@/components/floating-call/floating-call-p
 import { GlobalCallManager } from "@/components/providers/call/global-call-manager";
 import { useCommandMenuStore } from "@/stores/command-menu-store";
 import { useHotkeys } from 'react-hotkeys-hook';
+import { useState } from 'react';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const queryClient = new QueryClient();
+  const [queryClient] = useState(() => new QueryClient());
   const { open } = useCommandMenuStore();
 
   useHotkeys("mod+k, slash", (e) => {

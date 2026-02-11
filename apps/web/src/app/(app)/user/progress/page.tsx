@@ -9,19 +9,21 @@ import {
   DialogTitle,
 } from "@ws/ui/components/ui/dialog";
 import { IconClock, IconFlame, IconSnowflake, IconStar } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Badge } from "@ws/ui/components/ui/badge";
 import { Button } from "@ws/ui/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { Progress } from "@ws/ui/components/ui/progress";
 import { StreakCalendar } from "@/components/user/streak-calendar";
 import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";
 import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData } from "@/lib/api/fetch/client-api";
 
 function formatSeconds(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -49,29 +51,21 @@ function formatExp(exp: number): string {
 }
 
 export default function UserProgressPage() {
-  const { state } = useUserContext();
-  const [token, setToken] = useState<string | null>(null);
+  const { token } = useUserTokenContext();
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const token = await state.getToken();
-      setToken(token);
-    }
-    fetchToken();
-  }, [state])
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
     queryFn: async () => {
-      const res = await fetch(`/api/users/progress`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "x-user-timezone": getUserTimezone(),
-        },
-      });
-      if (!res.ok) throw new Error("Failed to load progress data");
-      return res.json() as Promise<UsersAPI.Progress.GetMe.Response>;
+      return fetchData<UsersAPI.Progress.GetMe.Response>(
+        apiUrl.users.progress(),
+        {
+          token: token ?? undefined,
+          headers: {
+            "x-user-timezone": getUserTimezone(),
+          },
+        }
+      );
     },
     enabled: !!token,
   });

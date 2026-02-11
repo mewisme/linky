@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion } from "@ws/ui/internal-lib/motion";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { FloatingVideoLayout } from "./floating-video-layout";

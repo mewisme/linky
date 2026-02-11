@@ -1,6 +1,6 @@
 "use client";
 
-import { Variants, motion } from "motion/react";
+import { Variants, motion } from "@ws/ui/internal-lib/motion";
 
 import { cn } from "@ws/ui/lib/utils";
 

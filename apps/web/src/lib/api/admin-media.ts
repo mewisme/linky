@@ -1,4 +1,5 @@
-import { client } from "@/lib/client";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { postData } from "@/lib/api/fetch/client-api";
 
 export type AdminPresignedIntent = "reward" | "feature";
 
@@ -18,15 +19,8 @@ export async function getAdminPresignedUpload(
   params: AdminPresignedUploadParams,
   token: string
 ): Promise<AdminPresignedUploadResponse> {
-  const data = await client.post<AdminPresignedUploadResponse>(
-    "/api/admin/media/presigned-upload",
-    params,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  return data;
+  return postData<AdminPresignedUploadResponse>(apiUrl.admin.mediaPresignedUpload(), {
+    token,
+    body: params,
+  });
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { Header } from "@/components/header/landing/index";
 import { cn } from "@ws/ui/lib/utils";
-import { motion, type Variants } from "motion/react";
+import { motion, type Variants } from "@ws/ui/internal-lib/motion";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { Hero } from "./components/landing/hero";

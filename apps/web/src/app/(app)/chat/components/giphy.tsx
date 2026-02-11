@@ -19,6 +19,7 @@ import {
   type GiphyMediaItem,
 } from "@/lib/chat/giphy-client";
 import { ButtonGroup } from "@ws/ui/components/ui/button-group";
+import { Loading } from "@/components/common/loading";
 
 /* -------------------------------------------------- */
 /* GiphyPickerContent                                 */
@@ -89,9 +90,7 @@ function GiphyPickerContent({
       <ScrollArea className="h-40" data-slot="giphy-picker-grid">
         <div className="grid grid-cols-3 gap-2 pr-2">
           {loading && (
-            <p className="col-span-3 text-xs text-muted-foreground">
-              Loading...
-            </p>
+            <Loading title="Loading giphy..." />
           )}
 
           {!loading &&

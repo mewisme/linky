@@ -9,7 +9,7 @@ import {
   type UseInViewOptions,
   type Transition,
   type Variant,
-} from 'motion/react';
+} from '@ws/ui/internal-lib/motion';
 
 type MotionEffectProps = HTMLMotionProps<'div'> & {
   children: React.ReactNode;

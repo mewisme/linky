@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 
 import { Logo } from "./logo";
-import { motion, type Variants } from "motion/react"
+import { motion, type Variants } from "@ws/ui/internal-lib/motion"
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { ModeToggle } from "../mode-toggle";
 import { useUserContext } from "@/components/providers/user/user-provider";

@@ -80,7 +80,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
   });
 
   process.on("unhandledRejection", (reason: unknown) => {
-    logger.fatal("Unhandled rejection: %o", reason instanceof Error ? reason : new Error(String(reason)));
+    logger.fatal("Unhandled rejection: %o", reason as Error);
     shutdown("unhandledRejection").catch(() => {
       process.exit(1);
     });

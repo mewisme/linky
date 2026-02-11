@@ -1,33 +1,30 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import type { AdminAPI } from '@/types/admin.types';
 import { useQuery } from '@tanstack/react-query';
-import { useUserContext } from '@/components/providers/user/user-provider';
+import { useUserTokenContext } from '@/components/providers/user/user-token-provider';
+import { apiUrl } from '@/lib/api/fetch/api-url';
+import { fetchData } from '@/lib/api/fetch/client-api';
 
-export function useUsersQuery() {
-  const { state } = useUserContext();
-  const [token, setToken] = useState<string | null>(null);
+interface UseUsersQueryOptions {
+  initialData?: AdminAPI.GetUsers.Response;
+}
 
-  useEffect(() => {
-    const fetchToken = async () => {
-      const t = await state.getToken();
-      setToken(t);
-    };
-    fetchToken();
-  }, [state]);
+export function useUsersQuery(options?: UseUsersQueryOptions) {
+  const { token } = useUserTokenContext();
 
   const query = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/users?all=true`, {
-        headers: { Authorization: `Bearer ${token || ''}` },
-      });
-      if (!res.ok) throw new Error('Failed to load data');
-      return res.json() as Promise<AdminAPI.GetUsers.Response>;
+      const params = new URLSearchParams({ all: 'true' });
+      return fetchData<AdminAPI.GetUsers.Response>(
+        apiUrl.admin.users(params),
+        {
+          token: token ?? undefined,
+        }
+      );
     },
-    enabled: !!token,
+    initialData: options?.initialData,
   });
 
   return {

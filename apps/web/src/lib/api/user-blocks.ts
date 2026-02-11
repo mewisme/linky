@@ -1,31 +1,26 @@
 import type { BlockRecord, BlockedUsersResponse } from "@/types/notifications.types";
-
-import { client } from "@/lib/client";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { deleteData, fetchData, postData } from "@/lib/api/fetch/client-api";
 
 export async function blockUser(
   userId: string,
   token: string
 ): Promise<BlockRecord> {
-  return client.post<BlockRecord>(
-    "/api/users/blocks",
-    { blocked_user_id: userId },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  return postData<BlockRecord>(apiUrl.users.blocks(), {
+    token,
+    body: { blocked_user_id: userId },
+  });
 }
 
 export async function unblockUser(
   userId: string,
   token: string
 ): Promise<void> {
-  return client.delete<void>(`/api/users/blocks/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return deleteData<void>(apiUrl.users.blockByUserId(userId), { token });
 }
 
 export async function getBlockedUsers(
   token: string
 ): Promise<BlockedUsersResponse> {
-  return client.get<BlockedUsersResponse>("/api/users/blocks/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return fetchData<BlockedUsersResponse>(apiUrl.users.blocksMe(), { token });
 }

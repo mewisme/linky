@@ -22,6 +22,8 @@ import { Input } from '@ws/ui/components/ui/input';
 import { Label } from '@ws/ui/components/ui/label';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useState } from 'react';
+import { apiUrl } from '@/lib/api/fetch/api-url';
+import { postData } from '@/lib/api/fetch/client-api';
 
 interface SimilarResult {
   user_id: string;
@@ -77,25 +79,16 @@ export function FindSimilarUsersModal({
     setError(null);
     setResult(null);
     try {
-      const res = await fetch('/api/admin/embeddings/similar', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const data = await postData<FindSimilarResponse>(apiUrl.admin.embeddingsSimilar(), {
+        token,
+        body: {
           user_id: user.id,
           limit: effectiveLimit,
-        }),
+        },
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message ?? 'Failed to find similar users');
-        return;
-      }
-      setResult(data as FindSimilarResponse);
-    } catch {
-      setError('Network error');
+      setResult(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to find similar users');
     } finally {
       setIsLoading(false);
     }

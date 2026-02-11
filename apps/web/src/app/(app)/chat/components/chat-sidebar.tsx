@@ -21,7 +21,7 @@ import { ChatMessageBubble } from "./chat-message-bubble";
 import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
 import { cn } from "@ws/ui/lib/utils";
-import { motion } from "motion/react";
+import { motion } from "@ws/ui/internal-lib/motion";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 
 const GROUP_TIME_GAP = 2 * 60 * 1000;

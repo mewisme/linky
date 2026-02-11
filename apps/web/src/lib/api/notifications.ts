@@ -2,8 +2,8 @@ import type {
   NotificationsResponse,
   UnreadCountResponse,
 } from "@/types/notifications.types";
-
-import { client } from "@/lib/client";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData, patchData } from "@/lib/api/fetch/client-api";
 
 interface GetNotificationsParams {
   limit?: number;
@@ -16,37 +16,29 @@ export async function getNotifications(
   params: GetNotificationsParams = {}
 ): Promise<NotificationsResponse> {
   const { limit = 20, offset = 0, unreadOnly = false } = params;
-  return client.get<NotificationsResponse>("/api/notifications/me", {
-    params: {
-      limit,
-      offset,
-      unread_only: unreadOnly,
-    },
-    headers: { Authorization: `Bearer ${token}` },
+  const searchParams = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+    unread_only: String(unreadOnly),
   });
+  return fetchData<NotificationsResponse>(apiUrl.notifications.me(searchParams), { token });
 }
 
 export async function getUnreadCount(
   token: string
 ): Promise<UnreadCountResponse> {
-  return client.get<UnreadCountResponse>("/api/notifications/me/unread-count", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return fetchData<UnreadCountResponse>(apiUrl.notifications.unreadCount(), { token });
 }
 
 export async function markNotificationRead(
   id: string,
   token: string
 ): Promise<void> {
-  return client.patch<void>(`/api/notifications/${id}/read`, undefined, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return patchData<void>(apiUrl.notifications.readById(id), { token });
 }
 
 export async function markAllNotificationsRead(
   token: string
 ): Promise<void> {
-  return client.patch<void>("/api/notifications/read-all", undefined, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  return patchData<void>(apiUrl.notifications.readAll(), { token });
 }

@@ -8,7 +8,7 @@ interface AppLayoutProps {
 }
 
 import { Button } from "@ws/ui/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "@ws/ui/internal-lib/icons";
 import { useRouter } from "next/navigation";
 
 export function AppLayout({ children, label, description, backButton = false }: AppLayoutProps) {

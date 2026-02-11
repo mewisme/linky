@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion } from "@ws/ui/internal-lib/motion";
 import { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";

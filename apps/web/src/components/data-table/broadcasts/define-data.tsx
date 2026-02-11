@@ -2,17 +2,9 @@
 
 import { Checkbox } from "@ws/ui/components/ui/checkbox";
 import { type ColumnDef } from "@tanstack/react-table";
+import type { AdminAPI } from "@/types/admin.types";
 
-export interface BroadcastHistoryRow {
-  id: string;
-  created_by_user_id: string;
-  title: string | null;
-  message: string;
-  created_at: string;
-  creator_first_name: string | null;
-  creator_last_name: string | null;
-  creator_email: string | null;
-}
+export type BroadcastHistoryRow = AdminAPI.Broadcasts.HistoryRow;
 
 function formatCreator(row: BroadcastHistoryRow): string {
   const name = [row.creator_first_name, row.creator_last_name].filter(Boolean).join(" ").trim();

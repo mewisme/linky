@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from "@ws/ui/lib/utils"
-import { motion, type Variants, type SVGMotionProps } from "motion/react"
+import { motion, type Variants, type SVGMotionProps } from "@ws/ui/internal-lib/motion"
 
 const logoData = {
   viewBox: "0 0 300 109",

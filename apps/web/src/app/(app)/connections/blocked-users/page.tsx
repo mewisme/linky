@@ -7,7 +7,8 @@ import type { BlockedUserWithDetails } from "@/types/notifications.types";
 import { BlockedUsersDataTable } from "@/components/data-table/blocked-users/data-table";
 import { Button } from "@ws/ui/components/ui/button";
 import { IconRefresh } from "@tabler/icons-react";
-import { client } from "@/lib/client";
+import { fetchData } from "@/lib/api/fetch/client-api";
+import { apiUrl } from "@/lib/api/fetch/api-url";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useBlockUser } from "@/hooks/user/use-block-user";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -24,9 +25,9 @@ export default function BlockedUsersPage() {
       const token = await state.getToken();
       if (!token) return;
 
-      const res = await client.get<{ blocked_users: BlockedUserWithDetails[] }>(
-        "/api/users/blocks/me",
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await fetchData<{ blocked_users: BlockedUserWithDetails[] }>(
+        apiUrl.users.blocksMe(),
+        { token }
       );
       setData(res.blocked_users);
     } catch {

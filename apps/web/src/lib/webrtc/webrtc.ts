@@ -1,4 +1,5 @@
-import { client } from "@/lib/client";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData } from "@/lib/api/fetch/client-api";
 
 export interface IceServersResponse {
   iceServers: RTCIceServer[];
@@ -6,8 +7,8 @@ export interface IceServersResponse {
 
 export async function fetchIceServers(token: string | null): Promise<RTCIceServer[]> {
   try {
-    const data = await client.get<IceServersResponse>("/api/media/ice-servers", {
-      headers: { Authorization: `Bearer ${token}` },
+    const data = await fetchData<IceServersResponse>(apiUrl.media.iceServers(), {
+      token: token ?? undefined,
     });
     return data.iceServers;
   } catch (error) {

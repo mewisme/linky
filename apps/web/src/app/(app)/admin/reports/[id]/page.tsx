@@ -12,6 +12,7 @@ import { AppLayout } from '@/components/layouts/app-layout'
 import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
 import { Label } from '@ws/ui/components/ui/label'
+import { Loading } from '@/components/common/loading'
 import { Separator } from '@ws/ui/components/ui/separator'
 import { Textarea } from '@ws/ui/components/ui/textarea'
 import { formatDuration } from '@/utils/call-history'
@@ -128,9 +129,7 @@ export default function AdminReportDetailPage() {
   if (isLoading || !report) {
     return (
       <AppLayout label="Report Details" description="View and manage report" backButton>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading...</div>
-        </div>
+        <Loading title="Loading report..." />
       </AppLayout>
     )
   }

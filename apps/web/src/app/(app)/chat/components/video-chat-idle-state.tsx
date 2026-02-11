@@ -2,43 +2,36 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import { IconFlame, IconPlayerPlay, IconStar } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import type { UsersAPI } from "@/types/users.types";
 import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";
 import { useUserContext } from "@/components/providers/user/user-provider";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData } from "@/lib/api/fetch/client-api";
 
 interface VideoChatIdleStateProps {
   onStart: () => void;
 }
 
 export function VideoChatIdleState({ onStart }: VideoChatIdleStateProps) {
-  const { state, user } = useUserContext();
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    state.getToken().then((t) => {
-      if (mounted) setToken(t);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, [state]);
+  const { user } = useUserContext();
+  const { token } = useUserTokenContext();
 
   const { data: progress } = useQuery({
     queryKey: ["user-progress"],
     queryFn: async () => {
-      const res = await fetch("/api/users/progress", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "x-user-timezone": getUserTimezone(),
-        },
-      });
-      if (!res.ok) throw new Error("Failed to load progress");
-      return res.json() as Promise<UsersAPI.Progress.GetMe.Response>;
+      return fetchData<UsersAPI.Progress.GetMe.Response>(
+        apiUrl.users.progress(),
+        {
+          token: token ?? undefined,
+          headers: {
+            "x-user-timezone": getUserTimezone(),
+          },
+        }
+      );
     },
     enabled: !!token,
   });

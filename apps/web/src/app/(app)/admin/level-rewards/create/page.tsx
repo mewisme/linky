@@ -1,14 +1,14 @@
 "use client";
 
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@ws/ui/components/kibo-ui/dropzone";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { Input } from "@ws/ui/components/ui/input";
 import { Label } from "@ws/ui/components/ui/label";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { PayloadHintGuide } from "@/components/admin/payload-hint-guide";
 import { Textarea } from "@ws/ui/components/ui/textarea";
 import { getAdminPresignedUpload } from "@/lib/api/admin-media";
@@ -16,7 +16,9 @@ import { toast } from "@ws/ui/components/ui/sonner";
 import { uploadToS3 } from "@/lib/api/s3";
 import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { postData } from "@/lib/api/fetch/client-api";
 
 const IMAGE_ACCEPT = {
   "image/png": [".png"],
@@ -27,23 +29,14 @@ const IMAGE_ACCEPT = {
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export default function CreateLevelRewardPage() {
-  const { state } = useUserContext();
+  const { token } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
   const [levelRequired, setLevelRequired] = useState<number>(1);
   const [rewardType, setRewardType] = useState("");
   const [payloadText, setPayloadText] = useState("{}");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const t = await state.getToken();
-      setToken(t);
-    };
-    fetchToken();
-  }, [state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,23 +76,14 @@ export default function CreateLevelRewardPage() {
         };
       }
 
-      const res = await fetch("/api/admin/level-rewards", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      await postData(apiUrl.admin.levelRewards(), {
+        token: token ?? undefined,
+        body: {
           level_required: levelRequired,
           reward_type: rewardType,
           reward_payload: rewardPayload,
-        }),
+        },
       });
-
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
-        throw new Error(err.message || err.error || "Failed to create level reward");
-      }
 
       playSound("success");
       toast.success("Level reward created successfully");

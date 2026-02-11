@@ -22,6 +22,8 @@ import { Label } from '@ws/ui/components/ui/label';
 import { UserSearchSelect } from './user-search-select';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useState } from 'react';
+import { apiUrl } from '@/lib/api/fetch/api-url';
+import { postData } from '@/lib/api/fetch/client-api';
 
 interface CompareResult {
   similarity_score: number;
@@ -73,25 +75,16 @@ export function CompareEmbeddingsModal({
     setError(null);
     setResult(null);
     try {
-      const res = await fetch('/api/admin/embeddings/compare', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const data = await postData<CompareResult>(apiUrl.admin.embeddingsCompare(), {
+        token,
+        body: {
           user_id_a: user.id,
           user_id_b: secondUser.id,
-        }),
+        },
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message ?? 'Failed to compare embeddings');
-        return;
-      }
-      setResult(data as CompareResult);
-    } catch {
-      setError('Network error');
+      setResult(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to compare embeddings');
     } finally {
       setIsLoading(false);
     }

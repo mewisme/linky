@@ -352,6 +352,47 @@ export namespace AdminAPI {
     }
   }
 
+  export namespace Broadcasts {
+    export interface HistoryRow {
+      id: string;
+      created_by_user_id: string;
+      title: string | null;
+      message: string;
+      created_at: string;
+      creator_first_name: string | null;
+      creator_last_name: string | null;
+      creator_email: string | null;
+    }
+
+    export namespace Get {
+      export interface Pagination {
+        limit: number;
+        offset: number;
+        total: number;
+        totalPages: number;
+      }
+
+      export interface Response {
+        data: HistoryRow[];
+        pagination: Pagination;
+      }
+    }
+
+    export namespace Post {
+      export interface Body {
+        message: string;
+        title?: string;
+        deliveryMode?: "push_only" | "push_and_save";
+        url?: string;
+      }
+
+      export interface Response {
+        message: string;
+        sent: number;
+      }
+    }
+  }
+
   export namespace Reports {
     export type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
 

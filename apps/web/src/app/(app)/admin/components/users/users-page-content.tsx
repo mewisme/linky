@@ -16,8 +16,12 @@ import { BulkDeleteDialog } from './bulk-delete-dialog';
 import { BulkActions, type BulkAction } from './bulk-actions';
 import { CompareEmbeddingsModal, FindSimilarUsersModal } from './embedding-actions';
 
-export function UsersPageContent() {
-  const { token, users, isFetching, refetch } = useUsersQuery();
+interface UsersPageContentProps {
+  initialData?: AdminAPI.GetUsers.Response;
+}
+
+export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
+  const { token, users, isFetching, refetch } = useUsersQuery({ initialData });
   const dataWithPresence = useUsersPresence(users);
   const {
     updateMutation,

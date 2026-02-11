@@ -1,5 +1,3 @@
-'use client';
-
 import { menuItems, type MenuItem } from "@/components/sidebar/app-sidebar";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";

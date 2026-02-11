@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { motion } from "motion/react";
+import { motion } from "@ws/ui/internal-lib/motion";
 
 const HINTS = [
   "You earn EXP by talking",

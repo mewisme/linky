@@ -14,9 +14,11 @@ import { useCallback, useState } from "react";
 import type { AdminAPI } from "@/types/admin.types";
 import { Button } from "@ws/ui/components/ui/button";
 import { Label } from "@ws/ui/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { postData } from "@/lib/api/fetch/client-api";
 
 const EXAMPLE_JSON = `{
   "items": [
@@ -88,25 +90,17 @@ export function ImportInterestTagsDialog({
 
     setImporting(true);
     try {
-      const res = await fetch("/api/admin/interest-tags/import", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ items }),
-      });
-      const data = (await res.json()) as AdminAPI.InterestTags.Import.Response | { error?: string; message?: string };
+      const data = await postData<AdminAPI.InterestTags.Import.Response>(
+        apiUrl.admin.interestTagsImport(),
+        {
+          token,
+          body: { items },
+        }
+      );
 
-      if (!res.ok) {
-        toast.error((data as { message?: string }).message || (data as { error?: string }).error || "Import failed");
-        return;
-      }
-
-      const r = data as AdminAPI.InterestTags.Import.Response;
       playSound("success");
       toast.success(
-        `Import complete: ${r.created} created, ${r.updated} updated, ${r.skipped_invalid} invalid.`
+        `Import complete: ${data.created} created, ${data.updated} updated, ${data.skipped_invalid} invalid.`
       );
       onSuccess();
       onOpenChange(false);

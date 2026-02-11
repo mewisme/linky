@@ -14,6 +14,7 @@ import { format, getDay, getDaysInMonth, isToday } from "@ws/ui/internal-lib/dat
 import { useEffect, useMemo, useState } from "react";
 
 import { IconFlameFilled } from "@tabler/icons-react";
+import { Loading } from "@/components/common/loading";
 import type { UsersAPI } from "@/types/users.types";
 import { cn } from "@ws/ui/lib/utils";
 import { getUserTimezone } from "@/utils/timezone";
@@ -188,8 +189,8 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
       <CalendarHeader />
       <div className="grid grow grid-cols-7">
         {isLoading ? (
-          <div className="col-span-7 flex items-center justify-center p-8">
-            <span className="text-muted-foreground text-sm">Loading...</span>
+          <div className="col-span-7 p-8">
+            <Loading height={'full'} width={'full'} title="Loading streak calendar..." />
           </div>
         ) : (
           days.map((day, index) => (

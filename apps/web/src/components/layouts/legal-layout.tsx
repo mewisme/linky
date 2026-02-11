@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, type Variants } from "motion/react";
+import { motion, type Variants } from "@ws/ui/internal-lib/motion";
 import {
   Card,
   CardContent,

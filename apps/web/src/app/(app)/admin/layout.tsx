@@ -1,5 +1,6 @@
 "use client";
 
+import { Loading } from "@/components/common/loading";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -30,11 +31,7 @@ export default function AdminLayout({
 
   if (!clerkLoaded || !userStore) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <Loading height={'full'} width={'full'} size="lg" title="Loading admin resources..." />
     );
   }
 

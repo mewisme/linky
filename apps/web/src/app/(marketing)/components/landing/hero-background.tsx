@@ -2,7 +2,7 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { motion, type SVGMotionProps } from 'motion/react';
+import { motion, type SVGMotionProps } from '@ws/ui/internal-lib/motion';
 
 export const HeroBackground = (props: SVGMotionProps<SVGSVGElement>) => {
   const { resolvedTheme } = useTheme();

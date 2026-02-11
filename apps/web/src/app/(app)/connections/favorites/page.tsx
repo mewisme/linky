@@ -4,34 +4,32 @@ import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/components/layouts/app-layout'
 import { Button } from '@ws/ui/components/ui/button'
-import { FavoritesDataTable } from '@/components/data-table/favorites/data-table'
 import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/types/resources.types'
+import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useQuery } from '@tanstack/react-query'
-import { useUserContext } from '@/components/providers/user/user-provider'
+import { useUserTokenContext } from '@/components/providers/user/user-token-provider'
+import { apiUrl } from '@/lib/api/fetch/api-url'
+import { fetchData } from '@/lib/api/fetch/client-api'
+
+const FavoritesDataTable = dynamic(
+  () => import('@/components/data-table/favorites/data-table').then(mod => ({ default: mod.FavoritesDataTable }))
+)
 
 export default function FavoritesPage() {
-  const { state } = useUserContext()
-  const [token, setToken] = useState<string | null>(null)
+  const { token } = useUserTokenContext()
   const [data, setData] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>([])
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const token = await state.getToken()
-      setToken(token)
-    }
-    fetchToken()
-  }, [state])
 
   const { data: favorites, isFetching, refetch } = useQuery({
     queryKey: ['user-favorites'],
     queryFn: async () => {
-      const res = await fetch(`/api/resources/favorites`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (!res.ok) throw new Error("Failed to load data")
-      return res.json() as Promise<ResourcesAPI.Favorites.Get.Response>
+      return fetchData<ResourcesAPI.Favorites.Get.Response>(
+        apiUrl.resources.favorites(),
+        {
+          token: token ?? undefined,
+        }
+      );
     },
     enabled: !!token,
   })
@@ -43,35 +41,28 @@ export default function FavoritesPage() {
   }, [favorites])
 
   const handleRemoveFavorite = async (favorite: ResourcesAPI.Favorites.FavoriteWithStats) => {
+    if (!token) {
+      toast.error("Authentication required")
+      return
+    }
+
+    if (!favorite.favorite_user_id) {
+      console.error("Missing favorite_user_id:", favorite)
+      toast.error("Invalid favorite data")
+      return
+    }
+
     try {
-      const currentToken = await state.getToken();
-      if (!currentToken) {
-        toast.error("Authentication required")
-        return
-      }
-
-      if (!favorite.favorite_user_id) {
-        console.error("Missing favorite_user_id:", favorite)
-        toast.error("Invalid favorite data")
-        return
-      }
-
-      const response = await fetch(`/api/resources/favorites/${favorite.favorite_user_id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${currentToken}`,
-        },
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        toast.error(error.message || "Failed to remove favorite")
-        return
-      }
+      const result = await fetchData<{ refunded?: boolean }>(
+        apiUrl.resources.favoriteByUserId(favorite.favorite_user_id),
+        {
+          token,
+          method: "DELETE",
+        }
+      );
 
       setData((prev) => prev.filter((f) => f.favorite_user_id !== favorite.favorite_user_id))
 
-      const result = await response.json()
       if (result.refunded) {
         toast.success("Removed from favorites (daily limit refunded)")
       } else {
@@ -79,7 +70,7 @@ export default function FavoritesPage() {
       }
     } catch (error) {
       console.error("Failed to remove favorite:", error)
-      toast.error("Failed to remove favorite")
+      toast.error(error instanceof Error ? error.message : "Failed to remove favorite")
     }
   }
 

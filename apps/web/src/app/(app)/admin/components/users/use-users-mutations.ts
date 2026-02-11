@@ -5,6 +5,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AdminAPI } from '@/types/admin.types';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
+import { apiUrl } from '@/lib/api/fetch/api-url';
+import { fetchData, postData } from '@/lib/api/fetch/client-api';
 
 interface UseUsersMutationsParams {
   token: string | null;
@@ -24,19 +26,11 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   const updateMutation = useMutation({
     mutationFn: async (payload: Pick<AdminAPI.User, 'id' | 'role'>) => {
       if (!token) return Promise.reject(new Error('No token'));
-      const res = await fetch(`/api/admin/users/${payload.id}`, {
+      return fetchData<AdminAPI.User>(apiUrl.admin.userById(payload.id), {
+        token,
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: 'Operation failed' }));
-        throw new Error(err.message || err.error || 'Operation failed');
-      }
-      return res.json() as Promise<AdminAPI.User>;
     },
     onSuccess: async () => {
       await invalidateAndRefetch();
@@ -50,15 +44,10 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       if (!token) return Promise.reject(new Error('No token'));
-      const res = await fetch(`/api/admin/users/${id}`, {
+      return fetchData<AdminAPI.DeleteUser.Response>(apiUrl.admin.userById(id), {
+        token,
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: 'Operation failed' }));
-        throw new Error(err.message || err.error || 'Operation failed');
-      }
-      return res.json() as Promise<AdminAPI.DeleteUser.Response>;
     },
     onSuccess: async () => {
       await invalidateAndRefetch();
@@ -72,19 +61,11 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   const restoreMutation = useMutation({
     mutationFn: async (id: string) => {
       if (!token) return Promise.reject(new Error('No token'));
-      const res = await fetch(`/api/admin/users/${id}`, {
+      return fetchData<AdminAPI.User>(apiUrl.admin.userById(id), {
+        token,
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ deleted: false, deleted_at: null }),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: 'Operation failed' }));
-        throw new Error(err.message || err.error || 'Operation failed');
-      }
-      return res.json() as Promise<AdminAPI.User>;
     },
     onSuccess: async () => {
       await invalidateAndRefetch();
@@ -98,19 +79,13 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   const embeddingSyncMutation = useMutation({
     mutationFn: async (userIds: string[]) => {
       if (!token) return Promise.reject(new Error('No token'));
-      const res = await fetch('/api/admin/embeddings/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ user_ids: userIds }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: 'Operation failed' }));
-        throw new Error(err.message || err.error || 'Operation failed');
-      }
-      return res.json();
+      return postData<{ accepted_user_ids: string[]; skipped_user_ids: string[] }>(
+        apiUrl.admin.embeddingsSync(),
+        {
+          token,
+          body: { user_ids: userIds },
+        }
+      );
     },
     onSuccess: async (data: { accepted_user_ids: string[]; skipped_user_ids: string[] }) => {
       await invalidateAndRefetch();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion } from "@ws/ui/internal-lib/motion";
 
 import { IconVideoOff } from "@tabler/icons-react";
 import {

@@ -14,21 +14,27 @@ import {
 import { HookFormZodPrimitive, ReactHookFormPrimitive, ZodPrimitive } from "@ws/ui/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ws/ui/components/ui/tabs";
 import { getUploadUrl, uploadToS3 } from "@/lib/api/s3";
-import { useEffect, useState } from "react";
 
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { DatePicker } from "@/components/common/date-picker";
-import { Editor } from "@/components/editor/editor";
 import { Input } from "@ws/ui/components/ui/input";
 import Link from "next/link";
 import { Switch } from "@ws/ui/components/ui/switch";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import dynamic from "next/dynamic";
+import { fetchData } from "@/lib/api/fetch/client-api";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { useState } from "react";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+
+const Editor = dynamic(() => import("@/components/editor/editor").then(mod => ({ default: mod.Editor })), {
+  ssr: false
+});
 
 const { z } = ZodPrimitive;
 const { zodResolver } = HookFormZodPrimitive;
@@ -43,12 +49,11 @@ const formSchema = z.object({
 });
 
 export default function CreateChangelogPage() {
-  const { state } = useUserContext();
+  const { token } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const router = useRouter();
   const [markdownContent, setMarkdownContent] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
 
   const form = useForm<ZodPrimitive.z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema as any),
@@ -60,14 +65,6 @@ export default function CreateChangelogPage() {
       order: null,
     },
   });
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const token = await state.getToken();
-      setToken(token);
-    };
-    fetchToken();
-  }, [state]);
 
   const onSubmit = async (data: ZodPrimitive.z.infer<typeof formSchema>) => {
     if (!token) {
@@ -87,21 +84,18 @@ export default function CreateChangelogPage() {
       const markdownBlob = new Blob([markdownContent], { type: "text/markdown" });
       await uploadToS3(url, markdownBlob);
 
-      const response = await fetch("/api/admin/changelogs", {
+      await fetchData<AdminAPI.Changelogs.Create.Response>(apiUrl.admin.changelogs(), {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        token,
         body: JSON.stringify({
           ...data,
           s3_key: s3Key,
           is_published: data.is_published ?? false,
         }),
       });
-
-      const result = await response.json() as AdminAPI.Changelogs.Create.Response | ApiError;
-      if (!response.ok) throw new Error((result as ApiError).message || "Failed");
 
       playSound('success');
       toast.success("Changelog created successfully!");

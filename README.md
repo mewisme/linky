@@ -241,4 +241,4 @@ pnpm test:ui               # Playwright UI mode
 pnpm test:report           # View test report
 ```
 
-See `apps/web/README.md` and `apps/api/README.md` for application-specific details.
+See [`apps/web/README.md`](apps/web/README.md) and [`apps/api/README.md`](apps/api/README.md) for application-specific details.

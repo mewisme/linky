@@ -40,7 +40,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -52,13 +51,14 @@ import {
   useSidebar
 } from '@ws/ui/components/animate-ui/components/radix/sidebar';
 import { useEffect, useMemo, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation'
 
 import { Kbd } from '@ws/ui/components/ui/kbd';
+import Link from 'next/link';
 import { Separator } from '@ws/ui/components/ui/separator';
 import { SignOutButton } from '@clerk/nextjs'
 import { cn } from '@ws/ui/lib/utils';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
+import { usePathname } from 'next/navigation'
 import { useSidebarStore } from '@/stores/sidebar-store';
 import { useUserContext } from '@/components/providers/user/user-provider';
 import { useUserStore } from '@/stores/user-store';
@@ -244,7 +244,6 @@ export function AppSidebar() {
   const { user: userStore } = useUserStore();
   const { variant, collapsible } = useSidebarStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const router = useRouter()
   const pathname = usePathname()
   const { state, setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
@@ -304,19 +303,23 @@ export function AppSidebar() {
               >
                 <DropdownMenuLabel className='text-xs text-muted-foreground'>My Account</DropdownMenuLabel>
                 <DropdownMenuGroup>
-                  <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => router.push('/user/profile')}>
-                    <div className="flex size-6 items-center justify-center rounded-sm border">
-                      <IconUser className='size-4 shrink-0' />
-                    </div>
-                    <span>Manage Account</span>
-                  </DropdownMenuItem>
-                  {userStore?.role === 'admin' && (
-                    <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => router.push('/admin')}>
+                  <Link href='/user/profile'>
+                    <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
-                        <IconUserShield className='size-4 shrink-0' />
+                        <IconUser className='size-4 shrink-0' />
                       </div>
-                      <span>Admin Dashboard</span>
+                      <span>Manage Account</span>
                     </DropdownMenuItem>
+                  </Link>
+                  {userStore?.role === 'admin' && (
+                    <Link href='/admin'>
+                      <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
+                        <div className="flex size-6 items-center justify-center rounded-sm border">
+                          <IconUserShield className='size-4 shrink-0' />
+                        </div>
+                        <span>Admin Dashboard</span>
+                      </DropdownMenuItem>
+                    </Link>
                   )}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
@@ -379,18 +382,17 @@ export function AppSidebar() {
                               <SidebarMenuSubButton className={cn(
                                 state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
                                 isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
-                              )} onClick={() => {
-                                if (subItem.href) {
-                                  router.push(subItem.href)
-                                }
-                              }}
+                              )}
                                 isActive={state === 'expanded' && pathname === subItem.href}
+                                asChild
                               >
-                                <subItem.icon className={cn(
-                                  'size-6 mx-2 transition-colors duration-300',
-                                  isMobile && 'size-7'
-                                )} />
-                                <span className={cn(isMobile && 'text-base')}>{subItem.label}</span>
+                                <Link href={subItem.href || '#'}>
+                                  <subItem.icon className={cn(
+                                    'size-6 mx-2 transition-colors duration-300',
+                                    isMobile && 'size-7'
+                                  )} />
+                                  <span className={cn(isMobile && 'text-base')}>{subItem.label}</span>
+                                </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           ))}
@@ -403,15 +405,14 @@ export function AppSidebar() {
                     <SidebarMenuButton className={cn(
                       state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
                       isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
-                    )} onClick={() => {
-                      if (item.href) {
-                        router.push(item.href)
-                      }
-                    }}
+                    )}
                       isActive={state === 'expanded' && pathname === item.href}
+                      asChild
                     >
-                      <item.icon className={cn('size-6 mx-2', isMobile && 'size-7')} />
-                      <span className={cn(isMobile && 'text-base')}>{item.label}</span>
+                      <Link href={item.href || '#'}>
+                        <item.icon className={cn('size-6 mx-2', isMobile && 'size-7')} />
+                        <span className={cn(isMobile && 'text-base')}>{item.label}</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
@@ -420,19 +421,6 @@ export function AppSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-
-      <Separator />
-
-      {/* <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size='lg'>
-              <IconSettings className='size-8 mx-2' />
-              <span className='text-base'>Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter> */}
       <SidebarRail className='h-[98%] my-auto' />
     </Sidebar>
   )

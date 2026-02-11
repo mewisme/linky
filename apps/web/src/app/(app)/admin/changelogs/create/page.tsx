@@ -23,6 +23,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import { DatePicker } from "@/components/common/date-picker";
 import { Editor } from "@/components/editor/editor";
 import { Input } from "@ws/ui/components/ui/input";
+import Link from "next/link";
 import { Switch } from "@ws/ui/components/ui/switch";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useRouter } from "next/navigation";
@@ -128,8 +129,10 @@ export default function CreateChangelogPage() {
             </TabsList>
 
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => router.push("/admin/changelogs")} size="sm">
-                Cancel
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/changelogs">
+                  Cancel
+                </Link>
               </Button>
               <Button
                 onClick={form.handleSubmit(onSubmit)}

@@ -7,12 +7,11 @@ import type { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { ChangelogsDataTable } from "@/components/data-table/changelogs/data-table";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useUserContext } from "@/components/providers/user/user-provider";
 
 export default function ChangeLogsPage() {
-  const router = useRouter();
   const { state } = useUserContext();
   const [token, setToken] = useState<string | null>(null);
 
@@ -50,8 +49,10 @@ export default function ChangeLogsPage() {
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button onClick={() => router.push('/admin/changelogs/create')} className="bg-primary hover:opacity-90 shadow-md" size="sm">
-            <IconPlus className="w-4 h-4 mr-2" /> New Changelog
+          <Button className="bg-primary hover:opacity-90 shadow-md" size="sm" asChild>
+            <Link href='/admin/changelogs/create'>
+              <IconPlus className="w-4 h-4 mr-2" /> New Changelog
+            </Link>
           </Button>
         }
       />

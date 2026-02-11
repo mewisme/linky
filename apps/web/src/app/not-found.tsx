@@ -7,6 +7,7 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
+import Link from "next/link";
 import { Outfit } from "next/font/google";
 import { useRouter } from "next/navigation";
 
@@ -52,10 +53,12 @@ export default function NotFound() {
             variant="default"
             size="lg"
             className="px-6 font-medium shadow-lg shadow-primary/20"
-            onClick={() => router.push("/")}
+            asChild
           >
-            <IconHomeLink size={18} className="mr-2" />
-            Back to Dashboard
+            <Link href="/">
+              <IconHomeLink size={18} className="mr-2" />
+              Back to Dashboard
+            </Link>
           </Button>
         </div>
       </div>

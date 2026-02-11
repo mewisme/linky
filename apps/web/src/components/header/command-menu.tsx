@@ -42,6 +42,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@ws/ui/components/
 import { Kbd, KbdGroup } from '@ws/ui/components/ui/kbd'
 import { useCallback, useMemo } from 'react'
 
+import Link from 'next/link'
 import { Logo } from '@/components/header/landing/logo'
 import { Separator } from '@ws/ui/components/ui/separator'
 import { trackEvent } from '@/lib/analytics/events'

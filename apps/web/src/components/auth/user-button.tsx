@@ -14,15 +14,13 @@ import {
 import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
 
 import { Kbd } from "@ws/ui/components/ui/kbd";
+import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useUserStore } from "@/stores/user-store";
 
 export function UserButton() {
-  const router = useRouter();
-
   const { user, auth: { signOut } } = useUserContext();
   const { user: userStore } = useUserStore();
 
@@ -58,19 +56,23 @@ export function UserButton() {
       >
         <DropdownMenuLabel className='text-xs text-muted-foreground'>My Account</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => router.push('/user/profile')}>
-            <div className="flex size-6 items-center justify-center rounded-sm border">
-              <UserIcon className='size-4 shrink-0' />
-            </div>
-            <span>Manage Account</span>
-          </DropdownMenuItem>
-          {userStore?.role === 'admin' && (
-            <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => router.push('/admin')}>
+          <Link href='/user/profile'>
+            <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
               <div className="flex size-6 items-center justify-center rounded-sm border">
-                <ShieldIcon className='size-4 shrink-0' />
+                <UserIcon className='size-4 shrink-0' />
               </div>
-              <span>Admin Dashboard</span>
+              <span>Manage Account</span>
             </DropdownMenuItem>
+          </Link>
+          {userStore?.role === 'admin' && (
+            <Link href='/admin'>
+              <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <ShieldIcon className='size-4 shrink-0' />
+                </div>
+                <span>Admin Dashboard</span>
+              </DropdownMenuItem>
+            </Link>
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

@@ -3,12 +3,17 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   transpilePackages: ["@ws/ui"],
   experimental: {
-    optimizePackageImports: ["@ws/ui"],
+    optimizePackageImports: [
+      "country-flag-icons",
+      "lucide-react",
+      "@tabler/icons-react",
+      "@ws/ui",
+    ],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
   },
-  allowedDevOrigins: ["*.mewis.me"],
+  allowedDevOrigins: [process.env.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS || ""],
   images: {
     remotePatterns: [
       {

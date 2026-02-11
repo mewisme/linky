@@ -7,10 +7,10 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
+import Link from "next/link";
 import { Outfit } from "next/font/google";
 import { trackEvent } from "@/lib/analytics/events";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -23,7 +23,6 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const router = useRouter();
   useEffect(() => {
     console.error(error);
     trackEvent({ name: "error_occurred", properties: { message: error.message, digest: error.digest ?? null } });
@@ -64,10 +63,12 @@ export default function Error({
             variant="default"
             size="lg"
             className="px-8 font-medium shadow-lg shadow-primary/20"
-            onClick={() => router.push("/")}
+            asChild
           >
-            <IconHome size={18} className="mr-2" />
-            Go to Home
+            <Link href="/">
+              <IconHome size={18} className="mr-2" />
+              Go to Home
+            </Link>
           </Button>
         </div>
 

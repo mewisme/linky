@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Header } from "@/components/header/landing/index";
 import { cn } from "@ws/ui/lib/utils";
 import { motion, type Variants } from "@ws/ui/internal-lib/motion";
-import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { Hero } from "./components/landing/hero";
 import { LandingDifferentiation } from "./components/landing/landing-differentiation";
@@ -27,7 +26,6 @@ const CONTENT_VARIANTS: Variants = {
 
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
-  const router = useRouter();
   const [transition, setTransition] = useState(false);
 
   useEffect(() => {
@@ -37,9 +35,7 @@ export default function Home() {
     };
   }, []);
 
-  const handleStartChat = () => {
-    router.push(isSignedIn && isLoaded ? "/chat" : "/sign-in");
-  };
+  const startChatHref = isSignedIn && isLoaded ? "/chat" : "/sign-in";
 
   return (
     <>
@@ -58,7 +54,7 @@ export default function Home() {
           >
             <ShapeBackground transition={transition} className="hidden sm:block" />
             <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 mt-8">
-              <Hero handleStartChat={handleStartChat} isSignedIn={isSignedIn} isLoaded={isLoaded} key={String(transition)} />
+              <Hero startChatHref={startChatHref} isSignedIn={isSignedIn} isLoaded={isLoaded} key={String(transition)} />
               <div className="space-y-12">
                 <LandingDifferentiation />
                 <LandingSafety />

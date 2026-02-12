@@ -5,7 +5,7 @@ import { Checkbox as CheckboxPrimitive } from 'radix-ui';
 import { motion, SVGMotionProps, type HTMLMotionProps } from 'motion/react';
 
 import { getStrictContext } from '@ws/ui/lib/get-strict-context';
-import { useControlledState } from '@ws/oks/use-controlled-state';
+import { useControlledState } from '@ws/ui/hooks/use-controlled-state';
 
 type CheckboxContextType = {
   isChecked: boolean | 'indeterminate';

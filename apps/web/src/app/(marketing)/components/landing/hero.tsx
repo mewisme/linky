@@ -1,6 +1,7 @@
 "use client";
 
 import { IconBolt, IconShieldCheck, IconWorld } from "@tabler/icons-react";
+import Link from "next/link";
 
 import { BorderBeamSimple } from "@ws/ui/components/ui/border-beam-simple";
 import { MotionEffect } from "@/components/effects/motion-effect";
@@ -12,7 +13,7 @@ import { cn } from "@ws/ui/lib/utils";
 import { motion } from "@ws/ui/internal-lib/motion";
 
 interface HeroProps {
-  handleStartChat: () => void;
+  startChatHref: string;
   isSignedIn?: boolean;
   isLoaded: boolean;
 }
@@ -20,7 +21,7 @@ interface HeroProps {
 const outfit = Outfit({ subsets: ["latin"] });
 const TITLE = "Meet the World. Live.";
 
-export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
+export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
   return (
     <div className={cn(outfit.className, 'min-h-dvh')}>
       <div className="h-[calc(100dvh-16rem)]">
@@ -92,12 +93,14 @@ export function Hero({ handleStartChat, isSignedIn, isLoaded }: HeroProps) {
         <div className="flex flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 md:px-8">
           <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.45} className="w-full flex">
             <RainbowButton
+              asChild
               size="lg"
               variant="outline"
-              onClick={handleStartChat}
               className="mx-auto font-semibold text-sm sm:text-base md:text-md"
             >
-              {isSignedIn && isLoaded ? "Start Chatting Now" : "Sign in to Start Chatting"}
+              <Link href={startChatHref} prefetch>
+                {isSignedIn && isLoaded ? "Start Chatting Now" : "Sign in to Start Chatting"}
+              </Link>
             </RainbowButton>
           </MotionEffect>
 

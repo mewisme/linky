@@ -13,7 +13,7 @@ import {
 } from 'motion/react';
 
 import { getStrictContext } from '@ws/ui/lib/get-strict-context';
-import { useControlledState } from '@ws/oks/use-controlled-state';
+import { useControlledState } from '@ws/ui/hooks/use-controlled-state';
 
 type TooltipContextType = {
   isOpen: boolean;

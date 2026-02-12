@@ -13,6 +13,8 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData } from "@/lib/api/fetch/client-api";
 
 const LIMIT = 10;
 
@@ -30,11 +32,14 @@ export default function ChangelogsPage() {
   } = useInfiniteQuery({
     queryKey: ["changelogs", "public"],
     queryFn: async ({ pageParam = 0 }) => {
-      const res = await fetch(
-        `/api/resources/changelogs?limit=${LIMIT}&offset=${pageParam}&order_by=created_at`
+      const params = new URLSearchParams({
+        limit: LIMIT.toString(),
+        offset: pageParam.toString(),
+        order_by: 'created_at'
+      });
+      return fetchData<ResourcesAPI.Changelogs.Get.Response>(
+        apiUrl.resources.changelogs(params)
       );
-      if (!res.ok) throw new Error("Failed to load changelogs");
-      return res.json() as Promise<ResourcesAPI.Changelogs.Get.Response>;
     },
     getNextPageParam: (lastPage, allPages) => {
       const totalLoaded = allPages.reduce((sum, page) => sum + page.data.length, 0);
@@ -54,15 +59,14 @@ export default function ChangelogsPage() {
 
           setFetchingPreviews((prev) => new Set(prev).add(changelog.id));
           try {
-            const detailRes = await fetch(`/api/resources/changelogs/${changelog.version}`);
-            if (detailRes.ok) {
-              const detail = await detailRes.json() as ResourcesAPI.Changelogs.GetByVersion.Response;
-              if (detail.download_url) {
-                const markdownRes = await fetch(detail.download_url);
-                if (markdownRes.ok) {
-                  const markdown = await markdownRes.text();
-                  previews[changelog.id] = markdown.substring(0, 260) + (markdown.length > 260 ? "..." : "");
-                }
+            const detail = await fetchData<ResourcesAPI.Changelogs.GetByVersion.Response>(
+              apiUrl.resources.changelogByVersion(changelog.version)
+            );
+            if (detail.download_url) {
+              const markdownRes = await fetch(detail.download_url);
+              if (markdownRes.ok) {
+                const markdown = await markdownRes.text();
+                previews[changelog.id] = markdown.substring(0, 260) + (markdown.length > 260 ? "..." : "");
               }
             }
           } catch (e) { console.error(e); }

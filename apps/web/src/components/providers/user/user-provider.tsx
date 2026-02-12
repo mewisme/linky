@@ -18,6 +18,7 @@ interface State {
   fetchUserData: () => Promise<void>;
   fetchUserSettings: () => Promise<void>;
   getToken: (options?: { skipCache?: boolean }) => Promise<string | null>;
+  refreshToken: () => Promise<string | null>;
 }
 
 interface UserContextData {
@@ -33,7 +34,7 @@ const UserContext = createContext<UserContextData | null>(null);
 
 function UserComposedProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth, user } = useUserAuthContext();
-  const { token, getToken } = useUserTokenContext();
+  const { token, getToken, refreshToken } = useUserTokenContext();
   const { fetchUserData } = useUserDataContext();
   const { fetchUserDetails, updateUserDetails } = useUserDetailsContext();
   const { fetchUserSettings, updateUserSettings } = useUserSettingsContext();
@@ -49,6 +50,7 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
   const state = useMemo<State>(() => {
     return {
       getToken,
+      refreshToken,
       updateUserCountry: (country: string) => updateUserCountry({ token, country, clerk_user_id: user.user?.id }),
       updateUserDetails,
       updateUserSettings,
@@ -61,6 +63,7 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
     fetchUserDetails,
     fetchUserSettings,
     getToken,
+    refreshToken,
     token,
     updateUserDetails,
     updateUserSettings,

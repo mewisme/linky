@@ -9,8 +9,8 @@ export class NotificationsApi extends BaseApiUrl {
     return this.buildUrl('/api/notifications/me/unread-count');
   }
 
-  readAll() {
-    return this.buildUrl('/api/notifications/read-all');
+  readAll(params?: URLSearchParams) {
+    return this.buildUrl('/api/notifications/read-all', params);
   }
 
   readById(id: string) {

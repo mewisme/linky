@@ -4,19 +4,20 @@ import { FavoritesDataTable } from "@/components/data-table/favorites/data-table
 import type { ResourcesAPI } from "@/types/resources.types";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useState } from "react";
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData } from "@/lib/api/fetch/client-api";
 
 interface FavoritesPageClientProps {
   initialData: ResourcesAPI.Favorites.FavoriteWithStats[];
 }
 
 export function FavoritesPageClient({ initialData }: FavoritesPageClientProps) {
-  const { state } = useUserContext();
+  const { token } = useUserTokenContext();
   const [favorites, setFavorites] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>(initialData);
 
   const handleRemoveFavorite = async (favorite: ResourcesAPI.Favorites.FavoriteWithStats) => {
     try {
-      const token = await state.getToken();
       if (!token) {
         toast.error("Authentication required");
         return;
@@ -28,22 +29,13 @@ export function FavoritesPageClient({ initialData }: FavoritesPageClientProps) {
         return;
       }
 
-      const response = await fetch(`/api/resources/favorites/${favorite.favorite_user_id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        toast.error(error.message || "Failed to remove favorite");
-        return;
-      }
+      const result = await fetchData<{ refunded: boolean }>(
+        apiUrl.resources.favoriteByUserId(favorite.favorite_user_id),
+        { token: token ?? undefined, method: 'DELETE' }
+      );
 
       setFavorites((prev) => prev.filter((f) => f.favorite_user_id !== favorite.favorite_user_id));
 
-      const result = await response.json();
       if (result.refunded) {
         toast.success("Removed from favorites (daily limit refunded)");
       } else {
@@ -51,7 +43,8 @@ export function FavoritesPageClient({ initialData }: FavoritesPageClientProps) {
       }
     } catch (error) {
       console.error("Failed to remove favorite:", error);
-      toast.error("Failed to remove favorite");
+      const errorMessage = error instanceof Error ? error.message : "Failed to remove favorite";
+      toast.error(errorMessage);
     }
   };
 

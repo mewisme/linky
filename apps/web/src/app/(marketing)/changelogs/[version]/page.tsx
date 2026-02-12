@@ -4,15 +4,15 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import { notFound } from "next/navigation";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData } from "@/lib/api/fetch/server-api";
 
 async function getChangelog(version: string): Promise<ResourcesAPI.Changelogs.GetByVersion.Response | null> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const res = await fetch(`${apiUrl}/api/v1/changelogs/${encodeURIComponent(version)}`, {
-      next: { revalidate: 3600 }
-    });
-    if (!res.ok) return null;
-    return res.json();
+    return await fetchData<ResourcesAPI.Changelogs.GetByVersion.Response>(
+      apiUrl.resources.changelogByVersion(version),
+      { next: { revalidate: 3600 } }
+    );
   } catch { return null; }
 }
 

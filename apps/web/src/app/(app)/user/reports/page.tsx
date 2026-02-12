@@ -7,30 +7,22 @@ import { Button } from '@ws/ui/components/ui/button'
 import { IconRefresh } from '@tabler/icons-react'
 import { ReportsDataTable } from '@/components/data-table/reports/data-table'
 import type { ResourcesAPI } from '@/types/resources.types'
+import { apiUrl } from '@/lib/api/fetch/api-url'
+import { fetchData } from '@/lib/api/fetch/client-api'
 import { useQuery } from '@tanstack/react-query'
-import { useUserContext } from '@/components/providers/user/user-provider'
+import { useUserTokenContext } from '@/components/providers/user/user-token-provider'
 
 export default function UserReportsPage() {
-  const { state } = useUserContext()
-  const [token, setToken] = useState<string | null>(null)
+  const { token } = useUserTokenContext()
   const [data, setData] = useState<ResourcesAPI.Reports.Report[]>([])
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const token = await state.getToken()
-      setToken(token)
-    }
-    fetchToken()
-  }, [state])
 
   const { data: reports, isFetching, refetch } = useQuery({
     queryKey: ['user-reports'],
     queryFn: async () => {
-      const res = await fetch(`/api/resources/reports/me?limit=50&offset=0`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (!res.ok) throw new Error("Failed to load data")
-      return res.json() as Promise<ResourcesAPI.Reports.GetMe.Response>
+      return fetchData<ResourcesAPI.Reports.GetMe.Response>(
+        apiUrl.resources.reportsMe(new URLSearchParams({ limit: '50', offset: '0' })),
+        { token: token ?? undefined }
+      )
     },
     enabled: !!token,
   })

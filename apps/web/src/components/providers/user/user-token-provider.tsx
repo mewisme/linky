@@ -8,6 +8,7 @@ type GetTokenOptions = { skipCache?: boolean };
 type UserTokenContextValue = {
   token: string | null;
   getToken: (options?: GetTokenOptions) => Promise<string | null>;
+  refreshToken: () => Promise<string | null>;
 };
 
 const UserTokenContext = createContext<UserTokenContextValue | null>(null);
@@ -43,13 +44,17 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
       setToken(null);
       return;
     }
-    if (token !== null) return;
     void refreshToken();
-  }, [auth.isLoaded, auth.isSignedIn, refreshToken, token]);
+  }, [auth.isLoaded, auth.isSignedIn, refreshToken]);
+
+  useEffect(() => {
+    void refreshToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
 
   const value = useMemo<UserTokenContextValue>(() => {
-    return { token, getToken };
-  }, [getToken, token]);
+    return { token, getToken, refreshToken };
+  }, [getToken, refreshToken, token]);
 
   return <UserTokenContext.Provider value={value}>{children}</UserTokenContext.Provider>;
 }

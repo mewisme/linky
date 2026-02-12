@@ -7,7 +7,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 
 import type { AdminAPI } from '@/types/admin.types'
-import type { ApiError } from '@/types/api.types'
 import { AppLayout } from '@/components/layouts/app-layout'
 import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
@@ -18,7 +17,9 @@ import { Textarea } from '@ws/ui/components/ui/textarea'
 import { formatDuration } from '@/utils/call-history'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
-import { useUserContext } from '@/components/providers/user/user-provider'
+import { useUserTokenContext } from '@/components/providers/user/user-token-provider'
+import { apiUrl } from '@/lib/api/fetch/api-url'
+import { fetchData, patchData } from '@/lib/api/fetch/client-api'
 
 const getStatusBadgeVariant = (status: AdminAPI.Reports.ReportStatus) => {
   switch (status) {
@@ -51,36 +52,23 @@ const getStatusColor = (status: AdminAPI.Reports.ReportStatus) => {
 }
 
 export default function AdminReportDetailPage() {
-  const { state } = useUserContext()
+  const { token } = useUserTokenContext()
   const { play: playSound } = useSoundWithSettings()
   const router = useRouter()
   const params = useParams()
   const queryClient = useQueryClient()
-  const [token, setToken] = useState<string | null>(null)
   const reportId = params?.id as string
 
   const [status, setStatus] = useState<AdminAPI.Reports.ReportStatus>('pending')
   const [adminNotes, setAdminNotes] = useState<string>('')
 
-  useEffect(() => {
-    const fetchToken = async () => {
-      const token = await state.getToken()
-      setToken(token)
-    }
-    fetchToken()
-  }, [state])
-
   const { data: report, isLoading } = useQuery({
     queryKey: ['admin-report', reportId],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/reports/${reportId}`, {
-        headers: { Authorization: `Bearer ${token || ''}` }
-      })
-      if (!res.ok) {
-        const error = await res.json() as ApiError
-        throw new Error(error.message || 'Failed to load report')
-      }
-      return res.json() as Promise<AdminAPI.Reports.GetById.Response>
+      return fetchData<AdminAPI.Reports.GetById.Response>(
+        apiUrl.admin.reportById(reportId),
+        { token: token ?? undefined }
+      )
     },
     enabled: !!token && !!reportId,
   })
@@ -94,19 +82,10 @@ export default function AdminReportDetailPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (body: AdminAPI.Reports.Update.Body) => {
-      const res = await fetch(`/api/admin/reports/${reportId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token || ''}`
-        },
-        body: JSON.stringify(body)
-      })
-      if (!res.ok) {
-        const error = await res.json() as ApiError
-        throw new Error(error.message || 'Failed to update report')
-      }
-      return res.json() as Promise<AdminAPI.Reports.Update.Response>
+      return patchData<AdminAPI.Reports.Update.Response>(
+        apiUrl.admin.reportById(reportId),
+        { token: token ?? undefined, body }
+      )
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-report', reportId] })

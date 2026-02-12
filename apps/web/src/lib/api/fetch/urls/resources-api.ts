@@ -37,7 +37,7 @@ export class ResourcesApi extends BaseApiUrl {
     return this.buildUrl('/api/resources/reports', params);
   }
 
-  reportsMe() {
-    return this.buildUrl('/api/resources/reports/me');
+  reportsMe(params?: URLSearchParams) {
+    return this.buildUrl('/api/resources/reports/me', params);
   }
 }

@@ -26,6 +26,8 @@ import type { ResourcesAPI } from '@/types/resources.types'
 import type { UserDetails } from '@/stores/user-store'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
+import { apiUrl } from '@/lib/api/fetch/api-url'
+import { fetchData } from '@/lib/api/fetch/client-api'
 
 interface InterestTagsSectionProps {
   userDetails: UserDetails | null
@@ -48,9 +50,10 @@ export function InterestTagsSection({
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const res = await fetch('/api/resources/interest-tags?limit=200')
-        if (!res.ok) throw new Error(await res.text() || res.statusText)
-        const json = (await res.json()) as ResourcesAPI.InterestTags.Get.Response
+        const params = new URLSearchParams({ limit: '200' })
+        const json = await fetchData<ResourcesAPI.InterestTags.Get.Response>(
+          apiUrl.resources.interestTags(params)
+        )
         setAvailableTags(json.data)
       } catch (error) {
         console.error('Failed to fetch interest tags:', error)

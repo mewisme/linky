@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { CallHistoryDataTable } from "@/components/data-table/call-history/data-table";
@@ -10,28 +8,20 @@ import {
   IconRefresh
 } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { apiUrl } from "@/lib/api/fetch/api-url";
+import { fetchData } from "@/lib/api/fetch/client-api";
 
 export default function CallHistoryPage() {
-  const { state } = useUserContext();
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const token = await state.getToken();
-      setToken(token);
-    }
-    fetchToken();
-  }, [state]);
+  const { token } = useUserTokenContext();
 
   const { data: callHistory, isLoading, refetch } = useQuery({
     queryKey: ['call-history'],
     queryFn: async () => {
-      const res = await fetch(`/api/resources/call-history`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Failed to load data");
-      return res.json() as Promise<CallHistoryResponse>;
+      return fetchData<CallHistoryResponse>(
+        apiUrl.resources.callHistory(),
+        { token: token ?? undefined }
+      );
     },
     enabled: !!token,
   })

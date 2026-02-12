@@ -1,6 +1,7 @@
-import { GoogleOneTap, ClerkProvider as NextClerkProvider } from "@clerk/nextjs";
-
+import { ClerkProvider as NextClerkProvider } from "@clerk/nextjs";
 import { shadcn } from "@clerk/themes";
+
+import { GoogleOneTapClient } from "./google-one-tap-client";
 
 export function ClerkProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,7 @@ export function ClerkProvider({ children }: { children: React.ReactNode }) {
         theme: shadcn,
       }}
     >
-      <GoogleOneTap />
+      <GoogleOneTapClient />
       {children}
     </NextClerkProvider>
   );

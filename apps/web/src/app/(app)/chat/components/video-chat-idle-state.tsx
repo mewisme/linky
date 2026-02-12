@@ -5,36 +5,15 @@ import { IconFlame, IconPlayerPlay, IconStar } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import type { UsersAPI } from "@/types/users.types";
-import { getUserTimezone } from "@/utils/timezone";
-import { useQuery } from "@tanstack/react-query";
 import { useUserContext } from "@/components/providers/user/user-provider";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/client-api";
 
 interface VideoChatIdleStateProps {
   onStart: () => void;
+  progress?: UsersAPI.Progress.GetMe.Response | null;
 }
 
-export function VideoChatIdleState({ onStart }: VideoChatIdleStateProps) {
+export function VideoChatIdleState({ onStart, progress }: VideoChatIdleStateProps) {
   const { user } = useUserContext();
-  const { token } = useUserTokenContext();
-
-  const { data: progress } = useQuery({
-    queryKey: ["user-progress"],
-    queryFn: async () => {
-      return fetchData<UsersAPI.Progress.GetMe.Response>(
-        apiUrl.users.progress(),
-        {
-          token: token ?? undefined,
-          headers: {
-            "x-user-timezone": getUserTimezone(),
-          },
-        }
-      );
-    },
-    enabled: !!token,
-  });
 
   const displayName =
     user.user?.firstName || user.user?.username || "You";

@@ -10,6 +10,7 @@ import type { ConnectionStatus } from "@/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { PassiveTabBanner } from "./passive-tab-banner";
 import { ReactionOverlay } from "./overlays/reaction-overlay";
+import type { ResourcesAPI } from "@/types/resources.types";
 import type { UsersAPI } from "@/types/users.types";
 import { VideoChatIdleState } from "./video-chat-idle-state";
 import { VideoChatSearchingState } from "./video-chat-searching-state";
@@ -44,6 +45,8 @@ interface VideoContainerProps {
   onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   isPassive?: boolean;
+  initialProgress?: UsersAPI.Progress.GetMe.Response;
+  initialFavorites?: ResourcesAPI.Favorites.Get.Response;
 }
 
 export function VideoContainer({
@@ -68,6 +71,8 @@ export function VideoContainer({
   onBlockUser,
   sendFavoriteNotification,
   isPassive = false,
+  initialProgress,
+  initialFavorites,
 }: VideoContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const remoteVideoContainerRef = useRef<HTMLDivElement>(null);
@@ -243,7 +248,7 @@ export function VideoContainer({
               )}
             </div>
           ) : connectionStatus === "idle" || connectionStatus === "ended" ? (
-            <VideoChatIdleState onStart={onStart} />
+            <VideoChatIdleState onStart={onStart} progress={initialProgress} />
           ) : (
             <div className="h-full w-full" />
           )}
@@ -270,6 +275,7 @@ export function VideoContainer({
           isSharingScreen={isSharingScreen}
           onBlockUser={onBlockUser}
           sendFavoriteNotification={sendFavoriteNotification}
+          initialFavorites={initialFavorites}
         />
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth, useUser } from "@clerk/nextjs";
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode } from "react";
 
 type UserAuthContextValue = {
   auth: ReturnType<typeof useAuth>;
@@ -14,13 +14,15 @@ const UserAuthContext = createContext<UserAuthContextValue | null>(null);
 export function UserAuthProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const user = useUser();
+  const authRef = useRef(auth);
+  authRef.current = auth;
 
-  const getClerkToken = useCallback(
-    (options?: { skipCache?: boolean }) => {
-      return auth.getToken({ template: "custom", skipCache: options?.skipCache ?? false });
-    },
-    [auth]
-  );
+  const getClerkToken = useCallback((options?: { skipCache?: boolean }) => {
+    return authRef.current.getToken({
+      template: "custom",
+      skipCache: options?.skipCache ?? false,
+    });
+  }, []);
 
   const value = useMemo<UserAuthContextValue>(() => {
     return { auth, user, getClerkToken };

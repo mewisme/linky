@@ -100,6 +100,7 @@ interface VideoControlsProps {
   isSharingScreen?: boolean;
   onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  initialFavorites?: ResourcesAPI.Favorites.Get.Response | null;
 }
 
 interface ControlButtonProps {
@@ -183,6 +184,7 @@ export function VideoControls({
   isSharingScreen = false,
   onBlockUser,
   sendFavoriteNotification,
+  initialFavorites,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
   const { user } = useUserContext();
@@ -198,6 +200,14 @@ export function VideoControls({
   useEffect(() => {
     if (!peerInfo?.id) {
       setIsFavorite(false);
+      return;
+    }
+
+    if (initialFavorites?.data) {
+      const isFavorited = initialFavorites.data.some(
+        (fav) => fav.favorite_user_id === peerInfo.id
+      );
+      setIsFavorite(isFavorited);
       return;
     }
 
@@ -232,7 +242,7 @@ export function VideoControls({
     return () => {
       mounted = false;
     };
-  }, [peerInfo?.id, token]);
+  }, [peerInfo?.id, token, initialFavorites?.data]);
 
   const handleToggleFavorite = async () => {
     if (!peerInfo?.id || isFavoriteLoading || !token) {

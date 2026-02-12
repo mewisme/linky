@@ -111,6 +111,8 @@ export function useVideoChat(): UseVideoChatReturn {
   const iceServersRef = useRef<RTCIceServer[]>([]);
   const turnCredentialRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isOffererRef = useRef<boolean>(false);
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
 
   const hasShownConnectedToastRef = useRef(false);
   const isReconnectingRef = useRef(false);
@@ -127,30 +129,32 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [state.callStartedAt, state.connectionStatus]);
 
   useEffect(() => {
+    if (!authReady) return;
     let mounted = true;
 
     async function initIceServers() {
-      if (!authReady) return;
-
       try {
-        const servers = await iceServerCache.getIceServers(getToken, "forced");
+        const servers = await iceServerCache.getIceServers(
+          (opts) => getTokenRef.current(opts),
+          "initial"
+        );
         if (mounted) {
           iceServersRef.current = servers;
         }
       } catch (err) {
         console.error("Failed to fetch ICE servers:", err);
-        if (mounted && authReady) {
+        if (mounted) {
           actionsRef.current.setError("Failed to initialize connection. Please refresh the page.");
         }
       }
     }
 
-    initIceServers();
+    void initIceServers();
 
     return () => {
       mounted = false;
     };
-  }, [authReady, getToken]);
+  }, [authReady]);
 
   const refreshTurnCredentials = useCallback(async () => {
     const pc = peerConnection.getPeerConnection();
@@ -169,7 +173,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
     try {
       const newServers = await iceServerCache.getIceServers(
-        getToken,
+        (opts) => getTokenRef.current(opts),
         "expired"
       );
 
@@ -199,7 +203,7 @@ export function useVideoChat(): UseVideoChatReturn {
     } catch (err) {
       console.error("[IceServerCache] Error refreshing TURN credentials:", err);
     }
-  }, [getToken, peerConnection, state.connectionStatus, socketSignaling]);
+  }, [peerConnection, state.connectionStatus, socketSignaling]);
 
   useEffect(() => {
     if (!authReady) return;
@@ -528,7 +532,7 @@ export function useVideoChat(): UseVideoChatReturn {
         if (iceServersRef.current.length === 0) {
           try {
             iceServersRef.current = await iceServerCache.getIceServers(
-              getToken,
+              (opts) => getTokenRef.current(opts),
               "initial"
             );
           } catch (err) {
@@ -592,7 +596,7 @@ export function useVideoChat(): UseVideoChatReturn {
               }
 
               return await iceServerCache.getIceServers(
-                getToken,
+                (opts) => getTokenRef.current(opts),
                 "expired"
               );
             },
@@ -862,7 +866,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       if (iceServersRef.current.length === 0) {
         iceServersRef.current = await iceServerCache.getIceServers(
-          getToken,
+          (opts) => getTokenRef.current(opts),
           "initial"
         );
       }

@@ -1,7 +1,7 @@
 "use client";
 
 import { UserDetails, UserSettings, UserState, useUserStore } from "@/stores/user-store";
-import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { updateUserCountry } from "@/services/user";
 import { UsersAPI } from "@/types/users.types";
 import { UserAuthProvider, useUserAuthContext } from "./user-auth-provider";
@@ -70,13 +70,24 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
     user.user?.id,
   ]);
 
-  useEffect(() => {
-    const run = async () => {
-      await Promise.all([fetchUserData(), fetchUserDetails(), fetchUserSettings()]);
-    };
+  const fetchUserDataRef = useRef(fetchUserData);
+  const fetchUserDetailsRef = useRef(fetchUserDetails);
+  const fetchUserSettingsRef = useRef(fetchUserSettings);
+  fetchUserDataRef.current = fetchUserData;
+  fetchUserDetailsRef.current = fetchUserDetails;
+  fetchUserSettingsRef.current = fetchUserSettings;
 
+  useEffect(() => {
+    if (!auth.isLoaded || !auth.isSignedIn || !token) return;
+    const run = async () => {
+      await Promise.all([
+        fetchUserDataRef.current(),
+        fetchUserDetailsRef.current(),
+        fetchUserSettingsRef.current(),
+      ]);
+    };
     void run();
-  }, [auth.isLoaded, auth.isSignedIn, fetchUserData, fetchUserDetails, fetchUserSettings, token]);
+  }, [auth.isLoaded, auth.isSignedIn, token]);
 
   const value = useMemo<UserContextData>(() => {
     return { user, auth, store, state, authReady, authLoading };

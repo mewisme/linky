@@ -38,19 +38,17 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
     return next;
   }, [getToken]);
 
+  const refreshTokenRef = useRef(refreshToken);
+  refreshTokenRef.current = refreshToken;
+
   useEffect(() => {
     if (!auth.isLoaded) return;
     if (!auth.isSignedIn) {
       setToken(null);
       return;
     }
-    void refreshToken();
-  }, [auth.isLoaded, auth.isSignedIn, refreshToken]);
-
-  useEffect(() => {
-    void refreshToken();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
-  }, []);
+    void refreshTokenRef.current();
+  }, [auth.isLoaded, auth.isSignedIn]);
 
   const value = useMemo<UserTokenContextValue>(() => {
     return { token, getToken, refreshToken };

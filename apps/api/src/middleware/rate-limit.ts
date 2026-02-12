@@ -49,7 +49,7 @@ export function createRateLimitMiddleware(options?: {
 
       next();
     } catch (error) {
-      logger.error("Rate limit check failed: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Rate limit check failed: %o", error as Error);
       next();
     }
   };

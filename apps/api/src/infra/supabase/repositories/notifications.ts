@@ -39,7 +39,7 @@ export async function createNotification(
     .single();
 
   if (error) {
-    logger.error("Error creating notification: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating notification: %o", error as Error);
     throw error;
   }
 
@@ -66,7 +66,7 @@ export async function getUserNotifications(
   const { data, error } = await query;
 
   if (error) {
-    logger.error("Error fetching user notifications: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user notifications: %o", error as Error);
     throw error;
   }
 
@@ -81,7 +81,7 @@ export async function markNotificationRead(notificationId: string, userId: strin
     .eq("user_id", userId);
 
   if (error) {
-    logger.error("Error marking notification as read: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error marking notification as read: %o", error as Error);
     throw error;
   }
 
@@ -96,7 +96,7 @@ export async function markAllNotificationsRead(userId: string): Promise<boolean>
     .eq("is_read", false);
 
   if (error) {
-    logger.error("Error marking all notifications as read: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error marking all notifications as read: %o", error as Error);
     throw error;
   }
 
@@ -111,7 +111,7 @@ export async function getUnreadCount(userId: string): Promise<number> {
     .eq("is_read", false);
 
   if (error) {
-    logger.error("Error getting unread count: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error getting unread count: %o", error as Error);
     throw error;
   }
 

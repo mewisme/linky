@@ -18,7 +18,7 @@ export async function adminNamespaceAuthMiddleware(socket: Socket, next: (err?: 
     }
     next();
   } catch (error) {
-    logger.error("Admin namespace auth failed: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Admin namespace auth failed: %o", error as Error);
     next(new Error("Authorization failed"));
   }
 }

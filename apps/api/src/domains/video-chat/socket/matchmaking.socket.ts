@@ -45,7 +45,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user1Info = await getPublicUserInfo(dbUserId1);
             }
           } catch (error) {
-            logger.error("Failed to fetch user info: %o", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Failed to fetch user info: %o", error as Error);
           }
         }
 
@@ -56,7 +56,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user2Info = await getPublicUserInfo(dbUserId2);
             }
           } catch (error) {
-            logger.error("Failed to fetch user info: %o", error instanceof Error ? error : new Error(String(error)));
+            logger.error("Failed to fetch user info: %o", error as Error);
           }
         }
 

@@ -426,7 +426,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup stale sockets: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to cleanup stale sockets: %o", error as Error);
     }
   }
 
@@ -462,7 +462,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup expired entries: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to cleanup expired entries: %o", error as Error);
     }
   }
 
@@ -481,7 +481,7 @@ export class MatchmakingService {
         result.set(userId, tags);
       }
     } catch (error) {
-      this.logger.error("Failed to load interest tags: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to load interest tags: %o", error as Error);
     }
 
     return result;
@@ -504,7 +504,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to load favorites: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to load favorites: %o", error as Error);
     }
 
     return result;
@@ -527,7 +527,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to load blocked sets: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to load blocked sets: %o", error as Error);
     }
 
     return result;
@@ -537,7 +537,7 @@ export class MatchmakingService {
     try {
       return await getUserEmbeddingsMap(userIds);
     } catch (error) {
-      this.logger.error("Failed to load embeddings: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to load embeddings: %o", error as Error);
       return new Map();
     }
   }

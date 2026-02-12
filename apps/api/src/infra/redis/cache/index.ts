@@ -28,7 +28,7 @@ export async function getOrSet<T>(
         logger.warn(
           "Cache JSON parse failed for key %s: %o",
           cacheKey,
-          error instanceof Error ? error : new Error(String(error)),
+          error as Error,
         );
       }
     }
@@ -36,7 +36,7 @@ export async function getOrSet<T>(
     logger.warn(
       "Cache read failed for key %s: %o",
       cacheKey,
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
   }
 
@@ -51,7 +51,7 @@ export async function getOrSet<T>(
     logger.warn(
       "Cache write failed for key %s: %o",
       cacheKey,
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
   }
 
@@ -66,7 +66,7 @@ export async function invalidate(key: string): Promise<void> {
     logger.warn(
       "Cache invalidate failed for key %s: %o",
       cacheKey,
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
   }
 }
@@ -98,7 +98,7 @@ export async function invalidateByPrefix(prefix: string): Promise<void> {
     logger.warn(
       "Cache prefix invalidation failed for prefix %s: %o",
       cachePrefix,
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
   }
 }

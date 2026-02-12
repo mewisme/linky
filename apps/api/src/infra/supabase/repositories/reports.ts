@@ -53,7 +53,7 @@ export async function getReports(options: GetReportsOptions = {}): Promise<GetRe
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error("Error fetching reports: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching reports: %o", error as Error);
     throw error;
   }
 
@@ -71,7 +71,7 @@ export async function getReportById(id: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching report: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching report: %o", error as Error);
     throw error;
   }
 
@@ -86,7 +86,7 @@ export async function createReport(reportData: Omit<ReportInsert, "id" | "create
     .single();
 
   if (error) {
-    logger.error("Error creating report: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating report: %o", error as Error);
     throw error;
   }
 
@@ -102,7 +102,7 @@ export async function updateReport(id: string, updateData: ReportUpdate) {
     .single();
 
   if (error) {
-    logger.error("Error updating report: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error updating report: %o", error as Error);
     throw error;
   }
 
@@ -120,7 +120,7 @@ export async function getUserReports(userId: string, options: { limit?: number; 
     .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error("Error fetching user reports: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user reports: %o", error as Error);
     throw error;
   }
 

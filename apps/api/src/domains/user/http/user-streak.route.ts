@@ -47,7 +47,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json(userStreak);
   } catch (error) {
-    logger.error("Unexpected error in GET /user-streak/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /user-streak/me: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user streak",
@@ -95,7 +95,7 @@ router.get("/me/history", async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in GET /user-streak/me/history: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /user-streak/me/history: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user streak history",
@@ -151,7 +151,7 @@ router.get("/calendar", async (req: Request, res: Response) => {
 
     return res.json(calendarData);
   } catch (error) {
-    logger.error("Unexpected error in GET /user-streak/calendar: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /user-streak/calendar: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user streak calendar",

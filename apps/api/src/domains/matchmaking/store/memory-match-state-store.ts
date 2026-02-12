@@ -189,7 +189,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
         expiresAt: now + INTEREST_TAGS_TTL,
       });
     } catch (error) {
-      this.logger.error("Failed to cache interests for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to cache interests for %s: %o", userId, error as Error);
     }
 
     try {
@@ -199,7 +199,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
         expiresAt: now + FAVORITES_TTL,
       });
     } catch (error) {
-      this.logger.error("Failed to cache favorites for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to cache favorites for %s: %o", userId, error as Error);
     }
 
     try {
@@ -209,7 +209,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
         expiresAt: now + BLOCKS_TTL,
       });
     } catch (error) {
-      this.logger.error("Failed to cache blocks for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to cache blocks for %s: %o", userId, error as Error);
     }
   }
 

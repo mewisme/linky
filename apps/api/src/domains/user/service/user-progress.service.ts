@@ -136,7 +136,7 @@ export async function getUserProgressInsights(
   } catch (error) {
     logger.error(
       "Error getting user progress insights: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     throw error;
   }

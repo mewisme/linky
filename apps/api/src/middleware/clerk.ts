@@ -21,7 +21,7 @@ export async function clerkMiddleware(req: Request, res: Response, next: NextFun
     req.auth = payload;
     next();
   } catch (error: unknown) {
-    logger.error("Clerk token verification error: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Clerk token verification error: %o", error as Error);
     return res.status(401).json({ error: "Unauthorized" });
   }
 }

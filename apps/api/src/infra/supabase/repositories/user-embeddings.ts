@@ -14,7 +14,7 @@ export async function getUserEmbeddingByUserId(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user embedding: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user embedding: %o", error as Error);
     throw error;
   }
 
@@ -43,7 +43,7 @@ export async function upsertUserEmbedding(
     .single();
 
   if (error) {
-    logger.error("Error upserting user embedding: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error upserting user embedding: %o", error as Error);
     throw error;
   }
 
@@ -59,7 +59,7 @@ export async function getUserEmbeddingsByUserIds(userIds: string[]) {
     .in("user_id", userIds);
 
   if (error) {
-    logger.error("Error fetching user embeddings: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user embeddings: %o", error as Error);
     throw error;
   }
 
@@ -75,7 +75,7 @@ export async function getEmbeddingMetadataByUserIds(userIds: string[]) {
     .in("user_id", userIds);
 
   if (error) {
-    logger.error("Error fetching embedding metadata: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching embedding metadata: %o", error as Error);
     throw error;
   }
 
@@ -90,7 +90,7 @@ export async function getAllUserEmbeddingsExcluding(excludeUserId: string) {
     .not("embedding", "is", null);
 
   if (error) {
-    logger.error("Error fetching user embeddings: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user embeddings: %o", error as Error);
     throw error;
   }
 
@@ -122,7 +122,7 @@ export async function findSimilarUsersByEmbedding(
   const { data, error } = await supabase.rpc("find_similar_users_by_embedding", rpcArgs);
 
   if (error) {
-    logger.error("Error finding similar users: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error finding similar users: %o", error as Error);
     throw error;
   }
 
@@ -151,7 +151,7 @@ export async function getUserEmbeddingsMap(userIds: string[]): Promise<Map<strin
         logger.error(
           "Failed to parse embedding for user %s: %o",
           record.user_id,
-          error instanceof Error ? error : new Error(String(error))
+          error as Error
         );
       }
     }

@@ -53,7 +53,7 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in GET /user-settings/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /user-settings/me: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user settings",
@@ -93,7 +93,7 @@ router.put("/me", async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in PUT /user-settings/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in PUT /user-settings/me: %o", error as Error);
 
     if (error instanceof Error && error.message === "User settings not found") {
       return res.status(404).json({
@@ -141,7 +141,7 @@ router.patch("/me", async (req: Request, res: Response) => {
 
     return res.json(userSettings);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /user-settings/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in PATCH /user-settings/me: %o", error as Error);
 
     if (error instanceof Error && error.message === "User settings not found") {
       return res.status(404).json({

@@ -22,7 +22,7 @@ export async function incrementUserExp(userId: string, seconds: number): Promise
   });
 
   if (error) {
-    logger.error("Error incrementing user exp: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error incrementing user exp: %o", error as Error);
     throw error;
   }
 }
@@ -38,7 +38,7 @@ export async function getUserLevel(userId: string): Promise<UserLevelRecord | nu
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user level: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user level: %o", error as Error);
     throw error;
   }
 
@@ -56,7 +56,7 @@ export async function getUserLevelsByUserIds(
     .in("user_id", userIds);
 
   if (error) {
-    logger.error("Error fetching user levels batch: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user levels batch: %o", error as Error);
     throw error;
   }
 

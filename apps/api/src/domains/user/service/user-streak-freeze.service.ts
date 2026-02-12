@@ -32,7 +32,7 @@ export async function grantFreezesForLevel(userId: string, level: number): Promi
   } catch (error) {
     logger.error(
       "Error granting freezes for level: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     throw error;
   }

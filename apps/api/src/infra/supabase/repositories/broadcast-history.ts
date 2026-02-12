@@ -43,7 +43,7 @@ export async function createBroadcastHistory(params: {
     .single();
 
   if (error) {
-    logger.error("Error creating broadcast history: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating broadcast history: %o", error as Error);
     throw error;
   }
 
@@ -67,7 +67,7 @@ export async function listBroadcastHistory(
     .range(from, to);
 
   if (error) {
-    logger.error("Error listing broadcast history: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error listing broadcast history: %o", error as Error);
     throw error;
   }
 

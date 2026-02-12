@@ -76,7 +76,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       }
       return true;
     } catch (error) {
-      this.logger.error("Enqueue failed for user: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Enqueue failed for user: %o", error as Error);
       return false;
     }
   }
@@ -93,7 +93,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
       return removed > 0;
     } catch (error) {
-      this.logger.error("Dequeue failed for user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Dequeue failed for user %s: %o", userId, error as Error);
       return false;
     }
   }
@@ -112,7 +112,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
       return removed > 0;
     } catch (error) {
-      this.logger.error("Dequeue-if-owner failed for user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Dequeue-if-owner failed for user %s: %o", userId, error as Error);
       return false;
     }
   }
@@ -144,7 +144,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
       return entries;
     } catch (error) {
-      this.logger.error("Failed to get queued users: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to get queued users: %o", error as Error);
       return [];
     }
   }
@@ -153,7 +153,7 @@ export class RedisMatchStateStore implements MatchStateStore {
     try {
       return await redisClient.get(`${SOCKET_KEY_PREFIX}${userId}`);
     } catch (error) {
-      this.logger.error("Failed to get socket ID for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to get socket ID for %s: %o", userId, error as Error);
       return null;
     }
   }
@@ -163,7 +163,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const currentSocketId = await redisClient.get(`${SOCKET_KEY_PREFIX}${userId}`);
       return currentSocketId === socketId;
     } catch (error) {
-      this.logger.error("Failed to check queue owner for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to check queue owner for %s: %o", userId, error as Error);
       return false;
     }
   }
@@ -179,7 +179,7 @@ export class RedisMatchStateStore implements MatchStateStore {
         EX: Math.floor(MAX_QUEUE_WAIT_TIME / 1000) + 60,
       });
     } catch (error) {
-      this.logger.error("Failed to set socket ID for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to set socket ID for %s: %o", userId, error as Error);
     }
   }
 
@@ -188,7 +188,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       await redisClient.del(`${SOCKET_KEY_PREFIX}${userId}`);
       await this.dequeueUser(userId, "socket-removed");
     } catch (error) {
-      this.logger.error("Failed to remove socket for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to remove socket for %s: %o", userId, error as Error);
     }
   }
 
@@ -202,7 +202,7 @@ export class RedisMatchStateStore implements MatchStateStore {
         "Failed to record skip %s -> %s: %o",
         skipperUserId,
         skippedUserId,
-        error instanceof Error ? error : new Error(String(error)),
+        error as Error,
       );
     }
   }
@@ -220,7 +220,7 @@ export class RedisMatchStateStore implements MatchStateStore {
         "Failed to check skip %s <-> %s: %o",
         userAId,
         userBId,
-        error instanceof Error ? error : new Error(String(error)),
+        error as Error,
       );
       return false;
     }
@@ -230,7 +230,7 @@ export class RedisMatchStateStore implements MatchStateStore {
     try {
       return await redisClient.zCard(QUEUE_KEY);
     } catch (error) {
-      this.logger.error("Failed to get queue size: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to get queue size: %o", error as Error);
       return 0;
     }
   }
@@ -240,7 +240,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const score = await redisClient.zScore(QUEUE_KEY, userId);
       return score !== null;
     } catch (error) {
-      this.logger.error("Failed to check queue status: %s %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to check queue status: %s %o", userId, error as Error);
       return false;
     }
   }
@@ -258,7 +258,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const key = `user:interests:${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
-      this.logger.error("Failed to get interests for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to get interests for %s: %o", userId, error as Error);
       return [];
     }
   }
@@ -268,7 +268,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const key = `user:favorites:${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
-      this.logger.error("Failed to get favorites for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to get favorites for %s: %o", userId, error as Error);
       return [];
     }
   }
@@ -278,7 +278,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const key = `user:blocks:${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
-      this.logger.error("Failed to get blocks for %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to get blocks for %s: %o", userId, error as Error);
       return [];
     }
   }
@@ -300,7 +300,7 @@ export class RedisMatchStateStore implements MatchStateStore {
         await Promise.all(expiredUserIds.map((userId) => this.dequeueUser(userId, "expired")));
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup expired entries: %o", error instanceof Error ? error : new Error(String(error)));
+      this.logger.error("Failed to cleanup expired entries: %o", error as Error);
     }
   }
 
@@ -319,7 +319,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       this.logger.error(
         "Failed to cache user interests: %s %o",
         userId,
-        error instanceof Error ? error : new Error(String(error)),
+        error as Error,
       );
     }
   }
@@ -339,7 +339,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       this.logger.error(
         "Failed to cache user favorites: %s %o",
         userId,
-        error instanceof Error ? error : new Error(String(error)),
+        error as Error,
       );
     }
   }
@@ -359,7 +359,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       this.logger.error(
         "Failed to cache user blocks: %s %o",
         userId,
-        error instanceof Error ? error : new Error(String(error)),
+        error as Error,
       );
     }
   }

@@ -81,7 +81,7 @@ router.post("/presigned-upload", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in POST /admin/media/presigned-upload: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",

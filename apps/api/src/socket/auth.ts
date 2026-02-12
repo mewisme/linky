@@ -47,7 +47,7 @@ export async function socketAuthMiddleware(
 
     next();
   } catch (error: unknown) {
-    logger.error("Socket authentication failed: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Socket authentication failed: %o", error as Error);
     next(new Error("Authentication failed"));
   }
 }
@@ -68,7 +68,7 @@ export async function adminNamespaceAuthMiddleware(
     }
     next();
   } catch (error: unknown) {
-    logger.error("Admin namespace auth failed: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Admin namespace auth failed: %o", error as Error);
     next(new Error("Authorization failed"));
   }
 }

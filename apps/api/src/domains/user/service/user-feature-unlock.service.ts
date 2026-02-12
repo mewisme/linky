@@ -38,7 +38,7 @@ export async function getUserUnlockedFeatures(userId: string, level: number): Pr
 
     return features;
   } catch (error) {
-    logger.error("Error getting user unlocked features: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error getting user unlocked features: %o", error as Error);
     throw error;
   }
 }

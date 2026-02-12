@@ -22,7 +22,7 @@ export async function getActiveFavoriteExpBoostRules(): Promise<FavoriteExpBoost
   if (error) {
     logger.error(
       "Error fetching favorite EXP boost rules: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error,
     );
     throw error;
   }
@@ -38,7 +38,7 @@ export async function getAllFavoriteExpBoostRules(): Promise<FavoriteExpBoostRul
   if (error) {
     logger.error(
       "Error fetching all favorite EXP boost rules: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error,
     );
     throw error;
   }
@@ -55,7 +55,7 @@ export async function getFavoriteExpBoostRulesById(id: string): Promise<Favorite
   if (error) {
     logger.error(
       "Error fetching favorite EXP boost rules by id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error,
     );
     throw error;
   }
@@ -75,7 +75,7 @@ export async function createFavoriteExpBoostRules(record: {
   if (error) {
     logger.error(
       "Error creating favorite EXP boost rules: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error,
     );
     throw error;
   }
@@ -96,7 +96,7 @@ export async function updateFavoriteExpBoostRules(
   if (error) {
     logger.error(
       "Error updating favorite EXP boost rules: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error,
     );
     throw error;
   }
@@ -108,7 +108,7 @@ export async function deleteFavoriteExpBoostRules(id: string): Promise<void> {
   if (error) {
     logger.error(
       "Error deleting favorite EXP boost rules: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error,
     );
     throw error;
   }

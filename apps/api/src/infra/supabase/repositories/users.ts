@@ -53,7 +53,7 @@ export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersR
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error("Error fetching users: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching users: %o", error as Error);
     throw error;
   }
 
@@ -67,7 +67,7 @@ export async function getActiveUserIds(): Promise<string[]> {
     .or("deleted.is.null,deleted.eq.false");
 
   if (error) {
-    logger.error("Error fetching active user IDs: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching active user IDs: %o", error as Error);
     throw error;
   }
 
@@ -82,7 +82,7 @@ export async function getUserById(id: string) {
     .single();
 
   if (error) {
-    logger.error("Error fetching user: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user: %o", error as Error);
     throw error;
   }
 
@@ -98,7 +98,7 @@ export async function getUserByEmail(email: string) {
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching user by email: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user by email: %o", error as Error);
     throw error;
   }
 
@@ -113,7 +113,7 @@ export async function getUserByClerkId(clerkUserId: string) {
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching user by clerk id: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user by clerk id: %o", error as Error);
     throw error;
   }
 
@@ -152,7 +152,7 @@ export async function updateUser(id: string, userData: UserUpdate) {
     .single();
 
   if (error) {
-    logger.error("Error updating user: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error updating user: %o", error as Error);
     throw error;
   }
 
@@ -191,7 +191,7 @@ export async function patchUser(id: string, userData: Partial<UserUpdate>) {
     .single();
 
   if (error) {
-    logger.error("Error updating user: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error updating user: %o", error as Error);
     throw error;
   }
 
@@ -205,7 +205,7 @@ export async function softDeleteUserByClerkId(clerkUserId: string): Promise<void
     .eq("clerk_user_id", clerkUserId);
 
   if (error) {
-    logger.error("Error soft-deleting user: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error soft-deleting user: %o", error as Error);
     throw error;
   }
 }
@@ -214,7 +214,7 @@ export async function createUser(params: UserInsert) {
   const { data, error } = await supabase.from("users").insert(params).select().single();
 
   if (error) {
-    logger.error("Error creating user: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating user: %o", error as Error);
     throw error;
   }
 
@@ -237,7 +237,7 @@ export async function getUsersIdsPaginated(
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error("Error fetching user IDs: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user IDs: %o", error as Error);
     throw error;
   }
 

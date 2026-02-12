@@ -100,7 +100,7 @@ export async function addCallExp(
       logger.info("User leveled up: user=%s from=%d to=%d", userId, levelBeforeValue, levelAfterValue);
     }
   } catch (error) {
-    logger.error("Error adding call exp: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error adding call exp: %o", error as Error);
     throw error;
   }
 }
@@ -138,7 +138,7 @@ export async function getUserLevelData(
       updatedAt: record.updated_at,
     };
   } catch (error) {
-    logger.error("Error getting user level data: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error getting user level data: %o", error as Error);
     throw error;
   }
 }

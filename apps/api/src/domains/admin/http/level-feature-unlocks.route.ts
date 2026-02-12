@@ -25,7 +25,7 @@ router.get("/", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in GET /admin/level-feature-unlocks: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -58,7 +58,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in GET /admin/level-feature-unlocks/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -105,7 +105,7 @@ router.post("/", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in POST /admin/level-feature-unlocks: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
 
     if (error instanceof Error && (error.message.includes("duplicate") || error.message.includes("unique"))) {
@@ -175,7 +175,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in PUT /admin/level-feature-unlocks/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
 
     if (error instanceof Error && error.message === "Level feature unlock not found") {
@@ -252,7 +252,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in PATCH /admin/level-feature-unlocks/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
 
     if (error instanceof Error && error.message === "Level feature unlock not found") {
@@ -295,7 +295,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in DELETE /admin/level-feature-unlocks/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
 
     return res.status(500).json({

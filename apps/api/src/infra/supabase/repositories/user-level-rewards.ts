@@ -21,7 +21,7 @@ export async function getUserLevelRewards(userId: string): Promise<UserLevelRewa
     .order("granted_at", { ascending: false });
 
   if (error) {
-    logger.error("Error fetching user level rewards: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user level rewards: %o", error as Error);
     throw error;
   }
 
@@ -35,7 +35,7 @@ export async function getUserLevelRewardIds(userId: string): Promise<string[]> {
     .eq("user_id", userId);
 
   if (error) {
-    logger.error("Error fetching user level reward IDs: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user level reward IDs: %o", error as Error);
     throw error;
   }
 
@@ -54,7 +54,7 @@ export async function hasUserLevelReward(userId: string, levelRewardId: string):
     if (error.code === "PGRST116") {
       return false;
     }
-    logger.error("Error checking user level reward: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error checking user level reward: %o", error as Error);
     throw error;
   }
 
@@ -77,7 +77,7 @@ export async function grantUserLevelReward(data: UserLevelRewardInsert): Promise
         return reward;
       }
     }
-    logger.error("Error granting user level reward: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error granting user level reward: %o", error as Error);
     throw error;
   }
 
@@ -107,7 +107,7 @@ export async function grantUserLevelRewards(userId: string, levelRewardIds: stri
     .select();
 
   if (error) {
-    logger.error("Error granting user level rewards: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error granting user level rewards: %o", error as Error);
     throw error;
   }
 

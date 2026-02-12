@@ -35,7 +35,7 @@ async function acquireIdempotencyLock(key: string): Promise<boolean> {
     logger.warn(
       "Failed to acquire idempotency lock for key %s: %o",
       key,
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return true;
   }
@@ -122,7 +122,10 @@ export async function recordCallHistory(
 
     logger.info("Call history recorded: duration=%ds", durationSeconds);
   } catch (error) {
-    logger.error("Error recording call history: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      "Error recording call history: %o",
+      error as Error,
+    );
   }
 }
 

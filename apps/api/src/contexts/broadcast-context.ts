@@ -32,7 +32,7 @@ export async function sendBroadcastToAllUsers(params: SendBroadcastParams): Prom
         });
         sent++;
       } catch (error) {
-        logger.warn("Failed to send push-only broadcast to user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+        logger.warn("Failed to send push-only broadcast to user %s: %o", userId, error as Error);
       }
     }
 
@@ -55,7 +55,7 @@ export async function sendBroadcastToAllUsers(params: SendBroadcastParams): Prom
       });
       sent++;
     } catch (error) {
-      logger.warn("Failed to send broadcast to user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+      logger.warn("Failed to send broadcast to user %s: %o", userId, error as Error);
     }
   }
 

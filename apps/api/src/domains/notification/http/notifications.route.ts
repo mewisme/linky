@@ -38,7 +38,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json({ notifications });
   } catch (error) {
-    logger.error("Unexpected error in GET /notifications/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /notifications/me: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch notifications",
@@ -69,7 +69,7 @@ router.get("/me/unread-count", async (req: Request, res: Response) => {
 
     return res.json({ count });
   } catch (error) {
-    logger.error("Unexpected error in GET /notifications/me/unread-count: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /notifications/me/unread-count: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch unread count",
@@ -109,7 +109,7 @@ router.patch("/:id/read", async (req: Request, res: Response) => {
 
     return res.status(204).send();
   } catch (error) {
-    logger.error("Unexpected error in PATCH /notifications/:id/read: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in PATCH /notifications/:id/read: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to mark notification as read",
@@ -140,7 +140,7 @@ router.patch("/read-all", async (req: Request, res: Response) => {
 
     return res.status(204).send();
   } catch (error) {
-    logger.error("Unexpected error in PATCH /notifications/read-all: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in PATCH /notifications/read-all: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to mark all notifications as read",

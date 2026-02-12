@@ -22,7 +22,7 @@ export async function adminMiddleware(req: Request, res: Response, next: NextFun
     logger.info("Admin access granted: %s for user: %s", isAdmin, clerkUserId);
     next();
   } catch (error) {
-    logger.error("Admin middleware error: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Admin middleware error: %o", error as Error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }

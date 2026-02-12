@@ -87,7 +87,7 @@ router.get("/", async (req: Request, res: Response) => {
   } catch (error: unknown) {
     logger.error(
       "Unexpected error in GET /call-history: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -180,7 +180,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     logger.error(
       "Unexpected error in GET /call-history/:id: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -244,7 +244,7 @@ router.post("/", async (req: Request, res: Response) => {
   } catch (error: unknown) {
     logger.error(
       "Unexpected error in POST /call-history: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",

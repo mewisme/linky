@@ -42,7 +42,7 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
     .single();
 
   if (error) {
-    logger.error("Error creating push subscription: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating push subscription: %o", error as Error);
     throw error;
   }
 
@@ -57,7 +57,7 @@ export async function deleteSubscription(userId: string, endpoint: string): Prom
     .eq("endpoint", endpoint);
 
   if (error) {
-    logger.error("Error deleting push subscription: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error deleting push subscription: %o", error as Error);
     throw error;
   }
 
@@ -71,7 +71,7 @@ export async function getUserSubscriptions(userId: string): Promise<PushSubscrip
     .eq("user_id", userId);
 
   if (error) {
-    logger.error("Error fetching user subscriptions: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user subscriptions: %o", error as Error);
     throw error;
   }
 
@@ -85,7 +85,7 @@ export async function deleteExpiredSubscription(endpoint: string): Promise<boole
     .eq("endpoint", endpoint);
 
   if (error) {
-    logger.error("Error deleting expired subscription: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error deleting expired subscription: %o", error as Error);
     throw error;
   }
 

@@ -40,7 +40,7 @@ router.post("/compare", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in POST /admin/embeddings/compare: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -78,7 +78,7 @@ router.post("/similar", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in POST /admin/embeddings/similar: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -125,7 +125,7 @@ router.post("/sync", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in POST /admin/embeddings/sync: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -141,7 +141,7 @@ router.post("/sync-all", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in POST /admin/embeddings/sync-all: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",

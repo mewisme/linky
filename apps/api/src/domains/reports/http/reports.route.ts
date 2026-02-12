@@ -78,12 +78,12 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
       });
 
     } catch (error) {
-      logger.error("Error creating report context: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Error creating report context: %o", error as Error);
     }
 
     return res.status(201).json(report);
   } catch (error) {
-    logger.error("Unexpected error in POST /reports: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in POST /reports: %o", error as Error);
 
     if (error instanceof Error && error.message.includes("violates check constraint")) {
       return res.status(400).json({
@@ -143,7 +143,7 @@ router.get("/me", async (req: Request, res: Response) => {
       offset,
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /reports/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /reports/me: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user reports",

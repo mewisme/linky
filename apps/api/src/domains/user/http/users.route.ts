@@ -24,7 +24,7 @@ router.get("/me", async (req: Request, res: Response) => {
     const { user, error } = await fetchUserByClerkUserId(clerkUserId);
 
     if (error) {
-      logger.error("Error fetching user from database: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Error fetching user from database: %o", error as Error);
 
       if (error.code === "PGRST116") {
         return res.status(404).json({
@@ -62,7 +62,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error) {
-    logger.error("Unexpected error in GET /users/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /users/me: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",
@@ -91,7 +91,7 @@ router.patch("/me/country", async (req: Request, res: Response) => {
     const { user, error } = await updateUserCountryByClerkUserId(clerk_user_id, country);
 
     if (error) {
-      logger.error("Error updating user country: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Error updating user country: %o", error as Error);
       return res.status(500).json({
         error: "Internal Server Error",
         message: "Failed to update user country",
@@ -107,7 +107,7 @@ router.patch("/me/country", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /users/me/country: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in PATCH /users/me/country: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",

@@ -36,7 +36,7 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
     await connectRedis();
     preloadReferenceData();
   } catch (error: unknown) {
-    logger.error("Failed to connect to Redis, continuing without Redis: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Failed to connect to Redis, continuing without Redis: %o", error as Error);
   }
 
   initializeMqttClient();
@@ -46,7 +46,7 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   });
 
   httpServer.on("error", (error: Error) => {
-    logger.fatal("HTTP server error: %o", error);
+    logger.fatal("HTTP server error: %o", error as Error);
   });
 
   setupGracefulShutdown(httpServer, io);

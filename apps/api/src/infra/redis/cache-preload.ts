@@ -50,6 +50,6 @@ export async function preloadReferenceData(): Promise<void> {
 
     logger.info("Cache preload completed: interest_tags=%d changelogs=%d", interestTagsData.data.length, changelogsData.data.length);
   } catch (error) {
-    logger.error("Cache preload failed: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Cache preload failed: %o", error as Error);
   }
 }

@@ -25,7 +25,7 @@ export async function getLevelRewardsByLevel(level: number): Promise<LevelReward
     .order("reward_type", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching level rewards by level: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching level rewards by level: %o", error as Error);
     throw error;
   }
 
@@ -44,7 +44,7 @@ export async function getLevelRewardsUpToLevel(level: number): Promise<LevelRewa
     .order("reward_type", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching level rewards up to level: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching level rewards up to level: %o", error as Error);
     throw error;
   }
 
@@ -62,7 +62,7 @@ export async function getAllLevelRewards(): Promise<LevelRewardRecord[]> {
     .order("reward_type", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching all level rewards: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching all level rewards: %o", error as Error);
     throw error;
   }
 
@@ -83,7 +83,7 @@ export async function getLevelRewardById(id: string): Promise<LevelRewardRecord 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching level reward: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching level reward: %o", error as Error);
     throw error;
   }
 
@@ -103,7 +103,7 @@ export async function createLevelReward(data: LevelRewardInsert): Promise<LevelR
     .single();
 
   if (error) {
-    logger.error("Error creating level reward: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating level reward: %o", error as Error);
     throw error;
   }
 
@@ -129,7 +129,7 @@ export async function updateLevelReward(id: string, data: LevelRewardUpdate): Pr
     if (error.code === "PGRST116") {
       throw new Error("Level reward not found");
     }
-    logger.error("Error updating level reward: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error updating level reward: %o", error as Error);
     throw error;
   }
 
@@ -150,7 +150,7 @@ export async function deleteLevelReward(id: string): Promise<void> {
     .eq("id", id);
 
   if (error) {
-    logger.error("Error deleting level reward: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error deleting level reward: %o", error as Error);
     throw error;
   }
 }

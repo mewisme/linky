@@ -70,7 +70,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/users: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /admin/users: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch users",
@@ -114,7 +114,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       presence,
     });
   } catch (error: any) {
-    logger.error("Unexpected error in GET /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /admin/users/:id: %o", error as Error);
 
     if (error.code === "PGRST116") {
       return res.status(404).json({
@@ -145,7 +145,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error: any) {
-    logger.error("Unexpected error in PUT /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in PUT /admin/users/:id: %o", error as Error);
 
     if (error.message === "User not found") {
       return res.status(404).json({
@@ -183,7 +183,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error: any) {
-    logger.error("Unexpected error in PATCH /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in PATCH /admin/users/:id: %o", error as Error);
 
     if (error.message === "User not found") {
       return res.status(404).json({
@@ -220,7 +220,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     return res.json({ success: true, message: "User deleted successfully" });
   } catch (error: any) {
-    logger.error("Unexpected error in DELETE /admin/users/:id: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in DELETE /admin/users/:id: %o", error as Error);
 
     return res.status(500).json({
       error: "Internal Server Error",

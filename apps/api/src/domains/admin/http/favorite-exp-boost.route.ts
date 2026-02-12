@@ -18,7 +18,7 @@ router.get("/", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in GET /admin/favorite-exp-boost: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({ error: "Internal Server Error", message: "Failed to fetch favorite EXP boost rules" });
   }
@@ -38,7 +38,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in GET /admin/favorite-exp-boost/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({ error: "Internal Server Error", message: "Failed to fetch favorite EXP boost rule" });
   }
@@ -60,7 +60,7 @@ router.post("/", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in POST /admin/favorite-exp-boost: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({ error: "Internal Server Error", message: "Failed to create favorite EXP boost rule" });
   }
@@ -91,7 +91,7 @@ router.put("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in PUT /admin/favorite-exp-boost/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({ error: "Internal Server Error", message: "Failed to update favorite EXP boost rule" });
   }
@@ -122,7 +122,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in PATCH /admin/favorite-exp-boost/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({ error: "Internal Server Error", message: "Failed to update favorite EXP boost rule" });
   }
@@ -139,7 +139,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error(
       "Unexpected error in DELETE /admin/favorite-exp-boost/:id: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({ error: "Internal Server Error", message: "Failed to delete favorite EXP boost rule" });
   }

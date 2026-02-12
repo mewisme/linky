@@ -16,7 +16,7 @@ export async function withRedisTimeout<T>(
   try {
     return await Promise.race([operation(), timeoutPromise]);
   } catch (error) {
-    logger.error("Redis operation failed: %s %o", operationName, error instanceof Error ? error : new Error(String(error)));
+    logger.error("Redis operation failed: %s %o", operationName, error as Error);
     throw error;
   }
 }

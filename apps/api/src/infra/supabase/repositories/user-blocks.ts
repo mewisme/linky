@@ -17,7 +17,7 @@ export async function getBlockedUserIds(userId: string): Promise<string[]> {
     .eq("blocker_user_id", userId);
 
   if (error) {
-    logger.error("Error fetching blocked users: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching blocked users: %o", error as Error);
     throw error;
   }
 
@@ -32,7 +32,7 @@ export async function isBlocked(blockerId: string, targetId: string): Promise<bo
     .maybeSingle();
 
   if (error) {
-    logger.error("Error checking if blocked: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error checking if blocked: %o", error as Error);
     throw error;
   }
 
@@ -50,7 +50,7 @@ export async function createBlock(blockerId: string, blockedId: string): Promise
     .single();
 
   if (error) {
-    logger.error("Error creating block: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating block: %o", error as Error);
     throw error;
   }
 
@@ -65,7 +65,7 @@ export async function deleteBlock(blockerId: string, blockedId: string): Promise
     .eq("blocked_user_id", blockedId);
 
   if (error) {
-    logger.error("Error deleting block: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error deleting block: %o", error as Error);
     throw error;
   }
 
@@ -91,7 +91,7 @@ export async function getBlockedUsersWithDetails(userId: string): Promise<Blocke
     .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error("Error fetching blocked users with details: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching blocked users with details: %o", error as Error);
     throw error;
   }
 
@@ -107,7 +107,7 @@ export async function checkBlockExists(blockerId: string, blockedId: string): Pr
     .maybeSingle();
 
   if (error) {
-    logger.error("Error checking block exists: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error checking block exists: %o", error as Error);
     throw error;
   }
 

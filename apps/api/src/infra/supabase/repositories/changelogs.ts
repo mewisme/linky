@@ -98,7 +98,7 @@ export async function createChangelog(params: CreateChangelogParams): Promise<Ch
     .single();
 
   if (error) {
-    logger.error("Error fetching created changelog: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching created changelog: %o", error as Error);
     throw error;
   }
 
@@ -129,7 +129,7 @@ export async function getChangelogs(
   const { data, error, count } = await query.range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error("Error fetching changelogs: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching changelogs: %o", error as Error);
     throw error;
   }
 
@@ -148,7 +148,7 @@ export async function getChangelogByVersion(version: string): Promise<PublicChan
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching changelog by version: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching changelog by version: %o", error as Error);
     throw error;
   }
 
@@ -166,7 +166,7 @@ export async function getChangelogById(id: string): Promise<ChangelogRecord | nu
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching changelog by ID: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching changelog by ID: %o", error as Error);
     throw error;
   }
 
@@ -208,7 +208,7 @@ export async function updateChangelog(id: string, params: UpdateChangelogParams)
     .single();
 
   if (error) {
-    logger.error("Error fetching updated changelog: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching updated changelog: %o", error as Error);
     throw error;
   }
 
@@ -223,7 +223,7 @@ export async function deleteChangelog(id: string): Promise<void> {
   const { error } = await supabase.from("changelogs").delete().eq("id", id);
 
   if (error) {
-    logger.error("Error deleting changelog: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error deleting changelog: %o", error as Error);
     throw error;
   }
 }
@@ -244,7 +244,7 @@ export async function getAllChangelogsForAdmin(
   const { data, error, count } = await query.range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error("Error fetching all changelogs for admin: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching all changelogs for admin: %o", error as Error);
     throw error;
   }
 

@@ -36,7 +36,7 @@ export async function grantRewardsForLevel(userId: string, level: number): Promi
     await grantUserLevelRewards(userId, rewardIdsToGrant);
     logger.info("Granted %d level rewards to user %s at level %d", rewardIdsToGrant.length, userId, level);
   } catch (error) {
-    logger.error("Error granting rewards for level: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error granting rewards for level: %o", error as Error);
     throw error;
   }
 }
@@ -53,7 +53,7 @@ export async function getUserGrantedRewards(userId: string): Promise<Array<{ lev
       grantedAt: reward.granted_at,
     }));
   } catch (error) {
-    logger.error("Error getting user granted rewards: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error getting user granted rewards: %o", error as Error);
     throw error;
   }
 }

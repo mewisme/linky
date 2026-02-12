@@ -64,7 +64,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
       throw fetchError;
     }
   } catch (error: unknown) {
-    logger.error("Error fetching ICE servers: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching ICE servers: %o", error as Error);
     res.status(500).json({
       error: "Internal server error",
       message: "Failed to fetch ICE servers",

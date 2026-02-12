@@ -46,7 +46,7 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in POST /users/blocks: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in POST /users/blocks: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to block user",
@@ -93,7 +93,7 @@ router.delete("/:blocked_user_id", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in DELETE /users/blocks/:id: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in DELETE /users/blocks/:id: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to unblock user",
@@ -124,7 +124,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json({ blocked_users: blockedUsers });
   } catch (error) {
-    logger.error("Unexpected error in GET /users/blocks/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /users/blocks/me: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch blocked users",

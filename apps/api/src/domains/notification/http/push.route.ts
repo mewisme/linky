@@ -40,7 +40,7 @@ router.post("/subscribe", async (req: Request, res: Response) => {
 
     return res.status(201).json(record);
   } catch (error) {
-    logger.error("Unexpected error in POST /push/subscribe: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in POST /push/subscribe: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to subscribe to push notifications",
@@ -80,7 +80,7 @@ router.delete("/unsubscribe", async (req: Request, res: Response) => {
 
     return res.status(204).send();
   } catch (error) {
-    logger.error("Unexpected error in DELETE /push/unsubscribe: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in DELETE /push/unsubscribe: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to unsubscribe from push notifications",
@@ -99,7 +99,7 @@ router.get("/vapid-public-key", (_req: Request, res: Response) => {
 
     return res.json({ publicKey: config.vapidPublicKey });
   } catch (error) {
-    logger.error("Unexpected error in GET /push/vapid-public-key: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /push/vapid-public-key: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch VAPID public key",

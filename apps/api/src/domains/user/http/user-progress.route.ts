@@ -48,7 +48,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json(progress);
   } catch (error) {
-    logger.error("Unexpected error in GET /user-progress/me: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /user-progress/me: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user progress",

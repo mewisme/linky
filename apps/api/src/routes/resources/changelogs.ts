@@ -47,7 +47,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error: unknown) {
-    logger.error("Unexpected error in GET /changelogs: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /changelogs: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch changelogs",
@@ -99,7 +99,7 @@ router.get("/:version", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in GET /changelogs/:version: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /changelogs/:version: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch changelog",

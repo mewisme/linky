@@ -19,7 +19,7 @@ export async function getUserSettingsByUserId(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user settings: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user settings: %o", error as Error);
     throw error;
   }
 
@@ -37,7 +37,7 @@ export async function createUserSettings(userId: string, data: Omit<UserSettings
     .single();
 
   if (error) {
-    logger.error("Error creating user settings: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating user settings: %o", error as Error);
     throw error;
   }
 
@@ -59,7 +59,7 @@ export async function updateUserSettings(userId: string, data: UserSettingsUpdat
     .single();
 
   if (error) {
-    logger.error("Error updating user settings: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error updating user settings: %o", error as Error);
     throw error;
   }
 
@@ -81,7 +81,7 @@ export async function patchUserSettings(userId: string, data: Partial<UserSettin
     .single();
 
   if (error) {
-    logger.error("Error patching user settings: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error patching user settings: %o", error as Error);
     throw error;
   }
 

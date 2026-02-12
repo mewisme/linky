@@ -39,7 +39,7 @@ export async function checkIfUserIsAdmin(clerkUserId: string): Promise<boolean> 
 
     return isAdmin;
   } catch (error) {
-    logger.error("Error checking admin status: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error checking admin status: %o", error as Error);
     return false;
   }
 }
@@ -52,7 +52,7 @@ async function refreshAdminCache(): Promise<void> {
       .eq("role", "admin");
 
     if (error) {
-      logger.error("Error refreshing admin cache: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Error refreshing admin cache: %o", error as Error);
       return;
     }
 
@@ -65,7 +65,7 @@ async function refreshAdminCache(): Promise<void> {
       await redisClient.set(key, "admin", { EX: ADMIN_CACHE_TTL_SECONDS });
     }
   } catch (error) {
-    logger.error("Error refreshing admin cache: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error refreshing admin cache: %o", error as Error);
   }
 }
 

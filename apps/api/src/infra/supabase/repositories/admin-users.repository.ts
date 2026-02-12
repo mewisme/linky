@@ -56,7 +56,7 @@ export async function getAdminUsersUnified(
   if (error) {
     logger.error(
       "Error fetching admin users unified: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error
     );
     throw error;
   }

@@ -23,7 +23,7 @@ export async function getCachedData<T>(
       return JSON.parse(cached) as T;
     }
   } catch (error) {
-    logger.warn(`Redis cache read failed for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Redis cache read failed for key ${cacheKey}: %o`, error as Error);
   }
 
   const data = await fetchFromDb();
@@ -35,7 +35,7 @@ export async function getCachedData<T>(
         `set-cached-${cacheKey}`
       );
     } catch (error) {
-      logger.warn(`Failed to cache data for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
+      logger.warn(`Failed to cache data for key ${cacheKey}: %o`, error as Error);
     }
   }
 
@@ -51,7 +51,7 @@ export async function invalidateCacheKey(key: string): Promise<void> {
       `invalidate-${cacheKey}`
     );
   } catch (error) {
-    logger.warn(`Failed to invalidate cache for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Failed to invalidate cache for key ${cacheKey}: %o`, error as Error);
   }
 }
 
@@ -66,7 +66,7 @@ export async function invalidateCacheKeys(keys: string[]): Promise<void> {
       `invalidate-multiple`
     );
   } catch (error) {
-    logger.warn(`Failed to invalidate cache for keys ${cacheKeys.join(", ")}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Failed to invalidate cache for keys ${cacheKeys.join(", ")}: %o`, error as Error);
   }
 }
 
@@ -79,6 +79,6 @@ export async function updateCachedData<T>(key: string, data: T, ttl?: number): P
       `update-cached-${cacheKey}`
     );
   } catch (error) {
-    logger.warn(`Failed to update cache for key ${cacheKey}: %o`, error instanceof Error ? error : new Error(String(error)));
+    logger.warn(`Failed to update cache for key ${cacheKey}: %o`, error as Error);
   }
 }

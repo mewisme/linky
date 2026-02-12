@@ -87,7 +87,7 @@ export async function addCallDurationToStreak(
   } catch (error) {
     logger.error(
       "Error adding call duration to streak: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     throw error;
   }
@@ -113,7 +113,10 @@ export async function getUserStreakData(userId: string): Promise<UserStreak | nu
       updatedAt: record.updated_at,
     };
   } catch (error) {
-    logger.error("Error getting user streak data: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      "Error getting user streak data: %o",
+      error as Error,
+    );
     throw error;
   }
 }
@@ -140,7 +143,10 @@ export async function getUserStreakHistory(
       count: result.count,
     };
   } catch (error) {
-    logger.error("Error getting user streak history: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      "Error getting user streak history: %o",
+      error as Error,
+    );
     throw error;
   }
 }
@@ -192,7 +198,7 @@ export async function getUserStreakCalendar(
   } catch (error) {
     logger.error(
       "Error getting user streak calendar: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     throw error;
   }

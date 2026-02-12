@@ -24,7 +24,7 @@ mqttClient.on('connect', () => {
 
   mqttClient.subscribe('presence/+', { qos: 0 }, (error) => {
     if (error) {
-      logger.error('MQTT Subscribe error: %o', error instanceof Error ? error : new Error(String(error)))
+      logger.error('MQTT Subscribe error: %o', error)
       return
     }
     logger.info('MQTT Subscribed to presence/+')
@@ -54,7 +54,7 @@ export function initializeMqttClient(): void {
   logger.info('MQTT Client initialized')
 
   initializeAdminCache().catch((error) => {
-    logger.error('Failed to initialize admin cache: %o', error instanceof Error ? error : new Error(String(error)))
+    logger.error('Failed to initialize admin cache: %o', error)
   })
 }
 

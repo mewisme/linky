@@ -67,7 +67,7 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
 
       const peerSocket = peerId ? (io.sockets.get(peerId) as AuthenticatedSocket | undefined) : undefined;
       await recordCallHistory(io, room, socket, peerSocket).catch((error) => {
-        logger.error("Failed to record call history: %o", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Failed to record call history: %o", error as Error);
       });
 
       if (peerId) {
@@ -96,7 +96,7 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
 
     res.status(200).json({ success: true, message: "End-call processed" });
   } catch (error) {
-    logger.error("Error processing unload end-call: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error processing unload end-call: %o", error as Error);
     res.status(500).json({ error: "Internal server error" });
   }
 });

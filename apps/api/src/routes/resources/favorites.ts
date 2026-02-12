@@ -51,7 +51,7 @@ router.get("/", async (req: Request, res: Response) => {
   } catch (error: unknown) {
     logger.error(
       "Unexpected error in GET /favorites: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -124,7 +124,7 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
   } catch (error: unknown) {
     logger.error(
       "Unexpected error in POST /favorites: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",
@@ -179,7 +179,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
       try {
         await decrementFavoriteLimit(userId);
       } catch (error: unknown) {
-        logger.error("Failed to refund daily limit: %o", error instanceof Error ? error : new Error(String(error)));
+        logger.error("Failed to refund daily limit: %o", error as Error);
       }
     }
 
@@ -187,7 +187,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
       const favoritesKey = `user:favorites:${userId}`;
       await redisClient.sRem(favoritesKey, favorite_user_id);
     } catch (error: unknown) {
-      logger.error("Failed to update Redis cache: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Failed to update Redis cache: %o", error as Error);
     }
 
     return res.json({
@@ -197,7 +197,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
   } catch (error: unknown) {
     logger.error(
       "Unexpected error in DELETE /favorites/:favorite_user_id: %o",
-      error instanceof Error ? error : new Error(String(error))
+      error as Error
     );
     return res.status(500).json({
       error: "Internal Server Error",

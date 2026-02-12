@@ -50,7 +50,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error: unknown) {
-    logger.error("Unexpected error in GET /interest-tags: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /interest-tags: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tags",
@@ -90,7 +90,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in GET /interest-tags/:id: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /interest-tags/:id: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tag",

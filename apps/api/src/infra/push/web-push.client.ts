@@ -49,7 +49,7 @@ export async function sendPushNotification(
 
     logger.info("Push notification sent successfully to %s", subscription.endpoint);
   } catch (error) {
-    logger.error("Error sending push notification: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error sending push notification: %o", error as Error);
     throw error;
   }
 }

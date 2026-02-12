@@ -33,7 +33,7 @@ export async function incrementUserExpDaily(
   });
 
   if (error) {
-    logger.error("Error incrementing user exp daily: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error incrementing user exp daily: %o", error as Error);
     throw error;
   }
 }
@@ -57,7 +57,7 @@ export async function getUserExpDaily(
     if (error.code === "PGRST116") {
       return 0;
     }
-    logger.error("Error fetching user exp daily: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user exp daily: %o", error as Error);
     throw error;
   }
 

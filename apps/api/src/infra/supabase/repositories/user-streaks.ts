@@ -47,7 +47,7 @@ export async function upsertUserStreakDay(
   });
 
   if (error) {
-    logger.error("Error upserting user streak day: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error upserting user streak day: %o", error as Error);
     throw error;
   }
 
@@ -73,7 +73,7 @@ export async function getUserStreak(userId: string): Promise<UserStreakRecord | 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching user streak: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user streak: %o", error as Error);
     throw error;
   }
 
@@ -92,7 +92,7 @@ export async function getStreakDayByUserAndDate(
     .eq("date", dateStr)
     .maybeSingle();
   if (error) {
-    logger.error("Error fetching streak day by date: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching streak day by date: %o", error as Error);
     throw error;
   }
   return data;
@@ -104,7 +104,7 @@ export async function clearLastContinuationUsedFreeze(userId: string): Promise<v
     .update({ last_continuation_used_freeze: false })
     .eq("user_id", userId);
   if (error) {
-    logger.error("Error clearing last_continuation_used_freeze: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error clearing last_continuation_used_freeze: %o", error as Error);
     throw error;
   }
 }
@@ -123,7 +123,7 @@ export async function getUserStreakDays(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error("Error fetching user streak days: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user streak days: %o", error as Error);
     throw error;
   }
 
@@ -154,7 +154,7 @@ export async function getUserStreakDaysByMonth(
     .order("date", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching user streak days by month: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching user streak days by month: %o", error as Error);
     throw error;
   }
 

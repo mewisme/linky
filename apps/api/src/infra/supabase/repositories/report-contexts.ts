@@ -34,7 +34,7 @@ export async function createReportContext(
     .single();
 
   if (error) {
-    logger.error("Error creating report context: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating report context: %o", error as Error);
     throw error;
   }
 
@@ -52,7 +52,7 @@ export async function getReportContextByReportId(reportId: string): Promise<Repo
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching report context: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching report context: %o", error as Error);
     throw error;
   }
 

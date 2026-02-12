@@ -48,7 +48,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
           await redisClient.quit();
         }
       } catch (error) {
-        logger.warn("Error closing Redis connection: %o", error instanceof Error ? error : new Error(String(error)));
+        logger.warn("Error closing Redis connection: %o", error as Error);
       }
 
       try {
@@ -56,14 +56,14 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
           mqttClient.end();
         }
       } catch (error) {
-        logger.warn("Error closing MQTT connection: %o", error instanceof Error ? error : new Error(String(error)));
+        logger.warn("Error closing MQTT connection: %o", error as Error);
       }
 
       clearTimeout(shutdownTimer);
       logger.info("Graceful shutdown completed");
       process.exit(0);
     } catch (error) {
-      logger.error("Error during shutdown: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Error during shutdown: %o", error as Error);
       clearTimeout(shutdownTimer);
       process.exit(1);
     }
@@ -73,7 +73,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   process.on("uncaughtException", (error: Error) => {
-    logger.fatal("Uncaught exception: %o", error);
+    logger.fatal("Uncaught exception: %o", error as Error);
     shutdown("uncaughtException").catch(() => {
       process.exit(1);
     });

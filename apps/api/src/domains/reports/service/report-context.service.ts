@@ -53,7 +53,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error("Error fetching call history: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Error fetching call history: %o", error as Error);
     }
   }
 
@@ -96,7 +96,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error("Error fetching room context: %o", error instanceof Error ? error : new Error(String(error)));
+      logger.error("Error fetching room context: %o", error as Error);
     }
   }
 

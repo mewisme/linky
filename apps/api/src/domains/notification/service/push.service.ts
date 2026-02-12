@@ -87,7 +87,7 @@ export async function sendPushToUser(userId: string, notification: NotificationR
 
     logger.info("Push notifications sent to user %s (%d subscriptions)", userId, subscriptions.length);
   } catch (error) {
-    logger.error("Error sending push to user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error sending push to user %s: %o", userId, error as Error);
     throw error;
   }
 }
@@ -136,7 +136,7 @@ export async function sendPushOnly(userId: string, options: PushOnlyOptions): Pr
 
     logger.info("Push-only sent to user %s (%d subscriptions)", userId, subscriptions.length);
   } catch (error) {
-    logger.error("Error sending push-only to user %s: %o", userId, error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error sending push-only to user %s: %o", userId, error as Error);
     throw error;
   }
 }
@@ -146,7 +146,7 @@ export async function handlePushError(error: unknown, endpoint: string): Promise
     logger.info("Subscription expired, deleting: %s", endpoint);
     await deleteExpiredSubscription(endpoint);
   } else {
-    logger.error("Push notification error for endpoint %s: %o", endpoint, error instanceof Error ? error : new Error(String(error)));
+    logger.error("Push notification error for endpoint %s: %o", endpoint, error as Error);
   }
 }
 

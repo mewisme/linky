@@ -59,7 +59,7 @@ router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) =
   } catch (error: unknown) {
     logger.error(
       "Error processing webhook: %o",
-      error instanceof Error ? error : new Error(String(error)),
+      error as Error,
     );
     return res.status(500).json({
       error: "Internal Server Error",

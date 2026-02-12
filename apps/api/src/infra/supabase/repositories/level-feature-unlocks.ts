@@ -26,7 +26,7 @@ export async function getLevelFeatureUnlocksUpToLevel(level: number): Promise<Le
     .order("feature_key", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching level feature unlocks up to level: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching level feature unlocks up to level: %o", error as Error);
     throw error;
   }
 
@@ -44,7 +44,7 @@ export async function getLevelFeatureUnlocksAtLevel(level: number): Promise<Leve
     .order("feature_key", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching level feature unlocks at level: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching level feature unlocks at level: %o", error as Error);
     throw error;
   }
 
@@ -62,7 +62,7 @@ export async function getAllLevelFeatureUnlocks(): Promise<LevelFeatureUnlockRec
     .order("feature_key", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching all level feature unlocks: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching all level feature unlocks: %o", error as Error);
     throw error;
   }
 
@@ -83,7 +83,7 @@ export async function getLevelFeatureUnlockById(id: string): Promise<LevelFeatur
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching level feature unlock: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error fetching level feature unlock: %o", error as Error);
     throw error;
   }
 
@@ -103,7 +103,7 @@ export async function createLevelFeatureUnlock(data: LevelFeatureUnlockInsert): 
     .single();
 
   if (error) {
-    logger.error("Error creating level feature unlock: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error creating level feature unlock: %o", error as Error);
     throw error;
   }
 
@@ -129,7 +129,7 @@ export async function updateLevelFeatureUnlock(id: string, data: LevelFeatureUnl
     if (error.code === "PGRST116") {
       throw new Error("Level feature unlock not found");
     }
-    logger.error("Error updating level feature unlock: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error updating level feature unlock: %o", error as Error);
     throw error;
   }
 
@@ -150,7 +150,7 @@ export async function deleteLevelFeatureUnlock(id: string): Promise<void> {
     .eq("id", id);
 
   if (error) {
-    logger.error("Error deleting level feature unlock: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Error deleting level feature unlock: %o", error as Error);
     throw error;
   }
 }

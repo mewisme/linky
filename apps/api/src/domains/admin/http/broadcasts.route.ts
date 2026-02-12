@@ -31,7 +31,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/broadcasts: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in GET /admin/broadcasts: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to list broadcasts",
@@ -111,7 +111,7 @@ router.post("/", async (req: Request, res: Response) => {
           : `Broadcast sent to ${sent} user(s).`,
     });
   } catch (error) {
-    logger.error("Unexpected error in POST /admin/broadcasts: %o", error instanceof Error ? error : new Error(String(error)));
+    logger.error("Unexpected error in POST /admin/broadcasts: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to send broadcast",

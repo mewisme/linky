@@ -1,6 +1,6 @@
 {
   "name": "@ws/ui",
-  "version": "0.50.6",
+  "version": "0.50.7",
   "private": true,
   "exports": {
     "./legacy-themes.css": "./src/styles/legacy-themes.css",

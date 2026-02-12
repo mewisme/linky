@@ -1,12 +1,12 @@
 ## What's Changed
 
-🐛 Bug Fixes
+♻️ Refactoring
 
-- Update Turbo package versions and add optional dependencies for 2.8.3 ([f66b8d7](../../commit/f66b8d7))
+- Reorganize sidebar menu items and update imports ([e9207ba](../../commit/e9207ba))
 
 🔨 Other Changes
 
-- Bump package versions to 0.50.5 and update version lock ([005bb7c](../../commit/005bb7c))
+- Bump package versions to 0.50.6 and update version lock ([1fd6eeb](../../commit/1fd6eeb))
 
 
-📋 Full Changelog: [005bb7c...f66b8d7](../../compare/005bb7c...f66b8d7)
+📋 Full Changelog: [1fd6eeb...e9207ba](../../compare/1fd6eeb...e9207ba)

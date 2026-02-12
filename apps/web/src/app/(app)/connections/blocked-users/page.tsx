@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
 import { AppLayout } from "@/components/layouts/app-layout";
 import type { BlockedUserWithDetails } from "@/types/notifications.types";
-import { BlockedUsersDataTable } from "@/components/data-table/blocked-users/data-table";
 import { Button } from "@ws/ui/components/ui/button";
 import { IconRefresh } from "@tabler/icons-react";
 import { fetchData } from "@/lib/api/fetch/client-api";
@@ -12,6 +12,11 @@ import { apiUrl } from "@/lib/api/fetch/api-url";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useBlockUser } from "@/hooks/user/use-block-user";
 import { useUserContext } from "@/components/providers/user/user-provider";
+
+const BlockedUsersDataTable = dynamic(
+  () => import("@/components/data-table/blocked-users/data-table").then(mod => ({ default: mod.BlockedUsersDataTable })),
+  { ssr: false }
+);
 
 export default function BlockedUsersPage() {
   const { state } = useUserContext();

@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 
 import { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
@@ -11,7 +12,11 @@ import { Button } from "@ws/ui/components/ui/button";
 import { Input } from "@ws/ui/components/ui/input";
 import { Label } from "@ws/ui/components/ui/label";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
-import { StreakExpBonusesDataTable } from '@/components/data-table/streak-exp-bonuses/data-table';
+
+const StreakExpBonusesDataTable = dynamic(
+  () => import('@/components/data-table/streak-exp-bonuses/data-table').then(mod => ({ default: mod.StreakExpBonusesDataTable })),
+  { ssr: false }
+);
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
 import { useUserTokenContext } from "@/components/providers/user/user-token-provider";

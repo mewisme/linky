@@ -1,8 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
+
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
-import { CallHistoryDataTable } from "@/components/data-table/call-history/data-table";
 import type { CallHistoryResponse } from "@/types/call-history.types";
 import {
   IconRefresh
@@ -11,6 +12,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
 import { apiUrl } from "@/lib/api/fetch/api-url";
 import { fetchData } from "@/lib/api/fetch/client-api";
+
+const CallHistoryDataTable = dynamic(
+  () => import("@/components/data-table/call-history/data-table").then(mod => ({ default: mod.CallHistoryDataTable })),
+  { ssr: false }
+);
 
 export default function CallHistoryPage() {
   const { token } = useUserTokenContext();

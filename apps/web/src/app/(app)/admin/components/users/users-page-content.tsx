@@ -3,11 +3,16 @@
 import { useState } from 'react';
 import { IconRefresh, IconRefreshDot, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { toast } from '@ws/ui/components/ui/sonner';
+import dynamic from 'next/dynamic';
 
 import type { AdminAPI } from '@/types/admin.types';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { Button } from '@ws/ui/components/ui/button';
-import { UsersDataTable } from '@/components/data-table/users/data-table';
+
+const UsersDataTable = dynamic(
+  () => import('@/components/data-table/users/data-table').then(mod => ({ default: mod.UsersDataTable })),
+  { ssr: false }
+);
 
 import { useUsersQuery } from './use-users-query';
 import { useUsersMutations } from './use-users-mutations';

@@ -107,7 +107,7 @@ export default function AdminReportDetailPage() {
 
   if (isLoading || !report) {
     return (
-      <AppLayout label="Report Details" description="View and manage report" backButton>
+      <AppLayout label="Report Details" description="View and manage report" backButton className="space-y-4">
         <Loading title="Loading report..." />
       </AppLayout>
     )
@@ -116,7 +116,7 @@ export default function AdminReportDetailPage() {
   const context = report.context
 
   return (
-    <AppLayout label="Report Details" description="View and manage report" backButton>
+    <AppLayout label="Report Details" description="View and manage report" backButton className="space-y-4">
       <div className="space-y-6">
         <Card>
           <CardHeader>

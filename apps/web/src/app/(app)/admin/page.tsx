@@ -11,6 +11,7 @@ export default function AdminPage() {
     <AppLayout
       label="Admin Dashboard"
       description="Manage and monitor your application from the admin panel"
+      className="space-y-4"
     >
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {adminMenuItems.map((item: MenuItem) => {

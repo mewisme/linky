@@ -108,7 +108,7 @@ export default function CreateChangelogPage() {
   };
 
   return (
-    <AppLayout label="New Release" description="Draft your next product update" backButton={true}>
+    <AppLayout label="New Release" description="Draft your next product update" backButton className="space-y-4">
       <div className="flex flex-col space-y-6">
 
         <Tabs defaultValue="changelog" className="w-full">

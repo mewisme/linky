@@ -100,6 +100,7 @@ export default function CreateLevelFeatureUnlockPage() {
       label="Create Feature Unlock"
       description="Define a feature that unlocks when users reach a specific level"
       backButton
+      className="space-y-4"
     >
       <div className="mx-auto w-full max-w-2xl flex flex-col gap-6">
         <nav className="text-sm text-muted-foreground">

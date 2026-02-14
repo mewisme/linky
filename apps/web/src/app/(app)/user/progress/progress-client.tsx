@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from "@ws/ui/components/ui/dialog";
 import { IconClock, IconFlame, IconSnowflake, IconStar } from "@tabler/icons-react";
-import { useState } from "react";
 
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Badge } from "@ws/ui/components/ui/badge";
@@ -19,11 +18,12 @@ import { Progress } from "@ws/ui/components/ui/progress";
 import { StreakCalendar } from "@/components/user/streak-calendar";
 import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";
-import { getUserTimezone } from "@/utils/timezone";
-import { useQuery } from "@tanstack/react-query";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
 import { apiUrl } from "@/lib/api/fetch/api-url";
 import { fetchData } from "@/lib/api/fetch/client-api";
+import { getUserTimezone } from "@/utils/timezone";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
 
 function formatSeconds(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -75,7 +75,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   if (isLoading) {
     return (
-      <AppLayout label="Progress" description="Track your level, EXP, and streak progress">
+      <AppLayout label="Progress" description="Track your level, EXP, and streak progress" className="space-y-4">
         <div className="flex items-center justify-center h-64">
           <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
         </div>
@@ -85,7 +85,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   if (error || !data) {
     return (
-      <AppLayout label="Progress" description="Track your level, EXP, and streak progress">
+      <AppLayout label="Progress" description="Track your level, EXP, and streak progress" className="space-y-4">
         <Card>
           <CardContent className="pt-6">
             <p className="text-muted-foreground">Failed to load progress data. Please try again later.</p>
@@ -96,7 +96,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
   }
 
   return (
-    <AppLayout label="Progress" description="Track your level, EXP, and streak progress">
+    <AppLayout label="Progress" description="Track your level, EXP, and streak progress" className="space-y-4">
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <Card data-testid="progress-level-card">

@@ -29,6 +29,7 @@ import {
   Highlight,
   HighlightItem,
 } from '@ws/ui/components/animate-ui/primitives/effects/highlight';
+import { ScrollArea } from '@ws/ui/components/ui/scroll-area';
 import { getStrictContext } from '@ws/ui/lib/get-strict-context';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
@@ -408,19 +409,21 @@ function SidebarSeparator({ className, ...props }: SidebarSeparatorProps) {
   );
 }
 
-type SidebarContentProps = React.ComponentProps<'div'>;
+type SidebarContentProps = React.ComponentProps<typeof ScrollArea>;
 
-function SidebarContent({ className, ...props }: SidebarContentProps) {
+function SidebarContent({ className, children, ...props }: SidebarContentProps) {
   return (
-    <div
+    <ScrollArea
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
+        'flex min-h-0 flex-1 group-data-[collapsible=icon]:overflow-hidden',
         className,
       )}
       {...props}
-    />
+    >
+      <div className="flex flex-col gap-2">{children}</div>
+    </ScrollArea>
   );
 }
 

@@ -121,7 +121,7 @@ export default function UserProfilePage() {
   if (!isLoaded || !user) return null
 
   return (
-    <AppLayout label="User Profile" description="Manage your account settings">
+    <AppLayout label="User Profile" description="Manage your account settings" className="space-y-4">
       <ProfileEditProvider>
         <ProfilePageContent />
       </ProfileEditProvider>

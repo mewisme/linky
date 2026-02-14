@@ -12,7 +12,7 @@ import { useCommandMenuStore } from "@/stores/command-menu-store";
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useState } from 'react';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   const { open } = useCommandMenuStore();
 

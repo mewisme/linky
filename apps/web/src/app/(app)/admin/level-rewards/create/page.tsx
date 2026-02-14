@@ -100,6 +100,7 @@ export default function CreateLevelRewardPage() {
       label="Create Level Reward"
       description="Define a reward granted when users reach a specific level"
       backButton
+      className="space-y-4"
     >
       <div className="mx-auto w-full max-w-2xl flex flex-col gap-6">
         <nav className="text-sm text-muted-foreground">

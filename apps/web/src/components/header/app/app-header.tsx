@@ -8,12 +8,27 @@ import { ModeToggle } from "../mode-toggle"
 import { NotificationsBell } from "../notifications-bell"
 import { SidebarTrigger } from '@ws/ui/components/animate-ui/components/radix/sidebar'
 import { useIsMobile } from "@ws/ui/hooks/use-mobile"
+import { cn } from "@ws/ui/lib/utils"
+import { useEffect, useState } from "react"
 
 export function AppHeader() {
   const isMobile = useIsMobile()
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 0)
+    onScroll()
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   return (
-    <header className="w-full h-16 bg-background container mx-auto relative">
+    <header
+      className={cn(
+        "sticky top-0 z-150 w-full h-16 bg-background container mx-auto transition-[border-color]",
+        scrolled && "border-b border-border"
+      )}
+    >
       <div className='h-full flex items-center justify-between space-x-4 mx-4'>
         <div className='flex items-center space-x-4'>
           <Button asChild variant='outline' size='icon'>

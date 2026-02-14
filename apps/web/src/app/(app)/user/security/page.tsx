@@ -37,6 +37,7 @@ export default function SecurityPage() {
     <AppLayout
       label="Security"
       description="Manage your account security, sessions, and authentication methods."
+      className="space-y-4"
     >
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <AuthenticationCard user={user} />

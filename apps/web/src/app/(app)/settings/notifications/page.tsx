@@ -80,6 +80,7 @@ export default function NotificationSettingsPage() {
     <AppLayout
       label="Notification Settings"
       description="Manage your notification preferences"
+      className="space-y-4"
     >
       <Card>
         <CardHeader>

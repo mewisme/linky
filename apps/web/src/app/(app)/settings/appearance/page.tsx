@@ -128,7 +128,7 @@ export default function AppearanceSettingsPage() {
       defaultDisableCamera !== userSettings.default_disable_camera)
 
   return (
-    <AppLayout label="Appearance Settings" description="Manage your appearance settings">
+    <AppLayout label="Appearance Settings" description="Manage your appearance settings" className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle>Appearance Settings</CardTitle>
@@ -138,7 +138,6 @@ export default function AppearanceSettingsPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Video Chat Settings */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Video Chat Defaults
@@ -187,10 +186,8 @@ export default function AppearanceSettingsPage() {
 
           <Separator />
 
-          {/* Sidebar Settings */}
           <SidebarSettings />
 
-          {/* Save Button */}
           <div className="flex justify-end pt-4">
             <Button
               onClick={handleSave}

@@ -1,6 +1,13 @@
 'use client'
 
-import { IconCheck, IconLoader2, IconPencil, IconTags } from '@tabler/icons-react'
+import { FIELD_LABELS, useProfileEdit } from '@/components/context-menu/profile/profile-edit-context'
+import {
+  IconCheck,
+  IconChevronDown,
+  IconChevronUp,
+  IconLoader2,
+  IconTags,
+} from '@tabler/icons-react'
 import {
   Tags,
   TagsContent,
@@ -18,16 +25,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@ws/ui/components/ui/tooltip'
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 
 import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
 import type { ResourcesAPI } from '@/types/resources.types'
 import type { UserDetails } from '@/stores/user-store'
-import { toast } from "@ws/ui/components/ui/sonner";
-import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import { apiUrl } from '@/lib/api/fetch/api-url'
 import { fetchData } from '@/lib/api/fetch/client-api'
+import { toast } from "@ws/ui/components/ui/sonner";
+import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
+
+const INITIAL_TAGS_VISIBLE = 6
 
 interface InterestTagsSectionProps {
   userDetails: UserDetails | null
@@ -46,6 +55,7 @@ export function InterestTagsSection({
   const [availableTags, setAvailableTags] = useState<ResourcesAPI.InterestTags.InterestTag[]>([])
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [showAllTags, setShowAllTags] = useState(false)
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -71,6 +81,16 @@ export function InterestTagsSection({
       )
     }
   }, [userDetails])
+
+  const profileEdit = useProfileEdit()
+  const profileEditRef = useRef(profileEdit)
+  profileEditRef.current = profileEdit
+  useEffect(() => {
+    const ctx = profileEditRef.current
+    if (!ctx) return
+    ctx.register('interestTags', FIELD_LABELS.interestTags, () => setEditingTags(true))
+    return () => profileEditRef.current?.unregister('interestTags')
+  }, [])
 
   const handleUpdateTags = () => {
     startTransition(async () => {
@@ -101,20 +121,35 @@ export function InterestTagsSection({
     return `${tag.name} ${tag.description || ''} ${tag.category || ''}`.trim()
   }
 
+  const showToggle =
+    !editingTags &&
+    selectedTags.length > INITIAL_TAGS_VISIBLE
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 py-0.5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <IconTags className="size-4" />
+          <IconTags className="size-4 shrink-0" aria-hidden />
           <span>Interests</span>
         </div>
-        {!editingTags && (
+        {showToggle && (
           <Button
-            size="sm"
             variant="ghost"
-            onClick={() => setEditingTags(true)}
+            size="sm"
+            className="h-7 shrink-0 px-1.5 text-muted-foreground"
+            onClick={() => setShowAllTags((prev) => !prev)}
           >
-            <IconPencil className="size-4" />
+            {showAllTags ? (
+              <>
+                <IconChevronUp className="size-4 mr-1 shrink-0" />
+                Show less
+              </>
+            ) : (
+              <>
+                <IconChevronDown className="size-4 mr-1 shrink-0" />
+                More ({selectedTags.length - INITIAL_TAGS_VISIBLE})
+              </>
+            )}
           </Button>
         )}
       </div>
@@ -213,37 +248,44 @@ export function InterestTagsSection({
       ) : (
         <>
           {selectedTags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                {selectedTags.map((tag) => (
-                  <Tooltip key={tag.id}>
-                    <TooltipTrigger asChild>
-                      <Badge
-                        variant="outline"
-                        className="px-3 py-1.5 text-sm flex items-center gap-2 cursor-default"
-                      >
-                        <span className="text-base" aria-hidden="true">
-                          {tag.icon || '🏷️'}
-                        </span>
-                        <span>{tag.name}</span>
-                        {tag.category && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            ({tag.category})
-                          </span>
+            <div className="space-y-2">
+              <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-3 sm:px-4 sm:py-3">
+                <div className="flex flex-wrap gap-2">
+                  <TooltipProvider>
+                    {(showAllTags
+                      ? selectedTags
+                      : selectedTags.slice(0, INITIAL_TAGS_VISIBLE)
+                    ).map((tag) => (
+                      <Tooltip key={tag.id}>
+                        <TooltipTrigger asChild>
+                          <Badge
+                            variant="secondary"
+                            className="cursor-default px-2.5 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm"
+                          >
+                            <span className="mr-1.5 text-base leading-none" aria-hidden>
+                              {tag.icon || '🏷️'}
+                            </span>
+                            <span>{tag.name}</span>
+                            {tag.category && (
+                              <span className="ml-1 hidden text-muted-foreground sm:inline">
+                                ({tag.category})
+                              </span>
+                            )}
+                          </Badge>
+                        </TooltipTrigger>
+                        {tag.description && (
+                          <TooltipContent>
+                            <p className="max-w-xs">{tag.description}</p>
+                          </TooltipContent>
                         )}
-                      </Badge>
-                    </TooltipTrigger>
-                    {tag.description && (
-                      <TooltipContent>
-                        <p className="max-w-xs">{tag.description}</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                ))}
-              </TooltipProvider>
+                      </Tooltip>
+                    ))}
+                  </TooltipProvider>
+                </div>
+              </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
+            <p className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground sm:px-5 sm:py-4">
               No interests selected
             </p>
           )}

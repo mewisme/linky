@@ -38,29 +38,33 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
   }
 
   return (
-    <div className="relative group">
-      <Avatar className="size-32 border-2 border-muted shadow-sm">
-        <AvatarImage src={user.imageUrl} alt={`${user.firstName} ${user.lastName}`} />
-        <AvatarFallback className="text-2xl font-bold">
-          {user.firstName?.charAt(0)}
+    <div className="relative group shrink-0">
+      <Avatar className="size-24 ring-2 ring-border/60 shadow-md sm:size-32 sm:ring-[3px] sm:ring-border/40">
+        <AvatarImage
+          src={user.imageUrl}
+          alt={[user.firstName, user.lastName].filter(Boolean).join(' ') || 'Profile'}
+        />
+        <AvatarFallback className="text-xl font-semibold sm:text-2xl">
+          {user.firstName?.charAt(0) ?? user.emailAddresses?.[0]?.emailAddress?.charAt(0) ?? '?'}
         </AvatarFallback>
       </Avatar>
 
       <label
         htmlFor="avatar-upload"
-        className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white opacity-0 group-hover:opacity-100 cursor-pointer rounded-full transition-all"
+        className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100 cursor-pointer group-hover:opacity-100"
       >
-        <IconCamera className="size-6 mb-1" />
-        <span className="text-[10px] font-bold">CHANGE</span>
+        <IconCamera className="size-5 sm:size-6 mb-0.5 sm:mb-1" aria-hidden />
+        <span className="text-[10px] font-medium sm:text-xs">Change</span>
       </label>
 
       <input
         id="avatar-upload"
         type="file"
-        className="hidden"
+        className="sr-only"
         accept="image/*"
         onChange={handleImageChange}
         disabled={isPending}
+        aria-label="Upload new profile photo"
       />
     </div>
   )

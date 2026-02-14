@@ -113,6 +113,13 @@ router.put("/me", async (req: Request, res: Response) => {
       });
     }
 
+    if (error instanceof Error && error.message.includes("Bio must be")) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
         error: "Not Found",
@@ -169,6 +176,13 @@ router.patch("/me", async (req: Request, res: Response) => {
     }
 
     if (error instanceof Error && error.message.includes("Date of birth")) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+
+    if (error instanceof Error && error.message.includes("Bio must be")) {
       return res.status(400).json({
         error: "Bad Request",
         message: error instanceof Error ? error.message : "Unknown error",

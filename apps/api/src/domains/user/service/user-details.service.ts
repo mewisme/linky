@@ -11,7 +11,7 @@ import {
 } from "@/infra/supabase/repositories/user-details.js";
 
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
-import type { UserDetailsUpdate } from "@/domains/user/types/user-details.types.js";
+import { BIO_MAX_LENGTH, type UserDetailsUpdate } from "@/domains/user/types/user-details.types.js";
 import { getInterestTagsByIds } from "@/infra/supabase/repositories/interest-tags.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { invalidate } from "@/infra/redis/cache/index.js";
@@ -54,6 +54,15 @@ export function validateDateOfBirth(dateOfBirth: string | null | undefined): voi
   }
 }
 
+export function validateBio(bio: string | null | undefined): void {
+  if (bio == null || bio === "") {
+    return;
+  }
+  if (typeof bio !== "string" || bio.length > BIO_MAX_LENGTH) {
+    throw new Error(`Bio must be ${BIO_MAX_LENGTH} characters or less`);
+  }
+}
+
 export async function putUserDetails(userId: string, updateData: UserDetailsUpdateData) {
   if (updateData.interest_tags !== undefined) {
     await validateInterestTags(updateData.interest_tags);
@@ -61,6 +70,10 @@ export async function putUserDetails(userId: string, updateData: UserDetailsUpda
 
   if (updateData.date_of_birth !== undefined) {
     validateDateOfBirth(updateData.date_of_birth);
+  }
+
+  if (updateData.bio !== undefined) {
+    validateBio(updateData.bio);
   }
 
   const existing = await getUserDetailsByUserId(userId);
@@ -85,6 +98,10 @@ export async function patchUserDetailsForUser(userId: string, updateData: Partia
 
   if (updateData.date_of_birth !== undefined) {
     validateDateOfBirth(updateData.date_of_birth);
+  }
+
+  if (updateData.bio !== undefined) {
+    validateBio(updateData.bio);
   }
 
   const existing = await getUserDetailsByUserId(userId);

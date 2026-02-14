@@ -145,7 +145,17 @@ export async function updateUserDetails(params: UpdateUserDetailsParams) {
       },
       body: JSON.stringify(params.data),
     });
-    if (!res.ok) throw new Error(await res.text() || res.statusText);
+    if (!res.ok) {
+      const text = await res.text();
+      let msg = text || res.statusText;
+      try {
+        const data = JSON.parse(text) as { message?: string };
+        if (data.message) msg = data.message;
+      } catch {
+        /* use msg as-is */
+      }
+      throw new Error(msg);
+    }
     return (await res.json()) as UserDetails;
   } catch (error) {
     console.error("Failed to update user details:", error);

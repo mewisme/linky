@@ -7,16 +7,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@ws/ui/components/ui/card";
-import { IconRefresh } from "@tabler/icons-react";
-import { fetchData } from "@/lib/api/fetch/client-api";
-import { useQuery } from "@tanstack/react-query";
+
 import type { AdminAPI } from "@/types/admin.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
+import { FormCreateBroadcast } from "./components/form-create";
+import { IconRefresh } from "@tabler/icons-react";
 import { apiUrl } from "@/lib/api/fetch/api-url";
 import dynamic from "next/dynamic";
+import { fetchData } from "@/lib/api/fetch/client-api";
+import { useQuery } from "@tanstack/react-query";
 import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { FormCreateBroadcast } from "./components/form-create";
 
 const BroadcastsDataTable = dynamic(
   () =>
@@ -51,6 +52,7 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
     <AppLayout
       label="Broadcasts"
       description="Send an announcement to all users"
+      className="space-y-4"
     >
       <div className="space-y-6">
         <FormCreateBroadcast onSuccess={() => void refetch()} />

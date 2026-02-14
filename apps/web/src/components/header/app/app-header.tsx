@@ -1,7 +1,5 @@
 'use client'
 
-import { useEffect, useState } from "react"
-
 import { Button } from "@ws/ui/components/ui/button"
 import { CommandMenu } from '@/components/header/command-menu'
 import Link from "next/link"
@@ -14,20 +12,10 @@ import { useIsMobile } from "@ws/ui/hooks/use-mobile"
 
 export function AppHeader() {
   const isMobile = useIsMobile()
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 0)
-    onScroll()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
-
   return (
     <header
       className={cn(
         "sticky top-0 z-20 w-full h-16 bg-background container mx-auto transition-[border-color]",
-        scrolled && "border-b border-border"
       )}
     >
       <div className='h-full flex items-center justify-between space-x-4 mx-4'>

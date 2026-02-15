@@ -2,7 +2,8 @@
 
 🔨 Other Changes
 
-- Bump package versions to 0.51.0 and update version lock ([5e4761d](../../commit/5e4761d))
+- Update Dockerfile.api to install corepack globally ([e4113cc](../../commit/e4113cc))
+- Bump package versions to 0.51.1 and update version lock ([4d9fa84](../../commit/4d9fa84))
 
 
-📋 Full Changelog: [5e4761d...5e4761d](../../compare/5e4761d...5e4761d)
+📋 Full Changelog: [4d9fa84...e4113cc](../../compare/4d9fa84...e4113cc)

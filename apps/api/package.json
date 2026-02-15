@@ -18,22 +18,22 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.958.0",
-    "@aws-sdk/lib-storage": "^3.958.0",
-    "@aws-sdk/s3-request-presigner": "^3.958.0",
-    "@clerk/backend": "^2.29.0",
+    "@aws-sdk/client-s3": "^3.990.0",
+    "@aws-sdk/lib-storage": "^3.990.0",
+    "@aws-sdk/s3-request-presigner": "^3.990.0",
+    "@clerk/backend": "^2.31.0",
     "@ws/logger": "workspace:*",
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/supabase-js": "^2.95.3",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "morgan": "^1.10.1",
-    "mqtt": "^5.14.1",
+    "mqtt": "^5.15.0",
     "ollama": "^0.6.3",
     "redis": "^5.10.0",
     "socket.io": "^4.8.1",
-    "svix": "^1.82.0",
+    "svix": "^1.85.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {
@@ -49,7 +49,7 @@
     "eslint": "^9.39.1",
     "tsup": "^8.5.1",
     "tsx": "^4.19.2",
-    "typescript": "5.9.2",
+    "typescript": "5.9.3",
     "vitest": "^4.0.18"
   }
 }

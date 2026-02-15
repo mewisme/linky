@@ -5,13 +5,15 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  packages: write
+
 jobs:
   build-linky-api:
     runs-on: ubuntu-latest
 
     env:
       IMAGE_NAME: linky-api
-      REGISTRY: docker.io
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
     steps:
@@ -24,54 +26,45 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Check if latest image already exists
+      - name: Check if version exists on Docker Hub
         id: check
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/tags/${{ steps.pkg.outputs.version }})
-
           if [ "$STATUS" = "200" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Skip build if image exists
+      - name: Skip build if exists
         if: steps.check.outputs.exists == 'true'
-        run: |
-          echo "Image already exists, skipping build."
+        run: echo "Image exists on Docker Hub — skipping build."
 
-      - name: Set up Docker Buildx
-        if: steps.check.outputs.exists != 'true'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Docker Login
+      - name: Login to Docker Hub
         if: steps.check.outputs.exists != 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Cache Docker layers
+      - name: Login to GitHub Container Registry
         if: steps.check.outputs.exists != 'true'
-        uses: actions/cache@v4
+        uses: docker/login-action@v3
         with:
-          path: /tmp/.buildx-cache-linky-api
-          key: ${{ runner.os }}-buildx-linky-api-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-linky-api-
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and tag image
+      - name: Build and push images
         if: steps.check.outputs.exists != 'true'
-        run: |
-          docker build \
-            -f Dockerfile.api \
-            -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }} \
-            -t ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
-            .
-
-      - name: Push version and latest
-        if: steps.check.outputs.exists != 'true'
-        run: |
-          docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
-          docker push ${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.api
+          push: true
+          tags: |
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest

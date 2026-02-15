@@ -2,7 +2,7 @@
 
 🔨 Other Changes
 
-- Bump package versions to 0.52.0 and update version lock ([0ac1625](../../commit/0ac1625))
+- Bump package versions to 0.52.1 and update version lock ([c7e05ef](../../commit/c7e05ef))
 
 
-📋 Full Changelog: [0ac1625...0ac1625](../../compare/0ac1625...0ac1625)
+📋 Full Changelog: [c7e05ef...c7e05ef](../../compare/c7e05ef...c7e05ef)

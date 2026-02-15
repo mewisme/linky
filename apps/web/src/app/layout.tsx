@@ -49,7 +49,7 @@ export async function generateMetadata(): Promise<Metadata> {
     publisher: "Mew",
     openGraph: {
       title: "Linky",
-      description: "Connecting you everywhere",
+      description: "Meet new people, make friends, and have fun!",
       url: appUrl,
       images: [
         {
@@ -66,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: "Linky",
-      description: "Connecting you everywhere",
+      description: "Meet new people, make friends, and have fun!",
       images: ["/og"],
     },
   }

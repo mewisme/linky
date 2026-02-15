@@ -2,8 +2,12 @@
 
 🔨 Other Changes
 
-- Update Dockerfile.api to install corepack globally ([e4113cc](../../commit/e4113cc))
-- Bump package versions to 0.51.1 and update version lock ([4d9fa84](../../commit/4d9fa84))
+- Configure Dependabot for pnpm and docker updates ([0a7dd9c](../../commit/0a7dd9c))
+- Update package versions and add React Query Devtools ([b9e59e6](../../commit/b9e59e6))
+- Create SECURITY.md for security policy ([e704937](../../commit/e704937))
+- Update Dockerfile.api to use Node 24-slim and streamline corepack installation ([70766a5](../../commit/70766a5))
+- Update package versions in package.json and pnpm-lock.yaml ([f88f4cb](../../commit/f88f4cb))
+- Bump package versions to 0.51.2 and update version lock ([e0031a6](../../commit/e0031a6))
 
 
-📋 Full Changelog: [4d9fa84...e4113cc](../../compare/4d9fa84...e4113cc)
+📋 Full Changelog: [e0031a6...0a7dd9c](../../compare/e0031a6...0a7dd9c)

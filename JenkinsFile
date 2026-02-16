@@ -11,21 +11,24 @@ pipeline {
 
   environment {
     LINKY_API_ENV_FILE = '/var/jenkins_home/envs/linky/.env'
-    DOCKERHUB_USERNAME = 'mewthedev'
+    LINKY_API_URL = 'https://api.linkynow.site'
+    DOCKER_IMAGE_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-api'
   }
 
   stages {
 
-    stage('Checkout') {
+    stage('Checkout Code') {
       steps {
         checkout scm
       }
     }
 
-    stage('Compare Local & Remote Versions') {
+    stage('Live vs Repo Version') {
       steps {
         script {
-          def localVersionResponse = httpRequest url: "https://api.linkynow.site/healthz"
+          echo '- Checking local & remote versions'
+
+          def localVersionResponse = httpRequest url: "$LINKY_API_URL/healthz"
           def localVersionJson = readJSON text: localVersionResponse.content
           localVersion = localVersionJson?.version ?: null
 
@@ -46,7 +49,7 @@ pipeline {
       }
     }
 
-    stage('Compare Docker Hub & Remote Versions') {
+    stage('Docker Image Sync') {
       steps {
         script {
           timeout(time: 5, unit: 'MINUTES') {
@@ -55,7 +58,7 @@ pipeline {
 
               echo '- Checking Docker Hub & Remote versions'
 
-              def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/linky-api/tags"
+              def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_URL/tags"
               def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
               def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
@@ -86,7 +89,7 @@ pipeline {
       }
     }
 
-    stage('Prepare Env Files') {
+    stage('Prepare Env') {
       when {
         expression { doPull }
       }
@@ -102,7 +105,7 @@ pipeline {
       }
     }
 
-    stage('Deploy Linky') {
+    stage('Deploy') {
       when {
         expression { doPull }
       }

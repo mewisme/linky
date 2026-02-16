@@ -61,13 +61,13 @@ pipeline {
               def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
               def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
 
-              def compareResult = compareVersions v1: remoteVersion, v2: matchedTag?.name
+              def compareRemoteResult = compareVersions v1: remoteVersion, v2: matchedTag?.name
               
-              if (compareResult == 0) {
+              if (compareRemoteResult == 0) {
                 echo '✔ Docker Hub & Remote versions are the same'
 
-                def compareResult = compareVersions v1: localVersion, v2: matchedTag?.name
-                if (compareResult == 0) {
+                def compareLocalResult = compareVersions v1: localVersion, v2: matchedTag?.name
+                if (compareLocalResult == 0) {
                   echo '✔ Docker Hub & Local versions are the same'
                   echo '✔ No need to deploy'
 

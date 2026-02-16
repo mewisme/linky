@@ -31,7 +31,7 @@ pipeline {
           def appVersionResponse = httpRequest url: 'http://localhost:7270/healthz'
           def appVersion = appVersionResponse.data?.version ?: null
 
-          def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/linky-api/tags"
+          def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/linky-api/tags"
           def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
           def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest

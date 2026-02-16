@@ -28,17 +28,19 @@ pipeline {
     stage('Fetch & Compare Versions') {
       steps {
         withCredentials([string(credentialsId: 'dockerhub-username', variable: 'DOCKERHUB_USERNAME')]) {
-          def appVersionResponse = httpRequest url: 'http://localhost:7270/healthz'
-          def appVersionJson = readJSON text: appVersionResponse.content
-          def appVersion = appVersionJson?.version ?: null
+          script {
+            def appVersionResponse = httpRequest url: 'http://localhost:7270/healthz'
+            def appVersionJson = readJSON text: appVersionResponse.content
+            def appVersion = appVersionJson?.version ?: null
 
-          def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/linky-api/tags"
-          def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
+            def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/linky-api/tags"
+            def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
-          def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+            def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
 
-          def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
-          do_pull = compareVersions(appVersion, matchedTag?.name) === -1
+            def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
+            do_pull = compareVersions(appVersion, matchedTag?.name) === -1
+          } 
         }
       }
     }

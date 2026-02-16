@@ -23,20 +23,18 @@ pipeline {
 
     stage('Compare Local & App Versions') {
       steps {
-        withCredentials([string(credentialsId: 'linky-api-url', variable: 'LINKY_API_URL')]) {
-          script {
-            def appVersionResponse = httpRequest url: "$LINKY_API_URL/healthz"
-            def appVersionJson = readJSON text: appVersionResponse.content
-            appVersion = appVersionJson?.version ?: null
+        script {
+          def appVersionResponse = httpRequest url: "https://api.linkynow.site/healthz"
+          def appVersionJson = readJSON text: appVersionResponse.content
+          appVersion = appVersionJson?.version ?: null
 
-            def localVersionJson = readJSON file: 'package.json'
-            def localVersion = localVersionJson?.version ?: null
+          def localVersionJson = readJSON file: 'package.json'
+          def localVersion = localVersionJson?.version ?: null
 
-            if (compareVersions(appVersion, localVersion) <= 0) {
-              needWait = true
-            }
-            echo '✔ Local & App versions compared'
-          } 
+          if (compareVersions(appVersion, localVersion) <= 0) {
+            needWait = true
+          }
+          echo '✔ Local & App versions compared'
         }
       }
     }

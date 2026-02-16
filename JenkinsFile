@@ -97,6 +97,7 @@ pipeline {
       steps {
         withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
           sh '''
+            ls -la
             mkdir -p /var/jenkins_home/envs/linky
             cp "$ENV_FILE" "$LINKY_API_ENV_FILE"
             chmod 600 "$LINKY_API_ENV_FILE"

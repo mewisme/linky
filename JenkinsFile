@@ -1,9 +1,7 @@
+def do_pull = false;
+
 pipeline {
   agent any
-
-  tools {
-    nodejs 'node-lts'
-  }
 
   options {
     timeout(time: 30, unit: 'MINUTES')
@@ -27,7 +25,27 @@ pipeline {
       }
     }
 
+    stage('Fetch & Compare Versions') {
+      withCredentials([string(credentialsId: 'dockerhub-username', variable: 'DOCKERHUB_USERNAME')]) {
+        steps {
+          def appVersionResponse = httpRequest url: 'http://localhost:7270/healthz'
+          def appVersion = appVersionResponse.data?.version ?: null
+
+          def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/linky-api/tags"
+          def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
+
+          def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+
+          def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
+          do_pull = compareVersions(appVersion, matchedTag?.name) === -1
+        }
+      }
+    }
+
     stage('Prepare Env Files') {
+      when {
+        expression { do_pull }
+      }
       steps {
         withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
           sh '''
@@ -40,6 +58,9 @@ pipeline {
     }
 
     stage('Deploy Linky') {
+      when {
+        expression { do_pull }
+      }
       steps {
         sh '''
           docker compose down || true

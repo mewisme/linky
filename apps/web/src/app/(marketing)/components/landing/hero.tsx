@@ -1,9 +1,9 @@
 "use client";
 
 import { IconBolt, IconShieldCheck, IconWorld } from "@tabler/icons-react";
-import Link from "next/link";
 
 import { BorderBeamSimple } from "@ws/ui/components/ui/border-beam-simple";
+import Link from "next/link";
 import { MotionEffect } from "@/components/effects/motion-effect";
 import { Outfit } from "next/font/google";
 import { RainbowButton } from "@ws/ui/components/ui/rainbow-button";
@@ -98,7 +98,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
               variant="outline"
               className="mx-auto font-semibold text-sm sm:text-base md:text-md"
             >
-              <Link href={startChatHref} prefetch>
+              <Link href={startChatHref} prefetch data-testid="start-chat-button">
                 {isSignedIn && isLoaded ? "Start Chatting Now" : "Sign in to Start Chatting"}
               </Link>
             </RainbowButton>

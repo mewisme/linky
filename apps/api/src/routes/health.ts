@@ -3,12 +3,15 @@ import { redisClient } from "@/infra/redis/client.js";
 import { supabase } from "@/infra/supabase/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 import { withSupabaseTimeout } from "@/infra/supabase/timeout-wrapper.js";
+import { getPackageJson } from "@/utils/package.json.js";
 
 const router: ExpressRouter = Router();
 
-router.get("/healthz", (_req: Request, res: Response) => {
+router.get("/healthz", async (_req: Request, res: Response) => {
+  const packageJson = await getPackageJson();
   res.status(200).json({
     status: "ok",
+    version: packageJson.version,
   });
 });
 

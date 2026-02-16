@@ -67,12 +67,21 @@ pipeline {
                 if (compareResult == 0) {
                   echo '✔ Docker Hub & Remote versions are the same'
                   echo '✔ Continue deployment'
+
+                  def compareResult = compareVersions v1: localVersion, v2: matchedTag?.name
+                  if (compareResult == 0) {
+                    echo '✔ Docker Hub & Local versions are the same'
+                    echo '✔ No need to deploy'
+
+                    doPull = false
+                  }
+                  
                   return true
-                } else {
-                  echo '✘ Docker Hub & Remote versions are different'
-                  echo '✘ Waiting for Github Actions to complete'
-                  return false
                 }
+
+                echo '✘ Docker Hub & Remote versions are different'
+                echo '✘ Waiting for Github Actions to complete'
+                return false
               }
             }
           }

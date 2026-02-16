@@ -2,9 +2,9 @@
 
 🐛 Bug Fixes
 
-- Enhance Jenkins pipeline with updated environment variables and stage names ([e2dbcf8](../../commit/e2dbcf8))
-- Streamline Docker Compose commands in Jenkins pipeline ([7acbb8c](../../commit/7acbb8c))
-- Update package versions to 0.52.22 and refresh version lock ([25929e7](../../commit/25929e7))
+- Add logging for environment file handling in Jenkins pipeline ([8c9d441](../../commit/8c9d441))
+- Enhance version comparison logging in Jenkins pipeline ([6980ed9](../../commit/6980ed9))
+- Update package versions to 0.52.25 and refresh version lock ([3fda069](../../commit/3fda069))
 
 
-📋 Full Changelog: [25929e7...e2dbcf8](../../compare/25929e7...e2dbcf8)
+📋 Full Changelog: [3fda069...8c9d441](../../compare/3fda069...8c9d441)

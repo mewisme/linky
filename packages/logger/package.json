@@ -1,6 +1,6 @@
 {
   "name": "@ws/logger",
-  "version": "0.52.25",
+  "version": "0.52.28",
   "private": true,
   "type": "module",
   "scripts": {

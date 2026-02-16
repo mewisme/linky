@@ -1,6 +1,7 @@
-FROM node:24-slim AS base
+FROM node:25.6.1-slim AS base
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm@latest-10
+
 FROM base AS builder
 WORKDIR /app
 
@@ -12,7 +13,6 @@ COPY apps/api ./apps/api
 
 RUN pnpm install --force --frozen-lockfile
 RUN pnpm --filter @ws/logger build
-RUN ls -la /app/packages/logger/dist/
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @ws/api build
 

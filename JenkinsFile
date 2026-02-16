@@ -21,7 +21,7 @@ pipeline {
 
     stage('Wait for GitHub Actions') {
       steps {
-        sleep time: 150, unit: 'SECONDS'
+        sleep time: 3, unit: 'MINUTES'
       }
     }
 
@@ -39,7 +39,7 @@ pipeline {
             def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
 
             def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
-            do_pull = compareVersions(appVersion, matchedTag?.name) === -1
+            do_pull = compareVersions(appVersion, matchedTag?.name) == -1
           } 
         }
       }

@@ -39,12 +39,13 @@ pipeline {
           echo "- Remote version: $remoteVersion"
 
           def compareResult = compareVersions v1: localVersion, v2: remoteVersion
-          echo "- Compare result: $compareResult"
+          def compareResultMessage = compareResult == 0 ? 'matched' : compareResult == 1 ? 'newer' : 'older'
+          echo "- Compare result: $compareResultMessage"
 
           if (compareResult <= 0) {
             doPull = true
           }
-          echo '✔ Local & Remote versions compared'
+          echo "✔ Local & Remote versions compared"
         }
       }
     }

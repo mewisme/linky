@@ -1,6 +1,6 @@
 {
   "name": "@ws/web",
-  "version": "0.52.18",
+  "version": "0.52.22",
   "private": true,
   "license": "MIT",
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "@ws/api",
-  "version": "0.52.8",
+  "version": "0.52.18",
   "private": true,
   "license": "MIT",
   "type": "module",

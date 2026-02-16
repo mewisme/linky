@@ -78,8 +78,8 @@ pipeline {
                   return true
                 }
 
-                echo '✘ Docker Hub & Remote versions are different'
-                echo '✘ Waiting for Github Actions to complete'
+                echo '△ Docker Hub & Remote versions are different'
+                echo '△ Waiting for Github Actions to complete'
                 return false
               }
             }

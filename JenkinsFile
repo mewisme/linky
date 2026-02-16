@@ -29,7 +29,8 @@ pipeline {
       steps {
         withCredentials([string(credentialsId: 'dockerhub-username', variable: 'DOCKERHUB_USERNAME')]) {
           def appVersionResponse = httpRequest url: 'http://localhost:7270/healthz'
-          def appVersion = appVersionResponse.data?.version ?: null
+          def appVersionJson = readJSON text: appVersionResponse.content
+          def appVersion = appVersionJson?.version ?: null
 
           def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/linky-api/tags"
           def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content

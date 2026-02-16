@@ -10,7 +10,6 @@ pipeline {
   }
 
   environment {
-    LINKY_API_ENV_FILE = '/var/jenkins_home/envs/linky/.env'
     LINKY_API_URL = 'https://api.linkynow.site'
     DOCKER_IMAGE_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-api'
   }
@@ -115,8 +114,7 @@ pipeline {
         '''
       }
     }
-
-  } // end stages
+  }
 
   post {
     always {

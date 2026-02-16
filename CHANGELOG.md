@@ -2,9 +2,11 @@
 
 🐛 Bug Fixes
 
-- Add logging for environment file handling in Jenkins pipeline ([8c9d441](../../commit/8c9d441))
-- Enhance version comparison logging in Jenkins pipeline ([6980ed9](../../commit/6980ed9))
-- Update package versions to 0.52.25 and refresh version lock ([3fda069](../../commit/3fda069))
+- Update environment file handling in Docker Compose and Jenkins pipeline ([6ae92cb](../../commit/6ae92cb))
+
+🔨 Other Changes
+
+- Update package versions to 0.52.28 and refresh version lock ([a9d669e](../../commit/a9d669e))
 
 
-📋 Full Changelog: [3fda069...8c9d441](../../compare/3fda069...8c9d441)
+📋 Full Changelog: [a9d669e...6ae92cb](../../compare/a9d669e...6ae92cb)

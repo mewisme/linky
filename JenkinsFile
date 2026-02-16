@@ -31,7 +31,13 @@ pipeline {
           def localVersionJson = readJSON file: 'package.json'
           def localVersion = localVersionJson?.version ?: null
 
-          if (compareVersions(appVersion, localVersion) <= 0) {
+          echo "- App version: $appVersion"
+          echo "- Local version: $localVersion"
+
+          def compareResult = compareVersions v1: appVersion, v2: localVersion
+          echo "- Compare result: $compareResult"
+
+          if (compareResult <= 0) {
             needWait = true
           }
           echo '✔ Local & App versions compared'
@@ -59,7 +65,11 @@ pipeline {
             def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
 
             def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
-            doPull = compareVersions(app_version, matchedTag?.name) == -1
+
+            def compareResult = compareVersions v1: app_version, v2: matchedTag?.name
+            echo "- Compare result: $compareResult"
+
+            doPull = compareResult == -1
             echo '✔ Docker Hub & App versions compared'
           }
         }

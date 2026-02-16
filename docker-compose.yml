@@ -23,7 +23,7 @@ services:
     networks:
       - linky-network
     env_file:
-      - ${LINKY_API_ENV_FILE}
+      - .env
 
   redis:
     image: redis:8-alpine

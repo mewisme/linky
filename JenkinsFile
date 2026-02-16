@@ -26,8 +26,8 @@ pipeline {
     }
 
     stage('Fetch & Compare Versions') {
-      withCredentials([string(credentialsId: 'dockerhub-username', variable: 'DOCKERHUB_USERNAME')]) {
-        steps {
+      steps {
+        withCredentials([string(credentialsId: 'dockerhub-username', variable: 'DOCKERHUB_USERNAME')]) {
           def appVersionResponse = httpRequest url: 'http://localhost:7270/healthz'
           def appVersion = appVersionResponse.data?.version ?: null
 

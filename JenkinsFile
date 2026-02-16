@@ -1,6 +1,6 @@
 def doPull = false;
-def needWait = false;
-def app_version = null;
+def localVersion = null;
+def remoteVersion = null;
 
 pipeline {
   agent any
@@ -21,56 +21,60 @@ pipeline {
       }
     }
 
-    stage('Compare Local & App Versions') {
+    stage('Compare Local & Remote Versions') {
       steps {
         script {
-          def appVersionResponse = httpRequest url: "https://api.linkynow.site/healthz"
-          def appVersionJson = readJSON text: appVersionResponse.content
-          appVersion = appVersionJson?.version ?: null
+          def localVersionResponse = httpRequest url: "https://api.linkynow.site/healthz"
+          def localVersionJson = readJSON text: localVersionResponse.content
+          localVersion = localVersionJson?.version ?: null
 
-          def localVersionJson = readJSON file: 'package.json'
-          def localVersion = localVersionJson?.version ?: null
+          def remoteVersionJson = readJSON file: 'package.json'
+          remoteVersion = remoteVersionJson?.version ?: null
 
-          echo "- App version: $appVersion"
           echo "- Local version: $localVersion"
+          echo "- Remote version: $remoteVersion"
 
-          def compareResult = compareVersions v1: appVersion, v2: localVersion
+          def compareResult = compareVersions v1: localVersion, v2: remoteVersion
           echo "- Compare result: $compareResult"
 
           if (compareResult <= 0) {
-            needWait = true
+            doPull = true
           }
-          echo '✔ Local & App versions compared'
+          echo '✔ Local & Remote versions compared'
         }
       }
     }
 
-    stage('Wait for Github Actions') {
-      when {
-        expression { needWait }
-      }
-      steps {
-        sleep time: 3, unit: 'MINUTES'
-        echo '✔ Waiting for Github Actions to complete'
-      }
-    }
-
-    stage('Compare Docker Hub & App Versions') {
+    stage('Compare Docker Hub & Remote Versions') {
       steps {
         withCredentials([string(credentialsId: 'dockerhub-username', variable: 'DOCKERHUB_USERNAME')]) {
           script {
-            def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/linky-api/tags"
-            def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
+            timeout(time: 5, unit: 'MINUTES') {
 
-            def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+              waitUntil {
+                sleep time: 10, unit: 'SECONDS'
 
-            def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
+                echo '- Checking Docker Hub & Remote versions'
 
-            def compareResult = compareVersions v1: app_version, v2: matchedTag?.name
-            echo "- Compare result: $compareResult"
+                def tagsDockerHubResponse = httpRequest url: "https://registry.hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/linky-api/tags"
+                def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
-            doPull = compareResult == -1
-            echo '✔ Docker Hub & App versions compared'
+                def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+                def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
+
+                def compareResult = compareVersions v1: remoteVersion, v2: matchedTag?.name
+                
+                if (compareResult == 0) {
+                  echo '✔ Docker Hub & Remote versions are the same'
+                  echo '✔ Continue deployment'
+                  return true
+                } else {
+                  echo '✘ Docker Hub & Remote versions are different'
+                  echo '✘ Waiting for Github Actions to complete'
+                  return false
+                }
+              }
+            }
           }
         }
       }

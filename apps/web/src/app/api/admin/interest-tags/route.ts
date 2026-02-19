@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  trackEventServer({ name: "api_admin_interest_tags_get" });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  trackEventServer({ name: "api_admin_interest_tags_post" });
   try {
     const authHeader = request.headers.get("authorization");
 

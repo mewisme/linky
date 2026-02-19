@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  trackEventServer({ name: "api_resources_interest_tags_get" });
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");

@@ -10,6 +10,13 @@ export interface StreakCalendarDay {
 }
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const year = searchParams.get("year");
+  const month = searchParams.get("month");
+  trackEventServer({
+    name: "api_users_streak_calendar_get",
+    properties: year && month ? { year, month } : undefined,
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -19,10 +26,6 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
-
-    const { searchParams } = new URL(request.url);
-    const year = searchParams.get("year");
-    const month = searchParams.get("month");
 
     if (!year || !month) {
       return NextResponse.json(

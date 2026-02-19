@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ uploadId: string; partNumber: string }> }
 ) {
+  const { uploadId, partNumber } = await params;
+  trackEventServer({
+    name: "api_media_s3_multipart_part_get",
+    properties: { uploadId, partNumber },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -16,8 +21,6 @@ export async function GET(
         { status: 401 }
       );
     }
-
-    const { uploadId, partNumber } = await params;
     const { searchParams } = new URL(request.url);
 
     if (!uploadId || !partNumber) {

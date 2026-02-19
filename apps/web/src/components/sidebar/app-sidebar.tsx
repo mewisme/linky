@@ -37,6 +37,7 @@ import { cn } from '@ws/ui/lib/utils';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { usePathname } from 'next/navigation'
 import { useSidebarStore } from '@/stores/sidebar-store';
+import { trackEvent } from "@/lib/analytics/events";
 import { useUserContext } from '@/components/providers/user/user-provider';
 import { useUserStore } from '@/stores/user-store';
 import { menuItems, type MenuItem } from './menu-items';
@@ -128,7 +129,11 @@ export function AppSidebar() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <SignOutButton>
-                  <DropdownMenuItem variant="destructive" className='cursor-pointer gap-2 p-2'>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    className='cursor-pointer gap-2 p-2'
+                    onClick={() => trackEvent({ name: "sign_out" })}
+                  >
                     <div className="flex size-6 items-center justify-center rounded-sm border">
                       <IconLogout className='size-4 shrink-0 dark:text-red-400 text-red-500' />
                     </div>

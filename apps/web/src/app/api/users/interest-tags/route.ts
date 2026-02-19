@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
+  trackEventServer({ name: "api_users_interest_tags_post" });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  trackEventServer({ name: "api_users_interest_tags_put" });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -80,6 +82,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  trackEventServer({ name: "api_users_interest_tags_delete" });
   try {
     const authHeader = request.headers.get("authorization");
 

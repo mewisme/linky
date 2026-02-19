@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  trackEventServer({ name: "api_users_settings_get" });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  trackEventServer({ name: "api_users_settings_put" });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -78,6 +80,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  trackEventServer({ name: "api_users_settings_patch" });
   try {
     const authHeader = request.headers.get("authorization");
 

@@ -1,9 +1,15 @@
+import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_notifications_id_read_patch",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -13,8 +19,6 @@ export async function PATCH(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(

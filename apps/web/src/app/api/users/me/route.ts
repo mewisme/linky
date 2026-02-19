@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
 import { headers as nextHeaders } from "next/headers";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  trackEventServer({ name: "api_users_me_get" });
   try {
     const authHeader = request.headers.get("authorization");
 

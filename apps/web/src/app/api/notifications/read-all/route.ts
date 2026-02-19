@@ -1,6 +1,8 @@
+import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(request: NextRequest) {
+  trackEventServer({ name: "api_notifications_read_all_patch" });
   try {
     const authHeader = request.headers.get("authorization");
 

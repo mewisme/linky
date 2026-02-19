@@ -6,6 +6,7 @@ import { ClerkReadyIndicator } from "@/components/clerk/clerk-ready-indicator";
 import { HideDevelopmentMode } from "@/components/clerk/hide-development-mode";
 import type { Metadata } from "next";
 import { MqttProvider } from "@/components/providers/realtime/mqtt-provider";
+import { OpenPanelComponent } from "@openpanel/nextjs";
 import { Outfit } from "next/font/google";
 import ProgressBarProvider from "@/components/providers/ui/progress-bar-provider";
 import { SocketProvider } from "@/components/providers/realtime/socket-provider";
@@ -104,6 +105,14 @@ export default function RootLayout({
             </ThemeProvider>
             <Analytics />
             <SpeedInsights />
+            <OpenPanelComponent
+              apiUrl={process.env.NEXT_PUBLIC_OPENPANEL_API_URL as string}
+              clientId={process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID as string}
+              trackAttributes={true}
+              trackScreenViews={true}
+              trackOutgoingLinks={true}
+              trackHashChanges={true}
+            />
           </body>
         </html>
       </ClerkProvider>

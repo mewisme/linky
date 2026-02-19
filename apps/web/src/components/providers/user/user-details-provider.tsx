@@ -1,5 +1,6 @@
 "use client";
 
+import { trackEvent } from "@/lib/analytics/events";
 import { fetchUserDetails, updateUserDetails } from "@/services/user";
 import type { UserDetails, UserState } from "@/stores/user-store";
 import type { UsersAPI } from "@/types/users.types";
@@ -32,6 +33,10 @@ export function UserDetailsProvider({ children, store }: { children: ReactNode; 
     async (data: UsersAPI.UserDetails.PatchMe.Body) => {
       const updated = await updateUserDetails({ token, data });
       store.setUserDetails(updated);
+      trackEvent({
+        name: "profile_updated",
+        properties: { fields: Object.keys(data).join(",") },
+      });
       return updated;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps

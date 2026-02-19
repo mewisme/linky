@@ -1,9 +1,15 @@
+import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ favorite_user_id: string }> }
 ) {
+  const { favorite_user_id } = await params;
+  trackEventServer({
+    name: "api_resources_favorites_favorite_user_id_delete",
+    properties: { favorite_user_id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -13,8 +19,6 @@ export async function DELETE(
         { status: 401 }
       );
     }
-
-    const { favorite_user_id } = await params;
 
     if (!favorite_user_id) {
       return NextResponse.json(

@@ -664,6 +664,7 @@ export function VideoControls({
                       } as ResourcesAPI.Reports.Create.Body,
                     });
 
+                    trackEvent({ name: "report_submitted" });
                     toast.success("Report submitted successfully");
                     setIsReportOpen(false);
                     setReportReason("");

@@ -1,6 +1,8 @@
+import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
+  trackEventServer({ name: "api_users_blocks_post" });
   try {
     const authHeader = request.headers.get("authorization");
 

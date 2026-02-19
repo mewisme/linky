@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_admin_reports_id_get",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -16,8 +21,6 @@ export async function GET(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
@@ -55,6 +58,11 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_admin_reports_id_patch",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -64,8 +72,6 @@ export async function PATCH(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/admin/interest-tags/import
@@ -9,6 +9,7 @@ import type { ApiError } from "@/types/api.types";
  * Request body: { items: Array<{ display_name, category?, icon?, description?, is_active? }> }
  */
 export async function POST(request: NextRequest) {
+  trackEventServer({ name: "api_admin_interest_tags_import_post" });
   try {
     const authHeader = request.headers.get("authorization");
 

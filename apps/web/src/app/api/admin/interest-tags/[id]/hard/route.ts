@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * DELETE /api/admin/interest-tags/[id]/hard
@@ -12,6 +12,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_admin_interest_tags_id_hard_delete",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -21,8 +26,6 @@ export async function DELETE(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

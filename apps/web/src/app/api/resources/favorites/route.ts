@@ -1,3 +1,4 @@
+import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -13,6 +14,11 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { favorite_user_id } = body;
+
+    trackEventServer({
+      name: "api_resources_favorites_post",
+      properties: favorite_user_id ? { favorite_user_id } : undefined,
+    });
 
     if (!favorite_user_id) {
       return NextResponse.json(
@@ -51,6 +57,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  trackEventServer({ name: "api_resources_favorites_get" });
   try {
     const authHeader = request.headers.get("authorization");
 

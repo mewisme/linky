@@ -1,14 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ version: string }> }
 ) {
+  const { version } = await params;
+  trackEventServer({
+    name: "api_resources_changelogs_version_get",
+    properties: { version },
+  });
   try {
-    const { version } = await params;
 
     if (!version) {
       return NextResponse.json(

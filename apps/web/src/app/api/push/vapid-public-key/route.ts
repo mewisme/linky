@@ -1,6 +1,8 @@
+import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  trackEventServer({ name: "api_push_vapid_public_key_get" });
   try {
     const authHeader = request.headers.get("authorization");
 

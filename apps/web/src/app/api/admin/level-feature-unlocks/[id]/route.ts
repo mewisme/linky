@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_admin_level_feature_unlocks_id_get",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -16,8 +21,6 @@ export async function GET(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     const response = await fetch(
@@ -51,6 +54,11 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_admin_level_feature_unlocks_id_put",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -60,8 +68,6 @@ export async function PUT(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
     const body = await request.json() as AdminAPI.LevelFeatureUnlocks.Update.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${id}`, {
@@ -93,6 +99,11 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_admin_level_feature_unlocks_id_patch",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -102,8 +113,6 @@ export async function PATCH(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
     const body = await request.json() as AdminAPI.LevelFeatureUnlocks.Patch.Body;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${id}`, {
@@ -135,6 +144,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_admin_level_feature_unlocks_id_delete",
+    properties: { id },
+  });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -144,8 +158,6 @@ export async function DELETE(
         { status: 401 }
       );
     }
-
-    const { id } = await params;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(`${apiUrl}/api/v1/admin/level-feature-unlocks/${id}`, {
       method: "DELETE",

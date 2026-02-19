@@ -45,7 +45,7 @@ import { useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { Logo } from '@/components/header/landing/logo'
 import { Separator } from '@ws/ui/components/ui/separator'
-import { trackEvent } from '@/lib/analytics/events'
+import { trackEvent } from '@/lib/analytics/events/client'
 import { useCommandMenuStore } from '@/stores/command-menu-store'
 import { useRouter } from 'next/navigation'
 import { useSidebarStore } from '@/stores/sidebar-store'
@@ -327,7 +327,8 @@ export function CommandMenu() {
             label: 'Logout',
             icon: IconLogout,
             onSelect: () => {
-              signOut()
+              trackEvent({ name: "sign_out" });
+              signOut();
             },
             keywords: ['signout', 'exit', 'leave'],
           },
@@ -372,7 +373,13 @@ export function CommandMenu() {
           </KbdGroup>
         </InputGroupAddon>
       </InputGroup>
-      <CommandDialog open={isOpen} onOpenChange={setOpen}>
+      <CommandDialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          setOpen(open);
+          if (open) trackEvent({ name: "command_palette_opened" });
+        }}
+      >
         <Command>
           <CommandInput placeholder="Search commands and pages..." />
           <CommandList>

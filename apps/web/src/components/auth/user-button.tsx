@@ -16,6 +16,7 @@ import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
 import { Kbd } from "@ws/ui/components/ui/kbd";
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
+import { trackEvent } from "@/lib/analytics/events";
 import { useEffect } from "react";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useUserStore } from "@/stores/user-store";
@@ -27,9 +28,9 @@ export function UserButton() {
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "q" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
-        console.log("Signing out")
-        e.preventDefault()
-        signOut()
+        e.preventDefault();
+        trackEvent({ name: "sign_out" });
+        signOut();
       }
     }
     document.addEventListener("keydown", down)
@@ -77,7 +78,11 @@ export function UserButton() {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <SignOutButton>
-          <DropdownMenuItem variant="destructive" className='cursor-pointer gap-2 p-2'>
+          <DropdownMenuItem
+            variant="destructive"
+            className='cursor-pointer gap-2 p-2'
+            onClick={() => trackEvent({ name: "sign_out" })}
+          >
             <div className="flex size-6 items-center justify-center rounded-sm border">
               <LogOutIcon className='size-4 shrink-0 dark:text-red-400 text-red-500' />
             </div>

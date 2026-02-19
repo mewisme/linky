@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(request: NextRequest) {
+  trackEventServer({ name: "api_users_interest_tags_all_delete" });
   try {
     const authHeader = request.headers.get("authorization");
 

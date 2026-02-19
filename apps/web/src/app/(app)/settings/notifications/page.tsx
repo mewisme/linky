@@ -21,6 +21,7 @@ import { Label } from "@ws/ui/components/ui/label";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Switch } from "@ws/ui/components/ui/switch";
 import { toast } from "@ws/ui/components/ui/sonner";
+import { trackEvent } from "@/lib/analytics/events";
 import { usePushNotifications } from "@/hooks/push/use-push-notifications";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -62,6 +63,7 @@ export default function NotificationSettingsPage() {
         await updateUserSettings({
           notification_sound_enabled: notificationSoundEnabled,
         });
+        trackEvent({ name: "settings_updated", properties: { section: "notifications" } });
         playSound("success");
         toast.success("Settings updated successfully");
       } catch (error: unknown) {

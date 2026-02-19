@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-
+import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/resources/interest-tags/[id]
@@ -11,8 +11,12 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+  trackEventServer({
+    name: "api_resources_interest_tags_id_get",
+    properties: { id },
+  });
   try {
-    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

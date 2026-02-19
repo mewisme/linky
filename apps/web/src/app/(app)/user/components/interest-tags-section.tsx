@@ -34,6 +34,7 @@ import type { UserDetails } from '@/stores/user-store'
 import { apiUrl } from '@/lib/api/fetch/api-url'
 import { fetchData } from '@/lib/api/fetch/client-api'
 import { toast } from "@ws/ui/components/ui/sonner";
+import { trackEvent } from "@/lib/analytics/events";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
 const INITIAL_TAGS_VISIBLE = 6
@@ -96,6 +97,7 @@ export function InterestTagsSection({
     startTransition(async () => {
       try {
         await updateUserDetails({ interest_tags: selectedTagIds })
+        trackEvent({ name: "interest_tags_updated" })
         playSound('success')
         toast.success('Interest tags updated')
         setEditingTags(false)

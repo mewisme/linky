@@ -1,10 +1,13 @@
 ## What's Changed
 
+♻️ Refactoring
+
+- Reorganize environment variable imports and enhance analytics tracking ([2dccd69](../../commit/2dccd69))
+- Replace process.env with publicEnv for environment variable access ([ff7c673](../../commit/ff7c673))
+
 🔨 Other Changes
 
-- Implement end call unload API and update analytics tracking ([fe9200a](../../commit/fe9200a))
-- Add new environment variables for OpenPanel integration ([03c65e2](../../commit/03c65e2))
-- Update package versions to 0.53.0 and refresh version lock ([5da6cbc](../../commit/5da6cbc))
+- Update package versions to 0.54.0 and refresh version lock ([3b7f18a](../../commit/3b7f18a))
 
 
-📋 Full Changelog: [5da6cbc...fe9200a](../../compare/5da6cbc...fe9200a)
+📋 Full Changelog: [3b7f18a...2dccd69](../../compare/3b7f18a...2dccd69)

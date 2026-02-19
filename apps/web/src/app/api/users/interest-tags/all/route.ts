@@ -1,8 +1,9 @@
-import { publicEnv } from "@/env";
-import { trackEventServer } from "@/lib/analytics/events/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
-import { NextRequest, NextResponse } from "next/server";
+import { publicEnv } from "@/env/public-env";
+import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function DELETE(request: NextRequest) {
   trackEventServer({ name: "api_users_interest_tags_all_delete" });

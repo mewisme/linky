@@ -23,7 +23,7 @@ import { Label } from '@ws/ui/components/ui/label'
 import { Separator } from '@ws/ui/components/ui/separator'
 import { Switch } from '@ws/ui/components/ui/switch'
 import { toast } from "@ws/ui/components/ui/sonner";
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 import { useSidebarStore, type SidebarCollapsible, type SidebarVariant } from '@/stores/sidebar-store'
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 import { useUserContext } from '@/components/providers/user/user-provider'

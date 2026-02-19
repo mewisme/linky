@@ -3,7 +3,7 @@
 import type { Notification, NotificationType } from "@/types/notifications.types";
 
 import { NotificationIcon } from "./notification-icon";
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 
 const titleMap: Record<NotificationType, string> = {
   favorite_added: "New Favorite",

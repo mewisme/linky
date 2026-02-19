@@ -37,7 +37,7 @@ import { cn } from '@ws/ui/lib/utils';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { usePathname } from 'next/navigation'
 import { useSidebarStore } from '@/stores/sidebar-store';
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 import { useUserContext } from '@/components/providers/user/user-provider';
 import { useUserStore } from '@/stores/user-store';
 import { menuItems, type MenuItem } from './menu-items';

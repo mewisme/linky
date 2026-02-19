@@ -1,8 +1,9 @@
-import { publicEnv } from "@/env";
-import { trackEventServer } from "@/lib/analytics/events/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
-import { NextRequest, NextResponse } from "next/server";
+import { publicEnv } from "@/env/public-env";
+import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function GET(request: NextRequest) {
   trackEventServer({ name: "api_admin_streak_exp_bonuses_get" });

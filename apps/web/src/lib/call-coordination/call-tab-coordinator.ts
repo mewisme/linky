@@ -1,4 +1,4 @@
-import { publicEnv } from "@/env";
+import { publicEnv } from "@/env/public-env";
 
 const logger = {
   debug: (data: unknown, msg?: string) => {
@@ -50,7 +50,7 @@ class CallTabCoordinator {
   private stateChangeCallbacks: Set<StateChangeCallback> = new Set();
   private isInitialized = false;
 
-  constructor() {}
+  constructor() { }
 
   private ensureTabId(): string {
     if (this.tabId) {

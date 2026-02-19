@@ -8,7 +8,7 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 
 import { toast } from "@ws/ui/components/ui/sonner";
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 import { useBlockedUsersStore } from "@/stores/blocked-users-store";
 import { useUserContext } from "@/components/providers/user/user-provider";
 

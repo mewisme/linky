@@ -1,6 +1,6 @@
-import { publicEnv } from "@/env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextResponse } from "next/server";
+import { publicEnv } from "@/env/public-env";
+import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function GET() {
   trackEventServer({ name: "api_health_get" });

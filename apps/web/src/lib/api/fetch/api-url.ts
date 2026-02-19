@@ -1,4 +1,3 @@
-import { publicEnv } from "@/env";
 import {
   AdminApi,
   MediaApi,
@@ -7,6 +6,8 @@ import {
   ResourcesApi,
   UserApi,
 } from './urls';
+
+import { publicEnv } from "@/env/public-env";
 
 export class ApiUrl {
   private static readonly PROXY_URL = publicEnv.APP_URL;

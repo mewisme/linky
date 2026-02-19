@@ -1,8 +1,8 @@
-import { publicEnv } from "@/env";
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
 
 import type { UsersAPI } from "@/types/users.types";
+import { publicEnv } from "@/env/public-env";
 
 export interface NamespaceSockets {
   chat: Socket;

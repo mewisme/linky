@@ -1,6 +1,7 @@
-import { publicEnv } from "@/env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
+
+import { publicEnv } from "@/env/public-env";
+import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function POST(request: NextRequest) {
   trackEventServer({ name: "api_admin_embeddings_similar_post" });

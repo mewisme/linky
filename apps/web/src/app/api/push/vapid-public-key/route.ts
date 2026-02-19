@@ -1,6 +1,7 @@
-import { publicEnv } from "@/env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
+
+import { publicEnv } from "@/env/public-env";
+import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function GET(request: NextRequest) {
   trackEventServer({ name: "api_push_vapid_public_key_get" });

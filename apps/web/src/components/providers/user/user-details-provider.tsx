@@ -1,6 +1,6 @@
 "use client";
 
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 import { fetchUserDetails, updateUserDetails } from "@/services/user";
 import type { UserDetails, UserState } from "@/stores/user-store";
 import type { UsersAPI } from "@/types/users.types";

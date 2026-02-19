@@ -4,9 +4,6 @@ const publicEnvSchema = z
   .object({
     NEXT_PUBLIC_API_URL: z.string().min(1, "NEXT_PUBLIC_API_URL is required"),
     NEXT_PUBLIC_APP_URL: z.string().min(1, "NEXT_PUBLIC_APP_URL is required"),
-    NEXT_PUBLIC_OPENPANEL_API_URL: z
-      .string()
-      .min(1, "NEXT_PUBLIC_OPENPANEL_API_URL is required"),
     NEXT_PUBLIC_OPENPANEL_CLIENT_ID: z
       .string()
       .min(1, "NEXT_PUBLIC_OPENPANEL_CLIENT_ID is required"),
@@ -24,7 +21,6 @@ const publicEnvSchema = z
 const raw = {
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  NEXT_PUBLIC_OPENPANEL_API_URL: process.env.NEXT_PUBLIC_OPENPANEL_API_URL,
   NEXT_PUBLIC_OPENPANEL_CLIENT_ID: process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID,
   NEXT_PUBLIC_GIPHY_API_KEY: process.env.NEXT_PUBLIC_GIPHY_API_KEY,
   NEXT_PUBLIC_ALLOWED_DEV_ORIGINS: process.env.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS,
@@ -39,7 +35,6 @@ const parsed = publicEnvSchema.parse(raw);
 export const publicEnv = {
   API_URL: parsed.NEXT_PUBLIC_API_URL,
   APP_URL: parsed.NEXT_PUBLIC_APP_URL,
-  OPENPANEL_API_URL: parsed.NEXT_PUBLIC_OPENPANEL_API_URL,
   OPENPANEL_CLIENT_ID: parsed.NEXT_PUBLIC_OPENPANEL_CLIENT_ID,
   GIPHY_API_KEY: parsed.NEXT_PUBLIC_GIPHY_API_KEY,
   ALLOWED_DEV_ORIGINS: parsed.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS,

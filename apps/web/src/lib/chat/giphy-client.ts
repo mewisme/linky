@@ -8,7 +8,7 @@ export interface GiphyMediaItem {
 
 type GiphyMediaType = "gifs" | "stickers";
 
-import { publicEnv } from "@/env";
+import { publicEnv } from "@/env/public-env";
 
 const apiBase = "https://api.giphy.com/v1";
 

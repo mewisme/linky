@@ -16,7 +16,7 @@ import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
 import { Kbd } from "@ws/ui/components/ui/kbd";
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 import { useEffect } from "react";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useUserStore } from "@/stores/user-store";

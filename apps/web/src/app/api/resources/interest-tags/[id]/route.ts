@@ -1,8 +1,9 @@
-import { publicEnv } from "@/env";
-import { trackEventServer } from "@/lib/analytics/events/server";
+import { NextRequest, NextResponse } from "next/server";
+
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
-import { NextRequest, NextResponse } from "next/server";
+import { publicEnv } from "@/env/public-env";
+import { trackEventServer } from "@/lib/analytics/events/server";
 
 /**
  * GET /api/resources/interest-tags/[id]

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useMemo, useCallback } from "react";
-import { publicEnv } from "@/env";
+import { publicEnv } from "@/env/public-env";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
@@ -31,7 +31,7 @@ import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordi
 
 import { iceServerCache } from "@/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;

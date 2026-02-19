@@ -45,7 +45,7 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "react";
 
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";

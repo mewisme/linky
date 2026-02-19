@@ -1,7 +1,7 @@
-import { publicEnv } from "@/env";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
+import { publicEnv } from "@/env/public-env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 
 export interface StreakCalendarDay {

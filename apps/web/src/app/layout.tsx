@@ -1,5 +1,4 @@
 import "@/styles/globals.css";
-import { publicEnv } from "@/env";
 
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@/components/providers/clerk/clerk-provider";
@@ -15,6 +14,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/components/providers/ui/theme-provider";
 import { Toaster } from "@ws/ui/components/ui/sonner";
 import { UserProvider } from "@/components/providers/user/user-provider";
+import { publicEnv } from "@/env/public-env";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -107,7 +107,8 @@ export default function RootLayout({
             <Analytics />
             <SpeedInsights />
             <OpenPanelComponent
-              apiUrl={publicEnv.OPENPANEL_API_URL}
+              apiUrl="/api/op"
+              cdnUrl="/api/op/op1.js"
               clientId={publicEnv.OPENPANEL_CLIENT_ID}
               trackAttributes={true}
               trackScreenViews={true}

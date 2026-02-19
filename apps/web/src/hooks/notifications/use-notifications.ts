@@ -9,7 +9,7 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 
 import type { Notification } from "@/types/notifications.types";
-import { trackEvent } from "@/lib/analytics/events";
+import { trackEvent } from "@/lib/analytics/events/client";
 import { useNotificationsStore } from "@/stores/notifications-store";
 import { useSocket } from "@/hooks/socket/use-socket";
 import { useUserContext } from "@/components/providers/user/user-provider";

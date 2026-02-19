@@ -1,5 +1,6 @@
-import { publicEnv } from "@/env";
 import mqtt, { MqttClient } from 'mqtt'
+
+import { publicEnv } from "@/env/public-env";
 
 let client: MqttClient | null = null
 

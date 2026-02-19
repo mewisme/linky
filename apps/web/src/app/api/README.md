@@ -132,6 +132,8 @@ Routes follow Next.js 13+ App Router conventions:
 All routes follow a consistent proxy pattern:
 
 ```typescript
+import { publicEnv } from "@/env";
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -143,8 +145,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/backend-endpoint`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/backend-endpoint`, {
       method: "GET",
       headers: {
         Authorization: authHeader,
@@ -220,9 +221,7 @@ Update this README with the new route information.
 
 ## Environment Variables
 
-Routes use `NEXT_PUBLIC_API_URL` to determine the backend URL:
-- Default: `http://localhost:3001`
-- Set in `.env.local` for different environments
+Routes use `publicEnv.API_URL` from `@/env` (validated at startup). Set `NEXT_PUBLIC_API_URL` in `.env.local` for different environments.
 
 ## Error Handling
 

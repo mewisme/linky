@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import { publicEnv } from "@/env";
 
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@/components/providers/clerk/clerk-provider";
@@ -20,7 +21,7 @@ const outfit = Outfit({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = publicEnv.APP_URL;
   return {
     title: "Linky",
     description: "Connecting you everywhere",
@@ -106,8 +107,8 @@ export default function RootLayout({
             <Analytics />
             <SpeedInsights />
             <OpenPanelComponent
-              apiUrl={process.env.NEXT_PUBLIC_OPENPANEL_API_URL as string}
-              clientId={process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID as string}
+              apiUrl={publicEnv.OPENPANEL_API_URL}
+              clientId={publicEnv.OPENPANEL_CLIENT_ID}
               trackAttributes={true}
               trackScreenViews={true}
               trackOutgoingLinks={true}

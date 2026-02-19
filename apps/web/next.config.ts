@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { publicEnv, serverEnv } from "./src/env";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@ws/ui"],
@@ -11,9 +12,9 @@ const nextConfig: NextConfig = {
     ],
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole: serverEnv.NODE_ENV === "production",
   },
-  allowedDevOrigins: [process.env.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS || ""],
+  allowedDevOrigins: [publicEnv.ALLOWED_DEV_ORIGINS],
   images: {
     remotePatterns: [
       {

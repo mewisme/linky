@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
@@ -21,10 +22,9 @@ export async function GET(
         { status: 401 }
       );
     }
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     const response = await fetch(
-      `${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`,
+      `${publicEnv.API_URL}/api/v1/admin/streak-exp-bonuses/${id}`,
       {
         method: "GET",
         headers: {
@@ -69,8 +69,7 @@ export async function PUT(
       );
     }
     const body = await request.json() as AdminAPI.StreakExpBonuses.Update.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/streak-exp-bonuses/${id}`, {
       method: "PUT",
       headers: {
         Authorization: authHeader,
@@ -114,8 +113,7 @@ export async function PATCH(
       );
     }
     const body = await request.json() as AdminAPI.StreakExpBonuses.Patch.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/streak-exp-bonuses/${id}`, {
       method: "PATCH",
       headers: {
         Authorization: authHeader,
@@ -158,8 +156,7 @@ export async function DELETE(
         { status: 401 }
       );
     }
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/streak-exp-bonuses/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/streak-exp-bonuses/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

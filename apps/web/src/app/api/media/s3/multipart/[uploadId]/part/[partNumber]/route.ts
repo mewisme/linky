@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
@@ -30,9 +31,8 @@ export async function GET(
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(
-      `${apiUrl}/api/v1/s3/multipart/${uploadId}/part/${partNumber}?${searchParams.toString()}`,
+      `${publicEnv.API_URL}/api/v1/s3/multipart/${uploadId}/part/${partNumber}?${searchParams.toString()}`,
       {
         method: "GET",
         headers: {

@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
@@ -29,8 +30,7 @@ export async function GET(
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/reports/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/reports/${id}`, {
       method: "GET",
       headers: {
         Authorization: authHeader,
@@ -80,8 +80,7 @@ export async function PATCH(
       );
     }
     const body = await request.json() as AdminAPI.Reports.Update.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/reports/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/reports/${id}`, {
       method: "PATCH",
       headers: {
         Authorization: authHeader,

@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
@@ -15,7 +16,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const timezone = request.headers.get("x-user-timezone") ?? request.nextUrl.searchParams.get("timezone");
 
     const headers: Record<string, string> = {
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       headers["x-user-timezone"] = timezone;
     }
 
-    const response = await fetch(`${apiUrl}/api/v1/user-progress/me`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-progress/me`, {
       method: "GET",
       headers,
     });

@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
@@ -23,8 +24,7 @@ export async function GET(request: NextRequest) {
     if (limit) queryParams.set("limit", limit);
     if (offset) queryParams.set("offset", offset);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/reports/me?${queryParams.toString()}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/reports/me?${queryParams.toString()}`, {
       method: "GET",
       headers: {
         Authorization: authHeader,

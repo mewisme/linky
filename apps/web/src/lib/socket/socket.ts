@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
 
@@ -35,10 +36,7 @@ function getSocketManager(baseUrl: string): Manager {
 }
 
 export async function createNamespaceSockets(token?: string | null): Promise<NamespaceSockets> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!baseUrl) {
-    throw new Error("NEXT_PUBLIC_API_URL is not set");
-  }
+  const baseUrl = publicEnv.API_URL;
 
   if (chatSocket && adminSocket) {
     if (chatSocket.connected || chatSocket.active) {

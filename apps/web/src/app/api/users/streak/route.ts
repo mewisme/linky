@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
@@ -15,8 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-streak/me`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-streak/me`, {
       method: "GET",
       headers: {
         Authorization: authHeader,

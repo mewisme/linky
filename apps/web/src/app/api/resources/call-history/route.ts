@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
@@ -19,9 +20,8 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get("limit") || "50";
     const offset = searchParams.get("offset") || "0";
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const response = await fetch(
-      `${apiUrl}/api/v1/call-history?limit=${limit}&offset=${offset}`,
+      `${publicEnv.API_URL}/api/v1/call-history?limit=${limit}&offset=${offset}`,
       {
         method: "GET",
         headers: {

@@ -8,14 +8,12 @@ export interface GiphyMediaItem {
 
 type GiphyMediaType = "gifs" | "stickers";
 
+import { publicEnv } from "@/env";
+
 const apiBase = "https://api.giphy.com/v1";
 
 function getApiKey(): string {
-  const key = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
-  if (!key) {
-    throw new Error("NEXT_PUBLIC_GIPHY_API_KEY is not set");
-  }
-  return key;
+  return publicEnv.GIPHY_API_KEY;
 }
 
 async function fetchGiphy(endpoint: string, params: Record<string, string>): Promise<GiphyMediaItem[]> {

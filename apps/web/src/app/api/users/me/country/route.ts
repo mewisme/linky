@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
@@ -16,8 +17,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json() as UsersAPI.UpdateCountry.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/users/me/country`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/users/me/country`, {
       method: "PATCH",
       headers: {
         Authorization: authHeader,

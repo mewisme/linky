@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useMemo, useCallback } from "react";
+import { publicEnv } from "@/env";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
@@ -236,7 +237,7 @@ export function useVideoChat(): UseVideoChatReturn {
       currentStatus === "in_call" ||
       currentStatus === "reconnecting";
     if (!isInCall || isReconnectingRef.current) {
-      if (process.env.NODE_ENV === "development") {
+      if (publicEnv.isDev) {
         console.log("[ReconnectUX] startReconnecting skipped", {
           isInCall,
           isReconnecting: isReconnectingRef.current,
@@ -248,7 +249,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
     isReconnectingRef.current = true;
     console.info("[ReconnectUX] Reconnecting toast shown");
-    if (process.env.NODE_ENV === "development") {
+    if (publicEnv.isDev) {
       console.log("[ReconnectUX] startReconnecting triggered", {
         connectionStatus: currentStatus,
       });
@@ -257,7 +258,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const completeReconnection = useCallback(() => {
     if (!isReconnectingRef.current) {
-      if (process.env.NODE_ENV === "development") {
+      if (publicEnv.isDev) {
         console.log("[ReconnectUX] completeReconnection skipped - not reconnecting");
       }
       return;
@@ -266,7 +267,7 @@ export function useVideoChat(): UseVideoChatReturn {
     isReconnectingRef.current = false;
     trackEvent({ name: "call_reconnected" });
     console.info("[ReconnectUX] Reconnected toast shown");
-    if (process.env.NODE_ENV === "development") {
+    if (publicEnv.isDev) {
       console.log("[ReconnectUX] completeReconnection - showing reconnected toast");
     }
   }, []);
@@ -329,7 +330,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setRemoteStream(stream);
         actionsRef.current.setConnectionStatus("in_call");
 
-        if (process.env.NODE_ENV === "development") {
+        if (publicEnv.isDev) {
           console.log("[VideoChatState] onTrack - remote track received", {
             isReconnecting: isReconnectingRef.current,
             hasShownToast: hasShownConnectedToastRef.current,
@@ -501,7 +502,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onMatched: async (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => {
-        if (process.env.NODE_ENV === "development") {
+        if (publicEnv.isDev) {
           console.log("[VideoChatState] onMatched - resetting reconnect flags", {
             wasReconnecting: isReconnectingRef.current,
             hadShownToast: hasShownConnectedToastRef.current,

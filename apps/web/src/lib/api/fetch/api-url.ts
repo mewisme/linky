@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import {
   AdminApi,
   MediaApi,
@@ -8,7 +9,7 @@ import {
 } from './urls';
 
 export class ApiUrl {
-  private static readonly PROXY_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  private static readonly PROXY_URL = publicEnv.APP_URL;
 
   admin: AdminApi;
   resources: ResourcesApi;

@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -24,10 +25,9 @@ export async function GET(request: NextRequest) {
     if (offset) queryParams.set("offset", offset);
     if (unreadOnly) queryParams.set("unread_only", unreadOnly);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const qs = queryParams.toString();
     const response = await fetch(
-      `${apiUrl}/api/v1/notifications/me${qs ? `?${qs}` : ""}`,
+      `${publicEnv.API_URL}/api/v1/notifications/me${qs ? `?${qs}` : ""}`,
       {
         method: "GET",
         headers: {

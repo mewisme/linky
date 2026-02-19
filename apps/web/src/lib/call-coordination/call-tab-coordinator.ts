@@ -1,6 +1,8 @@
+import { publicEnv } from "@/env";
+
 const logger = {
   debug: (data: unknown, msg?: string) => {
-    if (process.env.NODE_ENV === "development") {
+    if (publicEnv.isDev) {
       console.debug(msg || "", data);
     }
   },

@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,9 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as { intent?: string; content_type?: string };
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-    const response = await fetch(`${apiUrl}/api/v1/admin/media/presigned-upload`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/media/presigned-upload`, {
       method: "POST",
       headers: {
         Authorization: authHeader,

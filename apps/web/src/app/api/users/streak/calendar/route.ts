@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
@@ -35,7 +36,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const timezone = request.headers.get("x-user-timezone") ?? request.nextUrl.searchParams.get("timezone");
 
     const headers: Record<string, string> = {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(
-      `${apiUrl}/api/v1/user-streak/calendar?year=${year}&month=${month}`,
+      `${publicEnv.API_URL}/api/v1/user-streak/calendar?year=${year}&month=${month}`,
       { method: "GET", headers }
     );
 

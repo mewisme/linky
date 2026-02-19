@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
@@ -15,8 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-details/me`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-details/me`, {
       method: "GET",
       headers: {
         Authorization: authHeader,
@@ -53,8 +53,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json() as UsersAPI.UserDetails.UpdateMe.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-details/me`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-details/me`, {
       method: "PUT",
       headers: {
         Authorization: authHeader,
@@ -92,8 +91,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json() as UsersAPI.UserDetails.PatchMe.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-details/me`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-details/me`, {
       method: "PATCH",
       headers: {
         Authorization: authHeader,

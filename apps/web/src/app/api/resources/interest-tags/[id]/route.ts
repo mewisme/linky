@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
@@ -25,8 +26,7 @@ export async function GET(
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/interest-tags/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/interest-tags/${id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

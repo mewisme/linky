@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { AdminAPI } from "@/types/admin.types";
 import type { ApiError } from "@/types/api.types";
@@ -33,8 +34,7 @@ export async function GET(
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/interest-tags/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/interest-tags/${id}`, {
       method: "GET",
       headers: {
         Authorization: authHeader,
@@ -89,8 +89,7 @@ export async function PUT(
     }
 
     const body = await request.json() as AdminAPI.InterestTags.Update.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/interest-tags/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/interest-tags/${id}`, {
       method: "PUT",
       headers: {
         Authorization: authHeader,
@@ -146,8 +145,7 @@ export async function PATCH(
     }
 
     const body = await request.json() as AdminAPI.InterestTags.Patch.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/interest-tags/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/interest-tags/${id}`, {
       method: "PATCH",
       headers: {
         Authorization: authHeader,
@@ -202,8 +200,7 @@ export async function DELETE(
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/admin/interest-tags/${id}`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/interest-tags/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

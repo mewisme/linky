@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
@@ -15,8 +16,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/user-details/me/interest-tags/all`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-details/me/interest-tags/all`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import mqtt, { MqttClient } from 'mqtt'
 
 let client: MqttClient | null = null
@@ -5,10 +6,14 @@ let client: MqttClient | null = null
 export function createMqttClient(userId: string): MqttClient {
   if (client) return client;
 
-  const mqttUrl = process.env.NEXT_PUBLIC_MQTT_CLIENT_URL;
-  const mqttPort = process.env.NEXT_PUBLIC_MQTT_CLIENT_PORT;
-  const mqttUsername = process.env.NEXT_PUBLIC_MQTT_CLIENT_USERNAME;
-  const mqttPassword = process.env.NEXT_PUBLIC_MQTT_CLIENT_PASSWORD;
+  const mqttUrl = publicEnv.MQTT_CLIENT_URL;
+  const mqttPort = publicEnv.MQTT_CLIENT_PORT;
+  const mqttUsername = publicEnv.MQTT_CLIENT_USERNAME;
+  const mqttPassword = publicEnv.MQTT_CLIENT_PASSWORD;
+
+  if (!mqttUrl || !mqttPort) {
+    throw new Error("MQTT is not configured: NEXT_PUBLIC_MQTT_CLIENT_URL and NEXT_PUBLIC_MQTT_CLIENT_PORT are required");
+  }
 
   const mqttFullUrl = `wss://${mqttUrl}:${mqttPort}/mqtt`
 

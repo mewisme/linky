@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
@@ -16,8 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json() as MediaAPI.S3.AbortMultipart.Body;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/s3/multipart/abort`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/s3/multipart/abort`, {
       method: "POST",
       headers: {
         Authorization: authHeader,

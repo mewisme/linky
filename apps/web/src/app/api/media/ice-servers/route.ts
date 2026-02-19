@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
@@ -15,8 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/ice-servers`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/ice-servers`, {
       method: "GET",
       headers: {
         Authorization: authHeader,

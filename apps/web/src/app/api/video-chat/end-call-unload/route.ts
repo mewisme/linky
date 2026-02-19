@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function POST(request: NextRequest) {
@@ -16,10 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const url = `${apiUrl}/api/v1/video-chat/end-call-unload`;
-
-    const response = await fetch(url, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/video-chat/end-call-unload`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

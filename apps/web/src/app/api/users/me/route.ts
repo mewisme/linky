@@ -1,3 +1,4 @@
+import { publicEnv } from "@/env";
 import { trackEventServer } from "@/lib/analytics/events/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
@@ -31,8 +32,7 @@ export async function GET(request: NextRequest) {
       backendHeaders["x-cf-ipcountry"] = countryHeader;
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/api/v1/users/me`, {
+    const response = await fetch(`${publicEnv.API_URL}/api/v1/users/me`, {
       method: "GET",
       headers: backendHeaders,
     });
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           clerk_user_id: userData.clerk_user_id,
         };
 
-        const updateResponse = await fetch(`${apiUrl}/api/v1/users/me/country`, {
+        const updateResponse = await fetch(`${publicEnv.API_URL}/api/v1/users/me/country`, {
           method: "PATCH",
           headers: {
             Authorization: authHeader,

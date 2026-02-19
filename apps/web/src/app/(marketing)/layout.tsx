@@ -1,8 +1,9 @@
+import { publicEnv } from "@/env";
 import type { Metadata } from "next";
 import { MarketingProviders } from "./components/marketing-providers";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = publicEnv.APP_URL;
 
   const title = "Linky - Random Video Chat with Purpose | Omegle Alternative";
   const description = "Safe, account-based random video chat. Match by interests, add favorites, and earn rewards. Better than Omegle with real profiles, moderation, and progression.";

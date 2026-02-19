@@ -1,13 +1,10 @@
 ## What's Changed
 
-♻️ Refactoring
-
-- Reorganize environment variable imports and enhance analytics tracking ([2dccd69](../../commit/2dccd69))
-- Replace process.env with publicEnv for environment variable access ([ff7c673](../../commit/ff7c673))
-
 🔨 Other Changes
 
-- Update package versions to 0.54.0 and refresh version lock ([3b7f18a](../../commit/3b7f18a))
+- Remove obsolete Dockerfile for ollama ([338467d](../../commit/338467d))
+- Set global properties for OpenPanel integration ([d44f19f](../../commit/d44f19f))
+- Update package versions to 0.54.2 and refresh version lock ([2d7fdf0](../../commit/2d7fdf0))
 
 
-📋 Full Changelog: [3b7f18a...2dccd69](../../compare/3b7f18a...2dccd69)
+📋 Full Changelog: [2d7fdf0...338467d](../../compare/2d7fdf0...338467d)

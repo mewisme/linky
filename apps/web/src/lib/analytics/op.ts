@@ -7,3 +7,7 @@ export const op = new OpenPanel({
   clientId: publicEnv.OPENPANEL_CLIENT_ID,
   clientSecret: serverEnv.OPENPANEL_CLIENT_SECRET,
 });
+
+op.setGlobalProperties({
+  environment: serverEnv.isProd ? "production" : "development",
+})

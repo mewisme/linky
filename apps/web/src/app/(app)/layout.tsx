@@ -6,14 +6,7 @@ import { waitUntil } from '@vercel/functions';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser();
-  waitUntil(identifyUser({
-    profileId: user?.id ?? "",
-    email: user?.emailAddresses[0]?.emailAddress ?? "",
-    firstName: user?.firstName ?? null,
-    lastName: user?.lastName ?? null,
-  }, {
-    avatar: user?.imageUrl ?? null,
-  }));
+  waitUntil(identifyUser(user));
   return (
     <>
       <IdentifyComponent
@@ -21,9 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         email={user?.emailAddresses[0]?.emailAddress}
         firstName={user?.firstName}
         lastName={user?.lastName}
-        properties={{
-          avatar: user?.imageUrl ?? null,
-        }}
+        avatar={user?.imageUrl}
       />
       <AppClientLayout>
         {children}

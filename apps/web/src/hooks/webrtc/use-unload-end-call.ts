@@ -14,7 +14,6 @@ export function useUnloadEndCall(
   releaseOwnership?: () => void
 ): void {
   const hasSentUnloadSignalRef = useRef(false);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
   const sendUnloadEndCall = () => {
     if (hasSentUnloadSignalRef.current) {
@@ -41,9 +40,9 @@ export function useUnloadEndCall(
       }
     }
 
-    if (navigator.sendBeacon && apiUrl) {
+    if (navigator.sendBeacon) {
       try {
-        const url = `${apiUrl}/api/v1/video-chat/end-call-unload`;
+        const url = "/api/video-chat/end-call-unload";
         const data = JSON.stringify({ socketId });
         const blob = new Blob([data], { type: "application/json" });
 

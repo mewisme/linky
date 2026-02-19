@@ -51,6 +51,7 @@ export const SERVER_EVENT_NAMES = [
   "api_resources_reports_get",
   "api_resources_reports_post",
   "api_resources_reports_me_get",
+  "api_video_chat_end_call_unload_post",
   "api_admin_interest_tags_get",
   "api_admin_interest_tags_post",
   "api_admin_interest_tags_import_post",

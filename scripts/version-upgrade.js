@@ -288,6 +288,8 @@ function analyzeCommits(commits) {
     else if (
       lowerCommit.startsWith('feat:') ||
       lowerCommit.startsWith('feature:') ||
+      lowerCommit.startsWith('feat(') ||
+      lowerCommit.startsWith('feature(') ||
       featureVerbs.some(verb => firstWord === verb)
     ) {
       commitBumpType = 'minor';
@@ -301,11 +303,17 @@ function analyzeCommits(commits) {
     }
     else if (
       lowerCommit.startsWith('fix:') ||
+      lowerCommit.startsWith('fix(') ||
       lowerCommit.startsWith('perf:') ||
+      lowerCommit.startsWith('perf(') ||
       lowerCommit.startsWith('refactor:') ||
+      lowerCommit.startsWith('refactor(') ||
       lowerCommit.startsWith('style:') ||
+      lowerCommit.startsWith('style(') ||
       lowerCommit.startsWith('test:') ||
+      lowerCommit.startsWith('test(') ||
       lowerCommit.startsWith('docs:') ||
+      lowerCommit.startsWith('docs(') ||
       patchVerbs.some(verb => firstWord === verb)
     ) {
       commitBumpType = 'patch';

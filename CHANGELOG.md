@@ -2,9 +2,9 @@
 
 🔨 Other Changes
 
-- Add server API tracking and extend client events ([64f00d9](../../commit/64f00d9))
-- Update package versions to 0.52.30 and refresh version lock ([b603d1c](../../commit/b603d1c))
-- Update Node.js version and install latest pnpm ([bf1538b](../../commit/bf1538b))
+- Implement end call unload API and update analytics tracking ([fe9200a](../../commit/fe9200a))
+- Add new environment variables for OpenPanel integration ([03c65e2](../../commit/03c65e2))
+- Update package versions to 0.53.0 and refresh version lock ([5da6cbc](../../commit/5da6cbc))
 
 
-📋 Full Changelog: [bf1538b...64f00d9](../../compare/bf1538b...64f00d9)
+📋 Full Changelog: [5da6cbc...fe9200a](../../compare/5da6cbc...fe9200a)

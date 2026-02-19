@@ -20,8 +20,8 @@
         "NEXT_PUBLIC_MQTT_CLIENT_PORT",
         "NEXT_PUBLIC_MQTT_CLIENT_USERNAME",
         "NEXT_PUBLIC_MQTT_CLIENT_PASSWORD",
-        "NEXT_PUBLIC_OPENPANEL_API_URL",
-        "OPENPANEL_CLIENT_SECRET"
+        "OPENPANEL_CLIENT_SECRET",
+        "OPENPANEL_API_URL"
       ],
       "dependsOn": [
         "^build"

@@ -403,11 +403,8 @@ if (affectedWorkspaces.length === 0) {
 let newVersion = updateVersion();
 
 if (!newVersion) {
-  const currentVersion = `${major}.${minor}.${patch}`;
-  const autoPatchVersion = `${major}.${minor}.${patch + 1}`;
-  console.log(`\nNo version bump detected from commit messages, but files changed in affected workspaces.`);
-  console.log(`Auto-bumping patch version: ${currentVersion} → ${autoPatchVersion}`);
-  newVersion = autoPatchVersion;
+  console.log('\nNo version bump detected from commit messages, skipping version update...');
+  process.exit(0);
 }
 
 const updatedFiles = updateAllPackageJsonFiles(newVersion);

@@ -1,6 +1,6 @@
 {
   "name": "@ws/eslint-config",
-  "version": "0.54.6",
+  "version": "0.54.7",
   "type": "module",
   "private": true,
   "exports": {

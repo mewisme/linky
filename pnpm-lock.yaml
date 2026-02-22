@@ -8,10 +8,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      dotenv:
-        specifier: ^17.3.1
-        version: 17.3.1
     devDependencies:
       '@playwright/test':
         specifier: ^1.58.2
@@ -19,6 +15,9 @@ importers:
       '@types/node':
         specifier: ^25.3.0
         version: 25.3.0
+      dotenv:
+        specifier: ^17.3.1
+        version: 17.3.1
       prettier:
         specifier: ^3.8.1
         version: 3.8.1

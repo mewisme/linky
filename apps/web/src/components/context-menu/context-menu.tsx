@@ -62,7 +62,7 @@ function renderContextMenuItem(item: ContextMenuItemType, key: React.Key): React
         </ContextMenuSubTrigger>
         <ContextMenuSubContent>
           {item.children.map((child, i) => (
-            <Fragment key={i}>{renderContextMenuItem(child, `${key}-${i}`)}</Fragment>
+            <Fragment key={i}>{renderContextMenuItem(child, `${String(key)}-${i}`)}</Fragment>
           ))}
         </ContextMenuSubContent>
       </ContextMenuSub>

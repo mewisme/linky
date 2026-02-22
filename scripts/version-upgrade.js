@@ -379,7 +379,7 @@ function updateVersion() {
   const { major: newMajor, minor: newMinor, patch: newPatch } = analyzeCommits(commits);
 
   const newVersion = `${newMajor}.${newMinor}.${newPatch}`;
-  console.log(`\nFinal version change: ${currentVersion} → ${newVersion}`);
+  console.log(`\n✓ Final version: ${currentVersion} → ${newVersion}`);
   if (newVersion === currentVersion) {
     return null;
   }

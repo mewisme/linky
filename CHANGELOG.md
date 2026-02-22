@@ -2,7 +2,7 @@
 
 🔨 Other Changes
 
-- Update package versions to 0.54.6 and refresh version lock ([2a7eed1](../../commit/2a7eed1))
+- Update package versions to 0.54.7 and refresh version lock ([f383eaa](../../commit/f383eaa))
 
 
-📋 Full Changelog: [2a7eed1...2a7eed1](../../compare/2a7eed1...2a7eed1)
+📋 Full Changelog: [f383eaa...f383eaa](../../compare/f383eaa...f383eaa)

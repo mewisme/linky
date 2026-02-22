@@ -2,9 +2,10 @@
 
 🔨 Other Changes
 
-- Remove obsolete Dockerfile for ollama ([338467d](../../commit/338467d))
-- Set global properties for OpenPanel integration ([d44f19f](../../commit/d44f19f))
-- Update package versions to 0.54.2 and refresh version lock ([2d7fdf0](../../commit/2d7fdf0))
+- Enhance Docker image build process with QEMU and Buildx setup ([0a0dc3d](../../commit/0a0dc3d))
+- Simplify user identification in analytics tracking ([ef7f181](../../commit/ef7f181))
+- Reorganize environment variables in turbo.json ([73bb836](../../commit/73bb836))
+- Update package versions to 0.54.3 and refresh version lock ([ef83b7b](../../commit/ef83b7b))
 
 
-📋 Full Changelog: [2d7fdf0...338467d](../../compare/2d7fdf0...338467d)
+📋 Full Changelog: [ef83b7b...0a0dc3d](../../compare/ef83b7b...0a0dc3d)

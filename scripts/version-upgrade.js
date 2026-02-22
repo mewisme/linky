@@ -143,43 +143,55 @@ function getChangedFiles() {
   const lastProcessedCommit = getLastProcessedCommit();
 
   try {
-    try {
-      const headFiles = execSync('git diff-tree --no-commit-id --name-only -r HEAD', { encoding: 'utf8' })
-        .split('\n')
-        .filter(Boolean);
-
-      if (headFiles.length > 0) {
-        console.log(`\nFound ${headFiles.length} changed file(s) in HEAD commit`);
-        return headFiles;
-      }
-    } catch (headError) {
-    }
-
-    try {
-      const stagedFiles = execSync('git diff --cached --name-only', { encoding: 'utf8' })
-        .split('\n')
-        .filter(Boolean);
-
-      if (stagedFiles.length > 0) {
-        console.log(`\nFound ${stagedFiles.length} staged file(s)`);
-        return stagedFiles;
-      }
-    } catch (stagedError) {
-    }
-
     if (lastProcessedCommit) {
       try {
-        const diffFiles = execSync(`git diff --name-only ${lastProcessedCommit}..HEAD`, { encoding: 'utf8' })
+        const diffFiles = execSync(
+          `git diff --name-only ${lastProcessedCommit}..HEAD`,
+          { encoding: 'utf8' }
+        )
           .split('\n')
           .filter(Boolean);
 
         if (diffFiles.length > 0) {
-          console.log(`\nFound ${diffFiles.length} changed file(s) since last processed commit (fallback)`);
+          console.log(
+            `\nFound ${diffFiles.length} changed file(s) since last processed commit`
+          );
           return diffFiles;
         }
-      } catch (diffError) {
-      }
+      } catch (_) { }
     }
+
+    try {
+      const headFiles = execSync(
+        'git diff-tree --no-commit-id --name-only -r HEAD',
+        { encoding: 'utf8' }
+      )
+        .split('\n')
+        .filter(Boolean);
+
+      if (headFiles.length > 0) {
+        console.log(
+          `\nFound ${headFiles.length} changed file(s) in HEAD commit`
+        );
+        return headFiles;
+      }
+    } catch (_) { }
+
+    try {
+      const stagedFiles = execSync(
+        'git diff --cached --name-only',
+        { encoding: 'utf8' }
+      )
+        .split('\n')
+        .filter(Boolean);
+
+      if (stagedFiles.length > 0) {
+        console.log(
+          `\nFound ${stagedFiles.length} staged file(s)`
+        );
+        return stagedFiles;
+      }
+    } catch (_) { }
 
     console.log('\nNo changed files found');
     return [];
@@ -190,61 +202,61 @@ function getChangedFiles() {
 }
 
 function getAffectedWorkspaces(changedFiles) {
-  const affectedWorkspaces = new Set();
-  const workspacePatterns = [
-    { pattern: /^apps\/([^\/]+)/, type: 'apps' },
-    { pattern: /^packages\/([^\/]+)/, type: 'packages' }
-  ];
+  const affected = new Set();
 
   console.log('\nAnalyzing changed files to determine affected workspaces:');
 
   for (const file of changedFiles) {
-    if (file === 'package.json' || file.endsWith('/package.json')) {
-      console.log(`  - ${file} (skipped - package.json file)`);
-      continue;
-    }
+    const parts = file.split('/');
 
-    const isRootFile = !file.includes('/') ||
-      (!file.startsWith('apps/') && !file.startsWith('packages/'));
-
-    if (isRootFile) {
+    if (parts.length === 1) {
       console.log(`  - ${file} → root`);
-      affectedWorkspaces.add('root');
+      affected.add('root');
       continue;
     }
 
-    let matched = false;
-    for (const { pattern, type } of workspacePatterns) {
-      const match = file.match(pattern);
-      if (match) {
-        const workspaceName = `${type}/${match[1]}`;
-        console.log(`  - ${file} → ${workspaceName}`);
-        affectedWorkspaces.add(workspaceName);
-        matched = true;
-        break;
-      }
+    const [scope, name] = parts;
+
+    if (scope === 'apps' && name) {
+      const workspace = `apps/${name}`;
+      console.log(`  - ${file} → ${workspace}`);
+      affected.add(workspace);
+      continue;
     }
 
-    if (!matched) {
-      console.log(`  - ${file} → (no workspace match)`);
+    if (scope === 'packages' && name) {
+      const workspace = `packages/${name}`;
+      console.log(`  - ${file} → ${workspace}`);
+      affected.add(workspace);
+      continue;
     }
+
+    if (
+      file === 'pnpm-lock.yaml' ||
+      file === 'turbo.json'
+    ) {
+      console.log(`  - ${file} → root (global impact)`);
+      affected.add('root');
+      continue;
+    }
+
+    console.log(`  - ${file} → root`);
+    affected.add('root');
   }
 
-  return Array.from(affectedWorkspaces);
+  return [...affected];
 }
 
 function analyzeCommits(commits) {
-  let highestBumpType = 'none';
-
-  const featureVerbs = [
+  const featureVerbs = new Set([
     'add',
     'create',
     'implement',
     'introduce',
     'enable'
-  ];
+  ]);
 
-  const patchVerbs = [
+  const patchVerbs = new Set([
     'update',
     'fix',
     'refactor',
@@ -260,71 +272,88 @@ function analyzeCommits(commits) {
     'move',
     'delete',
     'disable'
-  ];
+  ]);
+
+  const priority = {
+    none: 0,
+    patch: 1,
+    minor: 2,
+    major: 3
+  };
+
+  let highestBumpType = 'none';
+
+  console.log('\nAnalyzing commits with potential version changes:');
+
+  for (const commit of commits) {
+    const lower = commit.toLowerCase();
+
+    if (
+      lower.startsWith('skip') ||
+      lower.includes('bump new version') ||
+      lower.includes('skip:') ||
+      lower.includes('update package versions')
+    ) {
+      continue;
+    }
+
+    const firstWord = lower.split(' ')[0];
+    let bumpType = 'none';
+
+    if (
+      lower.includes('breaking change') ||
+      lower.includes('!:')
+    ) {
+      bumpType = 'major';
+    }
+
+    else if (
+      lower.startsWith('feat') ||
+      lower.startsWith('feature') ||
+      featureVerbs.has(firstWord)
+    ) {
+      bumpType = 'minor';
+    }
+
+    else if (
+      lower.startsWith('fix') ||
+      lower.startsWith('perf') ||
+      lower.startsWith('refactor') ||
+      lower.startsWith('style') ||
+      lower.startsWith('test') ||
+      lower.startsWith('docs') ||
+      patchVerbs.has(firstWord)
+    ) {
+      bumpType = 'patch';
+    }
+
+    if (priority[bumpType] > priority[highestBumpType]) {
+      highestBumpType = bumpType;
+    }
+
+    console.log(`- ${commit} (${bumpType})`);
+  }
 
   let tempMajor = major;
   let tempMinor = minor;
   let tempPatch = patch;
 
-  console.log('\nAnalyzing commits with potential version changes:');
-  commits.forEach(commit => {
-    const lowerCommit = commit.toLowerCase();
-    const firstWord = lowerCommit.split(' ')[0];
-    let commitBumpType = 'none';
+  switch (highestBumpType) {
+    case 'major':
+      tempMajor++;
+      tempMinor = 0;
+      tempPatch = 0;
+      break;
 
-    if (lowerCommit.startsWith('skip') || lowerCommit.includes('bump new version') || lowerCommit.includes('skip:')) {
-      return;
-    }
+    case 'minor':
+      tempMinor++;
+      tempPatch = 0;
+      break;
 
-    if (lowerCommit.includes('breaking change') || lowerCommit.includes('!:')) {
-      commitBumpType = 'major';
-      if (highestBumpType !== 'major') {
-        tempMajor++;
-        tempMinor = 0;
-        tempPatch = 0;
-      }
-      highestBumpType = 'major';
-    }
-    else if (
-      lowerCommit.startsWith('feat:') ||
-      lowerCommit.startsWith('feature:') ||
-      lowerCommit.startsWith('feat(') ||
-      lowerCommit.startsWith('feature(') ||
-      featureVerbs.some(verb => firstWord === verb)
-    ) {
-      commitBumpType = 'minor';
-      if (highestBumpType !== 'major') {
-        if (highestBumpType !== 'minor') {
-          tempMinor++;
-          tempPatch = 0;
-        }
-        highestBumpType = 'minor';
-      }
-    }
-    else if (
-      lowerCommit.startsWith('fix:') ||
-      lowerCommit.startsWith('fix(') ||
-      lowerCommit.startsWith('perf:') ||
-      lowerCommit.startsWith('perf(') ||
-      lowerCommit.startsWith('refactor:') ||
-      lowerCommit.startsWith('refactor(') ||
-      lowerCommit.startsWith('style:') ||
-      lowerCommit.startsWith('style(') ||
-      lowerCommit.startsWith('test:') ||
-      lowerCommit.startsWith('test(') ||
-      lowerCommit.startsWith('docs:') ||
-      lowerCommit.startsWith('docs(') ||
-      patchVerbs.some(verb => firstWord === verb)
-    ) {
-      commitBumpType = 'patch';
+    case 'patch':
       tempPatch++;
-      highestBumpType = 'patch';
-    }
-    else {
-      commitBumpType = 'none';
-    }
-    console.log(`- ${commit} (${commitBumpType}: v${tempMajor}.${tempMinor}.${tempPatch})`);
-  });
+      break;
+  }
 
   return {
     major: tempMajor,
@@ -389,6 +418,8 @@ if (updatedFiles.length === 0) {
 }
 
 saveLastProcessedCommit();
+
+execSync("git add .");
 
 console.log(`\n✓ Version upgraded to ${newVersion} in ${updatedFiles.length} package(s)`);
 console.log('✓ Last processed commit saved to .version-lock'); 

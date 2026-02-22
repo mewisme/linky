@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Update Dockerfile and package dependencies for improved compatibility ([21c1077](../../commit/21c1077))
-- Update package versions to 0.54.4 and refresh version lock ([1339791](../../commit/1339791))
+- Update dotenv dependency and fix context menu key generation ([2a246d8](../../commit/2a246d8))
+- Update package versions to 0.54.5 and refresh version lock ([ad88a46](../../commit/ad88a46))
 
 
-📋 Full Changelog: [1339791...21c1077](../../compare/1339791...21c1077)
+📋 Full Changelog: [ad88a46...2a246d8](../../compare/ad88a46...2a246d8)

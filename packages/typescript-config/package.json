@@ -1,6 +1,6 @@
 {
   "name": "@ws/typescript-config",
-  "version": "0.54.5",
+  "version": "0.54.6",
   "private": true,
   "license": "MIT",
   "publishConfig": {

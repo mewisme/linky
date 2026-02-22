@@ -10,8 +10,8 @@ updates:
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
+      prefix: "chore"
+      prefix-development: "chore(dev)"
       include: "scope"
     groups:
       pnpm-minor-patch:
@@ -30,5 +30,5 @@ updates:
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore(docker-deps)"
+      prefix: "chore(docker)"
       include: "scope"

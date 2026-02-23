@@ -92,6 +92,14 @@
 - Call tab coordination (prevents duplicate calls across browser tabs)
 - Backend restart detection (socket reconnect)
 
+### Idle/Searching State UX
+- Idle card: avatar, level, streak, "Today's EXP earned" pill, level proximity hint, streak reminder, prestige proximity hint
+- Idle data refreshes after every call via React Query (`staleTime: 0`, `queryKey: ["user-progress"]`)
+- Searching card: 10 rotating hints with Framer Motion slide-up transition
+- "Still searching…" phase at 10s with live queue size (`GET /api/v1/matchmaking/queue-status`, 5s cache)
+- Alternative action link ("Visit your progress page while you wait") at 30s
+- Push notification to matched users when their tab is not focused
+
 ### Test Coverage
 - Vitest unit tests: cache, user services (level, streak, freeze, progress, settings, profile, block), matchmaking (scorer, matcher, Redis store), reports, video-chat (rooms, call history), Ollama embedding, webhook handler
 - Playwright E2E setup in place (runners configured)
@@ -99,19 +107,6 @@
 ---
 
 ## Section 2: In-Progress / Partial
-
-### Idle/Searching State UX (ROADMAP.md §D)
-**What exists:** Basic idle card (avatar, level, streak, start button, "You earn EXP by talking"). Searching card with 3 rotating hints and pulsing dots.
-
-**Missing:**
-- Expanded hint set (roadmap calls for 8-10; only 3 exist)
-- "Today's EXP earned" stat in idle state
-- Level proximity hint ("Almost Level X!" when 85%+ progress)
-- Streak completion reminder in idle (if streak incomplete)
-- "Still searching..." after 10s with estimated wait time
-- Progressive hint escalation (motivational stats after 20s, alternative action link after 30s)
-- Slide-up transition on hint rotation (only fade exists)
-- Prestige proximity hint ("5 levels to Prestige I")
 
 ### Floating Video Polish (ROADMAP.md §C)
 **What exists:** Drag/snap, spring animation, audio activity ring, hover controls, mobile tap, resize handler.

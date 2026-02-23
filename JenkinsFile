@@ -6,7 +6,7 @@ pipeline {
   agent any
 
   options {
-    timeout(time: 30, unit: 'MINUTES')
+    timeout(time: 15, unit: 'MINUTES')
   }
 
   environment {
@@ -52,38 +52,36 @@ pipeline {
     stage('Docker Image Sync') {
       steps {
         script {
-          timeout(time: 5, unit: 'MINUTES') {
-            waitUntil {
-              sleep time: 10, unit: 'SECONDS'
+          waitUntil {
+            sleep time: 10, unit: 'SECONDS'
 
-              echo '- Checking Docker Hub & Remote versions'
+            echo '- Checking Docker Hub & Remote versions'
 
-              def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_URL/tags"
-              def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
+            def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_URL/tags"
+            def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
-              def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
-              def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
+            def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+            def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
 
-              def compareRemoteResult = compareVersions v1: remoteVersion, v2: matchedTag?.name
-              
-              if (compareRemoteResult == 0) {
-                echo '✔ Docker Hub & Remote versions are the same'
+            def compareRemoteResult = compareVersions v1: remoteVersion, v2: matchedTag?.name
+            
+            if (compareRemoteResult == 0) {
+              echo '✔ Docker Hub & Remote versions are the same'
 
-                def compareLocalResult = compareVersions v1: localVersion, v2: matchedTag?.name
-                if (compareLocalResult == 0) {
-                  echo '✔ Docker Hub & Local versions are the same'
-                  echo '✔ No need to deploy'
+              def compareLocalResult = compareVersions v1: localVersion, v2: matchedTag?.name
+              if (compareLocalResult == 0) {
+                echo '✔ Docker Hub & Local versions are the same'
+                echo '✔ No need to deploy'
 
-                  doPull = false
-                }
-
-                return true
+                doPull = false
               }
 
-              echo '△ Docker Hub & Remote versions are different'
-              echo '△ Waiting for Github Actions to complete'
-              return false
+              return true
             }
+
+            echo '△ Docker Hub & Remote versions are different'
+            echo '△ Waiting for Github Actions to complete'
+            return false
           }
         }
       }

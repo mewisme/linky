@@ -11,6 +11,7 @@ import reportsAdminRouter from "@/domains/reports/http/admin-reports.route.js";
 import { clerkMiddleware } from "@/middleware/clerk.js";
 import { adminMiddleware } from "@/middleware/admin.js";
 import { config } from "@/config/index.js";
+import queueStatusRouter from "@/domains/video-chat/http/queue-status.route.js";
 
 export function setupRoutes(app: Express): void {
   app.get("/", (_req: Request, res: Response) => {
@@ -37,6 +38,7 @@ export function setupRoutes(app: Express): void {
 
   app.use("/api/v1/interest-tags", interestTagsRouter);
   app.use("/api/v1/changelogs", changelogsRouter);
+  app.use("/api/v1/matchmaking", queueStatusRouter);
 
   app.use(clerkMiddleware);
 

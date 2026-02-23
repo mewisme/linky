@@ -13,7 +13,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/components/providers/realtime/reaction-effect-provider";
-import { VideoContainer } from "./components/video-container";
+import type { ResourcesAPI } from "@/types/resources.types";
+import type { UsersAPI } from "@/types/users.types";
+import { VideoContainer } from "./video-container";
 import { useBlockUser } from "@/hooks/user/use-block-user";
 import { useChatPanelStore } from "@/stores/chat-panel-store";
 import { useChatUnreadIndicator } from "@/hooks/chat/use-chat-unread-indicator";
@@ -21,8 +23,6 @@ import { useEffect } from "react";
 import { useGlobalCallContext } from "@/components/providers/call/global-call-manager";
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";
-import type { ResourcesAPI } from "@/types/resources.types";
-import type { UsersAPI } from "@/types/users.types";
 
 interface ChatPageContentProps {
   initialProgress?: UsersAPI.Progress.GetMe.Response | null;

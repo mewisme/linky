@@ -1,10 +1,10 @@
+import { ChatPageContent } from "./components/chat-page-content";
+import type { ResourcesAPI } from "@/types/resources.types";
 import { Suspense } from "react";
-import { ChatPageContent } from "./chat-page-content";
+import type { UsersAPI } from "@/types/users.types";
 import { apiUrl } from "@/lib/api/fetch/api-url";
 import { fetchData } from "@/lib/api/fetch/server-api";
 import { getUserTimezone } from "@/utils/timezone";
-import type { ResourcesAPI } from "@/types/resources.types";
-import type { UsersAPI } from "@/types/users.types";
 
 async function fetchProgress(): Promise<UsersAPI.Progress.GetMe.Response | null> {
   try {

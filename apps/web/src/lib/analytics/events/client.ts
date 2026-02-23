@@ -26,6 +26,8 @@ export const CLIENT_EVENT_NAMES = [
   "command_executed",
   "sign_out",
   "error_occurred",
+  "matchmaking_still_searching",
+  "matchmaking_alt_action_clicked",
 ] as const;
 
 export type ClientEventName = (typeof CLIENT_EVENT_NAMES)[number];

@@ -97,6 +97,7 @@ export const SERVER_EVENT_NAMES = [
   "api_media_s3_objects_key_delete",
   "api_media_s3_presigned_upload_get",
   "api_media_s3_presigned_download_get",
+  "api_matchmaking_queue_status_get",
 ] as const;
 
 export type ServerEventName = (typeof SERVER_EVENT_NAMES)[number];

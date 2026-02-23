@@ -5,6 +5,7 @@ import type { MatchedPayload, RoomPingPayload } from "@/domains/video-chat/types
 import { getPublicUserInfo } from "@/infra/supabase/repositories/user-details.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import type { VideoChatMatchmaking, VideoChatRooms } from "@/domains/video-chat/socket/types.js";
+import { sendPeerActionPush } from "@/contexts/peer-action-notification-context.js";
 
 const logger = createLogger("api:video-chat:matchmaking:socket");
 
@@ -37,10 +38,12 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
 
         let user1Info = null;
         let user2Info = null;
+        let dbUserId1: string | null = null;
+        let dbUserId2: string | null = null;
 
         if (clerkUserId1) {
           try {
-            const dbUserId1 = await getUserIdByClerkId(clerkUserId1);
+            dbUserId1 = await getUserIdByClerkId(clerkUserId1);
             if (dbUserId1) {
               user1Info = await getPublicUserInfo(dbUserId1);
             }
@@ -51,7 +54,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
 
         if (clerkUserId2) {
           try {
-            const dbUserId2 = await getUserIdByClerkId(clerkUserId2);
+            dbUserId2 = await getUserIdByClerkId(clerkUserId2);
             if (dbUserId2) {
               user2Info = await getPublicUserInfo(dbUserId2);
             }
@@ -75,6 +78,26 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
           peerInfo: user1Info,
           myInfo: user2Info,
         } satisfies MatchedPayload);
+
+        if (dbUserId1) {
+          sendPeerActionPush({
+            userId: dbUserId1,
+            peerSocket: user1Socket,
+            title: "Match Found!",
+            body: "Someone is ready to chat — head back!",
+            url: "/chat",
+          }).catch((err: unknown) => logger.warn("Push to user1 failed: %o", err as Error));
+        }
+
+        if (dbUserId2) {
+          sendPeerActionPush({
+            userId: dbUserId2,
+            peerSocket: user2Socket,
+            title: "Match Found!",
+            body: "Someone is ready to chat — head back!",
+            url: "/chat",
+          }).catch((err: unknown) => logger.warn("Push to user2 failed: %o", err as Error));
+        }
       }
     }
   }, 1000);

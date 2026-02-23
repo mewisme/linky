@@ -229,7 +229,7 @@ export function VideoContainer({
       ) : (
         <>
           {connectionStatus === "searching" ? (
-            <VideoChatSearchingState />
+            <VideoChatSearchingState progress={initialProgress} />
           ) : localStream ? (
             <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
               <VideoPlayer
@@ -248,7 +248,7 @@ export function VideoContainer({
               )}
             </div>
           ) : connectionStatus === "idle" || connectionStatus === "ended" ? (
-            <VideoChatIdleState onStart={onStart} progress={initialProgress} />
+            <VideoChatIdleState onStart={onStart} initialProgress={initialProgress} />
           ) : (
             <div className="h-full w-full" />
           )}

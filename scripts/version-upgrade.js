@@ -418,5 +418,11 @@ saveLastProcessedCommit();
 
 execSync("git add .");
 
+execSync(`git commit -m "chore: update package versions to ${newVersion} and refresh version lock
+
+- Bumped package versions across multiple modules to ${newVersion} for consistency.
+- Updated the version lock file to reflect the new hash.
+- Maintained existing functionality while ensuring all packages are up to date."`, { encoding: 'utf8' })
+
 console.log(`\n✓ Version upgraded to ${newVersion} in ${updatedFiles.length} package(s)`);
 console.log('✓ Last processed commit saved to .version-lock'); 

@@ -42,7 +42,6 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@ws/ui/components/
 import { Kbd, KbdGroup } from '@ws/ui/components/ui/kbd'
 import { useCallback, useMemo } from 'react'
 
-import Link from 'next/link'
 import { Logo } from '@/components/header/landing/logo'
 import { Separator } from '@ws/ui/components/ui/separator'
 import { trackEvent } from '@/lib/analytics/events/client'
@@ -145,6 +144,61 @@ export function CommandMenu() {
             keywords: ['signup', 'signin'],
           },
         ])
+      ],
+    },
+    {
+      heading: 'Preferences',
+      actions: [
+        {
+          id: 'appearance',
+          label: 'Appearance',
+          icon: IconPalette,
+          href: '/settings/appearance',
+          keywords: ['theme', 'colors', 'dark', 'light'],
+        },
+        ...(isSignedIn ? [
+          {
+            id: 'blocked-users',
+            label: 'Blocked Users',
+            icon: IconBan,
+            href: '/settings/blocked-users',
+            keywords: ['block', 'ban'],
+          },
+        ] : []),
+        {
+          id: 'notifications',
+          label: 'Notifications',
+          icon: IconBell,
+          href: '/settings/notifications',
+          keywords: ['push', 'alerts'],
+        },
+        {
+          id: 'toggle-theme',
+          label: `${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`,
+          icon: IconPalette,
+          onSelect: () => {
+            setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
+          },
+          keywords: ['theme', 'dark', 'light', 'mode'],
+        },
+        {
+          id: 'sidebar-variant',
+          label: 'Sidebar Style',
+          icon: IconVersions,
+          onSelect: () => {
+            setVariant(variant === 'sidebar' ? 'floating' : 'sidebar')
+          },
+          keywords: ['sidebar', 'style', 'variant', 'floating'],
+        },
+        {
+          id: 'sidebar-collapsible',
+          label: 'Sidebar Behavior',
+          icon: IconLayoutSidebar,
+          onSelect: () => {
+            setCollapsible(collapsible === 'offcanvas' ? 'icon' : 'offcanvas')
+          },
+          keywords: ['sidebar', 'collapsible', 'behavior'],
+        },
       ],
     },
     {
@@ -263,61 +317,6 @@ export function CommandMenu() {
         },
       ],
     },
-    {
-      heading: 'Preferences',
-      actions: [
-        {
-          id: 'appearance',
-          label: 'Appearance',
-          icon: IconPalette,
-          href: '/settings/appearance',
-          keywords: ['theme', 'colors', 'dark', 'light'],
-        },
-        ...(isSignedIn ? [
-          {
-            id: 'blocked-users',
-            label: 'Blocked Users',
-            icon: IconBan,
-            href: '/settings/blocked-users',
-            keywords: ['block', 'ban'],
-          },
-        ] : []),
-        {
-          id: 'notifications',
-          label: 'Notifications',
-          icon: IconBell,
-          href: '/settings/notifications',
-          keywords: ['push', 'alerts'],
-        },
-        {
-          id: 'toggle-theme',
-          label: `${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`,
-          icon: IconPalette,
-          onSelect: () => {
-            setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
-          },
-          keywords: ['theme', 'dark', 'light', 'mode'],
-        },
-        {
-          id: 'sidebar-variant',
-          label: 'Sidebar Style',
-          icon: IconVersions,
-          onSelect: () => {
-            setVariant(variant === 'sidebar' ? 'floating' : 'sidebar')
-          },
-          keywords: ['sidebar', 'style', 'variant', 'floating'],
-        },
-        {
-          id: 'sidebar-collapsible',
-          label: 'Sidebar Behavior',
-          icon: IconLayoutSidebar,
-          onSelect: () => {
-            setCollapsible(collapsible === 'offcanvas' ? 'icon' : 'offcanvas')
-          },
-          keywords: ['sidebar', 'collapsible', 'behavior'],
-        },
-      ],
-    },
     ...(isSignedIn ? [
       {
         heading: 'Account',
@@ -366,7 +365,7 @@ export function CommandMenu() {
         <InputGroupAddon>
           <Search />
         </InputGroupAddon>
-        <InputGroupAddon align="inline-end">
+        <InputGroupAddon align="inline-end" >
           <KbdGroup>
             <Kbd>⌘</Kbd>
             <Kbd>K</Kbd>

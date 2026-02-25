@@ -2,7 +2,6 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useCommandMenuStore } from '@/stores/command-menu-store';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useState } from 'react';
@@ -19,7 +18,6 @@ export function MarketingProviders({ children }: { children: React.ReactNode }) 
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools />
     </QueryClientProvider>
   )
 }

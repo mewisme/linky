@@ -1,11 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
+import { publicEnv } from "@/env/public-env";
 
-const isEnabled =
-  process.env.NODE_ENV === "production" ||
-  process.env.SENTRY_ENABLED === "true";
+const isEnabled = !publicEnv.isDev || publicEnv.SENTRY_ENABLED;
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: publicEnv.SENTRY_DSN,
   enabled: isEnabled,
   sendDefaultPii: true,
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,

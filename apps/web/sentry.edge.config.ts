@@ -1,11 +1,18 @@
 import * as Sentry from "@sentry/nextjs";
+import { publicEnv } from "@/env/public-env";
+import { serverEnv } from "@/env/server-env";
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  enabled:
-    process.env.NODE_ENV === "production" ||
-    process.env.SENTRY_ENABLED === "true",
+  dsn: publicEnv.SENTRY_DSN,
+  enabled: serverEnv.isProd || serverEnv.SENTRY_ENABLED,
   sendDefaultPii: true,
-  tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
+  tracesSampleRate: serverEnv.isDev ? 1.0 : 0.1,
   enableLogs: true,
+  beforeSend(event) {
+    if (event.request?.headers) {
+      delete event.request.headers["authorization"];
+      delete event.request.headers["cookie"];
+    }
+    return event;
+  },
 });

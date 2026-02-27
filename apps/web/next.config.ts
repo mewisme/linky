@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { publicEnv } from "./src/env/public-env";
 import { serverEnv } from "./src/env/server-env";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@ws/ui"],
@@ -30,4 +31,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: serverEnv.SENTRY_ORG,
+  project: serverEnv.SENTRY_PROJECT,
+  authToken: serverEnv.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+});

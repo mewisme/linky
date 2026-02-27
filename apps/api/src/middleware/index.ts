@@ -2,6 +2,7 @@ import compression from "compression";
 import cors from "cors";
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import morgan from "morgan";
+import { setupExpressErrorHandler } from "@sentry/node";
 import { config } from "@/config/index.js";
 import { createLogger } from "@ws/logger";
 import { clientIpMiddleware } from "./client-ip.js";
@@ -69,6 +70,8 @@ export function setupErrorHandlers(app: Express): void {
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: "Route not found" });
   });
+
+  setupExpressErrorHandler(app);
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     logger.error("Internal server error: %o", err instanceof Error ? err : new Error(String(err)));

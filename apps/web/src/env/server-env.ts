@@ -15,6 +15,9 @@ const serverEnvSchema = z
     NODE_ENV: z.enum(["development", "production", "test"], {
       message: "NODE_ENV must be development, production, or test",
     }),
+    SENTRY_ORG: z.string().optional(),
+    SENTRY_PROJECT: z.string().optional(),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
   })
   .strict();
 
@@ -22,6 +25,9 @@ const raw = {
   OPENPANEL_API_URL: process.env.OPENPANEL_API_URL,
   OPENPANEL_CLIENT_SECRET: process.env.OPENPANEL_CLIENT_SECRET,
   NODE_ENV: process.env.NODE_ENV,
+  SENTRY_ORG: process.env.SENTRY_ORG,
+  SENTRY_PROJECT: process.env.SENTRY_PROJECT,
+  SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
 };
 
 const parsed = serverEnvSchema.parse(raw);
@@ -30,6 +36,9 @@ export const serverEnv = {
   OPENPANEL_API_URL: parsed.OPENPANEL_API_URL,
   OPENPANEL_CLIENT_SECRET: parsed.OPENPANEL_CLIENT_SECRET,
   NODE_ENV: parsed.NODE_ENV,
+  SENTRY_ORG: parsed.SENTRY_ORG,
+  SENTRY_PROJECT: parsed.SENTRY_PROJECT,
+  SENTRY_AUTH_TOKEN: parsed.SENTRY_AUTH_TOKEN,
   isDev: parsed.NODE_ENV === "development",
   isProd: parsed.NODE_ENV === "production",
   isTest: parsed.NODE_ENV === "test",

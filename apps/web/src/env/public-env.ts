@@ -15,6 +15,7 @@ const publicEnvSchema = z
     NEXT_PUBLIC_MQTT_CLIENT_PORT: z.string().optional(),
     NEXT_PUBLIC_MQTT_CLIENT_USERNAME: z.string().optional(),
     NEXT_PUBLIC_MQTT_CLIENT_PASSWORD: z.string().optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
   })
   .strict();
 
@@ -28,6 +29,7 @@ const raw = {
   NEXT_PUBLIC_MQTT_CLIENT_PORT: process.env.NEXT_PUBLIC_MQTT_CLIENT_PORT,
   NEXT_PUBLIC_MQTT_CLIENT_USERNAME: process.env.NEXT_PUBLIC_MQTT_CLIENT_USERNAME,
   NEXT_PUBLIC_MQTT_CLIENT_PASSWORD: process.env.NEXT_PUBLIC_MQTT_CLIENT_PASSWORD,
+  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
 };
 
 const parsed = publicEnvSchema.parse(raw);
@@ -42,6 +44,7 @@ export const publicEnv = {
   MQTT_CLIENT_PORT: parsed.NEXT_PUBLIC_MQTT_CLIENT_PORT,
   MQTT_CLIENT_USERNAME: parsed.NEXT_PUBLIC_MQTT_CLIENT_USERNAME,
   MQTT_CLIENT_PASSWORD: parsed.NEXT_PUBLIC_MQTT_CLIENT_PASSWORD,
+  SENTRY_DSN: parsed.NEXT_PUBLIC_SENTRY_DSN,
   isDev: process.env.NODE_ENV === "development",
 } as const;
 

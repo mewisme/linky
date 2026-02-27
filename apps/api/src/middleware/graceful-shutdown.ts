@@ -1,5 +1,6 @@
 import { type Server as HTTPServer } from "http";
 import { type Server as SocketIOServer } from "socket.io";
+import { Sentry } from "@/infra/sentry/sentry.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { mqttClient } from "@/infra/mqtt/client.js";
 import { config } from "@/config/index.js";
@@ -61,6 +62,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
 
       clearTimeout(shutdownTimer);
       logger.info("Graceful shutdown completed");
+      await Sentry.close(2000);
       process.exit(0);
     } catch (error) {
       logger.error("Error during shutdown: %o", error as Error);
@@ -73,7 +75,8 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   process.on("uncaughtException", (error: Error) => {
-    logger.fatal("Uncaught exception: %o", error as Error);
+    logger.fatal("Uncaught exception: %o", error);
+    Sentry.captureException(error);
     shutdown("uncaughtException").catch(() => {
       process.exit(1);
     });
@@ -81,6 +84,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
 
   process.on("unhandledRejection", (reason: unknown) => {
     logger.fatal("Unhandled rejection: %o", reason as Error);
+    Sentry.captureException(reason);
     shutdown("unhandledRejection").catch(() => {
       process.exit(1);
     });

@@ -78,7 +78,7 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
             label: 'Select role',
             value: user.role,
             icon: <IconShieldLock className="size-4" />,
-            onValueChange: (value) => callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole),
+            onValueChange: (value: string) => callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole),
             options: [
               {
                 value: 'admin', label: 'Admin',
@@ -150,7 +150,7 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
           type: 'item',
           label: 'Soft Delete',
           icon: <IconTrash className="size-4" />,
-          onClick: () => callbacks.onSoftDelete(user),
+          onClick: () => callbacks?.onSoftDelete?.(user),
           testId: 'admin-user-soft-delete-button',
           confirmAction: {
             title: 'Soft delete user?',
@@ -166,7 +166,7 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
           type: 'item',
           label: 'Hard Delete',
           icon: <IconTrash className="size-4" />,
-          onClick: () => callbacks.onHardDelete(user),
+          onClick: () => callbacks?.onHardDelete?.(user),
           variant: 'destructive',
           testId: 'admin-user-hard-delete-button',
           confirmAction: {

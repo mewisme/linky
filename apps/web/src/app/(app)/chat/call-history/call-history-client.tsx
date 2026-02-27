@@ -1,7 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from '@ws/ui/internal-lib/react-query'
 
 import { AppLayout } from '@/components/layouts/app-layout'
 import { Button } from '@ws/ui/components/ui/button'

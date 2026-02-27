@@ -11,7 +11,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger
 } from "@ws/ui/components/animate-ui/components/radix/dropdown-menu";
-import { LogOutIcon, ShieldIcon, UserIcon } from "lucide-react";
+import { LogOutIcon, ShieldIcon, UserIcon } from "@ws/ui/internal-lib/icons";
 
 import { Kbd } from "@ws/ui/components/ui/kbd";
 import Link from "next/link";

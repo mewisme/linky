@@ -24,6 +24,8 @@ export const SERVER_EVENT_NAMES = [
   "api_admin_users_id_put",
   "api_admin_users_id_patch",
   "api_admin_users_id_delete",
+  "api_users_interest_tags_get",
+  "api_users_interest_tags_all_get",
   "api_users_interest_tags_post",
   "api_users_interest_tags_put",
   "api_users_interest_tags_delete",

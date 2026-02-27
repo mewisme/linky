@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { getAdminChangelogs } from "@/lib/actions/admin/changelogs";
 
 const ChangelogsDataTable = dynamic(

@@ -1,6 +1,6 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@ws/ui/internal-lib/react-query'
 
 import { useCommandMenuStore } from '@/stores/command-menu-store';
 import { useHotkeys } from 'react-hotkeys-hook';

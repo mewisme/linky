@@ -3,7 +3,7 @@
 import { AdminAPI } from '@/types/admin.types'
 import { Badge } from '@ws/ui/components/ui/badge';
 import { Checkbox } from '@ws/ui/components/ui/checkbox';
-import { type ColumnDef } from "@tanstack/react-table"
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
 import {
   IconCopy,
   IconEdit,

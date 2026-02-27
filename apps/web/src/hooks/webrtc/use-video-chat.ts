@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useMemo, useCallback } from "react";
-import { publicEnv } from "@/env/public-env";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 
@@ -237,39 +236,19 @@ export function useVideoChat(): UseVideoChatReturn {
       currentStatus === "in_call" ||
       currentStatus === "reconnecting";
     if (!isInCall || isReconnectingRef.current) {
-      if (publicEnv.isDev) {
-        console.log("[ReconnectUX] startReconnecting skipped", {
-          isInCall,
-          isReconnecting: isReconnectingRef.current,
-          connectionStatus: currentStatus,
-        });
-      }
       return;
     }
 
     isReconnectingRef.current = true;
-    console.info("[ReconnectUX] Reconnecting toast shown");
-    if (publicEnv.isDev) {
-      console.log("[ReconnectUX] startReconnecting triggered", {
-        connectionStatus: currentStatus,
-      });
-    }
   }, []);
 
   const completeReconnection = useCallback(() => {
     if (!isReconnectingRef.current) {
-      if (publicEnv.isDev) {
-        console.log("[ReconnectUX] completeReconnection skipped - not reconnecting");
-      }
       return;
     }
 
     isReconnectingRef.current = false;
     trackEvent({ name: "call_reconnected" });
-    console.info("[ReconnectUX] Reconnected toast shown");
-    if (publicEnv.isDev) {
-      console.log("[ReconnectUX] completeReconnection - showing reconnected toast");
-    }
   }, []);
 
   useEffect(() => {
@@ -329,14 +308,6 @@ export function useVideoChat(): UseVideoChatReturn {
       onTrack: (stream: MediaStream) => {
         actionsRef.current.setRemoteStream(stream);
         actionsRef.current.setConnectionStatus("in_call");
-
-        if (publicEnv.isDev) {
-          console.log("[VideoChatState] onTrack - remote track received", {
-            isReconnecting: isReconnectingRef.current,
-            hasShownToast: hasShownConnectedToastRef.current,
-            connectionStatus: "in_call",
-          });
-        }
 
         if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
           hasShownConnectedToastRef.current = true;
@@ -498,17 +469,9 @@ export function useVideoChat(): UseVideoChatReturn {
       onJoinedQueue: (data: { message: string; queueSize: number }) => {
         actionsRef.current.setConnectionStatus("searching");
         trackEvent({ name: "matchmaking_started" });
-        console.log("[VideoChatState] onJoinedQueue - joined queue", data);
       },
 
       onMatched: async (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => {
-        if (publicEnv.isDev) {
-          console.log("[VideoChatState] onMatched - resetting reconnect flags", {
-            wasReconnecting: isReconnectingRef.current,
-            hadShownToast: hasShownConnectedToastRef.current,
-            previousStatus: state.connectionStatus,
-          });
-        }
         isReconnectingRef.current = false;
         hasShownConnectedToastRef.current = false;
 
@@ -718,7 +681,6 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onSkipped: (data: { message: string; queueSize: number }) => {
-        console.log("[VideoChatState] onSkipped - skipped", data);
         monitoring.stopMonitoring();
         recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");

@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
-import { FileText, Save, Settings2 } from "lucide-react";
+import { FileText, Save, Settings2 } from "@ws/ui/internal-lib/icons";
 import {
   Form,
   FormControl,

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
-import { LucideChevronRight, LucideInfo, LucideLoader2 } from "lucide-react";
+import { LucideChevronRight, LucideInfo, LucideLoader2 } from "@ws/ui/internal-lib/icons";
 import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "@ws/ui/components/ui/badge";
@@ -12,7 +12,7 @@ import { MarkdownContent } from "@/components/render/markdown-content";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@ws/ui/internal-lib/react-query";
 import { apiUrl } from "@/lib/api/fetch/api-url";
 import { fetchData } from "@/lib/api/fetch/client-api";
 

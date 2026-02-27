@@ -1,7 +1,7 @@
 'use client';
 
 import type { AdminAPI } from '@/types/admin.types';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { getAdminUsers } from '@/lib/actions/admin/users';
 
 interface UseUsersQueryOptions {

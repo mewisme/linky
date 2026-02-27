@@ -1,7 +1,7 @@
 'use client'
 
 import type { ResourcesAPI } from '@/types/resources.types'
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
 import { Checkbox } from '@ws/ui/components/ui/checkbox'
 import { IconCopy, IconCheck, IconAlertCircle } from '@tabler/icons-react'
 import { ActionsButton, type ActionItem } from '@/components/common/actions-button'

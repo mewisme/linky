@@ -1,6 +1,6 @@
 'use client'
 
-import { ColumnDef, ColumnFiltersState, PaginationState, RowSelectionState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { ColumnDef, ColumnFiltersState, PaginationState, RowSelectionState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@ws/ui/internal-lib/react-table"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

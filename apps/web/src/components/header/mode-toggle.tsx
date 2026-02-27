@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ws/ui/components/ui/dropdown-menu"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun } from "@ws/ui/internal-lib/icons"
 
 import { Button } from "@ws/ui/components/ui/button"
 import { useTheme } from "next-themes"

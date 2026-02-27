@@ -1,6 +1,6 @@
 import { LegalLayout } from "@/components/layouts/legal-layout";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { Mail } from "@ws/ui/internal-lib/icons";
 import { Metadata } from "next";
 import { Separator } from "@ws/ui/components/ui/separator";
 

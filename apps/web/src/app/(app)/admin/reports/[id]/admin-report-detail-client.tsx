@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ws/ui/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ws/ui/components/ui/select'
 import { useEffect, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query'
 import { useRouter } from 'next/navigation'
 
 import type { AdminAPI } from '@/types/admin.types'

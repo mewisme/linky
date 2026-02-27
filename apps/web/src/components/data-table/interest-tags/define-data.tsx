@@ -3,7 +3,7 @@
 import { AdminAPI } from '@/types/admin.types'
 import { Badge } from '@ws/ui/components/ui/badge';
 import { Checkbox } from '@ws/ui/components/ui/checkbox';
-import { type ColumnDef } from "@tanstack/react-table"
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
 import {
   IconCircleCheckFilled,
   IconCircleXFilled,
@@ -121,7 +121,7 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<InterestTag>[] => [
     cell: ({ row }) => {
       return (
         <div className="flex items-center gap-3">
-          <span className="text-xl p-2 bg-muted rounded-lg">{row.original.icon || "🏷️"}</span>
+          <span className="text-xl p-2 bg-muted rounded-lg">{row.original.icon || "ðŸ·ï¸"}</span>
           <span className="font-bold text-foreground">{row.original.name}</span>
         </div>
       )

@@ -10,7 +10,7 @@ import { IconRefresh } from '@tabler/icons-react'
 import { Input } from '@ws/ui/components/ui/input'
 import { Label } from '@ws/ui/components/ui/label'
 import dynamic from 'next/dynamic'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from '@ws/ui/internal-lib/react-query'
 import { useRouter } from 'next/navigation'
 import { getAdminReports } from '@/lib/actions/admin/reports'
 

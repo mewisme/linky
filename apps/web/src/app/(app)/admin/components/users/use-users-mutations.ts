@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
 import type { AdminAPI } from '@/types/admin.types';
 import { toast } from '@ws/ui/components/ui/sonner';

@@ -3,10 +3,12 @@
 import type { ResourcesAPI } from '@/types/resources.types';
 import { backendUrl } from '@/lib/api/fetch/backend-url';
 import { serverFetch } from '@/lib/api/fetch/server-api';
+import { trackEventServer } from '@/lib/analytics/events/server';
 
 export async function createReport(
   data: ResourcesAPI.Reports.Create.Body
 ): Promise<ResourcesAPI.Reports.Create.Response> {
+  trackEventServer({ name: 'api_resources_reports_post' });
   return serverFetch(backendUrl.resources.reports(), {
     method: 'POST',
     body: JSON.stringify(data),
@@ -17,6 +19,7 @@ export async function createReport(
 export async function getMyReports(
   params?: ResourcesAPI.Reports.GetMe.QueryParams
 ): Promise<ResourcesAPI.Reports.GetMe.Response> {
+  trackEventServer({ name: 'api_resources_reports_me_get' });
   const query = params ? new URLSearchParams(
     Object.fromEntries(
       Object.entries(params)

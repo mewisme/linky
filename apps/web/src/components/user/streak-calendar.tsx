@@ -19,7 +19,7 @@ import type { UsersAPI } from "@/types/users.types";
 import { cn } from "@ws/ui/lib/utils";
 import { getStreakCalendar } from "@/lib/actions/user/streak";
 import { getUserTimezone } from "@/utils/timezone";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@ws/ui/internal-lib/react-query";
 
 interface StreakCalendarProps {
   className?: string;

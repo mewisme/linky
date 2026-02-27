@@ -10,7 +10,7 @@ import {
 
 import { Button } from "@ws/ui/components/ui/button"
 import { Calendar } from "@ws/ui/components/ui/calendar"
-import { ChevronDownIcon } from "lucide-react"
+import { ChevronDownIcon } from "@ws/ui/internal-lib/icons"
 
 interface DatePickerProps {
   value: Date | undefined;

@@ -7,7 +7,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/types/resources.types'
 import dynamic from 'next/dynamic'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@ws/ui/internal-lib/react-query"
 import { getMyReports } from '@/lib/actions/resources/reports'
 
 const ReportsDataTable = dynamic(

@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight } from '@ws/ui/internal-lib/icons';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@ws/ui/components/animate-ui/primitives/radix/collapsible'
 import {
   DropdownMenu,

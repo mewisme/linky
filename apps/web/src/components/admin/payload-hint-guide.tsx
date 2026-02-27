@@ -9,7 +9,7 @@ import {
 import React, { useState } from "react";
 
 import { Button } from "@ws/ui/components/ui/button";
-import { Info } from "lucide-react";
+import { Info } from "@ws/ui/internal-lib/icons";
 
 type HintContent = {
   title: string;

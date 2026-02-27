@@ -4,7 +4,7 @@ import { CountryFlag } from "@/components/common/country-flag";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import { Checkbox } from "@ws/ui/components/ui/checkbox";
-import { type ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table";
 import { IconTrash } from "@tabler/icons-react";
 import { formatDuration } from "@/utils/call-history";
 import { ActionsButton, type ActionItem } from "@/components/common/actions-button";

@@ -19,7 +19,7 @@ import { StreakCalendar } from "@/components/user/streak-calendar";
 import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";
 import { getUserTimezone } from "@/utils/timezone";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useState } from "react";
 import { getUserProgress } from "@/lib/actions/user/profile";
 

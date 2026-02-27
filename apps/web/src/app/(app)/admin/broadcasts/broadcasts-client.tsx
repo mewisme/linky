@@ -14,7 +14,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import { FormCreateBroadcast } from "./components/form-create";
 import { IconRefresh } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { getBroadcasts } from "@/lib/actions/admin/broadcasts";
 
 const BroadcastsDataTable = dynamic(

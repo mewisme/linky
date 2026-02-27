@@ -8,7 +8,7 @@ import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/types/resources.types'
 import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@ws/ui/internal-lib/react-query"
 import { getFavorites, removeFavorite } from '@/lib/actions/resources/favorites'
 
 const FavoritesDataTable = dynamic(

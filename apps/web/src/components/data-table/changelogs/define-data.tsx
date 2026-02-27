@@ -1,7 +1,7 @@
 'use client'
 
 import { AdminAPI } from '@/types/admin.types'
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
 import { Checkbox } from '@ws/ui/components/ui/checkbox'
 import { IconCopy } from '@tabler/icons-react'
 import { ActionsButton, type ActionItem } from '@/components/common/actions-button'

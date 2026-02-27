@@ -1,14 +1,14 @@
 "use client";
 
 import { Checkbox } from "@ws/ui/components/ui/checkbox";
-import { type ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table";
 import type { AdminAPI } from "@/types/admin.types";
 
 export type BroadcastHistoryRow = AdminAPI.Broadcasts.HistoryRow;
 
 function formatCreator(row: BroadcastHistoryRow): string {
   const name = [row.creator_first_name, row.creator_last_name].filter(Boolean).join(" ").trim();
-  return name || row.creator_email || "—";
+  return name || row.creator_email || "â€”";
 }
 
 export const columns: ColumnDef<BroadcastHistoryRow>[] = [
@@ -48,7 +48,7 @@ export const columns: ColumnDef<BroadcastHistoryRow>[] = [
     accessorKey: "title",
     header: "Title",
     cell: ({ row }) => (
-      <span className="font-medium">{row.original.title || "—"}</span>
+      <span className="font-medium">{row.original.title || "â€”"}</span>
     ),
   },
   {

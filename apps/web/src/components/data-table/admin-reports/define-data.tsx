@@ -1,7 +1,7 @@
 'use client'
 
 import type { AdminAPI } from '@/types/admin.types'
-import { type ColumnDef } from '@tanstack/react-table'
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
 import { Checkbox } from '@ws/ui/components/ui/checkbox'
 import { IconCopy, IconEye, IconCheck, IconAlertCircle } from '@tabler/icons-react'
 import { ActionsButton, type ActionItem } from '@/components/common/actions-button'
@@ -132,7 +132,7 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<AdminAPI.Reports.Re
       const reviewedBy = row.original.reviewed_by
       return (
         <div className="text-sm text-muted-foreground">
-          {reviewedBy ? <span className="font-mono">{reviewedBy}</span> : <span className="text-muted-foreground/50">—</span>}
+          {reviewedBy ? <span className="font-mono">{reviewedBy}</span> : <span className="text-muted-foreground/50">â€”</span>}
         </div>
       )
     },

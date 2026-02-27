@@ -86,7 +86,6 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
           toast.success('Password updated successfully')
         } else {
           const result = await setWithReverify(newPassword)
-          console.log('result', result)
           playSound('success')
           toast.success('Password set successfully')
         }

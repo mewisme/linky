@@ -10,7 +10,7 @@ import {
   CommandList,
   CommandSeparator,
 } from '@ws/ui/components/ui/command'
-import { CornerDownLeftIcon, Search } from 'lucide-react'
+import { CornerDownLeftIcon, Search } from '@ws/ui/internal-lib/icons'
 import {
   IconBan,
   IconBell,

@@ -16,6 +16,7 @@ import { LogOutIcon, ShieldIcon, UserIcon } from "@ws/ui/internal-lib/icons";
 import { Kbd } from "@ws/ui/components/ui/kbd";
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
+import { isAdmin } from "@/utils/roles";
 import { trackEvent } from "@/lib/analytics/events/client";
 import { useEffect } from "react";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -65,7 +66,7 @@ export function UserButton() {
               <span>Manage Account</span>
             </DropdownMenuItem>
           </Link>
-          {userStore?.role === 'admin' && (
+          {isAdmin(userStore?.role) && (
             <Link href='/admin'>
               <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
                 <div className="flex size-6 items-center justify-center rounded-sm border">

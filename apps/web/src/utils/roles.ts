@@ -1,8 +1,9 @@
-import { Roles } from '@/types/globals'
-import { auth } from '@clerk/nextjs/server'
+import { UserRole } from "@/types/users.types";
 
-export const checkRole = async (role: Roles) => {
-  const { sessionClaims } = await auth()
-  return sessionClaims?.metadata.role === role
+export function isAdmin(role?: UserRole | null) {
+  return role === "admin" || role === "superadmin";
 }
 
+export function isSuperAdmin(role?: UserRole | null) {
+  return role === "superadmin";
+}

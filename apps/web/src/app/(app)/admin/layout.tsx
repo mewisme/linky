@@ -1,6 +1,7 @@
 "use client";
 
 import { Loading } from "@/components/common/loading";
+import { isAdmin } from "@/utils/roles";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/components/providers/user/user-provider";
@@ -23,7 +24,7 @@ export default function AdminLayout({
       return;
     }
 
-    if (userStore && userStore.role !== "admin" && userStore.role !== "superadmin") {
+    if (userStore && !isAdmin(userStore.role)) {
       router.push("/");
       return;
     }
@@ -35,7 +36,7 @@ export default function AdminLayout({
     );
   }
 
-  if (userStore.role !== "admin" && userStore.role !== "superadmin") {
+  if (!isAdmin(userStore.role)) {
     return null;
   }
 

@@ -41,6 +41,7 @@ import { trackEvent } from "@/lib/analytics/events/client";
 import { useUserContext } from '@/components/providers/user/user-provider';
 import { useUserStore } from '@/stores/user-store';
 import { menuItems, type MenuItem } from './menu-items';
+import { isAdmin } from '@/utils/roles'
 
 export type { MenuItem };
 
@@ -65,7 +66,7 @@ export function AppSidebar() {
 
   const menuItemsFiltered = useMemo(() => {
     return menuItems.filter((item) => {
-      if (item.isAdmin && userStore?.role !== 'admin') {
+      if (item.isAdmin && !isAdmin(userStore?.role)) {
         return false
       }
       return true
@@ -116,7 +117,7 @@ export function AppSidebar() {
                       <span>Manage Account</span>
                     </DropdownMenuItem>
                   </Link>
-                  {userStore?.role === 'admin' && (
+                  {isAdmin(userStore?.role) && (
                     <Link href='/admin'>
                       <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
                         <div className="flex size-6 items-center justify-center rounded-sm border">

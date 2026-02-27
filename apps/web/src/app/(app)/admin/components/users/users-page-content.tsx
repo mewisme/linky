@@ -21,6 +21,7 @@ import { useUsersPresence } from './use-users-presence';
 import { BulkDeleteDialog } from './bulk-delete-dialog';
 import { BulkActions, type BulkAction } from './bulk-actions';
 import { CompareEmbeddingsModal, FindSimilarUsersModal } from './embedding-actions';
+import { isAdmin } from '@/utils/roles';
 
 interface UsersPageContentProps {
   initialData?: AdminAPI.GetUsers.Response;
@@ -67,7 +68,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
       setFindSimilarModalUser(user);
     },
     onBulkDelete: (users: AdminAPI.User[]) => {
-      const toDelete = users.filter((u) => !u.deleted && u.role !== 'admin' && u.role !== 'superadmin');
+      const toDelete = users.filter((u) => !u.deleted && !isAdmin(u.role));
       if (toDelete.length === 0) {
         toast.error('No eligible users to delete (admins and deleted users excluded)');
         return;

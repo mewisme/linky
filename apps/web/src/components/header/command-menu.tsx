@@ -44,6 +44,7 @@ import { useCallback, useMemo } from 'react'
 
 import { Logo } from '@/components/header/landing/logo'
 import { Separator } from '@ws/ui/components/ui/separator'
+import { isAdmin } from '@/utils/roles'
 import { trackEvent } from '@/lib/analytics/events/client'
 import { useCommandMenuStore } from '@/stores/command-menu-store'
 import { useRouter } from 'next/navigation'
@@ -100,7 +101,7 @@ export function CommandMenu() {
   const { user: userStore } = useUserStore()
   const { setCollapsible, setVariant, variant, collapsible } = useSidebarStore()
 
-  const isAdmin = userStore?.role === 'admin'
+  const isAdminUser = isAdmin(userStore?.role)
 
   const commandGroups = useMemo<CommandGroup[]>(() => [
     {
@@ -339,13 +340,13 @@ export function CommandMenu() {
   const filteredGroups = useMemo(() => {
     return commandGroups
       .filter(group => {
-        if (group.showForAdmin && !isAdmin) {
+        if (group.showForAdmin && !isAdminUser) {
           return false
         }
         return true
       })
       .filter(group => group.actions.length > 0)
-  }, [commandGroups, isAdmin])
+  }, [commandGroups, isAdminUser])
 
   const onRunCommand = useCallback((action: CommandAction) => {
     setOpen(false)

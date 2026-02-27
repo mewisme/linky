@@ -1,14 +1,17 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Add queue status endpoint and integrate with matchmaking ([c2b1a5f](../../commit/c2b1a5f))
+- Adjust timeout settings and improve Docker image sync logic ([9c99704](../../commit/9c99704))
 
 🔨 Other Changes
 
-- Restructure TODO file and update changelog ([cd869ee](../../commit/cd869ee))
-- Update package versions to 0.54.7 and refresh version lock ([fc572a5](../../commit/fc572a5))
-- Update package versions to 0.54.7 and refresh version lock ([f383eaa](../../commit/f383eaa))
+- Update package dependencies and versions ([19575a8](../../commit/19575a8))
+- Post-server-action cleanup pass ([3fd2369](../../commit/3fd2369))
+- Ensure safe access to user first and last names ([b74217c](../../commit/b74217c))
+- Migrate to hybrid RSC architecture with server actions ([a887c2b](../../commit/a887c2b))
+- Update package dependencies to use catalog references ([a39d91b](../../commit/a39d91b))
+- Update package versions to 0.55.0 and refresh version lock ([96e02d5](../../commit/96e02d5))
 
 
-📋 Full Changelog: [f383eaa...c2b1a5f](../../compare/f383eaa...c2b1a5f)
+📋 Full Changelog: [96e02d5...19575a8](../../compare/96e02d5...19575a8)

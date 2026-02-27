@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+
 import { publicEnv } from "@/env/public-env";
 
 const isEnabled = !publicEnv.isDev || publicEnv.SENTRY_ENABLED;
@@ -16,6 +17,11 @@ Sentry.init({
       Sentry.replayIntegration({
         maskAllText: true,
         blockAllMedia: true,
+      }),
+      Sentry.feedbackIntegration({
+        colorScheme: "system",
+        isNameRequired: true,
+        isEmailRequired: true,
       }),
     ]
     : [],

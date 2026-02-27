@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function POST(request: NextRequest) {
-  trackEventServer({ name: "api_admin_media_presigned_upload_post" });
   try {
     const authHeader = request.headers.get("authorization");
 

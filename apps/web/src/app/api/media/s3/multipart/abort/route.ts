@@ -3,10 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ApiError } from "@/types/api.types";
 import type { MediaAPI } from "@/types/media.types";
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function POST(request: NextRequest) {
-  trackEventServer({ name: "api_media_s3_multipart_abort_post" });
   try {
     const authHeader = request.headers.get("authorization");
 

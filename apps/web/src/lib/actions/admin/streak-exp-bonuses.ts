@@ -3,14 +3,12 @@
 import type { AdminAPI } from '@/types/admin.types';
 import { backendUrl } from '@/lib/api/fetch/backend-url';
 import { serverFetch } from '@/lib/api/fetch/server-api';
-import { trackEventServer } from '@/lib/analytics/events/server';
 import { withSentryAction } from '@/lib/sentry/with-action';
 
 export async function getAdminStreakExpBonuses(
   params?: URLSearchParams
 ): Promise<AdminAPI.StreakExpBonuses.Get.Response> {
   return withSentryAction("getAdminStreakExpBonuses", async () => {
-    trackEventServer({ name: 'api_admin_streak_exp_bonuses_get' });
     return serverFetch(backendUrl.admin.streakExpBonuses(params), { token: true });
   });
 }
@@ -19,7 +17,6 @@ export async function createStreakExpBonus(
   data: AdminAPI.StreakExpBonuses.Create.Body
 ): Promise<AdminAPI.StreakExpBonuses.Create.Response> {
   return withSentryAction("createStreakExpBonus", async () => {
-    trackEventServer({ name: 'api_admin_streak_exp_bonuses_post' });
     return serverFetch(backendUrl.admin.streakExpBonuses(), {
       method: 'POST',
       body: JSON.stringify(data),
@@ -33,7 +30,6 @@ export async function updateStreakExpBonus(
   data: AdminAPI.StreakExpBonuses.Update.Body
 ): Promise<AdminAPI.StreakExpBonuses.Update.Response> {
   return withSentryAction("updateStreakExpBonus", async () => {
-    trackEventServer({ name: 'api_admin_streak_exp_bonuses_id_put', properties: { id } });
     return serverFetch(backendUrl.admin.streakExpBonusById(id), {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -44,7 +40,6 @@ export async function updateStreakExpBonus(
 
 export async function deleteStreakExpBonus(id: string): Promise<AdminAPI.StreakExpBonuses.Delete.Response> {
   return withSentryAction("deleteStreakExpBonus", async () => {
-    trackEventServer({ name: 'api_admin_streak_exp_bonuses_id_delete', properties: { id } });
     return serverFetch(backendUrl.admin.streakExpBonusById(id), {
       method: 'DELETE',
       token: true,

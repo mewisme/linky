@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function DELETE(request: NextRequest) {
-  trackEventServer({ name: "api_push_unsubscribe_delete" });
   try {
     const authHeader = request.headers.get("authorization");
 

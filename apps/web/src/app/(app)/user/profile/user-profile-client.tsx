@@ -25,7 +25,7 @@ import {
 } from '@/components/context-menu/profile/profile-edit-context'
 import type { UsersAPI } from '@/types/users.types'
 import { useUserContext } from '@/components/providers/user/user-provider'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 const PROFILE_EDIT_ICONS: Record<(typeof PROFILE_EDIT_FIELD_IDS)[number], React.ReactNode> = {
   name: <IconUser className="size-4" />,
@@ -48,7 +48,9 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
   } = useUserContext()
   const profileEdit = useProfileEdit()
 
-  const userDetails = storeUserDetails ?? initialUserDetails
+  const userDetails = useMemo(() => {
+    return storeUserDetails ?? initialUserDetails ?? null
+  }, [storeUserDetails, initialUserDetails])
 
   const actions = useMemo<ActionItem[]>(() => {
     if (!user || !profileEdit) return []

@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function GET(request: NextRequest) {
-  trackEventServer({ name: "api_users_blocks_me_get" });
   try {
     const authHeader = request.headers.get("authorization");
 

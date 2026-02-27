@@ -367,6 +367,11 @@ export namespace AdminAPI {
     }
 
     export namespace Get {
+      export interface QueryParams {
+        limit?: number;
+        offset?: number;
+      }
+
       export interface Pagination {
         limit: number;
         offset: number;
@@ -479,6 +484,11 @@ export namespace AdminAPI {
     }
 
     export namespace Get {
+      export interface QueryParams {
+        limit?: number;
+        offset?: number;
+      }
+
       export interface Response {
         data: LevelReward[];
       }
@@ -552,6 +562,11 @@ export namespace AdminAPI {
     }
 
     export namespace Get {
+      export interface QueryParams {
+        limit?: number;
+        offset?: number;
+      }
+
       export interface Response {
         data: LevelFeatureUnlock[];
       }
@@ -625,6 +640,11 @@ export namespace AdminAPI {
     }
 
     export namespace Get {
+      export interface QueryParams {
+        limit?: number;
+        offset?: number;
+      }
+
       export interface Response {
         data: StreakExpBonus[];
       }

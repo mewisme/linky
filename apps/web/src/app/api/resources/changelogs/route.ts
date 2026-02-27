@@ -3,10 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ApiError } from "@/types/api.types";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function GET(request: NextRequest) {
-  trackEventServer({ name: "api_resources_changelogs_get" });
   try {
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get("limit") || "50";

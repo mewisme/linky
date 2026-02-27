@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const socketId = body?.socketId;
-
-    trackEventServer({ name: "api_video_chat_end_call_unload_post", properties: { socketId } });
 
     if (!socketId || typeof socketId !== "string") {
       return NextResponse.json(

@@ -3,10 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function GET(request: NextRequest) {
-  trackEventServer({ name: "api_users_details_get" });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -42,7 +40,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  trackEventServer({ name: "api_users_details_put" });
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -80,7 +77,6 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  trackEventServer({ name: "api_users_details_patch" });
   try {
     const authHeader = request.headers.get("authorization");
 

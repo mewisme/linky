@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  trackEventServer({
-    name: "api_notifications_id_read_patch",
-    properties: { id },
-  });
   try {
     const authHeader = request.headers.get("authorization");
 

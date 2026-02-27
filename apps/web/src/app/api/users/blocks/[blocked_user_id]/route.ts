@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ blocked_user_id: string }> }
 ) {
   const { blocked_user_id } = await params;
-  trackEventServer({
-    name: "api_users_blocks_blocked_user_id_delete",
-    properties: { blocked_user_id },
-  });
   try {
     const authHeader = request.headers.get("authorization");
 

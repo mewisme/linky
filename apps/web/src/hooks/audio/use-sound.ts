@@ -1,33 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 
 export type SoundName = "success";
 
 const SOUNDS_DIR = "/sounds";
 
+const audioCache = new Map<SoundName, HTMLAudioElement>();
+
+function getAudio(soundName: SoundName) {
+  let audio = audioCache.get(soundName);
+
+  if (!audio) {
+    audio = new Audio(`${SOUNDS_DIR}/${soundName}.mp3`);
+    audio.preload = "auto";
+    audioCache.set(soundName, audio);
+  }
+
+  return audio;
+}
+
 export function useSound() {
-  const audioRefs = useRef<Map<SoundName, HTMLAudioElement>>(new Map());
-
-  useEffect(() => {
-    const sounds: SoundName[] = ["success"];
-    const audioMap = new Map<SoundName, HTMLAudioElement>();
-
-    sounds.forEach((soundName) => {
-      const audio = new Audio(`${SOUNDS_DIR}/${soundName}.mp3`);
-      audio.preload = "auto";
-      audioMap.set(soundName, audio);
-      audioRefs.current.set(soundName, audio);
-    });
-
-    return () => {
-      audioMap.forEach((audio) => {
-        audio.pause();
-        audio.src = "";
-      });
-    };
-  }, []);
-
   const play = useCallback(
     (
       soundName: SoundName,
@@ -36,31 +29,19 @@ export function useSound() {
         loop?: boolean;
       }
     ) => {
-      const audio = audioRefs.current.get(soundName);
-      if (!audio) {
-        console.warn(`Sound "${soundName}" not found`);
-        return;
-      }
+      const audio = getAudio(soundName);
 
       audio.currentTime = 0;
-
       audio.volume = options?.volume ?? 0.7;
+      audio.loop = options?.loop ?? false;
 
-      if (options?.loop !== undefined) {
-        audio.loop = options.loop;
-      } else {
-        audio.loop = false;
-      }
-
-      audio.play().catch((error) => {
-        console.error(`Failed to play sound "${soundName}":`, error);
-      });
+      audio.play().catch(() => { });
     },
     []
   );
 
   const stop = useCallback((soundName: SoundName) => {
-    const audio = audioRefs.current.get(soundName);
+    const audio = audioCache.get(soundName);
     if (audio) {
       audio.pause();
       audio.currentTime = 0;
@@ -68,21 +49,16 @@ export function useSound() {
   }, []);
 
   const stopAll = useCallback(() => {
-    audioRefs.current.forEach((audio) => {
+    audioCache.forEach((audio) => {
       audio.pause();
       audio.currentTime = 0;
     });
   }, []);
 
   const isPlaying = useCallback((soundName: SoundName): boolean => {
-    const audio = audioRefs.current.get(soundName);
+    const audio = audioCache.get(soundName);
     return audio ? !audio.paused : false;
   }, []);
 
-  return {
-    play,
-    stop,
-    stopAll,
-    isPlaying,
-  };
+  return { play, stop, stopAll, isPlaying };
 }

@@ -3,10 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
 import { publicEnv } from "@/env/public-env";
-import { trackEventServer } from "@/lib/analytics/events/server";
 
 export async function PATCH(request: NextRequest) {
-  trackEventServer({ name: "api_users_me_country_patch" });
   try {
     const authHeader = request.headers.get("authorization");
 

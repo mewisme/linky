@@ -108,7 +108,6 @@ export function CommandMenu() {
 
   useEffect(() => {
     const feedbackIntegration = Sentry.getFeedback();
-    console.log('feedbackIntegration', feedbackIntegration);
     if (feedbackIntegration) {
       setFeedback(feedbackIntegration);
     }

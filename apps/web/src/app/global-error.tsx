@@ -1,16 +1,18 @@
 'use client';
 
+import * as Sentry from "@sentry/nextjs";
+
 import {
   IconAlertTriangle,
   IconHome,
   IconRefresh,
 } from "@tabler/icons-react";
 
-import * as Sentry from "@sentry/nextjs";
-import { Outfit } from "next/font/google";
-import { useEffect } from "react";
 import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
+import NextError from "next/error";
+import { Outfit } from "next/font/google";
+import { useEffect } from "react";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -98,14 +100,7 @@ export default function GlobalError({
             />
           </div>
 
-          <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
-            Something went wrong!
-          </h1>
-
-          <p className="mb-10 text-lg text-muted-foreground">
-            An unexpected error occurred while processing your request. Our team
-            has been notified and we&apos;re working to fix it.
-          </p>
+          <NextError error={error} statusCode={500} />
 
           <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-center sm:gap-4">
             <Button

@@ -7,16 +7,19 @@ const isEnabled =
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   enabled: isEnabled,
-  tracesSampleRate: 0.2,
-  sendDefaultPii: false,
+  sendDefaultPii: true,
+  tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
+  enableLogs: true,
   replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: isEnabled ? 1.0 : 0,
   integrations: isEnabled
     ? [
-        Sentry.replayIntegration({
-          maskAllText: true,
-          blockAllMedia: true,
-        }),
-      ]
+      Sentry.replayIntegration({
+        maskAllText: true,
+        blockAllMedia: true,
+      }),
+    ]
     : [],
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

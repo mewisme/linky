@@ -9,7 +9,7 @@ import { UserTokenProvider, useUserTokenContext } from "./user-token-provider";
 import { UserDataProvider, useUserDataContext } from "./user-data-provider";
 import { UserDetailsProvider, useUserDetailsContext } from "./user-details-provider";
 import { UserSettingsProvider, useUserSettingsContext } from "./user-settings-provider";
-
+import * as Sentry from "@sentry/nextjs";
 interface State {
   updateUserCountry: (country: string) => Promise<UsersAPI.GetMe.Response>;
   updateUserDetails: (data: UsersAPI.UserDetails.PatchMe.Body) => Promise<UserDetails>;
@@ -73,6 +73,7 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
   fetchUserSettingsRef.current = fetchUserSettings;
 
   useEffect(() => {
+    Sentry.logger.info("Fetching user data", { isLoaded: auth.isLoaded, isSignedIn: auth.isSignedIn });
     if (!auth.isLoaded || !auth.isSignedIn) return;
     const run = async () => {
       await Promise.all([

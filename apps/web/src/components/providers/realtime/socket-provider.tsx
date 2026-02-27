@@ -223,8 +223,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
   useEffect(() => {
     if (isLoaded) {
       if (isSignedIn && !socketRef.current) {
+        Sentry.logger.info("Initializing socket", { isSignedIn });
         initializeSocket();
       } else if (!isSignedIn && socketRef.current) {
+        Sentry.logger.info("Removing all listeners and disconnecting socket", { isSignedIn });
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;

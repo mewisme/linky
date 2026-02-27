@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: serverEnv.isProd,
   },
-  allowedDevOrigins: [publicEnv.ALLOWED_DEV_ORIGINS],
+  allowedDevOrigins: [...publicEnv.ALLOWED_DEV_ORIGINS],
   images: {
     remotePatterns: [
       {

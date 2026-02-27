@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 export type QualityTier = "high" | "medium" | "low" | "minimal";
 
 export interface EncodingProfile {
@@ -84,7 +86,7 @@ export async function applyEncodingToSender(
     const currentParams = sender.getParameters();
 
     if (!currentParams.encodings || currentParams.encodings.length === 0) {
-      console.warn("No encodings found in sender parameters");
+      Sentry.logger.warn("No encodings found in sender parameters");
       return false;
     }
 
@@ -93,10 +95,10 @@ export async function applyEncodingToSender(
     currentParams.encodings[0]!.scaleResolutionDownBy = params.scaleResolutionDownBy;
 
     await sender.setParameters(currentParams);
-    console.info("Applied encoding parameters:", params);
+    Sentry.logger.info("Applied encoding parameters", { params });
     return true;
   } catch (err) {
-    console.error("Failed to apply encoding parameters:", err);
+    Sentry.logger.error("Failed to apply encoding parameters", { error: err });
     return false;
   }
 }

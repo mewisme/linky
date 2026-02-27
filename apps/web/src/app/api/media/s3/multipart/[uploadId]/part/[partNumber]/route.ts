@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
@@ -46,7 +47,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in /api/media/s3/multipart/[uploadId]/part/[partNumber]:", error);
+    Sentry.logger.error("Error in /api/media/s3/multipart/[uploadId]/part/[partNumber]", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to get part upload URL" },
       { status: 500 }

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in GET /api/notifications/me:", error);
+    Sentry.logger.error("Error in GET /api/notifications/me", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch notifications" },
       { status: 500 }

@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import * as Sentry from "@sentry/nextjs";
 
-import type { Notification } from "@/types/notifications.types";
 import {
   getNotifications as getNotificationsAction,
   getUnreadCount as getUnreadCountAction,
   markAllNotificationsRead as markAllNotificationsReadAction,
   markNotificationRead as markNotificationReadAction,
 } from "@/lib/actions/notifications";
+import { useCallback, useEffect, useRef } from "react";
+
+import type { Notification } from "@/types/notifications.types";
 import { trackEvent } from "@/lib/analytics/events/client";
 import { useNotificationsStore } from "@/stores/notifications-store";
 import { useSocket } from "@/hooks/socket/use-socket";
@@ -26,6 +28,7 @@ export function useNotifications() {
   const fetchedRef = useRef(false);
 
   const fetchNotifications = useCallback(async () => {
+    Sentry.metrics.count("fetch_notifications", 1);
     useNotificationsStore.getState().setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -41,9 +44,11 @@ export function useNotifications() {
       useNotificationsStore.getState().setNotifications(notifData.notifications);
       useNotificationsStore.getState().setUnreadCount(countData.count);
       useNotificationsStore.getState().setHasMore(notifData.notifications.length >= PAGE_SIZE);
-    } catch {
-      // silent
+    } catch (error) {
+      Sentry.metrics.count("fetch_notifications_failed", 1);
+      Sentry.logger.error("Failed to fetch notifications", { error: error instanceof Error ? error.message : "Unknown error" });
     } finally {
+      Sentry.metrics.count("fetch_notifications_completed", 1);
       useNotificationsStore.getState().setLoading(false);
     }
   }, []);
@@ -63,9 +68,12 @@ export function useNotifications() {
 
       useNotificationsStore.getState().appendNotifications(data.notifications);
       useNotificationsStore.getState().setHasMore(data.notifications.length >= PAGE_SIZE);
-    } catch {
+    } catch (error) {
+      Sentry.metrics.count("load_more_notifications_failed", 1);
+      Sentry.logger.error("Failed to load more notifications", { error: error instanceof Error ? error.message : "Unknown error" });
       // silent
     } finally {
+      Sentry.metrics.count("load_more_notifications_completed", 1);
       useNotificationsStore.getState().setLoading(false);
     }
   }, []);
@@ -74,7 +82,9 @@ export function useNotifications() {
     useNotificationsStore.getState().markAsRead(id);
     try {
       await markNotificationReadAction(id);
-    } catch {
+    } catch (error) {
+      Sentry.metrics.count("mark_notification_read_failed", 1);
+      Sentry.logger.error("Failed to mark notification read", { error: error instanceof Error ? error.message : "Unknown error" });
       // silent - optimistic update already applied
     }
   }, []);
@@ -83,13 +93,16 @@ export function useNotifications() {
     useNotificationsStore.getState().markAllAsRead();
     try {
       await markAllNotificationsReadAction();
-    } catch {
+    } catch (error) {
+      Sentry.metrics.count("mark_all_notifications_read_failed", 1);
+      Sentry.logger.error("Failed to mark all notifications read", { error: error instanceof Error ? error.message : "Unknown error" });
       // silent - optimistic update already applied
     }
   }, []);
 
   useEffect(() => {
     if (authReady && !fetchedRef.current) {
+      Sentry.metrics.count("fetch_notifications_started", 1);
       fetchedRef.current = true;
       void fetchNotifications();
     }
@@ -99,15 +112,18 @@ export function useNotifications() {
     if (!chatSocket) return;
 
     const handleNewNotification = (notification: Notification) => {
+      Sentry.metrics.count("notification_received", 1);
       useNotificationsStore.getState().addNotification(notification);
       trackEvent({ name: "notification_received", properties: { type: notification.type } });
     };
 
     const handleNotificationRead = (data: { notificationId: string }) => {
+      Sentry.metrics.count("notification_read", 1);
       useNotificationsStore.getState().markAsRead(data.notificationId);
     };
 
     const handleAllRead = () => {
+      Sentry.metrics.count("all_notifications_read", 1);
       useNotificationsStore.getState().markAllAsRead();
     };
 
@@ -116,6 +132,7 @@ export function useNotifications() {
     chatSocket.on("notification:all-read", handleAllRead);
 
     return () => {
+      Sentry.metrics.count("notification_unsubscribed", 1);
       chatSocket.off("notification:new", handleNewNotification);
       chatSocket.off("notification:read", handleNotificationRead);
       chatSocket.off("notification:all-read", handleAllRead);

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in /api/resources/call-history:", error);
+    Sentry.logger.error("Error in /api/resources/call-history", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch call history" },
       { status: 500 }

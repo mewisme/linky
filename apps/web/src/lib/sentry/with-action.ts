@@ -1,7 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
-import { unstable_cache } from 'next/cache';
+
 import { auth } from '@clerk/nextjs/server';
 import { headers } from "next/headers";
+import { unstable_cache } from 'next/cache';
 
 interface QueryCacheOptions {
   keyParts: string[];
@@ -31,7 +32,9 @@ export async function withSentryQuery<T>(
     const { getToken: clerkGetToken, userId: clerkUserId } = await auth();
     preloadedToken = (await clerkGetToken({ template: 'custom' })) ?? undefined;
     userId = clerkUserId ?? undefined;
-  } catch {
+  } catch (error) {
+    Sentry.metrics.count("with_sentry_query_auth_error", 1);
+    Sentry.logger.error("Failed to get auth token", { error: error instanceof Error ? error.message : "Unknown error" });
     // Public / unauthenticated routes
   }
 

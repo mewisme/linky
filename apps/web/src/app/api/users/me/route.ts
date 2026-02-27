@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
@@ -64,16 +65,16 @@ export async function GET(request: NextRequest) {
           const updatedData = await updateResponse.json() as UsersAPI.UpdateCountry.Response;
           return NextResponse.json(updatedData);
         } else {
-          console.error("Failed to update country:", await updateResponse.json());
+          Sentry.logger.error("Failed to update country", { data: await updateResponse.json() });
         }
       } catch (updateError) {
-        console.error("Error updating country:", updateError);
+        Sentry.logger.error("Error updating country", { error: updateError });
       }
     }
 
     return NextResponse.json(userData);
   } catch (error) {
-    console.error("Error in /api/users/me:", error);
+    Sentry.logger.error("Error in /api/users/me", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch user data" },
       { status: 500 }

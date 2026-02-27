@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 import { fetchIceServers } from "./webrtc";
 import { useIceServersStore } from "@/stores/ice-servers-store";
 
@@ -50,7 +52,7 @@ class IceServerCacheManager {
     if (reason === "initial") return !servers || !this.isCacheValid();
     if (reason === "expired") {
       if (timeSinceLastFetch < MIN_FETCH_INTERVAL_MS) {
-        console.info(`[IceServerCache] Rate limited: last fetch was ${Math.round(timeSinceLastFetch / 1000)}s ago`);
+        Sentry.logger.info(`[IceServerCache] Rate limited: last fetch was ${Math.round(timeSinceLastFetch / 1000)}s ago`);
         return false;
       }
       return this.isNearExpiry();
@@ -67,25 +69,25 @@ class IceServerCacheManager {
     const { servers, fetchedAt } = this.getStore();
     if (this.isCacheValid() && reason !== "forced" && servers) {
       const age = Date.now() - fetchedAt;
-      console.info(`[IceServerCache] Using cached ICE servers (age: ${Math.round(age / 1000)}s)`);
+      Sentry.logger.info(`[IceServerCache] Using cached ICE servers (age: ${Math.round(age / 1000)}s)`);
       return servers;
     }
 
     if (this.inFlightFetch) {
-      console.info("[IceServerCache] Waiting for in-flight fetch");
+      Sentry.logger.info("[IceServerCache] Waiting for in-flight fetch");
       return await this.inFlightFetch;
     }
 
     if (!this.canFetch(reason)) {
       if (servers) {
-        console.warn(`[IceServerCache] Fetch skipped (reason: ${reason}), using cached servers`);
+        Sentry.logger.warn(`[IceServerCache] Fetch skipped (reason: ${reason}), using cached servers`);
         return servers;
       }
       throw new Error("No ICE servers available and fetch is rate-limited");
     }
 
     useIceServersStore.getState().setLastFetchTimestamp(Date.now());
-    console.info(`[IceServerCache] Fetching ICE servers (reason: ${reason})`);
+    Sentry.logger.info(`[IceServerCache] Fetching ICE servers (reason: ${reason})`);
 
     const fetchPromise = (async () => {
       try {
@@ -100,13 +102,13 @@ class IceServerCacheManager {
 
         useIceServersStore.getState().setCache(newServers, ICE_SERVER_TTL_MS);
 
-        console.info(`[IceServerCache] ICE servers fetched successfully (${newServers.length} servers, cache age: ${Math.round(age / 1000)}s)`);
+        Sentry.logger.info(`[IceServerCache] ICE servers fetched successfully (${newServers.length} servers, cache age: ${Math.round(age / 1000)}s)`);
         return newServers;
       } catch (err) {
-        console.error("[IceServerCache] Failed to fetch ICE servers:", err);
+        Sentry.logger.error("[IceServerCache] Failed to fetch ICE servers", { error: err });
         const fallback = this.getStore().servers;
         if (fallback) {
-          console.warn("[IceServerCache] Falling back to cached servers");
+          Sentry.logger.warn("[IceServerCache] Falling back to cached servers");
           return fallback;
         }
         throw err;
@@ -135,17 +137,17 @@ class IceServerCacheManager {
     useIceServersStore.getState().setIceRestartState(count, windowStart);
 
     if (count > MAX_ICE_RESTARTS_PER_SESSION) {
-      console.warn(`[IceServerCache] ICE restart limit exceeded (${count} restarts in window)`);
+      Sentry.logger.warn(`[IceServerCache] ICE restart limit exceeded (${count} restarts in window)`);
       return false;
     }
 
-    console.info(`[IceServerCache] ICE restart recorded (${count}/${MAX_ICE_RESTARTS_PER_SESSION} in window)`);
+    Sentry.logger.info(`[IceServerCache] ICE restart recorded (${count}/${MAX_ICE_RESTARTS_PER_SESSION} in window)`);
     return true;
   }
 
   resetSession(): void {
     useIceServersStore.getState().resetSession();
-    console.info("[IceServerCache] Session reset");
+    Sentry.logger.info("[IceServerCache] Session reset");
   }
 
   getCachedServers(): RTCIceServer[] | null {

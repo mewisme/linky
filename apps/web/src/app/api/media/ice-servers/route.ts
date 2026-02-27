@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in /api/media/ice-servers:", error);
+    Sentry.logger.error("Error in /api/media/ice-servers", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch ICE servers" },
       { status: 500 }

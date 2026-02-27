@@ -1,5 +1,7 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import {
   Dialog,
@@ -228,7 +230,8 @@ export function VideoControls({
           setIsFavorite(isFavorited);
         }
       } catch (error) {
-        console.error("Failed to check favorite status", error);
+        Sentry.metrics.count("failed_to_check_favorite_status", 1);
+        Sentry.logger.error("Failed to check favorite status", { error: error instanceof Error ? error.message : "Unknown error" });
       }
     };
 
@@ -267,8 +270,9 @@ export function VideoControls({
         const userName = user.user?.fullName || user.user?.firstName || "Someone";
         sendFavoriteNotification("removed", peerInfo.id, userName || "Someone");
       }
-    } catch (error: unknown) {
-      console.error("Failed to toggle favorite", error);
+    } catch (error) {
+      Sentry.metrics.count("failed_to_toggle_favorite", 1);
+      Sentry.logger.error("Failed to toggle favorite", { error: error instanceof Error ? error.message : "Unknown error" });
       toast.error(error instanceof Error ? error.message : "Failed to update favorite");
     } finally {
       setIsFavoriteLoading(false);

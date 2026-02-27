@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import * as Sentry from "@sentry/nextjs";
 
-import { toast } from "@ws/ui/components/ui/sonner";
+import { useCallback, useRef, useState } from "react";
 
 export function useScreenShare() {
   const [isSharing, setIsSharing] = useState(false);
@@ -10,6 +10,7 @@ export function useScreenShare() {
 
   const startScreenShare = useCallback(async (): Promise<MediaStream> => {
     try {
+      Sentry.metrics.count("screen_share_started", 1);
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: "always" } as MediaTrackConstraints,
         audio: false,
@@ -18,17 +19,20 @@ export function useScreenShare() {
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.addEventListener("ended", () => {
+          Sentry.metrics.count("screen_share_ended", 1);
           streamRef.current = null;
           setIsSharing(false);
         });
       }
 
+      Sentry.metrics.count("screen_share_started", 1);
       streamRef.current = stream;
       setIsSharing(true);
       return stream;
-    } catch {
-      toast.error("Failed to start screen sharing");
-      throw new Error("Screen sharing cancelled or failed");
+    } catch (error) {
+      Sentry.metrics.count("screen_share_failed", 1);
+      Sentry.logger.error("Failed to start screen sharing", { error });
+      throw error;
     }
   }, []);
 

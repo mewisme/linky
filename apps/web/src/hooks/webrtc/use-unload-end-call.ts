@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+
 import { useEffect, useRef, type RefObject } from "react";
 
 import { recoveryController } from "@/lib/webrtc/webrtc-recovery";
@@ -17,15 +19,17 @@ export function useUnloadEndCall(
 
   const sendUnloadEndCall = () => {
     if (hasSentUnloadSignalRef.current) {
+      Sentry.metrics.count("unload_end_call_already_sent", 1);
       return;
     }
 
     if (!getIsInActiveCall()) {
+      Sentry.metrics.count("unload_end_call_not_in_active_call", 1);
       return;
     }
 
     hasSentUnloadSignalRef.current = true;
-    console.info("[UnloadDetection] TRUE EXIT detected during active call - sending end-call signal");
+    Sentry.logger.info("TRUE EXIT detected during active call - sending end-call signal");
 
     releaseOwnership?.();
     recoveryController.stop();
@@ -33,10 +37,10 @@ export function useUnloadEndCall(
     if (socketRef.current?.connected && socketId) {
       try {
         socketRef.current.emit("end-call");
-        console.info("[UnloadDetection] End-call sent via socket emit");
+        Sentry.logger.info("End-call sent via socket emit");
         return;
       } catch (err) {
-        console.warn("[UnloadDetection] Socket emit failed, falling back to sendBeacon:", err);
+        Sentry.logger.warn("Socket emit failed, falling back to sendBeacon", { error: err instanceof Error ? err.message : "Unknown error" });
       }
     }
 
@@ -48,21 +52,22 @@ export function useUnloadEndCall(
 
         const sent = navigator.sendBeacon(url, blob);
         if (sent) {
-          console.info("[UnloadDetection] End-call sent via sendBeacon");
+          Sentry.logger.info("End-call sent via sendBeacon");
           return;
         } else {
-          console.warn("[UnloadDetection] sendBeacon failed (queue full or blocked)");
+          Sentry.logger.warn("sendBeacon failed (queue full or blocked)");
         }
       } catch (err) {
-        console.error("[UnloadDetection] sendBeacon error:", err);
+        Sentry.logger.error("sendBeacon error", { error: err instanceof Error ? err.message : "Unknown error" });
       }
     }
 
-    console.warn("[UnloadDetection] All unload signaling methods failed");
+    Sentry.logger.warn("All unload signaling methods failed");
   };
 
   useEffect(() => {
     if (!isInActiveCall) {
+      Sentry.metrics.count("unload_end_call_not_in_active_call", 1);
       return;
     }
 
@@ -77,10 +82,10 @@ export function useUnloadEndCall(
 
     const handlePageHide = (event: PageTransitionEvent) => {
       if (!event.persisted && getIsInActiveCall()) {
-        console.info("[UnloadDetection] pagehide with persisted=false detected - TRUE EXIT");
+        Sentry.logger.info("pagehide with persisted=false detected - TRUE EXIT");
         sendUnloadEndCall();
       } else if (event.persisted) {
-        console.info("[UnloadDetection] pagehide with persisted=true detected - BACKGROUNDING (ignoring)");
+        Sentry.logger.info("pagehide with persisted=true detected - BACKGROUNDING (ignoring)");
       }
     };
 

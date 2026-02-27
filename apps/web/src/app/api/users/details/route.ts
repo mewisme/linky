@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in /api/users/details:", error);
+    Sentry.logger.error("Error in /api/users/details", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch user details" },
       { status: 500 }
@@ -68,7 +69,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in PUT /api/users/details:", error);
+    Sentry.logger.error("Error in PUT /api/users/details", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update user details" },
       { status: 500 }
@@ -105,7 +106,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in PATCH /api/users/details:", error);
+    Sentry.logger.error("Error in PATCH /api/users/details", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update user details" },
       { status: 500 }

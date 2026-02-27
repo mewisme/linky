@@ -1,5 +1,7 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+
 import { useEffect, useRef, useState } from "react";
 
 const AUDIO_THRESHOLD = 0.01;
@@ -14,17 +16,20 @@ export function useAudioActivity(stream: MediaStream | null): boolean {
 
   useEffect(() => {
     if (!stream) {
+      Sentry.metrics.count("audio_activity_stopped", 1);
       setHasActivity(false);
       return;
     }
 
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) {
+      Sentry.metrics.count("audio_activity_stopped", 1);
       setHasActivity(false);
       return;
     }
 
     try {
+      Sentry.metrics.count("audio_activity_started", 1);
       const audioContext = new AudioContext();
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
@@ -73,8 +78,9 @@ export function useAudioActivity(stream: MediaStream | null): boolean {
         analyserRef.current = null;
         dataArrayRef.current = null;
       };
-    } catch (err) {
-      console.error("Failed to create audio analyser:", err);
+    } catch (error) {
+      Sentry.metrics.count("audio_activity_failed", 1);
+      Sentry.logger.error("Failed to create audio analyser", { error });
       setHasActivity(false);
       return;
     }

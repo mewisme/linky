@@ -1,5 +1,7 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+
 import { useCallback, useRef } from "react";
 import { NetworkMonitor, type NetworkQuality } from "@/lib/webrtc/network-monitor";
 import { VideoHealthTracker } from "@/lib/webrtc/video-health-tracker";
@@ -58,7 +60,7 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
           qualityController.onVideoRecovered();
         },
         onFrameRateChange: (fps: number) => {
-          console.info("[VideoHealth] Frame rate:", fps);
+          Sentry.logger.info("Frame rate", { fps });
         },
       });
 
@@ -72,7 +74,7 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
       videoHealthTrackerRef.current = videoHealthTracker;
       qualityControllerRef.current = qualityController;
 
-      console.info("[WebRTCMonitoring] Initialized monitoring services");
+      Sentry.logger.info("Initialized monitoring services");
     },
     []
   );
@@ -93,7 +95,7 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
       videoHealthTrackerRef.current = null;
     }
 
-    console.info("[WebRTCMonitoring] Stopped monitoring services");
+    Sentry.logger.info("Stopped monitoring services");
   }, []);
 
   const getCurrentQuality = useCallback((): NetworkQuality => {

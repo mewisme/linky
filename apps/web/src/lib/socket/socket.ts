@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
 
@@ -95,7 +97,7 @@ export async function createSocket(token?: string | null): Promise<Socket> {
 
 export function updateToken(socket: Socket, token: string | null): void {
   if (!token) {
-    console.warn("Attempted to update socket with null token");
+    Sentry.logger.warn("Attempted to update socket with null token");
     return;
   }
 
@@ -110,7 +112,7 @@ export function updateToken(socket: Socket, token: string | null): void {
   }
 
   if (socket.connected) {
-    console.info("Token updated, reconnecting socket with new token...");
+    Sentry.logger.info("Token updated, reconnecting socket with new token");
     socket.once("disconnect", () => {
       socket.connect();
     });

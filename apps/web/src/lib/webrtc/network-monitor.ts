@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 export type NetworkQuality = "excellent" | "good" | "poor" | "critical";
 
 export interface NetworkMetrics {
@@ -34,7 +36,7 @@ export class NetworkMonitor {
     callbacks: NetworkMonitorCallbacks
   ): void {
     if (this.isRunning) {
-      console.warn("[NetworkMonitor] Already monitoring");
+      Sentry.logger.warn("[NetworkMonitor] Already monitoring");
       return;
     }
 
@@ -49,7 +51,7 @@ export class NetworkMonitor {
       this.checkNetworkConditions();
     }, POLL_INTERVAL_MS);
 
-    console.info("[NetworkMonitor] Started monitoring");
+    Sentry.logger.info("[NetworkMonitor] Started monitoring");
   }
 
   stopMonitoring(): void {
@@ -69,7 +71,7 @@ export class NetworkMonitor {
     this.recoveryStartTime = null;
     this.lastMetrics = null;
 
-    console.info("[NetworkMonitor] Stopped monitoring");
+    Sentry.logger.info("[NetworkMonitor] Stopped monitoring");
   }
 
   getNetworkQuality(): NetworkQuality {
@@ -92,7 +94,7 @@ export class NetworkMonitor {
       const quality = this.assessQuality(metrics);
       this.handleQualityChange(quality, metrics);
     } catch (err) {
-      console.warn("[NetworkMonitor] Failed to check network conditions:", err);
+      Sentry.logger.warn("[NetworkMonitor] Failed to check network conditions", { error: err });
     }
   }
 
@@ -146,7 +148,7 @@ export class NetworkMonitor {
         timestamp: Date.now(),
       };
     } catch (err) {
-      console.warn("[NetworkMonitor] Failed to collect metrics:", err);
+      Sentry.logger.warn("[NetworkMonitor] Failed to collect metrics", { error: err });
       return null;
     }
   }
@@ -193,12 +195,7 @@ export class NetworkMonitor {
       const degradationDuration = Date.now() - this.degradationStartTime;
 
       if (degradationDuration >= DEGRADATION_WINDOW_MS) {
-        console.warn(
-          "[NetworkMonitor] Network degraded:",
-          metrics,
-          "Quality:",
-          newQuality
-        );
+        Sentry.logger.warn("[NetworkMonitor] Network degraded", { metrics, quality: newQuality });
         this.callbacks.onNetworkDegraded();
         this.recoveryStartTime = null;
       }
@@ -210,12 +207,7 @@ export class NetworkMonitor {
       const recoveryDuration = Date.now() - this.recoveryStartTime;
 
       if (recoveryDuration >= RECOVERY_WINDOW_MS) {
-        console.info(
-          "[NetworkMonitor] Network recovered:",
-          metrics,
-          "Quality:",
-          newQuality
-        );
+        Sentry.logger.info("[NetworkMonitor] Network recovered", { metrics, quality: newQuality });
         this.callbacks.onNetworkRecovered();
         this.degradationStartTime = null;
       }

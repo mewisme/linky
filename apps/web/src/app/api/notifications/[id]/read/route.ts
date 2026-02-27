@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
@@ -40,7 +41,7 @@ export async function PATCH(
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in PATCH /api/notifications/[id]/read:", error);
+    Sentry.logger.error("Error in PATCH /api/notifications/[id]/read", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to mark notification as read" },
       { status: 500 }

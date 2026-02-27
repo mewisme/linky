@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 import { LucideChevronRight, LucideInfo, LucideLoader2 } from "@ws/ui/internal-lib/icons";
 import { useEffect, useRef, useState } from "react";
@@ -69,7 +70,7 @@ export default function ChangelogsPage() {
                 previews[changelog.id] = markdown.substring(0, 260) + (markdown.length > 260 ? "..." : "");
               }
             }
-          } catch (e) { console.error(e); }
+          } catch (e) { Sentry.logger.error("Failed to fetch changelog preview", { error: e }); }
           finally { setFetchingPreviews((prev) => { const n = new Set(prev); n.delete(changelog.id); return n; }); }
         }
       }

@@ -1,5 +1,7 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+
 import { getUserMedia, stopMediaStream } from "@/lib/webrtc/webrtc";
 import { useCallback, useMemo, useRef } from "react";
 
@@ -21,6 +23,8 @@ export function useMediaStream(): UseMediaStreamReturn {
     initialVideoOff?: boolean
   ): Promise<MediaStream> => {
     if (streamRef.current) {
+      Sentry.metrics.count("media_stream_acquired", 1);
+      Sentry.logger.info("Media stream already acquired, stopping it");
       stopMediaStream(streamRef.current);
     }
 
@@ -32,6 +36,8 @@ export function useMediaStream(): UseMediaStreamReturn {
     }
 
     const stream = await getUserMedia(true, true);
+    Sentry.metrics.count("media_stream_acquired", 1);
+    Sentry.logger.info("Media stream acquired");
     streamRef.current = stream;
 
     if (isMutedRef.current) {

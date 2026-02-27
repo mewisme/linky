@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error("Error in POST /api/push/subscribe:", error);
+    Sentry.logger.error("Error in POST /api/push/subscribe", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to subscribe to push" },
       { status: 500 }

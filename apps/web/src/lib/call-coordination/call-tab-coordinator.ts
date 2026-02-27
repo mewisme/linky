@@ -1,19 +1,21 @@
+import * as Sentry from "@sentry/nextjs";
+
 import { publicEnv } from "@/env/public-env";
 
 const logger = {
   debug: (data: unknown, msg?: string) => {
     if (publicEnv.isDev) {
-      console.debug(msg || "", data);
+      Sentry.logger.debug(msg || "", { data });
     }
   },
   info: (data: unknown, msg?: string) => {
-    console.info(msg || "", data);
+    Sentry.logger.info(msg || "", { data });
   },
   warn: (data: unknown, msg?: string) => {
-    console.warn(msg || "", data);
+    Sentry.logger.warn(msg || "", { data });
   },
   error: (data: unknown, msg?: string) => {
-    console.error(msg || "", data);
+    Sentry.logger.error(msg || "", { data });
   },
 };
 

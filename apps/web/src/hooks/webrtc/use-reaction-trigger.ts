@@ -1,5 +1,7 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+
 import { useCallback, useRef } from "react";
 
 import { useReactionEffectContext } from "@/components/providers/realtime/reaction-effect-provider";
@@ -18,11 +20,15 @@ export function useReactionTrigger({ isActive, reactionType = "heart" }: UseReac
 
   const handleTap = useCallback(
     (x: number, y: number) => {
-      if (!isActive) return;
+      if (!isActive) {
+        Sentry.metrics.count("reaction_trigger_not_active", 1);
+        return;
+      }
 
       tapCountRef.current += 1;
 
       if (tapCountRef.current >= 2) {
+        Sentry.metrics.count("reaction_trigger_double_tap", 1);
         triggerLocalReaction({ x, y }, reactionType);
 
         if (tapCountRef.current >= MAX_TAP_COUNT) {

@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 import { User, UserDetails, UserSettings } from "@/stores/user-store";
 
 import { UsersAPI } from "@/types";
@@ -30,7 +32,7 @@ export async function fetchUserData(params: FetchUserDataParams) {
     const userData = (await res.json()) as User;
     setUser(userData);
   } catch (error) {
-    console.error("Failed to fetch user data:", error);
+    Sentry.logger.error("Failed to fetch user data", { error });
     setError(error instanceof Error ? error.message : "Failed to fetch user data");
     setUser(null);
   }
@@ -60,7 +62,7 @@ export async function fetchUserDetails(params: FetchUserDetailsParams) {
     const userDetailsData = (await res.json()) as UserDetails;
     setUserDetails(userDetailsData);
   } catch (error) {
-    console.error("Failed to fetch user details:", error);
+    Sentry.logger.error("Failed to fetch user details", { error });
     setError(error instanceof Error ? error.message : "Failed to fetch user details");
     setUserDetails(null);
   }
@@ -91,7 +93,7 @@ export async function fetchUserSettings(params: FetchUserSettingsParams) {
     const userSettingsData = (await res.json()) as UserSettings;
     setUserSettings(userSettingsData);
   } catch (error) {
-    console.error("Failed to fetch user settings:", error);
+    Sentry.logger.error("Failed to fetch user settings", { error });
     setError(error instanceof Error ? error.message : "Failed to fetch user settings");
     setUserSettings(null);
   }
@@ -122,7 +124,7 @@ export async function updateUserCountry(params: UpdateUserCountryParams) {
     if (!res.ok) throw new Error(await res.text() || res.statusText);
     return (await res.json()) as UsersAPI.UpdateCountry.Response;
   } catch (error) {
-    console.error("Failed to update user country:", error);
+    Sentry.logger.error("Failed to update user country", { error });
     throw error;
   }
 }
@@ -158,7 +160,7 @@ export async function updateUserDetails(params: UpdateUserDetailsParams) {
     }
     return (await res.json()) as UserDetails;
   } catch (error) {
-    console.error("Failed to update user details:", error);
+    Sentry.logger.error("Failed to update user details", { error });
     throw error;
   }
 }
@@ -184,7 +186,7 @@ export async function updateUserSettings(params: UpdateUserSettingsParams) {
     if (!res.ok) throw new Error(await res.text() || res.statusText);
     return (await res.json()) as UserSettings;
   } catch (error) {
-    console.error("Failed to update user settings:", error);
+    Sentry.logger.error("Failed to update user settings", { error });
     throw error;
   }
 }

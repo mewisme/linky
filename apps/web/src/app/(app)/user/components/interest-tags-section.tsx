@@ -1,5 +1,7 @@
 'use client'
 
+import * as Sentry from "@sentry/nextjs";
+
 import { FIELD_LABELS, useProfileEdit } from '@/components/context-menu/profile/profile-edit-context'
 import {
   IconCheck,
@@ -31,8 +33,8 @@ import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
 import type { ResourcesAPI } from '@/types/resources.types'
 import type { UserDetails } from '@/stores/user-store'
-import { toast } from "@ws/ui/components/ui/sonner";
 import { getInterestTags } from "@/lib/actions/resources/interest-tags";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { trackEvent } from "@/lib/analytics/events/client";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
@@ -63,7 +65,8 @@ export function InterestTagsSection({
         const json = await getInterestTags(new URLSearchParams({ limit: '200' }))
         setAvailableTags(json.data)
       } catch (error) {
-        console.error('Failed to fetch interest tags:', error)
+        Sentry.metrics.count("failed_to_fetch_interest_tags", 1);
+        Sentry.logger.error("Failed to fetch interest tags", { error: error instanceof Error ? error.message : "Unknown error" });
       }
     }
     fetchTags()

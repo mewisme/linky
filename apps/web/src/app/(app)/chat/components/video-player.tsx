@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import * as Sentry from "@sentry/nextjs";
 
+import { useEffect, useRef } from "react";
 interface VideoPlayerProps {
   stream: MediaStream | null;
   muted?: boolean;
@@ -41,7 +42,8 @@ export function VideoPlayer({
               if (onError) {
                 onError(error);
               } else {
-                console.error("Error playing video:", error);
+                Sentry.metrics.count("error_playing_video", 1);
+                Sentry.logger.error("Error playing video", { error: error instanceof Error ? error.message : "Unknown error" });
               }
 
               if (isMobile) {

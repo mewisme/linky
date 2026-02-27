@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { createContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Socket } from "socket.io-client";
 import { createNamespaceSockets, updateToken } from "@/lib/socket/socket";
@@ -46,7 +47,7 @@ interface SocketProviderProps {
 }
 
 export function SocketProvider({ children }: SocketProviderProps) {
-  const { state: { getToken }, auth: { isLoaded } } = useUserContext();
+  const { state: { getToken }, auth: { isLoaded, isSignedIn } } = useUserContext();
   const socketRef = useRef<Socket | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const adminSocketRef = useRef<Socket | null>(null);
@@ -154,7 +155,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       const existingConnectErrorListeners = chatSocket.listeners("connect_error").length;
       if (existingConnectErrorListeners === 0) {
         chatSocket.on("connect_error", (error) => {
-          console.error("[SocketProvider] Connection error:", error);
+          Sentry.logger.error("[SocketProvider] Connection error", { error });
           useSocketStore.getState().setConnectionState("disconnected");
           publishPresence('offline');
           callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
@@ -220,10 +221,17 @@ export function SocketProvider({ children }: SocketProviderProps) {
   }, [isLoaded]);
 
   useEffect(() => {
-    if (isLoaded && !socketRef.current) {
-      initializeSocket();
+    if (isLoaded) {
+      if (isSignedIn && !socketRef.current) {
+        initializeSocket();
+      } else if (!isSignedIn && socketRef.current) {
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
     }
-  }, [isLoaded]);
+  }, [isLoaded, isSignedIn]);
+
 
   useEffect(() => {
     return () => {

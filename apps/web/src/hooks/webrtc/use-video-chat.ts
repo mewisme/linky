@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { toast } from "@ws/ui/components/ui/sonner";
@@ -142,7 +143,7 @@ export function useVideoChat(): UseVideoChatReturn {
           iceServersRef.current = servers;
         }
       } catch (err) {
-        console.error("Failed to fetch ICE servers:", err);
+        Sentry.logger.error("Failed to fetch ICE servers", { error: err });
         if (mounted) {
           actionsRef.current.setError("Failed to initialize connection. Please refresh the page.");
         }
@@ -197,11 +198,11 @@ export function useVideoChat(): UseVideoChatReturn {
             iceRestart: true,
           });
         } catch (err) {
-          console.error("[IceServerCache] Failed to initiate ICE restart after credential refresh:", err);
+          Sentry.logger.error("[IceServerCache] Failed to initiate ICE restart after credential refresh", { error: err });
         }
       }
     } catch (err) {
-      console.error("[IceServerCache] Error refreshing TURN credentials:", err);
+      Sentry.logger.error("[IceServerCache] Error refreshing TURN credentials", { error: err });
     }
   }, [peerConnection, state.connectionStatus, socketSignaling]);
 
@@ -258,7 +259,7 @@ export function useVideoChat(): UseVideoChatReturn {
       currentStatus === "in_call" ||
       currentStatus === "reconnecting";
     if (isInCall && !isSocketHealthy && !isReconnectingRef.current) {
-      console.warn("[SocketHealth] Socket unhealthy during active call");
+      Sentry.logger.warn("[SocketHealth] Socket unhealthy during active call");
       startReconnecting();
     }
   }, [isSocketHealthy, startReconnecting]);
@@ -412,7 +413,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onDisconnect: (reason: string) => {
-        console.warn("[SocketHealth] Socket disconnected:", reason);
+        Sentry.logger.warn("[SocketHealth] Socket disconnected", { reason });
         const currentStatus = connectionStatusRef.current;
         const isInCall =
           currentStatus === "matched" ||
@@ -433,7 +434,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onBackendRestart: () => {
-        console.warn("[BackendRestart] Resetting runtime state due to backend restart");
+        Sentry.logger.warn("[BackendRestart] Resetting runtime state due to backend restart");
         const currentStatus = connectionStatusRef.current;
         const isInCall =
           currentStatus === "matched" ||
@@ -489,7 +490,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
         const localStream = mediaStream.getStream();
         if (!localStream) {
-          console.error("No local stream available for match");
+          Sentry.logger.error("No local stream available for match");
           return;
         }
 
@@ -500,7 +501,7 @@ export function useVideoChat(): UseVideoChatReturn {
               "initial"
             );
           } catch (err) {
-            console.error("ICE servers not available for match:", err);
+            Sentry.logger.error("ICE servers not available for match", { error: err });
             actionsRef.current.setError("Connection configuration not ready. Please try again.");
             return;
           }
@@ -594,7 +595,7 @@ export function useVideoChat(): UseVideoChatReturn {
               sdp: offer,
             });
           } catch (err) {
-            console.error("Error creating offer:", err);
+            Sentry.logger.error("Error creating offer", { error: err instanceof Error ? err.message : "Unknown error" });
             actionsRef.current.setError("Failed to establish connection. Please try again.");
             actionsRef.current.setConnectionStatus("ended");
             recoveryController.stop();
@@ -638,7 +639,7 @@ export function useVideoChat(): UseVideoChatReturn {
         } catch (err) {
           const currentPc = peerConnection.getPeerConnection();
           if (currentPc && currentPc.signalingState !== "closed") {
-            console.error("Error handling signal:", err);
+            Sentry.logger.error("Error handling signal", { error: err instanceof Error ? err.message : "Unknown error" });
             actionsRef.current.setError("Failed to process connection signal. Please try again.");
           }
         }
@@ -801,18 +802,21 @@ export function useVideoChat(): UseVideoChatReturn {
       }
 
       if (!authReady) {
+        Sentry.metrics.count("auth_required", 1);
         actionsRef.current.setError("Authentication required. Please sign in.");
         return;
       }
 
       const token = await getToken();
       if (!token) {
+        Sentry.metrics.count("auth_required", 1);
         actionsRef.current.setError("Authentication required. Please sign in.");
         return;
       }
 
       const socket = socketSignaling.getSocket();
       if (!socket?.connected) {
+        Sentry.metrics.count("socket_not_connected", 1);
         actionsRef.current.setError("Connection not ready. Please wait a moment and try again.");
         toast.error("Connection not ready. Please wait...");
         return;
@@ -820,6 +824,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       const claimed = tabCoordination.claimOwnership(null);
       if (!claimed) {
+        Sentry.metrics.count("tab_ownership_claimed", 1);
         actionsRef.current.setError("Another tab owns the call. Please close other tabs or switch the call.");
         toast.error("Call is active in another tab");
         return;
@@ -835,6 +840,7 @@ export function useVideoChat(): UseVideoChatReturn {
       }
 
       if (iceServersRef.current.length === 0) {
+        Sentry.metrics.count("ice_servers_not_found", 1);
         throw new Error("Failed to obtain ICE servers");
       }
 
@@ -850,7 +856,8 @@ export function useVideoChat(): UseVideoChatReturn {
       const initialize = initializeConnectionRef(peerCallbacks, socketCallbacks as Record<string, (...args: unknown[]) => void>);
       await initialize(stream);
     } catch (err) {
-      console.error("Error starting video chat:", err);
+      Sentry.metrics.count("error_starting_video_chat", 1);
+      Sentry.logger.error("Error starting video chat", { error: err instanceof Error ? err.message : "Unknown error" });
       actionsRef.current.setError(err instanceof Error ? err.message : "Failed to start video chat");
       actionsRef.current.setConnectionStatus("idle");
       tabCoordination.releaseOwnership();
@@ -870,6 +877,7 @@ export function useVideoChat(): UseVideoChatReturn {
   ]);
 
   const skip = useCallback(() => {
+    Sentry.metrics.count("matchmaking_skipped", 1);
     peerConnection.closePeer();
     actionsRef.current.setRemoteStream(null);
     actionsRef.current.clearChatMessages();
@@ -882,6 +890,7 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [peerConnection, socketSignaling, refreshUserProgress]);
 
   const endCall = useCallback(() => {
+    Sentry.metrics.count("call_ended", 1);
     recoveryController.stop();
     socketSignaling.sendEndCall();
     trackEvent({ name: "call_ended" });
@@ -894,12 +903,14 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination]);
 
   const toggleMute = useCallback(() => {
+    Sentry.metrics.count("mute_toggled", 1);
     const newMutedState = mediaStream.toggleMute();
     actionsRef.current.setMuted(newMutedState);
     socketSignaling.sendMuteToggle(newMutedState);
   }, [mediaStream, socketSignaling]);
 
   const toggleVideo = useCallback(() => {
+    Sentry.metrics.count("video_toggled", 1);
     const newVideoOffState = mediaStream.toggleVideo();
     actionsRef.current.setVideoOff(newVideoOffState);
     socketSignaling.sendVideoToggle(newVideoOffState);
@@ -914,6 +925,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const sendMessage = useCallback(
     (draft: ChatMessageDraft) => {
+      Sentry.metrics.count("chat_message_sent", 1);
       const socketId = socketSignaling.getSocketId();
       const timestamp = Date.now();
       const messageText = draft.message?.trim() || null;
@@ -978,6 +990,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const sendTyping = useCallback(
     (isTyping: boolean) => {
+      Sentry.metrics.count("chat_typing", 1);
       socketSignaling.sendChatTyping(isTyping);
     },
     [socketSignaling]
@@ -988,7 +1001,9 @@ export function useVideoChat(): UseVideoChatReturn {
   }, []);
 
   const toggleScreenShare = async () => {
+    Sentry.metrics.count("screen_share_toggled", 1);
     if (isSharingScreen) {
+      Sentry.metrics.count("screen_share_stopped", 1);
       screenShare.stopScreenShare();
       actionsRef.current.setSharingScreen(false);
       actionsRef.current.setScreenStream(null);
@@ -1004,6 +1019,7 @@ export function useVideoChat(): UseVideoChatReturn {
       }
     } else {
       try {
+        Sentry.metrics.count("screen_share_started", 1);
         const stream = await screenShare.startScreenShare();
         const screenTrack = stream.getVideoTracks()[0];
 
@@ -1029,6 +1045,7 @@ export function useVideoChat(): UseVideoChatReturn {
           socketSignaling.sendScreenShareToggle(true, stream.id);
         }
       } catch (error) {
+        Sentry.metrics.count("screen_share_failed", 1);
         actionsRef.current.setSharingScreen(false);
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         if (errorMessage !== "Screen sharing cancelled or failed") {

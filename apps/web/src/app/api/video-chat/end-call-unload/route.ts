@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in POST /api/video-chat/end-call-unload:", error);
+    Sentry.logger.error("Error in POST /api/video-chat/end-call-unload", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to proxy end-call-unload" },
       { status: 500 }

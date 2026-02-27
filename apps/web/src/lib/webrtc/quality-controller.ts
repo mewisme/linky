@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 import {
   applyEncodingToSender,
   degradeQuality,
@@ -41,7 +43,7 @@ export class QualityController {
     isMobile: boolean
   ): void {
     if (this.isInitialized) {
-      console.warn("[QualityController] Already initialized");
+      Sentry.logger.warn("[QualityController] Already initialized");
       return;
     }
 
@@ -56,7 +58,7 @@ export class QualityController {
 
     this.setupVisibilityListener();
 
-    console.info("[QualityController] Initialized with mobile:", isMobile);
+    Sentry.logger.info("[QualityController] Initialized with mobile", { isMobile });
   }
 
   destroy(): void {
@@ -76,7 +78,7 @@ export class QualityController {
     this.currentTier = "high";
     this.degradationSteps = 0;
 
-    console.info("[QualityController] Destroyed");
+    Sentry.logger.info("[QualityController] Destroyed");
   }
 
   onNetworkDegraded(): void {
@@ -95,7 +97,7 @@ export class QualityController {
       this.degradationTimeoutId = null;
     }, DEGRADATION_DELAY_MS);
 
-    console.info("[QualityController] Network degradation detected, scheduled quality reduction");
+    Sentry.logger.info("[QualityController] Network degradation detected, scheduled quality reduction");
   }
 
   onNetworkRecovered(): void {
@@ -114,7 +116,7 @@ export class QualityController {
       this.recoveryTimeoutId = null;
     }, RECOVERY_DELAY_MS);
 
-    console.info("[QualityController] Network recovery detected, scheduled quality restoration");
+    Sentry.logger.info("[QualityController] Network recovery detected, scheduled quality restoration");
   }
 
   onNetworkQualityChange(quality: NetworkQuality): void {
@@ -156,7 +158,7 @@ export class QualityController {
     }
 
     await this.applyQualityTier(newTier);
-    console.warn("[QualityController] Forced minimal quality");
+    Sentry.logger.warn("[QualityController] Forced minimal quality");
   }
 
   private async degradeVideoQuality(): Promise<void> {
@@ -165,7 +167,7 @@ export class QualityController {
     }
 
     if (this.degradationSteps >= MAX_DEGRADATION_STEPS) {
-      console.warn("[QualityController] Maximum degradation steps reached");
+      Sentry.logger.warn("[QualityController] Maximum degradation steps reached");
       return;
     }
 
@@ -177,12 +179,7 @@ export class QualityController {
     await this.applyQualityTier(newTier);
     this.degradationSteps++;
 
-    console.warn(
-      "[QualityController] Degraded video quality to:",
-      newTier,
-      "Steps:",
-      this.degradationSteps
-    );
+    Sentry.logger.warn("[QualityController] Degraded video quality", { tier: newTier, steps: this.degradationSteps });
   }
 
   private async restoreVideoQuality(): Promise<void> {
@@ -202,12 +199,7 @@ export class QualityController {
     await this.applyQualityTier(newTier);
     this.degradationSteps = Math.max(0, this.degradationSteps - 1);
 
-    console.info(
-      "[QualityController] Restored video quality to:",
-      newTier,
-      "Steps:",
-      this.degradationSteps
-    );
+    Sentry.logger.info("[QualityController] Restored video quality", { tier: newTier, steps: this.degradationSteps });
   }
 
   private async applyQualityTier(tier: QualityTier): Promise<void> {
@@ -243,10 +235,10 @@ export class QualityController {
       this.isBackgrounded = document.hidden;
 
       if (wasBackgrounded && !this.isBackgrounded) {
-        console.info("[QualityController] App foregrounded - resuming quality control");
+        Sentry.logger.info("[QualityController] App foregrounded - resuming quality control");
         this.onAppForegrounded();
       } else if (!wasBackgrounded && this.isBackgrounded) {
-        console.info("[QualityController] App backgrounded - pausing quality adjustments");
+        Sentry.logger.info("[QualityController] App backgrounded - pausing quality adjustments");
         this.onAppBackgrounded();
       }
     };

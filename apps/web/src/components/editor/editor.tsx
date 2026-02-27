@@ -1,6 +1,7 @@
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/shadcn/style.css";
 
+import * as Sentry from "@sentry/nextjs";
 import { useCreateBlockNote, useEditorChange } from "@blocknote/react";
 import { useEffect, useRef } from "react";
 
@@ -100,7 +101,7 @@ export function Editor({ className, value = '', onChange, editable = true }: Edi
           }, 0);
         }
       } catch (error) {
-        console.error('Failed to parse markdown on paste:', error);
+        Sentry.logger.error('Failed to parse markdown on paste', { error });
       }
     };
 

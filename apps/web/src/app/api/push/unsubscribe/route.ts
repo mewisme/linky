@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import { publicEnv } from "@/env/public-env";
@@ -36,7 +37,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in DELETE /api/push/unsubscribe:", error);
+    Sentry.logger.error("Error in DELETE /api/push/unsubscribe", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to unsubscribe from push" },
       { status: 500 }

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
@@ -33,7 +34,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in /api/users/me/country:", error);
+    Sentry.logger.error("Error in /api/users/me/country", { error });
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to update country" },
       { status: 500 }

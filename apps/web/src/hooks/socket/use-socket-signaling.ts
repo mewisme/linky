@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useCallback, useEffect, useMemo, type MutableRefObject } from "react";
+import * as Sentry from "@sentry/nextjs";
+import { useRef, useCallback, useEffect, useMemo, type RefObject } from "react";
 import { publishPresence } from "@/lib/mqtt/client";
 import { type SignalData } from "@/lib/socket/socket";
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/types/chat-message.types";
@@ -59,8 +60,8 @@ export interface UseSocketSignalingReturn {
   getSocketId: () => string | null;
   isSocketHealthy: () => boolean;
   requestResync: () => void;
-  socketRef: MutableRefObject<Socket | null>;
-  currentSocketIdRef: MutableRefObject<string | null>;
+  socketRef: RefObject<Socket | null>;
+  currentSocketIdRef: RefObject<string | null>;
 }
 
 export function useSocketSignaling(): UseSocketSignalingReturn {
@@ -162,7 +163,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     socket.on("error", (data) => {
-      console.error("Socket error:", data.message);
+      Sentry.logger.error("Socket error", { message: data.message });
       publishPresence('offline');
       callbacks.onError(data);
     });
@@ -187,7 +188,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   const initializeSocket = useCallback(
     async (callbacks: SocketCallbacks): Promise<void> => {
       if (!socketRef.current) {
-        console.error("Socket not available from provider");
+        Sentry.logger.error("Socket not available from provider");
         throw new Error("Socket not available");
       }
 

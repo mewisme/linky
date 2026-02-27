@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 export interface VideoHealthMetrics {
   framesReceived: number;
   framesDropped: number;
@@ -29,7 +31,7 @@ export class VideoHealthTracker {
 
   startTracking(pc: RTCPeerConnection, callbacks: VideoHealthCallbacks): void {
     if (this.isRunning) {
-      console.warn("[VideoHealthTracker] Already tracking");
+      Sentry.logger.warn("[VideoHealthTracker] Already tracking");
       return;
     }
 
@@ -46,7 +48,7 @@ export class VideoHealthTracker {
       this.checkVideoHealth();
     }, POLL_INTERVAL_MS);
 
-    console.info("[VideoHealthTracker] Started tracking");
+    Sentry.logger.info("[VideoHealthTracker] Started tracking");
   }
 
   stopTracking(): void {
@@ -69,7 +71,7 @@ export class VideoHealthTracker {
     this.currentFrameRate = 0;
     this.lastMetrics = null;
 
-    console.info("[VideoHealthTracker] Stopped tracking");
+    Sentry.logger.info("[VideoHealthTracker] Stopped tracking");
   }
 
   isVideoStalled(): boolean {
@@ -95,7 +97,7 @@ export class VideoHealthTracker {
       this.detectStall(metrics);
       this.updateFrameRate(metrics);
     } catch (err) {
-      console.warn("[VideoHealthTracker] Failed to check video health:", err);
+      Sentry.logger.warn("[VideoHealthTracker] Failed to check video health", { error: err });
     }
   }
 
@@ -125,7 +127,7 @@ export class VideoHealthTracker {
         timestamp: Date.now(),
       };
     } catch (err) {
-      console.warn("[VideoHealthTracker] Failed to collect video metrics:", err);
+      Sentry.logger.warn("[VideoHealthTracker] Failed to collect video metrics", { error: err });
       return null;
     }
   }
@@ -142,7 +144,7 @@ export class VideoHealthTracker {
 
       if (this.stallCount >= STALL_THRESHOLD_POLLS && !this.isStalled) {
         this.isStalled = true;
-        console.warn("[VideoHealthTracker] Video stalled detected");
+        Sentry.logger.warn("[VideoHealthTracker] Video stalled detected");
         this.callbacks.onVideoStalled();
       }
     } else {
@@ -150,7 +152,7 @@ export class VideoHealthTracker {
 
       if (this.isStalled) {
         this.isStalled = false;
-        console.info("[VideoHealthTracker] Video recovered from stall");
+        Sentry.logger.info("[VideoHealthTracker] Video recovered from stall");
         this.callbacks.onVideoRecovered();
       }
     }

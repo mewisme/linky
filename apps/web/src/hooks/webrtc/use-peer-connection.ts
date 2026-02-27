@@ -1,5 +1,7 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+
 import { closePeerConnection, createPeerConnection } from "@/lib/webrtc/webrtc";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -58,7 +60,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
   const initializePeerConnection = useCallback(
     (localStream: MediaStream, callbacks: PeerConnectionCallbacks, servers?: RTCIceServer[]): RTCPeerConnection => {
       if (initializingRef.current) {
-        console.warn("PeerConnection initialization already in progress, skipping");
+        Sentry.logger.warn("PeerConnection initialization already in progress, skipping");
         return pcRef.current!;
       }
 
@@ -88,7 +90,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
       });
 
       pc.ontrack = (event) => {
-        console.info("Received remote track:", event.track.kind);
+        Sentry.logger.info("Received remote track", { track: event.track.kind });
         const [remoteStream] = event.streams;
         if (remoteStream && callbacksRef.current) {
           callbacksRef.current.onTrack(remoteStream);
@@ -104,7 +106,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
       pc.onconnectionstatechange = () => {
         if (pcRef.current !== pc) return;
 
-        console.info("Peer connection state changed:", pc.connectionState);
+        Sentry.logger.info("Peer connection state changed", { state: pc.connectionState });
         if (callbacksRef.current) {
           callbacksRef.current.onConnectionStateChange(pc.connectionState);
         }
@@ -113,7 +115,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
       pc.oniceconnectionstatechange = () => {
         if (pcRef.current !== pc) return;
 
-        console.info("ICE connection state changed:", pc.iceConnectionState);
+        Sentry.logger.info("ICE connection state changed", { state: pc.iceConnectionState });
         if (callbacksRef.current) {
           callbacksRef.current.onIceConnectionStateChange(pc.iceConnectionState);
         }
@@ -121,7 +123,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
 
       pc.onicegatheringstatechange = () => {
         if (pcRef.current !== pc) return;
-        console.info("ICE gathering state changed:", pc.iceGatheringState);
+        Sentry.logger.info("ICE gathering state changed", { state: pc.iceGatheringState });
       };
 
       initializingRef.current = false;
@@ -148,7 +150,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     await pc.setLocalDescription(offer);
 
     if (options?.iceRestart) {
-      console.info("ICE restart offer created");
+      Sentry.logger.info("ICE restart offer created");
       remoteDescriptionSetRef.current = false;
     }
 
@@ -169,7 +171,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     remoteDescriptionSetRef.current = true;
 
     if (isIceRestart) {
-      console.info("Processing ICE restart offer - clearing old ICE candidates");
+      Sentry.logger.info("Processing ICE restart offer - clearing old ICE candidates");
       pendingIceCandidatesRef.current = [];
       iceRestartInProgressRef.current = true;
     }
@@ -178,9 +180,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     for (const candidate of pendingCandidates) {
       try {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        console.info("Added buffered ICE candidate");
+        Sentry.logger.info("Added buffered ICE candidate");
       } catch (err) {
-        console.warn("Failed to add buffered ICE candidate:", err);
+        Sentry.logger.warn("Failed to add buffered ICE candidate", { error: err instanceof Error ? err.message : "Unknown error" });
       }
     }
 
@@ -204,7 +206,7 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     remoteDescriptionSetRef.current = true;
 
     if (isIceRestart) {
-      console.info("ICE restart answer processed");
+      Sentry.logger.info("ICE restart answer processed");
       iceRestartInProgressRef.current = false;
     }
 
@@ -212,9 +214,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     for (const candidate of pendingCandidates) {
       try {
         await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        console.info("Added buffered ICE candidate");
+        Sentry.logger.info("Added buffered ICE candidate");
       } catch (err) {
-        console.warn("Failed to add buffered ICE candidate:", err);
+        Sentry.logger.warn("Failed to add buffered ICE candidate", { error: err instanceof Error ? err.message : "Unknown error" });
       }
     }
   }, []);
@@ -222,27 +224,27 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
   const addIceCandidate = useCallback(async (candidate: RTCIceCandidateInit): Promise<void> => {
     const pc = pcRef.current;
     if (!pc) {
-      console.warn("ICE candidate received but peer connection not initialized, buffering");
+      Sentry.logger.warn("ICE candidate received but peer connection not initialized, buffering");
       pendingIceCandidatesRef.current.push(candidate);
       return;
     }
 
     if (pc.signalingState === "closed") {
-      console.warn("ICE candidate received but peer connection is closed, ignoring");
+      Sentry.logger.warn("ICE candidate received but peer connection is closed, ignoring");
       return;
     }
 
     if (!remoteDescriptionSetRef.current) {
-      console.info("ICE candidate received before remote description, buffering");
+      Sentry.logger.info("ICE candidate received before remote description, buffering");
       pendingIceCandidatesRef.current.push(candidate);
       return;
     }
 
     try {
       await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      console.info("ICE candidate added successfully");
+      Sentry.logger.info("ICE candidate added successfully");
     } catch (err) {
-      console.warn("Failed to add ICE candidate:", err);
+      Sentry.logger.warn("Failed to add ICE candidate", { error: err instanceof Error ? err.message : "Unknown error" });
     }
   }, []);
 
@@ -266,9 +268,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
         iceCandidatePoolSize: pc.getConfiguration().iceCandidatePoolSize,
       });
       iceServersRef.current = newIceServers;
-      console.info("ICE servers updated via setConfiguration");
+      Sentry.logger.info("ICE servers updated via setConfiguration");
     } catch (err) {
-      console.error("Failed to update ICE servers:", err);
+      Sentry.logger.error("Failed to update ICE servers", { error: err instanceof Error ? err.message : "Unknown error" });
       throw err;
     }
   }, []);
@@ -284,19 +286,20 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     }
 
     if (iceRestartInProgressRef.current) {
-      console.warn("ICE restart already in progress, skipping");
+      Sentry.logger.warn("ICE restart already in progress, skipping");
       throw new Error("ICE restart already in progress");
     }
 
     iceRestartInProgressRef.current = true;
-    console.info("Starting ICE restart");
+    Sentry.logger.info("Starting ICE restart");
 
     try {
       const offer = await createOffer({ iceRestart: true });
       return offer;
-    } catch (err) {
+    } catch (error) {
       iceRestartInProgressRef.current = false;
-      throw err;
+      Sentry.logger.error("Failed to create offer during ICE restart", { error });
+      throw error;
     }
   }, [createOffer]);
 

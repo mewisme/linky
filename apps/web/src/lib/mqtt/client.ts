@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import mqtt, { MqttClient } from 'mqtt'
 
 import { publicEnv } from "@/env/public-env";
@@ -18,7 +19,7 @@ export function createMqttClient(userId: string): MqttClient {
 
   const mqttFullUrl = `wss://${mqttUrl}:${mqttPort}/mqtt`
 
-  console.info(`Connecting to MQTT broker at ${mqttFullUrl}`)
+  Sentry.logger.info(`Connecting to MQTT broker at ${mqttFullUrl}`)
 
   client = mqtt.connect(mqttFullUrl, {
     clientId: userId,
@@ -34,17 +35,17 @@ export function createMqttClient(userId: string): MqttClient {
   })
 
   client.on('connect', () => {
-    console.info('MQTT client connected')
+    Sentry.logger.info('MQTT client connected')
     publishPresence('online')
   })
 
   client.on('close', () => {
-    console.info('MQTT client closed')
+    Sentry.logger.info('MQTT client closed')
     client = null
   })
 
   client.on('error', (error) => {
-    console.error('MQTT client error:', error)
+    Sentry.logger.error('MQTT client error', { error })
   })
 
   return client
@@ -59,7 +60,7 @@ export function disconnectMqttClient() {
 export function publishPresence(state: string) {
   if (!client) return;
 
-  console.info(`Publishing presence for ${client.options.clientId} with state ${state}`)
+  Sentry.logger.info(`Publishing presence for ${client.options.clientId} with state ${state}`)
 
   client.publish(
     `presence/${client.options.clientId}`,

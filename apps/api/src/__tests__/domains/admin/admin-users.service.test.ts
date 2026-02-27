@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  deleteUser,
   getUser,
+  hardDeleteUser,
   listUsers,
   patchAdminUser,
+  softDeleteUser,
   updateAdminUser,
 } from "../../../domains/admin/service/admin-users.service.js";
 
@@ -13,6 +14,8 @@ const mockGetAdminUsersUnified = vi.fn();
 const mockGetUserById = vi.fn();
 const mockUpdateUser = vi.fn();
 const mockPatchUser = vi.fn();
+const mockSoftDeleteUserById = vi.fn().mockResolvedValue(undefined);
+const mockHardDeleteUserById = vi.fn().mockResolvedValue(undefined);
 const mockGetOrSet = vi.fn();
 const mockInvalidate = vi.fn().mockResolvedValue(undefined);
 const mockInvalidateByPrefix = vi.fn().mockResolvedValue(undefined);
@@ -22,6 +25,8 @@ vi.mock("../../../infra/supabase/repositories/index.js", () => ({
   getUserById: (...args: unknown[]) => mockGetUserById(...args),
   updateUser: (...args: unknown[]) => mockUpdateUser(...args),
   patchUser: (...args: unknown[]) => mockPatchUser(...args),
+  softDeleteUserById: (...args: unknown[]) => mockSoftDeleteUserById(...args),
+  hardDeleteUserById: (...args: unknown[]) => mockHardDeleteUserById(...args),
 }));
 
 vi.mock("../../../infra/redis/cache/index.js", () => ({
@@ -147,8 +152,8 @@ describe("patchAdminUser", () => {
   });
 });
 
-describe("deleteUser", () => {
-  it("calls Clerk deleteUser only and does not update database", async () => {
+describe("softDeleteUser", () => {
+  it("calls softDeleteUserById and invalidates caches", async () => {
     const user = {
       id: "u1",
       clerk_user_id: "clerk_abc",
@@ -156,22 +161,22 @@ describe("deleteUser", () => {
       role: "member",
     };
     mockGetUserById.mockResolvedValue(user);
-    mockClerkDeleteUser.mockResolvedValue(undefined);
 
-    await deleteUser("u1");
+    await softDeleteUser("u1");
 
     expect(mockGetUserById).toHaveBeenCalledWith("u1");
-    expect(mockClerkDeleteUser).toHaveBeenCalledWith("clerk_abc");
-    expect(mockUpdateUser).not.toHaveBeenCalled();
-    expect(mockPatchUser).not.toHaveBeenCalled();
-    expect(mockInvalidateByPrefix).not.toHaveBeenCalled();
+    expect(mockSoftDeleteUserById).toHaveBeenCalledWith("u1");
+    expect(mockInvalidateByPrefix).toHaveBeenCalledWith("admin:users:");
+    expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+    expect(mockClerkDeleteUser).not.toHaveBeenCalled();
+    expect(mockHardDeleteUserById).not.toHaveBeenCalled();
   });
 
   it("throws when user not found", async () => {
     mockGetUserById.mockResolvedValue(null);
 
-    await expect(deleteUser("u1")).rejects.toThrow("User not found");
-    expect(mockClerkDeleteUser).not.toHaveBeenCalled();
+    await expect(softDeleteUser("u1")).rejects.toThrow("User not found");
+    expect(mockSoftDeleteUserById).not.toHaveBeenCalled();
   });
 
   it("throws when user already deleted", async () => {
@@ -182,7 +187,36 @@ describe("deleteUser", () => {
       role: "member",
     });
 
-    await expect(deleteUser("u1")).rejects.toThrow("User already deleted");
+    await expect(softDeleteUser("u1")).rejects.toThrow("User already deleted");
+    expect(mockSoftDeleteUserById).not.toHaveBeenCalled();
+  });
+});
+
+describe("hardDeleteUser", () => {
+  it("calls hardDeleteUserById then Clerk deleteUser and invalidates caches", async () => {
+    const user = {
+      id: "u1",
+      clerk_user_id: "clerk_abc",
+      deleted: false,
+      role: "member",
+    };
+    mockGetUserById.mockResolvedValue(user);
+    mockClerkDeleteUser.mockResolvedValue(undefined);
+
+    await hardDeleteUser("u1");
+
+    expect(mockGetUserById).toHaveBeenCalledWith("u1");
+    expect(mockHardDeleteUserById).toHaveBeenCalledWith("u1");
+    expect(mockClerkDeleteUser).toHaveBeenCalledWith("clerk_abc");
+    expect(mockInvalidateByPrefix).toHaveBeenCalledWith("admin:users:");
+    expect(mockInvalidate).toHaveBeenCalledWith("user:profile:u1");
+  });
+
+  it("throws when user not found", async () => {
+    mockGetUserById.mockResolvedValue(null);
+
+    await expect(hardDeleteUser("u1")).rejects.toThrow("User not found");
+    expect(mockHardDeleteUserById).not.toHaveBeenCalled();
     expect(mockClerkDeleteUser).not.toHaveBeenCalled();
   });
 
@@ -194,7 +228,21 @@ describe("deleteUser", () => {
       role: "admin",
     });
 
-    await expect(deleteUser("u1")).rejects.toThrow("Admin users cannot be deleted");
+    await expect(hardDeleteUser("u1")).rejects.toThrow("Admin users cannot be deleted");
+    expect(mockHardDeleteUserById).not.toHaveBeenCalled();
+    expect(mockClerkDeleteUser).not.toHaveBeenCalled();
+  });
+
+  it("throws when user is superadmin", async () => {
+    mockGetUserById.mockResolvedValue({
+      id: "u1",
+      clerk_user_id: "clerk_abc",
+      deleted: false,
+      role: "superadmin",
+    });
+
+    await expect(hardDeleteUser("u1")).rejects.toThrow("Admin users cannot be deleted");
+    expect(mockHardDeleteUserById).not.toHaveBeenCalled();
     expect(mockClerkDeleteUser).not.toHaveBeenCalled();
   });
 });

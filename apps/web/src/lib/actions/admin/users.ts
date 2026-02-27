@@ -29,8 +29,19 @@ export async function updateAdminUser(
   });
 }
 
-export async function deleteAdminUser(id: string): Promise<AdminAPI.DeleteUser.Response> {
-  return withSentryAction("deleteAdminUser", async () => {
+export async function softDeleteAdminUser(id: string): Promise<AdminAPI.PatchUser.Response> {
+  return withSentryAction("softDeleteAdminUser", async () => {
+    trackEventServer({ name: 'api_admin_users_id_patch', properties: { id } });
+    return serverFetch(backendUrl.admin.userById(id), {
+      method: 'PATCH',
+      body: JSON.stringify({ deleted: true, deleted_at: new Date().toISOString() }),
+      token: true,
+    });
+  });
+}
+
+export async function hardDeleteAdminUser(id: string): Promise<AdminAPI.DeleteUser.Response> {
+  return withSentryAction("hardDeleteAdminUser", async () => {
     trackEventServer({ name: 'api_admin_users_id_delete', properties: { id } });
     return serverFetch(backendUrl.admin.userById(id), {
       method: 'DELETE',

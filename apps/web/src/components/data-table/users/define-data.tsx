@@ -17,8 +17,10 @@ import { ActionsButton, type ActionItem } from '@/components/common/actions-butt
 import { memo, useMemo } from 'react';
 
 export interface RowCallbacks {
+  currentUserRole?: AdminAPI.UserRole
   onSelectRole?: (user: AdminAPI.User, role: AdminAPI.UserRole) => void
-  onDelete: (user: AdminAPI.User) => void
+  onSoftDelete?: (user: AdminAPI.User) => void
+  onHardDelete?: (user: AdminAPI.User) => void
   onRestore?: (user: AdminAPI.User) => void
   onEmbeddingSync?: (user: AdminAPI.User) => void
   onCompareEmbeddings?: (user: AdminAPI.User) => void
@@ -70,33 +72,35 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
         },
       },
       { type: 'separator' },
-      {
-        type: 'radio-group',
-        label: 'Select role',
-        value: user.role,
-        icon: <IconShieldLock className="size-4" />,
-        onValueChange: (value) => callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole),
-        options: [
-          {
-            value: 'admin', label: 'Admin',
-            drawerItemLabel: 'Set as Admin',
-            dropdownItemLabel: 'Set as Admin',
+      ...(user.role !== 'superadmin'
+        ? [{
+            type: 'radio-group' as const,
+            label: 'Select role',
+            value: user.role,
             icon: <IconShieldLock className="size-4" />,
-            disabled: user.role === 'admin'
-          },
-          {
-            value: 'member', label: 'Member',
-            drawerItemLabel: 'Set as Member',
-            dropdownItemLabel: 'Set as Member',
-            icon: <IconUserPlus className="size-4" />,
-            disabled: user.role === 'member'
-          },
-        ],
-      },
+            onValueChange: (value) => callbacks?.onSelectRole?.(user, value as AdminAPI.UserRole),
+            options: [
+              {
+                value: 'admin', label: 'Admin',
+                drawerItemLabel: 'Set as Admin',
+                dropdownItemLabel: 'Set as Admin',
+                icon: <IconShieldLock className="size-4" />,
+                disabled: user.role === 'admin'
+              },
+              {
+                value: 'member', label: 'Member',
+                drawerItemLabel: 'Set as Member',
+                dropdownItemLabel: 'Set as Member',
+                icon: <IconUserPlus className="size-4" />,
+                disabled: user.role === 'member'
+              },
+            ],
+          }]
+        : []),
       { type: 'separator' },
     ];
 
-    if (isDeleted && callbacks?.onRestore) {
+    if (user.role !== 'superadmin' && isDeleted && callbacks?.onRestore) {
       items.push({
         type: 'item',
         label: 'Restore user',
@@ -139,23 +143,41 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
       }
     }
 
-    if (!isDeleted) {
+    if (!isDeleted && user.role !== 'superadmin') {
       items.push({ type: 'separator' });
-      items.push({
-        type: 'item',
-        label: 'Delete user',
-        icon: <IconTrash className="size-4" />,
-        onClick: () => callbacks?.onDelete(user),
-        variant: 'destructive',
-        testId: 'admin-user-delete-button',
-        confirmAction: {
-          title: 'Are you sure?',
-          description: 'This action cannot be undone.',
-          confirmLabel: 'Yes, delete',
-          cancelLabel: 'No, go back',
+      if (callbacks?.onSoftDelete) {
+        items.push({
+          type: 'item',
+          label: 'Soft Delete',
+          icon: <IconTrash className="size-4" />,
+          onClick: () => callbacks.onSoftDelete(user),
+          testId: 'admin-user-soft-delete-button',
+          confirmAction: {
+            title: 'Soft delete user?',
+            description: 'The user will be marked as deleted and hidden from active lists. They can be restored later.',
+            confirmLabel: 'Yes, soft delete',
+            cancelLabel: 'Cancel',
+            variant: 'default',
+          },
+        });
+      }
+      if (callbacks?.currentUserRole === 'superadmin' && callbacks?.onHardDelete) {
+        items.push({
+          type: 'item',
+          label: 'Hard Delete',
+          icon: <IconTrash className="size-4" />,
+          onClick: () => callbacks.onHardDelete(user),
           variant: 'destructive',
-        },
-      });
+          testId: 'admin-user-hard-delete-button',
+          confirmAction: {
+            title: 'Permanently delete user?',
+            description: 'This will remove the user from the database and Clerk. This action cannot be undone.',
+            confirmLabel: 'Yes, delete permanently',
+            cancelLabel: 'Cancel',
+            variant: 'destructive',
+          },
+        });
+      }
     }
 
     return items;
@@ -230,7 +252,17 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<User>[] => [
   {
     accessorKey: "role",
     header: "Role",
-    cell: ({ row }) => <div>{row.getValue("role")}</div>,
+    cell: ({ row }) => {
+      const role = row.getValue("role") as AdminAPI.UserRole;
+      if (role === 'superadmin') {
+        return (
+          <Badge variant="secondary" className="font-mono text-xs">
+            Superadmin (protected)
+          </Badge>
+        );
+      }
+      return <div>{role}</div>;
+    },
   },
   {
     accessorKey: "level",

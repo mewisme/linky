@@ -2,7 +2,9 @@ import type { AdminUnifiedUser, AdminUserUpdate } from "@/domains/admin/types/ad
 import {
   getAdminUsersUnified,
   getUserById,
+  hardDeleteUserById,
   patchUser,
+  softDeleteUserById,
   updateUser,
 } from "@/infra/supabase/repositories/index.js";
 import { getOrSet, invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
@@ -13,11 +15,13 @@ import { calculateLevelFromExp } from "@/logic/level-from-exp.js";
 import { clerk } from "@/infra/clerk/client.js";
 import { hashFilters } from "@/infra/redis/cache/hash.js";
 
+type UserRole = "member" | "admin" | "superadmin";
+
 export async function listUsers(params: {
   getAll: boolean;
   page: number;
   limit: number;
-  role?: "admin" | "member";
+  role?: UserRole;
   deleted?: boolean;
   search?: string;
 }): Promise<{ data: AdminUnifiedUser[]; count: number | null }> {
@@ -25,7 +29,7 @@ export async function listUsers(params: {
     getAll: params.getAll,
     page: params.page,
     limit: params.limit,
-    role: params.role,
+    role: params.role === "admin" || params.role === "member" || params.role === "superadmin" ? params.role : undefined,
     deleted: params.deleted,
     search: params.search,
   };
@@ -45,7 +49,7 @@ export async function listUsers(params: {
   );
 
   const enriched: AdminUnifiedUser[] = (raw.data || [])
-    .filter((row): row is typeof row & { user_id: string; clerk_user_id: string; role: "admin" | "member"; created_at: string; updated_at: string } =>
+    .filter((row): row is typeof row & { user_id: string; clerk_user_id: string; role: UserRole; created_at: string; updated_at: string } =>
       row.user_id != null && row.clerk_user_id != null && row.role != null && row.created_at != null && row.updated_at != null
     )
     .map((row) => {
@@ -114,7 +118,7 @@ export async function patchAdminUser(id: string, userData: Partial<AdminUserUpda
   return updated;
 }
 
-export async function deleteUser(id: string): Promise<void> {
+export async function softDeleteUser(id: string): Promise<void> {
   const user = await getUser(id);
   if (!user) {
     throw new Error("User not found");
@@ -122,9 +126,25 @@ export async function deleteUser(id: string): Promise<void> {
   if (user.deleted) {
     throw new Error("User already deleted");
   }
-  if (user.role === "admin") {
+  await softDeleteUserById(id);
+  await Promise.allSettled([
+    invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
+    invalidate(REDIS_CACHE_KEYS.userProfile(id)),
+  ]);
+}
+
+export async function hardDeleteUser(id: string): Promise<void> {
+  const user = await getUser(id);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  if (user.role === "admin" || user.role === "superadmin") {
     throw new Error("Admin users cannot be deleted");
   }
-
+  await hardDeleteUserById(id);
   await clerk.users.deleteUser(user.clerk_user_id);
+  await Promise.allSettled([
+    invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
+    invalidate(REDIS_CACHE_KEYS.userProfile(id)),
+  ]);
 }

@@ -9,7 +9,7 @@ const logger = createLogger("infra:supabase:repositories:admin-users");
 export interface GetAdminUsersUnifiedOptions {
   page?: number;
   limit?: number;
-  role?: "admin" | "member";
+  role?: "admin" | "member" | "superadmin";
   deleted?: boolean;
   search?: string;
   getAll?: boolean;
@@ -31,7 +31,7 @@ export async function getAdminUsersUnified(
     .from("admin_users_unified")
     .select("*", { count: "exact" });
 
-  if (role === "admin" || role === "member") {
+  if (role === "admin" || role === "member" || role === "superadmin") {
     query = query.eq("role", role);
   }
 

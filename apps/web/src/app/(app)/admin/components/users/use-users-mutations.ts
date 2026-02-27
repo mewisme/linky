@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
 import type { AdminAPI } from '@/types/admin.types';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { deleteAdminUser, restoreAdminUser, updateAdminUser } from '@/lib/actions/admin/users';
+import { hardDeleteAdminUser, restoreAdminUser, softDeleteAdminUser, updateAdminUser } from '@/lib/actions/admin/users';
 import { syncEmbeddings } from '@/lib/actions/admin/embeddings';
 
 interface UseUsersMutationsParams {
@@ -34,14 +34,25 @@ export function useUsersMutations({ refetch }: UseUsersMutationsParams) {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteAdminUser(id),
+  const softDeleteMutation = useMutation({
+    mutationFn: (id: string) => softDeleteAdminUser(id),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success('User deleted successfully');
+      toast.success('User soft deleted successfully');
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during delete');
+      toast.error(error.message || 'An error occurred during soft delete');
+    },
+  });
+
+  const hardDeleteMutation = useMutation({
+    mutationFn: (id: string) => hardDeleteAdminUser(id),
+    onSuccess: async () => {
+      await invalidateAndRefetch();
+      toast.success('User permanently deleted');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'An error occurred during hard delete');
     },
   });
 
@@ -72,7 +83,8 @@ export function useUsersMutations({ refetch }: UseUsersMutationsParams) {
 
   return {
     updateMutation,
-    deleteMutation,
+    softDeleteMutation,
+    hardDeleteMutation,
     restoreMutation,
     embeddingSyncMutation,
   };

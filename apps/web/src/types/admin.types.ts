@@ -3,7 +3,7 @@
 import type { ApiError } from "./api.types";
 
 export namespace AdminAPI {
-  export type UserRole = "admin" | "member";
+  export type UserRole = "admin" | "member" | "superadmin";
   export type PresenceState = "offline" | "online" | "available" | "matching" | "in_call" | "idle";
 
   export interface UserDetails {
@@ -94,6 +94,8 @@ export namespace AdminAPI {
       avatar_url?: string | null;
       clerk_user_id?: string;
       created_at?: string;
+      deleted?: boolean;
+      deleted_at?: string | null;
       email?: string | null;
       first_name?: string | null;
       last_name?: string | null;
@@ -247,7 +249,7 @@ export namespace AdminAPI {
       last_name: string | null;
       avatar_url: string | null;
       country: string | null;
-      role: "admin" | "member";
+      role: UserRole;
       created_at: string;
       updated_at: string;
     }

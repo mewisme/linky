@@ -36,11 +36,13 @@ export interface AdminUserEmbeddingMetadata {
   updated_at: string;
 }
 
+export type AdminRole = "admin" | "member" | "superadmin";
+
 export interface AdminUnifiedUser {
   id: string;
   clerk_user_id: string;
   email: string | null;
-  role: "admin" | "member";
+  role: AdminRole;
   deleted: boolean | null;
   created_at: string;
   first_name: string | null;

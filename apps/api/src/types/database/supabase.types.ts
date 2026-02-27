@@ -166,7 +166,7 @@ export type Database = {
       changelogs: {
         Row: {
           created_at: string
-          created_by: string
+          created_by: string | null
           id: string
           is_published: boolean
           order: number | null
@@ -178,7 +178,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          created_by: string
+          created_by?: string | null
           id?: string
           is_published?: boolean
           order?: number | null
@@ -190,7 +190,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           id?: string
           is_published?: boolean
           order?: number | null
@@ -2064,7 +2064,7 @@ export type Database = {
       }
     }
     Enums: {
-      user_role: "admin" | "member"
+      user_role: "admin" | "member" | "superadmin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2192,7 +2192,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["admin", "member"],
+      user_role: ["admin", "member", "superadmin"],
     },
   },
 } as const

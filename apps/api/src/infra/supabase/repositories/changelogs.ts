@@ -30,7 +30,7 @@ export interface ChangelogCreator {
   last_name: string | null;
   avatar_url: string | null;
   country: string | null;
-  role: "admin" | "member";
+  role: "admin" | "member" | "superadmin";
   created_at: string;
   updated_at: string;
 }
@@ -56,7 +56,7 @@ export interface PublicChangelogRecord {
   title: string;
   release_date: string;
   s3_key: string;
-  created_by: string; // Just the UUID
+  created_by: string | null;
   is_published: boolean;
   order: number | null;
   created_at: string;

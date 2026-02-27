@@ -6,19 +6,26 @@ const logger = createLogger("infra:admin-cache");
 
 const ADMIN_CACHE_TTL_SECONDS = 5 * 60;
 
+export type AdminRole = "admin" | "superadmin";
+
 function adminRoleCacheKey(clerkUserId: string): string {
   return `admin:role:${clerkUserId}`;
 }
 
 export async function checkIfUserIsAdmin(clerkUserId: string): Promise<boolean> {
+  const role = await getAdminRole(clerkUserId);
+  return role === "admin" || role === "superadmin";
+}
+
+export async function getAdminRole(clerkUserId: string): Promise<AdminRole | null> {
   try {
     const key = adminRoleCacheKey(clerkUserId);
     const cached = await redisClient.get(key);
-    if (cached === "admin") {
-      return true;
+    if (cached === "admin" || cached === "superadmin") {
+      return cached;
     }
     if (cached === "user") {
-      return false;
+      return null;
     }
 
     const { data: user, error } = await supabase
@@ -28,19 +35,19 @@ export async function checkIfUserIsAdmin(clerkUserId: string): Promise<boolean> 
       .single();
 
     if (error || !user) {
-      return false;
+      return null;
     }
 
-    const isAdmin = user.role === "admin";
-
-    await redisClient.set(key, isAdmin ? "admin" : "user", {
+    const role = user.role === "admin" || user.role === "superadmin" ? user.role : null;
+    const cacheValue = role ?? "user";
+    await redisClient.set(key, cacheValue, {
       EX: ADMIN_CACHE_TTL_SECONDS,
     });
 
-    return isAdmin;
+    return role;
   } catch (error) {
-    logger.error("Error checking admin status: %o", error as Error);
-    return false;
+    logger.error("Error checking admin role: %o", error as Error);
+    return null;
   }
 }
 
@@ -48,8 +55,8 @@ async function refreshAdminCache(): Promise<void> {
   try {
     const { data: adminUsers, error } = await supabase
       .from("users")
-      .select("clerk_user_id")
-      .eq("role", "admin");
+      .select("clerk_user_id, role")
+      .in("role", ["admin", "superadmin"]);
 
     if (error) {
       logger.error("Error refreshing admin cache: %o", error as Error);
@@ -62,7 +69,8 @@ async function refreshAdminCache(): Promise<void> {
 
     for (const user of adminUsers) {
       const key = adminRoleCacheKey(user.clerk_user_id);
-      await redisClient.set(key, "admin", { EX: ADMIN_CACHE_TTL_SECONDS });
+      const value = user.role === "superadmin" ? "superadmin" : "admin";
+      await redisClient.set(key, value, { EX: ADMIN_CACHE_TTL_SECONDS });
     }
   } catch (error) {
     logger.error("Error refreshing admin cache: %o", error as Error);

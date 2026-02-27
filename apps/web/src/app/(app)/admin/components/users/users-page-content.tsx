@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import type { AdminAPI } from '@/types/admin.types';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { Button } from '@ws/ui/components/ui/button';
+import { useUserContext } from '@/components/providers/user/user-provider';
 
 const UsersDataTable = dynamic(
   () => import('@/components/data-table/users/data-table').then(mod => ({ default: mod.UsersDataTable })),
@@ -26,11 +27,13 @@ interface UsersPageContentProps {
 }
 
 export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
+  const { store: { user: currentUser } } = useUserContext();
   const { users, isFetching, refetch } = useUsersQuery({ initialData });
   const dataWithPresence = useUsersPresence(users);
   const {
     updateMutation,
-    deleteMutation,
+    softDeleteMutation,
+    hardDeleteMutation,
     restoreMutation,
     embeddingSyncMutation,
   } = useUsersMutations({ refetch });
@@ -41,11 +44,15 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   const [findSimilarModalUser, setFindSimilarModalUser] = useState<AdminAPI.User | null>(null);
 
   const tableCallbacks = {
+    currentUserRole: currentUser?.role,
     onSelectRole: (user: AdminAPI.User, role: AdminAPI.UserRole) => {
       updateMutation.mutate({ id: user.id, role });
     },
-    onDelete: (user: AdminAPI.User) => {
-      deleteMutation.mutate(user.id);
+    onSoftDelete: (user: AdminAPI.User) => {
+      softDeleteMutation.mutate(user.id);
+    },
+    onHardDelete: (user: AdminAPI.User) => {
+      hardDeleteMutation.mutate(user.id);
     },
     onRestore: (user: AdminAPI.User) => {
       restoreMutation.mutate(user.id);
@@ -60,7 +67,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
       setFindSimilarModalUser(user);
     },
     onBulkDelete: (users: AdminAPI.User[]) => {
-      const toDelete = users.filter((u) => !u.deleted && u.role !== 'admin');
+      const toDelete = users.filter((u) => !u.deleted && u.role !== 'admin' && u.role !== 'superadmin');
       if (toDelete.length === 0) {
         toast.error('No eligible users to delete (admins and deleted users excluded)');
         return;
@@ -83,7 +90,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   };
 
   const handleBulkDeleteConfirm = () => {
-    pendingBulkDelete.forEach((u) => deleteMutation.mutate(u.id));
+    pendingBulkDelete.forEach((u) => softDeleteMutation.mutate(u.id));
     setBulkDeleteDialogOpen(false);
     setPendingBulkDelete([]);
   };

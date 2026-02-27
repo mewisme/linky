@@ -23,7 +23,7 @@ export default function AdminLayout({
       return;
     }
 
-    if (userStore && userStore.role !== "admin") {
+    if (userStore && userStore.role !== "admin" && userStore.role !== "superadmin") {
       router.push("/");
       return;
     }
@@ -35,7 +35,7 @@ export default function AdminLayout({
     );
   }
 
-  if (userStore.role !== "admin") {
+  if (userStore.role !== "admin" && userStore.role !== "superadmin") {
     return null;
   }
 

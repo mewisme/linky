@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-export type UserRole = "admin" | "member";
+export type UserRole = "admin" | "member" | "superadmin";
 
 export namespace UsersAPI {
   export interface PublicUserInfo {

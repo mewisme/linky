@@ -10,7 +10,7 @@ const logger = createLogger("infra:supabase:repositories:users");
 export interface GetUsersOptions {
   page?: number;
   limit?: number;
-  role?: "admin" | "member";
+  role?: "admin" | "member" | "superadmin";
   deleted?: boolean;
   search?: string;
   getAll?: boolean;
@@ -30,7 +30,7 @@ export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersR
     .from("users")
     .select("*", { count: "exact" });
 
-  if (role === "admin" || role === "member") {
+  if (role === "admin" || role === "member" || role === "superadmin") {
     query = query.eq("role", role);
   }
 
@@ -206,6 +206,27 @@ export async function softDeleteUserByClerkId(clerkUserId: string): Promise<void
 
   if (error) {
     logger.error("Error soft-deleting user: %o", error as Error);
+    throw error;
+  }
+}
+
+export async function softDeleteUserById(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("users")
+    .update({ deleted: true, deleted_at: new Date().toISOString() })
+    .eq("id", id);
+
+  if (error) {
+    logger.error("Error soft-deleting user by id: %o", error as Error);
+    throw error;
+  }
+}
+
+export async function hardDeleteUserById(id: string): Promise<void> {
+  const { error } = await supabase.from("users").delete().eq("id", id);
+
+  if (error) {
+    logger.error("Error hard-deleting user: %o", error as Error);
     throw error;
   }
 }

@@ -1,13 +1,8 @@
 import { AppearanceSettingsClient } from './appearance-settings-client'
-import type { UsersAPI } from '@/types/users.types'
-import { backendUrl } from '@/lib/api/fetch/backend-url'
-import { serverFetch } from '@/lib/api/fetch/server-api'
+import { getUserSettings } from '@/lib/actions/user/settings'
 
-export default async function AppearanceSettingsPage() {
-  const settings = await serverFetch<UsersAPI.UserSettings.GetMe.Response>(
-    backendUrl.users.settings(),
-    { token: true }
-  )
+export default async function AppearancePage() {
+  const settings = await getUserSettings()
 
   return <AppearanceSettingsClient initialSettings={settings} />
 }

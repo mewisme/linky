@@ -73,7 +73,11 @@ When a feature needs data from multiple domains, use `src/contexts/` for orchest
 
 ### Cache Pattern
 
-Redis is read-optimization only, never source of truth. Uses cache-aside pattern with `getOrSet()`. Cache keys in `infra/redis/keys.ts`, TTLs in `infra/redis/policy.ts`.
+Redis is read-optimization only, never source of truth. Uses cache-aside pattern with `getOrSet()`. Cache keys in `infra/redis/keys.ts`, TTLs in `infra/redis/policy.ts`. All Redis operations are wrapped with `withRedisTimeout()` (default 5s) to prevent hanging — cache failures are logged and swallowed, never rethrown.
+
+### Backend Error Response Format
+
+All route handlers return `{ error: "ErrorType", message: "description" }` on failure with standard HTTP status codes (400, 401, 403, 404, 500). Errors are logged with `logger.error()` before responding.
 
 ## Frontend Architecture (apps/web)
 
@@ -83,6 +87,37 @@ Next.js 16 App Router with route groups:
 - `(marketing)/` - Public pages
 
 State: Zustand stores + TanStack React Query for server data. Real-time: Socket.IO client + MQTT. Auth: Clerk (`@clerk/nextjs`).
+
+### Server vs Client Component Pattern
+
+Pages follow a consistent split: `page.tsx` is a server component that fetches data via `serverFetch()` and passes it as props to a `*-client.tsx` sibling that handles interactivity. The `-client.tsx` suffix naming is the project convention for client components.
+
+Server actions use `withSentryAction()` wrapper and `serverFetch()` with `{ token: true }` to auto-inject Clerk auth tokens:
+
+```typescript
+'use server'
+export async function myAction(params) {
+  return withSentryAction("myAction", async () => serverFetch(url, { token: true, ... }));
+}
+```
+
+### Centralized API URL Builders
+
+Never hardcode API URLs. Use the builders in `apps/web/src/lib/api/fetch/urls/`:
+- `backendUrl.admin.users()`, `backendUrl.admin.userById(id)`
+- `backendUrl.user.*`, `backendUrl.resources.*`, `backendUrl.media.*`
+
+### API Type Namespaces
+
+Large API types are organized as namespaces: `AdminAPI.Broadcasts.Get.Response`, `AdminAPI.Users.Patch.Body`. Pattern: `<Domain>API.<Resource>.<HttpMethod>.<Body|Response>`. Located in `apps/web/src/lib/api/types/`.
+
+### Admin Role System
+
+Two-tier roles: `admin` and `superadmin`. Use utilities in `apps/web/src/utils/roles.ts`:
+- `isAdmin(role)` — true for both admin and superadmin
+- `isSuperAdmin(role)` — true only for superadmin
+
+Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache/`. Admin middleware and Socket.IO admin namespace middleware both use this cache.
 
 ### Import Aliases
 

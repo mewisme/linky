@@ -1,14 +1,8 @@
-import type { AdminAPI } from "@/types/admin.types";
-import { BroadcastsClient } from "./broadcasts-client";
-import { backendUrl } from "@/lib/api/fetch/backend-url";
-import { serverFetch } from "@/lib/api/fetch/server-api";
+import { BroadcastsClient } from './broadcasts-client';
+import { getBroadcasts } from "@/lib/actions/admin/broadcasts";
 
-export default async function AdminBroadcastsPage() {
-  const params = new URLSearchParams({ limit: "50", offset: "0" });
-  const initialData = await serverFetch<AdminAPI.Broadcasts.Get.Response>(
-    backendUrl.admin.broadcasts(params),
-    { token: true }
-  );
+export default async function BroadcastsPage() {
+  const initialData = await getBroadcasts();
 
   return <BroadcastsClient initialData={initialData} />;
 }

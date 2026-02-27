@@ -1,27 +1,35 @@
 'use server'
 
 import type { AdminAPI } from '@/types/admin.types';
+import { revalidateTag } from 'next/cache';
 import { backendUrl } from '@/lib/api/fetch/backend-url';
 import { serverFetch } from '@/lib/api/fetch/server-api';
-import { withSentryAction } from '@/lib/sentry/with-action';
+import { cacheTags } from '@/lib/cache/tags';
+import { withSentryAction, withSentryQuery } from '@/lib/sentry/with-action';
 
 export async function getAdminLevelRewards(
   params?: URLSearchParams
 ): Promise<AdminAPI.LevelRewards.Get.Response> {
-  return withSentryAction("getAdminLevelRewards", async () => {
-    return serverFetch(backendUrl.admin.levelRewards(params), { token: true });
-  });
+  const key = params?.toString() ?? '';
+  return withSentryQuery(
+    "getAdminLevelRewards",
+    async (token) => serverFetch<AdminAPI.LevelRewards.Get.Response>(
+      backendUrl.admin.levelRewards(params), { preloadedToken: token }
+    ),
+    { keyParts: [cacheTags.adminLevelRewards, key], tags: [cacheTags.adminLevelRewards] },
+  );
 }
 
 export async function createLevelReward(
   data: AdminAPI.LevelRewards.Create.Body
 ): Promise<AdminAPI.LevelRewards.Create.Response> {
   return withSentryAction("createLevelReward", async () => {
-    return serverFetch(backendUrl.admin.levelRewards(), {
-      method: 'POST',
-      body: JSON.stringify(data),
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.LevelRewards.Create.Response>(
+      backendUrl.admin.levelRewards(),
+      { method: 'POST', body: JSON.stringify(data), token: true }
+    );
+    revalidateTag(cacheTags.adminLevelRewards, 'max');
+    return result;
   });
 }
 
@@ -30,19 +38,22 @@ export async function updateLevelReward(
   data: AdminAPI.LevelRewards.Update.Body
 ): Promise<AdminAPI.LevelRewards.Update.Response> {
   return withSentryAction("updateLevelReward", async () => {
-    return serverFetch(backendUrl.admin.levelRewardById(id), {
-      method: 'PUT',
-      body: JSON.stringify(data),
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.LevelRewards.Update.Response>(
+      backendUrl.admin.levelRewardById(id),
+      { method: 'PUT', body: JSON.stringify(data), token: true }
+    );
+    revalidateTag(cacheTags.adminLevelRewards, 'max');
+    return result;
   });
 }
 
 export async function deleteLevelReward(id: string): Promise<AdminAPI.LevelRewards.Delete.Response> {
   return withSentryAction("deleteLevelReward", async () => {
-    return serverFetch(backendUrl.admin.levelRewardById(id), {
-      method: 'DELETE',
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.LevelRewards.Delete.Response>(
+      backendUrl.admin.levelRewardById(id),
+      { method: 'DELETE', token: true }
+    );
+    revalidateTag(cacheTags.adminLevelRewards, 'max');
+    return result;
   });
 }

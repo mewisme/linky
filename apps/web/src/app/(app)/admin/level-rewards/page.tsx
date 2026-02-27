@@ -1,13 +1,8 @@
-import type { AdminAPI } from "@/types/admin.types";
-import { LevelRewardsClient } from "./level-rewards-client";
-import { backendUrl } from "@/lib/api/fetch/backend-url";
-import { serverFetch } from "@/lib/api/fetch/server-api";
+import { LevelRewardsClient } from './level-rewards-client';
+import { getAdminLevelRewards } from "@/lib/actions/admin/level-rewards";
 
 export default async function LevelRewardsPage() {
-  const levelRewards = await serverFetch<AdminAPI.LevelRewards.Get.Response>(
-    backendUrl.admin.levelRewards(),
-    { token: true }
-  );
+  const levelRewards = await getAdminLevelRewards();
 
   return <LevelRewardsClient initialData={levelRewards} />;
 }

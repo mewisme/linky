@@ -4,11 +4,12 @@ import { getToken } from '@/lib/auth/token';
 
 interface ServerFetchOptions extends RequestInit {
   token?: boolean;
+  preloadedToken?: string;
 }
 
 export async function serverFetch<T>(url: string, options: ServerFetchOptions = {}): Promise<T> {
-  const { token: needsToken, ...rest } = options;
-  const token = needsToken ? await getToken() : undefined;
+  const { token: needsToken, preloadedToken, ...rest } = options;
+  const token = preloadedToken ?? (needsToken ? await getToken() : undefined);
 
   const headers: Record<string, string> = {
     ...(rest.headers as Record<string, string>),
@@ -26,6 +27,3 @@ export async function serverFetch<T>(url: string, options: ServerFetchOptions = 
   if (!text) return undefined as T;
   return JSON.parse(text) as T;
 }
-
-// Backward-compatible alias used by existing server components
-export const fetchData = serverFetch;

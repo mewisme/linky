@@ -1,27 +1,35 @@
 'use server'
 
 import type { AdminAPI } from '@/types/admin.types';
+import { revalidateTag } from 'next/cache';
 import { backendUrl } from '@/lib/api/fetch/backend-url';
 import { serverFetch } from '@/lib/api/fetch/server-api';
-import { withSentryAction } from '@/lib/sentry/with-action';
+import { cacheTags } from '@/lib/cache/tags';
+import { withSentryAction, withSentryQuery } from '@/lib/sentry/with-action';
 
 export async function getAdminStreakExpBonuses(
   params?: URLSearchParams
 ): Promise<AdminAPI.StreakExpBonuses.Get.Response> {
-  return withSentryAction("getAdminStreakExpBonuses", async () => {
-    return serverFetch(backendUrl.admin.streakExpBonuses(params), { token: true });
-  });
+  const key = params?.toString() ?? '';
+  return withSentryQuery(
+    "getAdminStreakExpBonuses",
+    async (token) => serverFetch<AdminAPI.StreakExpBonuses.Get.Response>(
+      backendUrl.admin.streakExpBonuses(params), { preloadedToken: token }
+    ),
+    { keyParts: [cacheTags.adminStreakExpBonuses, key], tags: [cacheTags.adminStreakExpBonuses] },
+  );
 }
 
 export async function createStreakExpBonus(
   data: AdminAPI.StreakExpBonuses.Create.Body
 ): Promise<AdminAPI.StreakExpBonuses.Create.Response> {
   return withSentryAction("createStreakExpBonus", async () => {
-    return serverFetch(backendUrl.admin.streakExpBonuses(), {
-      method: 'POST',
-      body: JSON.stringify(data),
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.StreakExpBonuses.Create.Response>(
+      backendUrl.admin.streakExpBonuses(),
+      { method: 'POST', body: JSON.stringify(data), token: true }
+    );
+    revalidateTag(cacheTags.adminStreakExpBonuses, 'max');
+    return result;
   });
 }
 
@@ -30,19 +38,22 @@ export async function updateStreakExpBonus(
   data: AdminAPI.StreakExpBonuses.Update.Body
 ): Promise<AdminAPI.StreakExpBonuses.Update.Response> {
   return withSentryAction("updateStreakExpBonus", async () => {
-    return serverFetch(backendUrl.admin.streakExpBonusById(id), {
-      method: 'PUT',
-      body: JSON.stringify(data),
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.StreakExpBonuses.Update.Response>(
+      backendUrl.admin.streakExpBonusById(id),
+      { method: 'PUT', body: JSON.stringify(data), token: true }
+    );
+    revalidateTag(cacheTags.adminStreakExpBonuses, 'max');
+    return result;
   });
 }
 
 export async function deleteStreakExpBonus(id: string): Promise<AdminAPI.StreakExpBonuses.Delete.Response> {
   return withSentryAction("deleteStreakExpBonus", async () => {
-    return serverFetch(backendUrl.admin.streakExpBonusById(id), {
-      method: 'DELETE',
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.StreakExpBonuses.Delete.Response>(
+      backendUrl.admin.streakExpBonusById(id),
+      { method: 'DELETE', token: true }
+    );
+    revalidateTag(cacheTags.adminStreakExpBonuses, 'max');
+    return result;
   });
 }

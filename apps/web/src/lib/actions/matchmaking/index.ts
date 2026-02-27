@@ -2,7 +2,8 @@
 
 import { publicEnv } from '@/env/public-env';
 import { serverFetch } from '@/lib/api/fetch/server-api';
-import { withSentryAction } from '@/lib/sentry/with-action';
+import { cacheTags } from '@/lib/cache/tags';
+import { withSentryQuery } from '@/lib/sentry/with-action';
 
 interface QueueStatus {
   queueSize: number;
@@ -10,7 +11,11 @@ interface QueueStatus {
 }
 
 export async function getQueueStatus(): Promise<QueueStatus> {
-  return withSentryAction("getQueueStatus", async () => {
-    return serverFetch(`${publicEnv.API_URL}/api/v1/matchmaking/queue-status`, { token: true });
-  });
+  return withSentryQuery(
+    "getQueueStatus",
+    async (token) => serverFetch<QueueStatus>(
+      `${publicEnv.API_URL}/api/v1/matchmaking/queue-status`, { preloadedToken: token }
+    ),
+    { keyParts: [cacheTags.matchmaking], tags: [cacheTags.matchmaking] },
+  );
 }

@@ -1,27 +1,35 @@
 'use server'
 
 import type { AdminAPI } from '@/types/admin.types';
+import { revalidateTag } from 'next/cache';
 import { backendUrl } from '@/lib/api/fetch/backend-url';
 import { serverFetch } from '@/lib/api/fetch/server-api';
-import { withSentryAction } from '@/lib/sentry/with-action';
+import { cacheTags } from '@/lib/cache/tags';
+import { withSentryAction, withSentryQuery } from '@/lib/sentry/with-action';
 
 export async function getAdminChangelogs(
   params?: URLSearchParams
 ): Promise<AdminAPI.Changelogs.Get.Response> {
-  return withSentryAction("getAdminChangelogs", async () => {
-    return serverFetch(backendUrl.admin.changelogs(params), { token: true });
-  });
+  const key = params?.toString() ?? '';
+  return withSentryQuery(
+    "getAdminChangelogs",
+    async (token) => serverFetch<AdminAPI.Changelogs.Get.Response>(
+      backendUrl.admin.changelogs(params), { preloadedToken: token }
+    ),
+    { keyParts: [cacheTags.adminChangelogs, key], tags: [cacheTags.adminChangelogs] },
+  );
 }
 
 export async function createChangelog(
   data: AdminAPI.Changelogs.Create.Body
 ): Promise<AdminAPI.Changelogs.Create.Response> {
   return withSentryAction("createChangelog", async () => {
-    return serverFetch(backendUrl.admin.changelogs(), {
-      method: 'POST',
-      body: JSON.stringify(data),
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.Changelogs.Create.Response>(
+      backendUrl.admin.changelogs(),
+      { method: 'POST', body: JSON.stringify(data), token: true }
+    );
+    revalidateTag(cacheTags.adminChangelogs, 'max');
+    return result;
   });
 }
 
@@ -30,19 +38,22 @@ export async function updateChangelog(
   data: AdminAPI.Changelogs.Update.Body
 ): Promise<AdminAPI.Changelogs.Update.Response> {
   return withSentryAction("updateChangelog", async () => {
-    return serverFetch(backendUrl.admin.changelogById(id), {
-      method: 'PUT',
-      body: JSON.stringify(data),
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.Changelogs.Update.Response>(
+      backendUrl.admin.changelogById(id),
+      { method: 'PUT', body: JSON.stringify(data), token: true }
+    );
+    revalidateTag(cacheTags.adminChangelogs, 'max');
+    return result;
   });
 }
 
 export async function deleteChangelog(id: string): Promise<AdminAPI.Changelogs.Delete.Response> {
   return withSentryAction("deleteChangelog", async () => {
-    return serverFetch(backendUrl.admin.changelogById(id), {
-      method: 'DELETE',
-      token: true,
-    });
+    const result = await serverFetch<AdminAPI.Changelogs.Delete.Response>(
+      backendUrl.admin.changelogById(id),
+      { method: 'DELETE', token: true }
+    );
+    revalidateTag(cacheTags.adminChangelogs, 'max');
+    return result;
   });
 }

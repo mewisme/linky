@@ -1,33 +1,43 @@
 'use server'
 
 import type { ResourcesAPI } from '@/types/resources.types';
+import { revalidateTag } from 'next/cache';
 import { backendUrl } from '@/lib/api/fetch/backend-url';
 import { serverFetch } from '@/lib/api/fetch/server-api';
-import { withSentryAction } from '@/lib/sentry/with-action';
+import { cacheTags } from '@/lib/cache/tags';
+import { withSentryAction, withSentryQuery } from '@/lib/sentry/with-action';
 
 export async function createReport(
   data: ResourcesAPI.Reports.Create.Body
 ): Promise<ResourcesAPI.Reports.Create.Response> {
   return withSentryAction("createReport", async () => {
-    return serverFetch(backendUrl.resources.reports(), {
-      method: 'POST',
-      body: JSON.stringify(data),
-      token: true,
-    });
+    const result = await serverFetch<ResourcesAPI.Reports.Create.Response>(
+      backendUrl.resources.reports(),
+      { method: 'POST', body: JSON.stringify(data), token: true }
+    );
+    revalidateTag(cacheTags.reportsMe, 'max');
+    return result;
   });
 }
 
 export async function getMyReports(
   params?: ResourcesAPI.Reports.GetMe.QueryParams
 ): Promise<ResourcesAPI.Reports.GetMe.Response> {
-  return withSentryAction("getMyReports", async () => {
-    const query = params ? new URLSearchParams(
-      Object.fromEntries(
-        Object.entries(params)
-          .filter(([, v]) => v !== undefined)
-          .map(([k, v]) => [k, String(v)])
+  const query = params
+    ? new URLSearchParams(
+        Object.fromEntries(
+          Object.entries(params)
+            .filter(([, v]) => v !== undefined)
+            .map(([k, v]) => [k, String(v)])
+        )
       )
-    ) : undefined;
-    return serverFetch(backendUrl.resources.reportsMe(query), { token: true });
-  });
+    : undefined;
+  const key = query?.toString() ?? '';
+  return withSentryQuery(
+    "getMyReports",
+    async (token) => serverFetch<ResourcesAPI.Reports.GetMe.Response>(
+      backendUrl.resources.reportsMe(query), { preloadedToken: token }
+    ),
+    { keyParts: [cacheTags.reportsMe, key], tags: [cacheTags.reportsMe] },
+  );
 }

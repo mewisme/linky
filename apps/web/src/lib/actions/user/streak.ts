@@ -3,18 +3,23 @@
 import type { UsersAPI } from '@/types/users.types';
 import { backendUrl } from '@/lib/api/fetch/backend-url';
 import { serverFetch } from '@/lib/api/fetch/server-api';
-import { withSentryAction } from '@/lib/sentry/with-action';
+import { cacheTags } from '@/lib/cache/tags';
+import { withSentryQuery } from '@/lib/sentry/with-action';
 
 export async function getStreakCalendar(
   year: number,
   month: number,
   timezone: string
 ): Promise<UsersAPI.Streak.Calendar.Response> {
-  return withSentryAction("getStreakCalendar", async () => {
-    const params = new URLSearchParams({ year: String(year), month: String(month) });
-    return serverFetch(backendUrl.users.streakCalendar(params), {
-      token: true,
-      headers: { 'x-user-timezone': timezone },
-    });
-  });
+  return withSentryQuery(
+    "getStreakCalendar",
+    async (token) => {
+      const params = new URLSearchParams({ year: String(year), month: String(month) });
+      return serverFetch<UsersAPI.Streak.Calendar.Response>(
+        backendUrl.users.streakCalendar(params),
+        { preloadedToken: token, headers: { 'x-user-timezone': timezone } }
+      );
+    },
+    { keyParts: [cacheTags.userStreak, String(year), String(month), timezone], tags: [cacheTags.userStreak] },
+  );
 }

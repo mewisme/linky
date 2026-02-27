@@ -1,13 +1,8 @@
-import type { AdminAPI } from "@/types/admin.types";
 import { ChangelogsClient } from './changelogs-client';
-import { backendUrl } from "@/lib/api/fetch/backend-url";
-import { serverFetch } from "@/lib/api/fetch/server-api";
+import { getAdminChangelogs } from "@/lib/actions/admin/changelogs";
 
-export default async function ChangeLogsPage() {
-  const changelogs = await serverFetch<AdminAPI.Changelogs.Get.Response>(
-    backendUrl.admin.changelogs(),
-    { token: true }
-  );
+export default async function ChangelogsPage() {
+  const changelogs = await getAdminChangelogs();
 
   return <ChangelogsClient initialData={changelogs} />;
 }

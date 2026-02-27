@@ -1,20 +1,9 @@
 import { LegalLayout } from "@/components/layouts/legal-layout";
 import { MarkdownContent } from "@/components/render/markdown-content";
-import type { ResourcesAPI } from "@/types/resources.types";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import { notFound } from "next/navigation";
-import { backendUrl } from "@/lib/api/fetch/backend-url";
-import { serverFetch } from "@/lib/api/fetch/server-api";
-
-async function getChangelog(version: string): Promise<ResourcesAPI.Changelogs.GetByVersion.Response | null> {
-  try {
-    return await serverFetch<ResourcesAPI.Changelogs.GetByVersion.Response>(
-      backendUrl.resources.changelogByVersion(version),
-      { next: { revalidate: 3600 } }
-    );
-  } catch { return null; }
-}
+import { getChangelogByVersion } from "@/lib/actions/resources/changelogs";
 
 async function getMarkdown(url: string | null): Promise<string | null> {
   if (!url) return null;
@@ -27,7 +16,7 @@ async function getMarkdown(url: string | null): Promise<string | null> {
 export default async function ChangelogDetailPage({ params }: { params: Promise<{ version: string }> }) {
   const { version } = await params;
   const decodedVersion = decodeURIComponent(version);
-  const data = await getChangelog(decodedVersion);
+  const data = await getChangelogByVersion(decodedVersion);
   if (!data) notFound();
   const content = await getMarkdown(data.download_url);
   const formatDate = (date: string) =>

@@ -12,8 +12,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <IdentifyComponent
         profileId={user?.id}
         email={user?.emailAddresses[0]?.emailAddress}
-        firstName={user?.firstName}
-        lastName={user?.lastName}
+        firstName={user?.firstName ?? ''}
+        lastName={user?.lastName ?? ''}
         avatar={user?.imageUrl}
       />
       <AppClientLayout>

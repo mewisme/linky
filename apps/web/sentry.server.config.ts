@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+
 import { publicEnv } from "@/env/public-env";
 import { serverEnv } from "@/env/server-env";
 
@@ -8,6 +9,7 @@ Sentry.init({
   sendDefaultPii: true,
   tracesSampleRate: serverEnv.isDev ? 1.0 : 0.1,
   enableLogs: true,
+  enableMetrics: true,
   beforeSend(event) {
     if (event.request?.headers) {
       delete event.request.headers["authorization"];

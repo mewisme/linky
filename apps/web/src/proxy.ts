@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 import type { NextProxy } from "next/server";
@@ -19,6 +21,13 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 const proxy = clerkMiddleware(async (auth, request) => {
+  Sentry.metrics.count("requests", 1, {
+    attributes: {
+      path: request.nextUrl.pathname,
+      method: request.method,
+    },
+  });
+
   if (!isPublicRoute(request)) {
     await auth.protect();
   }

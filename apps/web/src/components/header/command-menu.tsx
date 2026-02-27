@@ -1,5 +1,7 @@
 'use client'
 
+import * as Sentry from "@sentry/nextjs";
+
 import {
   Command,
   CommandDialog,
@@ -15,6 +17,7 @@ import {
   IconBan,
   IconBell,
   IconBolt,
+  IconBug,
   IconChartLine,
   IconContract,
   IconFlag,
@@ -36,11 +39,11 @@ import {
   IconUserShield,
   IconUsers,
   IconVersions,
-  IconVideo,
+  IconVideo
 } from '@tabler/icons-react'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@ws/ui/components/ui/input-group'
 import { Kbd, KbdGroup } from '@ws/ui/components/ui/kbd'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Logo } from '@/components/header/landing/logo'
 import { Separator } from '@ws/ui/components/ui/separator'
@@ -59,7 +62,7 @@ interface CommandAction {
   icon: React.ElementType
   iconImage?: string
   href?: string
-  onSelect?: () => void
+  onSelect?: () => Promise<void>
   keywords?: string[]
 }
 
@@ -93,6 +96,7 @@ function CommandMenuFooter() {
     </>
   )
 }
+
 export function CommandMenu() {
   const { isOpen, open, setOpen } = useCommandMenuStore()
   const router = useRouter()
@@ -100,6 +104,15 @@ export function CommandMenu() {
   const { auth: { signOut, isSignedIn } } = useUserContext()
   const { user: userStore } = useUserStore()
   const { setCollapsible, setVariant, variant, collapsible } = useSidebarStore()
+  const [feedback, setFeedback] = useState<any>(null);
+
+  useEffect(() => {
+    const feedbackIntegration = Sentry.getFeedback();
+    console.log('feedbackIntegration', feedbackIntegration);
+    if (feedbackIntegration) {
+      setFeedback(feedbackIntegration);
+    }
+  }, []);
 
   const isAdminUser = isAdmin(userStore?.role)
 
@@ -147,6 +160,24 @@ export function CommandMenu() {
         ])
       ],
     },
+    ...[
+      {
+        heading: 'Help & Support',
+        actions: [
+          {
+            id: 'feedback',
+            label: 'Report an Issue',
+            icon: IconBug,
+            onSelect: async () => {
+              const form = await feedback?.createForm();
+              form.appendToDom();
+              form.open();
+            },
+            keywords: ['feedback', 'report', 'issue'],
+          },
+        ],
+      },
+    ],
     {
       heading: 'Preferences',
       actions: [
@@ -177,7 +208,7 @@ export function CommandMenu() {
           id: 'toggle-theme',
           label: `${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`,
           icon: IconPalette,
-          onSelect: () => {
+          onSelect: async () => {
             setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
           },
           keywords: ['theme', 'dark', 'light', 'mode'],
@@ -186,7 +217,7 @@ export function CommandMenu() {
           id: 'sidebar-variant',
           label: 'Sidebar Style',
           icon: IconVersions,
-          onSelect: () => {
+          onSelect: async () => {
             setVariant(variant === 'sidebar' ? 'floating' : 'sidebar')
           },
           keywords: ['sidebar', 'style', 'variant', 'floating'],
@@ -195,7 +226,7 @@ export function CommandMenu() {
           id: 'sidebar-collapsible',
           label: 'Sidebar Behavior',
           icon: IconLayoutSidebar,
-          onSelect: () => {
+          onSelect: async () => {
             setCollapsible(collapsible === 'offcanvas' ? 'icon' : 'offcanvas')
           },
           keywords: ['sidebar', 'collapsible', 'behavior'],
@@ -326,7 +357,7 @@ export function CommandMenu() {
             id: 'logout',
             label: 'Logout',
             icon: IconLogout,
-            onSelect: () => {
+            onSelect: async () => {
               trackEvent({ name: "sign_out" });
               signOut();
             },
@@ -348,11 +379,11 @@ export function CommandMenu() {
       .filter(group => group.actions.length > 0)
   }, [commandGroups, isAdminUser])
 
-  const onRunCommand = useCallback((action: CommandAction) => {
+  const onRunCommand = useCallback(async (action: CommandAction) => {
     setOpen(false)
 
     if (action.onSelect) {
-      action.onSelect()
+      await action.onSelect()
     } else if (action.href) {
       router.push(action.href)
     }

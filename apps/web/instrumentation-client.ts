@@ -22,6 +22,7 @@ Sentry.init({
       Sentry.feedbackIntegration({
         colorScheme: "system",
         showBranding: false,
+        autoInject: false
       }),
     ]
     : [],

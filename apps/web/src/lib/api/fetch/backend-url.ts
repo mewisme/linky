@@ -79,7 +79,4 @@ export const backendUrl = {
     iceServers: () => `${API}/ice-servers`,
   },
 
-  matchmaking: {
-    queueStatus: () => `${V1}/matchmaking/queue-status`,
-  },
 } as const;

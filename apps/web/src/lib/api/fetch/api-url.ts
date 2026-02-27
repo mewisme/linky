@@ -1,6 +1,5 @@
 import {
   AdminApi,
-  MatchmakingApi,
   MediaApi,
   NotificationsApi,
   PushApi,
@@ -19,7 +18,6 @@ export class ApiUrl {
   media: MediaApi;
   notifications: NotificationsApi;
   push: PushApi;
-  matchmaking: MatchmakingApi;
 
   constructor() {
     this.admin = new AdminApi(ApiUrl.PROXY_URL);
@@ -28,7 +26,6 @@ export class ApiUrl {
     this.media = new MediaApi(ApiUrl.PROXY_URL);
     this.notifications = new NotificationsApi(ApiUrl.PROXY_URL);
     this.push = new PushApi(ApiUrl.PROXY_URL);
-    this.matchmaking = new MatchmakingApi(ApiUrl.PROXY_URL);
   }
 }
 

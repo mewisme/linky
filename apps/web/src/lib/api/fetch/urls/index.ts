@@ -11,4 +11,3 @@ export { UserApi } from './user-api';
 export { MediaApi } from './media-api';
 export { NotificationsApi } from './notifications-api';
 export { PushApi } from './push-api';
-export { MatchmakingApi } from './matchmaking-api';

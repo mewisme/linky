@@ -17,30 +17,6 @@ export class UserApi extends BaseApiUrl {
     return this.buildUrl('/api/users/settings');
   }
 
-  progress() {
-    return this.buildUrl('/api/users/progress');
-  }
-
-  streak() {
-    return this.buildUrl('/api/users/streak');
-  }
-
-  streakCalendar(params?: URLSearchParams) {
-    return this.buildUrl('/api/users/streak/calendar', params);
-  }
-
-  users(params?: URLSearchParams) {
-    return this.buildUrl('/api/users', params);
-  }
-
-  interestTags() {
-    return this.buildUrl('/api/users/interest-tags');
-  }
-
-  interestTagsAll() {
-    return this.buildUrl('/api/users/interest-tags/all');
-  }
-
   blocks() {
     return this.buildUrl('/api/users/blocks');
   }

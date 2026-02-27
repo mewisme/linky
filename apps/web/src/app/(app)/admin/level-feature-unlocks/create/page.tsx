@@ -17,8 +17,7 @@ import { uploadToS3 } from "@/lib/api/s3";
 import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
 import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { postData } from "@/lib/api/fetch/client-api";
+import { createLevelFeatureUnlock } from "@/lib/actions/admin/level-feature-unlocks";
 
 const IMAGE_ACCEPT = {
   "image/png": [".png"],
@@ -29,7 +28,7 @@ const IMAGE_ACCEPT = {
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export default function CreateLevelFeatureUnlockPage() {
-  const { token } = useUserTokenContext();
+  const { getToken } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const router = useRouter();
   const [levelRequired, setLevelRequired] = useState<number>(1);
@@ -40,10 +39,6 @@ export default function CreateLevelFeatureUnlockPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) {
-      toast.error("Authentication required");
-      return;
-    }
 
     let featurePayload: Record<string, unknown>;
     try {
@@ -61,6 +56,8 @@ export default function CreateLevelFeatureUnlockPage() {
     setIsSubmitting(true);
     try {
       if (selectedFile) {
+        const token = await getToken();
+        if (!token) throw new Error("Authentication required");
         const { upload_url, resource_key } = await getAdminPresignedUpload(
           { intent: "feature", content_type: selectedFile.type },
           token
@@ -76,13 +73,10 @@ export default function CreateLevelFeatureUnlockPage() {
         };
       }
 
-      await postData(apiUrl.admin.levelFeatureUnlocks(), {
-        token: token ?? undefined,
-        body: {
-          level_required: levelRequired,
-          feature_key: featureKey,
-          feature_payload: featurePayload,
-        },
+      await createLevelFeatureUnlock({
+        level_required: levelRequired,
+        feature_key: featureKey,
+        feature_payload: featurePayload,
       });
 
       playSound("success");

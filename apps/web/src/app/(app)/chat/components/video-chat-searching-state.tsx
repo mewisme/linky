@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 
 import Link from "next/link";
 import type { UsersAPI } from "@/types/users.types";
-import { apiUrl } from "@/lib/api/fetch/api-url";
 import { trackEvent } from "@/lib/analytics/events/client";
+import { getQueueStatus } from "@/lib/actions/matchmaking";
 
 const BASE_HINTS = [
   "You earn EXP by talking",
@@ -66,8 +66,7 @@ export function VideoChatSearchingState({ progress }: VideoChatSearchingStatePro
     if (elapsedMs >= STILL_SEARCHING_THRESHOLD_MS && !hasFetchedQueue.current) {
       hasFetchedQueue.current = true;
       trackEvent({ name: "matchmaking_still_searching", properties: { elapsed_ms: elapsedMs } });
-      fetch(apiUrl.matchmaking.queueStatus())
-        .then((r) => r.json() as Promise<QueueStatus>)
+      getQueueStatus()
         .then(setQueueStatus)
         .catch(() => { });
     }

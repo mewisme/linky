@@ -19,16 +19,13 @@ const StreakExpBonusesDataTable = dynamic(
 );
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/client-api";
+import { createStreakExpBonus, deleteStreakExpBonus, getAdminStreakExpBonuses, updateStreakExpBonus } from '@/lib/actions/admin/streak-exp-bonuses';
 
 interface StreakExpBonusesClientProps {
   initialData: AdminAPI.StreakExpBonuses.Get.Response;
 }
 
 export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientProps) {
-  const { token } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
 
@@ -42,15 +39,9 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["streak-exp-bonuses"],
-    queryFn: async () => {
-      return fetchData<AdminAPI.StreakExpBonuses.Get.Response>(
-        apiUrl.admin.streakExpBonuses(),
-        {
-          token: token ?? undefined,
-        }
-      );
-    },
+    queryFn: () => getAdminStreakExpBonuses(),
     initialData,
+    staleTime: Infinity,
   });
 
   const upsertMutation = useMutation({
@@ -63,24 +54,10 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
         delete requestPayload.id;
       }
 
-      const url = isUpdate ? `${apiUrl.admin.streakExpBonuses()}/${bonusId}` : apiUrl.admin.streakExpBonuses();
-      const method = isUpdate ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(requestPayload)
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Operation failed" }));
-        throw new Error(err.message || err.error || "Operation failed");
+      if (isUpdate) {
+        return updateStreakExpBonus(bonusId, requestPayload as AdminAPI.StreakExpBonuses.Update.Body);
       }
-
-      return res.json();
+      return createStreakExpBonus(requestPayload as AdminAPI.StreakExpBonuses.Create.Body);
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -105,16 +82,7 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`${apiUrl.admin.streakExpBonuses()}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Delete failed" }));
-        throw new Error(err.message || err.error || "Delete failed");
-      }
-    },
+    mutationFn: (id: string) => deleteStreakExpBonus(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["streak-exp-bonuses"],

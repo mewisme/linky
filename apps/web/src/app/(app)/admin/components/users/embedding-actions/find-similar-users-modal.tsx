@@ -20,10 +20,9 @@ import { Button } from '@ws/ui/components/ui/button';
 import { IconLoader2 } from '@tabler/icons-react';
 import { Input } from '@ws/ui/components/ui/input';
 import { Label } from '@ws/ui/components/ui/label';
+import { findSimilarUsers } from '@/lib/actions/admin/embeddings';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useState } from 'react';
-import { apiUrl } from '@/lib/api/fetch/api-url';
-import { postData } from '@/lib/api/fetch/client-api';
 
 interface SimilarResult {
   user_id: string;
@@ -40,7 +39,6 @@ interface FindSimilarUsersModalProps {
   onOpenChange: (open: boolean) => void;
   user: AdminAPI.User;
   users: AdminAPI.User[];
-  token: string | null;
 }
 
 function formatUserLabel(user: AdminAPI.User): string {
@@ -54,7 +52,6 @@ export function FindSimilarUsersModal({
   onOpenChange,
   user,
   users,
-  token,
 }: FindSimilarUsersModalProps) {
   const isMobile = useIsMobile();
   const [limit, setLimit] = useState('');
@@ -72,21 +69,14 @@ export function FindSimilarUsersModal({
   };
 
   const handleSubmit = async () => {
-    if (!token) return;
     const parsed = limit.trim() === '' ? null : Number(limit);
     const effectiveLimit = parsed === null || isNaN(parsed) ? 10 : Math.min(100, Math.max(1, parsed));
     setIsLoading(true);
     setError(null);
     setResult(null);
     try {
-      const data = await postData<FindSimilarResponse>(apiUrl.admin.embeddingsSimilar(), {
-        token,
-        body: {
-          user_id: user.id,
-          limit: effectiveLimit,
-        },
-      });
-      setResult(data);
+      const data = await findSimilarUsers(user.id, effectiveLimit);
+      setResult(data as unknown as FindSimilarResponse);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to find similar users');
     } finally {

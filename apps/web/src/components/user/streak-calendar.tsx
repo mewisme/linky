@@ -11,53 +11,29 @@ import {
   useCalendarYear,
 } from "@ws/ui/components/kibo-ui/calendar";
 import { format, getDay, getDaysInMonth, isToday } from "@ws/ui/internal-lib/date-fns";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { IconFlameFilled } from "@tabler/icons-react";
 import { Loading } from "@/components/common/loading";
 import type { UsersAPI } from "@/types/users.types";
 import { cn } from "@ws/ui/lib/utils";
+import { getStreakCalendar } from "@/lib/actions/user/streak";
 import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";
-import { useUserContext } from "@/components/providers/user/user-provider";
 
 interface StreakCalendarProps {
   className?: string;
 }
 
 export function StreakCalendar({ className }: StreakCalendarProps) {
-  const { state } = useUserContext();
-  const [token, setToken] = useState<string | null>(null);
   const [month] = useCalendarMonth();
   const [year] = useCalendarYear();
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const token = await state.getToken();
-      setToken(token);
-    };
-    fetchToken();
-  }, [state]);
 
   const monthNumber = month + 1;
 
   const { data: calendarData, isLoading } = useQuery({
     queryKey: ["streak-calendar", year, monthNumber],
-    queryFn: async () => {
-      if (!token) throw new Error("No token");
-      const res = await fetch(
-        `/api/users/streak/calendar?year=${year}&month=${monthNumber}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "x-user-timezone": getUserTimezone(),
-          },
-        }
-      );
-      if (!res.ok) throw new Error("Failed to load calendar data");
-      return res.json() as Promise<UsersAPI.Streak.Calendar.Response>;
-    },
-    enabled: !!token,
+    queryFn: () => getStreakCalendar(year, monthNumber, getUserTimezone()),
     staleTime: 5 * 60 * 1000,
   });
 

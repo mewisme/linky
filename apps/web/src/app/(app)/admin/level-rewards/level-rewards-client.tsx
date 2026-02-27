@@ -16,9 +16,7 @@ import { Textarea } from "@ws/ui/components/ui/textarea";
 import dynamic from 'next/dynamic'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/client-api";
+import { createLevelReward, deleteLevelReward, getAdminLevelRewards, updateLevelReward } from '@/lib/actions/admin/level-rewards';
 
 const LevelRewardsDataTable = dynamic(
   () => import('@/components/data-table/level-rewards/data-table').then(mod => ({ default: mod.LevelRewardsDataTable })),
@@ -29,7 +27,6 @@ interface LevelRewardsClientProps {
 }
 
 export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
-  const { token } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
 
@@ -44,15 +41,9 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["level-rewards"],
-    queryFn: async () => {
-      return fetchData<AdminAPI.LevelRewards.Get.Response>(
-        apiUrl.admin.levelRewards(),
-        {
-          token: token ?? undefined,
-        }
-      );
-    },
+    queryFn: () => getAdminLevelRewards(),
     initialData,
+    staleTime: Infinity,
   });
 
   const upsertMutation = useMutation({
@@ -71,24 +62,10 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
         throw new Error("Invalid JSON in reward payload");
       }
 
-      const url = isUpdate ? `${apiUrl.admin.levelRewards()}/${rewardId}` : apiUrl.admin.levelRewards();
-      const method = isUpdate ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(requestPayload)
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Operation failed" }));
-        throw new Error(err.message || err.error || "Operation failed");
+      if (isUpdate) {
+        return updateLevelReward(rewardId, requestPayload as AdminAPI.LevelRewards.Update.Body);
       }
-
-      return res.json();
+      return createLevelReward(requestPayload as AdminAPI.LevelRewards.Create.Body);
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -114,16 +91,7 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`${apiUrl.admin.levelRewards()}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Delete failed" }));
-        throw new Error(err.message || err.error || "Delete failed");
-      }
-    },
+    mutationFn: (id: string) => deleteLevelReward(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["level-rewards"],

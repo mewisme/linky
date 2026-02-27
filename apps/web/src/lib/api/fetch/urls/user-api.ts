@@ -25,8 +25,8 @@ export class UserApi extends BaseApiUrl {
     return this.buildUrl('/api/users/streak');
   }
 
-  streakCalendar() {
-    return this.buildUrl('/api/users/streak/calendar');
+  streakCalendar(params?: URLSearchParams) {
+    return this.buildUrl('/api/users/streak/calendar', params);
   }
 
   users(params?: URLSearchParams) {

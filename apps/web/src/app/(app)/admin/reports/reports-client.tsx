@@ -12,9 +12,7 @@ import { Label } from '@ws/ui/components/ui/label'
 import dynamic from 'next/dynamic'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useUserTokenContext } from '@/components/providers/user/user-token-provider'
-import { apiUrl } from '@/lib/api/fetch/api-url'
-import { fetchData } from '@/lib/api/fetch/client-api'
+import { getAdminReports } from '@/lib/actions/admin/reports'
 
 const AdminReportsDataTable = dynamic(
   () => import('@/components/data-table/admin-reports/data-table').then(mod => ({ default: mod.AdminReportsDataTable })),
@@ -25,7 +23,6 @@ interface ReportsClientProps {
 }
 
 export function ReportsClient({ initialData }: ReportsClientProps) {
-  const { token } = useUserTokenContext();
   const router = useRouter()
   const [data, setData] = useState<AdminAPI.Reports.Report[]>([])
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -50,16 +47,9 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
 
   const { data: reports, isFetching, refetch } = useQuery({
     queryKey: ['admin-reports', statusFilter, reporterUserIdFilter, reportedUserIdFilter],
-    queryFn: async () => {
-      const queryParams = buildQueryParams()
-      return fetchData<AdminAPI.Reports.Get.Response>(
-        apiUrl.admin.reports(queryParams),
-        {
-          token: token ?? undefined,
-        }
-      );
-    },
+    queryFn: () => getAdminReports(buildQueryParams()),
     initialData,
+    staleTime: Infinity,
   })
 
   useEffect(() => {

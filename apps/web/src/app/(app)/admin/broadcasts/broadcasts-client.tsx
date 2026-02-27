@@ -13,11 +13,9 @@ import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { FormCreateBroadcast } from "./components/form-create";
 import { IconRefresh } from "@tabler/icons-react";
-import { apiUrl } from "@/lib/api/fetch/api-url";
 import dynamic from "next/dynamic";
-import { fetchData } from "@/lib/api/fetch/client-api";
 import { useQuery } from "@tanstack/react-query";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { getBroadcasts } from "@/lib/actions/admin/broadcasts";
 
 const BroadcastsDataTable = dynamic(
   () =>
@@ -31,19 +29,11 @@ interface BroadcastsClientProps {
 }
 
 export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
-  const { token } = useUserTokenContext();
-
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["admin", "broadcasts"],
-    queryFn: async () => {
-      return fetchData<AdminAPI.Broadcasts.Get.Response>(
-        apiUrl.admin.broadcasts(new URLSearchParams({ limit: "50", offset: "0" })),
-        {
-          token: token ?? undefined,
-        }
-      );
-    },
+    queryFn: () => getBroadcasts(new URLSearchParams({ limit: '50', offset: '0' })),
     initialData,
+    staleTime: Infinity,
   });
 
   const history = data?.data ?? [];

@@ -2,7 +2,7 @@
 
 import { UserDetails, UserSettings, UserState, useUserStore } from "@/stores/user-store";
 import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
-import { updateUserCountry } from "@/services/user";
+import { updateUserCountry } from "@/lib/actions/user/profile";
 import { UsersAPI } from "@/types/users.types";
 import { UserAuthProvider, useUserAuthContext } from "./user-auth-provider";
 import { UserTokenProvider, useUserTokenContext } from "./user-token-provider";
@@ -18,7 +18,6 @@ interface State {
   fetchUserData: () => Promise<void>;
   fetchUserSettings: () => Promise<void>;
   getToken: (options?: { skipCache?: boolean }) => Promise<string | null>;
-  refreshToken: () => Promise<string | null>;
 }
 
 interface UserContextData {
@@ -34,24 +33,23 @@ const UserContext = createContext<UserContextData | null>(null);
 
 function UserComposedProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth, user } = useUserAuthContext();
-  const { token, getToken, refreshToken } = useUserTokenContext();
+  const { getToken } = useUserTokenContext();
   const { fetchUserData } = useUserDataContext();
   const { fetchUserDetails, updateUserDetails } = useUserDetailsContext();
   const { fetchUserSettings, updateUserSettings } = useUserSettingsContext();
 
   const authReady = useMemo(() => {
-    return auth.isLoaded && auth.isSignedIn && token !== null;
-  }, [auth.isLoaded, auth.isSignedIn, token]);
+    return auth.isLoaded && !!auth.isSignedIn;
+  }, [auth.isLoaded, auth.isSignedIn]);
 
   const authLoading = useMemo(() => {
-    return !auth.isLoaded || (auth.isLoaded && auth.isSignedIn && token === null);
-  }, [auth.isLoaded, auth.isSignedIn, token]);
+    return !auth.isLoaded;
+  }, [auth.isLoaded]);
 
   const state = useMemo<State>(() => {
     return {
       getToken,
-      refreshToken,
-      updateUserCountry: (country: string) => updateUserCountry({ token, country, clerk_user_id: user.user?.id }),
+      updateUserCountry,
       updateUserDetails,
       updateUserSettings,
       fetchUserDetails,
@@ -63,11 +61,8 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
     fetchUserDetails,
     fetchUserSettings,
     getToken,
-    refreshToken,
-    token,
     updateUserDetails,
     updateUserSettings,
-    user.user?.id,
   ]);
 
   const fetchUserDataRef = useRef(fetchUserData);
@@ -78,7 +73,7 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
   fetchUserSettingsRef.current = fetchUserSettings;
 
   useEffect(() => {
-    if (!auth.isLoaded || !auth.isSignedIn || !token) return;
+    if (!auth.isLoaded || !auth.isSignedIn) return;
     const run = async () => {
       await Promise.all([
         fetchUserDataRef.current(),
@@ -87,7 +82,7 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
       ]);
     };
     void run();
-  }, [auth.isLoaded, auth.isSignedIn, token]);
+  }, [auth.isLoaded, auth.isSignedIn]);
 
   const value = useMemo<UserContextData>(() => {
     return { user, auth, store, state, authReady, authLoading };

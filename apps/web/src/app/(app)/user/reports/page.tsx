@@ -1,17 +1,14 @@
 import type { ResourcesAPI } from '@/types/resources.types'
 import { ReportsClient } from './reports-client'
-import { apiUrl } from '@/lib/api/fetch/api-url'
-import { fetchData } from '@/lib/api/fetch/server-api'
-
-async function fetchReports(): Promise<ResourcesAPI.Reports.GetMe.Response> {
-  const params = new URLSearchParams({ limit: '50', offset: '0' })
-  return fetchData<ResourcesAPI.Reports.GetMe.Response>(
-    apiUrl.resources.reportsMe() + '?' + params.toString(),
-    { token: true }
-  )
-}
+import { backendUrl } from '@/lib/api/fetch/backend-url'
+import { serverFetch } from '@/lib/api/fetch/server-api'
 
 export default async function UserReportsPage() {
-  const data = await fetchReports()
+  const params = new URLSearchParams({ limit: '50', offset: '0' })
+  const data = await serverFetch<ResourcesAPI.Reports.GetMe.Response>(
+    backendUrl.resources.reportsMe(params),
+    { token: true }
+  )
+
   return <ReportsClient initialData={data} />
 }

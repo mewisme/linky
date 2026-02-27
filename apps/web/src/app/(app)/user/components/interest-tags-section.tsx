@@ -31,9 +31,8 @@ import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
 import type { ResourcesAPI } from '@/types/resources.types'
 import type { UserDetails } from '@/stores/user-store'
-import { apiUrl } from '@/lib/api/fetch/api-url'
-import { fetchData } from '@/lib/api/fetch/client-api'
 import { toast } from "@ws/ui/components/ui/sonner";
+import { getInterestTags } from "@/lib/actions/resources/interest-tags";
 import { trackEvent } from "@/lib/analytics/events/client";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings'
 
@@ -61,10 +60,7 @@ export function InterestTagsSection({
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const params = new URLSearchParams({ limit: '200' })
-        const json = await fetchData<ResourcesAPI.InterestTags.Get.Response>(
-          apiUrl.resources.interestTags(params)
-        )
+        const json = await getInterestTags(new URLSearchParams({ limit: '200' }))
         setAvailableTags(json.data)
       } catch (error) {
         console.error('Failed to fetch interest tags:', error)

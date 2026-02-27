@@ -1,12 +1,11 @@
 "use client";
 
 import { trackEvent } from "@/lib/analytics/events/client";
-import { fetchUserDetails, updateUserDetails } from "@/services/user";
+import { getUserDetails, updateUserDetails } from "@/lib/actions/user/profile";
 import type { UserDetails, UserState } from "@/stores/user-store";
 import type { UsersAPI } from "@/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useUserAuthContext } from "./user-auth-provider";
-import { useUserTokenContext } from "./user-token-provider";
 
 type UserDetailsContextValue = {
   fetchUserDetails: () => Promise<void>;
@@ -17,21 +16,21 @@ const UserDetailsContext = createContext<UserDetailsContextValue | null>(null);
 
 export function UserDetailsProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
-  const { token } = useUserTokenContext();
 
   const fetchUserDetailsFn = useCallback(async () => {
-    await fetchUserDetails({
-      isLoaded: auth.isLoaded,
-      isSignedIn: auth.isSignedIn,
-      token,
-      setUserDetails: store.setUserDetails,
-      setError: store.setError,
-    });
-  }, [auth.isLoaded, auth.isSignedIn, store.setError, store.setUserDetails, token]);
+    if (!auth.isLoaded || !auth.isSignedIn) return;
+    store.setError(null);
+    try {
+      const details = await getUserDetails();
+      store.setUserDetails(details);
+    } catch (error) {
+      store.setError(error instanceof Error ? error.message : "Failed to fetch user details");
+    }
+  }, [auth.isLoaded, auth.isSignedIn, store]);
 
   const updateUserDetailsFn = useCallback(
-    async (data: UsersAPI.UserDetails.PatchMe.Body) => {
-      const updated = await updateUserDetails({ token, data });
+    async (data: UsersAPI.UserDetails.PatchMe.Body): Promise<UserDetails> => {
+      const updated = await updateUserDetails(data);
       store.setUserDetails(updated);
       trackEvent({
         name: "profile_updated",
@@ -39,8 +38,7 @@ export function UserDetailsProvider({ children, store }: { children: ReactNode; 
       });
       return updated;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store.setUserDetails, token],
+    [store]
   );
 
   const value = useMemo<UserDetailsContextValue>(() => {
@@ -57,4 +55,3 @@ export function useUserDetailsContext() {
   }
   return context;
 }
-

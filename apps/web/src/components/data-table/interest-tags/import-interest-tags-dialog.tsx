@@ -17,8 +17,7 @@ import { Label } from "@ws/ui/components/ui/label";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { postData } from "@/lib/api/fetch/client-api";
+import { importInterestTags } from "@/lib/actions/admin/interest-tags";
 
 const EXAMPLE_JSON = `{
   "items": [
@@ -30,14 +29,12 @@ const EXAMPLE_JSON = `{
 export interface ImportInterestTagsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  token: string | null;
   onSuccess: () => void;
 }
 
 export function ImportInterestTagsDialog({
   open,
   onOpenChange,
-  token,
   onSuccess,
 }: ImportInterestTagsDialogProps) {
   const { play: playSound } = useSoundWithSettings();
@@ -81,22 +78,12 @@ export function ImportInterestTagsDialog({
   }, [file, paste]);
 
   const handleSubmit = useCallback(async () => {
-    if (!token) {
-      toast.error("Not authenticated");
-      return;
-    }
     const items = await getItemsFromInput();
     if (!items) return;
 
     setImporting(true);
     try {
-      const data = await postData<AdminAPI.InterestTags.Import.Response>(
-        apiUrl.admin.interestTagsImport(),
-        {
-          token,
-          body: { items },
-        }
-      );
+      const data = await importInterestTags({ items });
 
       playSound("success");
       toast.success(
@@ -110,7 +97,7 @@ export function ImportInterestTagsDialog({
     } finally {
       setImporting(false);
     }
-  }, [token, getItemsFromInput, onSuccess, onOpenChange, reset, playSound]);
+  }, [getItemsFromInput, onSuccess, onOpenChange, reset, playSound]);
 
   const handleOpenChange = useCallback(
     (next: boolean) => {

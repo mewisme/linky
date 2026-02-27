@@ -20,10 +20,9 @@ import { Button } from '@ws/ui/components/ui/button';
 import { IconLoader2 } from '@tabler/icons-react';
 import { Label } from '@ws/ui/components/ui/label';
 import { UserSearchSelect } from './user-search-select';
+import { compareEmbeddings } from '@/lib/actions/admin/embeddings';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useState } from 'react';
-import { apiUrl } from '@/lib/api/fetch/api-url';
-import { postData } from '@/lib/api/fetch/client-api';
 
 interface CompareResult {
   similarity_score: number;
@@ -37,7 +36,6 @@ interface CompareEmbeddingsModalProps {
   onOpenChange: (open: boolean) => void;
   user: AdminAPI.User;
   users: AdminAPI.User[];
-  token: string | null;
 }
 
 function formatUserLabel(user: AdminAPI.User): string {
@@ -51,7 +49,6 @@ export function CompareEmbeddingsModal({
   onOpenChange,
   user,
   users,
-  token,
 }: CompareEmbeddingsModalProps) {
   const isMobile = useIsMobile();
   const [secondUser, setSecondUser] = useState<AdminAPI.User | null>(null);
@@ -70,19 +67,13 @@ export function CompareEmbeddingsModal({
   };
 
   const handleSubmit = async () => {
-    if (!secondUser || !token) return;
+    if (!secondUser) return;
     setIsLoading(true);
     setError(null);
     setResult(null);
     try {
-      const data = await postData<CompareResult>(apiUrl.admin.embeddingsCompare(), {
-        token,
-        body: {
-          user_id_a: user.id,
-          user_id_b: secondUser.id,
-        },
-      });
-      setResult(data);
+      const data = await compareEmbeddings(user.id, secondUser.id);
+      setResult(data as unknown as CompareResult);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to compare embeddings');
     } finally {

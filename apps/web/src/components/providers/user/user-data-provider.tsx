@@ -1,10 +1,9 @@
 "use client";
 
-import { fetchUserData } from "@/services/user";
+import { getMe } from "@/lib/actions/user/profile";
 import type { UserState } from "@/stores/user-store";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useUserAuthContext } from "./user-auth-provider";
-import { useUserTokenContext } from "./user-token-provider";
 
 type UserDataContextValue = {
   fetchUserData: () => Promise<void>;
@@ -14,18 +13,22 @@ const UserDataContext = createContext<UserDataContextValue | null>(null);
 
 export function UserDataProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
-  const { token } = useUserTokenContext();
 
   const fetchUserDataFn = useCallback(async () => {
-    await fetchUserData({
-      isLoaded: auth.isLoaded,
-      isSignedIn: auth.isSignedIn,
-      token,
-      clearUser: store.clearUser,
-      setUser: store.setUser,
-      setError: store.setError,
-    });
-  }, [auth.isLoaded, auth.isSignedIn, store.clearUser, store.setError, store.setUser, token]);
+    if (!auth.isLoaded) return;
+    if (!auth.isSignedIn) {
+      store.clearUser();
+      return;
+    }
+    store.setError(null);
+    try {
+      const userData = await getMe();
+      store.setUser(userData);
+    } catch (error) {
+      store.setError(error instanceof Error ? error.message : "Failed to fetch user data");
+      store.setUser(null);
+    }
+  }, [auth.isLoaded, auth.isSignedIn, store]);
 
   const value = useMemo<UserDataContextValue>(() => {
     return { fetchUserData: fetchUserDataFn };
@@ -41,4 +44,3 @@ export function useUserDataContext() {
   }
   return context;
 }
-

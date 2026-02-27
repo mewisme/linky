@@ -1,0 +1,45 @@
+'use server'
+
+import { auth } from '@clerk/nextjs/server';
+import type { UsersAPI } from '@/types/users.types';
+import { backendUrl } from '@/lib/api/fetch/backend-url';
+import { serverFetch } from '@/lib/api/fetch/server-api';
+
+export async function updateUserDetails(
+  data: UsersAPI.UserDetails.PatchMe.Body
+): Promise<UsersAPI.UserDetails.PatchMe.Response> {
+  return serverFetch(backendUrl.users.details(), {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+    token: true,
+  });
+}
+
+export async function getUserDetails(): Promise<UsersAPI.UserDetails.GetMe.Response> {
+  return serverFetch(backendUrl.users.details(), { token: true });
+}
+
+export async function getMe(): Promise<UsersAPI.GetMe.Response> {
+  return serverFetch(backendUrl.users.me(), { token: true });
+}
+
+export async function getUserProgress(
+  timezone: string
+): Promise<UsersAPI.Progress.GetMe.Response> {
+  return serverFetch(backendUrl.users.progress(), {
+    token: true,
+    headers: { 'x-user-timezone': timezone },
+  });
+}
+
+export async function updateUserCountry(
+  country: string
+): Promise<UsersAPI.UpdateCountry.Response> {
+  const { userId } = await auth();
+  if (!userId) throw new Error('Unauthorized');
+  return serverFetch(backendUrl.users.meCountry(), {
+    method: 'PATCH',
+    body: JSON.stringify({ country, clerk_user_id: userId }),
+    token: true,
+  });
+}

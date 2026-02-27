@@ -20,9 +20,14 @@ import { Switch } from "@ws/ui/components/ui/switch";
 import dynamic from "next/dynamic";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/client-api";
+import {
+  createInterestTag,
+  deleteInterestTag,
+  getAdminInterestTags,
+  hardDeleteInterestTag,
+  importInterestTags,
+  updateInterestTag,
+} from '@/lib/actions/admin/interest-tags';
 
 const EmojiPickerLazy = dynamic(
   () => import("@ws/ui/components/ui/emoji-picker").then(mod => ({
@@ -51,7 +56,6 @@ interface InterestTagsClientProps {
 }
 
 export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
-  const { token } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -65,15 +69,9 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["interest-tags"],
-    queryFn: async () => {
-      return fetchData<AdminAPI.InterestTags.Get.Response>(
-        apiUrl.admin.interestTags(),
-        {
-          token: token ?? undefined,
-        }
-      );
-    },
+    queryFn: () => getAdminInterestTags(),
     initialData,
+    staleTime: Infinity,
   });
 
   const upsertMutation = useMutation({
@@ -86,24 +84,10 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
         delete requestPayload.id;
       }
 
-      const url = isUpdate ? `${apiUrl.admin.interestTags()}/${tagId}` : apiUrl.admin.interestTags();
-      const method = isUpdate ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(requestPayload)
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Operation failed" }));
-        throw new Error(err.message || err.error || "Operation failed");
+      if (isUpdate) {
+        return updateInterestTag(tagId, requestPayload as AdminAPI.InterestTags.Update.Body);
       }
-
-      return res.json();
+      return createInterestTag(requestPayload as AdminAPI.InterestTags.Create.Body);
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -129,15 +113,8 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async ({ id, hard }: { id: string, hard: boolean }) => {
-      const url = `${apiUrl.admin.interestTags()}/${id}${hard ? '/hard' : ''}`;
-      const res = await fetch(url, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Delete failed" }));
-        throw new Error(err.message || err.error || "Delete failed");
-      }
+      if (hard) return hardDeleteInterestTag(id);
+      return deleteInterestTag(id);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -280,7 +257,6 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
       <ImportInterestTagsDialog
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
-        token={token}
         onSuccess={async () => {
           await queryClient.invalidateQueries({ queryKey: ["interest-tags"], refetchType: "active" });
           await refetch();

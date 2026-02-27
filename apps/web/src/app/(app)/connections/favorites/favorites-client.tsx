@@ -9,9 +9,7 @@ import type { ResourcesAPI } from '@/types/resources.types'
 import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useQuery } from '@tanstack/react-query'
-import { useUserTokenContext } from '@/components/providers/user/user-token-provider'
-import { apiUrl } from '@/lib/api/fetch/api-url'
-import { fetchData } from '@/lib/api/fetch/client-api'
+import { getFavorites, removeFavorite } from '@/lib/actions/resources/favorites'
 
 const FavoritesDataTable = dynamic(
   () => import('@/components/data-table/favorites/data-table').then(mod => ({ default: mod.FavoritesDataTable }))
@@ -22,20 +20,13 @@ interface FavoritesClientProps {
 }
 
 export function FavoritesClient({ initialData }: FavoritesClientProps) {
-  const { token } = useUserTokenContext()
   const [data, setData] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>(initialData.data)
 
   const { data: favorites, isFetching, refetch } = useQuery({
     queryKey: ['user-favorites'],
-    queryFn: async () => {
-      return fetchData<ResourcesAPI.Favorites.Get.Response>(
-        apiUrl.resources.favorites(),
-        {
-          token: token ?? undefined,
-        }
-      );
-    },
+    queryFn: () => getFavorites(),
     initialData,
+    staleTime: Infinity,
   })
 
   useEffect(() => {
@@ -45,25 +36,13 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
   }, [favorites])
 
   const handleRemoveFavorite = async (favorite: ResourcesAPI.Favorites.FavoriteWithStats) => {
-    if (!token) {
-      toast.error("Authentication required")
-      return
-    }
-
     if (!favorite.favorite_user_id) {
-      console.error("Missing favorite_user_id:", favorite)
       toast.error("Invalid favorite data")
       return
     }
 
     try {
-      const result = await fetchData<{ refunded?: boolean }>(
-        apiUrl.resources.favoriteByUserId(favorite.favorite_user_id),
-        {
-          token,
-          method: "DELETE",
-        }
-      );
+      const result = await removeFavorite(favorite.favorite_user_id)
 
       setData((prev) => prev.filter((f) => f.favorite_user_id !== favorite.favorite_user_id))
 
@@ -73,7 +52,6 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
         toast.success("Removed from favorites")
       }
     } catch (error) {
-      console.error("Failed to remove favorite:", error)
       toast.error(error instanceof Error ? error.message : "Failed to remove favorite")
     }
   }

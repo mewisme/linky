@@ -2,19 +2,17 @@ import { ChatPageContent } from "./components/chat-page-content";
 import type { ResourcesAPI } from "@/types/resources.types";
 import { Suspense } from "react";
 import type { UsersAPI } from "@/types/users.types";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/server-api";
+import { backendUrl } from "@/lib/api/fetch/backend-url";
+import { serverFetch } from "@/lib/api/fetch/server-api";
 import { getUserTimezone } from "@/utils/timezone";
 
 async function fetchProgress(): Promise<UsersAPI.Progress.GetMe.Response | null> {
   try {
-    return await fetchData<UsersAPI.Progress.GetMe.Response>(
-      apiUrl.users.progress(),
+    return await serverFetch<UsersAPI.Progress.GetMe.Response>(
+      backendUrl.users.progress(),
       {
         token: true,
-        headers: {
-          "x-user-timezone": getUserTimezone(),
-        },
+        headers: { "x-user-timezone": getUserTimezone() },
       }
     );
   } catch {
@@ -24,8 +22,8 @@ async function fetchProgress(): Promise<UsersAPI.Progress.GetMe.Response | null>
 
 async function fetchFavorites(): Promise<ResourcesAPI.Favorites.Get.Response | null> {
   try {
-    return await fetchData<ResourcesAPI.Favorites.Get.Response>(
-      apiUrl.resources.favorites(),
+    return await serverFetch<ResourcesAPI.Favorites.Get.Response>(
+      backendUrl.resources.favorites(),
       { token: true }
     );
   } catch {

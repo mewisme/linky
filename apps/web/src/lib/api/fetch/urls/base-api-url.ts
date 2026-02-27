@@ -45,7 +45,10 @@ function queryToString(query: BuildUrlQuery): string {
 }
 
 export class BaseApiUrl {
-  constructor(protected readonly baseUrl: string) {}
+  constructor(
+    protected readonly baseUrl: string,
+    private readonly pathStrip: number = 0
+  ) {}
 
   protected buildUrl(path: string): string;
   protected buildUrl(path: string, query?: URLSearchParams): string;
@@ -72,6 +75,10 @@ export class BaseApiUrl {
           queryString = queryToString(opts.query);
         }
       }
+    }
+
+    if (this.pathStrip > 0) {
+      resolvedPath = resolvedPath.slice(this.pathStrip);
     }
 
     const search = queryString ? `?${queryString}` : '';

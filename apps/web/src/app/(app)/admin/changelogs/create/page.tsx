@@ -15,17 +15,14 @@ import { HookFormZodPrimitive, ReactHookFormPrimitive, ZodPrimitive } from "@ws/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ws/ui/components/ui/tabs";
 import { getUploadUrl, uploadToS3 } from "@/lib/api/s3";
 
-import type { AdminAPI } from "@/types/admin.types";
-import type { ApiError } from "@/types/api.types";
 import { AppLayout } from "@/components/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { DatePicker } from "@/components/common/date-picker";
 import { Input } from "@ws/ui/components/ui/input";
 import Link from "next/link";
 import { Switch } from "@ws/ui/components/ui/switch";
-import { apiUrl } from "@/lib/api/fetch/api-url";
 import dynamic from "next/dynamic";
-import { fetchData } from "@/lib/api/fetch/client-api";
+import { createChangelog } from "@/lib/actions/admin/changelogs";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useRouter } from "next/navigation";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
@@ -49,7 +46,7 @@ const formSchema = z.object({
 });
 
 export default function CreateChangelogPage() {
-  const { token } = useUserTokenContext();
+  const { getToken } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const router = useRouter();
   const [markdownContent, setMarkdownContent] = useState<string>("");
@@ -67,11 +64,6 @@ export default function CreateChangelogPage() {
   });
 
   const onSubmit = async (data: ZodPrimitive.z.infer<typeof formSchema>) => {
-    if (!token) {
-      toast.error("Authentication required");
-      return;
-    }
-
     if (!markdownContent.trim()) {
       toast.error("Please add changelog content");
       return;
@@ -79,22 +71,18 @@ export default function CreateChangelogPage() {
 
     setIsSubmitting(true);
     try {
+      const token = await getToken();
+      if (!token) throw new Error("Authentication required");
+
       const s3Key = `changelogs/${data.version}.md`;
       const { url } = await getUploadUrl({ key: s3Key, expires: 300 }, token);
       const markdownBlob = new Blob([markdownContent], { type: "text/markdown" });
       await uploadToS3(url, markdownBlob);
 
-      await fetchData<AdminAPI.Changelogs.Create.Response>(apiUrl.admin.changelogs(), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        token,
-        body: JSON.stringify({
-          ...data,
-          s3_key: s3Key,
-          is_published: data.is_published ?? false,
-        }),
+      await createChangelog({
+        ...data,
+        s3_key: s3Key,
+        is_published: data.is_published ?? false,
       });
 
       playSound('success');
@@ -130,7 +118,7 @@ export default function CreateChangelogPage() {
               </Button>
               <Button
                 onClick={form.handleSubmit(onSubmit)}
-                disabled={isSubmitting || !token}
+                disabled={isSubmitting}
                 size="sm"
               >
                 {isSubmitting ? "Saving..." : (

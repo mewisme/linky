@@ -26,14 +26,14 @@ interface UsersPageContentProps {
 }
 
 export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
-  const { token, users, isFetching, refetch } = useUsersQuery({ initialData });
+  const { users, isFetching, refetch } = useUsersQuery({ initialData });
   const dataWithPresence = useUsersPresence(users);
   const {
     updateMutation,
     deleteMutation,
     restoreMutation,
     embeddingSyncMutation,
-  } = useUsersMutations({ token, refetch });
+  } = useUsersMutations({ refetch });
 
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [pendingBulkDelete, setPendingBulkDelete] = useState<AdminAPI.User[]>([]);
@@ -122,7 +122,6 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
           onOpenChange={(open) => !open && setCompareModalUser(null)}
           user={compareModalUser}
           users={dataWithPresence}
-          token={token}
         />
       )}
       {findSimilarModalUser && (
@@ -131,7 +130,6 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
           onOpenChange={(open) => !open && setFindSimilarModalUser(null)}
           user={findSimilarModalUser}
           users={dataWithPresence}
-          token={token}
         />
       )}
       <UsersDataTable

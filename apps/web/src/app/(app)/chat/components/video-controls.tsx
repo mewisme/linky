@@ -47,10 +47,9 @@ import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "r
 
 import { trackEvent } from "@/lib/analytics/events/client";
 import { useUserContext } from "@/components/providers/user/user-provider";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
 import { useVideoChatStore } from "@/stores/video-chat-store";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData, postData } from "@/lib/api/fetch/client-api";
+import { getFavorites, addFavorite, removeFavorite } from "@/lib/actions/resources/favorites";
+import { createReport } from "@/lib/actions/resources/reports";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
@@ -188,7 +187,6 @@ export function VideoControls({
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
   const { user } = useUserContext();
-  const { token } = useUserTokenContext();
   const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
@@ -214,13 +212,10 @@ export function VideoControls({
     let mounted = true;
 
     const checkIfFavorited = async () => {
-      if (!token || !mounted) return;
+      if (!mounted) return;
 
       try {
-        const data = await fetchData<ResourcesAPI.Favorites.Get.Response>(
-          apiUrl.resources.favorites(),
-          { token }
-        );
+        const data = await getFavorites();
 
         if (!mounted) return;
 
@@ -242,10 +237,10 @@ export function VideoControls({
     return () => {
       mounted = false;
     };
-  }, [peerInfo?.id, token, initialFavorites?.data]);
+  }, [peerInfo?.id, initialFavorites?.data]);
 
   const handleToggleFavorite = async () => {
-    if (!peerInfo?.id || isFavoriteLoading || !token) {
+    if (!peerInfo?.id || isFavoriteLoading) {
       return;
     }
 
@@ -254,12 +249,7 @@ export function VideoControls({
 
     try {
       if (isAdding) {
-        await postData(apiUrl.resources.favorites(), {
-          token,
-          body: {
-            favorite_user_id: peerInfo.id,
-          },
-        });
+        await addFavorite(peerInfo.id);
 
         setIsFavorite(true);
         trackEvent({ name: "favorite_added" });
@@ -268,10 +258,7 @@ export function VideoControls({
         const userName = user.user?.fullName || user.user?.firstName || "Someone";
         sendFavoriteNotification("added", peerInfo.id, userName || "Someone");
       } else {
-        await fetchData(apiUrl.resources.favoriteByUserId(peerInfo.id), {
-          token,
-          method: "DELETE",
-        });
+        await removeFavorite(peerInfo.id);
 
         setIsFavorite(false);
         trackEvent({ name: "favorite_removed" });
@@ -649,19 +636,11 @@ export function VideoControls({
                     return;
                   }
 
-                  if (!token) {
-                    toast.error("Authentication required");
-                    return;
-                  }
-
                   setIsSubmittingReport(true);
                   try {
-                    await postData(apiUrl.resources.reports(), {
-                      token,
-                      body: {
-                        reported_user_id: peerInfo.id,
-                        reason: reportReason.trim(),
-                      } as ResourcesAPI.Reports.Create.Body,
+                    await createReport({
+                      reported_user_id: peerInfo.id,
+                      reason: reportReason.trim(),
                     });
 
                     trackEvent({ name: "report_submitted" });

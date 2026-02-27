@@ -27,9 +27,7 @@ import { RadioGroup, RadioGroupItem } from "@ws/ui/components/ui/radio-group";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { IconSend, IconLoader2 } from "@tabler/icons-react";
 import { cn } from "@ws/ui/lib/utils";
-import { postData } from "@/lib/api/fetch/client-api";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { createBroadcast } from "@/lib/actions/admin/broadcasts";
 import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
 import type { AdminAPI } from "@/types/admin.types";
 
@@ -50,7 +48,6 @@ interface FormCreateBroadcastProps {
 }
 
 export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
-  const { token } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
 
   const form = useForm<FormValues>({
@@ -66,24 +63,13 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
   const isSubmitting = form.formState.isSubmitting;
 
   async function onSubmit(values: FormValues) {
-    if (!token) {
-      toast.error("Please sign in again");
-      return;
-    }
-
     try {
-      const res = await postData<AdminAPI.Broadcasts.Post.Response>(
-        apiUrl.admin.broadcasts(),
-        {
-          token,
-          body: {
-            message: values.message.trim(),
-            title: values.title?.trim() || undefined,
-            deliveryMode: values.deliveryMode,
-            url: values.pushUrl?.trim() || undefined,
-          },
-        }
-      );
+      const res = await createBroadcast({
+        message: values.message.trim(),
+        title: values.title?.trim() || undefined,
+        deliveryMode: values.deliveryMode,
+        url: values.pushUrl?.trim() || undefined,
+      } satisfies AdminAPI.Broadcasts.Post.Body);
 
       playSound("success");
       toast.success(res.message ?? `Broadcast sent to ${res.sent} user(s).`);

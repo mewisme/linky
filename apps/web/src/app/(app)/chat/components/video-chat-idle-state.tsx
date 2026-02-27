@@ -6,11 +6,6 @@ import { IconBolt, IconFlame, IconPlayerPlay, IconStar, IconTrophy } from "@tabl
 import { Button } from "@ws/ui/components/ui/button";
 import type { UsersAPI } from "@/types/users.types";
 import { useUserContext } from "@/components/providers/user/user-provider";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { useQuery } from "@tanstack/react-query";
-import { fetchData } from "@/lib/api/fetch/client-api";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { getUserTimezone } from "@/utils/timezone";
 
 const PRESTIGE_MILESTONES = [
   { level: 50, tier: "I" },
@@ -43,19 +38,7 @@ interface VideoChatIdleStateProps {
 
 export function VideoChatIdleState({ onStart, initialProgress }: VideoChatIdleStateProps) {
   const { user } = useUserContext();
-  const { token } = useUserTokenContext();
-
-  const { data: progress } = useQuery({
-    queryKey: ["user-progress"],
-    queryFn: () =>
-      fetchData<UsersAPI.Progress.GetMe.Response>(apiUrl.users.progress(), {
-        token: token ?? undefined,
-        headers: { "x-user-timezone": getUserTimezone() },
-      }),
-    initialData: initialProgress ?? undefined,
-    staleTime: 0,
-    enabled: !!token,
-  });
+  const progress = initialProgress ?? null;
 
   const displayName =
     user.user?.firstName || user.user?.username || "You";

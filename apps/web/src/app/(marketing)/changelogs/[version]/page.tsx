@@ -4,13 +4,13 @@ import type { ResourcesAPI } from "@/types/resources.types";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import { notFound } from "next/navigation";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/server-api";
+import { backendUrl } from "@/lib/api/fetch/backend-url";
+import { serverFetch } from "@/lib/api/fetch/server-api";
 
 async function getChangelog(version: string): Promise<ResourcesAPI.Changelogs.GetByVersion.Response | null> {
   try {
-    return await fetchData<ResourcesAPI.Changelogs.GetByVersion.Response>(
-      apiUrl.resources.changelogByVersion(version),
+    return await serverFetch<ResourcesAPI.Changelogs.GetByVersion.Response>(
+      backendUrl.resources.changelogByVersion(version),
       { next: { revalidate: 3600 } }
     );
   } catch { return null; }

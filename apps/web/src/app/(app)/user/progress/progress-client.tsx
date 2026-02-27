@@ -18,12 +18,10 @@ import { Progress } from "@ws/ui/components/ui/progress";
 import { StreakCalendar } from "@/components/user/streak-calendar";
 import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/client-api";
 import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { getUserProgress } from "@/lib/actions/user/profile";
 
 function formatSeconds(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -54,23 +52,13 @@ interface ProgressClientProps {
 }
 
 export function ProgressClient({ initialData }: ProgressClientProps) {
-  const { token } = useUserTokenContext();
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
-    queryFn: async () => {
-      return fetchData<UsersAPI.Progress.GetMe.Response>(
-        apiUrl.users.progress(),
-        {
-          token: token ?? undefined,
-          headers: {
-            "x-user-timezone": getUserTimezone(),
-          },
-        }
-      );
-    },
+    queryFn: () => getUserProgress(getUserTimezone()),
     initialData,
+    staleTime: Infinity,
   });
 
   if (isLoading) {

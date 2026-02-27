@@ -5,15 +5,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AdminAPI } from '@/types/admin.types';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { apiUrl } from '@/lib/api/fetch/api-url';
-import { fetchData, postData } from '@/lib/api/fetch/client-api';
+import { deleteAdminUser, restoreAdminUser, updateAdminUser } from '@/lib/actions/admin/users';
+import { syncEmbeddings } from '@/lib/actions/admin/embeddings';
 
 interface UseUsersMutationsParams {
-  token: string | null;
   refetch: () => Promise<unknown>;
 }
 
-export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
+export function useUsersMutations({ refetch }: UseUsersMutationsParams) {
   const queryClient = useQueryClient();
   const { play: playSound } = useSoundWithSettings();
 
@@ -24,14 +23,8 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   };
 
   const updateMutation = useMutation({
-    mutationFn: async (payload: Pick<AdminAPI.User, 'id' | 'role'>) => {
-      if (!token) return Promise.reject(new Error('No token'));
-      return fetchData<AdminAPI.User>(apiUrl.admin.userById(payload.id), {
-        token,
-        method: 'PUT',
-        body: JSON.stringify(payload),
-      });
-    },
+    mutationFn: (payload: Pick<AdminAPI.User, 'id' | 'role'>) =>
+      updateAdminUser(payload.id, { role: payload.role }),
     onSuccess: async () => {
       await invalidateAndRefetch();
       toast.success('User updated successfully');
@@ -42,13 +35,7 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      if (!token) return Promise.reject(new Error('No token'));
-      return fetchData<AdminAPI.DeleteUser.Response>(apiUrl.admin.userById(id), {
-        token,
-        method: 'DELETE',
-      });
-    },
+    mutationFn: (id: string) => deleteAdminUser(id),
     onSuccess: async () => {
       await invalidateAndRefetch();
       toast.success('User deleted successfully');
@@ -59,14 +46,7 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   });
 
   const restoreMutation = useMutation({
-    mutationFn: async (id: string) => {
-      if (!token) return Promise.reject(new Error('No token'));
-      return fetchData<AdminAPI.User>(apiUrl.admin.userById(id), {
-        token,
-        method: 'PATCH',
-        body: JSON.stringify({ deleted: false, deleted_at: null }),
-      });
-    },
+    mutationFn: (id: string) => restoreAdminUser(id),
     onSuccess: async () => {
       await invalidateAndRefetch();
       toast.success('User restored successfully');
@@ -77,16 +57,7 @@ export function useUsersMutations({ token, refetch }: UseUsersMutationsParams) {
   });
 
   const embeddingSyncMutation = useMutation({
-    mutationFn: async (userIds: string[]) => {
-      if (!token) return Promise.reject(new Error('No token'));
-      return postData<{ accepted_user_ids: string[]; skipped_user_ids: string[] }>(
-        apiUrl.admin.embeddingsSync(),
-        {
-          token,
-          body: { user_ids: userIds },
-        }
-      );
-    },
+    mutationFn: (userIds: string[]) => syncEmbeddings(userIds),
     onSuccess: async (data: { accepted_user_ids: string[]; skipped_user_ids: string[] }) => {
       await invalidateAndRefetch();
       const accepted = data.accepted_user_ids?.length ?? 0;

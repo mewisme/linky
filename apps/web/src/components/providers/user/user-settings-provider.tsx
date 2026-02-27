@@ -1,11 +1,10 @@
 "use client";
 
-import { fetchUserSettings, updateUserSettings } from "@/services/user";
+import { getUserSettings, updateUserSettings } from "@/lib/actions/user/settings";
 import type { UserSettings, UserState } from "@/stores/user-store";
 import type { UsersAPI } from "@/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useUserAuthContext } from "./user-auth-provider";
-import { useUserTokenContext } from "./user-token-provider";
 
 type UserSettingsContextValue = {
   fetchUserSettings: () => Promise<void>;
@@ -16,26 +15,25 @@ const UserSettingsContext = createContext<UserSettingsContextValue | null>(null)
 
 export function UserSettingsProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
-  const { token } = useUserTokenContext();
 
   const fetchUserSettingsFn = useCallback(async () => {
-    await fetchUserSettings({
-      isLoaded: auth.isLoaded,
-      isSignedIn: auth.isSignedIn,
-      token,
-      setUserSettings: store.setUserSettings,
-      setError: store.setError,
-    });
-  }, [auth.isLoaded, auth.isSignedIn, store.setError, store.setUserSettings, token]);
+    if (!auth.isLoaded || !auth.isSignedIn) return;
+    store.setError(null);
+    try {
+      const settings = await getUserSettings();
+      store.setUserSettings(settings);
+    } catch (error) {
+      store.setError(error instanceof Error ? error.message : "Failed to fetch user settings");
+    }
+  }, [auth.isLoaded, auth.isSignedIn, store]);
 
   const updateUserSettingsFn = useCallback(
-    async (data: UsersAPI.UserSettings.PatchMe.Body) => {
-      const updated = await updateUserSettings({ token, data });
+    async (data: UsersAPI.UserSettings.PatchMe.Body): Promise<UserSettings> => {
+      const updated = await updateUserSettings(data);
       store.setUserSettings(updated);
       return updated;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store.setUserSettings, token],
+    [store]
   );
 
   const value = useMemo<UserSettingsContextValue>(() => {
@@ -52,4 +50,3 @@ export function useUserSettingsContext() {
   }
   return context;
 }
-

@@ -1,16 +1,13 @@
 import type { ResourcesAPI } from '@/types/resources.types'
 import { FavoritesClient } from './favorites-client'
-import { apiUrl } from '@/lib/api/fetch/api-url'
-import { fetchData } from '@/lib/api/fetch/server-api'
-
-async function fetchFavorites(): Promise<ResourcesAPI.Favorites.Get.Response> {
-  return fetchData<ResourcesAPI.Favorites.Get.Response>(
-    apiUrl.resources.favorites(),
-    { token: true }
-  )
-}
+import { backendUrl } from '@/lib/api/fetch/backend-url'
+import { serverFetch } from '@/lib/api/fetch/server-api'
 
 export default async function FavoritesPage() {
-  const data = await fetchFavorites()
+  const data = await serverFetch<ResourcesAPI.Favorites.Get.Response>(
+    backendUrl.resources.favorites(),
+    { token: true }
+  )
+
   return <FavoritesClient initialData={data} />
 }

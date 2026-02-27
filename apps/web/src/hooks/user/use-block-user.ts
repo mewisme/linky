@@ -1,31 +1,28 @@
 "use client";
 
-import {
-  blockUser as blockUserAPI,
-  getBlockedUsers as getBlockedUsersAPI,
-  unblockUser as unblockUserAPI,
-} from "@/lib/api/user-blocks";
 import { useCallback, useEffect, useRef } from "react";
 
 import { toast } from "@ws/ui/components/ui/sonner";
 import { trackEvent } from "@/lib/analytics/events/client";
+import {
+  blockUser as blockUserAction,
+  getBlockedUsers as getBlockedUsersAction,
+  unblockUser as unblockUserAction,
+} from "@/lib/actions/user/blocks";
 import { useBlockedUsersStore } from "@/stores/blocked-users-store";
 import { useUserContext } from "@/components/providers/user/user-provider";
 
 export function useBlockUser() {
-  const { state: { getToken }, authReady } = useUserContext();
+  const { authReady } = useUserContext();
   const blockedUserIds = useBlockedUsersStore((s) => s.blockedUserIds);
   const isLoading = useBlockedUsersStore((s) => s.isLoading);
   const isBlocked = useBlockedUsersStore((s) => s.isBlocked);
   const fetchedRef = useRef(false);
 
   const fetchBlockedUsers = useCallback(async () => {
-    const token = await getToken();
-    if (!token) return;
-
     useBlockedUsersStore.getState().setLoading(true);
     try {
-      const data = await getBlockedUsersAPI(token);
+      const data = await getBlockedUsersAction();
       useBlockedUsersStore.getState().setBlockedUsers(
         data.blocked_users.map((u) => u.blocked_user_id)
       );
@@ -36,7 +33,7 @@ export function useBlockUser() {
     } finally {
       useBlockedUsersStore.getState().setLoading(false);
     }
-  }, [getToken]);
+  }, []);
 
   useEffect(() => {
     if (authReady && !fetchedRef.current) {
@@ -45,45 +42,33 @@ export function useBlockUser() {
     }
   }, [authReady, fetchBlockedUsers]);
 
-  const blockUser = useCallback(
-    async (userId: string) => {
-      const token = await getToken();
-      if (!token) return;
+  const blockUser = useCallback(async (userId: string) => {
+    try {
+      await blockUserAction(userId);
+      useBlockedUsersStore.getState().blockUser(userId);
+      trackEvent({ name: "user_blocked" });
+      toast.success("User blocked");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to block user"
+      );
+      throw error;
+    }
+  }, []);
 
-      try {
-        await blockUserAPI(userId, token);
-        useBlockedUsersStore.getState().blockUser(userId);
-        trackEvent({ name: "user_blocked" });
-        toast.success("User blocked");
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to block user"
-        );
-        throw error;
-      }
-    },
-    [getToken]
-  );
-
-  const unblockUser = useCallback(
-    async (userId: string) => {
-      const token = await getToken();
-      if (!token) return;
-
-      try {
-        await unblockUserAPI(userId, token);
-        useBlockedUsersStore.getState().unblockUser(userId);
-        trackEvent({ name: "user_unblocked" });
-        toast.success("User unblocked");
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to unblock user"
-        );
-        throw error;
-      }
-    },
-    [getToken]
-  );
+  const unblockUser = useCallback(async (userId: string) => {
+    try {
+      await unblockUserAction(userId);
+      useBlockedUsersStore.getState().unblockUser(userId);
+      trackEvent({ name: "user_unblocked" });
+      toast.success("User unblocked");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to unblock user"
+      );
+      throw error;
+    }
+  }, []);
 
   return {
     blockUser,

@@ -8,7 +8,6 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { ChatPanelHost } from "@/components/chat/chat-panel-host";
 import { FloatingCallProvider } from "@/components/floating-call/floating-call-provider";
 import { GlobalCallManager } from "@/components/providers/call/global-call-manager";
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useCommandMenuStore } from "@/stores/command-menu-store";
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useState } from 'react';
@@ -24,7 +23,6 @@ export function AppClientLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools />
       <GlobalCallManager>
         <FloatingCallProvider>
           <SidebarProvider

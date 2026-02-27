@@ -1,21 +1,18 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useRef, type ReactNode } from "react";
 import { useUserAuthContext } from "./user-auth-provider";
 
 type GetTokenOptions = { skipCache?: boolean };
 
 type UserTokenContextValue = {
-  token: string | null;
   getToken: (options?: GetTokenOptions) => Promise<string | null>;
-  refreshToken: () => Promise<string | null>;
 };
 
 const UserTokenContext = createContext<UserTokenContextValue | null>(null);
 
 export function UserTokenProvider({ children }: { children: ReactNode }) {
-  const { auth, getClerkToken } = useUserAuthContext();
-  const [token, setToken] = useState<string | null>(null);
+  const { getClerkToken } = useUserAuthContext();
   const inFlightRef = useRef<Promise<string | null> | null>(null);
 
   const getToken = useCallback(
@@ -32,29 +29,11 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
     [getClerkToken]
   );
 
-  const refreshToken = useCallback(async () => {
-    const next = await getToken();
-    setToken(next);
-    return next;
-  }, [getToken]);
-
-  const refreshTokenRef = useRef(refreshToken);
-  refreshTokenRef.current = refreshToken;
-
-  useEffect(() => {
-    if (!auth.isLoaded) return;
-    if (!auth.isSignedIn) {
-      setToken(null);
-      return;
-    }
-    void refreshTokenRef.current();
-  }, [auth.isLoaded, auth.isSignedIn]);
-
-  const value = useMemo<UserTokenContextValue>(() => {
-    return { token, getToken, refreshToken };
-  }, [getToken, refreshToken, token]);
-
-  return <UserTokenContext.Provider value={value}>{children}</UserTokenContext.Provider>;
+  return (
+    <UserTokenContext.Provider value={{ getToken }}>
+      {children}
+    </UserTokenContext.Provider>
+  );
 }
 
 export function useUserTokenContext() {
@@ -64,4 +43,3 @@ export function useUserTokenContext() {
   }
   return context;
 }
-

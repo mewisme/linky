@@ -8,7 +8,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { getAdminChangelogs } from "@/lib/actions/admin/changelogs";
 
 const ChangelogsDataTable = dynamic(
   () => import("@/components/data-table/changelogs/data-table").then(mod => ({ default: mod.ChangelogsDataTable })),
@@ -19,17 +19,11 @@ interface ChangelogsClientProps {
 }
 
 export function ChangelogsClient({ initialData }: ChangelogsClientProps) {
-  const { token } = useUserTokenContext();
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['changelogs'],
-    queryFn: async () => {
-      const res = await fetch(`/api/admin/changelogs`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Failed to load data");
-      return res.json() as Promise<AdminAPI.Changelogs.Get.Response>;
-    },
-    initialData: initialData,
+    queryFn: () => getAdminChangelogs(),
+    initialData,
+    staleTime: Infinity,
   });
 
   return (

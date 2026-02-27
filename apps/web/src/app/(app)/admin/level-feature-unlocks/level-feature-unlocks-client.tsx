@@ -16,9 +16,7 @@ import { Textarea } from "@ws/ui/components/ui/textarea";
 import dynamic from 'next/dynamic'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/client-api";
+import { createLevelFeatureUnlock, deleteLevelFeatureUnlock, getAdminLevelFeatureUnlocks, updateLevelFeatureUnlock } from '@/lib/actions/admin/level-feature-unlocks';
 
 const LevelFeatureUnlocksDataTable = dynamic(
   () => import('@/components/data-table/level-feature-unlocks/data-table').then(mod => ({ default: mod.LevelFeatureUnlocksDataTable })),
@@ -29,7 +27,6 @@ interface LevelFeatureUnlocksClientProps {
 }
 
 export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksClientProps) {
-  const { token } = useUserTokenContext();
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
 
@@ -44,15 +41,9 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["level-feature-unlocks"],
-    queryFn: async () => {
-      return fetchData<AdminAPI.LevelFeatureUnlocks.Get.Response>(
-        apiUrl.admin.levelFeatureUnlocks(),
-        {
-          token: token ?? undefined,
-        }
-      );
-    },
+    queryFn: () => getAdminLevelFeatureUnlocks(),
     initialData,
+    staleTime: Infinity,
   });
 
   const upsertMutation = useMutation({
@@ -71,24 +62,10 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
         throw new Error("Invalid JSON in feature payload");
       }
 
-      const url = isUpdate ? `${apiUrl.admin.levelFeatureUnlocks()}/${unlockId}` : apiUrl.admin.levelFeatureUnlocks();
-      const method = isUpdate ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(requestPayload)
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Operation failed" }));
-        throw new Error(err.message || err.error || "Operation failed");
+      if (isUpdate) {
+        return updateLevelFeatureUnlock(unlockId, requestPayload as AdminAPI.LevelFeatureUnlocks.Update.Body);
       }
-
-      return res.json();
+      return createLevelFeatureUnlock(requestPayload as AdminAPI.LevelFeatureUnlocks.Create.Body);
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -114,16 +91,7 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`${apiUrl.admin.levelFeatureUnlocks()}/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: "Delete failed" }));
-        throw new Error(err.message || err.error || "Delete failed");
-      }
-    },
+    mutationFn: (id: string) => deleteLevelFeatureUnlock(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["level-feature-unlocks"],

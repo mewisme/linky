@@ -1,6 +1,47 @@
 @import "@ws/ui/globals.css";
 @source "../node_modules/@blocknote/shadcn";
 
+/* ── Sentry Feedback Widget ─────────────────────────────────────────────────
+ * Maps Sentry's CSS variables to the shadcn neutral theme.
+ * Light values mirror :root, dark values mirror .dark.
+ * Covers both class-based dark mode (.dark) and OS-level (prefers-color-scheme).
+ */
+#sentry-feedback {
+  --font-family: var(--font-sans, system-ui, "Helvetica Neue", Arial, sans-serif);
+  --foreground: oklch(0.145 0 0);
+  --background: oklch(1 0 0);
+  --accent-background: oklch(0.205 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --success-color: #22c543;
+  --error-color: oklch(0.577 0.245 27.325);
+  --box-shadow: 0px 4px 24px 0px oklch(0 0 0 / 0.08);
+  --outline: 1px auto oklch(0.708 0 0);
+}
+
+@media (prefers-color-scheme: dark) {
+  #sentry-feedback {
+    --foreground: oklch(0.985 0 0);
+    --background: oklch(0.205 0 0);
+    --accent-background: oklch(0.922 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --success-color: #22c543;
+    --error-color: oklch(0.704 0.191 22.216);
+    --box-shadow: 0px 4px 24px 0px oklch(0 0 0 / 0.3);
+    --outline: 1px auto oklch(0.556 0 0);
+  }
+}
+
+.dark #sentry-feedback {
+  --foreground: oklch(0.985 0 0);
+  --background: oklch(0.205 0 0);
+  --accent-background: oklch(0.922 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --success-color: #22c543;
+  --error-color: oklch(0.704 0.191 22.216);
+  --box-shadow: 0px 4px 24px 0px oklch(0 0 0 / 0.3);
+  --outline: 1px auto oklch(0.556 0 0);
+}
+
 /*
  * Profile section Edit button: hover on desktop, always-visible on touch.
  * Uses @media (hover: hover) / (hover: none) for capability detection (no user-agent).

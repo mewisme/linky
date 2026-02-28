@@ -8,7 +8,7 @@ import { setupAdminNamespace } from "@/domains/admin/socket/admin.socket.js";
 import { MatchmakingService } from "@/domains/matchmaking/service/matchmaking.service.js";
 import { RedisMatchStateStore, MemoryMatchStateStore } from "@/domains/matchmaking/store/index.js";
 import { RoomService } from "@/domains/video-chat/service/rooms.service.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("api:socket:server");
 

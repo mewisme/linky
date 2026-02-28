@@ -1,5 +1,5 @@
 import type { WeeklyCheckinRecord } from "@/domains/economy-weekly/types/weekly-checkin.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-weekly:repository:weekly-checkin");
@@ -14,7 +14,7 @@ export async function getWeeklyCheckinRecord(
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching weekly checkin record: %o", error as Error);
+    logger.error(error as Error, "Error fetching weekly checkin record");
     throw error;
   }
 

@@ -29,4 +29,4 @@ WORKDIR /app/apps/api
 
 ENTRYPOINT [ "node" ]
 
-CMD [ "--import=dist/instrument.js", "dist/index.js" ]
+CMD [ "--import=./dist/instrument.js", "./dist/index.js" ]

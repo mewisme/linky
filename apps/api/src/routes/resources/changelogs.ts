@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getChangelogs, getChangelogByVersion } from "@/infra/supabase/repositories/changelogs.js";
 import { getDownloadUrl } from "@/infra/s3/presigned.js";
 import { config } from "@/config/index.js";
@@ -47,7 +47,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error: unknown) {
-    logger.error("Unexpected error in GET /changelogs: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /changelogs");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch changelogs",
@@ -83,7 +83,7 @@ router.get("/:version", async (req: Request, res: Response) => {
       try {
         downloadUrl = await getDownloadUrl(config.s3Bucket, changelog.s3_key, 3600);
       } catch (s3Error: unknown) {
-        logger.warn("Failed to generate presigned URL for changelog: %s, %s, %o", version, changelog.s3_key, s3Error instanceof Error ? s3Error : new Error(String(s3Error)));
+        logger.warn(s3Error instanceof Error ? s3Error : new Error(String(s3Error)), "Failed to generate presigned URL for changelog: %s, %s", version, changelog.s3_key);
       }
     }
 
@@ -99,7 +99,7 @@ router.get("/:version", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in GET /changelogs/:version: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /changelogs/:version");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch changelog",

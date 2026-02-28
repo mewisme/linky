@@ -6,7 +6,7 @@ import {
   updateAdminSeason,
 } from "@/domains/admin/service/admin-seasons.service.js";
 import type { CreateSeasonBody, UpdateSeasonBody } from "@/domains/economy-season/types/season.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 
 const router: ExpressRouter = Router();
@@ -17,7 +17,7 @@ router.get("/", async (req: Request, res: Response) => {
     const seasons = await listAdminSeasons();
     return res.json({ data: seasons });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/seasons: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/seasons");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch seasons",
@@ -43,7 +43,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     }
     return res.json(season);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/seasons/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/seasons/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch season",
@@ -76,7 +76,7 @@ router.post("/", async (req: Request, res: Response) => {
     return res.status(201).json(created);
   } catch (error) {
     const err = error as Error & { code?: string };
-    logger.error("Unexpected error in POST /admin/seasons: %o", err);
+    logger.error(err, "Unexpected error in POST /admin/seasons");
     if (err.code === "ACTIVE_SEASON_EXISTS") {
       return res.status(409).json({
         error: "Conflict",
@@ -104,7 +104,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
     return res.json(updated);
   } catch (error) {
     const err = error as Error & { code?: string };
-    logger.error("Unexpected error in PATCH /admin/seasons/:id: %o", err);
+    logger.error(err, "Unexpected error in PATCH /admin/seasons/:id");
     if (err.code === "ACTIVE_SEASON_EXISTS") {
       return res.status(409).json({
         error: "Conflict",
@@ -131,7 +131,7 @@ router.post("/:id/force-decay", async (req: Request, res: Response) => {
     return res.json(result);
   } catch (error) {
     const err = error as Error & { code?: string };
-    logger.error("Unexpected error in POST /admin/seasons/:id/force-decay: %o", err);
+    logger.error(err, "Unexpected error in POST /admin/seasons/:id/force-decay");
     if (err.code === "NOT_FOUND") {
       return res.status(404).json({
         error: "Not Found",

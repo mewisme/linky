@@ -1,10 +1,11 @@
-import { createLogger } from "@ws/logger";
-import type { Json } from "@/types/database/supabase.types.js";
-import { supabase } from "@/infra/supabase/client.js";
 import {
   getEconomyConfigValue,
   setEconomyConfigValue,
 } from "@/infra/supabase/repositories/economy-config.js";
+
+import type { Json } from "@/types/database/supabase.types.js";
+import { createLogger } from "@/utils/logger.js";
+import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("contexts:economy-stabilizer");
 
@@ -52,7 +53,7 @@ export async function runStabilizer(): Promise<void> {
     .limit(8);
 
   if (metricsError) {
-    logger.error("Failed to fetch economy_metrics_daily: %o", metricsError as Error);
+    logger.error(metricsError as Error, "Failed to fetch economy_metrics_daily");
     throw metricsError;
   }
 
@@ -131,12 +132,12 @@ export async function runStabilizer(): Promise<void> {
   );
 
   if (reportError) {
-    logger.error("Failed to upsert economy_health_reports: %o", reportError as Error);
+    logger.error(reportError as Error, "Failed to upsert economy_health_reports");
     throw reportError;
   }
 
   if (actionsTaken.length > 0) {
-    logger.info("Stabilizer applied %d action(s): %o", actionsTaken.length, actionsTaken);
+    logger.info(actionsTaken, "Stabilizer applied %d action(s)", actionsTaken.length);
   }
 }
 

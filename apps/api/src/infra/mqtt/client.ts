@@ -1,7 +1,7 @@
 import { attachSocketIO as attachSocketIOToPresenceHandler, handlePresenceMessage } from './presence-handler.js'
 
 import { config } from '@/config/index.js'
-import { createLogger } from '@ws/logger'
+import { createLogger } from '@/utils/logger.js'
 import { createSocketServer } from '@/socket/index.js'
 import { initializeAdminCache } from '@/infra/admin-cache/index.js'
 import mqtt from 'mqtt'
@@ -24,7 +24,7 @@ mqttClient.on('connect', () => {
 
   mqttClient.subscribe('presence/+', { qos: 0 }, (error) => {
     if (error) {
-      logger.error('MQTT Subscribe error: %o', error)
+      logger.error(error, "MQTT Subscribe error")
       return
     }
     logger.info('MQTT Subscribed to presence/+')
@@ -54,7 +54,7 @@ export function initializeMqttClient(): void {
   logger.info('MQTT Client initialized')
 
   initializeAdminCache().catch((error) => {
-    logger.error('Failed to initialize admin cache: %o', error)
+    logger.error(error, "Failed to initialize admin cache")
   })
 }
 

@@ -1,5 +1,5 @@
 import type { SeasonRecord } from "@/domains/economy-season/types/season.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-season:repository:season");
@@ -11,7 +11,7 @@ export async function listSeasons(): Promise<SeasonRecord[]> {
     .order("start_at", { ascending: false });
 
   if (error) {
-    logger.error("Error listing seasons: %o", error as Error);
+    logger.error(error as Error, "Error listing seasons");
     throw error;
   }
 
@@ -22,7 +22,7 @@ export async function getSeasonById(id: string): Promise<SeasonRecord | null> {
   const { data, error } = await supabase.from("seasons").select("*").eq("id", id).maybeSingle();
 
   if (error) {
-    logger.error("Error fetching season %s: %o", id, error as Error);
+    logger.error(error as Error, "Error fetching season %s", id);
     throw error;
   }
 
@@ -37,7 +37,7 @@ export async function getActiveSeason(): Promise<SeasonRecord | null> {
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching active season: %o", error as Error);
+    logger.error(error as Error, "Error fetching active season");
     throw error;
   }
 
@@ -53,7 +53,7 @@ export async function getExpiredActiveSeason(): Promise<SeasonRecord | null> {
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching expired active season: %o", error as Error);
+    logger.error(error as Error, "Error fetching expired active season");
     throw error;
   }
 
@@ -71,7 +71,7 @@ export async function createSeason(row: {
   const { data, error } = await supabase.from("seasons").insert(row).select().single();
 
   if (error) {
-    logger.error("Error creating season: %o", error as Error);
+    logger.error(error as Error, "Error creating season");
     throw error;
   }
 
@@ -92,7 +92,7 @@ export async function updateSeason(
   const { data, error } = await supabase.from("seasons").update(updates).eq("id", id).select().single();
 
   if (error) {
-    logger.error("Error updating season %s: %o", id, error as Error);
+    logger.error(error as Error, "Error updating season %s", id);
     throw error;
   }
 
@@ -105,7 +105,7 @@ export async function getPendingUserIdsForSeason(seasonId: string): Promise<stri
     .select("user_id");
 
   if (walletError) {
-    logger.error("Error fetching wallet user ids: %o", walletError as Error);
+    logger.error(walletError as Error, "Error fetching wallet user ids");
     throw walletError;
   }
 
@@ -116,7 +116,7 @@ export async function getPendingUserIdsForSeason(seasonId: string): Promise<stri
     .eq("decay_processed", true);
 
   if (processedError) {
-    logger.error("Error fetching processed user ids: %o", processedError as Error);
+    logger.error(processedError as Error, "Error fetching processed user ids");
     throw processedError;
   }
 

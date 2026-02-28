@@ -1,5 +1,5 @@
 import { config } from "@/config/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("infra:redis:timeout-wrapper");
 
@@ -16,7 +16,7 @@ export async function withRedisTimeout<T>(
   try {
     return await Promise.race([operation(), timeoutPromise]);
   } catch (error) {
-    logger.error("Redis operation failed: %s %o", operationName, error as Error);
+    logger.error(error as Error, "Redis operation failed: %s", operationName);
     throw error;
   }
 }

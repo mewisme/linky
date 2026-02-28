@@ -1,4 +1,4 @@
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import {
   createNotification as createNotificationRepo,
   getUserNotifications as getUserNotificationsRepo,
@@ -41,7 +41,7 @@ export async function createNotification(
     try {
       await sendPushToUser(userId, notification);
     } catch (error) {
-      logger.warn("Failed to send push notification to user %s: %o", userId, error as Error);
+      logger.warn(error as Error, "Failed to send push notification to user %s", userId);
     }
   }
 
@@ -95,7 +95,7 @@ async function tryDeliverViaSocket(userId: string, notification: NotificationRec
       return true;
     }
   } catch (error) {
-    logger.error("Error delivering notification via socket: %o", error as Error);
+    logger.error(error as Error, "Error delivering notification via socket");
   }
 
   return false;
@@ -114,6 +114,6 @@ async function tryEmitToSocket(userId: string, event: string, data: unknown): Pr
       logger.info("Event %s emitted to user %s", event, userId);
     }
   } catch (error) {
-    logger.error("Error emitting to socket: %o", error as Error);
+    logger.error(error as Error, "Error emitting to socket");
   }
 }

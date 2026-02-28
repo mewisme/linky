@@ -1,7 +1,7 @@
 import type { Namespace } from "socket.io";
 import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("api:admin:socket:auth");
 
@@ -18,7 +18,7 @@ export async function adminNamespaceAuthMiddleware(socket: Socket, next: (err?: 
     }
     next();
   } catch (error) {
-    logger.error("Admin namespace auth failed: %o", error as Error);
+    logger.error(error as Error, "Admin namespace auth failed");
     next(new Error("Authorization failed"));
   }
 }

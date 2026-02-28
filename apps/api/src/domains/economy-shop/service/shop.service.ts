@@ -4,7 +4,8 @@ import type {
   ShopItemRecord,
 } from "@/domains/economy-shop/types/shop.types.js";
 import { getActiveShopItems, getUserOwnedItemIds } from "@/domains/economy-shop/repository/shop.repository.js";
-import { createLogger } from "@ws/logger";
+
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-shop:service:shop");
@@ -59,7 +60,7 @@ export async function purchaseShopItem(
     if (msg.includes("INSUFFICIENT_COINS")) {
       throw new ShopError("Insufficient coins", "INSUFFICIENT_COINS");
     }
-    logger.error("Error purchasing shop item: %o", error as Error);
+    logger.error(error as Error, "Error purchasing shop item");
     throw error;
   }
 

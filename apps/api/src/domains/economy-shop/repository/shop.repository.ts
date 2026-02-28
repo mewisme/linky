@@ -1,5 +1,5 @@
 import type { ShopItemRecord } from "@/domains/economy-shop/types/shop.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-shop:repository:shop");
@@ -12,7 +12,7 @@ export async function getActiveShopItems(): Promise<ShopItemRecord[]> {
     .order("key", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching shop items: %o", error as Error);
+    logger.error(error as Error, "Error fetching shop items");
     throw error;
   }
   return (data ?? []) as ShopItemRecord[];
@@ -25,7 +25,7 @@ export async function getUserOwnedItemIds(userId: string): Promise<Set<string>> 
     .eq("user_id", userId);
 
   if (error) {
-    logger.error("Error fetching user owned items: %o", error as Error);
+    logger.error(error as Error, "Error fetching user owned items");
     throw error;
   }
   const ids = (data ?? []).map((r: { item_id: string }) => r.item_id);
@@ -41,7 +41,7 @@ export async function getShopItemById(itemId: string): Promise<ShopItemRecord | 
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching shop item by id: %o", error as Error);
+    logger.error(error as Error, "Error fetching shop item by id");
     throw error;
   }
   return data as ShopItemRecord | null;

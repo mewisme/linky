@@ -5,7 +5,7 @@ import { invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { calculateLevelFromExp as calcLevel } from "@/logic/level-from-exp.js";
 import { checkFavoriteExists } from "@/infra/supabase/repositories/favorites.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getActiveFavoriteExpBoostRules } from "@/infra/supabase/repositories/favorite-exp-boost-rules.js";
 import { getStreakExpBonusForStreak } from "@/infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "@/infra/supabase/repositories/user-streaks.js";
@@ -101,7 +101,7 @@ export async function addCallExp(
       logger.info("User leveled up: user=%s from=%d to=%d", userId, levelBeforeValue, levelAfterValue);
     }
   } catch (error) {
-    logger.error("Error adding call exp: %o", error as Error);
+    logger.error(error as Error, "Error adding call exp");
     throw error;
   }
 }
@@ -139,7 +139,7 @@ export async function getUserLevelData(
       updatedAt: record.updated_at,
     };
   } catch (error) {
-    logger.error("Error getting user level data: %o", error as Error);
+    logger.error(error as Error, "Error getting user level data");
     throw error;
   }
 }

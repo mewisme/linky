@@ -1,5 +1,5 @@
 import { config } from "@/config/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import webpush from "web-push";
 
 const logger = createLogger("infra:push:web-push");
@@ -49,7 +49,7 @@ export async function sendPushNotification(
 
     logger.info("Push notification sent successfully to %s", subscription.endpoint);
   } catch (error) {
-    logger.error("Error sending push notification: %o", error as Error);
+    logger.error(error as Error, "Error sending push notification");
     throw error;
   }
 }

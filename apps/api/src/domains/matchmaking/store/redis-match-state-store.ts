@@ -1,7 +1,7 @@
 import type { MatchStateStore, QueueEntry } from "./match-state-store.interface.js";
 
 import type { Socket } from "socket.io";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getBlockedUserIds } from "@/infra/supabase/repositories/user-blocks.js";
 import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
 import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";
@@ -76,7 +76,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       }
       return true;
     } catch (error) {
-      this.logger.error("Enqueue failed for user: %o", error as Error);
+      this.logger.error(error as Error, "Enqueue failed for user");
       return false;
     }
   }
@@ -93,7 +93,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
       return removed > 0;
     } catch (error) {
-      this.logger.error("Dequeue failed for user %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Dequeue failed for user %s", userId);
       return false;
     }
   }
@@ -112,7 +112,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
       return removed > 0;
     } catch (error) {
-      this.logger.error("Dequeue-if-owner failed for user %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Dequeue-if-owner failed for user %s", userId);
       return false;
     }
   }
@@ -144,7 +144,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
       return entries;
     } catch (error) {
-      this.logger.error("Failed to get queued users: %o", error as Error);
+      this.logger.error(error as Error, "Failed to get queued users");
       return [];
     }
   }
@@ -153,7 +153,7 @@ export class RedisMatchStateStore implements MatchStateStore {
     try {
       return await redisClient.get(`${SOCKET_KEY_PREFIX}${userId}`);
     } catch (error) {
-      this.logger.error("Failed to get socket ID for %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to get socket ID for %s", userId);
       return null;
     }
   }
@@ -163,7 +163,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const currentSocketId = await redisClient.get(`${SOCKET_KEY_PREFIX}${userId}`);
       return currentSocketId === socketId;
     } catch (error) {
-      this.logger.error("Failed to check queue owner for %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to check queue owner for %s", userId);
       return false;
     }
   }
@@ -179,7 +179,7 @@ export class RedisMatchStateStore implements MatchStateStore {
         EX: Math.floor(MAX_QUEUE_WAIT_TIME / 1000) + 60,
       });
     } catch (error) {
-      this.logger.error("Failed to set socket ID for %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to set socket ID for %s", userId);
     }
   }
 
@@ -188,7 +188,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       await redisClient.del(`${SOCKET_KEY_PREFIX}${userId}`);
       await this.dequeueUser(userId, "socket-removed");
     } catch (error) {
-      this.logger.error("Failed to remove socket for %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to remove socket for %s", userId);
     }
   }
 
@@ -199,10 +199,10 @@ export class RedisMatchStateStore implements MatchStateStore {
       await redisClient.expire(skipKey, SKIP_COOLDOWN_TTL);
     } catch (error) {
       this.logger.error(
-        "Failed to record skip %s -> %s: %o",
+        error as Error,
+        "Failed to record skip %s -> %s",
         skipperUserId,
         skippedUserId,
-        error as Error,
       );
     }
   }
@@ -217,10 +217,10 @@ export class RedisMatchStateStore implements MatchStateStore {
       return Boolean(hasAtoB) || Boolean(hasBtoA);
     } catch (error) {
       this.logger.error(
-        "Failed to check skip %s <-> %s: %o",
+        error as Error,
+        "Failed to check skip %s <-> %s",
         userAId,
         userBId,
-        error as Error,
       );
       return false;
     }
@@ -230,7 +230,7 @@ export class RedisMatchStateStore implements MatchStateStore {
     try {
       return await redisClient.zCard(QUEUE_KEY);
     } catch (error) {
-      this.logger.error("Failed to get queue size: %o", error as Error);
+      this.logger.error(error as Error, "Failed to get queue size");
       return 0;
     }
   }
@@ -240,7 +240,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const score = await redisClient.zScore(QUEUE_KEY, userId);
       return score !== null;
     } catch (error) {
-      this.logger.error("Failed to check queue status: %s %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to check queue status: %s", userId);
       return false;
     }
   }
@@ -258,7 +258,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const key = `user:interests:${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
-      this.logger.error("Failed to get interests for %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to get interests for %s", userId);
       return [];
     }
   }
@@ -268,7 +268,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const key = `user:favorites:${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
-      this.logger.error("Failed to get favorites for %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to get favorites for %s", userId);
       return [];
     }
   }
@@ -278,7 +278,7 @@ export class RedisMatchStateStore implements MatchStateStore {
       const key = `user:blocks:${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
-      this.logger.error("Failed to get blocks for %s: %o", userId, error as Error);
+      this.logger.error(error as Error, "Failed to get blocks for %s", userId);
       return [];
     }
   }
@@ -300,7 +300,7 @@ export class RedisMatchStateStore implements MatchStateStore {
         await Promise.all(expiredUserIds.map((userId) => this.dequeueUser(userId, "expired")));
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup expired entries: %o", error as Error);
+      this.logger.error(error as Error, "Failed to cleanup expired entries");
     }
   }
 
@@ -317,9 +317,9 @@ export class RedisMatchStateStore implements MatchStateStore {
       }
     } catch (error) {
       this.logger.error(
-        "Failed to cache user interests: %s %o",
-        userId,
         error as Error,
+        "Failed to cache user interests: %s",
+        userId,
       );
     }
   }
@@ -337,9 +337,9 @@ export class RedisMatchStateStore implements MatchStateStore {
       }
     } catch (error) {
       this.logger.error(
-        "Failed to cache user favorites: %s %o",
-        userId,
         error as Error,
+        "Failed to cache user favorites: %s",
+        userId,
       );
     }
   }
@@ -357,9 +357,9 @@ export class RedisMatchStateStore implements MatchStateStore {
       }
     } catch (error) {
       this.logger.error(
-        "Failed to cache user blocks: %s %o",
-        userId,
         error as Error,
+        "Failed to cache user blocks: %s",
+        userId,
       );
     }
   }

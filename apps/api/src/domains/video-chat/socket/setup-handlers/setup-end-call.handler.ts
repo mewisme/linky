@@ -28,7 +28,7 @@ export function setupEndCallHandler(
         socket,
         peerId ? (io.sockets.get(peerId) as AuthenticatedSocket | undefined) : undefined,
       ).catch((error) => {
-        logger.error("Failed to record call history: %s", error instanceof Error ? error.message : "Unknown error");
+        logger.error(error instanceof Error ? error : new Error(String(error)), "Failed to record call history");
       });
 
       if (peerId) {

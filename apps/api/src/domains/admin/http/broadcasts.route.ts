@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { sendBroadcastToAllUsers } from "@/contexts/broadcast-context.js";
 import { listBroadcastHistory } from "@/infra/supabase/repositories/broadcast-history.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
@@ -31,7 +31,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/broadcasts: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/broadcasts");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to list broadcasts",
@@ -111,7 +111,7 @@ router.post("/", async (req: Request, res: Response) => {
           : `Broadcast sent to ${sent} user(s).`,
     });
   } catch (error) {
-    logger.error("Unexpected error in POST /admin/broadcasts: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in POST /admin/broadcasts");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to send broadcast",

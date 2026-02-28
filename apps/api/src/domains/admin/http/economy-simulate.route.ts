@@ -1,5 +1,5 @@
 import { simulateEconomy } from "@/domains/admin/service/admin-economy-simulate.service.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 
 const router: ExpressRouter = Router();
@@ -42,7 +42,7 @@ router.post("/", async (req: Request, res: Response) => {
     });
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in POST /admin/economy/simulate: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in POST /admin/economy/simulate");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to run economy simulation",

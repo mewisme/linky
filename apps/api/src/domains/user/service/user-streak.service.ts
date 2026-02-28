@@ -17,7 +17,7 @@ import { getOrSet, invalidate } from "@/infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
 import { addDays } from "@/utils/date-helpers.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
 
 const logger = createLogger("api:user:streak:service");

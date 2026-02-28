@@ -1,7 +1,7 @@
 import { purchaseBoost, BoostError } from "@/domains/economy-boost/service/boost.service.js";
 import type { PurchaseBoostBody } from "@/domains/economy-boost/types/boost.types.js";
 import { getUserInternalId } from "@/infra/supabase/repositories/users.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 
 const router: ExpressRouter = Router();
@@ -45,7 +45,7 @@ router.post("/purchase", async (req: Request, res: Response) => {
         return res.status(422).json({ error: "Unprocessable Entity", message: err.message });
       }
     }
-    logger.error("Unexpected error in POST /economy/boost/purchase: %o", err as Error);
+    logger.error(err as Error, "Unexpected error in POST /economy/boost/purchase");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to purchase boost",

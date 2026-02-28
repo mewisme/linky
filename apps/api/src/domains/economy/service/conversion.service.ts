@@ -1,5 +1,6 @@
 import type { ConversionResult, ConvertExpToCoinRpcRow } from "@/domains/economy/types/economy.types.js";
-import { createLogger } from "@ws/logger";
+
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy:service:conversion");
@@ -42,7 +43,7 @@ export async function convertExpToCoin(userId: string, expAmount: number): Promi
     if (msg.includes("INVALID_AMOUNT")) {
       throw new ConversionError("Invalid exp amount", "INVALID_AMOUNT");
     }
-    logger.error("Error converting EXP to coin: %o", error as Error);
+    logger.error(error as Error, "Error converting EXP to coin");
     throw error;
   }
 

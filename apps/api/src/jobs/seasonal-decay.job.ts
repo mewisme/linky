@@ -1,5 +1,6 @@
 import { deactivateSeason, getExpiredUnprocessedSeason, runDecayForSeason } from "@/domains/economy-season/index.js";
-import { createLogger } from "@ws/logger";
+
+import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("jobs:seasonal-decay");
 

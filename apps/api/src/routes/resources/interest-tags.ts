@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getInterestTags, getInterestTagById } from "@/infra/supabase/repositories/interest-tags.js";
 import { getCachedData } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
@@ -50,7 +50,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error: unknown) {
-    logger.error("Unexpected error in GET /interest-tags: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /interest-tags");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tags",
@@ -90,7 +90,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in GET /interest-tags/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /interest-tags/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tag",

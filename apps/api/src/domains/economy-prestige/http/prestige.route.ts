@@ -1,6 +1,6 @@
 import { prestigeUser } from "@/domains/economy-prestige/prestige.service.js";
 import { getUserInternalId } from "@/infra/supabase/repositories/users.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 
 const router: ExpressRouter = Router();
@@ -45,7 +45,7 @@ router.post("/", async (req: Request, res: Response) => {
         message: "User not found",
       });
     }
-    logger.error("Unexpected error in POST /users/prestige: %o", err as Error);
+    logger.error(err as Error, "Unexpected error in POST /users/prestige");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to prestige",

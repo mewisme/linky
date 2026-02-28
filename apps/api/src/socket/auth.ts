@@ -3,7 +3,7 @@ import { clerk, verifyToken } from "@/infra/clerk/client.js";
 import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
 import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 export type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
 
@@ -35,7 +35,7 @@ export async function socketAuthMiddleware(
       userName = user.firstName || user.username || "Anonymous";
       userImageUrl = user.imageUrl;
     } catch (err: unknown) {
-      logger.warn("Failed to fetch user profile from Clerk: %s, Error: %o", payload.sub, err instanceof Error ? err : new Error(String(err)));
+      logger.warn(err instanceof Error ? err : new Error(String(err)), "Failed to fetch user profile from Clerk: %s", payload.sub);
     }
 
     (socket as AuthenticatedSocket).data = {
@@ -47,7 +47,7 @@ export async function socketAuthMiddleware(
 
     next();
   } catch (error: unknown) {
-    logger.error("Socket authentication failed: %o", error as Error);
+    logger.error(error as Error, "Socket authentication failed");
     next(new Error("Authentication failed"));
   }
 }
@@ -68,7 +68,7 @@ export async function adminNamespaceAuthMiddleware(
     }
     next();
   } catch (error: unknown) {
-    logger.error("Admin namespace auth failed: %o", error as Error);
+    logger.error(error as Error, "Admin namespace auth failed");
     next(new Error("Authorization failed"));
   }
 }

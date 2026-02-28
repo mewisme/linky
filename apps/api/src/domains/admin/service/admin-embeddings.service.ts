@@ -9,7 +9,7 @@ import {
 } from "@/infra/supabase/repositories/user-embeddings.js";
 
 import { cosineSimilarity } from "@/domains/embeddings/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getUsersIdsPaginated } from "@/infra/supabase/repositories/users.js";
 
 const logger = createLogger("api:admin:embeddings:service");
@@ -127,9 +127,9 @@ export async function syncEmbeddingsForUsers(userIds: string[]): Promise<{
       }
     } catch (error) {
       logger.warn(
-        "Embedding sync failed for user %s: %s",
-        userId,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error : new Error(String(error)),
+        "Embedding sync failed for user %s",
+        userId
       );
       skipped.push(userId);
     }
@@ -155,11 +155,11 @@ export function scheduleSyncAllEmbeddings(): void {
               scheduleEmbeddingRegeneration(userId);
             }
           } catch (error) {
-            logger.warn(
-              "Embedding sync-all failed for user %s: %s",
-              userId,
-              error instanceof Error ? error.message : String(error)
-            );
+logger.warn(
+            error instanceof Error ? error : new Error(String(error)),
+            "Embedding sync-all failed for user %s",
+            userId
+          );
           }
         }
 
@@ -168,8 +168,8 @@ export function scheduleSyncAllEmbeddings(): void {
       }
     } catch (error) {
       logger.error(
-        "Embedding sync-all batch failed: %s",
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error : new Error(String(error)),
+        "Embedding sync-all batch failed"
       );
     }
   });

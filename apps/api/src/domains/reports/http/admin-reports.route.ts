@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import type { ReportStatus } from "@/domains/reports/types/report-status.types.js";
 import type { ReportUpdate } from "@/domains/reports/types/report.types.js";
@@ -31,7 +31,7 @@ router.get("/", async (req: Request, res: Response) => {
       offset,
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/reports: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/reports");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch reports",
@@ -61,7 +61,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     return res.json(reportWithContext);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/reports/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/reports/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch report",
@@ -121,7 +121,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     return res.json(updated);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /admin/reports/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in PATCH /admin/reports/:id");
 
     if (error instanceof Error && error.message.includes("violates check constraint")) {
       return res.status(400).json({

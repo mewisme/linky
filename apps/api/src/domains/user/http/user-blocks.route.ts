@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { blockUser, unblockUser, getBlockedUsersWithDetails } from "@/domains/user/service/user-block.service.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import type { BlockUserBody } from "@/domains/user/types/user-block.types.js";
@@ -46,7 +46,7 @@ router.post("/", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in POST /users/blocks: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in POST /users/blocks");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to block user",
@@ -93,7 +93,7 @@ router.delete("/:blocked_user_id", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in DELETE /users/blocks/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in DELETE /users/blocks/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to unblock user",
@@ -124,7 +124,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json({ blocked_users: blockedUsers });
   } catch (error) {
-    logger.error("Unexpected error in GET /users/blocks/me: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /users/blocks/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch blocked users",

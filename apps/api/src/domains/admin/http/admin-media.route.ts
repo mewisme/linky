@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getUploadUrl } from "@/infra/s3/presigned.js";
 import { config } from "@/config/index.js";
 
@@ -79,10 +79,7 @@ router.post("/presigned-upload", async (req: Request, res: Response) => {
       expires_in: expiresIn,
     });
   } catch (error) {
-    logger.error(
-      "Unexpected error in POST /admin/media/presigned-upload: %o",
-      error as Error
-    );
+    logger.error(error as Error, "Unexpected error in POST /admin/media/presigned-upload");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to generate presigned upload URL",

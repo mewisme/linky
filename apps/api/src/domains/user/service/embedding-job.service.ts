@@ -2,7 +2,7 @@ import { getUserEmbeddingByUserId, upsertUserEmbedding } from "@/infra/supabase/
 
 import { buildEmbeddingInput, type SemanticProfileInput } from "./embedding-input.builder.js";
 import { createHash } from "node:crypto";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { embedText } from "@/infra/ollama/embedding.service.js";
 import { getUserProfileAggregateByUserId } from "./user-profile.service.js";
 

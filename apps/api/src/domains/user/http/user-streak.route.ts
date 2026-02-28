@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getTimezoneForUser } from "@/domains/user/service/user-details.service.js";
 import { getUserStreakData, getUserStreakHistory, getUserStreakCalendar } from "@/domains/user/service/user-streak.service.js";
 import { getUserIdByClerkUserId } from "@/domains/user/service/user-settings.service.js";
@@ -37,7 +37,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json(userStreak);
   } catch (error) {
-    logger.error("Unexpected error in GET /user-streak/me: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /user-streak/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user streak",
@@ -85,7 +85,7 @@ router.get("/me/history", async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    logger.error("Unexpected error in GET /user-streak/me/history: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /user-streak/me/history");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user streak history",
@@ -141,7 +141,7 @@ router.get("/calendar", async (req: Request, res: Response) => {
 
     return res.json(calendarData);
   } catch (error) {
-    logger.error("Unexpected error in GET /user-streak/calendar: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /user-streak/calendar");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user streak calendar",

@@ -1,5 +1,5 @@
 import type { MonthlyCheckinRecord } from "@/domains/economy-monthly/types/monthly-checkin.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-monthly:repository:monthly-checkin");
@@ -18,7 +18,7 @@ export async function getMonthlyCheckinRecord(
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching monthly checkin record: %o", error as Error);
+    logger.error(error as Error, "Error fetching monthly checkin record");
     throw error;
   }
 

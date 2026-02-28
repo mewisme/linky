@@ -1,5 +1,5 @@
 import type { DailyExpRecord } from "@/domains/economy-daily/types/daily-exp.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-daily:repository:daily-exp");
@@ -20,7 +20,7 @@ export async function getDailyExpRecord(
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching daily exp record: %o", error as Error);
+    logger.error(error as Error, "Error fetching daily exp record");
     throw error;
   }
 

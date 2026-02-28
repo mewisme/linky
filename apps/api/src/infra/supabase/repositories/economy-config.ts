@@ -1,5 +1,5 @@
-import { createLogger } from "@ws/logger";
 import type { Json } from "@/types/database/supabase.types.js";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:economy-config");
@@ -12,7 +12,7 @@ export async function getEconomyConfigValue<T = number>(key: string): Promise<T 
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching economy config %s: %o", key, error as Error);
+    logger.error(error as Error, "Error fetching economy config %s", key);
     throw error;
   }
 
@@ -27,7 +27,7 @@ export async function setEconomyConfigValue(key: string, value: unknown): Promis
     .upsert({ key, value_json: value as Json }, { onConflict: "key" });
 
   if (error) {
-    logger.error("Error setting economy config %s: %o", key, error as Error);
+    logger.error(error as Error, "Error setting economy config %s", key);
     throw error;
   }
 }

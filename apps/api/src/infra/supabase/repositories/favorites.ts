@@ -1,4 +1,4 @@
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:favorites");
@@ -41,7 +41,7 @@ export async function getFavoritesByUserId(userId: string): Promise<string[]> {
     .eq("user_id", userId);
 
   if (error) {
-    logger.error("Error fetching favorites: %o", error as Error);
+    logger.error(error as Error, "Error fetching favorites");
     throw error;
   }
 
@@ -57,7 +57,7 @@ export async function checkFavoriteExists(userId: string, favoriteUserId: string
     .maybeSingle();
 
   if (error) {
-    logger.error("Error checking favorite exists: %o", error as Error);
+    logger.error(error as Error, "Error checking favorite exists");
     throw error;
   }
 
@@ -75,7 +75,7 @@ export async function createFavorite(userId: string, favoriteUserId: string): Pr
     .single();
 
   if (error) {
-    logger.error("Error creating favorite: %o", error as Error);
+    logger.error(error as Error, "Error creating favorite");
     throw error;
   }
 
@@ -90,7 +90,7 @@ export async function deleteFavorite(userId: string, favoriteUserId: string): Pr
     .eq("favorite_user_id", favoriteUserId);
 
   if (error) {
-    logger.error("Error deleting favorite: %o", error as Error);
+    logger.error(error as Error, "Error deleting favorite");
     throw error;
   }
 
@@ -100,7 +100,7 @@ export async function deleteFavorite(userId: string, favoriteUserId: string): Pr
 export async function getFavoriteLimitForToday(userId: string): Promise<FavoriteLimitRecord | null> {
   const today = new Date().toISOString().split("T")[0];
   if (!today) {
-    logger.error("Failed to get today's date: %o", new Error("Failed to get today's date"));
+    logger.error(new Error("Failed to get today's date"), "Failed to get today's date");
     throw new Error("Failed to get today's date");
   }
 
@@ -112,7 +112,7 @@ export async function getFavoriteLimitForToday(userId: string): Promise<Favorite
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching favorite limit: %o", error as Error);
+    logger.error(error as Error, "Error fetching favorite limit");
     throw error;
   }
 
@@ -122,7 +122,7 @@ export async function getFavoriteLimitForToday(userId: string): Promise<Favorite
 export async function incrementFavoriteLimit(userId: string, dailyLimit: number = 10): Promise<FavoriteLimitRecord> {
   const today = new Date().toISOString().split("T")[0];
   if (!today) {
-    logger.error("Failed to get today's date: %o", new Error("Failed to get today's date"));
+    logger.error(new Error("Failed to get today's date"), "Failed to get today's date");
     throw new Error("Failed to get today's date");
   }
 
@@ -143,7 +143,7 @@ export async function incrementFavoriteLimit(userId: string, dailyLimit: number 
     .single();
 
   if (error) {
-    logger.error("Error incrementing favorite limit: %o", error as Error);
+    logger.error(error as Error, "Error incrementing favorite limit");
     throw error;
   }
 
@@ -159,7 +159,7 @@ export async function incrementFavoriteLimit(userId: string, dailyLimit: number 
       .single();
 
     if (updateError) {
-      logger.error("Error updating favorite limit: %o", updateError instanceof Error ? updateError : new Error(String(updateError)));
+      logger.error(updateError instanceof Error ? updateError : new Error(String(updateError)), "Error updating favorite limit");
       throw updateError;
     }
 
@@ -186,7 +186,7 @@ export async function checkDailyLimitReached(userId: string): Promise<{ reached:
 export async function decrementFavoriteLimit(userId: string): Promise<boolean> {
   const today = new Date().toISOString().split("T")[0];
   if (!today) {
-    logger.error("Failed to get today's date: %o", new Error("Failed to get today's date"));
+    logger.error(new Error("Failed to get today's date"), "Failed to get today's date");
     throw new Error("Failed to get today's date");
   }
 
@@ -205,7 +205,7 @@ export async function decrementFavoriteLimit(userId: string): Promise<boolean> {
     .eq("date", today);
 
   if (error) {
-    logger.error("Error decrementing favorite limit: %o", error as Error);
+    logger.error(error as Error, "Error decrementing favorite limit");
     throw error;
   }
 
@@ -221,7 +221,7 @@ export async function getFavoriteCreationDate(userId: string, favoriteUserId: st
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching favorite creation date: %o", error as Error);
+    logger.error(error as Error, "Error fetching favorite creation date");
     throw error;
   }
 
@@ -236,7 +236,7 @@ export async function getFavoritesWithStats(userId: string): Promise<FavoriteWit
     .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error("Error fetching favorites with stats: %o", error as Error);
+    logger.error(error as Error, "Error fetching favorites with stats");
     throw error;
   }
 

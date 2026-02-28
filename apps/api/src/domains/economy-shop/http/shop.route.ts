@@ -1,7 +1,7 @@
 import { getShop, purchaseShopItem, ShopError } from "@/domains/economy-shop/service/shop.service.js";
 import type { PurchaseShopItemBody } from "@/domains/economy-shop/types/shop.types.js";
 import { getUserInternalId } from "@/infra/supabase/repositories/users.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 
 const router: ExpressRouter = Router();
@@ -28,7 +28,7 @@ router.get("/", async (req: Request, res: Response) => {
     const items = await getShop(userId);
     return res.json(items);
   } catch (err) {
-    logger.error("Unexpected error in GET /economy/shop: %o", err as Error);
+    logger.error(err as Error, "Unexpected error in GET /economy/shop");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch shop",
@@ -77,7 +77,7 @@ router.post("/purchase", async (req: Request, res: Response) => {
         return res.status(422).json({ error: "Unprocessable Entity", message: err.message });
       }
     }
-    logger.error("Unexpected error in POST /economy/shop/purchase: %o", err as Error);
+    logger.error(err as Error, "Unexpected error in POST /economy/shop/purchase");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to purchase item",

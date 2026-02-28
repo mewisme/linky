@@ -1,4 +1,4 @@
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("admin:service:economy-stats");
@@ -23,7 +23,7 @@ export async function getEconomyStats(): Promise<EconomyStats> {
   const { data, error } = await supabase.rpc("get_economy_stats");
 
   if (error) {
-    logger.error("Error fetching economy stats: %o", error as Error);
+    logger.error(error as Error, "Error fetching economy stats");
     throw error;
   }
 

@@ -1,15 +1,16 @@
-import "dotenv/config";
-
 import * as Sentry from "@sentry/node";
 
+import { env } from "./config/env.js";
+
 Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV ?? "development",
+  dsn: env.SENTRY_DSN,
+  environment: env.NODE_ENV ?? "development",
   enabled:
-    process.env.NODE_ENV === "production" ||
-    process.env.SENTRY_ENABLED === "true",
+    env.isProd ||
+    env.SENTRY_ENABLED,
   tracesSampleRate: 0.2,
-  sendDefaultPii: false,
+  sendDefaultPii: true,
+  enableLogs: true,
   beforeSend(event) {
     if (event.request?.headers) {
       delete event.request.headers["authorization"];

@@ -1,6 +1,7 @@
 import type { BoostType, PurchaseBoostRpcRow } from "@/domains/economy-boost/types/boost.types.js";
+
 import { BOOST_CONFIGS } from "@/domains/economy-boost/types/boost.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-boost:service:boost");
@@ -37,7 +38,7 @@ export async function purchaseBoost(
     if (msg.includes("INSUFFICIENT_COINS")) {
       throw new BoostError("Insufficient coins", "INSUFFICIENT_COINS");
     }
-    logger.error("Error purchasing boost: %o", error as Error);
+    logger.error(error as Error, "Error purchasing boost");
     throw error;
   }
 

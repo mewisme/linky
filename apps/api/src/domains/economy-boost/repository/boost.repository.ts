@@ -1,5 +1,6 @@
 import type { ActiveBoost, ActiveBoostRecord } from "@/domains/economy-boost/types/boost.types.js";
-import { createLogger } from "@ws/logger";
+
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-boost:repository:boost");
@@ -23,7 +24,7 @@ export async function getActiveBoosts(userId: string): Promise<ActiveBoost[]> {
     .order("expires_at", { ascending: false });
 
   if (error) {
-    logger.error("Error fetching active boosts: %o", error as Error);
+    logger.error(error as Error, "Error fetching active boosts");
     throw error;
   }
   return ((data ?? []) as ActiveBoostRecord[]).map(toActiveBoost);

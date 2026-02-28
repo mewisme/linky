@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import type { InterestTagsBody, UserDetailsUpdate } from "@/domains/user/types/user-details.types.js";
 import {
   addUserInterestTags,
@@ -57,7 +57,7 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error("Unexpected error in GET /user-details/me: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /user-details/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user details",
@@ -97,7 +97,7 @@ router.put("/me", async (req: Request, res: Response) => {
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error("Unexpected error in PUT /user-details/me: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in PUT /user-details/me");
 
     if (error instanceof Error && error.message.includes("Invalid interest tag")) {
       return res.status(400).json({
@@ -166,7 +166,7 @@ router.patch("/me", async (req: Request, res: Response) => {
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error("Unexpected error in PATCH /user-details/me: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in PATCH /user-details/me");
 
     if (error instanceof Error && error.message.includes("Invalid interest tag")) {
       return res.status(400).json({
@@ -240,10 +240,7 @@ router.post("/me/interest-tags", async (req: Request, res: Response) => {
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error(
-      "Unexpected error in POST /user-details/me/interest-tags: %o",
-      error as Error,
-    );
+    logger.error(error as Error, "Unexpected error in POST /user-details/me/interest-tags");
 
     if (error instanceof Error && error.message.includes("Invalid or inactive")) {
       return res.status(400).json({
@@ -303,10 +300,7 @@ router.delete("/me/interest-tags", async (req: Request, res: Response) => {
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error(
-      "Unexpected error in DELETE /user-details/me/interest-tags: %o",
-      error as Error,
-    );
+    logger.error(error as Error, "Unexpected error in DELETE /user-details/me/interest-tags");
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({
@@ -359,10 +353,7 @@ router.put("/me/interest-tags", async (req: Request, res: Response) => {
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error(
-      "Unexpected error in PUT /user-details/me/interest-tags: %o",
-      error as Error,
-    );
+    logger.error(error as Error, "Unexpected error in PUT /user-details/me/interest-tags");
 
     if (error instanceof Error && error.message.includes("Invalid or inactive")) {
       return res.status(400).json({
@@ -413,10 +404,7 @@ router.delete("/me/interest-tags/all", async (req: Request, res: Response) => {
 
     return res.json(userDetails);
   } catch (error) {
-    logger.error(
-      "Unexpected error in DELETE /user-details/me/interest-tags/all: %o",
-      error as Error,
-    );
+    logger.error(error as Error, "Unexpected error in DELETE /user-details/me/interest-tags/all");
 
     if (error instanceof Error && error.message === "User details not found") {
       return res.status(404).json({

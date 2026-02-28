@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import {
   createAdminChangelog,
@@ -36,7 +36,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/changelogs: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/changelogs");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch changelogs",
@@ -65,7 +65,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     return res.json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in GET /admin/changelogs/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/changelogs/:id");
 
     if (error.code === "PGRST116") {
       return res.status(404).json({
@@ -144,7 +144,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     return res.status(201).json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in POST /admin/changelogs: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in POST /admin/changelogs");
 
     if (error.code === "23505") {
       return res.status(409).json({
@@ -184,7 +184,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     return res.json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in PUT /admin/changelogs/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in PUT /admin/changelogs/:id");
 
     if (error.message === "Changelog not found") {
       return res.status(404).json({
@@ -231,7 +231,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     return res.json(changelog);
   } catch (error: any) {
-    logger.error("Unexpected error in PATCH /admin/changelogs/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in PATCH /admin/changelogs/:id");
 
     if (error.message === "Changelog not found") {
       return res.status(404).json({
@@ -279,7 +279,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
       message: "Changelog deleted successfully",
     });
   } catch (error: any) {
-    logger.error("Unexpected error in DELETE /admin/changelogs/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in DELETE /admin/changelogs/:id");
 
     return res.status(500).json({
       error: "Internal Server Error",

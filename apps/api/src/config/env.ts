@@ -1,4 +1,5 @@
 import "dotenv/config";
+
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -15,7 +16,7 @@ const parsed = envSchema.parse({
 
 export const env = {
   SENTRY_DSN: parsed.SENTRY_DSN,
-  SENTRY_ENABLED: parsed.SENTRY_ENABLED,
+  SENTRY_ENABLED: parsed.SENTRY_ENABLED === "true",
   NODE_ENV: parsed.NODE_ENV,
   isDev: parsed.NODE_ENV === "development",
   isProd: parsed.NODE_ENV === "production",

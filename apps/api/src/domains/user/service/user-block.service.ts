@@ -9,7 +9,7 @@ import {
 
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getOrSet } from "@/infra/redis/cache/index.js";
 import { invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 

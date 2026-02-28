@@ -1,5 +1,6 @@
 import type { PrestigeResult, PrestigeUserRpcRow } from "./types/prestige.types.js";
-import { createLogger } from "@ws/logger";
+
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-prestige:service");
@@ -30,7 +31,7 @@ export async function prestigeUser(userId: string): Promise<PrestigeResult> {
       (e as Error & { code: string }).code = "USER_NOT_FOUND";
       throw e;
     }
-    logger.error("Error calling prestige_user: %o", error as Error);
+    logger.error(error as Error, "Error calling prestige_user");
     throw error;
   }
 

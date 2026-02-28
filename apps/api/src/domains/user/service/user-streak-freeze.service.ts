@@ -4,7 +4,7 @@ import {
   insertFreezeGrant,
 } from "@/infra/supabase/repositories/user-streak-freeze.js";
 
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getLevelFeatureUnlocksAtLevel } from "@/infra/supabase/repositories/level-feature-unlocks.js";
 
 const logger = createLogger("api:user:streak-freeze:service");
@@ -30,10 +30,7 @@ export async function grantFreezesForLevel(userId: string, level: number): Promi
       logger.info("Granted %d streak freezes to user %s from level unlock %s", count, userId, unlock.id);
     }
   } catch (error) {
-    logger.error(
-      "Error granting freezes for level: %o",
-      error as Error,
-    );
+    logger.error(error as Error, "Error granting freezes for level");
     throw error;
   }
 }

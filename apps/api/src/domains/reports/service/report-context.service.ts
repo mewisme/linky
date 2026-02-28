@@ -3,7 +3,7 @@ import { getCallHistoryById, getUserIdByClerkId } from "@/infra/supabase/reposit
 
 import type { Json } from "@/types/database/supabase.types.js";
 import type { Namespace } from "socket.io";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("api:reports:context:service");
 
@@ -53,7 +53,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error("Error fetching call history: %o", error as Error);
+      logger.error(error as Error, "Error fetching call history");
     }
   }
 
@@ -96,7 +96,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error("Error fetching room context: %o", error as Error);
+      logger.error(error as Error, "Error fetching room context");
     }
   }
 

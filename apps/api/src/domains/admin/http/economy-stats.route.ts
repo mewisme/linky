@@ -1,5 +1,5 @@
 import { getEconomyStats } from "@/domains/admin/service/admin-economy-stats.service.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 
 const router: ExpressRouter = Router();
@@ -10,7 +10,7 @@ router.get("/", async (req: Request, res: Response) => {
     const stats = await getEconomyStats();
     return res.json(stats);
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/economy/stats: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/economy/stats");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch economy stats",

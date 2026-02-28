@@ -1,4 +1,4 @@
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:changelogs");
@@ -82,7 +82,7 @@ export async function createChangelog(params: CreateChangelogParams): Promise<Ch
     .single();
 
   if (insertError) {
-    logger.error("Error creating changelog: %o", insertError instanceof Error ? insertError : new Error(String(insertError)));
+    logger.error(insertError instanceof Error ? insertError : new Error(String(insertError)), "Error creating changelog");
     throw insertError;
   }
 
@@ -98,7 +98,7 @@ export async function createChangelog(params: CreateChangelogParams): Promise<Ch
     .single();
 
   if (error) {
-    logger.error("Error fetching created changelog: %o", error as Error);
+    logger.error(error as Error, "Error fetching created changelog");
     throw error;
   }
 
@@ -129,7 +129,7 @@ export async function getChangelogs(
   const { data, error, count } = await query.range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error("Error fetching changelogs: %o", error as Error);
+    logger.error(error as Error, "Error fetching changelogs");
     throw error;
   }
 
@@ -148,7 +148,7 @@ export async function getChangelogByVersion(version: string): Promise<PublicChan
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching changelog by version: %o", error as Error);
+    logger.error(error as Error, "Error fetching changelog by version");
     throw error;
   }
 
@@ -166,7 +166,7 @@ export async function getChangelogById(id: string): Promise<ChangelogRecord | nu
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error("Error fetching changelog by ID: %o", error as Error);
+    logger.error(error as Error, "Error fetching changelog by ID");
     throw error;
   }
 
@@ -192,7 +192,7 @@ export async function updateChangelog(id: string, params: UpdateChangelogParams)
     .single();
 
   if (updateError) {
-    logger.error("Error updating changelog: %o", updateError instanceof Error ? updateError : new Error(String(updateError)));
+    logger.error(updateError instanceof Error ? updateError : new Error(String(updateError)), "Error updating changelog");
     throw updateError;
   }
 
@@ -208,7 +208,7 @@ export async function updateChangelog(id: string, params: UpdateChangelogParams)
     .single();
 
   if (error) {
-    logger.error("Error fetching updated changelog: %o", error as Error);
+    logger.error(error as Error, "Error fetching updated changelog");
     throw error;
   }
 
@@ -223,7 +223,7 @@ export async function deleteChangelog(id: string): Promise<void> {
   const { error } = await supabase.from("changelogs").delete().eq("id", id);
 
   if (error) {
-    logger.error("Error deleting changelog: %o", error as Error);
+    logger.error(error as Error, "Error deleting changelog");
     throw error;
   }
 }
@@ -244,7 +244,7 @@ export async function getAllChangelogsForAdmin(
   const { data, error, count } = await query.range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error("Error fetching all changelogs for admin: %o", error as Error);
+    logger.error(error as Error, "Error fetching all changelogs for admin");
     throw error;
   }
 

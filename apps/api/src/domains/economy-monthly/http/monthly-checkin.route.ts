@@ -6,7 +6,7 @@ import {
 } from "@/domains/economy-monthly/service/monthly-checkin.service.js";
 import { getTimezoneForUser } from "@/domains/user/service/user-details.service.js";
 import { getUserInternalId } from "@/infra/supabase/repositories/users.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { toUserLocalDateString } from "@/utils/timezone.js";
 
@@ -45,7 +45,7 @@ router.get("/progress", async (req: Request, res: Response) => {
     const progress = await getMonthlyProgress(userId, year, month, todayDay);
     return res.json(progress);
   } catch (error) {
-    logger.error("Unexpected error in GET /economy/monthly/progress: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /economy/monthly/progress");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch monthly progress",
@@ -87,7 +87,7 @@ router.post("/checkin", async (req: Request, res: Response) => {
       if (err.code === "ALREADY_CLAIMED") return res.status(409).json({ error: "Conflict", message: err.message });
       if (err.code === "FUTURE_DAY" || err.code === "INVALID_DAY") return res.status(400).json({ error: "Bad Request", message: err.message });
     }
-    logger.error("Unexpected error in POST /economy/monthly/checkin: %o", err as Error);
+    logger.error(err as Error, "Unexpected error in POST /economy/monthly/checkin");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to claim monthly check-in",
@@ -130,7 +130,7 @@ router.post("/buyback", async (req: Request, res: Response) => {
       if (err.code === "BUYBACK_FUTURE_OR_TODAY" || err.code === "INVALID_DAY") return res.status(400).json({ error: "Bad Request", message: err.message });
       if (err.code === "INSUFFICIENT_EXP") return res.status(422).json({ error: "Unprocessable Entity", message: err.message });
     }
-    logger.error("Unexpected error in POST /economy/monthly/buyback: %o", err as Error);
+    logger.error(err as Error, "Unexpected error in POST /economy/monthly/buyback");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to claim monthly buyback",

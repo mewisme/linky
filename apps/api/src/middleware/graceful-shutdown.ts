@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/node";
 import { redisClient } from "@/infra/redis/client.js";
 import { mqttClient } from "@/infra/mqtt/client.js";
 import { config } from "@/config/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("middleware:graceful-shutdown");
 
@@ -49,7 +49,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
           await redisClient.quit();
         }
       } catch (error) {
-        logger.warn("Error closing Redis connection: %o", error as Error);
+        logger.warn(error as Error, "Error closing Redis connection");
       }
 
       try {
@@ -57,7 +57,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
           mqttClient.end();
         }
       } catch (error) {
-        logger.warn("Error closing MQTT connection: %o", error as Error);
+        logger.warn(error as Error, "Error closing MQTT connection");
       }
 
       clearTimeout(shutdownTimer);
@@ -65,7 +65,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
       await Sentry.close(2000);
       process.exit(0);
     } catch (error) {
-      logger.error("Error during shutdown: %o", error as Error);
+      logger.error(error as Error, "Error during shutdown");
       clearTimeout(shutdownTimer);
       process.exit(1);
     }
@@ -75,16 +75,14 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
   process.on("SIGINT", () => shutdown("SIGINT"));
 
   process.on("uncaughtException", (error: Error) => {
-    logger.fatal("Uncaught exception: %o", error);
-    Sentry.captureException(error);
+    logger.fatal(error, "Uncaught exception");
     shutdown("uncaughtException").catch(() => {
       process.exit(1);
     });
   });
 
   process.on("unhandledRejection", (reason: unknown) => {
-    logger.fatal("Unhandled rejection: %o", reason as Error);
-    Sentry.captureException(reason);
+    logger.fatal(reason as Error, "Unhandled rejection");
     shutdown("unhandledRejection").catch(() => {
       process.exit(1);
     });

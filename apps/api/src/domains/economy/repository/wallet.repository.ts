@@ -1,5 +1,5 @@
 import type { WalletRecord } from "@/domains/economy/types/economy.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy:repository:wallet");
@@ -12,7 +12,7 @@ export async function getWallet(userId: string): Promise<WalletRecord | null> {
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching wallet: %o", error as Error);
+    logger.error(error as Error, "Error fetching wallet");
     throw error;
   }
 

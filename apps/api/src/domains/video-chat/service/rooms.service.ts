@@ -1,7 +1,7 @@
 import type { ChatMessageSnapshot } from "@/domains/video-chat/types/chat-message.types.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 export class RoomService {
   private rooms: Map<string, VideoChatRoomRecord> = new Map();

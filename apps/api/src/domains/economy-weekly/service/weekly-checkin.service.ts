@@ -3,9 +3,10 @@ import type {
   ClaimWeeklyCheckinRpcRow,
   WeeklyProgress,
 } from "@/domains/economy-weekly/types/weekly-checkin.types.js";
-import { getWeeklyCheckinRecord } from "@/domains/economy-weekly/repository/weekly-checkin.repository.js";
+
 import { WEEKLY_CHECKIN_REWARDS } from "@/domains/economy-weekly/types/weekly-checkin.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
+import { getWeeklyCheckinRecord } from "@/domains/economy-weekly/repository/weekly-checkin.repository.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-weekly:service:weekly-checkin");
@@ -59,7 +60,7 @@ export async function claimWeeklyCheckin(userId: string): Promise<ClaimWeeklyChe
     if (msg.includes("ALREADY_CLAIMED")) {
       throw new WeeklyCheckinError("Already claimed for today", "ALREADY_CLAIMED");
     }
-    logger.error("Error claiming weekly checkin: %o", error as Error);
+    logger.error(error as Error, "Error claiming weekly checkin");
     throw error;
   }
 

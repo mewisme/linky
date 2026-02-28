@@ -10,7 +10,7 @@ import {
   getFavoritesWithStats,
 } from "@/infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
@@ -179,7 +179,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
       try {
         await decrementFavoriteLimit(userId);
       } catch (error: unknown) {
-        logger.error("Failed to refund daily limit: %o", error as Error);
+        logger.error(error as Error, "Failed to refund daily limit");
       }
     }
 
@@ -187,7 +187,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
       const favoritesKey = `user:favorites:${userId}`;
       await redisClient.sRem(favoritesKey, favorite_user_id);
     } catch (error: unknown) {
-      logger.error("Failed to update Redis cache: %o", error as Error);
+      logger.error(error as Error, "Failed to update Redis cache");
     }
 
     return res.json({

@@ -1,5 +1,5 @@
 import type { CoinTransactionRecord } from "@/domains/economy/types/economy.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy:repository:coin-ledger");
@@ -16,7 +16,7 @@ export async function getRecentCoinTransactions(
     .limit(limit);
 
   if (error) {
-    logger.error("Error fetching coin transactions: %o", error as Error);
+    logger.error(error as Error, "Error fetching coin transactions");
     throw error;
   }
 

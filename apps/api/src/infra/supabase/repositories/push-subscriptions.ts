@@ -1,5 +1,5 @@
 import type { TablesInsert } from "@/types/database/supabase.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type PushSubscriptionInsert = TablesInsert<"push_subscriptions">;
@@ -42,7 +42,7 @@ export async function createSubscription(params: CreateSubscriptionParams): Prom
     .single();
 
   if (error) {
-    logger.error("Error creating push subscription: %o", error as Error);
+    logger.error(error as Error, "Error creating push subscription");
     throw error;
   }
 
@@ -57,7 +57,7 @@ export async function deleteSubscription(userId: string, endpoint: string): Prom
     .eq("endpoint", endpoint);
 
   if (error) {
-    logger.error("Error deleting push subscription: %o", error as Error);
+    logger.error(error as Error, "Error deleting push subscription");
     throw error;
   }
 
@@ -71,7 +71,7 @@ export async function getUserSubscriptions(userId: string): Promise<PushSubscrip
     .eq("user_id", userId);
 
   if (error) {
-    logger.error("Error fetching user subscriptions: %o", error as Error);
+    logger.error(error as Error, "Error fetching user subscriptions");
     throw error;
   }
 
@@ -85,7 +85,7 @@ export async function deleteExpiredSubscription(endpoint: string): Promise<boole
     .eq("endpoint", endpoint);
 
   if (error) {
-    logger.error("Error deleting expired subscription: %o", error as Error);
+    logger.error(error as Error, "Error deleting expired subscription");
     throw error;
   }
 

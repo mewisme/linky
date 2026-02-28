@@ -1,4 +1,4 @@
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:user-streak-freeze");
@@ -18,7 +18,7 @@ export async function getFreezeInventory(userId: string): Promise<UserStreakFree
     .maybeSingle();
 
   if (error) {
-    logger.error("Error fetching freeze inventory: %o", error as Error);
+    logger.error(error as Error, "Error fetching freeze inventory");
     throw error;
   }
   return data;
@@ -39,7 +39,7 @@ export async function getOrCreateFreezeInventory(userId: string): Promise<UserSt
       const retry = await getFreezeInventory(userId);
       if (retry) return retry;
     }
-    logger.error("Error creating freeze inventory: %o", error as Error);
+    logger.error(error as Error, "Error creating freeze inventory");
     throw error;
   }
   return data;
@@ -53,7 +53,7 @@ export async function addAvailableFreezes(userId: string, count: number): Promis
     .update({ available_count: inv.available_count + count, updated_at: new Date().toISOString() })
     .eq("user_id", userId);
   if (error) {
-    logger.error("Error adding available freezes: %o", error as Error);
+    logger.error(error as Error, "Error adding available freezes");
     throw error;
   }
 }
@@ -71,7 +71,7 @@ export async function consumeFreeze(userId: string): Promise<boolean> {
     .eq("user_id", userId)
     .gte("available_count", 1);
   if (error) {
-    logger.error("Error consuming freeze: %o", error as Error);
+    logger.error(error as Error, "Error consuming freeze");
     throw error;
   }
   return true;
@@ -83,7 +83,7 @@ export async function getGrantedFreezeUnlockIds(userId: string): Promise<string[
     .select("level_feature_unlock_id")
     .eq("user_id", userId);
   if (error) {
-    logger.error("Error fetching freeze grants: %o", error as Error);
+    logger.error(error as Error, "Error fetching freeze grants");
     throw error;
   }
   return (data ?? []).map((r) => r.level_feature_unlock_id);
@@ -96,7 +96,7 @@ export async function insertFreezeGrant(userId: string, levelFeatureUnlockId: st
   });
   if (error) {
     if (error.code === "23505") return;
-    logger.error("Error inserting freeze grant: %o", error as Error);
+    logger.error(error as Error, "Error inserting freeze grant");
     throw error;
   }
 }
@@ -107,7 +107,7 @@ export async function prepareStreakFreeze(userId: string, gapDate: string): Prom
     p_gap_date: gapDate,
   });
   if (error) {
-    logger.error("Error preparing streak freeze: %o", error as Error);
+    logger.error(error as Error, "Error preparing streak freeze");
     throw error;
   }
 }

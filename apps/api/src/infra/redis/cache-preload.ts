@@ -1,6 +1,6 @@
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getChangelogs } from "@/infra/supabase/repositories/changelogs.js";
 import { getInterestTags } from "@/infra/supabase/repositories/interest-tags.js";
 import { updateCachedData } from "@/infra/redis/cache-utils.js";
@@ -50,6 +50,6 @@ export async function preloadReferenceData(): Promise<void> {
 
     logger.info("Cache preload completed: interest_tags=%d changelogs=%d", interestTagsData.data.length, changelogsData.data.length);
   } catch (error) {
-    logger.error("Cache preload failed: %o", error as Error);
+    logger.error(error as Error, "Cache preload failed");
   }
 }

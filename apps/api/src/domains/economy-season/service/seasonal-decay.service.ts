@@ -1,5 +1,5 @@
+import { createLogger } from "@/utils/logger.js";
 import { getPendingUserIdsForSeason } from "@/domains/economy-season/repository/season.repository.js";
-import { createLogger } from "@ws/logger";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-season:service:seasonal-decay");
@@ -16,13 +16,13 @@ export async function runDecayForSeason(seasonId: string): Promise<{ processed: 
         p_season_id: seasonId,
       });
       if (error) {
-        logger.warn("Decay failed for user %s: %o", userId, error as Error);
+        logger.warn(error as Error, "Decay failed for user %s", userId);
         failed++;
       } else {
         processed++;
       }
     } catch (err) {
-      logger.warn("Decay error for user %s: %o", userId, err as Error);
+      logger.warn(err as Error, "Decay error for user %s", userId);
       failed++;
     }
   }

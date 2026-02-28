@@ -1,6 +1,6 @@
 import { getCacheKey, shouldVersionKey } from "@/infra/redis/cache-namespace.js";
 
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 

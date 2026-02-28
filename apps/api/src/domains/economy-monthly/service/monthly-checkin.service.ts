@@ -5,12 +5,13 @@ import type {
   ClaimMonthlyCheckinRpcRow,
   MonthlyProgress,
 } from "@/domains/economy-monthly/types/monthly-checkin.types.js";
-import { getMonthlyCheckinRecord } from "@/domains/economy-monthly/repository/monthly-checkin.repository.js";
 import {
   getBuybackCost,
   getDaysInMonth,
 } from "@/domains/economy-monthly/types/monthly-checkin.types.js";
-import { createLogger } from "@ws/logger";
+
+import { createLogger } from "@/utils/logger.js";
+import { getMonthlyCheckinRecord } from "@/domains/economy-monthly/repository/monthly-checkin.repository.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-monthly:service:monthly-checkin");
@@ -77,7 +78,7 @@ export async function claimMonthlyCheckin(
     if (msg.includes("ALREADY_CLAIMED")) throw new MonthlyCheckinError("Day already claimed", "ALREADY_CLAIMED");
     if (msg.includes("INVALID_DAY")) throw new MonthlyCheckinError("Invalid day for month", "INVALID_DAY");
     if (msg.includes("FUTURE_DAY")) throw new MonthlyCheckinError("Cannot claim future day", "FUTURE_DAY");
-    logger.error("Error claiming monthly checkin: %o", error as Error);
+    logger.error(error as Error, "Error claiming monthly checkin");
     throw error;
   }
 
@@ -105,7 +106,7 @@ export async function claimMonthlyBuyback(
     if (msg.includes("BUYBACK_FUTURE_OR_TODAY")) throw new MonthlyCheckinError("Buyback only for past days", "BUYBACK_FUTURE_OR_TODAY");
     if (msg.includes("INSUFFICIENT_EXP")) throw new MonthlyCheckinError("Insufficient EXP for buyback", "INSUFFICIENT_EXP");
     if (msg.includes("NO_MONTHLY_RECORD")) throw new MonthlyCheckinError("No monthly record", "NO_MONTHLY_RECORD");
-    logger.error("Error claiming monthly buyback: %o", error as Error);
+    logger.error(error as Error, "Error claiming monthly buyback");
     throw error;
   }
 

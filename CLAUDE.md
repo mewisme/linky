@@ -75,6 +75,10 @@ When a feature needs data from multiple domains, use `src/contexts/` for orchest
 
 Redis is read-optimization only, never source of truth. Uses cache-aside pattern with `getOrSet()`. Cache keys in `infra/redis/keys.ts`, TTLs in `infra/redis/policy.ts`. All Redis operations are wrapped with `withRedisTimeout()` (default 5s) to prevent hanging — cache failures are logged and swallowed, never rethrown.
 
+### Logging (Pino)
+
+For all levels: `logger.<level>([mergingObject], [message], [...interpolationValues])`. Put the merging object (error or context) first, then the message, then any interpolation values (e.g. `logger.error(err, "Unexpected error in GET /users")` or `logger.warn(err, "Failed for user %s", userId)`).
+
 ### Backend Error Response Format
 
 All route handlers return `{ error: "ErrorType", message: "description" }` on failure with standard HTTP status codes (400, 401, 403, 404, 500). Errors are logged with `logger.error()` before responding.

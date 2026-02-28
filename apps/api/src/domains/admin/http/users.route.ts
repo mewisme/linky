@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import type { AdminUserUpdate } from "@/domains/admin/types/admin.types.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { getUser, hardDeleteUser, listUsers, patchAdminUser, updateAdminUser } from "@/domains/admin/service/admin-users.service.js";
@@ -52,8 +52,8 @@ router.get("/", async (req: Request, res: Response) => {
             }
           } catch (presenceError) {
             logger.warn(
-              "Error fetching presence from Redis: %o",
               presenceError instanceof Error ? presenceError : new Error(String(presenceError)),
+              "Error fetching presence from Redis",
             );
           }
         }
@@ -78,7 +78,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error("Unexpected error in GET /admin/users: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/users");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch users",
@@ -113,7 +113,7 @@ router.get("/:id", async (req: Request, res: Response) => {
           presence = presenceState;
         }
       } catch (presenceError) {
-        logger.warn("Error fetching presence from Redis: %o", presenceError instanceof Error ? presenceError : new Error(String(presenceError)));
+        logger.warn(presenceError instanceof Error ? presenceError : new Error(String(presenceError)), "Error fetching presence from Redis");
       }
     }
 
@@ -122,7 +122,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       presence,
     });
   } catch (error: any) {
-    logger.error("Unexpected error in GET /admin/users/:id: %o", error as Error);
+    logger.error(error as Error, "Unexpected error in GET /admin/users/:id");
 
     if (error.code === "PGRST116") {
       return res.status(404).json({
@@ -164,7 +164,7 @@ router.put("/:id", async (req: Request, res: Response) => {
     return res.json(user);
   } catch (error: unknown) {
     const err = error as Error;
-    logger.error("Unexpected error in PUT /admin/users/:id: %o", err);
+    logger.error(err, "Unexpected error in PUT /admin/users/:id");
 
     if (err.message === "User not found") {
       return res.status(404).json({
@@ -225,7 +225,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
     return res.json(user);
   } catch (error: unknown) {
     const err = error as Error;
-    logger.error("Unexpected error in PATCH /admin/users/:id: %o", err);
+    logger.error(err, "Unexpected error in PATCH /admin/users/:id");
 
     if (err.message === "User not found") {
       return res.status(404).json({
@@ -294,7 +294,7 @@ router.delete("/:id", requireSuperAdmin, async (req: Request, res: Response) => 
     return res.json({ success: true, message: "User deleted successfully" });
   } catch (error: unknown) {
     const err = error as Error;
-    logger.error("Unexpected error in DELETE /admin/users/:id: %o", err);
+    logger.error(err, "Unexpected error in DELETE /admin/users/:id");
 
     if (err.message === "User not found") {
       return res.status(404).json({

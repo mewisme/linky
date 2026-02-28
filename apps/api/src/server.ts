@@ -4,7 +4,7 @@ import { setupMiddleware, setupErrorHandlers } from "@/middleware/index.js";
 import { setupRoutes } from "@/routes/index.js";
 import { createSocketServer } from "@/socket/index.js";
 import { config } from "@/config/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { connectRedis } from "@/infra/redis/client.js";
 import { preloadReferenceData } from "@/infra/redis/cache-preload.js";
 import { initializeMqttClient, attachSocketIO } from "@/infra/mqtt/client.js";
@@ -37,7 +37,7 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
     await connectRedis();
     preloadReferenceData();
   } catch (error: unknown) {
-    logger.error("Failed to connect to Redis, continuing without Redis: %o", error as Error);
+    logger.error(error as Error, "Failed to connect to Redis, continuing without Redis");
   }
 
   initializeMqttClient();
@@ -49,11 +49,16 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   });
 
   httpServer.on("error", (error: Error) => {
-    logger.fatal("HTTP server error: %o", error as Error);
+    logger.fatal(error as Error, "HTTP server error");
   });
 
   setupGracefulShutdown(httpServer, io);
 
+  testSentry();
+
   return { app, httpServer, io };
 }
 
+function testSentry() {
+  throw new Error("test error");
+}

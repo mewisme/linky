@@ -1,6 +1,6 @@
 import type { Wallet } from "@/domains/economy/types/economy.types.js";
+import { createLogger } from "@/utils/logger.js";
 import { getWallet as getWalletRecord } from "@/domains/economy/repository/wallet.repository.js";
-import { createLogger } from "@ws/logger";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy:service:wallet");
@@ -50,7 +50,7 @@ export async function getOrCreateWallet(userId: string): Promise<Wallet> {
   );
 
   if (error) {
-    logger.error("Error ensuring wallet exists: %o", error as Error);
+    logger.error(error as Error, "Error ensuring wallet exists");
     throw error;
   }
 

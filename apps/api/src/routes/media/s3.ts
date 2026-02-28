@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "@/config/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import {
   getUploadUrl,
   getDownloadUrl,
@@ -50,7 +50,7 @@ router.get("/presigned/upload", async (req: Request, res: Response) => {
       method: "PUT",
     });
   } catch (error: unknown) {
-    logger.error("Error generating upload presigned URL: %o", error as Error);
+    logger.error(error as Error, "Error generating upload presigned URL");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to generate upload URL",
@@ -89,7 +89,7 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
       method: "GET",
     });
   } catch (error: unknown) {
-    logger.error("Error generating download presigned URL: %o", error as Error);
+    logger.error(error as Error, "Error generating download presigned URL");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to generate download URL",
@@ -123,7 +123,7 @@ router.get("/objects", async (req: Request, res: Response) => {
       isTruncated: result.IsTruncated,
     });
   } catch (error: unknown) {
-    logger.error("Error listing objects: %o", error as Error);
+    logger.error(error as Error, "Error listing objects");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to list objects",
@@ -162,7 +162,7 @@ router.delete("/objects/:key", async (req: Request, res: Response) => {
       key: decodedKey,
     });
   } catch (error: unknown) {
-    logger.error("Error deleting object: %o", error as Error);
+    logger.error(error as Error, "Error deleting object");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to delete object",
@@ -198,7 +198,7 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
       key,
     });
   } catch (error: unknown) {
-    logger.error("Error starting multipart upload: %o", error as Error);
+    logger.error(error as Error, "Error starting multipart upload");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to start multipart upload",
@@ -254,7 +254,7 @@ router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Re
       key,
     });
   } catch (error: unknown) {
-    logger.error("Error getting part upload URL: %o", error as Error);
+    logger.error(error as Error, "Error getting part upload URL");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to get part upload URL",
@@ -314,7 +314,7 @@ router.post("/multipart/complete", async (req: Request, res: Response) => {
       uploadId,
     });
   } catch (error: unknown) {
-    logger.error("Error completing multipart upload: %o", error as Error);
+    logger.error(error as Error, "Error completing multipart upload");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to complete multipart upload",
@@ -359,7 +359,7 @@ router.post("/multipart/abort", async (req: Request, res: Response) => {
       uploadId,
     });
   } catch (error: unknown) {
-    logger.error("Error aborting multipart upload: %o", error as Error);
+    logger.error(error as Error, "Error aborting multipart upload");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to abort multipart upload",

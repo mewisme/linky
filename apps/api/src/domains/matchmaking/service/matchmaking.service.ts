@@ -7,7 +7,7 @@ import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js
 import type { EmbeddingPair } from "@/domains/matchmaking/types/embedding.types.js";
 import type { MatchStateStore } from "@/domains/matchmaking/store/index.js";
 import type { QueuedUser } from "@/domains/matchmaking/types/matchmaking.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getUserEmbeddingsMap } from "@/infra/supabase/repositories/user-embeddings.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 
@@ -426,7 +426,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup stale sockets: %o", error as Error);
+      this.logger.error(error as Error, "Failed to cleanup stale sockets");
     }
   }
 
@@ -462,7 +462,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to cleanup expired entries: %o", error as Error);
+      this.logger.error(error as Error, "Failed to cleanup expired entries");
     }
   }
 
@@ -481,7 +481,7 @@ export class MatchmakingService {
         result.set(userId, tags);
       }
     } catch (error) {
-      this.logger.error("Failed to load interest tags: %o", error as Error);
+      this.logger.error(error as Error, "Failed to load interest tags");
     }
 
     return result;
@@ -504,7 +504,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to load favorites: %o", error as Error);
+      this.logger.error(error as Error, "Failed to load favorites");
     }
 
     return result;
@@ -527,7 +527,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error("Failed to load blocked sets: %o", error as Error);
+      this.logger.error(error as Error, "Failed to load blocked sets");
     }
 
     return result;
@@ -537,7 +537,7 @@ export class MatchmakingService {
     try {
       return await getUserEmbeddingsMap(userIds);
     } catch (error) {
-      this.logger.error("Failed to load embeddings: %o", error as Error);
+      this.logger.error(error as Error, "Failed to load embeddings");
       return new Map();
     }
   }

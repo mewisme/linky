@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 export async function adminMiddleware(req: Request, res: Response, next: NextFunction) {
   const logger = createLogger("middleware:admin");
@@ -22,7 +22,7 @@ export async function adminMiddleware(req: Request, res: Response, next: NextFun
     logger.info("Admin access granted: %s for user: %s", isAdmin, clerkUserId);
     next();
   } catch (error) {
-    logger.error("Admin middleware error: %o", error as Error);
+    logger.error(error as Error, "Admin middleware error");
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }

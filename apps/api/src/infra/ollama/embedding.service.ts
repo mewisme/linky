@@ -1,6 +1,6 @@
 import { Ollama } from "ollama";
 import { config } from "@/config/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("infra:ollama:embedding:service");
 const EMBEDDING_MODEL = "nomic-embed-text:v1.5";

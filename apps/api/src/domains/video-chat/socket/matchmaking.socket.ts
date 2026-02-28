@@ -1,5 +1,5 @@
 import type { Namespace } from "socket.io";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { MatchedPayload, RoomPingPayload } from "@/domains/video-chat/types/socket-event.types.js";
 import { getPublicUserInfo } from "@/infra/supabase/repositories/user-details.js";
@@ -48,7 +48,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user1Info = await getPublicUserInfo(dbUserId1);
             }
           } catch (error) {
-            logger.error("Failed to fetch user info: %o", error as Error);
+            logger.error(error as Error, "Failed to fetch user info");
           }
         }
 
@@ -59,7 +59,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user2Info = await getPublicUserInfo(dbUserId2);
             }
           } catch (error) {
-            logger.error("Failed to fetch user info: %o", error as Error);
+            logger.error(error as Error, "Failed to fetch user info");
           }
         }
 
@@ -86,7 +86,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
             title: "Match Found!",
             body: "Someone is ready to chat — head back!",
             url: "/chat",
-          }).catch((err: unknown) => logger.warn("Push to user1 failed: %o", err as Error));
+          }).catch((err: unknown) => logger.warn(err as Error, "Push to user1 failed"));
         }
 
         if (dbUserId2) {
@@ -96,7 +96,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
             title: "Match Found!",
             body: "Someone is ready to chat — head back!",
             url: "/chat",
-          }).catch((err: unknown) => logger.warn("Push to user2 failed: %o", err as Error));
+          }).catch((err: unknown) => logger.warn(err as Error, "Push to user2 failed"));
         }
       }
     }

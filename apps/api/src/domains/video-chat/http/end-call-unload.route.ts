@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { getVideoChatContext } from "@/domains/video-chat/socket/video-chat.socket.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
 import { type AuthenticatedSocket } from "@/socket/auth.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
@@ -67,7 +67,7 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
 
       const peerSocket = peerId ? (io.sockets.get(peerId) as AuthenticatedSocket | undefined) : undefined;
       await recordCallHistory(io, room, socket, peerSocket).catch((error) => {
-        logger.error("Failed to record call history: %o", error as Error);
+        logger.error(error as Error, "Failed to record call history");
       });
 
       if (peerId) {
@@ -96,7 +96,7 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
 
     res.status(200).json({ success: true, message: "End-call processed" });
   } catch (error) {
-    logger.error("Error processing unload end-call: %o", error as Error);
+    logger.error(error as Error, "Error processing unload end-call");
     res.status(500).json({ error: "Internal server error" });
   }
 });

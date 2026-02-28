@@ -1,5 +1,5 @@
 import type { UserUnlockedFeatures } from "@/domains/user/types/level-feature-unlock.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { getLevelFeatureUnlocksUpToLevel } from "@/infra/supabase/repositories/level-feature-unlocks.js";
 
 const logger = createLogger("api:user:feature-unlock:service");
@@ -38,7 +38,7 @@ export async function getUserUnlockedFeatures(userId: string, level: number): Pr
 
     return features;
   } catch (error) {
-    logger.error("Error getting user unlocked features: %o", error as Error);
+    logger.error(error as Error, "Error getting user unlocked features");
     throw error;
   }
 }

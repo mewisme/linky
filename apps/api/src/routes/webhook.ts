@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { Webhook } from "svix";
 import { config } from "@/config/index.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
 import { handleClerkWebhookEvent } from "@/webhook/clerk-webhook-handler.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";

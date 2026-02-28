@@ -1,5 +1,5 @@
 import type { Database } from "@/types/database/supabase.types.js";
-import { createLogger } from "@ws/logger";
+import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type AdminUsersUnifiedRow = Database["public"]["Views"]["admin_users_unified"]["Row"];
@@ -54,10 +54,7 @@ export async function getAdminUsersUnified(
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error(
-      "Error fetching admin users unified: %o",
-      error
-    );
+    logger.error(error, "Error fetching admin users unified");
     throw error;
   }
 

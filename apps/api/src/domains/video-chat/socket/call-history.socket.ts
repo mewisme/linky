@@ -1,10 +1,10 @@
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoom } from "@/domains/video-chat/types/room.types.js";
+import { createLogger } from "@/utils/logger.js";
 import { getTimezoneForUser } from "@/domains/user/service/user-details.service.js";
-import { recordCallHistoryInDatabase } from "@/domains/video-chat/service/call-history.service.js";
-import { createLogger } from "@ws/logger";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { recordCallHistoryInDatabase } from "@/domains/video-chat/service/call-history.service.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
@@ -34,9 +34,9 @@ async function acquireIdempotencyLock(key: string): Promise<boolean> {
     return result === "OK";
   } catch (error) {
     logger.warn(
-      "Failed to acquire idempotency lock for key %s: %o",
-      key,
       error as Error,
+      "Failed to acquire idempotency lock for key %s",
+      key,
     );
     return true;
   }
@@ -125,10 +125,7 @@ export async function recordCallHistory(
 
     logger.info("Call history recorded: duration=%ds", durationSeconds);
   } catch (error) {
-    logger.error(
-      "Error recording call history: %o",
-      error as Error,
-    );
+    logger.error(error as Error, "Error recording call history");
   }
 }
 

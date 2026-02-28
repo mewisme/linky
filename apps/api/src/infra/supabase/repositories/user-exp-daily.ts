@@ -38,6 +38,32 @@ export async function incrementUserExpDaily(
   }
 }
 
+export async function incrementDailyExpWithMilestones(
+  userId: string,
+  date: string,
+  expSeconds: number,
+): Promise<void> {
+  if (expSeconds <= 0) {
+    return;
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    logger.error("Invalid date format: %s", date);
+    throw new Error("date must be YYYY-MM-DD");
+  }
+
+  const { error } = await supabase.rpc("increment_daily_exp_with_milestones", {
+    p_user_id: userId,
+    p_date: date,
+    p_exp_seconds: expSeconds,
+  });
+
+  if (error) {
+    logger.error("Error incrementing daily exp with milestones: %o", error as Error);
+    throw error;
+  }
+}
+
 export async function getUserExpDaily(
   userId: string,
   date: string,

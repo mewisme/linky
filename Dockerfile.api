@@ -28,4 +28,5 @@ RUN pnpm install --prod --frozen-lockfile
 WORKDIR /app/apps/api
 
 ENTRYPOINT [ "node" ]
-CMD [ "dist/index.js" ]
+
+CMD [ "--import=dist/instrument.js", "dist/index.js" ]

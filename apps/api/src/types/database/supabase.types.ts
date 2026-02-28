@@ -231,6 +231,132 @@ export type Database = {
           },
         ]
       }
+      coin_shop_items: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key: string
+          metadata: Json | null
+          name: string
+          price: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key: string
+          metadata?: Json | null
+          name: string
+          price: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          metadata?: Json | null
+          name?: string
+          price?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      economy_config: {
+        Row: {
+          key: string
+          value_json: Json
+        }
+        Insert: {
+          key: string
+          value_json: Json
+        }
+        Update: {
+          key?: string
+          value_json?: Json
+        }
+        Relationships: []
+      }
+      economy_health_reports: {
+        Row: {
+          actions_taken: Json
+          created_at: string
+          date: string
+          health_status: Database["public"]["Enums"]["economy_health_status"]
+          id: string
+          metrics_snapshot: Json
+        }
+        Insert: {
+          actions_taken?: Json
+          created_at?: string
+          date: string
+          health_status: Database["public"]["Enums"]["economy_health_status"]
+          id?: string
+          metrics_snapshot?: Json
+        }
+        Update: {
+          actions_taken?: Json
+          created_at?: string
+          date?: string
+          health_status?: Database["public"]["Enums"]["economy_health_status"]
+          id?: string
+          metrics_snapshot?: Json
+        }
+        Relationships: []
+      }
+      economy_metrics_daily: {
+        Row: {
+          active_users_count: number
+          avg_coin_per_user: number | null
+          created_at: string
+          date: string
+          id: string
+          top_10_percent_ratio: number | null
+          total_coin_burned: number
+          total_coin_minted: number
+          total_coin_supply: number
+          total_exp_converted: number
+          total_exp_generated: number
+          total_exp_supply: number
+          total_vault_supply: number
+        }
+        Insert: {
+          active_users_count?: number
+          avg_coin_per_user?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          top_10_percent_ratio?: number | null
+          total_coin_burned?: number
+          total_coin_minted?: number
+          total_coin_supply?: number
+          total_exp_converted?: number
+          total_exp_generated?: number
+          total_exp_supply?: number
+          total_vault_supply?: number
+        }
+        Update: {
+          active_users_count?: number
+          avg_coin_per_user?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          top_10_percent_ratio?: number | null
+          total_coin_burned?: number
+          total_coin_minted?: number
+          total_coin_supply?: number
+          total_exp_converted?: number
+          total_exp_generated?: number
+          total_exp_supply?: number
+          total_vault_supply?: number
+        }
+        Relationships: []
+      }
       favorite_exp_boost_rules: {
         Row: {
           created_at: string
@@ -672,6 +798,42 @@ export type Database = {
           },
         ]
       }
+      seasons: {
+        Row: {
+          created_at: string
+          decay_rate: number
+          decay_threshold: number
+          end_at: string
+          id: string
+          is_active: boolean
+          name: string
+          start_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decay_rate?: number
+          decay_threshold?: number
+          end_at: string
+          id?: string
+          is_active?: boolean
+          name: string
+          start_at: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decay_rate?: number
+          decay_threshold?: number
+          end_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          start_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       streak_exp_bonuses: {
         Row: {
           bonus_multiplier: number
@@ -698,6 +860,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_active_boosts: {
+        Row: {
+          boost_type: string
+          created_at: string
+          expires_at: string
+          id: string
+          multiplier: number
+          user_id: string
+        }
+        Insert: {
+          boost_type: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          multiplier: number
+          user_id: string
+        }
+        Update: {
+          boost_type?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          multiplier?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_active_boosts_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_active_boosts_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_active_boosts_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_active_boosts_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_blocks: {
         Row: {
@@ -777,6 +995,65 @@ export type Database = {
           },
         ]
       }
+      user_coin_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          source: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_coin_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_coin_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_coin_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_coin_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_details: {
         Row: {
           bio: string | null
@@ -786,6 +1063,7 @@ export type Database = {
           id: string
           interest_tags: string[] | null
           languages: string[] | null
+          timezone: string | null
           updated_at: string
           user_id: string
         }
@@ -797,6 +1075,7 @@ export type Database = {
           id?: string
           interest_tags?: string[] | null
           languages?: string[] | null
+          timezone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -808,6 +1087,7 @@ export type Database = {
           id?: string
           interest_tags?: string[] | null
           languages?: string[] | null
+          timezone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -907,6 +1187,9 @@ export type Database = {
           date: string
           exp_seconds: number
           id: string
+          milestone_1800_claimed: boolean
+          milestone_3600_claimed: boolean
+          milestone_600_claimed: boolean
           updated_at: string
           user_id: string
         }
@@ -915,6 +1198,9 @@ export type Database = {
           date: string
           exp_seconds?: number
           id?: string
+          milestone_1800_claimed?: boolean
+          milestone_3600_claimed?: boolean
+          milestone_600_claimed?: boolean
           updated_at?: string
           user_id: string
         }
@@ -923,10 +1209,69 @@ export type Database = {
           date?: string
           exp_seconds?: number
           id?: string
+          milestone_1800_claimed?: boolean
+          milestone_3600_claimed?: boolean
+          milestone_600_claimed?: boolean
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      user_exp_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_exp_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_exp_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_exp_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_exp_transactions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_favorite_limits: {
         Row: {
@@ -1164,6 +1509,251 @@ export type Database = {
             foreignKeyName: "fk_user_levels_user"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_monthly_checkins: {
+        Row: {
+          buyback_count: number
+          claimed_days: number[]
+          created_at: string
+          id: string
+          month: number
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          buyback_count?: number
+          claimed_days?: number[]
+          created_at?: string
+          id?: string
+          month: number
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          buyback_count?: number
+          claimed_days?: number[]
+          created_at?: string
+          id?: string
+          month?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_monthly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_monthly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_monthly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_monthly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_owned_items: {
+        Row: {
+          acquired_at: string
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_owned_items_item"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "coin_shop_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_owned_items_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_owned_items_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_owned_items_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_owned_items_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_prestige_history: {
+        Row: {
+          created_at: string
+          exp_before_reset: number
+          id: string
+          level_before_reset: number
+          prestige_points_awarded: number
+          season_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exp_before_reset: number
+          id?: string
+          level_before_reset: number
+          prestige_points_awarded?: number
+          season_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exp_before_reset?: number
+          id?: string
+          level_before_reset?: number
+          prestige_points_awarded?: number
+          season_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_prestige_history_season"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_prestige_history_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_prestige_history_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_prestige_history_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_prestige_history_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_season_records: {
+        Row: {
+          created_at: string
+          decay_processed: boolean
+          id: string
+          season_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decay_processed?: boolean
+          id?: string
+          season_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decay_processed?: boolean
+          id?: string
+          season_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_season_records_season"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_season_records_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_season_records_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_season_records_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_season_records_user"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "users_with_details"
             referencedColumns: ["id"]
           },
@@ -1450,6 +2040,127 @@ export type Database = {
           },
         ]
       }
+      user_wallets: {
+        Row: {
+          coin_balance: number
+          created_at: string
+          id: string
+          total_earned: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+          vault_coin_balance: number
+        }
+        Insert: {
+          coin_balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+          vault_coin_balance?: number
+        }
+        Update: {
+          coin_balance?: number
+          created_at?: string
+          id?: string
+          total_earned?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+          vault_coin_balance?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_wallets_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_wallets_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_wallets_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_wallets_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_weekly_checkins: {
+        Row: {
+          created_at: string
+          id: string
+          last_checkin_local_date: string | null
+          streak_day: number
+          total_weeks_completed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_checkin_local_date?: string | null
+          streak_day?: number
+          total_weeks_completed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_checkin_local_date?: string | null
+          streak_day?: number
+          total_weeks_completed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_weekly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_user_weekly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_weekly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_user_weekly_checkins_user"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -1462,7 +2173,12 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          lifetime_exp: number
+          prestige_points: number
+          prestige_rank: Database["public"]["Enums"]["prestige_rank"]
+          prestige_tier: number | null
           role: Database["public"]["Enums"]["user_role"]
+          total_prestiges: number
           updated_at: string
         }
         Insert: {
@@ -1476,7 +2192,12 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          lifetime_exp?: number
+          prestige_points?: number
+          prestige_rank?: Database["public"]["Enums"]["prestige_rank"]
+          prestige_tier?: number | null
           role?: Database["public"]["Enums"]["user_role"]
+          total_prestiges?: number
           updated_at?: string
         }
         Update: {
@@ -1490,7 +2211,12 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          lifetime_exp?: number
+          prestige_points?: number
+          prestige_rank?: Database["public"]["Enums"]["prestige_rank"]
+          prestige_tier?: number | null
           role?: Database["public"]["Enums"]["user_role"]
+          total_prestiges?: number
           updated_at?: string
         }
         Relationships: []
@@ -1551,8 +2277,13 @@ export type Database = {
           gender: string | null
           interest_tags: string[] | null
           last_name: string | null
+          lifetime_exp: number | null
+          prestige_points: number | null
+          prestige_rank: Database["public"]["Enums"]["prestige_rank"] | null
+          prestige_tier: number | null
           role: Database["public"]["Enums"]["user_role"] | null
           total_exp_seconds: number | null
+          total_prestiges: number | null
           updated_at: string | null
           user_id: string | null
         }
@@ -1808,6 +2539,10 @@ export type Database = {
         Args: { catalog: unknown; options: string[] }
         Returns: undefined
       }
+      apply_user_seasonal_decay: {
+        Args: { p_season_id: string; p_user_id: string }
+        Returns: undefined
+      }
       auth0_fdw_handler: { Args: never; Returns: unknown }
       auth0_fdw_meta: {
         Args: never
@@ -1836,6 +2571,68 @@ export type Database = {
         Args: { catalog: unknown; options: string[] }
         Returns: undefined
       }
+      buyback_cost_for_index: { Args: { p_index: number }; Returns: number }
+      claim_monthly_buyback:
+        | {
+            Args: { p_day: number; p_user_id: string }
+            Returns: {
+              exp_spent: number
+              new_coin_balance: number
+              reward: number
+            }[]
+          }
+        | {
+            Args: {
+              p_day: number
+              p_month: number
+              p_today_day: number
+              p_user_id: string
+              p_year: number
+            }
+            Returns: {
+              exp_spent: number
+              new_coin_balance: number
+              reward: number
+            }[]
+          }
+      claim_monthly_checkin:
+        | {
+            Args: { p_day: number; p_user_id: string }
+            Returns: {
+              new_coin_balance: number
+              reward: number
+            }[]
+          }
+        | {
+            Args: {
+              p_day: number
+              p_month: number
+              p_today_day: number
+              p_user_id: string
+              p_year: number
+            }
+            Returns: {
+              new_coin_balance: number
+              reward: number
+            }[]
+          }
+      claim_weekly_checkin:
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              new_coin_balance: number
+              reward: number
+              streak_day: number
+            }[]
+          }
+        | {
+            Args: { p_local_date: string; p_user_id: string }
+            Returns: {
+              new_coin_balance: number
+              reward: number
+              streak_day: number
+            }[]
+          }
       click_house_fdw_handler: { Args: never; Returns: unknown }
       click_house_fdw_meta: {
         Args: never
@@ -1863,6 +2660,16 @@ export type Database = {
       cognito_fdw_validator: {
         Args: { catalog: unknown; options: string[] }
         Returns: undefined
+      }
+      convert_exp_to_coin: {
+        Args: { p_exp_amount: number; p_user_id: string }
+        Returns: {
+          base_coins: number
+          bonus_coins: number
+          exp_spent: number
+          new_coin_balance: number
+          total_coins: number
+        }[]
       }
       duckdb_fdw_handler: { Args: never; Returns: unknown }
       duckdb_fdw_meta: {
@@ -1904,6 +2711,41 @@ export type Database = {
         Args: { catalog: unknown; options: string[] }
         Returns: undefined
       }
+      fn_exp_to_level: {
+        Args: { p_total_exp_seconds: number }
+        Returns: number
+      }
+      fn_prestige_rank_tier: {
+        Args: { p_prestige_points: number }
+        Returns: {
+          rank: Database["public"]["Enums"]["prestige_rank"]
+          tier: number
+        }[]
+      }
+      get_economy_stats: {
+        Args: never
+        Returns: {
+          daily_burn_rate: number
+          daily_mint_rate: number
+          total_coin_supply: number
+          total_coins_minted: number
+          total_exp_burned: number
+        }[]
+      }
+      grant_user_exp: {
+        Args: {
+          p_date: string
+          p_exp_seconds: number
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: {
+          exp_earned: number
+          milestone_1800_claimed: boolean
+          milestone_3600_claimed: boolean
+          milestone_600_claimed: boolean
+        }[]
+      }
       hello_world_fdw_handler: { Args: never; Returns: unknown }
       hello_world_fdw_meta: {
         Args: never
@@ -1932,6 +2774,15 @@ export type Database = {
         Args: { catalog: unknown; options: string[] }
         Returns: undefined
       }
+      increment_daily_exp_with_milestones: {
+        Args: { p_date: string; p_exp_seconds: number; p_user_id: string }
+        Returns: {
+          exp_earned: number
+          milestone_1800_claimed: boolean
+          milestone_3600_claimed: boolean
+          milestone_600_claimed: boolean
+        }[]
+      }
       increment_user_exp: {
         Args: { p_seconds: number; p_user_id: string }
         Returns: undefined
@@ -1955,6 +2806,10 @@ export type Database = {
         Returns: undefined
       }
       metadata_filter: { Args: { _left: Json; _right: Json }; Returns: boolean }
+      monthly_reward_for_day: {
+        Args: { p_day: number; p_days_in_month: number }
+        Returns: number
+      }
       mssql_fdw_handler: { Args: never; Returns: unknown }
       mssql_fdw_meta: {
         Args: never
@@ -1972,6 +2827,28 @@ export type Database = {
       prepare_streak_freeze: {
         Args: { p_gap_date: string; p_user_id: string }
         Returns: undefined
+      }
+      prestige_user: {
+        Args: { p_user_id: string }
+        Returns: {
+          new_total_prestiges: number
+          prestige_rank: Database["public"]["Enums"]["prestige_rank"]
+          prestige_tier: number
+          vault_bonus: number
+        }[]
+      }
+      purchase_boost: {
+        Args: { p_boost_type: string; p_user_id: string }
+        Returns: {
+          expires_at: string
+          new_coin_balance: number
+        }[]
+      }
+      purchase_shop_item: {
+        Args: { p_item_id: string; p_user_id: string }
+        Returns: {
+          new_coin_balance: number
+        }[]
       }
       redis_fdw_handler: { Args: never; Returns: unknown }
       redis_fdw_meta: {
@@ -2019,6 +2896,7 @@ export type Database = {
       s3vec_in: { Args: { input: unknown }; Returns: unknown }
       s3vec_knn: { Args: { _left: unknown; _right: unknown }; Returns: boolean }
       s3vec_out: { Args: { input: unknown }; Returns: unknown }
+      snapshot_economy_metrics: { Args: never; Returns: undefined }
       stripe_fdw_handler: { Args: never; Returns: unknown }
       stripe_fdw_meta: {
         Args: never
@@ -2064,6 +2942,24 @@ export type Database = {
       }
     }
     Enums: {
+      economy_health_status:
+        | "stable"
+        | "inflation_risk"
+        | "deflation_risk"
+        | "whale_dominance"
+      prestige_rank:
+        | "plastic"
+        | "bronze"
+        | "silver"
+        | "gold"
+        | "platinum"
+        | "diamond"
+        | "immortal"
+        | "ascendant"
+        | "eternal"
+        | "mythic"
+        | "celestial"
+        | "transcendent"
       user_role: "admin" | "member" | "superadmin"
     }
     CompositeTypes: {
@@ -2192,6 +3088,26 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      economy_health_status: [
+        "stable",
+        "inflation_risk",
+        "deflation_risk",
+        "whale_dominance",
+      ],
+      prestige_rank: [
+        "plastic",
+        "bronze",
+        "silver",
+        "gold",
+        "platinum",
+        "diamond",
+        "immortal",
+        "ascendant",
+        "eternal",
+        "mythic",
+        "celestial",
+        "transcendent",
+      ],
       user_role: ["admin", "member", "superadmin"],
     },
   },

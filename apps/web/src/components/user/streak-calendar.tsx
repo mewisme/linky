@@ -18,7 +18,6 @@ import { Loading } from "@/components/common/loading";
 import type { UsersAPI } from "@/types/users.types";
 import { cn } from "@ws/ui/lib/utils";
 import { getStreakCalendar } from "@/lib/actions/user/streak";
-import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 
 interface StreakCalendarProps {
@@ -33,7 +32,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
 
   const { data: calendarData, isLoading } = useQuery({
     queryKey: ["streak-calendar", year, monthNumber],
-    queryFn: () => getStreakCalendar(year, monthNumber, getUserTimezone()),
+    queryFn: () => getStreakCalendar(year, monthNumber),
     staleTime: 5 * 60 * 1000,
   });
 

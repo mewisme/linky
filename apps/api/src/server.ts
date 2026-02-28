@@ -9,6 +9,7 @@ import { connectRedis } from "@/infra/redis/client.js";
 import { preloadReferenceData } from "@/infra/redis/cache-preload.js";
 import { initializeMqttClient, attachSocketIO } from "@/infra/mqtt/client.js";
 import { setupGracefulShutdown } from "@/middleware/graceful-shutdown.js";
+import { startJobs } from "@/jobs/index.js";
 import { initializeWebPush } from "@/infra/push/web-push.client.js";
 
 const logger = createLogger("api:server");
@@ -40,6 +41,8 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   }
 
   initializeMqttClient();
+
+  startJobs();
 
   httpServer.listen(config.port, () => {
     logger.info("Server started: port=%d env=%s", config.port, config.nodeEnv);

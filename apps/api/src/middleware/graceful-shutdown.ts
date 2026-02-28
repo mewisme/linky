@@ -1,6 +1,6 @@
 import { type Server as HTTPServer } from "http";
 import { type Server as SocketIOServer } from "socket.io";
-import { Sentry } from "@/infra/sentry/sentry.js";
+import * as Sentry from "@sentry/node";
 import { redisClient } from "@/infra/redis/client.js";
 import { mqttClient } from "@/infra/mqtt/client.js";
 import { config } from "@/config/index.js";

@@ -2,12 +2,10 @@ import { ChatPageContent } from "./components/chat-page-content";
 import { Suspense } from "react";
 import { getFavorites } from "@/lib/actions/resources/favorites";
 import { getUserProgress } from "@/lib/actions/user/profile";
-import { getUserTimezone } from "@/utils/timezone";
 
 export default async function ChatPage() {
-  const timezone = getUserTimezone();
   const [initialProgress, initialFavorites] = await Promise.all([
-    getUserProgress(timezone).catch(() => null),
+    getUserProgress().catch(() => null),
     getFavorites().catch(() => null),
   ]);
   return (

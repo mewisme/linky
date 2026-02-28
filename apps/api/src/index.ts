@@ -1,4 +1,3 @@
-import "./infra/sentry/sentry.js";
 import { createLogger } from "@ws/logger";
 import { startServer } from "./server.js";
 

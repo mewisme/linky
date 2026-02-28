@@ -13,16 +13,52 @@ export const backendUrl = {
   users: {
     me: () => `${V1}/users/me`,
     meCountry: () => `${V1}/users/me/country`,
-    details: () => `${V1}/user-details/me`,
-    settings: () => `${V1}/user-settings/me`,
-    progress: () => `${V1}/user-progress/me`,
-    streak: () => `${V1}/user-streak/me`,
-    streakCalendar: (params?: URLSearchParams) => `${V1}/user-streak/calendar${qs(params)}`,
-    interestTags: () => `${V1}/user-details/me/interest-tags`,
-    interestTagsAll: () => `${V1}/user-details/me/interest-tags/all`,
+    timezone: () => `${V1}/users/timezone`,
+    details: () => `${V1}/users/details/me`,
+    settings: () => `${V1}/users/settings/me`,
+    profile: () => `${V1}/users/profile/me`,
+    level: () => `${V1}/users/level/me`,
+    progress: () => `${V1}/users/progress/me`,
+    streak: () => `${V1}/users/streak/me`,
+    streakHistory: (params?: URLSearchParams) => `${V1}/users/streak/me/history${qs(params)}`,
+    streakCalendar: (params?: URLSearchParams) => `${V1}/users/streak/calendar${qs(params)}`,
+    interestTags: () => `${V1}/users/details/me/interest-tags`,
+    interestTagsAll: () => `${V1}/users/details/me/interest-tags/all`,
     blocks: () => `${V1}/users/blocks`,
     blocksMe: () => `${V1}/users/blocks/me`,
     blockByUserId: (userId: string) => `${V1}/users/blocks/${userId}`,
+    prestige: () => `${V1}/users/prestige`,
+  },
+
+  economy: {
+    convert: () => `${V1}/economy/convert`,
+    daily: {
+      progress: (params?: URLSearchParams) => `${V1}/economy/daily/progress${qs(params)}`,
+    },
+    weekly: {
+      progress: (params?: URLSearchParams) => `${V1}/economy/weekly/progress${qs(params)}`,
+      checkin: () => `${V1}/economy/weekly/checkin`,
+    },
+    monthly: {
+      progress: (params?: URLSearchParams) => `${V1}/economy/monthly/progress${qs(params)}`,
+      checkin: () => `${V1}/economy/monthly/checkin`,
+      buyback: () => `${V1}/economy/monthly/buyback`,
+    },
+    shop: {
+      list: (params?: URLSearchParams) => `${V1}/economy/shop${qs(params)}`,
+      purchase: () => `${V1}/economy/shop/purchase`,
+    },
+    boost: {
+      purchase: () => `${V1}/economy/boost/purchase`,
+    },
+  },
+
+  videoChat: {
+    endCallUnload: () => `${V1}/video-chat/end-call-unload`,
+  },
+
+  matchmaking: {
+    queueStatus: () => `${V1}/matchmaking/queue-status`,
   },
 
   resources: {
@@ -50,15 +86,23 @@ export const backendUrl = {
     levelFeatureUnlockById: (id: string) => `${V1}/admin/level-feature-unlocks/${id}`,
     levelRewards: (params?: URLSearchParams) => `${V1}/admin/level-rewards${qs(params)}`,
     levelRewardById: (id: string) => `${V1}/admin/level-rewards/${id}`,
+    favoriteExpBoost: (params?: URLSearchParams) => `${V1}/admin/favorite-exp-boost${qs(params)}`,
+    favoriteExpBoostById: (id: string) => `${V1}/admin/favorite-exp-boost/${id}`,
     streakExpBonuses: (params?: URLSearchParams) => `${V1}/admin/streak-exp-bonuses${qs(params)}`,
     streakExpBonusById: (id: string) => `${V1}/admin/streak-exp-bonuses/${id}`,
     reports: (params?: URLSearchParams) => `${V1}/admin/reports${qs(params)}`,
     reportById: (id: string) => `${V1}/admin/reports/${id}`,
     users: (params?: URLSearchParams) => `${V1}/admin/users${qs(params)}`,
     userById: (id: string) => `${V1}/admin/users/${id}`,
+    economyStats: (params?: URLSearchParams) => `${V1}/admin/economy/stats${qs(params)}`,
+    economySimulate: () => `${V1}/admin/economy/simulate`,
+    seasons: (params?: URLSearchParams) => `${V1}/admin/seasons${qs(params)}`,
+    seasonById: (id: string) => `${V1}/admin/seasons/${id}`,
+    seasonForceDecay: (id: string) => `${V1}/admin/seasons/${id}/force-decay`,
     embeddingsCompare: () => `${V1}/admin/embeddings/compare`,
     embeddingsSimilar: () => `${V1}/admin/embeddings/similar`,
     embeddingsSync: () => `${V1}/admin/embeddings/sync`,
+    embeddingsSyncAll: () => `${V1}/admin/embeddings/sync-all`,
     mediaPresignedUpload: () => `${V1}/admin/media/presigned-upload`,
   },
 

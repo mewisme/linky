@@ -41,17 +41,25 @@ export async function getMe(): Promise<UsersAPI.GetMe.Response> {
   );
 }
 
-export async function getUserProgress(
-  timezone: string
-): Promise<UsersAPI.Progress.GetMe.Response> {
+export async function getUserProgress(): Promise<UsersAPI.Progress.GetMe.Response> {
   return withSentryQuery(
     "getUserProgress",
     async (token) => serverFetch<UsersAPI.Progress.GetMe.Response>(
       backendUrl.users.progress(),
-      { preloadedToken: token, headers: { 'x-user-timezone': timezone } }
+      { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.userProgress, timezone], tags: [cacheTags.userProgress] },
+    { keyParts: [cacheTags.userProgress], tags: [cacheTags.userProgress] },
   );
+}
+
+export async function syncUserTimezone(timezone: string): Promise<void> {
+  await withSentryAction("syncUserTimezone", async () => {
+    await serverFetch(backendUrl.users.timezone(), {
+      method: "PATCH",
+      body: JSON.stringify({ timezone }),
+      token: true,
+    });
+  });
 }
 
 export async function updateUserCountry(

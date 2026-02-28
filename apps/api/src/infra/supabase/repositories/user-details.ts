@@ -27,6 +27,67 @@ export async function getUserDetailsByUserId(userId: string) {
   return data;
 }
 
+export async function getUserTimezone(userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("user_details")
+    .select("timezone")
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    logger.error("Error fetching user timezone: %o", error as Error);
+    throw error;
+  }
+
+  return data?.timezone ?? null;
+}
+
+export async function setUserTimezoneOnce(
+  userId: string,
+  timezone: string
+): Promise<{ set: true } | { alreadySet: true }> {
+  const existing = await getUserDetailsByUserId(userId);
+  if (existing?.timezone != null) {
+    return { alreadySet: true };
+  }
+  if (!existing) {
+    const { error } = await supabase
+      .from("user_details")
+      .insert({ user_id: userId, timezone })
+      .select("user_id")
+      .single();
+    if (error) {
+      logger.error("Error creating user details with timezone: %o", error as Error);
+      throw error;
+    }
+    return { set: true };
+  }
+  const { data, error } = await supabase
+    .from("user_details")
+    .update({ timezone })
+    .eq("user_id", userId)
+    .is("timezone", null)
+    .select("user_id")
+    .single();
+
+  if (error) {
+    const msg = (error as { message?: string }).message ?? String(error);
+    if (msg.includes("TIMEZONE_LOCKED")) {
+      return { alreadySet: true };
+    }
+    logger.error("Error setting user timezone: %o", error as Error);
+    throw error;
+  }
+
+  if (data) {
+    return { set: true };
+  }
+  return { alreadySet: true };
+}
+
 export async function getUserDetailsByUserIds(userIds: string[]) {
   if (userIds.length === 0) return [];
 

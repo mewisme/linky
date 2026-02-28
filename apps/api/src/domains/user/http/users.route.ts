@@ -6,6 +6,9 @@ import {
   tryUpdateUserCountryFromHeader,
   updateUserCountryByClerkUserId,
 } from "@/domains/user/service/user.service.js";
+import { setTimezoneOnceForUser } from "@/domains/user/service/user-details.service.js";
+import { getUserIdByClerkUserId } from "@/domains/user/service/user-settings.service.js";
+import { isValidTimezone } from "@/utils/timezone.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:user:users:route");
@@ -108,6 +111,51 @@ router.patch("/me/country", async (req: Request, res: Response) => {
     return res.json(user);
   } catch (error) {
     logger.error("Unexpected error in PATCH /users/me/country: %o", error as Error);
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  }
+});
+
+router.patch("/timezone", async (req: Request, res: Response) => {
+  try {
+    const clerkUserId = req.auth?.sub;
+    if (!clerkUserId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User ID not found in authentication token",
+      });
+    }
+
+    const userId = await getUserIdByClerkUserId(clerkUserId);
+    if (!userId) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found in database",
+      });
+    }
+
+    const body = req.body as { timezone?: unknown };
+    const tz = typeof body?.timezone === "string" ? body.timezone.trim() : "";
+    if (!tz || !isValidTimezone(tz)) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "timezone must be a valid IANA timezone string",
+      });
+    }
+
+    const result = await setTimezoneOnceForUser(userId, tz);
+    if ("alreadySet" in result && result.alreadySet) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "Timezone already set and cannot be changed",
+      });
+    }
+
+    return res.status(200).json({ timezone: tz });
+  } catch (error) {
+    logger.error("Unexpected error in PATCH /users/timezone: %o", error as Error);
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",

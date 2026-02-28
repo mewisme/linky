@@ -8,8 +8,7 @@ import { withSentryQuery } from '@/lib/sentry/with-action';
 
 export async function getStreakCalendar(
   year: number,
-  month: number,
-  timezone: string
+  month: number
 ): Promise<UsersAPI.Streak.Calendar.Response> {
   return withSentryQuery(
     "getStreakCalendar",
@@ -17,9 +16,9 @@ export async function getStreakCalendar(
       const params = new URLSearchParams({ year: String(year), month: String(month) });
       return serverFetch<UsersAPI.Streak.Calendar.Response>(
         backendUrl.users.streakCalendar(params),
-        { preloadedToken: token, headers: { 'x-user-timezone': timezone } }
+        { preloadedToken: token }
       );
     },
-    { keyParts: [cacheTags.userStreak, String(year), String(month), timezone], tags: [cacheTags.userStreak] },
+    { keyParts: [cacheTags.userStreak, String(year), String(month)], tags: [cacheTags.userStreak] },
   );
 }

@@ -7,7 +7,6 @@ export interface AuthenticatedSocket extends Socket {
     userName?: string;
     userImageUrl?: string;
     auth?: Awaited<ReturnType<typeof verifyToken>>;
-    timezone?: string;
     visibility?: "foreground" | "background";
   };
 }

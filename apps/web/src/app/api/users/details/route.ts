@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/types/api.types";
 import type { UsersAPI } from "@/types/users.types";
-import { publicEnv } from "@/env/public-env";
+import { backendUrl } from "@/lib/api/fetch/backend-url";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-details/me`, {
+    const response = await fetch(backendUrl.users.details(), {
       method: "GET",
       headers: {
         Authorization: authHeader,
@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json() as UsersAPI.UserDetails.UpdateMe.Body;
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-details/me`, {
+    const response = await fetch(backendUrl.users.details(), {
       method: "PUT",
       headers: {
         Authorization: authHeader,
@@ -89,7 +89,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json() as UsersAPI.UserDetails.PatchMe.Body;
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/user-details/me`, {
+    const response = await fetch(backendUrl.users.details(), {
       method: "PATCH",
       headers: {
         Authorization: authHeader,

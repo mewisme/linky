@@ -1,6 +1,5 @@
 import type { VideoChatContext } from "./types.js";
 import type { AuthenticatedSocket } from "@/socket/auth.js";
-import { isValidTimezone } from "@/utils/timezone.js";
 import { setupJoinHandler } from "./setup-handlers/setup-join.handler.js";
 import { setupSkipHandler } from "./setup-handlers/setup-skip.handler.js";
 import { setupSignalHandler } from "./setup-handlers/setup-signal.handler.js";
@@ -17,13 +16,6 @@ import { setupDisconnectHandler } from "./setup-handlers/setup-disconnect.handle
 export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoChatContext): void {
   const { io, matchmaking, rooms } = context;
   const userId = socket.data.userId || "unknown";
-
-  socket.on("client:timezone:init", (payload: { timezone?: string }) => {
-    const tz = typeof payload?.timezone === "string" ? payload.timezone.trim() : "";
-    if (tz && isValidTimezone(tz)) {
-      socket.data.timezone = tz;
-    }
-  });
 
   socket.on("client:visibility:foreground", () => {
     socket.data.visibility = "foreground";

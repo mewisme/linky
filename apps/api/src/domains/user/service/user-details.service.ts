@@ -4,9 +4,11 @@ import {
   createUserDetails,
   getUserDetailsByUserId,
   getUserDetailsWithTags,
+  getUserTimezone,
   patchUserDetails,
   removeInterestTags,
   replaceInterestTags,
+  setUserTimezoneOnce,
   updateUserDetails,
 } from "@/infra/supabase/repositories/user-details.js";
 
@@ -145,5 +147,17 @@ export async function clearUserInterestTags(userId: string) {
   await invalidate(REDIS_CACHE_KEYS.userProfile(userId));
   scheduleEmbeddingRegeneration(userId);
   return updated;
+}
+
+export async function getTimezoneForUser(userId: string): Promise<string> {
+  const tz = await getUserTimezone(userId);
+  return tz ?? "UTC";
+}
+
+export async function setTimezoneOnceForUser(
+  userId: string,
+  timezone: string
+): Promise<{ set: true } | { alreadySet: true }> {
+  return setUserTimezoneOnce(userId, timezone);
 }
 

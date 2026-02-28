@@ -51,7 +51,7 @@ app/api/
 ### 1. Mirror Backend Structure
 Next.js API routes mirror the backend route structure to maintain consistency:
 - Backend: `/api/v1/users/me` → Frontend: `/api/users/me`
-- Backend: `/api/v1/user-details/me` → Frontend: `/api/users/details`
+- Backend: `/api/v1/users/details/me` → Frontend: `/api/users/details`
 - Backend: `/api/v1/call-history` → Frontend: `/api/resources/call-history`
 
 ### 2. Category-Based Grouping
@@ -81,31 +81,31 @@ Routes follow Next.js 13+ App Router conventions:
   - `PATCH /api/users/me/country` → Backend: `/api/v1/users/me/country`
   
 - **`details/route.ts`**: User details management
-  - `GET /api/users/details` → Backend: `/api/v1/user-details/me`
-  - `PUT /api/users/details` → Backend: `/api/v1/user-details/me`
-  - `PATCH /api/users/details` → Backend: `/api/v1/user-details/me`
+  - `GET /api/users/details` → Backend: `/api/v1/users/details/me`
+  - `PUT /api/users/details` → Backend: `/api/v1/users/details/me`
+  - `PATCH /api/users/details` → Backend: `/api/v1/users/details/me`
 
 - **`settings/route.ts`**: User settings management
-  - `GET /api/users/settings` → Backend: `/api/v1/user-settings/me`
-  - `PUT /api/users/settings` → Backend: `/api/v1/user-settings/me`
-  - `PATCH /api/users/settings` → Backend: `/api/v1/user-settings/me`
+  - `GET /api/users/settings` → Backend: `/api/v1/users/settings/me`
+  - `PUT /api/users/settings` → Backend: `/api/v1/users/settings/me`
+  - `PATCH /api/users/settings` → Backend: `/api/v1/users/settings/me`
 
 - **`interest-tags/route.ts`**: User interest tags management
-  - `POST /api/users/interest-tags` → Backend: `/api/v1/user-details/me/interest-tags`
-  - `PUT /api/users/interest-tags` → Backend: `/api/v1/user-details/me/interest-tags`
-  - `DELETE /api/users/interest-tags` → Backend: `/api/v1/user-details/me/interest-tags`
+  - `POST /api/users/interest-tags` → Backend: `/api/v1/users/details/me/interest-tags`
+  - `PUT /api/users/interest-tags` → Backend: `/api/v1/users/details/me/interest-tags`
+  - `DELETE /api/users/interest-tags` → Backend: `/api/v1/users/details/me/interest-tags`
 
 - **`interest-tags/all/route.ts`**: Clear all interest tags
-  - `DELETE /api/users/interest-tags/all` → Backend: `/api/v1/user-details/me/interest-tags/all`
+  - `DELETE /api/users/interest-tags/all` → Backend: `/api/v1/users/details/me/interest-tags/all`
 
 - **`progress/route.ts`**: User progress insights
-  - `GET /api/users/progress` → Backend: `/api/v1/user-progress/me`
+  - `GET /api/users/progress` → Backend: `/api/v1/users/progress/me`
 
 - **`streak/route.ts`**: User streak summary
-  - `GET /api/users/streak` → Backend: `/api/v1/user-streak/me`
+  - `GET /api/users/streak` → Backend: `/api/v1/users/streak/me`
 
 - **`streak/calendar/route.ts`**: User streak calendar
-  - `GET /api/users/streak/calendar` → Backend: `/api/v1/user-streak/calendar`
+  - `GET /api/users/streak/calendar` → Backend: `/api/v1/users/streak/calendar`
 
 ### Resources Routes (`resources/`)
 - **`call-history/route.ts`**: List call history

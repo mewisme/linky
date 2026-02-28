@@ -1,9 +1,10 @@
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoom } from "@/domains/video-chat/types/room.types.js";
+import { getTimezoneForUser } from "@/domains/user/service/user-details.service.js";
+import { recordCallHistoryInDatabase } from "@/domains/video-chat/service/call-history.service.js";
 import { createLogger } from "@ws/logger";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
-import { recordCallHistoryInDatabase } from "@/domains/video-chat/service/call-history.service.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
@@ -96,8 +97,10 @@ export async function recordCallHistory(
     const endedAt = new Date();
     const durationSeconds = Math.floor((endedAt.getTime() - room.startedAt.getTime()) / 1000);
 
-    const callerTimezone = (callerSocket.data.timezone as string | undefined) ?? "UTC";
-    const calleeTimezone = (calleeSocket?.data.timezone as string | undefined) ?? "UTC";
+    const [callerTimezone, calleeTimezone] = await Promise.all([
+      getTimezoneForUser(callerId),
+      getTimezoneForUser(calleeId),
+    ]);
 
     await recordCallHistoryInDatabase({
       callerId,

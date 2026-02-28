@@ -8,6 +8,7 @@ import { socketHealthMonitor } from "@/lib/socket/socket-health";
 import { backendRestartDetector } from "@/lib/socket/backend-restart-detector";
 import { publishPresence } from "@/lib/mqtt/client";
 import { getUserTimezone } from "@/utils/timezone";
+import { syncUserTimezone } from "@/lib/actions/user/profile";
 
 import { useUserContext } from "@/components/providers/user/user-provider";
 import { useSocketStore } from "@/stores/socket-store";
@@ -57,6 +58,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const initializingRef = useRef(false);
   const callbacksRef = useRef<Map<string, SocketEventCallback>>(new Map());
   const healthCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timezoneSyncedRef = useRef(false);
 
   const registerCallbacks = useCallback((key: string, callbacks: SocketEventCallback) => {
     callbacksRef.current.set(key, callbacks);
@@ -113,7 +115,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
       const existingConnectListeners = chatSocket.listeners("connect").length;
       if (existingConnectListeners === 0) {
         chatSocket.on("connect", () => {
-          chatSocket.emit("client:timezone:init", { timezone: getUserTimezone() });
+          if (!timezoneSyncedRef.current) {
+            timezoneSyncedRef.current = true;
+            syncUserTimezone(getUserTimezone()).catch(() => {});
+          }
 
           const visibility = document.visibilityState === "visible" ? "foreground" : "background";
           chatSocket.emit(`client:visibility:${visibility}`);

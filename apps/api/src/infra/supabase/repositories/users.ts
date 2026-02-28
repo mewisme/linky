@@ -120,6 +120,21 @@ export async function getUserByClerkId(clerkUserId: string) {
   return data;
 }
 
+export async function getUserInternalId(clerkUserId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .eq("clerk_user_id", clerkUserId)
+    .maybeSingle();
+
+  if (error) {
+    logger.error("Error fetching user internal id: %o", error as Error);
+    throw error;
+  }
+
+  return data?.id ?? null;
+}
+
 export async function updateUser(id: string, userData: UserUpdate) {
   const { data: existingUser } = await supabase
     .from("users")

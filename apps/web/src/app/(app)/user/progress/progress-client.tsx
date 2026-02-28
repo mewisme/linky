@@ -18,7 +18,6 @@ import { Progress } from "@ws/ui/components/ui/progress";
 import { StreakCalendar } from "@/components/user/streak-calendar";
 import { StreakMiniCalendar } from "@/components/user/streak-mini-calendar";
 import { UsersAPI } from "@/types/users.types";
-import { getUserTimezone } from "@/utils/timezone";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useState } from "react";
 import { getUserProgress } from "@/lib/actions/user/profile";
@@ -56,7 +55,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
-    queryFn: () => getUserProgress(getUserTimezone()),
+    queryFn: () => getUserProgress(),
     initialData,
     staleTime: Infinity,
   });

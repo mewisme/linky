@@ -54,11 +54,5 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
 
   setupGracefulShutdown(httpServer, io);
 
-  testSentry();
-
   return { app, httpServer, io };
-}
-
-function testSentry() {
-  throw new Error("test error");
 }

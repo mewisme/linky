@@ -47,6 +47,7 @@ export const createBaseLogger = (sentry?: SentryLike) => {
             switch (levelLabel) {
               case "trace":
                 sentry.logger.trace(formattedMessage, context);
+                sentry.captureMessage(formattedMessage, context);
                 break;
               case "debug":
                 sentry.logger.debug(formattedMessage, context);
@@ -61,19 +62,13 @@ export const createBaseLogger = (sentry?: SentryLike) => {
                 break;
               case "error":
                 sentry.logger.error(formattedMessage, context);
+                sentry.captureException(context, { level: "error" });
                 break;
               case "fatal":
                 sentry.logger.fatal(formattedMessage, context);
+                sentry.captureException(context, { level: "fatal" });
                 break;
             }
-          }
-
-          if (
-            context &&
-            "err" in context &&
-            context.err instanceof Error
-          ) {
-            sentry?.captureException(context.err);
           }
 
           method.apply(this, args);

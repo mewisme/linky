@@ -37,7 +37,6 @@ export function AppHeader() {
         </div>
         <div className='flex items-center space-x-4'>
           <NotificationsBell />
-          <ModeToggle />
         </div>
       </div>
     </header >

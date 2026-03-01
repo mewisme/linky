@@ -68,7 +68,7 @@ export function NotificationItem({
           trackEvent({ name: "notification_clicked", properties: { type: notification.type } });
         }
       }}
-      className={`flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors hover:bg-accent ${notification.is_read ? "opacity-60" : ""
+      className={`flex w-full items-start gap-3 rounded p-3 text-left transition-colors hover:bg-accent ${notification.is_read ? "opacity-60" : ""
         }`}
       data-testid={`notification-item-${notification.id}`}
     >

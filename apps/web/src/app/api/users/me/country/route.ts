@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import type { ApiError } from "@/types/api.types";
-import type { UsersAPI } from "@/types/users.types";
-import { publicEnv } from "@/env/public-env";
+import type { ApiError } from "@/shared/types/api.types";
+import type { UsersAPI } from "@/entities/user/types/users.types";
+import { publicEnv } from "@/shared/env/public-env";
 
 export async function PATCH(request: NextRequest) {
   try {

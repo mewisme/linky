@@ -13,23 +13,23 @@ import {
 } from "@ws/ui/components/ui/form"
 import { HookFormZodPrimitive, ReactHookFormPrimitive, ZodPrimitive } from "@ws/ui/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ws/ui/components/ui/tabs";
-import { getUploadUrl, uploadToS3 } from "@/lib/api/s3";
+import { getUploadUrl, uploadToS3 } from "@/lib/http/adapters/s3";
 
-import { AppLayout } from "@/components/layouts/app-layout";
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
-import { DatePicker } from "@/components/common/date-picker";
+import { DatePicker } from "@/shared/ui/common/date-picker";
 import { Input } from "@ws/ui/components/ui/input";
 import Link from "next/link";
 import { Switch } from "@ws/ui/components/ui/switch";
+import { createChangelog } from "@/features/admin/api/changelogs";
 import dynamic from "next/dynamic";
-import { createChangelog } from "@/lib/actions/admin/changelogs";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useRouter } from "next/navigation";
-import { useSoundWithSettings } from '@/hooks/audio/use-sound-with-settings';
+import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 import { useState } from "react";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
+import { useUserTokenContext } from "@/providers/user/user-token-provider";
 
-const Editor = dynamic(() => import("@/components/editor/editor").then(mod => ({ default: mod.Editor })), {
+const Editor = dynamic(() => import("@/shared/ui/editor/editor").then(mod => ({ default: mod.Editor })), {
   ssr: false
 });
 
@@ -53,7 +53,7 @@ export default function CreateChangelogPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<ZodPrimitive.z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema as any),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       version: "",
       title: "",

@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import { publicEnv } from "@/env/public-env";
+import { publicEnv } from "@/shared/env/public-env";
 
 export async function POST(request: NextRequest) {
   try {

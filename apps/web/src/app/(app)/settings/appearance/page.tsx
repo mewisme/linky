@@ -1,5 +1,5 @@
-import { AppearanceSettingsClient } from './appearance-settings-client'
-import { getUserSettings } from '@/lib/actions/user/settings'
+import { AppearanceSettingsClient } from "@/features/user/ui/appearance-settings-client";
+import { getUserSettings } from "@/features/user/api/settings";
 
 export default async function AppearancePage() {
   const settings = await getUserSettings()

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { publicEnv } from "@/env/public-env";
+import { publicEnv } from "@/shared/env/public-env";
 
 export async function GET() {
   const response = await fetch(`${publicEnv.API_URL}/healthz`);

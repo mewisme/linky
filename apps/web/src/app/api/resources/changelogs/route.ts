@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import type { ApiError } from "@/types/api.types";
-import type { ResourcesAPI } from "@/types/resources.types";
-import { publicEnv } from "@/env/public-env";
+import type { ApiError } from "@/shared/types/api.types";
+import type { ResourcesAPI } from "@/shared/types/resources.types";
+import { publicEnv } from "@/shared/env/public-env";
 
 export async function GET(request: NextRequest) {
   try {

@@ -5,4 +5,4 @@ export {
   patchData,
   postData,
   putData,
-} from "@/lib/api/fetch/client-api";
+} from "@/lib/http/client-api";

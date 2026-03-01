@@ -15,16 +15,16 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useState, useTransition } from "react";
 
-import { AppLayout } from "@/components/layouts/app-layout";
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { Label } from "@ws/ui/components/ui/label";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Switch } from "@ws/ui/components/ui/switch";
 import { toast } from "@ws/ui/components/ui/sonner";
-import { trackEvent } from "@/lib/analytics/events/client";
-import { usePushNotifications } from "@/hooks/push/use-push-notifications";
-import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { trackEvent } from "@/lib/telemetry/events/client";
+import { usePushNotifications } from "@/features/notifications/hooks/use-push-notifications";
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
+import { useUserContext } from "@/providers/user/user-provider";
 
 export default function NotificationSettingsPage() {
   const {

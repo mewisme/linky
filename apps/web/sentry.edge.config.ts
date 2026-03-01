@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { publicEnv } from "@/env/public-env";
-import { serverEnv } from "@/env/server-env";
+import { publicEnv } from "@/shared/env/public-env";
+import { serverEnv } from "@/shared/env/server-env";
 
 Sentry.init({
   dsn: publicEnv.SENTRY_DSN,

@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { publicEnv } from "@/env/public-env";
+import { publicEnv } from "@/shared/env/public-env";
 
 const isEnabled = !publicEnv.isDev || publicEnv.SENTRY_ENABLED;
 

@@ -1,5 +1,5 @@
-import { FavoritesClient } from './favorites-client'
-import { getFavorites } from '@/lib/actions/resources/favorites'
+import { FavoritesClient } from "@/features/user/ui/favorites-client";
+import { getFavorites } from '@/actions/resources/favorites'
 
 export default async function FavoritesPage() {
   const data = await getFavorites()

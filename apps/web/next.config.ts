@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
-import { publicEnv } from "./src/env/public-env";
-import { serverEnv } from "./src/env/server-env";
+import { publicEnv } from "./src/shared/env/public-env";
+import { serverEnv } from "./src/shared/env/server-env";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {

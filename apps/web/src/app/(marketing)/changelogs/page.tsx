@@ -1,21 +1,22 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 import { LucideChevronRight, LucideInfo, LucideLoader2 } from "@ws/ui/internal-lib/icons";
 import { useEffect, useRef, useState } from "react";
 
 import { Badge } from "@ws/ui/components/ui/badge";
 import { Button } from "@ws/ui/components/ui/button";
-import { LegalLayout } from "@/components/layouts/legal-layout";
+import { LegalLayout } from "@/shared/ui/layouts/legal-layout";
 import Link from "next/link";
-import { MarkdownContent } from "@/components/render/markdown-content";
-import type { ResourcesAPI } from "@/types/resources.types";
+import { MarkdownContent } from "@/shared/ui/render/markdown-content";
+import type { ResourcesAPI } from "@/shared/types/resources.types";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
+import { apiUrl } from "@/lib/http/api-url";
+import { fetchData } from "@/lib/http/client-api";
 import { useInfiniteQuery } from "@ws/ui/internal-lib/react-query";
-import { apiUrl } from "@/lib/api/fetch/api-url";
-import { fetchData } from "@/lib/api/fetch/client-api";
 
 const LIMIT = 10;
 

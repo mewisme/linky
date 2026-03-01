@@ -3,12 +3,12 @@
 import {
   AuthenticationCard,
   SecuritySessionsCard,
-} from '../components/security'
+} from "@/features/user/ui/security";
 import { useEffect, useState } from 'react'
 
-import { AppLayout } from '@/components/layouts/app-layout'
+import { AppLayout } from '@/shared/ui/layouts/app-layout'
 import { useSession } from '@clerk/nextjs'
-import { useUserContext } from '@/components/providers/user/user-provider'
+import { useUserContext } from '@/providers/user/user-provider'
 
 export default function SecurityPage() {
   const { user: { isLoaded, user }, auth } = useUserContext()

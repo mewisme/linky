@@ -1,9 +1,9 @@
-import { LegalLayout } from "@/components/layouts/legal-layout";
-import { MarkdownContent } from "@/components/render/markdown-content";
+import { LegalLayout } from "@/shared/ui/layouts/legal-layout";
+import { MarkdownContent } from "@/shared/ui/render/markdown-content";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
+import { getChangelogByVersion } from "@/actions/resources/changelogs";
 import { notFound } from "next/navigation";
-import { getChangelogByVersion } from "@/lib/actions/resources/changelogs";
 
 async function getMarkdown(url: string | null): Promise<string | null> {
   if (!url) return null;

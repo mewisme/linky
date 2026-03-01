@@ -1,9 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import type { ApiError } from "@/types/api.types";
-import type { UsersAPI } from "@/types/users.types";
-import { backendUrl } from "@/lib/api/fetch/backend-url";
+import type { ApiError } from "@/shared/types/api.types";
+import type { UsersAPI } from "@/entities/user/types/users.types";
+import { backendUrl } from "@/lib/http/backend-url";
 
 export async function GET(request: NextRequest) {
   try {

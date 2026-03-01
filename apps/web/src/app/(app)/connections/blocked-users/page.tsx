@@ -1,5 +1,5 @@
-import { BlockedUsersClient } from './blocked-users-client'
-import { getBlockedUsers } from '@/lib/actions/user/blocks'
+import { BlockedUsersClient } from "@/features/user/ui/blocked-users-client";
+import { getBlockedUsers } from "@/features/user/api/blocks";
 
 export default async function BlockedUsersPage() {
   const data = await getBlockedUsers()

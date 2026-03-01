@@ -1,10 +1,10 @@
 "use client";
 
-import { Loading } from "@/components/common/loading";
-import { isAdmin } from "@/utils/roles";
+import { Loading } from "@/shared/ui/common/loading";
+import { isAdmin } from "@/shared/utils/roles";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUserContext } from "@/components/providers/user/user-provider";
+import { useUserContext } from "@/providers/user/user-provider";
 
 export default function AdminLayout({
   children,

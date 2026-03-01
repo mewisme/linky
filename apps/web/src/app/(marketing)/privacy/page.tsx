@@ -1,4 +1,4 @@
-import { LegalLayout } from "@/components/layouts/legal-layout";
+import { LegalLayout } from "@/shared/ui/layouts/legal-layout";
 import Link from "next/link";
 import { Mail } from "@ws/ui/internal-lib/icons";
 import { Metadata } from "next";

@@ -1,6 +1,6 @@
-import { MarketingProviders } from "./components/marketing-providers";
+import { MarketingProviders } from "@/features/marketing/ui/marketing-providers";
 import type { Metadata } from "next";
-import { publicEnv } from "@/env/public-env";
+import { publicEnv } from "@/shared/env/public-env";
 
 export async function generateMetadata(): Promise<Metadata> {
   const appUrl = publicEnv.APP_URL;

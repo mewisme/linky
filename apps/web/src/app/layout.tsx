@@ -1,20 +1,20 @@
-import "@/styles/globals.css";
+import "@/shared/styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
-import { ClerkProvider } from "@/components/providers/clerk/clerk-provider";
-import { ClerkReadyIndicator } from "@/components/clerk/clerk-ready-indicator";
-import { HideDevelopmentMode } from "@/components/clerk/hide-development-mode";
+import { ClerkProvider } from "@/providers/clerk/clerk-provider";
+import { ClerkReadyIndicator } from "@/shared/ui/clerk/clerk-ready-indicator";
+import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata } from "next";
-import { MqttProvider } from "@/components/providers/realtime/mqtt-provider";
+import { MqttProvider } from "@/providers/realtime/mqtt-provider";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import { Outfit } from "next/font/google";
-import ProgressBarProvider from "@/components/providers/ui/progress-bar-provider";
-import { SocketProvider } from "@/components/providers/realtime/socket-provider";
+import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
+import { SocketProvider } from "@/providers/realtime/socket-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { ThemeProvider } from "@/components/providers/ui/theme-provider";
+import { ThemeProvider } from "@/providers/ui/theme-provider";
 import { Toaster } from "@ws/ui/components/ui/sonner";
-import { UserProvider } from "@/components/providers/user/user-provider";
-import { publicEnv } from "@/env/public-env";
+import { UserProvider } from "@/providers/user/user-provider";
+import { publicEnv } from "@/shared/env/public-env";
 
 const outfit = Outfit({
   subsets: ["latin"],

@@ -22,6 +22,8 @@
     "lint:web": "turbo run lint --filter=@ws/web",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "check-types:api": "turbo run check-types --filter=@ws/api",
+    "check-types:web": "turbo run check-types --filter=@ws/web",
     "test": "pnpm exec playwright test",
     "test:ui": "pnpm exec playwright test --ui",
     "test:debug": "pnpm exec playwright test --debug",

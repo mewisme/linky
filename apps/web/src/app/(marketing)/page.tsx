@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 
-import { Header } from "@/components/header/landing/index";
+import { Header } from "@/shared/ui/layouts/header/landing/index";
 import { cn } from "@ws/ui/lib/utils";
 import { motion, type Variants } from "@ws/ui/internal-lib/motion";
 import { useUser } from "@clerk/nextjs";
-import { Hero } from "./components/landing/hero";
-import { LandingDifferentiation } from "./components/landing/landing-differentiation";
-import { LandingSafety } from "./components/landing/landing-safety";
-import { LandingPreview } from "./components/landing/landing-preview";
-import { LandingVision } from "./components/landing/landing-vision";
-import { LandingFooter } from "@/app/(marketing)/components/landing/footer";
-import { ShapeBackground } from "./components/landing/shapes-background";
+import { Hero } from "@/features/marketing/ui/landing/hero";
+import { LandingDifferentiation } from "@/features/marketing/ui/landing/landing-differentiation";
+import { LandingSafety } from "@/features/marketing/ui/landing/landing-safety";
+import { LandingPreview } from "@/features/marketing/ui/landing/landing-preview";
+import { LandingVision } from "@/features/marketing/ui/landing/landing-vision";
+import { LandingFooter } from "@/features/marketing/ui/landing/footer";
+import { ShapeBackground } from "@/features/marketing/ui/landing/shapes-background";
 
 const CONTENT_VARIANTS: Variants = {
   hidden: {

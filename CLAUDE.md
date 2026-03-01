@@ -85,6 +85,8 @@ All route handlers return `{ error: "ErrorType", message: "description" }` on fa
 
 ## Frontend Architecture (apps/web)
 
+**Full contract:** [docs/FRONTEND_ARCHITECTURE_GUIDELINES.md](docs/FRONTEND_ARCHITECTURE_GUIDELINES.md) — layers, import rules, checklists, migration, and step-by-step guides for adding features/entities.
+
 Next.js 16 App Router with route groups:
 - `(app)/` - Authenticated pages
 - `(auth)/` - Login/signup
@@ -92,11 +94,42 @@ Next.js 16 App Router with route groups:
 
 State: Zustand stores + TanStack React Query for server data. Real-time: Socket.IO client + MQTT. Auth: Clerk (`@clerk/nextjs`).
 
+### Layer Structure (apps/web/src/)
+
+Dependency direction is **inward**: app → features → entities → shared → lib.
+
+| Layer | Responsibility | Must NOT import from |
+|-------|----------------|----------------------|
+| **app/** | Routing, layouts, page composition, API route handlers | — |
+| **features/** | Use-case and UI per feature (admin, auth, call, chat, marketing, notifications, realtime, user) | Other features (except allowed e.g. realtime) |
+| **entities/** | Domain models and types (call-history, notification, user) | features |
+| **shared/** | Reusable, domain-agnostic code (layouts, generic data-table, hooks, utils) | features, entities |
+| **lib/** | HTTP, auth, cache, realtime, telemetry, push, messaging, monitoring | entities, features |
+| **actions/** | Server actions | features (only lib, entities, shared types/env) |
+| **providers/** | React context | — |
+
+- **Entity vs feature:** Entity = core data concept used by multiple features (types, optional model/api). Feature = user-facing capability (ui, hooks, api, model, types). Single-feature-only types can live in that feature.
+- **shared** must not contain domain-specific UI; put column definitions in the owning feature and pass to generic DataTable.
+- **lib** must not depend on entities or features; use minimal types in lib or pass types from caller.
+
+### lib Submodules (apps/web/src/lib/)
+
+| Submodule | Contents |
+|-----------|----------|
+| `http/` | `server-api.ts` (serverFetch), `client-api.ts`, `backend-url.ts` (URL builders), `api-url.ts`, `urls/` (grouped URL builders), `adapters/` |
+| `auth/` | `token.ts` — Clerk token retrieval |
+| `cache/` | `tags.ts` — Next.js cache tag constants |
+| `monitoring/` | `with-action.ts` — `withSentryAction()`, `withSentryQuery()` |
+| `telemetry/` | Analytics event helpers |
+| `realtime/` | Socket.IO client factory, health tracking |
+| `messaging/` | MQTT client |
+| `push/` | Push notification service worker |
+
 ### Server vs Client Component Pattern
 
 Pages follow a consistent split: `page.tsx` is a server component that fetches data via `serverFetch()` and passes it as props to a `*-client.tsx` sibling that handles interactivity. The `-client.tsx` suffix naming is the project convention for client components.
 
-Server actions use `withSentryAction()` wrapper and `serverFetch()` with `{ token: true }` to auto-inject Clerk auth tokens:
+Server actions use `withSentryAction()` from `@/lib/monitoring/with-action` and `serverFetch()` from `@/lib/http/server-api` with `{ token: true }` to auto-inject Clerk auth tokens:
 
 ```typescript
 'use server'
@@ -105,19 +138,32 @@ export async function myAction(params) {
 }
 ```
 
+Server page queries with Next.js data cache use `withSentryQuery()`:
+
+```typescript
+return withSentryQuery("queryName", (token) => serverFetch(url, { preloadedToken: token }), {
+  keyParts: ["key"],
+  tags: ["cache-tag"],
+});
+```
+
 ### Centralized API URL Builders
 
-Never hardcode API URLs. Use the builders in `apps/web/src/lib/api/fetch/urls/`:
-- `backendUrl.admin.users()`, `backendUrl.admin.userById(id)`
-- `backendUrl.user.*`, `backendUrl.resources.*`, `backendUrl.media.*`
+Never hardcode API URLs. Use `backendUrl` from `@/lib/http/backend-url`:
+- `backendUrl.users.*` — user profile, settings, blocks, interest-tags, streak, level, progress
+- `backendUrl.admin.*` — admin CRUD for all admin resources
+- `backendUrl.resources.*` — changelogs, call-history, favorites, interest-tags, reports
+- `backendUrl.notifications.*`, `backendUrl.push.*`, `backendUrl.media.*`
+- `backendUrl.economy.*` — economy/shop/boost endpoints
+- `backendUrl.videoChat.*`, `backendUrl.matchmaking.*`
 
 ### API Type Namespaces
 
-Large API types are organized as namespaces: `AdminAPI.Broadcasts.Get.Response`, `AdminAPI.Users.Patch.Body`. Pattern: `<Domain>API.<Resource>.<HttpMethod>.<Body|Response>`. Located in `apps/web/src/lib/api/types/`.
+Large API types are organized as namespaces in the owning feature's `types/` folder (e.g. `features/admin/types/admin.types.ts`). Pattern: `AdminAPI.Broadcasts.Get.Response`, `AdminAPI.Users.Patch.Body`.
 
 ### Admin Role System
 
-Two-tier roles: `admin` and `superadmin`. Use utilities in `apps/web/src/utils/roles.ts`:
+Two-tier roles: `admin` and `superadmin`. Use utilities in `apps/web/src/shared/utils/roles.ts`:
 - `isAdmin(role)` — true for both admin and superadmin
 - `isSuperAdmin(role)` — true only for superadmin
 
@@ -134,7 +180,7 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 - **Comments are forbidden by default.** Only add comments to explain WHY, never WHAT. Prefer clear naming and structure.
 - **No emojis** in code, docs, or responses unless user explicitly requests them. Exception: toast strings and Interest Tags icon input.
 - **File naming**: All files should be in kebab-case.
-- **Type placement**: Domain-specific types in `domains/<domain>/types/`. Cross-domain types in `src/types/`. Database types in `src/types/database/`.
+- **Type placement**: Feature-specific types in `features/<feature>/types/`. Cross-domain entity types in `entities/<entity>/types/`. Generic shared types in `shared/types/`. Backend: domain-specific in `domains/<domain>/types/`, cross-domain in `src/types/`.
 - **Icons**: Use `@tabler/icons-react` for new icons (migrating away from lucide-react).
 
 ## Tech Stack Quick Reference

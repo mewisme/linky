@@ -1,5 +1,5 @@
-import { ChangelogsClient } from './changelogs-client';
-import { getAdminChangelogs } from "@/lib/actions/admin/changelogs";
+import { ChangelogsClient } from '@/features/admin/ui/changelogs-client';
+import { getAdminChangelogs } from "@/features/admin/api/changelogs";
 
 export default async function ChangelogsPage() {
   const changelogs = await getAdminChangelogs();

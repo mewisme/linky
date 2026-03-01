@@ -1,5 +1,5 @@
-import { CallHistoryClient } from './call-history-client'
-import { getCallHistory } from '@/lib/actions/resources/call-history'
+import { CallHistoryClient } from "@/features/chat/ui/call-history-client";
+import { getCallHistory } from '@/actions/resources/call-history'
 
 export default async function CallHistoryPage() {
   const data = await getCallHistory()

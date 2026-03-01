@@ -3,21 +3,21 @@
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@ws/ui/components/kibo-ui/dropzone";
 import React, { useState } from "react";
 
-import { AppLayout } from "@/components/layouts/app-layout";
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { Input } from "@ws/ui/components/ui/input";
 import { Label } from "@ws/ui/components/ui/label";
 import Link from "next/link";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
-import { PayloadHintGuide } from "@/components/admin/payload-hint-guide";
+import { PayloadHintGuide } from "@/features/admin/ui/payload-hint-guide";
 import { Textarea } from "@ws/ui/components/ui/textarea";
-import { getAdminPresignedUpload } from "@/lib/api/admin-media";
+import { createLevelReward } from "@/features/admin/api/level-rewards";
+import { getAdminPresignedUpload } from "@/lib/http/adapters/admin-media";
 import { toast } from "@ws/ui/components/ui/sonner";
-import { uploadToS3 } from "@/lib/api/s3";
+import { uploadToS3 } from "@/lib/http/adapters/s3";
 import { useRouter } from "next/navigation";
-import { useSoundWithSettings } from "@/hooks/audio/use-sound-with-settings";
-import { useUserTokenContext } from "@/components/providers/user/user-token-provider";
-import { createLevelReward } from "@/lib/actions/admin/level-rewards";
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
+import { useUserTokenContext } from "@/providers/user/user-token-provider";
 
 const IMAGE_ACCEPT = {
   "image/png": [".png"],

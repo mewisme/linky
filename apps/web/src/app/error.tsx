@@ -10,7 +10,7 @@ import * as Sentry from "@sentry/nextjs";
 import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
 import { Outfit } from "next/font/google";
-import { trackEvent } from "@/lib/analytics/events/client";
+import { trackEvent } from "@/lib/telemetry/events/client";
 import { useEffect } from "react";
 
 const outfit = Outfit({

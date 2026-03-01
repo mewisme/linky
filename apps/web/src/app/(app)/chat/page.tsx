@@ -1,7 +1,7 @@
-import { ChatPageContent } from "./components/chat-page-content";
+import { ChatPageContent } from "@/features/chat/ui/chat-page-content";
 import { Suspense } from "react";
-import { getFavorites } from "@/lib/actions/resources/favorites";
-import { getUserProgress } from "@/lib/actions/user/profile";
+import { getFavorites } from "@/actions/resources/favorites";
+import { getUserProgress } from "@/features/user/api/profile";
 
 export default async function ChatPage() {
   const [initialProgress, initialFavorites] = await Promise.all([

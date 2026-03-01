@@ -12,9 +12,9 @@ export function getPasswordStrength(value: string): 'Weak' | 'Medium' | 'Strong'
   return 'Strong'
 }
 
-export function formatProvider(provider: string): string {
+export function formatProvider(provider: string, isConnected: boolean): string {
   const s = provider.replace(/^oauth_/, '')
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+  return isConnected ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : `Connect ${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()}`
 }
 
 export function formatDeviceLabel(

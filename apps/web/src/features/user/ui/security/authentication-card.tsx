@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client'
 
 import {
@@ -7,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@ws/ui/components/ui/card'
+import type { ExternalAccountResource, UserResource } from '@clerk/types'
 import {
   IconCircleCheckFilled,
   IconCircleXFilled,
@@ -19,7 +21,6 @@ import { useEffect, useState } from 'react'
 import { Button } from '@ws/ui/components/ui/button'
 import { PasswordModal } from './password-modal'
 import { ProviderList } from './provider-list'
-import type { UserResource } from '@clerk/types'
 
 interface AuthenticationCardProps {
   user: UserResource
@@ -86,7 +87,7 @@ export function AuthenticationCard({ user }: AuthenticationCardProps) {
           <div className="flex flex-col gap-1 rounded-lg border p-3">
             <dt className="text-sm font-medium text-muted-foreground">Connected providers</dt>
             <dd>
-              <ProviderList providers={user.externalAccounts} />
+              <ProviderList userProviders={user.externalAccounts} />
             </dd>
           </div>
         </dl>

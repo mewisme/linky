@@ -1,46 +1,189 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
+
 import {
-  IconBrandApple,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@ws/ui/components/ui/alert-dialog"
+import {
+  CreateExternalAccountParams,
+  ExternalAccountResource,
+  OAuthStrategy,
+} from '@clerk/types'
+import {
   IconBrandDiscord,
   IconBrandFacebook,
-  IconBrandGithub,
   IconBrandGoogle,
-  IconBrandLinkedin,
+  IconX,
 } from '@tabler/icons-react'
+import { useReverification, useUser } from '@clerk/nextjs'
 
+import { cn } from '@ws/ui/lib/utils'
 import { formatProvider } from './security-utils'
+import { toast } from '@ws/ui/components/ui/sonner'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
-function ProviderIcon({ provider }: { provider: string }) {
-  const p = provider.toLowerCase().replace(/^oauth_/, '')
-  if (p === 'google') return <IconBrandGoogle className="size-4" />
-  if (p === 'facebook') return <IconBrandFacebook className="size-4" />
-  if (p === 'discord') return <IconBrandDiscord className="size-4" />
-  if (p === 'github') return <IconBrandGithub className="size-4" />
-  if (p === 'linkedin') return <IconBrandLinkedin className="size-4" />
-  if (p === 'apple') return <IconBrandApple className="size-4" />
+const providers = ['google', 'facebook', 'discord'] as const
+type BaseProvider = (typeof providers)[number]
+
+function ProviderIcon({ provider }: { provider: BaseProvider }) {
+  if (provider === 'google') return <IconBrandGoogle className="size-4" />
+  if (provider === 'facebook') return <IconBrandFacebook className="size-4" />
+  if (provider === 'discord') return <IconBrandDiscord className="size-4" />
   return null
 }
 
 interface ProviderListProps {
-  providers: { id: string; provider: string }[]
+  userProviders: ExternalAccountResource[]
 }
 
-export function ProviderList({ providers }: ProviderListProps) {
-  if (providers.length === 0) {
-    return <span className="text-sm text-muted-foreground">None</span>
+export function ProviderList({ userProviders }: ProviderListProps) {
+  const router = useRouter()
+  const { user } = useUser()
+  const [hovered, setHovered] = useState<string | null>(null)
+  const [destroyDialogOpen, setDestroyDialogOpen] = useState(false)
+  const [pendingAccount, setPendingAccount] =
+    useState<ExternalAccountResource | null>(null)
+
+  const createExternalAccount = useReverification(
+    (params: CreateExternalAccountParams) =>
+      user?.createExternalAccount(params),
+  )
+
+  const accountDestroy = useReverification(
+    (account: ExternalAccountResource) => account.destroy(),
+  )
+
+  const addSSO = async (provider: BaseProvider) => {
+    const strategy = `oauth_${provider}` as OAuthStrategy
+
+    try {
+      const res = await createExternalAccount({
+        strategy,
+        redirectUrl: '/user/security',
+      })
+
+      const redirectUrl =
+        res?.verification?.externalVerificationRedirectURL?.href
+
+      if (redirectUrl) {
+        router.push(redirectUrl)
+      }
+
+      toast.success('Redirected user to oauth provider')
+    } catch (err) {
+      toast.error('Failed to connect provider. Please try again.')
+      Sentry.captureException(err, {
+        tags: { provider: strategy },
+      })
+    }
   }
+
+  const mergedProviders = providers
+    .map((provider) => {
+      const external = userProviders.find(
+        (acc) => acc.provider === provider,
+      )
+
+      const linked = Boolean(external?.providerUserId)
+
+      return {
+        id: linked ? external!.id : `missing_${provider}`,
+        provider,
+        linked,
+        external,
+      }
+    })
+    .sort((a, b) => Number(b.linked) - Number(a.linked))
+
+  const confirmDestroy = async () => {
+    if (!pendingAccount) return
+    try {
+      await accountDestroy(pendingAccount)
+      toast.success('Sign-in method disconnected successfully.')
+      setDestroyDialogOpen(false)
+      setPendingAccount(null)
+    } catch (err) {
+      toast.error('Failed to disconnect. Please try again.')
+      Sentry.captureException(err)
+    }
+  }
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {providers.map((a) => (
-        <span
-          key={a.id}
-          className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium"
-        >
-          <ProviderIcon provider={a.provider} />
-          {formatProvider(a.provider)}
-        </span>
-      ))}
-    </div>
+    <>
+      <AlertDialog
+        open={destroyDialogOpen}
+        onOpenChange={(open) => {
+          setDestroyDialogOpen(open)
+          if (!open) setPendingAccount(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Disconnect this sign-in method?
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              You are about to remove this provider from your account.
+              <br />
+              <br />
+              After disconnecting, you will no longer be able to sign in using this
+              provider unless you link it again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              Keep connected
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={confirmDestroy}
+            >
+              Yes, disconnect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <div className="flex flex-wrap gap-2">
+        {mergedProviders.map((item) => (
+          <span
+            key={item.id}
+            onMouseEnter={() => setHovered(item.id)}
+            onMouseLeave={() => setHovered(null)}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors',
+              item.linked && 'cursor-pointer',
+              !item.linked && 'cursor-pointer',
+            )}
+            onClick={() => {
+              if (item.linked && item.external) {
+                setPendingAccount(item.external)
+                setDestroyDialogOpen(true)
+              } else {
+                addSSO(item.provider)
+              }
+            }}
+          >
+            {item.linked && hovered === item.id ? (
+              <IconX className="size-4 text-destructive" />
+            ) : (
+              <ProviderIcon provider={item.provider} />
+            )}
+
+            {formatProvider(item.provider, item.linked)}
+          </span>
+        ))}
+      </div>
+    </>
   )
 }

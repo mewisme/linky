@@ -68,7 +68,7 @@ export function AppSidebarHeader() {
               </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg overflow-hidden"
+              className={cn("w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg overflow-hidden", isMobile && "z-150")}
               align="start"
               side={isMobile ? 'bottom' : 'right'}
               sideOffset={4}
@@ -104,7 +104,7 @@ export function AppSidebarHeader() {
                     </div>
                     <span>Theme</span>
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className='w-[--radix-dropdown-menu-trigger-width] rounded-lg'>
+                  <DropdownMenuSubContent className={cn("w-[--radix-dropdown-menu-trigger-width] rounded-lg", isMobile && "z-150")}>
                     <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("light")} data-track='set_theme_light'>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconSun className='size-4 shrink-0' />

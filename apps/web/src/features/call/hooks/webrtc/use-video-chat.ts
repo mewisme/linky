@@ -781,6 +781,7 @@ export function useVideoChat(): UseVideoChatReturn {
       onFavoriteRemovedSelf: () => {
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       mediaStream,
       peerConnection,
@@ -868,6 +869,7 @@ export function useVideoChat(): UseVideoChatReturn {
       tabCoordination.releaseOwnership();
       cleanup();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     getToken,
     userSettings,

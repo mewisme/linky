@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { CallTimer } from "./call-timer";
 import { ConnectionQualityIndicator } from "./connection-quality-indicator";
@@ -18,6 +18,7 @@ import { VideoControls } from "./video-controls";
 import { VideoPlayer } from "./video-player";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useMousePosition } from "@/shared/hooks/ui/use-mouse-move";
+import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { useReactionTrigger } from "@/features/call/hooks/webrtc/use-reaction-trigger";
 import { useStreamAspectRatio } from "@/features/call/hooks/webrtc/use-stream-aspect-ratio";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
@@ -88,6 +89,13 @@ export function VideoContainer({
   const isVideoStalled = useVideoChatStore((s) => s.isVideoStalled);
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
 
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (connectionStatus === "ended") {
+      queryClient.invalidateQueries({ queryKey: ["userProgress"] });
+    }
+  }, [connectionStatus, queryClient]);
+
   const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled && !isVideoStalled;
   const isLocalCameraOn = !isVideoOff;
 
@@ -127,6 +135,7 @@ export function VideoContainer({
       if (typeof mousePositionRef === "function") {
         mousePositionRef(node);
       } else if (mousePositionRef) {
+        // eslint-disable-next-line react-hooks/immutability
         mousePositionRef.current = node;
       }
     },
@@ -136,7 +145,8 @@ export function VideoContainer({
   const displayAspectRatio =
     remoteStream && hasPeer ? remoteAspectRatio : localAspectRatio;
 
-  if (isPassive) {
+  const showPassiveBanner = isPassive && connectionStatus !== "idle";
+  if (showPassiveBanner) {
     return (
       <div
         className="relative w-full overflow-hidden bg-transparent"

@@ -5,6 +5,8 @@ import { IconBolt, IconFlame, IconPlayerPlay, IconStar, IconTrophy } from "@tabl
 
 import { Button } from "@ws/ui/components/ui/button";
 import type { UsersAPI } from "@/entities/user/types/users.types";
+import { getUserProgress } from "@/features/user/api/profile";
+import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useUserContext } from "@/providers/user/user-provider";
 
 const PRESTIGE_MILESTONES = [
@@ -38,7 +40,11 @@ interface VideoChatIdleStateProps {
 
 export function VideoChatIdleState({ onStart, initialProgress }: VideoChatIdleStateProps) {
   const { user } = useUserContext();
-  const progress = initialProgress ?? null;
+  const { data: progress } = useQuery({
+    queryKey: ["userProgress"],
+    queryFn: () => getUserProgress(),
+    initialData: initialProgress,
+  });
 
   const displayName =
     user.user?.firstName || user.user?.username || "You";

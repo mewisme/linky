@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSocket } from "@/features/realtime/hooks/use-socket";
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/providers/user/user-provider";
 
 interface FloatingReaction {
@@ -43,8 +44,10 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const { socket } = useSocket();
   const { store } = useUserContext();
+  const { play } = useSoundWithSettings();
   const currentUserIdRef = useRef<string | null>(null);
   const lastStreakToastAtRef = useRef(0);
+  // eslint-disable-next-line react-hooks/refs
   currentUserIdRef.current = store.user?.id ?? null;
 
   const triggerLocalReaction = useCallback((tapPosition: { x: number; y: number }, type: string = "heart") => {
@@ -100,13 +103,14 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
         toast.success("Streak saved by freeze");
       } else {
         toast.success("Streak completed! Keep it going!");
+        play("reward");
       }
     };
     socket.on(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     return () => {
       socket.off(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     };
-  }, [socket]);
+  }, [play, socket]);
 
   const value: ReactionEffectContextValue = {
     triggerLocalReaction,

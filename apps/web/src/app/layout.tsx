@@ -12,7 +12,7 @@ import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
 import { SocketProvider } from "@/providers/realtime/socket-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/providers/ui/theme-provider";
-import { Toaster } from "@ws/ui/components/ui/sonner";
+import { ToasterProvider } from "@/providers/ui/toaster-provider";
 import { UserProvider } from "@/providers/user/user-provider";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -98,17 +98,17 @@ export default function RootLayout({
                   <MqttProvider>
                     <ProgressBarProvider>
                       {children}
-                      <Toaster position="top-center" />
                     </ProgressBarProvider>
                   </MqttProvider>
                 </SocketProvider>
               </UserProvider>
+              <ToasterProvider />
             </ThemeProvider>
             <Analytics />
             <SpeedInsights />
             <OpenPanelComponent
               apiUrl="/api/op"
-              cdnUrl="/api/op/op1.js"
+              scriptUrl="/api/op/op1.js"
               clientId={publicEnv.OPENPANEL_CLIENT_ID}
               trackAttributes={true}
               trackScreenViews={true}

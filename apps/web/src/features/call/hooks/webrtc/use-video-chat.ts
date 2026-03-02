@@ -32,6 +32,7 @@ import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordi
 import { iceServerCache } from "@/features/call/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/features/call/lib/webrtc/webrtc-recovery";
 import { trackEvent } from "@/lib/telemetry/events/client";
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -72,6 +73,7 @@ export function useVideoChat(): UseVideoChatReturn {
   const { isHealthy: isSocketHealthy } = useSocket();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const { play } = useSoundWithSettings();
 
   const { state, actions } = useVideoChatState();
 
@@ -313,6 +315,7 @@ export function useVideoChat(): UseVideoChatReturn {
         if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
           hasShownConnectedToastRef.current = true;
           toast.success("You are now connected with your peer.");
+          play('join_call')
         }
       },
       onIceCandidate: (candidate: RTCIceCandidate) => {
@@ -386,6 +389,7 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [socketSignaling, startReconnecting, completeReconnection, peerConnection]
   );
 
@@ -699,6 +703,7 @@ export function useVideoChat(): UseVideoChatReturn {
         monitoring.stopMonitoring();
         recoveryController.stop();
         toast(`Call ended - ${data.message}`);
+        play('leave_call')
         isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("ended");
         actionsRef.current.setCallStartedAt(null);

@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 
-export type SoundName = "success";
+export type SoundName = "success" | "join_call" | "leave_call";
 
 const SOUNDS_DIR = "/sounds";
 

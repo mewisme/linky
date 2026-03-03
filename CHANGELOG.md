@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Implement user query parsing for improved request handling ([87c6578](../../commit/87c6578))
-- Update package versions to 0.61.0 and refresh version lock ([3ade6a6](../../commit/3ade6a6))
+- Introduce user query parameter handling and refactor related components ([c827eec](../../commit/c827eec))
+- Update package versions to 0.62.0 and refresh version lock ([a644a74](../../commit/a644a74))
 
 
-📋 Full Changelog: [3ade6a6...87c6578](../../compare/3ade6a6...87c6578)
+📋 Full Changelog: [a644a74...c827eec](../../compare/a644a74...c827eec)

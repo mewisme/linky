@@ -11,32 +11,20 @@ import {
   assertTargetNotSuperadmin,
 } from "@/lib/auth/superadmin-invariants.js";
 import { getUserByClerkId } from "@/infra/supabase/repositories/index.js";
+import { parseGetUsersQuery } from "./users-query.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:users:route");
 
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const getAll = req.query.all === "true" || req.query.all === "1";
-
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-
-    const role = req.query.role as "admin" | "member" | "superadmin" | undefined;
-    const deletedParam = req.query.deleted;
-    const deleted: boolean =
-      deletedParam === "true" || deletedParam === "1"
-        ? true
-        : deletedParam === "false" || deletedParam === "0"
-          ? false
-          : false;
-    const search = req.query.search as string | undefined;
+    const { getAll, page, limit, role, deleted, search } = parseGetUsersQuery(req.query);
 
     const { data: users, count } = await listUsers({
       getAll,
       page,
       limit,
-      role: role === "admin" || role === "member" || role === "superadmin" ? role : undefined,
+      role,
       deleted,
       search,
     });

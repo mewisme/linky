@@ -38,6 +38,15 @@ export interface AdminUserEmbeddingMetadata {
 
 export type AdminRole = "admin" | "member" | "superadmin";
 
+export interface GetUsersQuery {
+  getAll: boolean;
+  page: number;
+  limit: number;
+  role?: AdminRole;
+  deleted: boolean;
+  search?: string;
+}
+
 export interface AdminUnifiedUser {
   id: string;
   clerk_user_id: string;

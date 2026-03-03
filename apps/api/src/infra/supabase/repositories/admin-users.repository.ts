@@ -23,7 +23,7 @@ export interface GetAdminUsersUnifiedResult {
 export async function getAdminUsersUnified(
   options: GetAdminUsersUnifiedOptions = {}
 ): Promise<GetAdminUsersUnifiedResult> {
-  const { page = 1, limit = 50, role, deleted, search, getAll = false } = options;
+  const { page = 1, limit = 50, role, deleted = false, search, getAll = false } = options;
   const maxLimit = Math.min(limit, 100);
   const offset = (page - 1) * maxLimit;
 
@@ -35,9 +35,7 @@ export async function getAdminUsersUnified(
     query = query.eq("role", role);
   }
 
-  if (deleted !== undefined) {
-    query = query.eq("deleted", deleted);
-  }
+  query = query.eq("deleted", deleted);
 
   if (search) {
     query = query.or(

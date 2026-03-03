@@ -1,24 +1,19 @@
 'use client';
 
+import { hardDeleteAdminUser, restoreAdminUser, softDeleteAdminUser, updateAdminUser } from '@/features/admin/api/users';
 import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
+import { syncEmbeddings } from '@/features/admin/api/embeddings';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
-import { hardDeleteAdminUser, restoreAdminUser, softDeleteAdminUser, updateAdminUser } from '@/features/admin/api/users';
-import { syncEmbeddings } from '@/features/admin/api/embeddings';
 
-interface UseUsersMutationsParams {
-  refetch: () => Promise<unknown>;
-}
-
-export function useUsersMutations({ refetch }: UseUsersMutationsParams) {
+export function useUsersMutations() {
   const queryClient = useQueryClient();
   const { play: playSound } = useSoundWithSettings();
 
   const invalidateAndRefetch = async () => {
     await queryClient.invalidateQueries({ queryKey: ['users'], refetchType: 'active' });
-    await refetch();
     playSound('success');
   };
 
@@ -45,6 +40,22 @@ export function useUsersMutations({ refetch }: UseUsersMutationsParams) {
     },
   });
 
+  const softDeleteManyMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => softDeleteAdminUser(id)));
+      return ids.length;
+    },
+    onSuccess: async (count) => {
+      await invalidateAndRefetch();
+      toast.success(
+        count === 1 ? 'User soft deleted successfully' : `${count} users soft deleted successfully`
+      );
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'An error occurred during bulk soft delete');
+    },
+  });
+
   const hardDeleteMutation = useMutation({
     mutationFn: (id: string) => hardDeleteAdminUser(id),
     onSuccess: async () => {
@@ -67,6 +78,22 @@ export function useUsersMutations({ refetch }: UseUsersMutationsParams) {
     },
   });
 
+  const restoreManyMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map((id) => restoreAdminUser(id)));
+      return ids.length;
+    },
+    onSuccess: async (count) => {
+      await invalidateAndRefetch();
+      toast.success(
+        count === 1 ? 'User restored successfully' : `${count} users restored successfully`
+      );
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'An error occurred during bulk restore');
+    },
+  });
+
   const embeddingSyncMutation = useMutation({
     mutationFn: (userIds: string[]) => syncEmbeddings(userIds),
     onSuccess: async (data: { accepted_user_ids: string[]; skipped_user_ids: string[] }) => {
@@ -84,8 +111,10 @@ export function useUsersMutations({ refetch }: UseUsersMutationsParams) {
   return {
     updateMutation,
     softDeleteMutation,
+    softDeleteManyMutation,
     hardDeleteMutation,
     restoreMutation,
+    restoreManyMutation,
     embeddingSyncMutation,
   };
 }

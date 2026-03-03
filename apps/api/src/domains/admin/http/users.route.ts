@@ -24,12 +24,12 @@ router.get("/", async (req: Request, res: Response) => {
 
     const role = req.query.role as "admin" | "member" | "superadmin" | undefined;
     const deletedParam = req.query.deleted;
-    const deleted =
+    const deleted: boolean =
       deletedParam === "true" || deletedParam === "1"
         ? true
         : deletedParam === "false" || deletedParam === "0"
           ? false
-          : undefined;
+          : false;
     const search = req.query.search as string | undefined;
 
     const { data: users, count } = await listUsers({

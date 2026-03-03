@@ -2,8 +2,7 @@ import { UsersPageContent } from '@/features/admin/ui/users';
 import { getAdminUsers } from "@/features/admin/api/users";
 
 export default async function ListUsersPage() {
-  const params = new URLSearchParams({ all: "true" });
-  const users = await getAdminUsers(params);
+  const users = await getAdminUsers(new URLSearchParams({ deleted: "false" }));
 
   return <UsersPageContent initialData={users} />;
 }

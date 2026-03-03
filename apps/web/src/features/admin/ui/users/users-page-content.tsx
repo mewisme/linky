@@ -9,13 +9,14 @@ import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { AppLayout } from '@/shared/ui/layouts/app-layout';
 import { Button } from '@ws/ui/components/ui/button';
 import { useUserContext } from '@/providers/user/user-provider';
+import { ToggleGroup, ToggleGroupItem } from "@ws/ui/components/ui/toggle-group"
 
 const UsersDataTable = dynamic(
   () => import('@/shared/ui/data-table/users/data-table').then(mod => ({ default: mod.UsersDataTable })),
   { ssr: false }
 );
 
-import { useUsersQuery } from '@/features/admin/hooks/use-users-query';
+import { useUsersQuery, type UsersDeletedFilter } from '@/features/admin/hooks/use-users-query';
 import { useUsersMutations } from '@/features/admin/hooks/use-users-mutations';
 import { useUsersPresence } from '@/features/admin/hooks/use-users-presence';
 import { BulkDeleteDialog } from './bulk-delete-dialog';
@@ -29,15 +30,18 @@ interface UsersPageContentProps {
 
 export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   const { store: { user: currentUser } } = useUserContext();
-  const { users, isFetching, refetch } = useUsersQuery({ initialData });
+  const [deletedFilter, setDeletedFilter] = useState<UsersDeletedFilter>('active');
+  const { users, isFetching, refetch } = useUsersQuery({ initialData, deletedFilter });
   const dataWithPresence = useUsersPresence(users);
   const {
     updateMutation,
     softDeleteMutation,
+    softDeleteManyMutation,
     hardDeleteMutation,
     restoreMutation,
+    restoreManyMutation,
     embeddingSyncMutation,
-  } = useUsersMutations({ refetch });
+  } = useUsersMutations();
 
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [pendingBulkDelete, setPendingBulkDelete] = useState<AdminAPI.User[]>([]);
@@ -82,7 +86,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
         toast.error('No deleted users selected');
         return;
       }
-      toRestore.forEach((u) => restoreMutation.mutate(u.id));
+      restoreManyMutation.mutate(toRestore.map((u) => u.id));
     },
     onBulkEmbeddingSync: (users: AdminAPI.User[]) => {
       if (users.length === 0) return;
@@ -91,9 +95,10 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   };
 
   const handleBulkDeleteConfirm = () => {
-    pendingBulkDelete.forEach((u) => softDeleteMutation.mutate(u.id));
+    const ids = pendingBulkDelete.map((u) => u.id);
     setBulkDeleteDialogOpen(false);
     setPendingBulkDelete([]);
+    softDeleteManyMutation.mutate(ids);
   };
 
   const bulkActions: BulkAction[] = [
@@ -144,9 +149,26 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
         initialData={dataWithPresence}
         callbacks={tableCallbacks}
         leftColumnVisibilityContent={
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          <>
+            <ToggleGroup
+              variant="outline"
+              type="single"
+              value={deletedFilter}
+              onValueChange={(value) => {
+                if (value === 'active' || value === 'deleted') {
+                  setDeletedFilter(value);
+                } else {
+                  setDeletedFilter((prev) => (prev === 'active' ? 'deleted' : 'active'));
+                }
+              }}
+            >
+              <ToggleGroupItem value="active">Active</ToggleGroupItem>
+              <ToggleGroupItem value="deleted">Deleted</ToggleGroupItem>
+            </ToggleGroup>
+            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+              <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            </Button>
+          </>
         }
         bulkActionsContent={(selected) => (
           <BulkActions bulkActions={bulkActions} selected={selected} />

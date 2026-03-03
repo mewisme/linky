@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-import type { NextProxy } from "next/server";
+import { NextResponse, type NextProxy } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -29,7 +29,11 @@ const proxy = clerkMiddleware(async (auth, request) => {
   });
 
   if (!isPublicRoute(request)) {
-    await auth.protect();
+    if (request.method === "GET") {
+      await auth.protect();
+    } else {
+      return NextResponse.next()
+    }
   }
 });
 

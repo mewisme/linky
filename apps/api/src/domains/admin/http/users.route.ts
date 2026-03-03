@@ -11,7 +11,7 @@ import {
   assertTargetNotSuperadmin,
 } from "@/lib/auth/superadmin-invariants.js";
 import { getUserByClerkId } from "@/infra/supabase/repositories/index.js";
-import { parseGetUsersQuery } from "./users-query.js";
+import { parseGetUsersQuery } from "../helper/users-query.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:users:route");
@@ -29,28 +29,26 @@ router.get("/", async (req: Request, res: Response) => {
       search,
     });
 
-    const usersWithPresence = await Promise.all(
-      (users || []).map(async (user: any) => {
-        let presence = "offline";
-        if (user.clerk_user_id) {
-          try {
-            const presenceState = await redisClient.hGet("presence", user.clerk_user_id);
-            if (presenceState) {
-              presence = presenceState;
+    const usersWithPresence =
+      deleted
+        ? (users || []).map((user: any) => ({ ...user, presence: "offline" }))
+        : await Promise.all(
+          (users || []).map(async (user: any) => {
+            let presence = "offline";
+            if (user.clerk_user_id) {
+              try {
+                const presenceState = await redisClient.hGet("presence", user.clerk_user_id);
+                if (presenceState) presence = presenceState;
+              } catch (presenceError) {
+                logger.warn(
+                  presenceError instanceof Error ? presenceError : new Error(String(presenceError)),
+                  "Error fetching presence from Redis",
+                );
+              }
             }
-          } catch (presenceError) {
-            logger.warn(
-              presenceError instanceof Error ? presenceError : new Error(String(presenceError)),
-              "Error fetching presence from Redis",
-            );
-          }
-        }
-        return {
-          ...user,
-          presence,
-        };
-      }),
-    );
+            return { ...user, presence };
+          }),
+        );
 
     if (getAll) {
       return res.json({ data: usersWithPresence });

@@ -31,11 +31,11 @@ export function useNotifications() {
     Sentry.metrics.count("fetch_notifications", 1);
     useNotificationsStore.getState().setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const params = {
         limit: String(PAGE_SIZE),
         offset: '0',
         unread_only: 'false',
-      });
+      };
       const [notifData, countData] = await Promise.all([
         getNotificationsAction(params),
         getUnreadCountAction(),
@@ -59,11 +59,11 @@ export function useNotifications() {
 
     state.setLoading(true);
     try {
-      const params = new URLSearchParams({
+      const params = {
         limit: String(PAGE_SIZE),
         offset: String(state.notifications.length),
         unread_only: 'false',
-      });
+      };
       const data = await getNotificationsAction(params);
 
       useNotificationsStore.getState().appendNotifications(data.notifications);

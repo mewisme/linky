@@ -6,15 +6,17 @@ import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
 import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
+import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
 export async function getAdminLevelRewards(
-  params?: URLSearchParams
+  params?: ServerActionQueryParams
 ): Promise<AdminAPI.LevelRewards.Get.Response> {
-  const key = params?.toString() ?? '';
+  const searchParams = toURLSearchParams(params);
+  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminLevelRewards",
     async (token) => serverFetch<AdminAPI.LevelRewards.Get.Response>(
-      backendUrl.admin.levelRewards(params), { preloadedToken: token }
+      backendUrl.admin.levelRewards(searchParams), { preloadedToken: token }
     ),
     { keyParts: [cacheTags.adminLevelRewards, key], tags: [cacheTags.adminLevelRewards] },
   );

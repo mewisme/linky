@@ -7,15 +7,17 @@ import { backendUrl } from '@/lib/http/backend-url';
 import { cacheTags } from '@/lib/cache/tags';
 import { revalidateTag } from 'next/cache';
 import { serverFetch } from '@/lib/http/server-api';
+import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
 export async function getBroadcasts(
-  params?: URLSearchParams
+  params?: ServerActionQueryParams
 ): Promise<AdminAPI.Broadcasts.Get.Response> {
-  const key = params?.toString() ?? '';
+  const searchParams = toURLSearchParams(params);
+  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getBroadcasts",
     async (token) => serverFetch<AdminAPI.Broadcasts.Get.Response>(
-      backendUrl.admin.broadcasts(params), { preloadedToken: token }
+      backendUrl.admin.broadcasts(searchParams), { preloadedToken: token }
     ),
     { keyParts: [cacheTags.adminBroadcasts, key], tags: [cacheTags.adminBroadcasts] },
   );

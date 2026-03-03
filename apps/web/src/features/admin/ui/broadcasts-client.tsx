@@ -31,7 +31,7 @@ interface BroadcastsClientProps {
 export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["admin", "broadcasts"],
-    queryFn: () => getBroadcasts(new URLSearchParams({ limit: '50', offset: '0' })),
+    queryFn: () => getBroadcasts({ limit: '50', offset: '0' }),
     initialData,
     staleTime: Infinity,
   });

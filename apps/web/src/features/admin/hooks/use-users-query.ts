@@ -16,11 +16,9 @@ export function useUsersQuery(options?: UseUsersQueryOptions) {
   const query = useQuery({
     queryKey: ['users', deletedFilter],
     queryFn: () =>
-      getAdminUsers(
-        new URLSearchParams({
-          deleted: deletedFilter === 'deleted' ? 'true' : 'false',
-        })
-      ),
+      getAdminUsers({
+        deleted: deletedFilter === 'deleted' ? 'true' : 'false',
+      }),
     initialData: deletedFilter === 'active' ? options?.initialData : undefined,
     staleTime: Infinity,
   });

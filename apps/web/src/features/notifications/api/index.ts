@@ -6,15 +6,17 @@ import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
 import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
+import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
 export async function getNotifications(
-  params?: URLSearchParams
+  params?: ServerActionQueryParams
 ): Promise<NotificationsResponse> {
-  const key = params?.toString() ?? '';
+  const searchParams = toURLSearchParams(params);
+  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getNotifications",
     async (token) => serverFetch<NotificationsResponse>(
-      backendUrl.notifications.me(params), { preloadedToken: token }
+      backendUrl.notifications.me(searchParams), { preloadedToken: token }
     ),
     { keyParts: [cacheTags.notifications, key], tags: [cacheTags.notifications] },
   );

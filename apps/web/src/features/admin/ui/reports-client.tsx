@@ -29,19 +29,11 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
   const [reporterUserIdFilter, setReporterUserIdFilter] = useState<string>('')
   const [reportedUserIdFilter, setReportedUserIdFilter] = useState<string>('')
 
-  const buildQueryParams = () => {
-    const params = new URLSearchParams()
-    params.set('limit', '50')
-    params.set('offset', '0')
-    if (statusFilter !== 'all') {
-      params.set('status', statusFilter)
-    }
-    if (reporterUserIdFilter.trim()) {
-      params.set('reporter_user_id', reporterUserIdFilter.trim())
-    }
-    if (reportedUserIdFilter.trim()) {
-      params.set('reported_user_id', reportedUserIdFilter.trim())
-    }
+  const buildQueryParams = (): Record<string, string> => {
+    const params: Record<string, string> = { limit: '50', offset: '0' }
+    if (statusFilter !== 'all') params.status = statusFilter
+    if (reporterUserIdFilter.trim()) params.reporter_user_id = reporterUserIdFilter.trim()
+    if (reportedUserIdFilter.trim()) params.reported_user_id = reportedUserIdFilter.trim()
     return params
   }
 

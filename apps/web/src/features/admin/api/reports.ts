@@ -6,15 +6,17 @@ import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
 import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
+import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
 export async function getAdminReports(
-  params?: URLSearchParams
+  params?: ServerActionQueryParams
 ): Promise<AdminAPI.Reports.Get.Response> {
-  const key = params?.toString() ?? '';
+  const searchParams = toURLSearchParams(params);
+  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminReports",
     async (token) => serverFetch<AdminAPI.Reports.Get.Response>(
-      backendUrl.admin.reports(params), { preloadedToken: token }
+      backendUrl.admin.reports(searchParams), { preloadedToken: token }
     ),
     { keyParts: [cacheTags.adminReports, key], tags: [cacheTags.adminReports] },
   );

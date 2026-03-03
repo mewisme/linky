@@ -6,15 +6,17 @@ import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
 import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
+import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
 export async function getAdminStreakExpBonuses(
-  params?: URLSearchParams
+  params?: ServerActionQueryParams
 ): Promise<AdminAPI.StreakExpBonuses.Get.Response> {
-  const key = params?.toString() ?? '';
+  const searchParams = toURLSearchParams(params);
+  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminStreakExpBonuses",
     async (token) => serverFetch<AdminAPI.StreakExpBonuses.Get.Response>(
-      backendUrl.admin.streakExpBonuses(params), { preloadedToken: token }
+      backendUrl.admin.streakExpBonuses(searchParams), { preloadedToken: token }
     ),
     { keyParts: [cacheTags.adminStreakExpBonuses, key], tags: [cacheTags.adminStreakExpBonuses] },
   );

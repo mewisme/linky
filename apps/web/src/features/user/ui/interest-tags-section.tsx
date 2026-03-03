@@ -62,7 +62,7 @@ export function InterestTagsSection({
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const json = await getInterestTags(new URLSearchParams({ limit: '200' }))
+        const json = await getInterestTags({ limit: '200' })
         setAvailableTags(json.data)
       } catch (error) {
         Sentry.metrics.count("failed_to_fetch_interest_tags", 1);

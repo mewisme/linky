@@ -6,15 +6,17 @@ import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
 import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
+import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
 export async function getAdminUsers(
-  params?: URLSearchParams
+  params?: ServerActionQueryParams
 ): Promise<AdminAPI.GetUsers.Response> {
-  const key = params?.toString() ?? '';
+  const searchParams = toURLSearchParams(params);
+  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminUsers",
     async (token) => serverFetch<AdminAPI.GetUsers.Response>(
-      backendUrl.admin.users(params), { preloadedToken: token }
+      backendUrl.admin.users(searchParams), { preloadedToken: token }
     ),
     { keyParts: [cacheTags.adminUsers, key], tags: [cacheTags.adminUsers] },
   );

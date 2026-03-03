@@ -32,7 +32,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   const { store: { user: currentUser } } = useUserContext();
   const [deletedFilter, setDeletedFilter] = useState<UsersDeletedFilter>('active');
   const { users, isFetching, refetch } = useUsersQuery({ initialData, deletedFilter });
-  const dataWithPresence = useUsersPresence(users);
+  const dataWithPresence = useUsersPresence(users, deletedFilter === 'active');
   const {
     updateMutation,
     softDeleteMutation,
@@ -45,6 +45,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
 
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [pendingBulkDelete, setPendingBulkDelete] = useState<AdminAPI.User[]>([]);
+  const [selectionResetKey, setSelectionResetKey] = useState(0);
   const [compareModalUser, setCompareModalUser] = useState<AdminAPI.User | null>(null);
   const [findSimilarModalUser, setFindSimilarModalUser] = useState<AdminAPI.User | null>(null);
 
@@ -86,7 +87,9 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
         toast.error('No deleted users selected');
         return;
       }
-      restoreManyMutation.mutate(toRestore.map((u) => u.id));
+      restoreManyMutation.mutate(toRestore.map((u) => u.id), {
+        onSuccess: () => setSelectionResetKey((k) => k + 1),
+      });
     },
     onBulkEmbeddingSync: (users: AdminAPI.User[]) => {
       if (users.length === 0) return;
@@ -98,7 +101,9 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
     const ids = pendingBulkDelete.map((u) => u.id);
     setBulkDeleteDialogOpen(false);
     setPendingBulkDelete([]);
-    softDeleteManyMutation.mutate(ids);
+    softDeleteManyMutation.mutate(ids, {
+      onSuccess: () => setSelectionResetKey((k) => k + 1),
+    });
   };
 
   const bulkActions: BulkAction[] = [
@@ -148,6 +153,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
       <UsersDataTable
         initialData={dataWithPresence}
         callbacks={tableCallbacks}
+        selectionResetKey={selectionResetKey}
         leftColumnVisibilityContent={
           <>
             <ToggleGroup

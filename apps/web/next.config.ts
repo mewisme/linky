@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
   },
   allowedDevOrigins: [...publicEnv.ALLOWED_DEV_ORIGINS],
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",

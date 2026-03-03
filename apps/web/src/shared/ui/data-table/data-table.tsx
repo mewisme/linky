@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@ws/ui/components/ui/button"
 import { Label } from "@ws/ui/components/ui/label"
 import { cn } from "@ws/ui/lib/utils"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 interface DataTableProps<TData> {
   initialData: TData[]
@@ -32,9 +32,10 @@ interface DataTableProps<TData> {
   rightColumnVisibilityContent?: React.ReactNode
   bulkActionsContent?: (selectedRows: TData[]) => React.ReactNode
   getRowClassName?: (row: TData) => string | undefined
+  selectionResetKey?: unknown
 }
 
-export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName }: DataTableProps<TData>) {
+export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName, selectionResetKey }: DataTableProps<TData>) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -43,6 +44,12 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
     pageIndex: 0,
     pageSize: 10,
   })
+
+  useEffect(() => {
+    if (selectionResetKey === undefined) return
+    const tid = setTimeout(() => setRowSelection({}), 0)
+    return () => clearTimeout(tid)
+  }, [selectionResetKey])
 
   const table = useReactTable({
     data: initialData,

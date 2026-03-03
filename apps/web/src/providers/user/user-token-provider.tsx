@@ -1,5 +1,6 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import { createContext, useCallback, useContext, useRef, type ReactNode } from "react";
 import { useUserAuthContext } from "./user-auth-provider";
 
@@ -24,6 +25,7 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
       });
 
       if (!options?.skipCache) inFlightRef.current = promise;
+      Sentry.logger.info("Getting token", { options });
       return promise;
     },
     [getClerkToken]

@@ -13,9 +13,10 @@ interface UsersDataTableProps {
   callbacks?: RowCallbacks
   leftColumnVisibilityContent?: React.ReactNode
   bulkActionsContent?: (selectedRows: AdminAPI.User[]) => React.ReactNode
+  selectionResetKey?: unknown
 }
 
-export function UsersDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, bulkActionsContent }: UsersDataTableProps) {
+export function UsersDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, bulkActionsContent, selectionResetKey }: UsersDataTableProps) {
   const tableColumns = useMemo(() => columns(callbacks), [callbacks])
 
   return (
@@ -25,6 +26,7 @@ export function UsersDataTable({ initialData, className, callbacks, leftColumnVi
         filterColumn="email"
         initialColumnVisibility={{
           id: false,
+          avatar_url: false,
           clerk_user_id: false,
           first_name: false,
           last_name: false,
@@ -40,6 +42,7 @@ export function UsersDataTable({ initialData, className, callbacks, leftColumnVi
         leftColumnVisibilityContent={leftColumnVisibilityContent}
         bulkActionsContent={bulkActionsContent}
         getRowClassName={(row) => (row.deleted ? 'opacity-60 bg-muted/30' : undefined)}
+        selectionResetKey={selectionResetKey}
       />
     </div>
   )

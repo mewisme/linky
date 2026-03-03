@@ -32,18 +32,18 @@ export interface RowCallbacks {
 
 type User = AdminAPI.User;
 
+const AVATAR_SIZE = 40;
+
 const AvatarCell = memo(({ avatarUrl, firstName, lastName }: { avatarUrl: string | null | undefined; firstName?: string | null; lastName?: string | null }) => {
+  const src = avatarUrl || '';
+  const alt = firstName || lastName || '';
   return (
-    <Avatar>
-      <AvatarImage src={avatarUrl || undefined} />
+    <Avatar className="size-10">
+      <AvatarImage src={src} alt={alt} />
       <AvatarFallback>{firstName?.charAt(0) || lastName?.charAt(0) || '?'}</AvatarFallback>
     </Avatar>
-  )
-}, (prevProps, nextProps) => {
-  return prevProps.avatarUrl === nextProps.avatarUrl &&
-    prevProps.firstName === nextProps.firstName &&
-    prevProps.lastName === nextProps.lastName
-})
+  );
+}, (prevProps, nextProps) => prevProps.avatarUrl === nextProps.avatarUrl);
 
 AvatarCell.displayName = 'AvatarCell'
 

@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Implement batch user update and deletion endpoints ([13652be](../../commit/13652be))
-- Update package versions to 0.64.2 and refresh version lock ([de597b9](../../commit/de597b9))
+- Implement auto-remove user functionality for Clerk webhook events ([39c4f44](../../commit/39c4f44))
+- Update package versions to 0.65.0 and refresh version lock ([b95eae4](../../commit/b95eae4))
 
 
-📋 Full Changelog: [de597b9...13652be](../../compare/de597b9...13652be)
+📋 Full Changelog: [b95eae4...39c4f44](../../compare/b95eae4...39c4f44)

@@ -1,11 +1,23 @@
+'use client';
+
 import { menuItems, type MenuItem } from "@/shared/ui/layouts/sidebar/menu-items";
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 import Link from "next/link";
 import { cn } from "@ws/ui/lib/utils";
+import { useUserStore } from "@/entities/user/model/user-store";
+import { isSuperAdmin } from "@/shared/utils/roles";
+import { useMemo } from "react";
 
 export default function AdminPage() {
-  const adminMenuItems = menuItems.find((item) => item.isAdmin)?.subItems ?? [];
+  const { user: userStore } = useUserStore();
+  const adminMenuItems = useMemo(() => {
+    const subItems = menuItems.find((item) => item.isAdmin)?.subItems ?? [];
+    return subItems.filter((sub) => {
+      if (sub.isSuperAdminOnly && !isSuperAdmin(userStore?.role)) return false;
+      return true;
+    });
+  }, [userStore?.role]);
 
   return (
     <AppLayout

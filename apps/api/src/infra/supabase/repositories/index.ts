@@ -33,3 +33,4 @@ export * from "./user-embeddings.js";
 export * from "./user-blocks.js";
 export * from "./notifications.js";
 export * from "./push-subscriptions.js";
+export * from "./admin-config.js";

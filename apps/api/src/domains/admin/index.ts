@@ -13,6 +13,7 @@ import { createAdminReportsRouter } from "./http/reports.route.js";
 import economyStatsRouter from "./http/economy-stats.route.js";
 import economySimulateRouter from "./http/economy-simulate.route.js";
 import seasonsRouter from "./http/seasons.route.js";
+import configRouter from "./http/config.route.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 export function createAdminRouter(deps: { reportsRouter: ExpressRouter }): ExpressRouter {
@@ -20,6 +21,7 @@ export function createAdminRouter(deps: { reportsRouter: ExpressRouter }): Expre
 
   router.use(rateLimitMiddleware);
 
+  router.use("/config", configRouter);
   router.use("/users", usersRouter);
   router.use("/broadcasts", broadcastsRouter);
   router.use("/embeddings", embeddingsRouter);

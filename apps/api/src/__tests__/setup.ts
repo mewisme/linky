@@ -13,4 +13,5 @@ const noopLogger = {
 
 vi.mock("@ws/logger", () => ({
   createLogger: () => noopLogger,
+  initLogger: () => ({ createLogger: () => noopLogger, logger: noopLogger }),
 }));

@@ -24,7 +24,7 @@ import { usePathname } from 'next/navigation'
 import { useSidebarStore } from '@/shared/model/sidebar-store';
 import { useUserStore } from '@/entities/user/model/user-store';
 import { menuItems, type MenuItem } from './menu-items';
-import { isAdmin } from '@/shared/utils/roles';
+import { isAdmin, isSuperAdmin } from '@/shared/utils/roles';
 import { AppSidebarHeader } from './app-sidebar-header';
 
 export type { MenuItem };
@@ -47,13 +47,22 @@ export function AppSidebar() {
   }, [pathname, isMobile, setOpenMobile]);
 
   const menuItemsFiltered = useMemo(() => {
-    return menuItems.filter((item) => {
-      if (item.isAdmin && !isAdmin(userStore?.role)) {
-        return false
-      }
-      return true
-    })
-  }, [userStore?.role])
+    return menuItems
+      .filter((item) => {
+        if (item.isAdmin && !isAdmin(userStore?.role)) {
+          return false;
+        }
+        return true;
+      })
+      .map((item) => {
+        if (!item.subItems) return item;
+        const subItems = item.subItems.filter((sub) => {
+          if (sub.isSuperAdminOnly && !isSuperAdmin(userStore?.role)) return false;
+          return true;
+        });
+        return { ...item, subItems };
+      });
+  }, [userStore?.role]);
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>

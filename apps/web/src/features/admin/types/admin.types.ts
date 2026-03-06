@@ -725,4 +725,35 @@ export namespace AdminAPI {
       }
     }
   }
+
+  export namespace Config {
+    export interface Item {
+      key: string;
+      value: string | number | boolean | null | Record<string, unknown> | unknown[];
+    }
+
+    export namespace Get {
+      export interface Response {
+        data: Item[];
+      }
+    }
+
+    export namespace GetByKey {
+      export type Response = Item;
+    }
+
+    export namespace Set {
+      export interface Body {
+        key: string;
+        value: string | number | boolean | null | Record<string, unknown> | unknown[];
+      }
+      export type Response = Item;
+    }
+
+    export namespace Unset {
+      export interface PathParams {
+        key: string;
+      }
+    }
+  }
 }

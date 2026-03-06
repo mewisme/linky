@@ -75,6 +75,8 @@ export const backendUrl = {
   },
 
   admin: {
+    config: () => `${V1}/admin/config`,
+    configByKey: (key: string) => `${V1}/admin/config/${encodeURIComponent(key)}`,
     broadcasts: (params?: URLSearchParams) => `${V1}/admin/broadcasts${qs(params)}`,
     changelogs: (params?: URLSearchParams) => `${V1}/admin/changelogs${qs(params)}`,
     changelogById: (id: string) => `${V1}/admin/changelogs/${id}`,

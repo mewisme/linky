@@ -21,6 +21,7 @@ import {
   IconUserShield,
   IconUsers,
   IconVideo,
+  IconSettingsCog,
 } from "@tabler/icons-react";
 
 export interface MenuItem {
@@ -30,6 +31,7 @@ export interface MenuItem {
   category?: string;
   href?: string;
   isAdmin?: boolean;
+  isSuperAdminOnly?: boolean;
   open?: boolean;
   subItems?: MenuItem[];
 }
@@ -171,6 +173,14 @@ export const menuItems: MenuItem[] = [
         description: "Send announcements to all users",
         href: "/admin/broadcasts",
         category: "Admin",
+      },
+      {
+        label: "Config",
+        icon: IconSettingsCog,
+        description: "Key-value admin config (superadmin only)",
+        href: "/admin/config",
+        category: "Admin",
+        isSuperAdminOnly: true,
       },
     ],
   },

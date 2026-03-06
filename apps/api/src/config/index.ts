@@ -12,7 +12,6 @@ export const config = {
   // Clerk
   clerkSecretKey: process.env.CLERK_SECRET_KEY as string,
   clerkWebhookSecret: process.env.CLERK_WEBHOOK_SECRET as string,
-  clerkAutoRemoveEmailPrefix: (process.env.CLERK_AUTO_REMOVE_EMAIL_PREFIX ?? "").trim().toLowerCase(),
   // S3
   s3Bucket: process.env.S3_BUCKET as string,
   s3Region: process.env.S3_REGION as string,

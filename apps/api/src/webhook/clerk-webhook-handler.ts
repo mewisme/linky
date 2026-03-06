@@ -1,3 +1,4 @@
+import { getAdminConfigByKey } from "@/infra/supabase/repositories/admin-config.js";
 import {
   createUser,
   getUserByClerkId,
@@ -15,7 +16,6 @@ import {
 import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { clerk } from "@/infra/clerk/client.js";
-import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("webhook:clerk");
@@ -59,10 +59,15 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
               await invalidate(REDIS_CACHE_KEYS.userProfile(existing.id));
               return;
             }
+            if (existing.clerk_user_id === evt.data.id) {
+              return;
+            }
           }
         }
 
-        const autoRemovePrefix = config.clerkAutoRemoveEmailPrefix;
+        const prefixRow = await getAdminConfigByKey("clerk_auto_remove_email_prefix");
+        const autoRemovePrefix =
+          typeof prefixRow?.value === "string" ? prefixRow.value.trim().toLowerCase() : "";
         const isTestEmail = email?.toLowerCase().includes("+clerk_test");
         const isAutoRemoveEmail = autoRemovePrefix && email?.toLowerCase().includes(autoRemovePrefix);
         if (isAutoRemoveEmail && isTestEmail) {

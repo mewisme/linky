@@ -17,6 +17,7 @@ export const cacheTags = {
   adminLevelFeatureUnlocks: 'admin-level-feature-unlocks',
   adminStreakExpBonuses: 'admin-streak-exp-bonuses',
   adminInterestTags: 'admin-interest-tags',
+  adminConfig: 'admin-config',
   notifications: 'notifications',
   changelog: 'changelog',
   matchmaking: 'matchmaking',

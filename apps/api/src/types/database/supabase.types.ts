@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_config: {
+        Row: {
+          key: string
+          value: Json | null
+        }
+        Insert: {
+          key: string
+          value?: Json | null
+        }
+        Update: {
+          key?: string
+          value?: Json | null
+        }
+        Relationships: []
+      }
       broadcast_history: {
         Row: {
           created_at: string

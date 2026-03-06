@@ -1,4 +1,3 @@
-import { config } from "../../config/index.js";
 import type { ClerkUserCreatedEvent, ClerkUserDeletedEvent } from "../../types/webhook/webhook.types.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,6 +10,8 @@ const mockPatchUser = vi.fn();
 const mockSoftDeleteUserByClerkId = vi.fn();
 const mockInvalidate = vi.fn().mockResolvedValue(undefined);
 const mockInvalidateByPrefix = vi.fn().mockResolvedValue(undefined);
+const mockGetAdminConfigByKey = vi.fn().mockResolvedValue(null);
+const mockClerkDeleteUser = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../../infra/supabase/repositories/index.js", () => ({
   createUser: (...args: unknown[]) => mockCreateUser(...args),
@@ -18,6 +19,10 @@ vi.mock("../../infra/supabase/repositories/index.js", () => ({
   getUserByClerkId: (...args: unknown[]) => mockGetUserByClerkId(...args),
   patchUser: (...args: unknown[]) => mockPatchUser(...args),
   softDeleteUserByClerkId: (...args: unknown[]) => mockSoftDeleteUserByClerkId(...args),
+}));
+
+vi.mock("../../infra/supabase/repositories/admin-config.js", () => ({
+  getAdminConfigByKey: (...args: unknown[]) => mockGetAdminConfigByKey(...args),
 }));
 
 vi.mock("../../infra/redis/cache/index.js", () => ({
@@ -29,18 +34,16 @@ vi.mock("../../infra/redis/cache/keys.js", () => ({
   REDIS_CACHE_KEYS: { adminPrefix: (r: string) => `admin:${r}:`, userProfile: (id: string) => `user:${id}` },
 }));
 
-vi.mock("../../config/index.js", () => ({
-  config: { clerkAutoRemoveEmailPrefix: "" as string },
-}));
-
-const mockHardDeleteUser = vi.fn().mockResolvedValue(undefined);
-vi.mock("../../domains/admin/service/admin-users.service.js", () => ({
-  hardDeleteUser: (...args: unknown[]) => mockHardDeleteUser(...args),
+vi.mock("../../infra/clerk/client.js", () => ({
+  clerk: {
+    users: { deleteUser: (...args: unknown[]) => mockClerkDeleteUser(...args) },
+  },
 }));
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockHardDeleteUser.mockResolvedValue(undefined);
+  mockGetAdminConfigByKey.mockResolvedValue(null);
+  mockClerkDeleteUser.mockResolvedValue(undefined);
 });
 
 function userDeletedEvent(clerkId: string): ClerkUserDeletedEvent {
@@ -254,36 +257,25 @@ describe("handleClerkWebhookEvent", () => {
       expect(mockCreateUser).not.toHaveBeenCalled();
     });
 
-    it("creates user then hard-deletes when email includes configured auto-remove prefix", async () => {
-      const createdId = "db-auto-remove";
+    it("deletes user from Clerk when email includes configured auto-remove prefix and +clerk_test", async () => {
       mockGetUserByEmail.mockResolvedValue(null);
-      mockCreateUser.mockResolvedValue({
-        id: createdId,
-        clerk_user_id: "clerk_auto",
-        email: "automationtest+foo@example.com",
-        first_name: "",
-        last_name: "",
-        avatar_url: null,
+      mockGetAdminConfigByKey.mockResolvedValue({
+        key: "clerk_auto_remove_email_prefix",
+        value: "automationtest",
       });
-      (config as { clerkAutoRemoveEmailPrefix: string }).clerkAutoRemoveEmailPrefix = "automationtest";
 
       await handleClerkWebhookEvent(
         userCreatedEvent({
           clerkId: "clerk_auto",
-          email: "automationtest+foo@example.com",
+          email: "automationtest+clerk_test@example.com",
           firstName: "",
           lastName: "",
         }),
       );
 
-      expect(mockCreateUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          clerk_user_id: "clerk_auto",
-          email: "automationtest+foo@example.com",
-        }),
-      );
-      expect(mockHardDeleteUser).toHaveBeenCalledWith(createdId);
-      (config as { clerkAutoRemoveEmailPrefix: string }).clerkAutoRemoveEmailPrefix = "";
+      expect(mockGetAdminConfigByKey).toHaveBeenCalledWith("clerk_auto_remove_email_prefix");
+      expect(mockClerkDeleteUser).toHaveBeenCalledWith("clerk_auto");
+      expect(mockCreateUser).not.toHaveBeenCalled();
     });
   });
 });

@@ -86,22 +86,39 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
 
     case "user.updated": {
       if (isUserUpdatedEvent(evt)) {
-        const existing = await getUserByClerkId(evt.data.id);
-        if (!existing) return;
-        await patchUser(existing.id, {
-          email: evt.data.email_addresses[0]?.email_address ?? null,
-          first_name: evt.data.first_name ?? null,
-          last_name: evt.data.last_name ?? null,
-          avatar_url: evt.data.image_url ?? null,
-        });
-        await invalidate(REDIS_CACHE_KEYS.userProfile(existing.id));
+        try {
+
+          const existing = await getUserByClerkId(evt.data.id);
+          if (!existing) {
+            logger.info(`User ${evt.data.id} not found in Supabase`);
+            return;
+          }
+
+          logger.info(`Updating user ${evt.data.id} in Supabase`);
+          await patchUser(existing.id, {
+            email: evt.data.email_addresses[0]?.email_address ?? null,
+            first_name: evt.data.first_name ?? null,
+            last_name: evt.data.last_name ?? null,
+            avatar_url: evt.data.image_url ?? null,
+          });
+          logger.info(`Invalidating user ${evt.data.id} in Redis`);
+          await invalidate(REDIS_CACHE_KEYS.userProfile(existing.id));
+          logger.info(`User ${evt.data.id} updated in Supabase`);
+        } catch (error) {
+          logger.error(error as Error, "Error updating user in Supabase");
+        }
       }
       break;
     }
 
     case "user.deleted": {
       if (isUserDeletedEvent(evt)) {
-        await softDeleteUserByClerkId(evt.data.id);
+        try {
+          await softDeleteUserByClerkId(evt.data.id);
+          logger.info(`Soft deleted user ${evt.data.id} in Supabase`);
+        } catch (error) {
+          logger.error(error as Error, "Error soft deleting user in Supabase");
+        }
         await invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users"));
       }
       break;

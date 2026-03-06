@@ -32,6 +32,7 @@ import {
   IconLogout,
   IconPalette,
   IconSettings,
+  IconSettingsCog,
   IconShield,
   IconSpeakerphone,
   IconTags,
@@ -43,11 +44,11 @@ import {
 } from '@tabler/icons-react'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@ws/ui/components/ui/input-group'
 import { Kbd, KbdGroup } from '@ws/ui/components/ui/kbd'
+import { isAdmin, isSuperAdmin } from '@/shared/utils/roles'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Logo } from '@/shared/ui/layouts/header/landing/logo'
 import { Separator } from '@ws/ui/components/ui/separator'
-import { isAdmin } from '@/shared/utils/roles'
 import { trackEvent } from '@/lib/telemetry/events/client'
 import { useCommandMenuStore } from '@/shared/model/command-menu-store'
 import { useRouter } from 'next/navigation'
@@ -114,6 +115,7 @@ export function CommandMenu() {
   }, []);
 
   const isAdminUser = isAdmin(userStore?.role)
+  const isSuperAdminUser = isSuperAdmin(userStore?.role)
 
   const commandGroups = useMemo<CommandGroup[]>(() => [
     {
@@ -279,75 +281,86 @@ export function CommandMenu() {
         ] : []),
       ],
     },
-    {
-      heading: 'Admin',
-      showForAdmin: true,
-      actions: [
-        {
-          id: 'admin-dashboard',
-          label: 'Admin Dashboard',
-          icon: IconUserShield,
-          href: '/admin',
-          keywords: ['admin', 'dashboard', 'panel'],
-        },
-        {
-          id: 'admin-users',
-          label: 'Manage Users',
-          icon: IconUsers,
-          href: '/admin/users',
-          keywords: ['users', 'accounts'],
-        },
-        {
-          id: 'admin-tags',
-          label: 'Interest Tags',
-          icon: IconTags,
-          href: '/admin/interest-tags',
-          keywords: ['tags', 'interests'],
-        },
-        {
-          id: 'admin-changelogs',
-          label: 'Change Logs',
-          icon: IconContract,
-          href: '/admin/changelogs',
-          keywords: ['changelog', 'updates', 'releases'],
-        },
-        {
-          id: 'admin-reports',
-          label: 'Manage Reports',
-          icon: IconFlag,
-          href: '/admin/reports',
-          keywords: ['reports', 'flags', 'moderation'],
-        },
-        {
-          id: 'admin-rewards',
-          label: 'Level Rewards',
-          icon: IconGift,
-          href: '/admin/level-rewards',
-          keywords: ['rewards', 'levels'],
-        },
-        {
-          id: 'admin-features',
-          label: 'Feature Unlocks',
-          icon: IconLock,
-          href: '/admin/level-feature-unlocks',
-          keywords: ['features', 'unlocks', 'levels'],
-        },
-        {
-          id: 'admin-bonuses',
-          label: 'Streak Bonuses',
-          icon: IconBolt,
-          href: '/admin/streak-exp-bonuses',
-          keywords: ['streak', 'bonus', 'xp', 'multiplier'],
-        },
-        {
-          id: 'admin-broadcasts',
-          label: 'Broadcasts',
-          icon: IconSpeakerphone,
-          href: '/admin/broadcasts',
-          keywords: ['broadcast', 'announcements', 'notifications'],
-        },
-      ],
-    },
+    ...(isAdminUser ? [
+      {
+        heading: 'Admin',
+        showForAdmin: true,
+        actions: [
+          {
+            id: 'admin-dashboard',
+            label: 'Admin Dashboard',
+            icon: IconUserShield,
+            href: '/admin',
+            keywords: ['admin', 'dashboard', 'panel'],
+          },
+          ...(isSuperAdminUser ? [
+            {
+              id: 'admin-config',
+              label: 'Config',
+              icon: IconSettingsCog,
+              href: '/admin/config',
+              keywords: ['config', 'settings'],
+            },
+          ] : []),
+          {
+            id: 'admin-users',
+            label: 'Manage Users',
+            icon: IconUsers,
+            href: '/admin/users',
+            keywords: ['users', 'accounts'],
+          },
+          {
+            id: 'admin-tags',
+            label: 'Interest Tags',
+            icon: IconTags,
+            href: '/admin/interest-tags',
+            keywords: ['tags', 'interests'],
+          },
+          {
+            id: 'admin-changelogs',
+            label: 'Change Logs',
+            icon: IconContract,
+            href: '/admin/changelogs',
+            keywords: ['changelog', 'updates', 'releases'],
+          },
+          {
+            id: 'admin-reports',
+            label: 'Manage Reports',
+            icon: IconFlag,
+            href: '/admin/reports',
+            keywords: ['reports', 'flags', 'moderation'],
+          },
+          {
+            id: 'admin-rewards',
+            label: 'Level Rewards',
+            icon: IconGift,
+            href: '/admin/level-rewards',
+            keywords: ['rewards', 'levels'],
+          },
+          {
+            id: 'admin-features',
+            label: 'Feature Unlocks',
+            icon: IconLock,
+            href: '/admin/level-feature-unlocks',
+            keywords: ['features', 'unlocks', 'levels'],
+          },
+          {
+            id: 'admin-bonuses',
+            label: 'Streak Bonuses',
+            icon: IconBolt,
+            href: '/admin/streak-exp-bonuses',
+            keywords: ['streak', 'bonus', 'xp', 'multiplier'],
+          },
+          {
+            id: 'admin-broadcasts',
+            label: 'Broadcasts',
+            icon: IconSpeakerphone,
+            href: '/admin/broadcasts',
+            keywords: ['broadcast', 'announcements', 'notifications'],
+          },
+        ],
+      }
+    ] : []),
     ...(isSignedIn ? [
       {
         heading: 'Account',
@@ -365,7 +378,7 @@ export function CommandMenu() {
         ],
       },
     ] : []),
-  ], [collapsible, isSignedIn, resolvedTheme, setCollapsible, setTheme, setVariant, signOut, variant])
+  ], [collapsible, feedback, isAdminUser, isSignedIn, isSuperAdminUser, resolvedTheme, setCollapsible, setTheme, setVariant, signOut, variant])
 
   const filteredGroups = useMemo(() => {
     return commandGroups

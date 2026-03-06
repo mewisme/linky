@@ -1,4 +1,3 @@
-import { getAdminConfigByKey } from "@/infra/supabase/repositories/admin-config.js";
 import {
   createUser,
   getUserByClerkId,
@@ -15,6 +14,7 @@ import {
 
 import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { canAutoRemoveUserEmail } from "@/utils/clerk-validation-email.js";
 import { clerk } from "@/infra/clerk/client.js";
 import { createLogger } from "@/utils/logger.js";
 
@@ -65,12 +65,8 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
           }
         }
 
-        const prefixRow = await getAdminConfigByKey("clerk_auto_remove_email_prefix");
-        const autoRemovePrefix =
-          typeof prefixRow?.value === "string" ? prefixRow.value.trim().toLowerCase() : "";
-        const isTestEmail = email?.toLowerCase().includes("+clerk_test");
-        const isAutoRemoveEmail = autoRemovePrefix && email?.toLowerCase().includes(autoRemovePrefix);
-        if (isAutoRemoveEmail && isTestEmail) {
+
+        if (email && (await canAutoRemoveUserEmail(email))) {
           try {
             await clerk.users.deleteUser(evt.data.id);
             logger.info(`Deleted automation test user ${evt.data.id} from Clerk after created`);

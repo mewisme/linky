@@ -1,29 +1,5 @@
 'use client';
 
-import { IconPlus, IconRefresh } from '@tabler/icons-react';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import {
-  getAdminConfig,
-  setAdminConfig,
-  unsetAdminConfig,
-} from '@/features/admin/api/admin-config';
-import { useMutation, useQuery, useQueryClient } from '@ws/ui/internal-lib/react-query';
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { AppLayout } from '@/shared/ui/layouts/app-layout';
-import { Button } from '@ws/ui/components/ui/button';
-import { Input } from '@ws/ui/components/ui/input';
-import { Label } from '@ws/ui/components/ui/label';
-import { Textarea } from '@ws/ui/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@ws/ui/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,11 +10,36 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@ws/ui/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@ws/ui/components/ui/dialog';
+import { IconPlus, IconRefresh } from '@tabler/icons-react';
+import {
+  getAdminConfig,
+  setAdminConfig,
+  unsetAdminConfig,
+} from '@/features/admin/api/admin-config';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@ws/ui/internal-lib/react-query';
+
+import type { AdminAPI } from '@/features/admin/types/admin.types';
+import { AppLayout } from '@/shared/ui/layouts/app-layout';
+import { Button } from '@ws/ui/components/ui/button';
+import { Input } from '@ws/ui/components/ui/input';
+import { Label } from '@ws/ui/components/ui/label';
 import { Loader2 } from '@ws/ui/internal-lib/icons';
+import { Textarea } from '@ws/ui/components/ui/textarea';
+import dynamic from 'next/dynamic';
+import { isSuperAdmin } from '@/shared/utils/roles';
 import { toast } from '@ws/ui/components/ui/sonner';
+import { useRouter } from 'next/navigation';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 import { useUserStore } from '@/entities/user/model/user-store';
-import { isSuperAdmin } from '@/shared/utils/roles';
 
 const AdminConfigDataTable = dynamic(
   () =>
@@ -66,6 +67,13 @@ function parseValue(raw: string): AdminAPI.Config.Set.Body['value'] {
   }
 }
 
+function valueToFormString(value: AdminAPI.Config.Item['value']): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return JSON.stringify(value);
+}
+
 export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
   const router = useRouter();
   const { user: userStore } = useUserStore();
@@ -76,6 +84,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
   const [unsetKey, setUnsetKey] = useState<string | null>(null);
   const [formKey, setFormKey] = useState('');
   const [formValue, setFormValue] = useState('');
+  const [isEditingKey, setIsEditingKey] = useState(false);
 
   useEffect(() => {
     if (userStore && !isSuperAdmin(userStore.role)) {
@@ -101,6 +110,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       setSetDialogOpen(false);
       setFormKey('');
       setFormValue('');
+      setIsEditingKey(false);
     },
     onError: (err: Error) => {
       toast.error(err.message ?? 'Failed to set config');
@@ -131,6 +141,20 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
 
   const handleUnset = (key: string) => setUnsetKey(key);
 
+  const handleUpdate = (item: AdminAPI.Config.Item) => {
+    setFormKey(item.key);
+    setFormValue(valueToFormString(item.value));
+    setIsEditingKey(true);
+    setSetDialogOpen(true);
+  };
+
+  const handleOpenSet = () => {
+    setFormKey('');
+    setFormValue('');
+    setIsEditingKey(false);
+    setSetDialogOpen(true);
+  };
+
   if (userStore && !isSuperAdmin(userStore.role)) {
     return null;
   }
@@ -145,7 +169,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       <div className="space-y-4">
         <AdminConfigDataTable
           initialData={rows}
-          callbacks={{ onUnset: handleUnset }}
+          callbacks={{ onUpdate: handleUpdate, onUnset: handleUnset }}
           leftColumnVisibilityContent={
             <Button
               variant="outline"
@@ -157,20 +181,32 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
             </Button>
           }
           rightColumnVisibilityContent={
-            <Button size="sm" onClick={() => setSetDialogOpen(true)} className="bg-primary hover:opacity-90 shadow-md">
-              <IconPlus className="h-4 w-4 mr-2" />
+            <Button size="sm" onClick={handleOpenSet} className="bg-primary hover:opacity-90 shadow-md">
+              <IconPlus className="h-4 w-4" />
               Set
             </Button>
           }
         />
       </div>
 
-      <Dialog open={setDialogOpen} onOpenChange={setSetDialogOpen}>
+      <Dialog
+        open={setDialogOpen}
+        onOpenChange={(open) => {
+          setSetDialogOpen(open);
+          if (!open) {
+            setFormKey('');
+            setFormValue('');
+            setIsEditingKey(false);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Set config</DialogTitle>
+            <DialogTitle>{isEditingKey ? 'Update config' : 'Set config'}</DialogTitle>
             <DialogDescription>
-              Key (e.g. clerk_auto_remove_email_prefix). Value: string, number, boolean, or JSON.
+              {isEditingKey
+                ? 'Change the value. Key cannot be edited.'
+                : 'Key should be snake_case. Value: string, number, boolean, or JSON.'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -180,8 +216,8 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
                 id="config-key"
                 value={formKey}
                 onChange={(e) => setFormKey(e.target.value)}
-                placeholder="e.g. clerk_auto_remove_email_prefix"
                 className="font-mono"
+                readOnly={isEditingKey}
               />
             </div>
             <div className="grid gap-2">
@@ -190,7 +226,6 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
                 id="config-value"
                 value={formValue}
                 onChange={(e) => setFormValue(e.target.value)}
-                placeholder='e.g. "automationtest" or true or {"nested": true}'
                 rows={3}
                 className="font-mono"
               />
@@ -205,7 +240,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
               disabled={setMutation.isPending || !formKey.trim()}
             >
               {setMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Set
+              {isEditingKey ? 'Update' : 'Set'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -224,7 +259,6 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
             <AlertDialogAction
               onClick={() => unsetKey && unsetMutation.mutate(unsetKey)}
               disabled={unsetMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {unsetMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Unset

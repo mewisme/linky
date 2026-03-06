@@ -1,4 +1,3 @@
-import type { ElementType } from "react";
 import {
   IconBan,
   IconBell,
@@ -14,6 +13,7 @@ import {
   IconMessages,
   IconPalette,
   IconSettings,
+  IconSettingsCog,
   IconShield,
   IconSpeakerphone,
   IconTags,
@@ -21,8 +21,9 @@ import {
   IconUserShield,
   IconUsers,
   IconVideo,
-  IconSettingsCog,
 } from "@tabler/icons-react";
+
+import type { ElementType } from "react";
 
 export interface MenuItem {
   label: string;
@@ -119,7 +120,21 @@ export const menuItems: MenuItem[] = [
     isAdmin: true,
     subItems: [
       {
-        label: "Users",
+        label: "Configuration",
+        icon: IconSettingsCog,
+        description: "View the config",
+        href: "/admin/config",
+        category: "Admin",
+      },
+      {
+        label: "Broadcast Management",
+        icon: IconSpeakerphone,
+        description: "Send announcements to all users",
+        href: "/admin/broadcasts",
+        category: "Admin",
+      },
+      {
+        label: "Users Management",
         icon: IconUsers,
         description: "View the users list",
         href: "/admin/users",
@@ -161,26 +176,11 @@ export const menuItems: MenuItem[] = [
         category: "Admin",
       },
       {
-        label: "Streak EXP Bonuses",
+        label: "Streak EXP",
         icon: IconBolt,
         description: "Manage streak EXP bonus multipliers",
         href: "/admin/streak-exp-bonuses",
         category: "Admin",
-      },
-      {
-        label: "Broadcasts",
-        icon: IconSpeakerphone,
-        description: "Send announcements to all users",
-        href: "/admin/broadcasts",
-        category: "Admin",
-      },
-      {
-        label: "Config",
-        icon: IconSettingsCog,
-        description: "Key-value admin config (superadmin only)",
-        href: "/admin/config",
-        category: "Admin",
-        isSuperAdminOnly: true,
       },
     ],
   },

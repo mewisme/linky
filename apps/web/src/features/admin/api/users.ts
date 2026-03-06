@@ -47,6 +47,21 @@ export async function softDeleteAdminUser(id: string): Promise<AdminAPI.PatchUse
   });
 }
 
+export async function softDeleteAdminUsers(ids: string[]): Promise<AdminAPI.PatchUsersBatch.Response> {
+  return withSentryAction("softDeleteAdminUsers", async () => {
+    const result = await serverFetch<AdminAPI.PatchUsersBatch.Response>(
+      backendUrl.admin.usersBatch(),
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ ids, deleted: true, deleted_at: new Date().toISOString() }),
+        token: true,
+      }
+    );
+    revalidateTag(cacheTags.adminUsers, 'max');
+    return result;
+  });
+}
+
 export async function hardDeleteAdminUser(id: string): Promise<AdminAPI.DeleteUser.Response> {
   return withSentryAction("hardDeleteAdminUser", async () => {
     const result = await serverFetch<AdminAPI.DeleteUser.Response>(
@@ -58,11 +73,33 @@ export async function hardDeleteAdminUser(id: string): Promise<AdminAPI.DeleteUs
   });
 }
 
+export async function hardDeleteAdminUsers(ids: string[]): Promise<AdminAPI.DeleteUsersBatch.Response> {
+  return withSentryAction("hardDeleteAdminUsers", async () => {
+    const result = await serverFetch<AdminAPI.DeleteUsersBatch.Response>(
+      backendUrl.admin.usersBatch(),
+      { method: 'DELETE', body: JSON.stringify({ ids }), token: true }
+    );
+    revalidateTag(cacheTags.adminUsers, 'max');
+    return result;
+  });
+}
+
 export async function restoreAdminUser(id: string): Promise<AdminAPI.PatchUser.Response> {
   return withSentryAction("restoreAdminUser", async () => {
     const result = await serverFetch<AdminAPI.PatchUser.Response>(
       backendUrl.admin.userById(id),
       { method: 'PATCH', body: JSON.stringify({ deleted: false, deleted_at: null }), token: true }
+    );
+    revalidateTag(cacheTags.adminUsers, 'max');
+    return result;
+  });
+}
+
+export async function restoreAdminUsers(ids: string[]): Promise<AdminAPI.PatchUsersBatch.Response> {
+  return withSentryAction("restoreAdminUsers", async () => {
+    const result = await serverFetch<AdminAPI.PatchUsersBatch.Response>(
+      backendUrl.admin.usersBatch(),
+      { method: 'PATCH', body: JSON.stringify({ ids, deleted: false, deleted_at: null }), token: true }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
     return result;

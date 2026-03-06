@@ -257,6 +257,38 @@ export async function createUser(params: UserInsert) {
   return data;
 }
 
+export async function getUsersByIds(ids: string[]): Promise<unknown[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .in("id", ids);
+
+  if (error) {
+    logger.error(error as Error, "Error fetching users by ids");
+    throw error;
+  }
+  return data ?? [];
+}
+
+export async function patchUsersByIds(
+  ids: string[],
+  userData: Partial<UserUpdate>
+): Promise<unknown[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("users")
+    .update(userData)
+    .in("id", ids)
+    .select();
+
+  if (error) {
+    logger.error(error as Error, "Error batch patching users");
+    throw error;
+  }
+  return data ?? [];
+}
+
 export async function getUsersIdsPaginated(
   options: { page?: number; limit?: number; deleted?: boolean } = {}
 ): Promise<{ ids: string[]; hasMore: boolean }> {

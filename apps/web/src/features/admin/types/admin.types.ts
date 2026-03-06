@@ -111,6 +111,27 @@ export namespace AdminAPI {
     }
   }
 
+  export namespace PatchUsersBatch {
+    export interface Body {
+      ids: string[];
+      deleted?: boolean;
+      deleted_at?: string | null;
+    }
+    export interface Response {
+      data: User[];
+    }
+  }
+
+  export namespace DeleteUsersBatch {
+    export interface Body {
+      ids: string[];
+    }
+    export interface Response {
+      success: true;
+      message: string;
+    }
+  }
+
   export namespace InterestTags {
     export interface InterestTag {
       id: string;

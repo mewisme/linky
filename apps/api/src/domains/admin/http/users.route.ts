@@ -2,7 +2,15 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 import { createLogger } from "@/utils/logger.js";
 import type { AdminUserUpdate } from "@/domains/admin/types/admin.types.js";
 import { redisClient } from "@/infra/redis/client.js";
-import { getUser, hardDeleteUser, listUsers, patchAdminUser, updateAdminUser } from "@/domains/admin/service/admin-users.service.js";
+import {
+  getUser,
+  hardDeleteUser,
+  hardDeleteUsers,
+  listUsers,
+  patchAdminUser,
+  patchAdminUsers,
+  updateAdminUser,
+} from "@/domains/admin/service/admin-users.service.js";
 import { requireSuperAdmin } from "@/lib/auth/role-guard.js";
 import {
   assertCannotAssignSuperadmin,
@@ -68,6 +76,87 @@ router.get("/", async (req: Request, res: Response) => {
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch users",
+    });
+  }
+});
+
+router.patch("/batch", async (req: Request, res: Response) => {
+  try {
+    const body = req.body as { ids?: string[]; deleted?: boolean; deleted_at?: string | null };
+    const ids = body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "ids must be a non-empty array",
+      });
+    }
+    const userData: Partial<AdminUserUpdate> = {};
+    if (typeof body.deleted === "boolean") userData.deleted = body.deleted;
+    if (body.deleted_at !== undefined) userData.deleted_at = body.deleted_at;
+    if (Object.keys(userData).length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "At least one of deleted or deleted_at must be provided",
+      });
+    }
+
+    const users = await patchAdminUsers(ids, userData);
+    return res.json({ data: users });
+  } catch (error: unknown) {
+    const err = error as Error;
+    logger.error(err, "Unexpected error in PATCH /admin/users/batch");
+    if (
+      err.message === "Cannot assign superadmin role via API"
+    ) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: err.message,
+      });
+    }
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to batch update users",
+    });
+  }
+});
+
+router.delete("/batch", requireSuperAdmin, async (req: Request, res: Response) => {
+  try {
+    const body = req.body as { ids?: string[] };
+    const ids = body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        error: "Bad Request",
+        message: "ids must be a non-empty array",
+      });
+    }
+
+    await hardDeleteUsers(ids);
+    return res.json({ success: true, message: "Users deleted successfully" });
+  } catch (error: unknown) {
+    const err = error as Error;
+    logger.error(err, "Unexpected error in DELETE /admin/users/batch");
+
+    if (err.message === "User not found") {
+      return res.status(404).json({
+        error: "Not Found",
+        message: err.message,
+      });
+    }
+    if (
+      err.message === "Superadmin users cannot be deleted" ||
+      err.message === "Cannot hard delete yourself" ||
+      err.message === "Admin users cannot be deleted"
+    ) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: err.message,
+      });
+    }
+
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to batch delete users",
     });
   }
 });

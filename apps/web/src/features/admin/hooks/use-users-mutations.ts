@@ -1,6 +1,14 @@
 'use client';
 
-import { hardDeleteAdminUser, restoreAdminUser, softDeleteAdminUser, updateAdminUser } from '@/features/admin/api/users';
+import {
+  hardDeleteAdminUser,
+  hardDeleteAdminUsers,
+  restoreAdminUser,
+  restoreAdminUsers,
+  softDeleteAdminUser,
+  softDeleteAdminUsers,
+  updateAdminUser,
+} from '@/features/admin/api/users';
 import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
@@ -42,7 +50,7 @@ export function useUsersMutations() {
 
   const softDeleteManyMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      await Promise.all(ids.map((id) => softDeleteAdminUser(id)));
+      await softDeleteAdminUsers(ids);
       return ids.length;
     },
     onSuccess: async (count) => {
@@ -80,7 +88,7 @@ export function useUsersMutations() {
 
   const restoreManyMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      await Promise.all(ids.map((id) => restoreAdminUser(id)));
+      await restoreAdminUsers(ids);
       return ids.length;
     },
     onSuccess: async (count) => {

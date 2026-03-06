@@ -93,6 +93,7 @@ export const backendUrl = {
     reports: (params?: URLSearchParams) => `${V1}/admin/reports${qs(params)}`,
     reportById: (id: string) => `${V1}/admin/reports/${id}`,
     users: (params?: URLSearchParams) => `${V1}/admin/users${qs(params)}`,
+    usersBatch: () => `${V1}/admin/users/batch`,
     userById: (id: string) => `${V1}/admin/users/${id}`,
     economyStats: (params?: URLSearchParams) => `${V1}/admin/economy/stats${qs(params)}`,
     economySimulate: () => `${V1}/admin/economy/simulate`,

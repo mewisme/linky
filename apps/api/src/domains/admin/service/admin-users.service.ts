@@ -2,12 +2,18 @@ import type { AdminUnifiedUser, AdminUserUpdate } from "@/domains/admin/types/ad
 import {
   getAdminUsersUnified,
   getUserById,
+  getUsersByIds,
   patchUser,
+  patchUsersByIds,
   softDeleteUserById,
   updateUser,
 } from "@/infra/supabase/repositories/index.js";
 import { getOrSet, invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
-
+import {
+  assertCannotAssignSuperadmin,
+  assertTargetCanBeSoftDeleted,
+  assertTargetNotSuperadmin,
+} from "@/lib/auth/superadmin-invariants.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
 import { calculateLevelFromExp } from "@/logic/level-from-exp.js";
@@ -160,4 +166,63 @@ export async function hardDeleteUser(id: string): Promise<void> {
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
     invalidate(REDIS_CACHE_KEYS.userProfile(id)),
   ]);
+}
+
+export async function patchAdminUsers(
+  ids: string[],
+  userData: Partial<AdminUserUpdate>
+): Promise<AdminUnifiedUser[]> {
+  if (ids.length === 0) return [];
+  assertCannotAssignSuperadmin(userData.role);
+
+  const rows = await getUsersByIds(ids);
+  const allowedIds: string[] = [];
+  for (const row of rows) {
+    const r = row as { id: string; role: string };
+    if (!r?.id) continue;
+    try {
+      assertTargetNotSuperadmin(r.role);
+      if (userData.deleted === true) {
+        assertTargetCanBeSoftDeleted(r.role);
+      }
+      allowedIds.push(r.id);
+    } catch {
+      continue;
+    }
+  }
+
+  if (allowedIds.length === 0) return [];
+
+  const patchPayload = { ...userData };
+  if (patchPayload.deleted === true && patchPayload.deleted_at == null) {
+    patchPayload.deleted_at = new Date().toISOString();
+  }
+
+  const updated = await patchUsersByIds(allowedIds, patchPayload);
+
+  if (userData.deleted === true) {
+    const softDeleted = rows.filter(
+      (row: unknown) =>
+        (row as { email?: string | null }).email?.includes("+clerk_test") &&
+        allowedIds.includes((row as { id: string }).id)
+    );
+    await Promise.allSettled(
+      softDeleted.map((row: unknown) =>
+        clerk.users.deleteUser((row as { clerk_user_id?: string }).clerk_user_id ?? "")
+      )
+    );
+  }
+
+  await Promise.allSettled([
+    invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
+    ...allowedIds.map((id) => invalidate(REDIS_CACHE_KEYS.userProfile(id))),
+  ]);
+
+  return updated as AdminUnifiedUser[];
+}
+
+export async function hardDeleteUsers(ids: string[]): Promise<void> {
+  for (const id of ids) {
+    await hardDeleteUser(id);
+  }
 }

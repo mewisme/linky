@@ -141,7 +141,7 @@ export async function hardDeleteUser(id: string): Promise<void> {
   if (user.role === "admin" || user.role === "superadmin") {
     throw new Error("Admin users cannot be deleted");
   }
-  await hardDeleteUserById(id);
+  await softDeleteUserById(id);
   await clerk.users.deleteUser(user.clerk_user_id);
   await Promise.allSettled([
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),

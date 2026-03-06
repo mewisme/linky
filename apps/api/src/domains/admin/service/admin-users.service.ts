@@ -2,7 +2,6 @@ import type { AdminUnifiedUser, AdminUserUpdate } from "@/domains/admin/types/ad
 import {
   getAdminUsersUnified,
   getUserById,
-  hardDeleteUserById,
   patchUser,
   softDeleteUserById,
   updateUser,
@@ -13,9 +12,12 @@ import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
 import { calculateLevelFromExp } from "@/logic/level-from-exp.js";
 import { clerk } from "@/infra/clerk/client.js";
+import { createLogger } from "@/utils/logger.js";
 import { hashFilters } from "@/infra/redis/cache/hash.js";
 
 type UserRole = "member" | "admin" | "superadmin";
+
+const logger = createLogger("domain:admin:users");
 
 export async function listUsers(params: {
   getAll: boolean;
@@ -127,6 +129,13 @@ export async function softDeleteUser(id: string): Promise<void> {
     throw new Error("User already deleted");
   }
   await softDeleteUserById(id);
+  if (user.email?.includes("+clerk_test")) {
+    try {
+      await clerk.users.deleteUser(user.clerk_user_id ?? "");
+    } catch (error) {
+      logger.error(error as Error, "Error deleting user from Clerk");
+    }
+  }
   await Promise.allSettled([
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
     invalidate(REDIS_CACHE_KEYS.userProfile(id)),
@@ -142,7 +151,11 @@ export async function hardDeleteUser(id: string): Promise<void> {
     throw new Error("Admin users cannot be deleted");
   }
   await softDeleteUserById(id);
-  await clerk.users.deleteUser(user.clerk_user_id);
+  try {
+    await clerk.users.deleteUser(user.clerk_user_id ?? "");
+  } catch (error) {
+    logger.error(error as Error, "Error deleting user from Clerk");
+  }
   await Promise.allSettled([
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),
     invalidate(REDIS_CACHE_KEYS.userProfile(id)),

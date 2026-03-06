@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Implement auto-remove user functionality for Clerk webhook events ([39c4f44](../../commit/39c4f44))
-- Update package versions to 0.65.0 and refresh version lock ([b95eae4](../../commit/b95eae4))
+- Enhance user update and deletion logging in Clerk webhook handler ([a1e8abd](../../commit/a1e8abd))
+- Update package versions to 0.66.0 and refresh version lock ([3ae0385](../../commit/3ae0385))
 
 
-📋 Full Changelog: [b95eae4...39c4f44](../../compare/b95eae4...39c4f44)
+📋 Full Changelog: [3ae0385...a1e8abd](../../compare/3ae0385...a1e8abd)

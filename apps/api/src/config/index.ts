@@ -45,7 +45,7 @@ export const config = {
   supabaseTimeout: Number(process.env.SUPABASE_TIMEOUT) || 10000,
   // Rate Limiting
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 30000,
-  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 20,
+  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   // Ollama
   ollamaUrl: process.env.OLLAMA_URL as string,
   ollamaEmbeddingTimeout: Number(process.env.OLLAMA_EMBEDDING_TIMEOUT) || 60000,

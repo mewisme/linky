@@ -1,3 +1,4 @@
+import { config } from "../../config/index.js";
 import type { ClerkUserCreatedEvent, ClerkUserDeletedEvent } from "../../types/webhook/webhook.types.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +9,7 @@ const mockGetUserByEmail = vi.fn();
 const mockGetUserByClerkId = vi.fn();
 const mockPatchUser = vi.fn();
 const mockSoftDeleteUserByClerkId = vi.fn();
+const mockInvalidate = vi.fn().mockResolvedValue(undefined);
 const mockInvalidateByPrefix = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../../infra/supabase/repositories/index.js", () => ({
@@ -19,15 +21,26 @@ vi.mock("../../infra/supabase/repositories/index.js", () => ({
 }));
 
 vi.mock("../../infra/redis/cache/index.js", () => ({
+  invalidate: (...args: unknown[]) => mockInvalidate(...args),
   invalidateByPrefix: (...args: unknown[]) => mockInvalidateByPrefix(...args),
 }));
 
 vi.mock("../../infra/redis/cache/keys.js", () => ({
-  REDIS_CACHE_KEYS: { adminPrefix: (r: string) => `admin:${r}:` },
+  REDIS_CACHE_KEYS: { adminPrefix: (r: string) => `admin:${r}:`, userProfile: (id: string) => `user:${id}` },
+}));
+
+vi.mock("../../config/index.js", () => ({
+  config: { clerkAutoRemoveEmailPrefix: "" as string },
+}));
+
+const mockHardDeleteUser = vi.fn().mockResolvedValue(undefined);
+vi.mock("../../domains/admin/service/admin-users.service.js", () => ({
+  hardDeleteUser: (...args: unknown[]) => mockHardDeleteUser(...args),
 }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockHardDeleteUser.mockResolvedValue(undefined);
 });
 
 function userDeletedEvent(clerkId: string): ClerkUserDeletedEvent {
@@ -239,6 +252,38 @@ describe("handleClerkWebhookEvent", () => {
       expect(mockGetUserByEmail).toHaveBeenCalledWith("a@b.com");
       expect(mockPatchUser).not.toHaveBeenCalled();
       expect(mockCreateUser).not.toHaveBeenCalled();
+    });
+
+    it("creates user then hard-deletes when email includes configured auto-remove prefix", async () => {
+      const createdId = "db-auto-remove";
+      mockGetUserByEmail.mockResolvedValue(null);
+      mockCreateUser.mockResolvedValue({
+        id: createdId,
+        clerk_user_id: "clerk_auto",
+        email: "automationtest+foo@example.com",
+        first_name: "",
+        last_name: "",
+        avatar_url: null,
+      });
+      (config as { clerkAutoRemoveEmailPrefix: string }).clerkAutoRemoveEmailPrefix = "automationtest";
+
+      await handleClerkWebhookEvent(
+        userCreatedEvent({
+          clerkId: "clerk_auto",
+          email: "automationtest+foo@example.com",
+          firstName: "",
+          lastName: "",
+        }),
+      );
+
+      expect(mockCreateUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clerk_user_id: "clerk_auto",
+          email: "automationtest+foo@example.com",
+        }),
+      );
+      expect(mockHardDeleteUser).toHaveBeenCalledWith(createdId);
+      (config as { clerkAutoRemoveEmailPrefix: string }).clerkAutoRemoveEmailPrefix = "";
     });
   });
 });

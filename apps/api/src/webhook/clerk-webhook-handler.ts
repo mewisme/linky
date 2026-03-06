@@ -14,6 +14,11 @@ import {
 
 import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { clerk } from "@/infra/clerk/client.js";
+import { config } from "@/config/index.js";
+import { createLogger } from "@/utils/logger.js";
+
+const logger = createLogger("webhook:clerk");
 
 export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<void> {
   const eventType = evt.type;
@@ -57,7 +62,24 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
           }
         }
 
-        await createUser(payload);
+        const autoRemovePrefix = config.clerkAutoRemoveEmailPrefix;
+        const isTestEmail = email?.toLowerCase().includes("+clerk_test");
+        const isAutoRemoveEmail = autoRemovePrefix && email?.toLowerCase().includes(autoRemovePrefix);
+        if (isAutoRemoveEmail && isTestEmail) {
+          try {
+            await clerk.users.deleteUser(evt.data.id);
+            logger.info(`Deleted automation test user ${evt.data.id} from Clerk after created`);
+          } catch (error) {
+            logger.error(error as Error, "Error deleting user from Clerk");
+          }
+        } else {
+          try {
+            await createUser(payload);
+            logger.info(`Created user ${evt.data.id} in Supabase`);
+          } catch (error) {
+            logger.error(error as Error, "Error creating user in Supabase");
+          }
+        }
       }
       break;
     }

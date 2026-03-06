@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Enhance user update and deletion logging in Clerk webhook handler ([a1e8abd](../../commit/a1e8abd))
-- Update package versions to 0.66.0 and refresh version lock ([3ae0385](../../commit/3ae0385))
+- Implement admin configuration management ([a9df8bd](../../commit/a9df8bd))
+- Update package versions to 0.67.0 and refresh version lock ([1506472](../../commit/1506472))
 
 
-📋 Full Changelog: [3ae0385...a1e8abd](../../compare/3ae0385...a1e8abd)
+📋 Full Changelog: [1506472...a9df8bd](../../compare/1506472...a9df8bd)

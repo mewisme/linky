@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Implement admin configuration management ([a9df8bd](../../commit/a9df8bd))
-- Update package versions to 0.67.0 and refresh version lock ([1506472](../../commit/1506472))
+- Enhance admin configuration management and validation ([6a30099](../../commit/6a30099))
+- Update package versions to 0.68.0 and refresh version lock ([737cd00](../../commit/737cd00))
 
 
-📋 Full Changelog: [1506472...a9df8bd](../../compare/1506472...a9df8bd)
+📋 Full Changelog: [737cd00...6a30099](../../compare/737cd00...6a30099)

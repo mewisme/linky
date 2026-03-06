@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Improve user deletion error handling ([cc1bd40](../../commit/cc1bd40))
-- Update package versions to 0.64.0 and refresh version lock ([7d5e94d](../../commit/7d5e94d))
+- Increase rate limit maximum requests from 20 to 100 for improved API performance ([3cd831d](../../commit/3cd831d))
+- Update package versions to 0.64.1 and refresh version lock ([49f9cdc](../../commit/49f9cdc))
 
 
-📋 Full Changelog: [7d5e94d...cc1bd40](../../compare/7d5e94d...cc1bd40)
+📋 Full Changelog: [49f9cdc...3cd831d](../../compare/49f9cdc...3cd831d)

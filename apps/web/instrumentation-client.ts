@@ -11,8 +11,6 @@ Sentry.init({
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
   enableLogs: true,
   enableMetrics: true,
-  replaysSessionSampleRate: 0,
-  replaysOnErrorSampleRate: isEnabled ? 1.0 : 0,
   integrations: isEnabled
     ? [
       Sentry.feedbackIntegration({

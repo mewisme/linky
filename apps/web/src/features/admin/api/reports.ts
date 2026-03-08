@@ -39,7 +39,7 @@ export async function updateAdminReport(
   return withSentryAction("updateAdminReport", async () => {
     const result = await serverFetch<AdminAPI.Reports.Update.Response>(
       backendUrl.admin.reportById(id),
-      { method: 'PATCH', body: JSON.stringify(data), token: true }
+      { method: 'PATCH', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminReports, 'max');
     return result;

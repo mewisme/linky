@@ -29,13 +29,13 @@ export function createSocketServer(httpServer: HTTPServer): SocketIOServer {
   chat.use(socketAuthMiddleware);
   setupAdminNamespace(admin, { socketAuthMiddleware });
 
-  const matchStateStore = config.useRedisMatchmaking
-    ? new RedisMatchStateStore()
-    : new MemoryMatchStateStore();
+  const matchStateStore = config.useMemoryMatchmaking
+    ? new MemoryMatchStateStore()
+    : new RedisMatchStateStore();
 
   logger.info(
     "Matchmaking mode: %s",
-    config.useRedisMatchmaking ? "Redis" : "In-Memory"
+    config.useMemoryMatchmaking ? "In-Memory" : "Redis"
   );
 
   const matchmaking = new MatchmakingService(matchStateStore);

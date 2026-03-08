@@ -1,36 +1,30 @@
 import { GiphyPicker, useGiphyPicker } from "./giphy";
-import { IconMoodSmile, IconPhoto, IconSend, IconX } from "@tabler/icons-react";
+import {
+  IconMoodSmile,
+  IconMusic,
+  IconPaperclip,
+  IconPhoto,
+  IconSend,
+  IconVideo,
+} from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@ws/ui/components/ui/dropdown-menu";
 import { Button } from "@ws/ui/components/ui/button";
 import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types";
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
-import Image from "next/image";
 import { Textarea } from "@ws/ui/components/ui/textarea";
 import { cn } from "@ws/ui/lib/utils";
 import { compressImageFile } from "@/features/chat/lib/image-compression";
 import { dataUrlByteSize } from "@/features/chat/lib/blob-utils";
 import { maxAttachmentBytes } from "@/features/chat/lib/attachment-limits";
 
-/* -------------------------------------------------- */
-/* Helpers                                            */
-/* -------------------------------------------------- */
-
-interface AttachmentDraft extends ChatMessageDraft {
-  previewUrl?: string | null;
-  sizeLabel?: string | null;
-}
-
-function getPreviewUrl(draft: AttachmentDraft | null): string | null {
-  if (!draft) return null;
-  if (draft.previewUrl) return draft.previewUrl;
-  if (draft.attachment?.data) return draft.attachment.data;
-  return draft.metadata?.url || null;
-}
-
-/* -------------------------------------------------- */
-/* Main component                                     */
-/* -------------------------------------------------- */
+type AttachmentPickType = "image" | "video" | "audio";
 
 export function ChatInputBar({
   connectionStatus,
@@ -38,17 +32,16 @@ export function ChatInputBar({
   onSendTyping,
 }: {
   connectionStatus: ConnectionStatus;
-  onSendMessage: (draft: ChatMessageDraft) => void;
+  onSendMessage: (draft: ChatMessageDraft, file?: File | null) => void;
   onSendTyping: (isTyping: boolean) => void;
 }) {
   const [text, setText] = useState("");
   const [isComposing, setIsComposing] = useState(false);
-  const [attachmentDraft, setAttachmentDraft] =
-    useState<AttachmentDraft | null>(null);
   const [isPreparingAttachment, setIsPreparingAttachment] = useState(false);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const pendingAttachmentTypeRef = useRef<AttachmentPickType | null>(null);
   const typingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -83,10 +76,8 @@ export function ChatInputBar({
 
   const canSend = useMemo(() => {
     const hasText = text.trim().length > 0;
-    return isInCall && (hasText || !!attachmentDraft);
-  }, [text, attachmentDraft, isInCall]);
-
-  /* ---------------- Typing ---------------- */
+    return isInCall && hasText;
+  }, [text, isInCall]);
 
   const handleTypingChange = (value: string) => {
     setText(value);
@@ -103,28 +94,16 @@ export function ChatInputBar({
     }, 1200);
   };
 
-  /* ---------------- Send ---------------- */
-
   const resetDraft = () => {
     setText("");
-    setAttachmentDraft(null);
     setAttachmentError(null);
     giphy.setOpen(false);
   };
 
   const handleSend = () => {
     if (!canSend) return;
-
     const messageText = text.trim() || null;
-
-    if (attachmentDraft) {
-      onSendMessage({
-        type: attachmentDraft.type,
-        message: messageText,
-        attachment: attachmentDraft.attachment || null,
-        metadata: attachmentDraft.metadata || null,
-      });
-    } else if (messageText) {
+    if (messageText) {
       onSendMessage({
         type: "text",
         message: messageText,
@@ -132,27 +111,33 @@ export function ChatInputBar({
         metadata: null,
       });
     }
-
     resetDraft();
   };
 
-  /* ---------------- Image ---------------- */
+  const triggerFileInput = (type: AttachmentPickType) => {
+    if (!fileInputRef.current) return;
+    pendingAttachmentTypeRef.current = type;
+    if (type === "image") {
+      fileInputRef.current.accept = "image/*";
+    } else if (type === "video") {
+      fileInputRef.current.accept = "video/*";
+    } else {
+      fileInputRef.current.accept = "audio/*";
+    }
+    fileInputRef.current.click();
+  };
 
   const handleImagePick = async (file: File) => {
     if (!isInCall) return;
-
     setAttachmentError(null);
     setIsPreparingAttachment(true);
-
     try {
       const result = await compressImageFile(file);
       const encodedSize = dataUrlByteSize(result.dataUrl);
-
       if (encodedSize > maxAttachmentBytes) {
-        setAttachmentError("Image exceeds 5MB after compression.");
+        setAttachmentError("Image exceeds size limit after compression.");
         return;
       }
-
       onSendMessage({
         type: "image",
         message: null,
@@ -168,13 +153,33 @@ export function ChatInputBar({
       });
     } catch (error) {
       setAttachmentError(
-        error instanceof Error
-          ? error.message
-          : "Failed to prepare image."
+        error instanceof Error ? error.message : "Failed to prepare image."
       );
     } finally {
       setIsPreparingAttachment(false);
     }
+  };
+
+  const handleMediaPick = (file: File, type: "video" | "audio") => {
+    if (!isInCall || file.size > maxAttachmentBytes) {
+      if (file.size > maxAttachmentBytes) {
+        setAttachmentError("File exceeds size limit.");
+      }
+      return;
+    }
+    setAttachmentError(null);
+    onSendMessage(
+      {
+        type,
+        message: null,
+        attachment: {
+          mimeType: file.type || (type === "video" ? "video/mp4" : "audio/mpeg"),
+          size: file.size,
+        },
+        metadata: null,
+      },
+      file
+    );
   };
 
   const handleFileChange = async (
@@ -182,49 +187,24 @@ export function ChatInputBar({
   ) => {
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file) return;
-    await handleImagePick(file);
+    const type = pendingAttachmentTypeRef.current;
+    pendingAttachmentTypeRef.current = null;
+    if (!file || !type) return;
+    if (type === "image") {
+      await handleImagePick(file);
+    } else if (type === "video") {
+      handleMediaPick(file, "video");
+    } else {
+      handleMediaPick(file, "audio");
+    }
   };
-
-  const previewUrl = getPreviewUrl(attachmentDraft);
-
-  /* ---------------- Render ---------------- */
 
   return (
     <div className="border-t bg-background/80 backdrop-blur px-2 py-2 pb-safe">
-      {/* Attachment preview */}
-      {attachmentDraft && (
-        <div className="mb-2 flex items-center gap-3 rounded-xl border bg-background p-2">
-          <div className="flex-1 overflow-hidden">
-            {previewUrl && (
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                width={240}
-                height={180}
-                className="max-h-32 w-auto rounded-lg object-contain"
-                unoptimized
-              />
-            )}
-          </div>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setAttachmentDraft(null)}
-          >
-            <IconX size={18} />
-          </Button>
-        </div>
-      )}
-
       {attachmentError && (
-        <p className="mb-2 text-xs text-destructive">
-          {attachmentError}
-        </p>
+        <p className="mb-2 text-xs text-destructive">{attachmentError}</p>
       )}
 
-      {/* Input row */}
       <div className="flex items-end gap-2">
         <input
           ref={fileInputRef}
@@ -234,15 +214,41 @@ export function ChatInputBar({
           className="hidden"
         />
 
-        <Button
-          size="icon"
-          variant="ghost"
-          disabled={!isInCall}
-          onClick={() => fileInputRef.current?.click()}
-          className="rounded-full"
-        >
-          <IconPhoto size={20} />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              disabled={!isInCall}
+              className="rounded-full"
+            >
+              <IconPaperclip size={20} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" side="top" className="mb-2">
+            <DropdownMenuItem
+              onClick={() => triggerFileInput("image")}
+              disabled={!isInCall}
+            >
+              <IconPhoto size={18} />
+              Image
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => triggerFileInput("video")}
+              disabled={!isInCall}
+            >
+              <IconVideo size={18} />
+              Video
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => triggerFileInput("audio")}
+              disabled={!isInCall}
+            >
+              <IconMusic size={18} />
+              Audio
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <GiphyPicker
           open={giphy.open}

@@ -24,6 +24,7 @@ export interface VideoChatActions {
   setRemoteCameraEnabled: (enabled: boolean) => void;
   addChatMessage: (message: ChatMessage) => void;
   updateChatMessageStatus: (id: string, status: "sending" | "sent" | "failed") => void;
+  updateChatMessageAttachmentData: (messageId: string, dataUrl: string) => void;
   clearChatMessages: () => void;
   setError: (error: string | null) => void;
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
@@ -114,6 +115,8 @@ export function useVideoChatState() {
         useVideoChatStore.getState().addChatMessage(message),
       updateChatMessageStatus: (id: string, status: "sending" | "sent" | "failed") =>
         useVideoChatStore.getState().updateChatMessageStatus(id, status),
+      updateChatMessageAttachmentData: (messageId: string, dataUrl: string) =>
+        useVideoChatStore.getState().updateChatMessageAttachmentData(messageId, dataUrl),
       clearChatMessages: () =>
         useVideoChatStore.getState().clearChatMessages(),
       setError: (error: string | null) =>

@@ -1,21 +1,25 @@
 'use server'
 
+import * as Sentry from '@sentry/nextjs';
+
 import { getToken } from '@/lib/auth/token';
 
 interface ServerFetchOptions extends RequestInit {
-  token?: boolean;
   preloadedToken?: string;
 }
 
 export async function serverFetch<T>(url: string, options: ServerFetchOptions = {}): Promise<T> {
-  const { token: needsToken, preloadedToken, ...rest } = options;
-  const token = preloadedToken ?? (needsToken ? await getToken() : undefined);
+  const { preloadedToken, ...rest } = options;
+  const token = preloadedToken ?? await getToken();
 
   const headers: Record<string, string> = {
     ...(rest.headers as Record<string, string>),
     'Content-Type': 'application/json',
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  Sentry.logger.info(`Fetching ${url} with token: ${token?.substring(0, 10)}...`);
+  console.log(`Fetching ${url} with token: ${token?.substring(0, 10)}...`);
 
   const response = await fetch(url, { ...rest, headers });
   if (!response.ok) {

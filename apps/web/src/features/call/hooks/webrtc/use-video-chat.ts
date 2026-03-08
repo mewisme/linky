@@ -31,6 +31,15 @@ import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordi
 
 import { iceServerCache } from "@/features/call/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/features/call/lib/webrtc/webrtc-recovery";
+import { getAttachmentIceServers } from "@/features/call/lib/webrtc/attachment-ice";
+import {
+  createSenderConnection,
+  createReceiverConnection,
+  sendFileOverDataChannel,
+  setupAttachmentReceiverHandlers,
+  type AttachmentMeta,
+} from "@/features/call/lib/webrtc/attachment-data-channel";
+import { isWebRtcAttachmentMessageType } from "@/features/chat/lib/attachment-limits";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 
@@ -46,7 +55,7 @@ export interface UseVideoChatReturn {
   chatMessages: ChatMessage[];
   isPeerTyping: boolean;
   peerInfo: UsersAPI.PublicUserInfo | null;
-  sendMessage: (draft: ChatMessageDraft) => void;
+  sendMessage: (draft: ChatMessageDraft, file?: File | null) => void;
   sendTyping: (isTyping: boolean) => void;
   start: () => Promise<void>;
   skip: () => void;
@@ -93,6 +102,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const tabCoordination = useCallTabCoordination({
     onOwnershipLost: () => {
+      closeAttachmentTransferConnections();
       recoveryController.stop();
       iceServerCache.resetSession();
       mediaStream.releaseMedia();
@@ -121,6 +131,19 @@ export function useVideoChat(): UseVideoChatReturn {
   const isReconnectingRef = useRef(false);
   const connectionStatusRef = useRef(state.connectionStatus);
   connectionStatusRef.current = state.connectionStatus;
+
+  const attachmentSenderRef = useRef<{
+    messageId: string;
+    pc: RTCPeerConnection;
+    attachmentMeta: AttachmentMeta;
+    blob: Blob;
+    cloudflareIceServers: RTCIceServer[];
+  } | null>(null);
+  const attachmentReceiverRef = useRef<{ pc: RTCPeerConnection } | null>(null);
+  const ATTACHMENT_SIGNAL_TIMEOUT_MS = 30_000;
+  const attachmentSendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const attachmentReceiveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const screenTrackRef = useRef<MediaStreamTrack | null>(null);
   const screenTrackEndedHandlerRef = useRef<(() => void) | null>(null);
 
@@ -299,10 +322,32 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.resetRuntimeState();
   }, [mediaStream, peerConnection]);
 
+  const closeAttachmentTransferConnections = useCallback(() => {
+    if (attachmentSendTimeoutRef.current) {
+      clearTimeout(attachmentSendTimeoutRef.current);
+      attachmentSendTimeoutRef.current = null;
+    }
+    if (attachmentReceiveTimeoutRef.current) {
+      clearTimeout(attachmentReceiveTimeoutRef.current);
+      attachmentReceiveTimeoutRef.current = null;
+    }
+    const sender = attachmentSenderRef.current;
+    if (sender) {
+      sender.pc.close();
+      attachmentSenderRef.current = null;
+    }
+    const receiver = attachmentReceiverRef.current;
+    if (receiver) {
+      receiver.pc.close();
+      attachmentReceiverRef.current = null;
+    }
+  }, []);
+
   const cleanup = useCallback(() => {
+    closeAttachmentTransferConnections();
     resetPeerState();
     socketSignaling.disconnectSocket();
-  }, [resetPeerState, socketSignaling]);
+  }, [closeAttachmentTransferConnections, resetPeerState, socketSignaling]);
 
   useEffect(() => {
     return () => {
@@ -672,6 +717,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onPeerLeft: (data: { message: string; queueSize?: number }) => {
+        closeAttachmentTransferConnections();
         monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
@@ -692,6 +738,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onPeerSkipped: (data: { message: string; queueSize: number }) => {
+        closeAttachmentTransferConnections();
         monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
@@ -708,6 +755,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onSkipped: (_data: { message: string; queueSize: number }) => {
+        closeAttachmentTransferConnections();
         monitoring.stopMonitoring();
         recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");
@@ -722,6 +770,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onEndCall: (data: { message: string }) => {
+        closeAttachmentTransferConnections();
         monitoring.stopMonitoring();
         recoveryController.stop();
         toast(`Call ended - ${data.message}`);
@@ -754,6 +803,82 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onChatError: (data: ChatErrorPayload) => {
         toast.error(data.message);
+      },
+
+      onChatAttachmentSignal: async (data: import("@/lib/realtime/socket").ChatAttachmentSignalData) => {
+        if (data.type === "offer") {
+          if (attachmentSenderRef.current) return;
+          if (attachmentReceiveTimeoutRef.current) {
+            clearTimeout(attachmentReceiveTimeoutRef.current);
+            attachmentReceiveTimeoutRef.current = null;
+          }
+          try {
+            const { staticIceServers } = await getAttachmentIceServers((opts) => getTokenRef.current(opts));
+            if (staticIceServers.length === 0) throw new Error("No ICE servers");
+            const { pc, setOnDataChannel } = createReceiverConnection(staticIceServers);
+            attachmentReceiverRef.current = { pc };
+            pc.onicecandidate = (e) => {
+              if (e.candidate) {
+                socketSignaling.sendChatAttachmentSignal({ type: "ice-candidate", candidate: e.candidate.toJSON() });
+              }
+            };
+            setOnDataChannel((dc) => {
+              setupAttachmentReceiverHandlers(dc, (payload) => {
+                const url = URL.createObjectURL(payload.blob);
+                actionsRef.current.updateChatMessageAttachmentData(payload.messageId, url);
+                attachmentReceiverRef.current = null;
+                if (attachmentReceiveTimeoutRef.current) {
+                  clearTimeout(attachmentReceiveTimeoutRef.current);
+                  attachmentReceiveTimeoutRef.current = null;
+                }
+              });
+            });
+            await pc.setRemoteDescription(new RTCSessionDescription(data.sdp as RTCSessionDescriptionInit));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            socketSignaling.sendChatAttachmentSignal({ type: "answer", sdp: answer });
+            attachmentReceiveTimeoutRef.current = setTimeout(() => {
+              attachmentReceiveTimeoutRef.current = null;
+              if (attachmentReceiverRef.current) {
+                attachmentReceiverRef.current.pc.close();
+                attachmentReceiverRef.current = null;
+              }
+            }, ATTACHMENT_SIGNAL_TIMEOUT_MS);
+          } catch (err) {
+            Sentry.logger.error("Attachment receive: failed to handle offer", { error: err });
+            attachmentReceiverRef.current = null;
+          }
+          return;
+        }
+        if (data.type === "answer") {
+          const sender = attachmentSenderRef.current;
+          if (sender) {
+            try {
+              await sender.pc.setRemoteDescription(new RTCSessionDescription(data.sdp as RTCSessionDescriptionInit));
+            } catch (err) {
+              Sentry.logger.warn("Attachment send: setRemoteDescription failed", { error: err });
+            }
+          }
+          return;
+        }
+        if (data.type === "ice-candidate" && data.candidate) {
+          const sender = attachmentSenderRef.current;
+          if (sender) {
+            try {
+              await sender.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch (err) {
+              Sentry.logger.warn("Attachment send: addIceCandidate failed", { error: err });
+            }
+          }
+          const receiver = attachmentReceiverRef.current;
+          if (receiver) {
+            try {
+              await receiver.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch (err) {
+              Sentry.logger.warn("Attachment receive: addIceCandidate failed", { error: err });
+            }
+          }
+        }
       },
 
       onMuteToggle: (data: { muted: boolean }) => {
@@ -818,6 +943,7 @@ export function useVideoChat(): UseVideoChatReturn {
       monitoring,
       isMobile,
       state.connectionStatus,
+      closeAttachmentTransferConnections,
     ]
   );
 
@@ -920,6 +1046,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const endCall = useCallback(() => {
     Sentry.metrics.count("call_ended", 1);
+    closeAttachmentTransferConnections();
     recoveryController.stop();
     socketSignaling.sendEndCall();
     trackEvent({ name: "call_ended" });
@@ -929,7 +1056,7 @@ export function useVideoChat(): UseVideoChatReturn {
     tabCoordination.releaseOwnership();
     resetPeerState();
     setTimeout(() => refreshUserProgress(), 400);
-  }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination]);
+  }, [closeAttachmentTransferConnections, socketSignaling, resetPeerState, refreshUserProgress, tabCoordination]);
 
   const toggleMute = useCallback(() => {
     Sentry.metrics.count("mute_toggled", 1);
@@ -952,8 +1079,72 @@ export function useVideoChat(): UseVideoChatReturn {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }, []);
 
+  const startAttachmentSend = useCallback(
+    async (messageId: string, attachmentMeta: AttachmentMeta, blob: Blob) => {
+      if (attachmentSenderRef.current) return;
+      try {
+        const { staticIceServers, cloudflareIceServers } = await getAttachmentIceServers(
+          (opts) => getTokenRef.current(opts)
+        );
+        if (staticIceServers.length === 0) {
+          actionsRef.current.updateChatMessageStatus(messageId, "failed");
+          return;
+        }
+        const { pc, dataChannelPromise } = createSenderConnection(staticIceServers);
+        attachmentSenderRef.current = {
+          messageId,
+          pc,
+          attachmentMeta,
+          blob,
+          cloudflareIceServers,
+        };
+        pc.onicecandidate = (e) => {
+          if (e.candidate) {
+            socketSignaling.sendChatAttachmentSignal({ type: "ice-candidate", candidate: e.candidate.toJSON() });
+          }
+        };
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socketSignaling.sendChatAttachmentSignal({ type: "offer", sdp: offer });
+        attachmentSendTimeoutRef.current = setTimeout(() => {
+          attachmentSendTimeoutRef.current = null;
+          const sender = attachmentSenderRef.current;
+          if (sender && sender.messageId === messageId) {
+            sender.pc.close();
+            attachmentSenderRef.current = null;
+            actionsRef.current.updateChatMessageStatus(messageId, "failed");
+          }
+        }, ATTACHMENT_SIGNAL_TIMEOUT_MS);
+        const dc = await dataChannelPromise;
+        await sendFileOverDataChannel(dc, messageId, attachmentMeta, blob);
+        if (attachmentSendTimeoutRef.current) {
+          clearTimeout(attachmentSendTimeoutRef.current);
+          attachmentSendTimeoutRef.current = null;
+        }
+        const sender = attachmentSenderRef.current;
+        if (sender && sender.messageId === messageId) {
+          sender.pc.close();
+          attachmentSenderRef.current = null;
+        }
+      } catch (err) {
+        Sentry.logger.error("Attachment send failed", { error: err, messageId });
+        if (attachmentSendTimeoutRef.current) {
+          clearTimeout(attachmentSendTimeoutRef.current);
+          attachmentSendTimeoutRef.current = null;
+        }
+        const sender = attachmentSenderRef.current;
+        if (sender && sender.messageId === messageId) {
+          sender.pc.close();
+          attachmentSenderRef.current = null;
+        }
+        actionsRef.current.updateChatMessageStatus(messageId, "failed");
+      }
+    },
+    [socketSignaling]
+  );
+
   const sendMessage = useCallback(
-    (draft: ChatMessageDraft) => {
+    (draft: ChatMessageDraft, file?: File | null) => {
       Sentry.metrics.count("chat_message_sent", 1);
       const socketId = socketSignaling.getSocketId();
       const timestamp = Date.now();
@@ -1013,8 +1204,19 @@ export function useVideoChat(): UseVideoChatReturn {
         .catch(() => {
           actionsRef.current.updateChatMessageStatus(id, "failed");
         });
+
+      if (file && isWebRtcAttachmentMessageType(draft.type) && draft.attachment) {
+        const attachmentMeta: AttachmentMeta = {
+          mimeType: draft.attachment.mimeType,
+          size: draft.attachment.size,
+          width: draft.attachment.width,
+          height: draft.attachment.height,
+          duration: draft.attachment.duration,
+        };
+        void startAttachmentSend(id, attachmentMeta, file);
+      }
     },
-    [socketSignaling, user, createMessageId]
+    [socketSignaling, user, createMessageId, startAttachmentSend]
   );
 
   const sendTyping = useCallback(

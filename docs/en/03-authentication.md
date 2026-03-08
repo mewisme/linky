@@ -238,7 +238,7 @@ Server Action
   │
   ├── withSentryAction wraps the action
   │
-  └── serverFetch(url, { token: true })
+  └── serverFetch(url)
        │
        ├── getToken() from @/lib/auth/token
        │    └── Calls Clerk getToken({ template: 'custom' })

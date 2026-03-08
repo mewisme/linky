@@ -29,7 +29,7 @@ export async function updateAdminUser(
   return withSentryAction("updateAdminUser", async () => {
     const result = await serverFetch<AdminAPI.UpdateUser.Response>(
       backendUrl.admin.userById(id),
-      { method: 'PUT', body: JSON.stringify(data), token: true }
+      { method: 'PUT', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
     return result;
@@ -40,7 +40,7 @@ export async function softDeleteAdminUser(id: string): Promise<AdminAPI.PatchUse
   return withSentryAction("softDeleteAdminUser", async () => {
     const result = await serverFetch<AdminAPI.PatchUser.Response>(
       backendUrl.admin.userById(id),
-      { method: 'PATCH', body: JSON.stringify({ deleted: true, deleted_at: new Date().toISOString() }), token: true }
+      { method: 'PATCH', body: JSON.stringify({ deleted: true, deleted_at: new Date().toISOString() }) }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
     return result;
@@ -54,7 +54,6 @@ export async function softDeleteAdminUsers(ids: string[]): Promise<AdminAPI.Patc
       {
         method: 'PATCH',
         body: JSON.stringify({ ids, deleted: true, deleted_at: new Date().toISOString() }),
-        token: true,
       }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
@@ -66,7 +65,7 @@ export async function hardDeleteAdminUser(id: string): Promise<AdminAPI.DeleteUs
   return withSentryAction("hardDeleteAdminUser", async () => {
     const result = await serverFetch<AdminAPI.DeleteUser.Response>(
       backendUrl.admin.userById(id),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
     return result;
@@ -77,7 +76,7 @@ export async function hardDeleteAdminUsers(ids: string[]): Promise<AdminAPI.Dele
   return withSentryAction("hardDeleteAdminUsers", async () => {
     const result = await serverFetch<AdminAPI.DeleteUsersBatch.Response>(
       backendUrl.admin.usersBatch(),
-      { method: 'DELETE', body: JSON.stringify({ ids }), token: true }
+      { method: 'DELETE', body: JSON.stringify({ ids }) }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
     return result;
@@ -88,7 +87,7 @@ export async function restoreAdminUser(id: string): Promise<AdminAPI.PatchUser.R
   return withSentryAction("restoreAdminUser", async () => {
     const result = await serverFetch<AdminAPI.PatchUser.Response>(
       backendUrl.admin.userById(id),
-      { method: 'PATCH', body: JSON.stringify({ deleted: false, deleted_at: null }), token: true }
+      { method: 'PATCH', body: JSON.stringify({ deleted: false, deleted_at: null }) }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
     return result;
@@ -99,7 +98,7 @@ export async function restoreAdminUsers(ids: string[]): Promise<AdminAPI.PatchUs
   return withSentryAction("restoreAdminUsers", async () => {
     const result = await serverFetch<AdminAPI.PatchUsersBatch.Response>(
       backendUrl.admin.usersBatch(),
-      { method: 'PATCH', body: JSON.stringify({ ids, deleted: false, deleted_at: null }), token: true }
+      { method: 'PATCH', body: JSON.stringify({ ids, deleted: false, deleted_at: null }) }
     );
     revalidateTag(cacheTags.adminUsers, 'max');
     return result;

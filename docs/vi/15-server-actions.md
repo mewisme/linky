@@ -16,7 +16,7 @@ Thư mục apps/web/src/actions/ và mẫu withSentryAction/withSentryQuery.
 
 ## Mẫu
 
-Mutation: withSentryAction("tên", () => serverFetch(..., { token: true }) + revalidateTag(tag)). Query: withSentryQuery("tên", (token) => serverFetch(..., { preloadedToken: token }), { keyParts, tags }).
+Mutation: withSentryAction("tên", () => serverFetch(...) + revalidateTag(tag)). Query: withSentryQuery("tên", (token) => serverFetch(..., { preloadedToken: token }), { keyParts, tags }).
 
 ---
 

@@ -46,7 +46,7 @@ Namespace `/chat`: `socketAuthMiddleware` — token từ `handshake.auth.token` 
 
 ## 5. Frontend và quản lý token
 
-Server action: `serverFetch(url, { token: true })` lấy token qua `getToken()` của Clerk. Query có cache: `withSentryQuery` dùng `unstable_cache` với key có userId. Socket: `createNamespaceSockets(token)`, `updateToken(socket, newToken)` khi token đổi, `destroySockets()` khi unmount.
+Server action: `serverFetch(url)` lấy token qua `getToken()` của Clerk. Query có cache: `withSentryQuery` dùng `unstable_cache` với key có userId. Socket: `createNamespaceSockets(token)`, `updateToken(socket, newToken)` khi token đổi, `destroySockets()` khi unmount.
 
 ---
 

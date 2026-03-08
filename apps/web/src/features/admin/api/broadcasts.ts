@@ -29,7 +29,7 @@ export async function createBroadcast(
   return withSentryAction("createBroadcast", async () => {
     const result = await serverFetch<AdminAPI.Broadcasts.Post.Response>(
       backendUrl.admin.broadcasts(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminBroadcasts, 'max');
     return result;

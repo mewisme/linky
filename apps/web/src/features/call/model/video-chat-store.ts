@@ -57,6 +57,7 @@ interface VideoChatStore {
   setCallStartedAt: (timestamp: number | null) => void;
   addChatMessage: (message: ChatMessage) => void;
   updateChatMessageStatus: (id: string, status: ChatMessageDeliveryStatus) => void;
+  updateChatMessageAttachmentData: (messageId: string, dataUrl: string) => void;
   clearChatMessages: () => void;
   setError: (error: string | null) => void;
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
@@ -126,6 +127,17 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
     set((s) => ({
       chatMessages: s.chatMessages.map((message) =>
         message.id === id ? { ...message, localStatus: status } : message
+      ),
+    })),
+  updateChatMessageAttachmentData: (messageId, dataUrl) =>
+    set((s) => ({
+      chatMessages: s.chatMessages.map((message) =>
+        message.id === messageId && message.attachment
+          ? {
+              ...message,
+              attachment: { ...message.attachment, data: dataUrl },
+            }
+          : message
       ),
     })),
   clearChatMessages: () => set({ chatMessages: [] }),

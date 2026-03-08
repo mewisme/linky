@@ -28,7 +28,7 @@ export async function createInterestTag(
   return withSentryAction("createInterestTag", async () => {
     const result = await serverFetch<AdminAPI.InterestTags.Create.Response>(
       backendUrl.admin.interestTags(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminInterestTags, 'max');
     return result;
@@ -42,7 +42,7 @@ export async function updateInterestTag(
   return withSentryAction("updateInterestTag", async () => {
     const result = await serverFetch<AdminAPI.InterestTags.Update.Response>(
       backendUrl.admin.interestTagById(id),
-      { method: 'PUT', body: JSON.stringify(data), token: true }
+      { method: 'PUT', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminInterestTags, 'max');
     return result;
@@ -53,7 +53,7 @@ export async function deleteInterestTag(id: string): Promise<AdminAPI.InterestTa
   return withSentryAction("deleteInterestTag", async () => {
     const result = await serverFetch<AdminAPI.InterestTags.Delete.Response>(
       backendUrl.admin.interestTagById(id),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.adminInterestTags, 'max');
     return result;
@@ -64,7 +64,7 @@ export async function hardDeleteInterestTag(id: string): Promise<AdminAPI.Intere
   return withSentryAction("hardDeleteInterestTag", async () => {
     const result = await serverFetch<AdminAPI.InterestTags.HardDelete.Response>(
       backendUrl.admin.interestTagHardDelete(id),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.adminInterestTags, 'max');
     return result;
@@ -77,7 +77,7 @@ export async function importInterestTags(
   return withSentryAction("importInterestTags", async () => {
     const result = await serverFetch<AdminAPI.InterestTags.Import.Response>(
       backendUrl.admin.interestTagsImport(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminInterestTags, 'max');
     return result;

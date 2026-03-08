@@ -36,7 +36,7 @@ export async function markNotificationRead(id: string): Promise<void> {
   return withSentryAction("markNotificationRead", async () => {
     await serverFetch<void>(
       backendUrl.notifications.readById(id),
-      { method: 'PATCH', token: true }
+      { method: 'PATCH' }
     );
     revalidateTag(cacheTags.notifications, 'max');
   });
@@ -46,7 +46,7 @@ export async function markAllNotificationsRead(): Promise<void> {
   return withSentryAction("markAllNotificationsRead", async () => {
     await serverFetch<void>(
       backendUrl.notifications.readAll(),
-      { method: 'PATCH', token: true }
+      { method: 'PATCH' }
     );
     revalidateTag(cacheTags.notifications, 'max');
   });

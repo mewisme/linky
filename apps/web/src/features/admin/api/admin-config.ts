@@ -1,11 +1,12 @@
 'use server'
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { revalidateTag } from 'next/cache';
-import { backendUrl } from '@/lib/http/backend-url';
-import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
+
+import type { AdminAPI } from '@/features/admin/types/admin.types';
+import { backendUrl } from '@/lib/http/backend-url';
+import { cacheTags } from '@/lib/cache/tags';
+import { revalidateTag } from 'next/cache';
+import { serverFetch } from '@/lib/http/server-api';
 
 export async function getAdminConfig(): Promise<AdminAPI.Config.Get.Response> {
   return withSentryQuery(
@@ -36,7 +37,6 @@ export async function setAdminConfig(
     const result = await serverFetch<AdminAPI.Config.Set.Response>(backendUrl.admin.config(), {
       method: "POST",
       body: JSON.stringify(data),
-      token: true,
     });
     revalidateTag(cacheTags.adminConfig, "max");
     return result;
@@ -47,7 +47,6 @@ export async function unsetAdminConfig(key: string): Promise<void> {
   return withSentryAction("unsetAdminConfig", async () => {
     await serverFetch(backendUrl.admin.configByKey(key), {
       method: "DELETE",
-      token: true,
     });
     revalidateTag(cacheTags.adminConfig, "max");
   });

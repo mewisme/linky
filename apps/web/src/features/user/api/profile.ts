@@ -17,7 +17,7 @@ export async function updateUserDetails(
   return withSentryAction("updateUserDetails", async () => {
     const result = await serverFetch<UsersAPI.UserDetails.PatchMe.Response>(
       backendUrl.users.details(),
-      { method: 'PATCH', body: JSON.stringify(data), token: true }
+      { method: 'PATCH', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.userProfile, 'max');
     return result;
@@ -60,7 +60,6 @@ export async function syncUserTimezone(timezone: string): Promise<void> {
     await serverFetch(backendUrl.users.timezone(), {
       method: "PATCH",
       body: JSON.stringify({ timezone }),
-      token: true,
     }).catch((error) => {
       Sentry.logger.error("Failed to sync user timezone", { error });
     });
@@ -75,7 +74,7 @@ export async function updateUserCountry(
     if (!userId) throw new Error('Unauthorized');
     const result = await serverFetch<UsersAPI.UpdateCountry.Response>(
       backendUrl.users.meCountry(),
-      { method: 'PATCH', body: JSON.stringify({ country, clerk_user_id: userId }), token: true }
+      { method: 'PATCH', body: JSON.stringify({ country, clerk_user_id: userId }) }
     );
     revalidateTag(cacheTags.userProfile, 'max');
     return result;

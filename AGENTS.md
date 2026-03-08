@@ -129,12 +129,12 @@ Dependency direction is **inward**: app → features → entities → shared →
 
 Pages follow a consistent split: `page.tsx` is a server component that fetches data via `serverFetch()` and passes it as props to a `*-client.tsx` sibling that handles interactivity. The `-client.tsx` suffix naming is the project convention for client components.
 
-Server actions use `withSentryAction()` from `@/lib/monitoring/with-action` and `serverFetch()` from `@/lib/http/server-api` with `{ token: true }` to auto-inject Clerk auth tokens:
+Server actions use `withSentryAction()` from `@/lib/monitoring/with-action` and `serverFetch()` from `@/lib/http/server-api` to auto-inject Clerk auth tokens:
 
 ```typescript
 'use server'
 export async function myAction(params) {
-  return withSentryAction("myAction", async () => serverFetch(url, { token: true, ... }));
+  return withSentryAction("myAction", async () => serverFetch(url));
 }
 ```
 

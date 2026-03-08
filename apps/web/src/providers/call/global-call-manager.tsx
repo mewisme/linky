@@ -7,7 +7,7 @@ import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types"
 interface GlobalCallContextValue {
   isInActiveCall: boolean;
 
-  sendMessage: (draft: ChatMessageDraft) => void;
+  sendMessage: (draft: ChatMessageDraft, file?: File | null) => void;
   sendTyping: (isTyping: boolean) => void;
   start: () => Promise<void>;
   skip: () => void;

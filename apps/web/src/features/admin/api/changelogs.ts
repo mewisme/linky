@@ -28,7 +28,7 @@ export async function createChangelog(
   return withSentryAction("createChangelog", async () => {
     const result = await serverFetch<AdminAPI.Changelogs.Create.Response>(
       backendUrl.admin.changelogs(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminChangelogs, 'max');
     return result;
@@ -42,7 +42,7 @@ export async function updateChangelog(
   return withSentryAction("updateChangelog", async () => {
     const result = await serverFetch<AdminAPI.Changelogs.Update.Response>(
       backendUrl.admin.changelogById(id),
-      { method: 'PUT', body: JSON.stringify(data), token: true }
+      { method: 'PUT', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminChangelogs, 'max');
     return result;
@@ -53,7 +53,7 @@ export async function deleteChangelog(id: string): Promise<AdminAPI.Changelogs.D
   return withSentryAction("deleteChangelog", async () => {
     const result = await serverFetch<AdminAPI.Changelogs.Delete.Response>(
       backendUrl.admin.changelogById(id),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.adminChangelogs, 'max');
     return result;

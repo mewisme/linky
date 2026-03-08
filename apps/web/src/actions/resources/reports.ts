@@ -1,11 +1,12 @@
 'use server'
 
-import type { ResourcesAPI } from '@/shared/types/resources.types';
-import { revalidateTag } from 'next/cache';
-import { backendUrl } from '@/lib/http/backend-url';
-import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
+
+import type { ResourcesAPI } from '@/shared/types/resources.types';
+import { backendUrl } from '@/lib/http/backend-url';
+import { cacheTags } from '@/lib/cache/tags';
+import { revalidateTag } from 'next/cache';
+import { serverFetch } from '@/lib/http/server-api';
 
 export async function createReport(
   data: ResourcesAPI.Reports.Create.Body
@@ -13,7 +14,7 @@ export async function createReport(
   return withSentryAction("createReport", async () => {
     const result = await serverFetch<ResourcesAPI.Reports.Create.Response>(
       backendUrl.resources.reports(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.reportsMe, 'max');
     return result;
@@ -25,12 +26,12 @@ export async function getMyReports(
 ): Promise<ResourcesAPI.Reports.GetMe.Response> {
   const query = params
     ? new URLSearchParams(
-        Object.fromEntries(
-          Object.entries(params)
-            .filter(([, v]) => v !== undefined)
-            .map(([k, v]) => [k, String(v)])
-        )
+      Object.fromEntries(
+        Object.entries(params)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => [k, String(v)])
       )
+    )
     : undefined;
   const key = query?.toString() ?? '';
   return withSentryQuery(

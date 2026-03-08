@@ -210,7 +210,7 @@ withSentryQuery("queryName", (token) =>
 Server action pattern:
 ```
 withSentryAction("actionName", () =>
-  serverFetch(url, { token: true, method: "POST", body: ... })
+  serverFetch(url, { method: "POST", body: ... })
 )
 ```
 

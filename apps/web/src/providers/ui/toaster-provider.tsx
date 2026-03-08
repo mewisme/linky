@@ -5,5 +5,5 @@ import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 
 export function ToasterProvider() {
   const isMobile = useIsMobile();
-  return <Toaster position={isMobile ? "top-center" : "top-right"} />;
+  return <Toaster position={isMobile ? "top-center" : "bottom-right"} />;
 }

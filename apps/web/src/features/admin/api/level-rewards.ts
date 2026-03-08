@@ -28,7 +28,7 @@ export async function createLevelReward(
   return withSentryAction("createLevelReward", async () => {
     const result = await serverFetch<AdminAPI.LevelRewards.Create.Response>(
       backendUrl.admin.levelRewards(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminLevelRewards, 'max');
     return result;
@@ -42,7 +42,7 @@ export async function updateLevelReward(
   return withSentryAction("updateLevelReward", async () => {
     const result = await serverFetch<AdminAPI.LevelRewards.Update.Response>(
       backendUrl.admin.levelRewardById(id),
-      { method: 'PUT', body: JSON.stringify(data), token: true }
+      { method: 'PUT', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminLevelRewards, 'max');
     return result;
@@ -53,7 +53,7 @@ export async function deleteLevelReward(id: string): Promise<AdminAPI.LevelRewar
   return withSentryAction("deleteLevelReward", async () => {
     const result = await serverFetch<AdminAPI.LevelRewards.Delete.Response>(
       backendUrl.admin.levelRewardById(id),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.adminLevelRewards, 'max');
     return result;

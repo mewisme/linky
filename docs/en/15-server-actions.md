@@ -27,8 +27,7 @@ export async function mutatingAction(params) {
   return withSentryAction("actionName", async () => {
     const result = await serverFetch(url, {
       method: "POST",
-      body: JSON.stringify(params),
-      token: true
+      body: JSON.stringify(params)
     });
     revalidateTag(cacheTags.relevantTag);
     return result;
@@ -143,7 +142,7 @@ Example: For `getCallHistory({ limit: 10, offset: 0 })`:
 ```
 User performs mutation (e.g., addFavorite)
   │
-  ├── serverFetch(POST /api/v1/favorites, { token: true })
+  ├── serverFetch(POST /api/v1/favorites)
   │    → Backend processes request
   │    → Backend invalidates Redis cache
   │

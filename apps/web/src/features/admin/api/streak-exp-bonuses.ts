@@ -28,7 +28,7 @@ export async function createStreakExpBonus(
   return withSentryAction("createStreakExpBonus", async () => {
     const result = await serverFetch<AdminAPI.StreakExpBonuses.Create.Response>(
       backendUrl.admin.streakExpBonuses(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminStreakExpBonuses, 'max');
     return result;
@@ -42,7 +42,7 @@ export async function updateStreakExpBonus(
   return withSentryAction("updateStreakExpBonus", async () => {
     const result = await serverFetch<AdminAPI.StreakExpBonuses.Update.Response>(
       backendUrl.admin.streakExpBonusById(id),
-      { method: 'PUT', body: JSON.stringify(data), token: true }
+      { method: 'PUT', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminStreakExpBonuses, 'max');
     return result;
@@ -53,7 +53,7 @@ export async function deleteStreakExpBonus(id: string): Promise<AdminAPI.StreakE
   return withSentryAction("deleteStreakExpBonus", async () => {
     const result = await serverFetch<AdminAPI.StreakExpBonuses.Delete.Response>(
       backendUrl.admin.streakExpBonusById(id),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.adminStreakExpBonuses, 'max');
     return result;

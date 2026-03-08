@@ -65,7 +65,7 @@ function ChatContent({
 }: {
   chatMessages: ChatMessage[];
   connectionStatus: ConnectionStatus;
-  onSendMessage: (draft: ChatMessageDraft) => void;
+  onSendMessage: (draft: ChatMessageDraft, file?: File | null) => void;
   onSendTyping: (isTyping: boolean) => void;
   isPeerTyping: boolean;
   scrollAreaRef: React.RefObject<HTMLDivElement | null>;
@@ -216,7 +216,7 @@ export function ChatSidebar({
   onClose: () => void;
   chatMessages: ChatMessage[];
   connectionStatus: ConnectionStatus;
-  onSendMessage: (draft: ChatMessageDraft) => void;
+  onSendMessage: (draft: ChatMessageDraft, file?: File | null) => void;
   onSendTyping: (isTyping: boolean) => void;
   isPeerTyping: boolean;
 }) {

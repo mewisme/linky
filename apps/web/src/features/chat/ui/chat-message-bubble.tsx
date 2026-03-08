@@ -20,6 +20,10 @@ export function ChatMessageBubble({
 
   const attachment = message.attachment;
   const attachmentUrl = attachment?.data || message.metadata?.url || "";
+  const isPendingWebRtcAttachment =
+    (message.type === "image" || message.type === "video" || message.type === "audio") &&
+    attachment &&
+    !attachmentUrl;
 
   return (
     <div
@@ -30,6 +34,11 @@ export function ChatMessageBubble({
       )}
     >
       {message.type === "text" && message.message}
+      {message.type === "image" && isPendingWebRtcAttachment && (
+        <div className="flex max-h-64 min-h-24 items-center justify-center rounded-lg border border-dashed bg-muted/50 px-4 py-6 text-sm text-muted-foreground">
+          Receiving...
+        </div>
+      )}
       {message.type === "image" && attachmentUrl && (
         <ImageZoom>
           <Image
@@ -41,6 +50,27 @@ export function ChatMessageBubble({
             unoptimized
           />
         </ImageZoom>
+      )}
+      {message.type === "video" && isPendingWebRtcAttachment && (
+        <div className="flex max-h-64 min-h-24 items-center justify-center rounded-lg border border-dashed bg-muted/50 px-4 py-6 text-sm text-muted-foreground">
+          Receiving...
+        </div>
+      )}
+      {message.type === "video" && attachmentUrl && (
+        <video
+          src={attachmentUrl}
+          controls
+          className="max-h-64 w-auto rounded-lg"
+          preload="metadata"
+        />
+      )}
+      {message.type === "audio" && isPendingWebRtcAttachment && (
+        <div className="flex max-h-16 min-h-12 items-center justify-center rounded-lg border border-dashed bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          Receiving...
+        </div>
+      )}
+      {message.type === "audio" && attachmentUrl && (
+        <audio src={attachmentUrl} controls className="max-w-full" />
       )}
       {(message.type === "gif" || message.type === "sticker") && attachmentUrl && (
         <ImageZoom>

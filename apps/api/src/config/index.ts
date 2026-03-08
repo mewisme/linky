@@ -33,7 +33,7 @@ export const config = {
   redisUsername: process.env.REDIS_USERNAME as string,
   redisPassword: process.env.REDIS_PASSWORD as string,
   // Matchmaking
-  useRedisMatchmaking: process.env.USE_REDIS_MATCHMAKING === "true",
+  useMemoryMatchmaking: process.env.USE_MEMORY_MATCHMAKING === "true",
   // Cache
   cacheNamespaceVersion: process.env.CACHE_NAMESPACE_VERSION || "v1",
   // Server

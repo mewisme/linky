@@ -14,9 +14,7 @@ export async function getAdminLevelFeatureUnlocks(
   const searchParams = toURLSearchParams(params);
   return withSentryQuery(
     "getAdminLevelFeatureUnlocks",
-    async (token) => serverFetch<AdminAPI.LevelFeatureUnlocks.Get.Response>(
-      backendUrl.admin.levelFeatureUnlocks(searchParams), { preloadedToken: token }
-    ),
+    async () => serverFetch<AdminAPI.LevelFeatureUnlocks.Get.Response>(backendUrl.admin.levelFeatureUnlocks(searchParams)),
   );
 }
 
@@ -26,7 +24,7 @@ export async function createLevelFeatureUnlock(
   return withSentryAction("createLevelFeatureUnlock", async () => {
     const result = await serverFetch<AdminAPI.LevelFeatureUnlocks.Create.Response>(
       backendUrl.admin.levelFeatureUnlocks(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminLevelFeatureUnlocks, 'max');
     return result;
@@ -40,7 +38,7 @@ export async function updateLevelFeatureUnlock(
   return withSentryAction("updateLevelFeatureUnlock", async () => {
     const result = await serverFetch<AdminAPI.LevelFeatureUnlocks.Update.Response>(
       backendUrl.admin.levelFeatureUnlockById(id),
-      { method: 'PUT', body: JSON.stringify(data), token: true }
+      { method: 'PUT', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminLevelFeatureUnlocks, 'max');
     return result;
@@ -51,7 +49,7 @@ export async function deleteLevelFeatureUnlock(id: string): Promise<AdminAPI.Lev
   return withSentryAction("deleteLevelFeatureUnlock", async () => {
     const result = await serverFetch<AdminAPI.LevelFeatureUnlocks.Delete.Response>(
       backendUrl.admin.levelFeatureUnlockById(id),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.adminLevelFeatureUnlocks, 'max');
     return result;

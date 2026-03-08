@@ -12,8 +12,8 @@ interface QueueStatus {
 export async function getQueueStatus(): Promise<QueueStatus> {
   return withSentryQuery(
     "getQueueStatus",
-    async (token) => serverFetch<QueueStatus>(
-      `${publicEnv.API_URL}/api/v1/matchmaking/queue-status`, { preloadedToken: token }
+    async () => serverFetch<QueueStatus>(
+      `${publicEnv.API_URL}/api/v1/matchmaking/queue-status`
     ),
   );
 }

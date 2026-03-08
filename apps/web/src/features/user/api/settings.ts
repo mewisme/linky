@@ -10,9 +10,7 @@ import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action'
 export async function getUserSettings(): Promise<UsersAPI.UserSettings.GetMe.Response> {
   return withSentryQuery(
     "getUserSettings",
-    async (token) => serverFetch<UsersAPI.UserSettings.GetMe.Response>(
-      backendUrl.users.settings(), { preloadedToken: token }
-    ),
+    async () => serverFetch<UsersAPI.UserSettings.GetMe.Response>(backendUrl.users.settings()),
   );
 }
 
@@ -22,7 +20,7 @@ export async function updateUserSettings(
   return withSentryAction("updateUserSettings", async () => {
     const result = await serverFetch<UsersAPI.UserSettings.PatchMe.Response>(
       backendUrl.users.settings(),
-      { method: 'PATCH', body: JSON.stringify(data), token: true }
+      { method: 'PATCH', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.userSettings, 'max');
     return result;

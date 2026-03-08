@@ -31,9 +31,10 @@ export function ConnectionQualityIndicator({
       setVisible(true);
     } else if (isGood) {
       setVisible(false);
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setDisplayState("hidden");
       }, 300);
+      return () => clearTimeout(timeoutId);
     }
   }, [networkQuality, isVideoStalled]);
 

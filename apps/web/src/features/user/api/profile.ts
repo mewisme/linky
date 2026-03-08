@@ -17,7 +17,7 @@ export async function updateUserDetails(
   return withSentryAction("updateUserDetails", async () => {
     const result = await serverFetch<UsersAPI.UserDetails.PatchMe.Response>(
       backendUrl.users.details(),
-      { method: 'PATCH', body: JSON.stringify(data), token: true }
+      { method: 'PATCH', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.userProfile, 'max');
     return result;
@@ -27,28 +27,21 @@ export async function updateUserDetails(
 export async function getUserDetails(): Promise<UsersAPI.UserDetails.GetMe.Response> {
   return withSentryQuery(
     "getUserDetails",
-    async (token) => serverFetch<UsersAPI.UserDetails.GetMe.Response>(
-      backendUrl.users.details(), { preloadedToken: token }
-    ),
+    async () => serverFetch<UsersAPI.UserDetails.GetMe.Response>(backendUrl.users.details()),
   );
 }
 
 export async function getMe(): Promise<UsersAPI.GetMe.Response> {
   return withSentryQuery(
     "getMe",
-    async (token) => serverFetch<UsersAPI.GetMe.Response>(
-      backendUrl.users.me(), { preloadedToken: token }
-    ),
+    async () => serverFetch<UsersAPI.GetMe.Response>(backendUrl.users.me()),
   );
 }
 
 export async function getUserProgress(): Promise<UsersAPI.Progress.GetMe.Response> {
   return withSentryQuery(
     "getUserProgress",
-    async (token) => serverFetch<UsersAPI.Progress.GetMe.Response>(
-      backendUrl.users.progress(),
-      { preloadedToken: token }
-    ),
+    async () => serverFetch<UsersAPI.Progress.GetMe.Response>(backendUrl.users.progress()),
   );
 }
 
@@ -57,7 +50,6 @@ export async function syncUserTimezone(timezone: string): Promise<void> {
     await serverFetch(backendUrl.users.timezone(), {
       method: "PATCH",
       body: JSON.stringify({ timezone }),
-      token: true,
     }).catch((error) => {
       Sentry.logger.error("Failed to sync user timezone", { error });
     });
@@ -72,7 +64,7 @@ export async function updateUserCountry(
     if (!userId) throw new Error('Unauthorized');
     const result = await serverFetch<UsersAPI.UpdateCountry.Response>(
       backendUrl.users.meCountry(),
-      { method: 'PATCH', body: JSON.stringify({ country, clerk_user_id: userId }), token: true }
+      { method: 'PATCH', body: JSON.stringify({ country, clerk_user_id: userId }) }
     );
     revalidateTag(cacheTags.userProfile, 'max');
     return result;

@@ -14,18 +14,14 @@ export async function getAdminReports(
   const searchParams = toURLSearchParams(params);
   return withSentryQuery(
     "getAdminReports",
-    async (token) => serverFetch<AdminAPI.Reports.Get.Response>(
-      backendUrl.admin.reports(searchParams), { preloadedToken: token }
-    ),
+    async () => serverFetch<AdminAPI.Reports.Get.Response>(backendUrl.admin.reports(searchParams)),
   );
 }
 
 export async function getAdminReport(id: string): Promise<AdminAPI.Reports.GetById.Response> {
   return withSentryQuery(
     "getAdminReport",
-    async (token) => serverFetch<AdminAPI.Reports.GetById.Response>(
-      backendUrl.admin.reportById(id), { preloadedToken: token }
-    ),
+    async () => serverFetch<AdminAPI.Reports.GetById.Response>(backendUrl.admin.reportById(id)),
   );
 }
 
@@ -36,7 +32,7 @@ export async function updateAdminReport(
   return withSentryAction("updateAdminReport", async () => {
     const result = await serverFetch<AdminAPI.Reports.Update.Response>(
       backendUrl.admin.reportById(id),
-      { method: 'PATCH', body: JSON.stringify(data), token: true }
+      { method: 'PATCH', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.adminReports, 'max');
     return result;

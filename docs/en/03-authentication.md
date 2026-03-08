@@ -241,7 +241,7 @@ Server Action
   └── serverFetch(url, { token: true })
        │
        ├── getToken() from @/lib/auth/token
-       │    └── Calls Clerk getToken({ template: 'custom' })
+       │    └── Calls Clerk getToken({ template: 'server_action' })
        │
        ├── Set Authorization: Bearer {token} header
        │

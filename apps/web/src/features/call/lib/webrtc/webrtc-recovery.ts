@@ -40,6 +40,8 @@ class RecoveryController {
   private context: RecoveryContext | null = null;
   private isBackgrounded = false;
   private visibilityChangeHandler: (() => void) | null = null;
+  private networkConnection: EventTarget | null = null;
+  private networkChangeHandler: (() => void) | null = null;
 
   private async getRtpStats(pc: RTCPeerConnection): Promise<RecoveryStats | null> {
     try {
@@ -536,10 +538,12 @@ class RecoveryController {
     if (typeof window !== "undefined" && "connection" in navigator) {
       const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
       if (connection) {
-        connection.addEventListener("change", () => {
+        this.networkConnection = connection;
+        this.networkChangeHandler = () => {
           this.networkChangeDetected = true;
           Sentry.logger.info("[Recovery] Network change detected");
-        });
+        };
+        connection.addEventListener("change", this.networkChangeHandler);
       }
     }
 
@@ -567,6 +571,12 @@ class RecoveryController {
     if (this.visibilityChangeHandler && typeof document !== "undefined") {
       document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
       this.visibilityChangeHandler = null;
+    }
+
+    if (this.networkConnection && this.networkChangeHandler) {
+      this.networkConnection.removeEventListener("change", this.networkChangeHandler);
+      this.networkConnection = null;
+      this.networkChangeHandler = null;
     }
 
     this.context = null;

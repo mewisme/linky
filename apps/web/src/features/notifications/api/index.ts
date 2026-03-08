@@ -14,18 +14,14 @@ export async function getNotifications(
   const searchParams = toURLSearchParams(params);
   return withSentryQuery(
     "getNotifications",
-    async (token) => serverFetch<NotificationsResponse>(
-      backendUrl.notifications.me(searchParams), { preloadedToken: token }
-    ),
+    async () => serverFetch<NotificationsResponse>(backendUrl.notifications.me(searchParams)),
   );
 }
 
 export async function getUnreadCount(): Promise<UnreadCountResponse> {
   return withSentryQuery(
     "getUnreadCount",
-    async (token) => serverFetch<UnreadCountResponse>(
-      backendUrl.notifications.unreadCount(), { preloadedToken: token }
-    ),
+    async () => serverFetch<UnreadCountResponse>(backendUrl.notifications.unreadCount()),
   );
 }
 
@@ -33,7 +29,7 @@ export async function markNotificationRead(id: string): Promise<void> {
   return withSentryAction("markNotificationRead", async () => {
     await serverFetch<void>(
       backendUrl.notifications.readById(id),
-      { method: 'PATCH', token: true }
+      { method: 'PATCH' }
     );
     revalidateTag(cacheTags.notifications, 'max');
   });
@@ -43,7 +39,7 @@ export async function markAllNotificationsRead(): Promise<void> {
   return withSentryAction("markAllNotificationsRead", async () => {
     await serverFetch<void>(
       backendUrl.notifications.readAll(),
-      { method: 'PATCH', token: true }
+      { method: 'PATCH' }
     );
     revalidateTag(cacheTags.notifications, 'max');
   });

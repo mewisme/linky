@@ -22,9 +22,7 @@ export async function getCallHistory(
 ): Promise<ResourcesAPI.CallHistory.Get.Response> {
   return withSentryQuery(
     "getCallHistory",
-    async (token) => serverFetch<ResourcesAPI.CallHistory.Get.Response>(
-      backendUrl.resources.callHistory(buildQuery(params)), { preloadedToken: token }
-    ),
+    async () => serverFetch<ResourcesAPI.CallHistory.Get.Response>(backendUrl.resources.callHistory(buildQuery(params))),
   );
 }
 
@@ -33,8 +31,6 @@ export async function getCallHistoryById(
 ): Promise<ResourcesAPI.CallHistory.GetById.Response> {
   return withSentryQuery(
     "getCallHistoryById",
-    async (token) => serverFetch<ResourcesAPI.CallHistory.GetById.Response>(
-      backendUrl.resources.callHistoryById(id), { preloadedToken: token }
-    ),
+    async () => serverFetch<ResourcesAPI.CallHistory.GetById.Response>(backendUrl.resources.callHistoryById(id)),
   );
 }

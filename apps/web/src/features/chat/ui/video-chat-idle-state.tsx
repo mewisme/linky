@@ -41,9 +41,10 @@ interface VideoChatIdleStateProps {
 export function VideoChatIdleState({ onStart, initialProgress }: VideoChatIdleStateProps) {
   const { user } = useUserContext();
   const { data: progress } = useQuery({
-    queryKey: ["userProgress"],
+    queryKey: ["user-progress"],
     queryFn: () => getUserProgress(),
     initialData: initialProgress,
+    gcTime: 5 * 60 * 1000,
   });
 
   const displayName =

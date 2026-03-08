@@ -11,9 +11,7 @@ export async function getChangelogByVersion(
   try {
     return await withSentryQuery(
       "getChangelogByVersion",
-      async (_token) => serverFetch<ResourcesAPI.Changelogs.GetByVersion.Response>(
-        backendUrl.resources.changelogByVersion(version)
-      ),
+      async () => serverFetch<ResourcesAPI.Changelogs.GetByVersion.Response>(backendUrl.resources.changelogByVersion(version)),
     );
   } catch {
     return null;

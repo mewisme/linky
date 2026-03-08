@@ -93,6 +93,8 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const tabCoordination = useCallTabCoordination({
     onOwnershipLost: () => {
+      iceRestartCancelRef.current = true;
+      monitoring.stopMonitoring();
       recoveryController.stop();
       iceServerCache.resetSession();
       mediaStream.releaseMedia();
@@ -116,6 +118,9 @@ export function useVideoChat(): UseVideoChatReturn {
   const isOffererRef = useRef<boolean>(false);
   const getTokenRef = useRef(getToken);
   getTokenRef.current = getToken;
+  const screenTrackRef = useRef<MediaStreamTrack | null>(null);
+  const screenTrackEndedHandlerRef = useRef<(() => void) | null>(null);
+  const iceRestartCancelRef = useRef(false);
 
   const hasShownConnectedToastRef = useRef(false);
   const isReconnectingRef = useRef(false);
@@ -266,7 +271,19 @@ export function useVideoChat(): UseVideoChatReturn {
     }
   }, [isSocketHealthy, startReconnecting]);
 
+  const removeScreenTrackEndedListener = useCallback(() => {
+    const track = screenTrackRef.current;
+    const handler = screenTrackEndedHandlerRef.current;
+    if (track && handler) {
+      track.removeEventListener("ended", handler);
+      screenTrackRef.current = null;
+      screenTrackEndedHandlerRef.current = null;
+    }
+  }, []);
+
   const resetPeerState = useCallback(() => {
+    iceRestartCancelRef.current = true;
+    removeScreenTrackEndedListener();
     recoveryController.stop();
     iceServerCache.resetSession();
     mediaStream.releaseMedia();
@@ -275,7 +292,7 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setLocalStream(null);
     actionsRef.current.setMuted(false);
     actionsRef.current.setVideoOff(false);
-  }, [mediaStream, peerConnection]);
+  }, [mediaStream, peerConnection, removeScreenTrackEndedListener]);
 
   const resetRuntimeState = useCallback(() => {
     recoveryController.stop();
@@ -467,6 +484,7 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
       onForcedTeardown: () => {
+        monitoring.stopMonitoring();
         actionsRef.current.setConnectionStatus("ended");
         resetPeerState();
       },
@@ -533,17 +551,35 @@ export function useVideoChat(): UseVideoChatReturn {
             isOfferer: data.isOfferer,
             onIceRestart: async (offer) => {
               peerConnection.setIceRestartInProgress?.(true);
+              iceRestartCancelRef.current = false;
               if (!socketSignaling.isSocketHealthy()) {
                 await new Promise<void>((resolve) => {
+                  let settled = false;
                   const checkInterval = setInterval(() => {
+                    if (iceRestartCancelRef.current) {
+                      if (!settled) {
+                        settled = true;
+                        clearInterval(checkInterval);
+                        clearTimeout(timeoutId);
+                        resolve();
+                      }
+                      return;
+                    }
                     if (socketSignaling.isSocketHealthy() || !socketSignaling.getSocket()?.connected) {
+                      if (!settled) {
+                        settled = true;
+                        clearInterval(checkInterval);
+                        clearTimeout(timeoutId);
+                        resolve();
+                      }
+                    }
+                  }, 500);
+                  const timeoutId = setTimeout(() => {
+                    if (!settled) {
+                      settled = true;
                       clearInterval(checkInterval);
                       resolve();
                     }
-                  }, 500);
-                  setTimeout(() => {
-                    clearInterval(checkInterval);
-                    resolve();
                   }, 5000);
                 });
               }
@@ -898,6 +934,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const endCall = useCallback(() => {
     Sentry.metrics.count("call_ended", 1);
+    monitoring.stopMonitoring();
     recoveryController.stop();
     socketSignaling.sendEndCall();
     trackEvent({ name: "call_ended" });
@@ -907,7 +944,7 @@ export function useVideoChat(): UseVideoChatReturn {
     tabCoordination.releaseOwnership();
     resetPeerState();
     setTimeout(() => refreshUserProgress(), 400);
-  }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination]);
+  }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination, monitoring]);
 
   const toggleMute = useCallback(() => {
     Sentry.metrics.count("mute_toggled", 1);
@@ -1011,6 +1048,7 @@ export function useVideoChat(): UseVideoChatReturn {
     Sentry.metrics.count("screen_share_toggled", 1);
     if (isSharingScreen) {
       Sentry.metrics.count("screen_share_stopped", 1);
+      removeScreenTrackEndedListener();
       screenShare.stopScreenShare();
       actionsRef.current.setSharingScreen(false);
       actionsRef.current.setScreenStream(null);
@@ -1026,12 +1064,13 @@ export function useVideoChat(): UseVideoChatReturn {
       }
     } else {
       try {
+        removeScreenTrackEndedListener();
         Sentry.metrics.count("screen_share_started", 1);
         const stream = await screenShare.startScreenShare();
         const screenTrack = stream.getVideoTracks()[0];
 
         if (screenTrack) {
-          screenTrack.addEventListener("ended", () => {
+          const handler = () => {
             actionsRef.current.setSharingScreen(false);
             actionsRef.current.setScreenStream(null);
             socketSignaling.sendScreenShareToggle(false);
@@ -1043,7 +1082,10 @@ export function useVideoChat(): UseVideoChatReturn {
                 void peerConnection.replaceVideoTrack(cameraTrack);
               }
             }
-          });
+          };
+          screenTrackRef.current = screenTrack;
+          screenTrackEndedHandlerRef.current = handler;
+          screenTrack.addEventListener("ended", handler);
 
           await peerConnection.replaceVideoTrack(screenTrack);
           actionsRef.current.setSharingScreen(true);

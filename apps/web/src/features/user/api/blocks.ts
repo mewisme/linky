@@ -10,9 +10,7 @@ import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action'
 export async function getBlockedUsers(): Promise<BlockedUsersResponse> {
   return withSentryQuery(
     "getBlockedUsers",
-    async (token) => serverFetch<BlockedUsersResponse>(
-      backendUrl.users.blocksMe(), { preloadedToken: token }
-    ),
+    async () => serverFetch<BlockedUsersResponse>(backendUrl.users.blocksMe()),
   );
 }
 
@@ -20,7 +18,7 @@ export async function blockUser(userId: string): Promise<BlockRecord> {
   return withSentryAction("blockUser", async () => {
     const result = await serverFetch<BlockRecord>(
       backendUrl.users.blocks(),
-      { method: 'POST', body: JSON.stringify({ blocked_user_id: userId }), token: true }
+      { method: 'POST', body: JSON.stringify({ blocked_user_id: userId }) }
     );
     revalidateTag(cacheTags.userBlocks, 'max');
     return result;
@@ -31,7 +29,7 @@ export async function unblockUser(userId: string): Promise<void> {
   return withSentryAction("unblockUser", async () => {
     await serverFetch<void>(
       backendUrl.users.blockByUserId(userId),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.userBlocks, 'max');
   });

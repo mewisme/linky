@@ -92,7 +92,7 @@ export function VideoContainer({
   const queryClient = useQueryClient();
   useEffect(() => {
     if (connectionStatus === "ended") {
-      queryClient.invalidateQueries({ queryKey: ["userProgress"] });
+      queryClient.invalidateQueries({ queryKey: ["user-progress"] });
     }
   }, [connectionStatus, queryClient]);
 

@@ -13,7 +13,7 @@ export async function createReport(
   return withSentryAction("createReport", async () => {
     const result = await serverFetch<ResourcesAPI.Reports.Create.Response>(
       backendUrl.resources.reports(),
-      { method: 'POST', body: JSON.stringify(data), token: true }
+      { method: 'POST', body: JSON.stringify(data) }
     );
     revalidateTag(cacheTags.reportsMe, 'max');
     return result;
@@ -34,8 +34,6 @@ export async function getMyReports(
     : undefined;
   return withSentryQuery(
     "getMyReports",
-    async (token) => serverFetch<ResourcesAPI.Reports.GetMe.Response>(
-      backendUrl.resources.reportsMe(query), { preloadedToken: token }
-    ),
+    async () => serverFetch<ResourcesAPI.Reports.GetMe.Response>(backendUrl.resources.reportsMe(query)),
   );
 }

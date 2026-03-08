@@ -25,7 +25,15 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
   const [reactionInstances, setReactionInstances] = useState<Map<string, ReactionInstance[]>>(new Map());
   const processedReactionIdsRef = useRef<Set<string>>(new Set());
   const reactionInstancesRef = useRef<Map<string, ReactionInstance[]>>(new Map());
+  const removeReactionTimeoutIdsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
+
+  useEffect(() => {
+    return () => {
+      removeReactionTimeoutIdsRef.current.forEach((id) => clearTimeout(id));
+      removeReactionTimeoutIdsRef.current.clear();
+    };
+  }, []);
 
   useEffect(() => {
     reactionInstancesRef.current = reactionInstances;
@@ -111,9 +119,11 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
       next.delete(reactionId);
       return next;
     });
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      removeReactionTimeoutIdsRef.current.delete(timeoutId);
       removeReaction(reactionId);
     }, 0);
+    removeReactionTimeoutIdsRef.current.add(timeoutId);
   };
 
   const allInstances: Array<{ reactionId: string; instance: ReactionInstance; isLocal: boolean; type: string }> = [];

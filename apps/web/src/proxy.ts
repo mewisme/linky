@@ -29,11 +29,7 @@ const proxy = clerkMiddleware(async (auth, request) => {
   });
 
   if (!isPublicRoute(request)) {
-    if (request.method === "GET") {
-      await auth.protect();
-    } else {
-      return NextResponse.next()
-    }
+    await auth.protect();
   }
 });
 

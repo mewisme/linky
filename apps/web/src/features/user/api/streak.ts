@@ -11,12 +11,9 @@ export async function getStreakCalendar(
 ): Promise<UsersAPI.Streak.Calendar.Response> {
   return withSentryQuery(
     "getStreakCalendar",
-    async (token) => {
+    async () => {
       const params = new URLSearchParams({ year: String(year), month: String(month) });
-      return serverFetch<UsersAPI.Streak.Calendar.Response>(
-        backendUrl.users.streakCalendar(params),
-        { preloadedToken: token }
-      );
+      return serverFetch<UsersAPI.Streak.Calendar.Response>(backendUrl.users.streakCalendar(params));
     },
   );
 }

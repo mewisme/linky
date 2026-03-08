@@ -19,7 +19,7 @@ export function UserAuthProvider({ children }: { children: ReactNode }) {
 
   const getClerkToken = useCallback((options?: { skipCache?: boolean }) => {
     return authRef.current.getToken({
-      template: "custom",
+      template: "client",
       skipCache: options?.skipCache ?? false,
     });
   }, []);

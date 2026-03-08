@@ -58,6 +58,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     queryFn: () => getUserProgress(),
     initialData,
     staleTime: Infinity,
+    gcTime: 10 * 60 * 1000,
   });
 
   if (isLoading) {

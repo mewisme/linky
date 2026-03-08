@@ -12,8 +12,6 @@ export async function getInterestTags(
   const searchParams = toURLSearchParams(params);
   return withSentryQuery(
     "getInterestTags",
-    async (token) => serverFetch<ResourcesAPI.InterestTags.Get.Response>(
-      backendUrl.resources.interestTags(searchParams), { preloadedToken: token }
-    ),
+    async () => serverFetch<ResourcesAPI.InterestTags.Get.Response>(backendUrl.resources.interestTags(searchParams)),
   );
 }

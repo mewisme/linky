@@ -24,7 +24,6 @@ export async function syncEmbeddings(userIds: string[]): Promise<EmbeddingSyncRe
     return serverFetch(backendUrl.admin.embeddingsSync(), {
       method: 'POST',
       body: JSON.stringify({ user_ids: userIds }),
-      token: true,
     });
   });
 }
@@ -37,7 +36,6 @@ export async function compareEmbeddings(
     return serverFetch(backendUrl.admin.embeddingsCompare(), {
       method: 'POST',
       body: JSON.stringify({ user_id_1: userId1, user_id_2: userId2 }),
-      token: true,
     });
   });
 }
@@ -50,7 +48,6 @@ export async function findSimilarUsers(
     return serverFetch(backendUrl.admin.embeddingsSimilar(), {
       method: 'POST',
       body: JSON.stringify({ user_id: userId, limit }),
-      token: true,
     });
   });
 }

@@ -10,9 +10,7 @@ import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action'
 export async function getFavorites(): Promise<ResourcesAPI.Favorites.Get.Response> {
   return withSentryQuery(
     "getFavorites",
-    async (token) => serverFetch<ResourcesAPI.Favorites.Get.Response>(
-      backendUrl.resources.favorites(), { preloadedToken: token }
-    ),
+    async () => serverFetch<ResourcesAPI.Favorites.Get.Response>(backendUrl.resources.favorites()),
   );
 }
 
@@ -22,7 +20,7 @@ export async function addFavorite(
   return withSentryAction("addFavorite", async () => {
     const result = await serverFetch<ResourcesAPI.Favorites.Create.Response>(
       backendUrl.resources.favorites(),
-      { method: 'POST', body: JSON.stringify({ favorite_user_id: favoriteUserId }), token: true }
+      { method: 'POST', body: JSON.stringify({ favorite_user_id: favoriteUserId }) }
     );
     revalidateTag(cacheTags.favorites, 'max');
     return result;
@@ -35,7 +33,7 @@ export async function removeFavorite(
   return withSentryAction("removeFavorite", async () => {
     const result = await serverFetch<ResourcesAPI.Favorites.Delete.Response>(
       backendUrl.resources.favoriteByUserId(favoriteUserId),
-      { method: 'DELETE', token: true }
+      { method: 'DELETE' }
     );
     revalidateTag(cacheTags.favorites, 'max');
     return result;

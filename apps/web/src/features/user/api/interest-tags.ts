@@ -13,7 +13,7 @@ export async function replaceUserInterestTags(
   return withSentryAction("replaceUserInterestTags", async () => {
     const result = await serverFetch<UsersAPI.UserDetails.InterestTags.Replace.Response>(
       backendUrl.users.interestTags(),
-      { method: 'PUT', body: JSON.stringify({ tagIds }), token: true }
+      { method: 'PUT', body: JSON.stringify({ tagIds }) }
     );
     revalidateTag(cacheTags.userInterestTags, 'max');
     return result;
@@ -23,8 +23,6 @@ export async function replaceUserInterestTags(
 export async function getUserInterestTagsAll(): Promise<UsersAPI.UserDetails.GetMe.Response> {
   return withSentryQuery(
     "getUserInterestTagsAll",
-    async (token) => serverFetch<UsersAPI.UserDetails.GetMe.Response>(
-      backendUrl.users.interestTagsAll(), { preloadedToken: token }
-    ),
+    async () => serverFetch<UsersAPI.UserDetails.GetMe.Response>(backendUrl.users.interestTagsAll()),
   );
 }

@@ -1,6 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { getToken } from "../auth/token";
 import { headers } from "next/headers";
 
 export async function withSentryAction<T>(
@@ -16,15 +15,7 @@ export async function withSentryAction<T>(
 
 export async function withSentryQuery<T>(
   name: string,
-  fn: (token: string | undefined) => Promise<T>,
+  fn: () => Promise<T>,
 ): Promise<T> {
-  let preloadedToken: string | undefined;
-  try {
-    preloadedToken = await getToken();
-  } catch (error) {
-    Sentry.metrics.count("with_sentry_query_auth_error", 1);
-    Sentry.logger.error("Failed to get auth token", { error: error instanceof Error ? error.message : "Unknown error" });
-  }
-
-  return withSentryAction(name, () => fn(preloadedToken));
+  return withSentryAction(name, fn);
 }

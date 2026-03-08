@@ -12,13 +12,11 @@ export async function getAdminUsers(
   params?: ServerActionQueryParams
 ): Promise<AdminAPI.GetUsers.Response> {
   const searchParams = toURLSearchParams(params);
-  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminUsers",
     async (token) => serverFetch<AdminAPI.GetUsers.Response>(
       backendUrl.admin.users(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminUsers, key], tags: [cacheTags.adminUsers] },
   );
 }
 

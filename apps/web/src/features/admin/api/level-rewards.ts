@@ -12,13 +12,11 @@ export async function getAdminLevelRewards(
   params?: ServerActionQueryParams
 ): Promise<AdminAPI.LevelRewards.Get.Response> {
   const searchParams = toURLSearchParams(params);
-  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminLevelRewards",
     async (token) => serverFetch<AdminAPI.LevelRewards.Get.Response>(
       backendUrl.admin.levelRewards(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminLevelRewards, key], tags: [cacheTags.adminLevelRewards] },
   );
 }
 

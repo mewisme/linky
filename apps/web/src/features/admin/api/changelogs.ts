@@ -12,13 +12,11 @@ export async function getAdminChangelogs(
   params?: ServerActionQueryParams
 ): Promise<AdminAPI.Changelogs.Get.Response> {
   const searchParams = toURLSearchParams(params);
-  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminChangelogs",
     async (token) => serverFetch<AdminAPI.Changelogs.Get.Response>(
       backendUrl.admin.changelogs(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminChangelogs, key], tags: [cacheTags.adminChangelogs] },
   );
 }
 

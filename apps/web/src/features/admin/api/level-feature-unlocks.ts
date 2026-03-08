@@ -12,13 +12,11 @@ export async function getAdminLevelFeatureUnlocks(
   params?: ServerActionQueryParams
 ): Promise<AdminAPI.LevelFeatureUnlocks.Get.Response> {
   const searchParams = toURLSearchParams(params);
-  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminLevelFeatureUnlocks",
     async (token) => serverFetch<AdminAPI.LevelFeatureUnlocks.Get.Response>(
       backendUrl.admin.levelFeatureUnlocks(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminLevelFeatureUnlocks, key], tags: [cacheTags.adminLevelFeatureUnlocks] },
   );
 }
 

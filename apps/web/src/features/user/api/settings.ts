@@ -13,7 +13,6 @@ export async function getUserSettings(): Promise<UsersAPI.UserSettings.GetMe.Res
     async (token) => serverFetch<UsersAPI.UserSettings.GetMe.Response>(
       backendUrl.users.settings(), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.userSettings], tags: [cacheTags.userSettings] },
   );
 }
 

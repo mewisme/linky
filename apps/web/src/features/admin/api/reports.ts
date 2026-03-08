@@ -12,13 +12,11 @@ export async function getAdminReports(
   params?: ServerActionQueryParams
 ): Promise<AdminAPI.Reports.Get.Response> {
   const searchParams = toURLSearchParams(params);
-  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminReports",
     async (token) => serverFetch<AdminAPI.Reports.Get.Response>(
       backendUrl.admin.reports(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminReports, key], tags: [cacheTags.adminReports] },
   );
 }
 
@@ -28,7 +26,6 @@ export async function getAdminReport(id: string): Promise<AdminAPI.Reports.GetBy
     async (token) => serverFetch<AdminAPI.Reports.GetById.Response>(
       backendUrl.admin.reportById(id), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminReports, id], tags: [cacheTags.adminReports] },
   );
 }
 

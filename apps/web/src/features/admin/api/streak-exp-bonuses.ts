@@ -12,13 +12,11 @@ export async function getAdminStreakExpBonuses(
   params?: ServerActionQueryParams
 ): Promise<AdminAPI.StreakExpBonuses.Get.Response> {
   const searchParams = toURLSearchParams(params);
-  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getAdminStreakExpBonuses",
     async (token) => serverFetch<AdminAPI.StreakExpBonuses.Get.Response>(
       backendUrl.admin.streakExpBonuses(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminStreakExpBonuses, key], tags: [cacheTags.adminStreakExpBonuses] },
   );
 }
 

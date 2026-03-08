@@ -30,7 +30,6 @@ export async function getUserDetails(): Promise<UsersAPI.UserDetails.GetMe.Respo
     async (token) => serverFetch<UsersAPI.UserDetails.GetMe.Response>(
       backendUrl.users.details(), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.userProfile], tags: [cacheTags.userProfile] },
   );
 }
 
@@ -40,7 +39,6 @@ export async function getMe(): Promise<UsersAPI.GetMe.Response> {
     async (token) => serverFetch<UsersAPI.GetMe.Response>(
       backendUrl.users.me(), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.userProfile, 'me'], tags: [cacheTags.userProfile] },
   );
 }
 
@@ -51,7 +49,6 @@ export async function getUserProgress(): Promise<UsersAPI.Progress.GetMe.Respons
       backendUrl.users.progress(),
       { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.userProgress], tags: [cacheTags.userProgress] },
   );
 }
 

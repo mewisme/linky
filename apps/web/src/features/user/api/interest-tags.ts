@@ -26,6 +26,5 @@ export async function getUserInterestTagsAll(): Promise<UsersAPI.UserDetails.Get
     async (token) => serverFetch<UsersAPI.UserDetails.GetMe.Response>(
       backendUrl.users.interestTagsAll(), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.userInterestTags], tags: [cacheTags.userInterestTags] },
   );
 }

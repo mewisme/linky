@@ -3,7 +3,6 @@
 import type { UsersAPI } from '@/entities/user/types/users.types';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryQuery } from '@/lib/monitoring/with-action';
 
 export async function getStreakCalendar(
@@ -19,6 +18,5 @@ export async function getStreakCalendar(
         { preloadedToken: token }
       );
     },
-    { keyParts: [cacheTags.userStreak, String(year), String(month)], tags: [cacheTags.userStreak] },
   );
 }

@@ -32,12 +32,10 @@ export async function getMyReports(
         )
       )
     : undefined;
-  const key = query?.toString() ?? '';
   return withSentryQuery(
     "getMyReports",
     async (token) => serverFetch<ResourcesAPI.Reports.GetMe.Response>(
       backendUrl.resources.reportsMe(query), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.reportsMe, key], tags: [cacheTags.reportsMe] },
   );
 }

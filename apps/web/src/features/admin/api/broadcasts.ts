@@ -13,13 +13,11 @@ export async function getBroadcasts(
   params?: ServerActionQueryParams
 ): Promise<AdminAPI.Broadcasts.Get.Response> {
   const searchParams = toURLSearchParams(params);
-  const key = searchParams?.toString() ?? '';
   return withSentryQuery(
     "getBroadcasts",
     async (token) => serverFetch<AdminAPI.Broadcasts.Get.Response>(
       backendUrl.admin.broadcasts(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminBroadcasts, key], tags: [cacheTags.adminBroadcasts] },
   );
 }
 

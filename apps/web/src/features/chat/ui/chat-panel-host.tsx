@@ -1,14 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
+
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { ChatSidebar } from "./chat-sidebar";
 import { useChatPanelStore } from "@/features/chat/model/chat-panel-store";
-import { useEffect } from "react";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
-import { usePathname } from "next/navigation";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 
 export function ChatPanelHost() {
   const pathname = usePathname();
+  const isMobile = useIsMobile();
 
   const isChatPanelOpen = useChatPanelStore((s) => s.isChatPanelOpen);
   const closeChatPanel = useChatPanelStore((s) => s.closeChatPanel);
@@ -17,6 +20,15 @@ export function ChatPanelHost() {
   const chatMessages = useVideoChatStore((s) => s.chatMessages);
   const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
   const isPeerTyping = useVideoChatStore((s) => s.isPeerTyping);
+  const peerInfo = useVideoChatStore((s) => s.peerInfo);
+  const peerInfoForTyping = peerInfo
+    ? {
+        avatarUrl: peerInfo.avatar_url,
+        displayName:
+          `${peerInfo.first_name ?? ""} ${peerInfo.last_name ?? ""}`.trim() ||
+          "Peer",
+      }
+    : null;
 
   const { isInActiveCall, sendMessage, sendTyping } = useGlobalCallContext();
 
@@ -28,6 +40,8 @@ export function ChatPanelHost() {
 
   if (pathname !== "/call") return null;
 
+  if (isMobile) return null;
+
   return (
     <ChatSidebar
       isOpen={isChatPanelOpen}
@@ -35,6 +49,7 @@ export function ChatPanelHost() {
       chatMessages={chatMessages}
       connectionStatus={connectionStatus}
       isPeerTyping={isPeerTyping}
+      peerInfo={peerInfoForTyping}
       onSendMessage={sendMessage}
       onSendTyping={sendTyping}
     />

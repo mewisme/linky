@@ -153,21 +153,12 @@ function GiphyPicker({
   loading,
   results,
   onSelect,
-  disabled = false,
   children,
 }: GiphyPickerProps) {
   return (
     <Popover open={open} onOpenChange={onOpenChange} modal={true}>
       <PopoverTrigger asChild>
-        <Button
-          size="icon"
-          variant={open ? "secondary" : "ghost"}
-          disabled={disabled}
-          className="rounded-full"
-          data-slot="giphy-picker-trigger"
-        >
-          {children}
-        </Button>
+        {children}
       </PopoverTrigger>
 
       <PopoverContent

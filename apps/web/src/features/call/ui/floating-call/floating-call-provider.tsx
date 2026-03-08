@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { FloatingVideoContainer } from "./floating-video";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import { useAudioActivity } from "@/features/call/hooks/webrtc/use-audio-activity";
@@ -17,6 +18,7 @@ interface FloatingCallProviderProps {
 export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const isMobile = useIsMobile();
   const isOnCallPage = pathname === "/call";
 
   const localStream = useVideoChatStore((s) => s.localStream);
@@ -67,6 +69,10 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
     }
   };
 
+  const handleToggleChat = isMobile
+    ? () => router.push("/call/chat")
+    : toggleChatPanel;
+
   return (
     <>
       {children}
@@ -88,7 +94,7 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
           onEndCall={endCall}
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
-          onToggleChat={toggleChatPanel}
+          onToggleChat={handleToggleChat}
           sendFavoriteNotification={sendFavoriteNotification}
           onNavigateToChat={handleExpand}
         />

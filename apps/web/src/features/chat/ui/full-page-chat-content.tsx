@@ -4,7 +4,7 @@ import type { ChatMessage, ChatMessageDraft } from "@/features/chat/types/chat-m
 import { useEffect, useRef } from "react";
 
 import { ChatInputBar } from "./chat-input-bar";
-import { ChatMessageList } from "./chat-message-list";
+import { ChatMessageList, type PeerInfo } from "./chat-message-list";
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
 
@@ -14,6 +14,7 @@ interface FullPageChatContentProps {
   onSendMessage: (draft: ChatMessageDraft) => void;
   onSendTyping: (isTyping: boolean) => void;
   isPeerTyping: boolean;
+  peerInfo?: PeerInfo | null;
 }
 
 export function FullPageChatContent({
@@ -22,6 +23,7 @@ export function FullPageChatContent({
   onSendMessage,
   onSendTyping,
   isPeerTyping,
+  peerInfo,
 }: FullPageChatContentProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -36,15 +38,16 @@ export function FullPageChatContent({
     <div className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-hidden text-base">
       <ScrollArea
         ref={scrollAreaRef}
-        className="min-h-0 flex-1 bg-muted/30 px-4 py-3 border"
+        className="min-h-0 flex-1 bg-muted/30 px-4 py-3 border mx-2 rounded-md h-full"
       >
         <ChatMessageList
           chatMessages={chatMessages}
           isPeerTyping={isPeerTyping}
+          peerInfo={peerInfo}
         />
       </ScrollArea>
 
-      <div className="sticky bottom-0 z-10 shrink-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="sticky bottom-0 z-10 shrink-0 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
         <ChatInputBar
           connectionStatus={connectionStatus}
           onSendMessage={onSendMessage}

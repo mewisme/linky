@@ -38,12 +38,19 @@ function peerBubbleRadius(
   return "rounded-xl";
 }
 
+export interface PeerInfo {
+  avatarUrl?: string | null;
+  displayName: string;
+}
+
 export function ChatMessageList({
   chatMessages,
   isPeerTyping,
+  peerInfo,
 }: {
   chatMessages: ChatMessage[];
   isPeerTyping: boolean;
+  peerInfo?: PeerInfo | null;
 }) {
   return (
     <div className="flex flex-col" data-testid="chat-messages-container">
@@ -150,8 +157,26 @@ export function ChatMessageList({
         );
       })}
       {isPeerTyping && (
-        <div className="mt-3 text-xs text-muted-foreground">
-          Peer is typing...
+        <div className="mt-4 flex gap-2">
+          <Avatar className="size-8 shrink-0">
+            <AvatarImage
+              src={peerInfo?.avatarUrl ?? undefined}
+              alt={peerInfo?.displayName ?? "Peer"}
+            />
+            <AvatarFallback className="text-xs font-medium">
+              {(peerInfo?.displayName ?? "?").slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex max-w-[75%] flex-col items-start">
+            <div
+              className={cn(
+                "rounded-xl rounded-bl-sm px-3 py-2 text-xs text-muted-foreground",
+                "bg-background/60 text-foreground"
+              )}
+            >
+              Peer is typing...
+            </div>
+          </div>
         </div>
       )}
     </div>

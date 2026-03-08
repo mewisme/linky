@@ -1,10 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { VideoContainer } from "@/features/chat/ui/video-container";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
 import { useChatPanelStore } from "@/features/chat/model/chat-panel-store";
@@ -17,6 +18,8 @@ export default function CallLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (pathname === "/call/chat") {
@@ -56,6 +59,10 @@ export default function CallLayout({
   const toggleChatPanel = useChatPanelStore((s) => s.toggleChatPanel);
   const { hasUnreadMessages } = useChatUnreadIndicator(chatMessages, isChatOpen);
 
+  const handleToggleChat = isMobile
+    ? () => router.push("/call/chat")
+    : toggleChatPanel;
+
   const showInlineVideo =
     pathname === "/call" && !isFloatingMode;
 
@@ -79,7 +86,7 @@ export default function CallLayout({
           onEndCall={endCall}
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
-          onToggleChat={toggleChatPanel}
+          onToggleChat={handleToggleChat}
           onToggleScreenShare={toggleScreenShare}
           isSharingScreen={isSharingScreen}
           onBlockUser={async (userId) => {

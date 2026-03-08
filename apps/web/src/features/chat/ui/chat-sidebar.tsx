@@ -3,12 +3,6 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessage, ChatMessageDraft } from "@/features/chat/types/chat-message.types";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@ws/ui/components/ui/drawer";
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -18,11 +12,10 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { ChatInputBar } from "./chat-input-bar";
-import { ChatMessageList } from "./chat-message-list";
+import { ChatMessageList, type PeerInfo } from "./chat-message-list";
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import { IconMaximize } from "@tabler/icons-react";
 import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
-import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 
 export function ChatContent({
   chatMessages,
@@ -30,6 +23,7 @@ export function ChatContent({
   onSendMessage,
   onSendTyping,
   isPeerTyping,
+  peerInfo,
   scrollAreaRef,
 }: {
   chatMessages: ChatMessage[];
@@ -37,6 +31,7 @@ export function ChatContent({
   onSendMessage: (draft: ChatMessageDraft) => void;
   onSendTyping: (isTyping: boolean) => void;
   isPeerTyping: boolean;
+  peerInfo?: PeerInfo | null;
   scrollAreaRef: React.RefObject<HTMLDivElement | null>;
 }) {
   useEffect(() => {
@@ -52,7 +47,11 @@ export function ChatContent({
         ref={scrollAreaRef}
         className="min-h-0 flex-1 bg-muted/30 px-4 py-3 h-96"
       >
-        <ChatMessageList chatMessages={chatMessages} isPeerTyping={isPeerTyping} />
+        <ChatMessageList
+          chatMessages={chatMessages}
+          isPeerTyping={isPeerTyping}
+          peerInfo={peerInfo}
+        />
       </ScrollArea>
 
       <div className="shrink-0">
@@ -74,6 +73,7 @@ export function ChatSidebar({
   onSendMessage,
   onSendTyping,
   isPeerTyping,
+  peerInfo,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -82,44 +82,13 @@ export function ChatSidebar({
   onSendMessage: (draft: ChatMessageDraft) => void;
   onSendTyping: (isTyping: boolean) => void;
   isPeerTyping: boolean;
+  peerInfo?: PeerInfo | null;
 }) {
-  const isMobile = useIsMobile();
   const pathname = usePathname();
   const router = useRouter();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const showOpenFullChat = pathname === "/call";
-
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={onClose}>
-        <DrawerContent className="flex h-[80vh] flex-col z-110!">
-          <DrawerHeader className="flex flex-row items-center justify-between gap-2">
-            <DrawerTitle>Chat</DrawerTitle>
-            {showOpenFullChat && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/call/chat")}
-                className="gap-1.5 shrink-0"
-              >
-                <IconMaximize className="size-4" />
-                Open Full Chat
-              </Button>
-            )}
-          </DrawerHeader>
-          <ChatContent
-            chatMessages={chatMessages}
-            connectionStatus={connectionStatus}
-            onSendMessage={onSendMessage}
-            onSendTyping={onSendTyping}
-            isPeerTyping={isPeerTyping}
-            scrollAreaRef={scrollAreaRef}
-          />
-        </DrawerContent>
-      </Drawer>
-    );
-  }
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -147,6 +116,7 @@ export function ChatSidebar({
           onSendMessage={onSendMessage}
           onSendTyping={onSendTyping}
           isPeerTyping={isPeerTyping}
+          peerInfo={peerInfo}
           scrollAreaRef={scrollAreaRef}
         />
       </SheetContent>

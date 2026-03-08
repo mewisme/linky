@@ -1,32 +1,14 @@
 import { GiphyPicker, useGiphyPicker } from "./giphy";
-import { IconMoodSmile, IconPhoto, IconSend, IconX } from "@tabler/icons-react";
+import { IconArrowUp, IconMoodSmile, IconPhoto } from "@tabler/icons-react";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText, InputGroupTextarea } from "@ws/ui/components/ui/input-group";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Button } from "@ws/ui/components/ui/button";
 import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types";
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
-import Image from "next/image";
-import { Textarea } from "@ws/ui/components/ui/textarea";
-import { cn } from "@ws/ui/lib/utils";
 import { compressImageFile } from "@/features/chat/lib/image-compression";
 import { dataUrlByteSize } from "@/features/chat/lib/blob-utils";
 import { maxAttachmentBytes } from "@/features/chat/lib/attachment-limits";
-
-/* -------------------------------------------------- */
-/* Helpers                                            */
-/* -------------------------------------------------- */
-
-interface AttachmentDraft extends ChatMessageDraft {
-  previewUrl?: string | null;
-  sizeLabel?: string | null;
-}
-
-function getPreviewUrl(draft: AttachmentDraft | null): string | null {
-  if (!draft) return null;
-  if (draft.previewUrl) return draft.previewUrl;
-  if (draft.attachment?.data) return draft.attachment.data;
-  return draft.metadata?.url || null;
-}
+import { toast } from "@ws/ui/components/ui/sonner";
 
 /* -------------------------------------------------- */
 /* Main component                                     */
@@ -44,9 +26,8 @@ export function ChatInputBar({
   const [text, setText] = useState("");
   const [isComposing, setIsComposing] = useState(false);
   const [attachmentDraft, setAttachmentDraft] =
-    useState<AttachmentDraft | null>(null);
+    useState<ChatMessageDraft | null>(null);
   const [isPreparingAttachment, setIsPreparingAttachment] = useState(false);
-  const [attachmentError, setAttachmentError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const typingTimerRef = useRef<number | null>(null);
@@ -108,7 +89,6 @@ export function ChatInputBar({
   const resetDraft = () => {
     setText("");
     setAttachmentDraft(null);
-    setAttachmentError(null);
     giphy.setOpen(false);
   };
 
@@ -141,7 +121,6 @@ export function ChatInputBar({
   const handleImagePick = async (file: File) => {
     if (!isInCall) return;
 
-    setAttachmentError(null);
     setIsPreparingAttachment(true);
 
     try {
@@ -149,7 +128,7 @@ export function ChatInputBar({
       const encodedSize = dataUrlByteSize(result.dataUrl);
 
       if (encodedSize > maxAttachmentBytes) {
-        setAttachmentError("Image exceeds 5MB after compression.");
+        toast.error("Image exceeds 5MB after compression.");
         return;
       }
 
@@ -167,10 +146,10 @@ export function ChatInputBar({
         metadata: { compressRatio: result.compressRatio },
       });
     } catch (error) {
-      setAttachmentError(
+      toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to prepare image."
+          : "Failed to prepare image for sending."
       );
     } finally {
       setIsPreparingAttachment(false);
@@ -186,80 +165,20 @@ export function ChatInputBar({
     await handleImagePick(file);
   };
 
-  const previewUrl = getPreviewUrl(attachmentDraft);
-
   /* ---------------- Render ---------------- */
 
   return (
-    <div className="border-t bg-background/80 backdrop-blur px-2 py-2 pb-safe">
-      {/* Attachment preview */}
-      {attachmentDraft && (
-        <div className="mb-2 flex items-center gap-3 rounded-xl border bg-background p-2">
-          <div className="flex-1 overflow-hidden">
-            {previewUrl && (
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                width={240}
-                height={180}
-                className="max-h-32 w-auto rounded-lg object-contain"
-                unoptimized
-              />
-            )}
-          </div>
+    <div className="bg-background/80 backdrop-blur px-2 py-2 pb-safe">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
 
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setAttachmentDraft(null)}
-          >
-            <IconX size={18} />
-          </Button>
-        </div>
-      )}
-
-      {attachmentError && (
-        <p className="mb-2 text-xs text-destructive">
-          {attachmentError}
-        </p>
-      )}
-
-      {/* Input row */}
-      <div className="flex items-end gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-
-        <Button
-          size="icon"
-          variant="ghost"
-          disabled={!isInCall}
-          onClick={() => fileInputRef.current?.click()}
-          className="rounded-full"
-        >
-          <IconPhoto size={20} />
-        </Button>
-
-        <GiphyPicker
-          open={giphy.open}
-          onOpenChange={giphy.setOpen}
-          query={giphy.query}
-          onQueryChange={giphy.setQuery}
-          type={giphy.type}
-          onTypeChange={giphy.setType}
-          loading={giphy.loading}
-          results={giphy.results}
-          onSelect={giphy.onSelect}
-          disabled={!isInCall}
-        >
-          <IconMoodSmile size={20} />
-        </GiphyPicker>
-
-        <Textarea
+      <InputGroup>
+        <InputGroupTextarea
           value={text}
           onChange={(e) => handleTypingChange(e.target.value)}
           onCompositionStart={() => setIsComposing(true)}
@@ -271,23 +190,52 @@ export function ChatInputBar({
             }
           }}
           disabled={!isInCall}
-          placeholder="Type a message..."
-          className={cn(
-            "no-ios-zoom flex-1 resize-none rounded-2xl border px-4 py-2 text-base",
-            "min-h-[40px] max-h-40",
-            "focus-visible:ring-1 focus-visible:ring-primary/30"
-          )}
-        />
+          placeholder="Type a message..." />
+        <InputGroupAddon align="block-end">
+          <InputGroupButton
+            variant={'ghost'}
+            className="rounded-full"
+            size="icon-sm"
+            aria-label="Send image"
+            disabled={!isInCall}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <IconPhoto />
+          </InputGroupButton>
 
-        <Button
-          size="icon"
-          onClick={handleSend}
-          disabled={!canSend || isPreparingAttachment}
-          className="rounded-full"
-        >
-          <IconSend size={18} />
-        </Button>
-      </div>
+          <GiphyPicker
+            open={giphy.open}
+            onOpenChange={giphy.setOpen}
+            query={giphy.query}
+            onQueryChange={giphy.setQuery}
+            type={giphy.type}
+            onTypeChange={giphy.setType}
+            loading={giphy.loading}
+            results={giphy.results}
+            onSelect={giphy.onSelect}
+            disabled={!isInCall}
+          >
+            <InputGroupButton
+              variant={'ghost'}
+              className="rounded-full"
+              size="icon-sm"
+              aria-label="Send GIF"
+            >
+              <IconMoodSmile />
+            </InputGroupButton>
+          </GiphyPicker>
+          <InputGroupButton
+            variant="default"
+            className="rounded-full ml-auto"
+            onClick={handleSend}
+            disabled={!canSend || isPreparingAttachment}
+            size="icon-xs"
+          >
+            <IconArrowUp />
+            <span className="sr-only">Send</span>
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
     </div>
   );
 }

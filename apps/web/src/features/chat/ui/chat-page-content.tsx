@@ -13,20 +13,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
-import type { ResourcesAPI } from "@/shared/types/resources.types";
-import type { UsersAPI } from "@/entities/user/types/users.types";
 import { useChatPanelStore } from "@/features/chat/model/chat-panel-store";
 import { useEffect } from "react";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 
-interface ChatPageContentProps {
-  initialProgress?: UsersAPI.Progress.GetMe.Response | null;
-  initialFavorites?: ResourcesAPI.Favorites.Get.Response | null;
-}
-
-export function ChatPageContent({ initialProgress, initialFavorites }: ChatPageContentProps) {
+export function ChatPageContent() {
   const { authLoading } = useUserContext();
 
   const error = useVideoChatStore((s) => s.error);

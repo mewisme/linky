@@ -57,7 +57,7 @@
     "@types/react-dom": "^19.2.3",
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
-    "eslint": "^9.39.4",
+    "eslint": "^10.0.3",
     "eslint-config-next": "16.1.1",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.1",

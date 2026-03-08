@@ -51,7 +51,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
-    "eslint": "^9.39.4",
+    "eslint": "^10.0.3",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "catalog:",

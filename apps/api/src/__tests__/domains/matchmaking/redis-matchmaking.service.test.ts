@@ -473,8 +473,8 @@ describe("MatchmakingService with RedisMatchStateStore", () => {
       mockSMembers.mockImplementation(async (key: string) => {
         if (key === "user:interests:user1") return ["tag1"];
         if (key === "user:interests:user2") return ["tag1"];
-        if (key === "user:favorites:user3") return ["user4"];
-        if (key === "user:favorites:user4") return ["user3"];
+        if (key === "matchmaking:favorites:user3") return ["user4"];
+        if (key === "matchmaking:favorites:user4") return ["user3"];
         return [];
       });
 
@@ -508,7 +508,7 @@ describe("MatchmakingService with RedisMatchStateStore", () => {
       mockSMembers.mockImplementation(async (key: string) => {
         if (key === "user:interests:user1") return ["tag1"];
         if (key === "user:interests:user2") return ["tag1"];
-        if (key === "user:favorites:user2") return ["user3"];
+        if (key === "matchmaking:favorites:user2") return ["user3"];
         return [];
       });
 

@@ -1,6 +1,6 @@
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
-import type { VideoChatRoom } from "@/domains/video-chat/types/room.types.js";
+import type { VideoChatRoom, VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 import { createLogger } from "@/utils/logger.js";
 import { getTimezoneForUser } from "@/domains/user/service/user-details.service.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
@@ -126,6 +126,49 @@ export async function recordCallHistory(
     logger.info("Call history recorded: duration=%ds", durationSeconds);
   } catch (error) {
     logger.error(error as Error, "Error recording call history");
+  }
+}
+
+export async function recordCallHistoryFromRoom(
+  io: Namespace,
+  room: VideoChatRoomRecord,
+): Promise<void> {
+  const callerDbId = room.user1DbId;
+  const calleeDbId = room.user2DbId;
+  if (!callerDbId || !calleeDbId) {
+    logger.warn("Cannot record call history from room: missing user1DbId or user2DbId");
+    return;
+  }
+
+  try {
+    const idempotencyKey = getCallIdempotencyKey(callerDbId, calleeDbId, room.startedAt);
+    const lockAcquired = await acquireIdempotencyLock(idempotencyKey);
+    if (!lockAcquired) {
+      return;
+    }
+
+    const endedAt = new Date();
+    const durationSeconds = Math.floor((endedAt.getTime() - room.startedAt.getTime()) / 1000);
+    const safeDuration = durationSeconds > 0 ? durationSeconds : 0;
+
+    const [callerTimezone, calleeTimezone] = await Promise.all([
+      getTimezoneForUser(callerDbId),
+      getTimezoneForUser(calleeDbId),
+    ]);
+
+    await recordCallHistoryInDatabase({
+      callerId: callerDbId,
+      calleeId: calleeDbId,
+      startedAt: room.startedAt,
+      endedAt,
+      durationSeconds: safeDuration,
+      callerTimezone,
+      calleeTimezone,
+    });
+
+    logger.info("Call history recorded from room (no sockets): duration=%ds", safeDuration);
+  } catch (error) {
+    logger.error(error as Error, "Error recording call history from room");
   }
 }
 

@@ -63,6 +63,12 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
           }
         }
 
+        const room = rooms.getRoom(roomId);
+        if (room && dbUserId1 && dbUserId2) {
+          room.user1DbId = dbUserId1;
+          room.user2DbId = dbUserId2;
+        }
+
         user1Socket.emit("matched", {
           roomId,
           peerId: user2.socketId,

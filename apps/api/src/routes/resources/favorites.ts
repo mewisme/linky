@@ -11,7 +11,6 @@ import {
 } from "@/infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { createLogger } from "@/utils/logger.js";
-import { redisClient } from "@/infra/redis/client.js";
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
@@ -183,12 +182,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
       }
     }
 
-    try {
-      const favoritesKey = `user:favorites:${userId}`;
-      await redisClient.sRem(favoritesKey, favorite_user_id);
-    } catch (error: unknown) {
-      logger.error(error as Error, "Failed to update Redis cache");
-    }
+    await invalidateCacheKey(CACHE_KEYS.userFavorites(userId));
 
     return res.json({
       message: "Favorite removed successfully",

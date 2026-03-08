@@ -2761,6 +2761,24 @@ export type Database = {
           milestone_600_claimed: boolean
         }[]
       }
+      grant_user_exp_daily_only: {
+        Args: { p_date: string; p_exp_seconds: number; p_user_id: string }
+        Returns: {
+          exp_earned: number
+          milestone_1800_claimed: boolean
+          milestone_3600_claimed: boolean
+          milestone_600_claimed: boolean
+        }[]
+      }
+      grant_user_exp_total: {
+        Args: {
+          p_date: string
+          p_exp_seconds: number
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       hello_world_fdw_handler: { Args: never; Returns: unknown }
       hello_world_fdw_meta: {
         Args: never

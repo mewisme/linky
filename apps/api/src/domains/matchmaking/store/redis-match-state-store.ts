@@ -9,6 +9,7 @@ import { redisClient } from "@/infra/redis/client.js";
 
 const QUEUE_KEY = "match:queue";
 const SOCKET_KEY_PREFIX = "match:socket:";
+const FAVORITES_KEY_PREFIX = "matchmaking:favorites:";
 const SKIP_COOLDOWN_TTL = 10;
 const MAX_QUEUE_WAIT_TIME = 5 * 60 * 1000;
 const INTEREST_TAGS_TTL = 15 * 60;
@@ -265,7 +266,7 @@ export class RedisMatchStateStore implements MatchStateStore {
 
   async getUserFavorites(userId: string): Promise<string[]> {
     try {
-      const key = `user:favorites:${userId}`;
+      const key = `${FAVORITES_KEY_PREFIX}${userId}`;
       return await redisClient.sMembers(key);
     } catch (error) {
       this.logger.error(error as Error, "Failed to get favorites for %s", userId);
@@ -327,7 +328,7 @@ export class RedisMatchStateStore implements MatchStateStore {
   private async cacheUserFavorites(userId: string): Promise<void> {
     try {
       const favorites = await getFavoritesByUserId(userId);
-      const key = `user:favorites:${userId}`;
+      const key = `${FAVORITES_KEY_PREFIX}${userId}`;
 
       await redisClient.del(key);
 

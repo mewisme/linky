@@ -1,7 +1,7 @@
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { ChatMessageSnapshot } from "@/domains/video-chat/types/chat-message.types.js";
 import type { Namespace } from "socket.io";
-import type { VideoChatRoom } from "@/domains/video-chat/types/room.types.js";
+import type { VideoChatRoom, VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 
 export interface VideoChatMatchmaking {
   enqueue(socket: unknown): Promise<boolean>;
@@ -17,15 +17,15 @@ export interface VideoChatMatchmaking {
 }
 
 export interface VideoChatRooms {
-  getRoom(roomId: string): (VideoChatRoom & { id: string; createdAt: Date }) | undefined;
-  getRoomByUser(socketId: string): (VideoChatRoom & { id: string; createdAt: Date }) | undefined;
-  findRoomByUserId(userId: string, io: Namespace): (VideoChatRoom & { id: string; createdAt: Date }) | null;
+  getRoom(roomId: string): VideoChatRoomRecord | undefined;
+  getRoomByUser(socketId: string): VideoChatRoomRecord | undefined;
+  findRoomByUserId(userId: string, io: Namespace): VideoChatRoomRecord | null;
   getPeer(socketId: string): string | null;
   updateSocketId(oldSocketId: string, newSocketId: string): boolean;
   deleteRoom(roomId: string): void;
   isInRoom(socketId: string): boolean;
   getRoomCount(): number;
-  getAllRooms(): Array<VideoChatRoom & { id: string; createdAt: Date }>;
+  getAllRooms(): VideoChatRoomRecord[];
   createRoom(user1SocketId: string, user2SocketId: string): string;
   addChatSnapshot(roomId: string, message: ChatMessageSnapshot): void;
   getChatSnapshot(roomId: string): ChatMessageSnapshot[];

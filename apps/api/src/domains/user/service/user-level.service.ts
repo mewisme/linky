@@ -76,18 +76,16 @@ export async function addCallExp(
     }
 
     const dateForExpToday = options?.dateForExpToday;
+    await incrementUserExp(userId, expToAdd);
     if (dateForExpToday) {
       await Promise.all([
         incrementDailyExpWithMilestones(userId, dateForExpToday, expToAdd),
         incrExpToday(userId, dateForExpToday, expToAdd),
       ]);
-    } else {
-      await incrementUserExp(userId, expToAdd);
     }
+    await invalidateByPrefix(`user:progress:${userId}:`);
     if (timezone) {
       await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
-    } else {
-      await invalidateByPrefix(`user:progress:${userId}:`);
     }
 
     const levelAfter = await getUserLevel(userId);

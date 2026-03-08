@@ -15,10 +15,6 @@ Sentry.init({
   replaysOnErrorSampleRate: isEnabled ? 1.0 : 0,
   integrations: isEnabled
     ? [
-      Sentry.replayIntegration({
-        maskAllText: false,
-        blockAllMedia: false,
-      }),
       Sentry.feedbackIntegration({
         colorScheme: "system",
         showBranding: false,

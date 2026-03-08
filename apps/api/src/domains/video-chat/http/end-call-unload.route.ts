@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { getVideoChatContext } from "@/domains/video-chat/socket/video-chat.socket.js";
 import { createLogger } from "@/utils/logger.js";
-import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
+import { recordCallHistory, recordCallHistoryFromRoom } from "@/domains/video-chat/socket/call-history.socket.js";
 import { type AuthenticatedSocket } from "@/socket/auth.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 
@@ -33,6 +33,11 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
       logger.warn("Socket not found: %s - may have already disconnected", socketId);
       const room = rooms.getRoomByUser(socketId);
       if (room) {
+        if (room.user1DbId && room.user2DbId) {
+          await recordCallHistoryFromRoom(io, room).catch((error) => {
+            logger.error(error as Error, "Failed to record call history from room");
+          });
+        }
         const peerId = rooms.getPeer(socketId);
         if (peerId) {
           const peerSocket = io.sockets.get(peerId) as AuthenticatedSocket | undefined;

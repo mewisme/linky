@@ -15,7 +15,6 @@ export async function getAdminConfig(): Promise<AdminAPI.Config.Get.Response> {
       serverFetch<AdminAPI.Config.Get.Response>(backendUrl.admin.config(), {
         preloadedToken: token,
       }),
-    { keyParts: [cacheTags.adminConfig], tags: [cacheTags.adminConfig] },
   );
 }
 
@@ -26,7 +25,6 @@ export async function getAdminConfigByKey(key: string): Promise<AdminAPI.Config.
       serverFetch<AdminAPI.Config.GetByKey.Response>(backendUrl.admin.configByKey(key), {
         preloadedToken: token,
       }),
-    { keyParts: [cacheTags.adminConfig, key], tags: [cacheTags.adminConfig] },
   );
 }
 

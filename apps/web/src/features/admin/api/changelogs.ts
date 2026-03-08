@@ -18,7 +18,6 @@ export async function getAdminChangelogs(
     async (token) => serverFetch<AdminAPI.Changelogs.Get.Response>(
       backendUrl.admin.changelogs(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminChangelogs, key], tags: [cacheTags.adminChangelogs] },
   );
 }
 

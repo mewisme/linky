@@ -18,7 +18,6 @@ export async function getAdminLevelFeatureUnlocks(
     async (token) => serverFetch<AdminAPI.LevelFeatureUnlocks.Get.Response>(
       backendUrl.admin.levelFeatureUnlocks(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminLevelFeatureUnlocks, key], tags: [cacheTags.adminLevelFeatureUnlocks] },
   );
 }
 

@@ -1,10 +1,11 @@
 'use server'
 
 import { auth } from '@clerk/nextjs/server';
-import { cache } from 'react';
 
-export const getToken = cache(async (): Promise<string> => {
-  const { getToken } = await auth();
+export async function getToken(): Promise<string> {
+  const { getToken } = await auth({
+    acceptsToken: 'any'
+  });
   const token = await getToken({ template: 'custom' });
 
   if (!token) {
@@ -12,4 +13,4 @@ export const getToken = cache(async (): Promise<string> => {
   }
 
   return token;
-});
+}

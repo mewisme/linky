@@ -18,7 +18,6 @@ export async function getAdminLevelRewards(
     async (token) => serverFetch<AdminAPI.LevelRewards.Get.Response>(
       backendUrl.admin.levelRewards(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminLevelRewards, key], tags: [cacheTags.adminLevelRewards] },
   );
 }
 

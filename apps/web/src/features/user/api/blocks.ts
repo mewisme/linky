@@ -14,7 +14,6 @@ export async function getBlockedUsers(): Promise<BlockedUsersResponse> {
     async (token) => serverFetch<BlockedUsersResponse>(
       backendUrl.users.blocksMe(), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.userBlocks], tags: [cacheTags.userBlocks] },
   );
 }
 

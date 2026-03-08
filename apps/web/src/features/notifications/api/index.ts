@@ -18,7 +18,6 @@ export async function getNotifications(
     async (token) => serverFetch<NotificationsResponse>(
       backendUrl.notifications.me(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.notifications, key], tags: [cacheTags.notifications] },
   );
 }
 
@@ -28,7 +27,6 @@ export async function getUnreadCount(): Promise<UnreadCountResponse> {
     async (token) => serverFetch<UnreadCountResponse>(
       backendUrl.notifications.unreadCount(), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.notifications, 'unread'], tags: [cacheTags.notifications] },
   );
 }
 

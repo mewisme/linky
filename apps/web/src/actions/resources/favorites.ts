@@ -14,7 +14,6 @@ export async function getFavorites(): Promise<ResourcesAPI.Favorites.Get.Respons
     async (token) => serverFetch<ResourcesAPI.Favorites.Get.Response>(
       backendUrl.resources.favorites(), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.favorites], tags: [cacheTags.favorites] },
   );
 }
 

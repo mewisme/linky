@@ -18,7 +18,6 @@ export async function getAdminInterestTags(
     async (token) => serverFetch<AdminAPI.InterestTags.Get.Response>(
       backendUrl.admin.interestTags(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminInterestTags, key], tags: [cacheTags.adminInterestTags] },
   );
 }
 

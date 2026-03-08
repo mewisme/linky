@@ -3,7 +3,6 @@
 import type { ResourcesAPI } from '@/shared/types/resources.types';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryQuery } from '@/lib/monitoring/with-action';
 
 function buildQuery(params?: ResourcesAPI.CallHistory.Get.QueryParams): URLSearchParams | undefined {
@@ -26,7 +25,6 @@ export async function getCallHistory(
     async (token) => serverFetch<ResourcesAPI.CallHistory.Get.Response>(
       backendUrl.resources.callHistory(buildQuery(params)), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.callHistory, key], tags: [cacheTags.callHistory] },
   );
 }
 
@@ -38,6 +36,5 @@ export async function getCallHistoryById(
     async (token) => serverFetch<ResourcesAPI.CallHistory.GetById.Response>(
       backendUrl.resources.callHistoryById(id), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.callHistory, id], tags: [cacheTags.callHistory] },
   );
 }

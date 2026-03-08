@@ -39,6 +39,5 @@ export async function getMyReports(
     async (token) => serverFetch<ResourcesAPI.Reports.GetMe.Response>(
       backendUrl.resources.reportsMe(query), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.reportsMe, key], tags: [cacheTags.reportsMe] },
   );
 }

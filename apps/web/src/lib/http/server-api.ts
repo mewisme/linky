@@ -24,6 +24,9 @@ export async function serverFetch<T>(url: string, options: ServerFetchOptions = 
   const response = await fetch(url, { ...rest, headers });
   if (!response.ok) {
     const text = await response.text().catch(() => response.statusText);
+    Sentry.logger.error(`Failed to fetch ${url}`, { error: text || response.statusText });
+    console.error(`Failed to fetch ${url}`, { error: text || response.statusText });
+    Sentry.captureException(new Error(text || response.statusText));
     throw new Error(text || response.statusText);
   }
 

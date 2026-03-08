@@ -18,7 +18,6 @@ export async function getAdminUsers(
     async (token) => serverFetch<AdminAPI.GetUsers.Response>(
       backendUrl.admin.users(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminUsers, key], tags: [cacheTags.adminUsers] },
   );
 }
 

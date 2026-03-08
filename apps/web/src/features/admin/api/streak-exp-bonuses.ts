@@ -18,7 +18,6 @@ export async function getAdminStreakExpBonuses(
     async (token) => serverFetch<AdminAPI.StreakExpBonuses.Get.Response>(
       backendUrl.admin.streakExpBonuses(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminStreakExpBonuses, key], tags: [cacheTags.adminStreakExpBonuses] },
   );
 }
 

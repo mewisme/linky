@@ -19,7 +19,6 @@ export async function getBroadcasts(
     async (token) => serverFetch<AdminAPI.Broadcasts.Get.Response>(
       backendUrl.admin.broadcasts(searchParams), { preloadedToken: token }
     ),
-    { keyParts: [cacheTags.adminBroadcasts, key], tags: [cacheTags.adminBroadcasts] },
   );
 }
 

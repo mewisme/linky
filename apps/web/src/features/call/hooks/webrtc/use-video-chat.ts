@@ -390,6 +390,11 @@ export function useVideoChat(): UseVideoChatReturn {
             if (isReconnectingRef.current) {
               completeReconnection();
             }
+            if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
+              hasShownConnectedToastRef.current = true;
+              toast.success("You are now connected with your peer.");
+              play('join_call');
+            }
           } else {
             actionsRef.current.setConnectionStatus("reconnecting");
           }

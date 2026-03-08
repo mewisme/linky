@@ -29,7 +29,7 @@
     "@types/react-dom": "^19.2.3",
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
-    "eslint": "^9.39.4",
+    "eslint": "^10.0.3",
     "typescript": "catalog:"
   },
   "dependencies": {

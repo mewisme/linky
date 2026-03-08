@@ -416,7 +416,7 @@ export function VideoControls({
         onClick: () => {
           useVideoChatStore.getState().setFloatingMode(!isFloatingMode);
         },
-        visible: isInActiveCall,
+        visible: isInActiveCall && isMobile,
         dynamicLabel: () => isFloatingMode ? "Exit Picture in Picture" : "Picture in Picture",
         testId: "chat-pip-toggle-button",
       },

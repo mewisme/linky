@@ -13,6 +13,7 @@ import {
   sanitizeMessageText,
   estimateAttachmentSize,
   isAllowedType,
+  isWebRtcAttachmentType,
   createChatSnapshot,
   emitChatError,
 } from "../helpers/chat-message.helper.js";
@@ -90,10 +91,17 @@ export function setupChatMessageHandler(
       return;
     }
 
-    if (data.type === "image" && typeof data.attachment?.data !== "string") {
-      emitChatError(socket, "Attachment data missing.");
-      acknowledge?.({ ok: false, error: "Attachment data missing." });
-      return;
+    if (isWebRtcAttachmentType(data.type)) {
+      if (
+        !data.attachment ||
+        typeof data.attachment.mimeType !== "string" ||
+        typeof data.attachment.size !== "number" ||
+        data.attachment.size > maxAttachmentBytes
+      ) {
+        emitChatError(socket, "Invalid attachment metadata for WebRTC transfer.");
+        acknowledge?.({ ok: false, error: "Invalid attachment metadata." });
+        return;
+      }
     }
 
     if ((data.type === "gif" || data.type === "sticker") && !data.metadata?.url) {
@@ -101,6 +109,17 @@ export function setupChatMessageHandler(
       acknowledge?.({ ok: false, error: "Media reference missing." });
       return;
     }
+
+    const attachmentForPeer =
+      data.attachment && isWebRtcAttachmentType(data.type)
+        ? {
+            mimeType: data.attachment.mimeType,
+            size: data.attachment.size,
+            width: data.attachment.width,
+            height: data.attachment.height,
+            duration: data.attachment.duration,
+          }
+        : data.attachment || null;
 
     const payload: ChatMessagePayload = {
       id: data.id,
@@ -113,7 +132,7 @@ export function setupChatMessageHandler(
       },
       timestamp: data.timestamp || Date.now(),
       message: sanitizedMessage,
-      attachment: data.attachment || null,
+      attachment: attachmentForPeer,
       metadata: data.metadata || null,
     };
 

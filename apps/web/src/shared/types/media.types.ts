@@ -13,6 +13,13 @@ export namespace MediaAPI {
         iceServers: IceServer[];
       }
     }
+
+    export namespace GetDual {
+      export interface Response {
+        staticIceServers: RTCIceServer[];
+        cloudflareIceServers: RTCIceServer[];
+      }
+    }
   }
 
   export namespace S3 {

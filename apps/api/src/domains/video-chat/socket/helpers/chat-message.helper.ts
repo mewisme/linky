@@ -7,7 +7,7 @@ import type {
 } from "@/domains/video-chat/types/socket-event.types.js";
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 
-export const maxAttachmentBytes = 5 * 1024 * 1024;
+export const maxAttachmentBytes = 100 * 1024 * 1024;
 export const maxMessageLength = 2000;
 
 export function sanitizeMessageText(message: string | null): string | null {
@@ -34,8 +34,14 @@ export function estimateAttachmentSize(attachment: ChatAttachment | null): numbe
   return Math.max(declaredSize, dataSize);
 }
 
+export const WEBRTC_ATTACHMENT_TYPES: ChatMessageType[] = ["image", "video", "audio"];
+
+export function isWebRtcAttachmentType(type: string): type is ChatMessageType {
+  return WEBRTC_ATTACHMENT_TYPES.includes(type as ChatMessageType);
+}
+
 export function isAllowedType(type: string): type is ChatMessageType {
-  return ["text", "image", "gif", "sticker", "system"].includes(type);
+  return ["text", "image", "video", "audio", "gif", "sticker", "system"].includes(type);
 }
 
 export function createChatSnapshot(message: ChatMessagePayload): ChatMessageSnapshot {

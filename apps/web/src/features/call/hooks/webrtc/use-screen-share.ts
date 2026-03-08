@@ -7,6 +7,8 @@ import { useCallback, useRef, useState } from "react";
 export function useScreenShare() {
   const [isSharing, setIsSharing] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
+  const screenTrackRef = useRef<MediaStreamTrack | null>(null);
+  const screenTrackEndedHandlerRef = useRef<(() => void) | null>(null);
 
   const startScreenShare = useCallback(async (): Promise<MediaStream> => {
     try {
@@ -18,11 +20,16 @@ export function useScreenShare() {
 
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
-        videoTrack.addEventListener("ended", () => {
+        const endedHandler = () => {
           Sentry.metrics.count("screen_share_ended", 1);
           streamRef.current = null;
+          screenTrackRef.current = null;
+          screenTrackEndedHandlerRef.current = null;
           setIsSharing(false);
-        });
+        };
+        screenTrackRef.current = videoTrack;
+        screenTrackEndedHandlerRef.current = endedHandler;
+        videoTrack.addEventListener("ended", endedHandler);
       }
 
       Sentry.metrics.count("screen_share_started", 1);
@@ -37,8 +44,15 @@ export function useScreenShare() {
   }, []);
 
   const stopScreenShare = useCallback(() => {
+    const track = screenTrackRef.current;
+    const handler = screenTrackEndedHandlerRef.current;
+    if (track && handler) {
+      track.removeEventListener("ended", handler);
+      screenTrackRef.current = null;
+      screenTrackEndedHandlerRef.current = null;
+    }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
     setIsSharing(false);

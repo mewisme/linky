@@ -3,7 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useRef, useCallback, useEffect, useMemo, type RefObject } from "react";
 import { publishPresence } from "@/lib/messaging/mqtt-client";
-import { type SignalData } from "@/lib/realtime/socket";
+import { type SignalData, type ChatAttachmentSignalData } from "@/lib/realtime/socket";
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/features/chat/types/chat-message.types";
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";
 import type { Socket } from "socket.io-client";
@@ -38,6 +38,7 @@ export interface SocketCallbacks {
   onFavoriteAddedSelf: (data: { favorite_user_id: string }) => void;
   onFavoriteRemoved: (data: { from_user_id: string; from_user_name: string }) => void;
   onFavoriteRemovedSelf: (data: { favorite_user_id: string }) => void;
+  onChatAttachmentSignal?: (data: ChatAttachmentSignalData) => void;
 }
 
 export interface UseSocketSignalingReturn {
@@ -54,6 +55,7 @@ export interface UseSocketSignalingReturn {
   sendScreenShareToggle: (sharing: boolean, streamId?: string) => void;
   sendReaction: (count: number, type?: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  sendChatAttachmentSignal: (data: ChatAttachmentSignalData) => void;
   removeAllListeners: () => void;
   disconnectSocket: () => void;
   getSocket: () => Socket | null;
@@ -134,6 +136,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onChatError(data);
     });
 
+    socket.on("chat:attachment:signal", (data: ChatAttachmentSignalData) => {
+      publishPresence('in_call');
+      socketHealthMonitor.markEventReceived();
+      callbacks.onChatAttachmentSignal?.(data);
+    });
+
     socket.on("mute-toggle", (data) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
@@ -209,6 +217,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         socket.removeAllListeners("chat:message");
         socket.removeAllListeners("chat:typing");
         socket.removeAllListeners("chat:error");
+        socket.removeAllListeners("chat:attachment:signal");
         socket.removeAllListeners("mute-toggle");
         socket.removeAllListeners("video-toggle");
         socket.removeAllListeners("screen-share:toggle");
@@ -377,6 +386,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, []);
 
+  const sendChatAttachmentSignal = useCallback((data: ChatAttachmentSignalData) => {
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit("chat:attachment:signal", data);
+    }
+  }, []);
+
   const removeAllListeners = useCallback(() => {
     if (socketRef.current) {
       socketRef.current.removeAllListeners("joined-queue");
@@ -389,10 +404,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socketRef.current.removeAllListeners("chat:message");
       socketRef.current.removeAllListeners("chat:typing");
       socketRef.current.removeAllListeners("chat:error");
+      socketRef.current.removeAllListeners("chat:attachment:signal");
       socketRef.current.removeAllListeners("mute-toggle");
       socketRef.current.removeAllListeners("video-toggle");
       socketRef.current.removeAllListeners("screen-share:toggle");
       socketRef.current.removeAllListeners("queue-timeout");
+      socketRef.current.removeAllListeners("dequeued");
       socketRef.current.removeAllListeners("error");
       socketRef.current.removeAllListeners("favorite:added");
       socketRef.current.removeAllListeners("favorite:added:self");
@@ -442,6 +459,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendScreenShareToggle,
       sendReaction,
       sendFavoriteNotification,
+      sendChatAttachmentSignal,
       removeAllListeners,
       disconnectSocket,
       getSocket,
@@ -465,6 +483,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendScreenShareToggle,
       sendReaction,
       sendFavoriteNotification,
+      sendChatAttachmentSignal,
       removeAllListeners,
       disconnectSocket,
       getSocket,

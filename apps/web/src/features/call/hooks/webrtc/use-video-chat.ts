@@ -121,6 +121,8 @@ export function useVideoChat(): UseVideoChatReturn {
   const isReconnectingRef = useRef(false);
   const connectionStatusRef = useRef(state.connectionStatus);
   connectionStatusRef.current = state.connectionStatus;
+  const screenTrackRef = useRef<MediaStreamTrack | null>(null);
+  const screenTrackEndedHandlerRef = useRef<(() => void) | null>(null);
 
   const isInActiveCall = useMemo(() => {
     return (
@@ -266,16 +268,28 @@ export function useVideoChat(): UseVideoChatReturn {
     }
   }, [isSocketHealthy, startReconnecting]);
 
+  const removeScreenTrackEndedListener = useCallback(() => {
+    const track = screenTrackRef.current;
+    const handler = screenTrackEndedHandlerRef.current;
+    if (track && handler) {
+      track.removeEventListener("ended", handler);
+      screenTrackRef.current = null;
+      screenTrackEndedHandlerRef.current = null;
+    }
+  }, []);
+
   const resetPeerState = useCallback(() => {
     recoveryController.stop();
     iceServerCache.resetSession();
+    removeScreenTrackEndedListener();
+    screenShare.stopScreenShare();
     mediaStream.releaseMedia();
     peerConnection.closePeer();
     actionsRef.current.resetPeerState();
     actionsRef.current.setLocalStream(null);
     actionsRef.current.setMuted(false);
     actionsRef.current.setVideoOff(false);
-  }, [mediaStream, peerConnection]);
+  }, [mediaStream, peerConnection, screenShare, removeScreenTrackEndedListener]);
 
   const resetRuntimeState = useCallback(() => {
     recoveryController.stop();
@@ -289,6 +303,14 @@ export function useVideoChat(): UseVideoChatReturn {
     resetPeerState();
     socketSignaling.disconnectSocket();
   }, [resetPeerState, socketSignaling]);
+
+  useEffect(() => {
+    return () => {
+      cleanup();
+      screenShare.stopScreenShare();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- unmount-only cleanup
+  }, []);
 
   const initializeConnectionRef = useCallback((
     peerCallbacks: {
@@ -1011,6 +1033,7 @@ export function useVideoChat(): UseVideoChatReturn {
     Sentry.metrics.count("screen_share_toggled", 1);
     if (isSharingScreen) {
       Sentry.metrics.count("screen_share_stopped", 1);
+      removeScreenTrackEndedListener();
       screenShare.stopScreenShare();
       actionsRef.current.setSharingScreen(false);
       actionsRef.current.setScreenStream(null);
@@ -1031,7 +1054,8 @@ export function useVideoChat(): UseVideoChatReturn {
         const screenTrack = stream.getVideoTracks()[0];
 
         if (screenTrack) {
-          screenTrack.addEventListener("ended", () => {
+          const endedHandler = () => {
+            removeScreenTrackEndedListener();
             actionsRef.current.setSharingScreen(false);
             actionsRef.current.setScreenStream(null);
             socketSignaling.sendScreenShareToggle(false);
@@ -1043,7 +1067,10 @@ export function useVideoChat(): UseVideoChatReturn {
                 void peerConnection.replaceVideoTrack(cameraTrack);
               }
             }
-          });
+          };
+          screenTrackRef.current = screenTrack;
+          screenTrackEndedHandlerRef.current = endedHandler;
+          screenTrack.addEventListener("ended", endedHandler);
 
           await peerConnection.replaceVideoTrack(screenTrack);
           actionsRef.current.setSharingScreen(true);

@@ -23,6 +23,8 @@ export function ConnectionQualityIndicator({
     const isPoor = networkQuality === "poor";
     const isCritical = networkQuality === "critical";
 
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     if (isCritical || isVideoStalled) {
       setDisplayState("critical");
       setVisible(true);
@@ -31,10 +33,12 @@ export function ConnectionQualityIndicator({
       setVisible(true);
     } else if (isGood) {
       setVisible(false);
-      setTimeout(() => {
-        setDisplayState("hidden");
-      }, 300);
+      timeoutId = setTimeout(() => setDisplayState("hidden"), 300);
     }
+
+    return () => {
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
   }, [networkQuality, isVideoStalled]);
 
   if (displayState === "hidden") {

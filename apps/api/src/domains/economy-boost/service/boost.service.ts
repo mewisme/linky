@@ -1,7 +1,8 @@
-import type { BoostType, PurchaseBoostRpcRow } from "@/domains/economy-boost/types/boost.types.js";
+import type { ActiveBoost, BoostType, PurchaseBoostRpcRow } from "@/domains/economy-boost/types/boost.types.js";
 
 import { BOOST_CONFIGS } from "@/domains/economy-boost/types/boost.types.js";
 import { createLogger } from "@/utils/logger.js";
+import { getActiveBoosts } from "@/domains/economy-boost/repository/boost.repository.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("economy-boost:service:boost");
@@ -14,6 +15,10 @@ export class BoostError extends Error {
     super(message);
     this.name = "BoostError";
   }
+}
+
+export async function getUserActiveBoosts(userId: string): Promise<ActiveBoost[]> {
+  return getActiveBoosts(userId);
 }
 
 export async function purchaseBoost(

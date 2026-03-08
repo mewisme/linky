@@ -142,12 +142,19 @@ export function FloatingVideoContainer({
   const [dragPosition, setDragPosition] = useState<OverlayPosition | null>(null);
   const dragPositionRef = useRef<OverlayPosition | null>(null);
   const rafIdRef = useRef<number | null>(null);
+  const pointerHandlersRef = useRef<{
+    move: (e: PointerEvent) => void;
+    up: () => void;
+  } | null>(null);
+  const pointerListenersOverlayRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useIsMobile();
 
   const position = useVideoChatStore((s) => s.floatingPosition);
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
   const positionRef = useRef<OverlayPosition | null>(null);
-  positionRef.current = position;
+  useEffect(() => {
+    positionRef.current = position;
+  }, [position]);
 
   const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled;
   const isLocalCameraOn = !isVideoOff;
@@ -389,8 +396,12 @@ export function FloatingVideoContainer({
       overlay.removeEventListener("pointermove", handlePointerMove);
       overlay.removeEventListener("pointerup", handlePointerUp);
       overlay.removeEventListener("pointercancel", handlePointerUp);
+      pointerHandlersRef.current = null;
+      pointerListenersOverlayRef.current = null;
     };
 
+    pointerHandlersRef.current = { move: handlePointerMove, up: handlePointerUp };
+    pointerListenersOverlayRef.current = overlay;
     overlay.addEventListener("pointermove", handlePointerMove);
     overlay.addEventListener("pointerup", handlePointerUp);
     overlay.addEventListener("pointercancel", handlePointerUp);
@@ -408,6 +419,24 @@ export function FloatingVideoContainer({
   useEffect(() => {
     return () => {
       clearHideTimer();
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const overlay = pointerListenersOverlayRef.current;
+      const handlers = pointerHandlersRef.current;
+      if (overlay && handlers) {
+        overlay.removeEventListener("pointermove", handlers.move);
+        overlay.removeEventListener("pointerup", handlers.up);
+        overlay.removeEventListener("pointercancel", handlers.up);
+        pointerHandlersRef.current = null;
+        pointerListenersOverlayRef.current = null;
+      }
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
   }, []);
 

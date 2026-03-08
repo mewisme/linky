@@ -162,3 +162,9 @@ export interface SignalData {
   candidate?: RTCIceCandidateInit;
   iceRestart?: boolean;
 }
+
+export interface ChatAttachmentSignalData {
+  type: "offer" | "answer" | "ice-candidate";
+  sdp?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit;
+}

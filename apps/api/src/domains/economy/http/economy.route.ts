@@ -1,4 +1,5 @@
 import { ConversionError, convertExpToCoin } from "@/domains/economy/service/conversion.service.js";
+import { getOrCreateWallet } from "@/domains/economy/service/wallet.service.js";
 import type { ConvertExpBody } from "@/domains/economy/types/economy.types.js";
 import { getUserInternalId } from "@/infra/supabase/repositories/users.js";
 import { createLogger } from "@/utils/logger.js";
@@ -6,6 +7,35 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:economy:route");
+
+router.get("/wallet", async (req: Request, res: Response) => {
+  try {
+    const clerkUserId = req.auth?.sub;
+    if (!clerkUserId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User ID not found in authentication token",
+      });
+    }
+
+    const userId = await getUserInternalId(clerkUserId);
+    if (!userId) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found in database",
+      });
+    }
+
+    const wallet = await getOrCreateWallet(userId);
+    return res.json(wallet);
+  } catch (err) {
+    logger.error(err as Error, "Unexpected error in GET /economy/wallet");
+    return res.status(500).json({
+      error: "Internal Server Error",
+      message: "Failed to fetch wallet",
+    });
+  }
+});
 
 router.post("/convert", async (req: Request, res: Response) => {
   try {

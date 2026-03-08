@@ -1,22 +1,15 @@
 import { apiUrl } from "@/lib/http/api-url";
 import { fetchData } from "@/lib/http/client-api";
+import type { MediaAPI } from "@/shared/types/media.types";
 
-export interface IceServersResponse {
-  iceServers: RTCIceServer[];
-}
-
-export async function fetchIceServers(token: string | null): Promise<RTCIceServer[]> {
-  try {
-    const data = await fetchData<IceServersResponse>(apiUrl.media.iceServers(), {
-      token: token ?? undefined,
-    });
-    return data.iceServers;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Failed to fetch ICE servers: ${error.message}`);
-    }
-    throw new Error("Failed to fetch ICE servers: Unknown error");
-  }
+export async function fetchIceServersDual(
+  token: string | null
+): Promise<MediaAPI.IceServers.GetDual.Response> {
+  const data = await fetchData<MediaAPI.IceServers.GetDual.Response>(
+    apiUrl.media.iceServers(),
+    { token: token ?? undefined }
+  );
+  return data;
 }
 
 export function createPeerConnection(iceServers: RTCIceServer[]): RTCPeerConnection {

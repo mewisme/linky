@@ -40,6 +40,13 @@ const STREAK_COMPLETED_EVENT = "streak:completed";
 
 const STREAK_TOAST_DEBOUNCE_MS = 2000;
 
+const REACTIONS_MAX = 50;
+
+function capReactions(prev: FloatingReaction[], next: FloatingReaction[]): FloatingReaction[] {
+  const combined = [...prev, ...next];
+  return combined.length > REACTIONS_MAX ? combined.slice(-REACTIONS_MAX) : combined;
+}
+
 export function ReactionEffectProvider({ children }: ReactionEffectProviderProps) {
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const { socket } = useSocket();
@@ -52,7 +59,7 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
 
   const triggerLocalReaction = useCallback((tapPosition: { x: number; y: number }, type: string = "heart") => {
     const id = `local-${Date.now()}-${Math.random()}`;
-    setReactions((prev) => [...prev, { id, type, tapPosition, isLocal: true }]);
+    setReactions((prev) => capReactions(prev, [{ id, type, tapPosition, isLocal: true }]));
   }, []);
 
   const emitReaction = useCallback((count: number, type: string = "heart") => {
@@ -68,7 +75,7 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
       type,
       isLocal: false,
     }));
-    setReactions((prev) => [...prev, ...newReactions]);
+    setReactions((prev) => capReactions(prev, newReactions));
   }, []);
 
   const removeReaction = useCallback((id: string) => {

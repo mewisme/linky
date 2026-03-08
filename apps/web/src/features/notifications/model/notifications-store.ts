@@ -20,6 +20,8 @@ interface NotificationsStore {
   resetState: () => void;
 }
 
+const NOTIFICATIONS_MAX = 500;
+
 const initialState = {
   notifications: [] as Notification[],
   unreadCount: 0,
@@ -27,27 +29,37 @@ const initialState = {
   hasMore: true,
 };
 
+function capNotifications(notifications: Notification[]): Notification[] {
+  return notifications.length > NOTIFICATIONS_MAX
+    ? notifications.slice(-NOTIFICATIONS_MAX)
+    : notifications;
+}
+
 export const useNotificationsStore = create<NotificationsStore>((set) => ({
   ...initialState,
 
-  setNotifications: (notifications) =>
-    set({
-      notifications,
-      unreadCount: notifications.filter((n) => !n.is_read).length,
-    }),
+  setNotifications: (notifications) => {
+    const capped = capNotifications(notifications);
+    return set({
+      notifications: capped,
+      unreadCount: capped.filter((n) => !n.is_read).length,
+    });
+  },
   appendNotifications: (newNotifications) =>
     set((s) => {
       const existingIds = new Set(s.notifications.map((n) => n.id));
       const unique = newNotifications.filter((n) => !existingIds.has(n.id));
-      return {
-        notifications: [...s.notifications, ...unique],
-      };
+      const next = capNotifications([...s.notifications, ...unique]);
+      return { notifications: next };
     }),
   addNotification: (notification) =>
-    set((s) => ({
-      notifications: [notification, ...s.notifications],
-      unreadCount: s.unreadCount + (notification.is_read ? 0 : 1),
-    })),
+    set((s) => {
+      const next = capNotifications([notification, ...s.notifications]);
+      return {
+        notifications: next,
+        unreadCount: s.unreadCount + (notification.is_read ? 0 : 1),
+      };
+    }),
   markAsRead: (id) =>
     set((s) => {
       const notification = s.notifications.find((n) => n.id === id);

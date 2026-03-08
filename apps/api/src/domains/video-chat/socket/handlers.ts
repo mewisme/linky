@@ -4,6 +4,7 @@ import { setupJoinHandler } from "./setup-handlers/setup-join.handler.js";
 import { setupSkipHandler } from "./setup-handlers/setup-skip.handler.js";
 import { setupSignalHandler } from "./setup-handlers/setup-signal.handler.js";
 import { setupChatMessageHandler } from "./setup-handlers/setup-chat-message.handler.js";
+import { setupChatAttachmentSignalHandler } from "./setup-handlers/setup-chat-attachment-signal.handler.js";
 import { setupMuteToggleHandler } from "./setup-handlers/setup-mute-toggle.handler.js";
 import { setupVideoToggleHandler } from "./setup-handlers/setup-video-toggle.handler.js";
 import { setupScreenShareHandler } from "./setup-handlers/setup-screen-share.handler.js";
@@ -29,6 +30,7 @@ export function setupSocketHandlers(socket: AuthenticatedSocket, context: VideoC
   setupSkipHandler(socket, io, matchmaking, rooms);
   setupSignalHandler(socket, io, rooms);
   setupChatMessageHandler(socket, io, rooms);
+  setupChatAttachmentSignalHandler(socket, io, rooms);
   setupMuteToggleHandler(socket, io, rooms);
   setupVideoToggleHandler(socket, io, rooms);
   setupScreenShareHandler(socket, io, rooms);

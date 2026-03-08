@@ -1,6 +1,6 @@
 import { GiphyPicker, useGiphyPicker } from "./giphy";
 import { IconMoodSmile, IconPhoto, IconSend, IconX } from "@tabler/icons-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types";
@@ -50,6 +50,15 @@ export function ChatInputBar({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const typingTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimerRef.current !== null) {
+        window.clearTimeout(typingTimerRef.current);
+        typingTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const isInCall =
     connectionStatus === "in_call" ||

@@ -17,6 +17,12 @@ export interface SignalPayload {
   candidate?: unknown;
 }
 
+export interface ChatAttachmentSignalPayload {
+  type: string;
+  sdp?: unknown;
+  candidate?: unknown;
+}
+
 export type {
   ChatAttachment,
   ChatAttachmentSnapshot,

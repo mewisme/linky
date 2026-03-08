@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { fetchIceServers } from "./webrtc";
+import { probeIceServers, mergeIceServersBySpeed } from "./ice-servers-probe";
+import { fetchIceServersDual } from "./webrtc";
 import { useIceServersStore } from "@/features/call/model/ice-servers-store";
 
 const ICE_SERVER_TTL_MS = 300_000;
@@ -96,13 +97,32 @@ class IceServerCacheManager {
           throw new Error("No token available for ICE servers");
         }
 
-        const newServers = await fetchIceServers(token);
+        const { staticIceServers, cloudflareIceServers } = await fetchIceServersDual(token);
+
+        const [staticMs, cloudflareMs] = await Promise.all([
+          probeIceServers(staticIceServers),
+          probeIceServers(cloudflareIceServers),
+        ]);
+
+        const newServers = mergeIceServersBySpeed(
+          staticIceServers,
+          cloudflareIceServers,
+          staticMs,
+          cloudflareMs
+        );
+
+        if (newServers.length === 0) {
+          throw new Error("No ICE servers after merge");
+        }
+
         const prevFetchedAt = this.getStore().fetchedAt;
         const age = prevFetchedAt > 0 ? Date.now() - prevFetchedAt : 0;
 
         useIceServersStore.getState().setCache(newServers, ICE_SERVER_TTL_MS);
 
-        Sentry.logger.info(`[IceServerCache] ICE servers fetched successfully (${newServers.length} servers, cache age: ${Math.round(age / 1000)}s)`);
+        Sentry.logger.info(
+          `[IceServerCache] ICE servers probed (static: ${staticMs}ms, cloudflare: ${cloudflareMs}ms), merged by speed (${newServers.length} servers, cache age: ${Math.round(age / 1000)}s)`
+        );
         return newServers;
       } catch (err) {
         Sentry.logger.error("[IceServerCache] Failed to fetch ICE servers", { error: err });

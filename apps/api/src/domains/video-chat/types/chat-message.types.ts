@@ -1,4 +1,4 @@
-export type ChatMessageType = "text" | "image" | "gif" | "sticker" | "system";
+export type ChatMessageType = "text" | "image" | "video" | "audio" | "gif" | "sticker" | "system";
 
 export interface ChatMessageSender {
   socketId: string;

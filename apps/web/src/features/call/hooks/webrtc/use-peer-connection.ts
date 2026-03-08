@@ -28,6 +28,8 @@ export interface UsePeerConnectionReturn {
   setIceRestartInProgress?: (value: boolean) => void;
 }
 
+const PENDING_ICE_CANDIDATES_MAX = 100;
+
 export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnectionReturn {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const callbacksRef = useRef<PeerConnectionCallbacks | null>(null);
@@ -225,7 +227,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
     const pc = pcRef.current;
     if (!pc) {
       Sentry.logger.warn("ICE candidate received but peer connection not initialized, buffering");
-      pendingIceCandidatesRef.current.push(candidate);
+      const pending = pendingIceCandidatesRef.current;
+      if (pending.length >= PENDING_ICE_CANDIDATES_MAX) pending.shift();
+      pending.push(candidate);
       return;
     }
 
@@ -236,7 +240,9 @@ export function usePeerConnection(iceServers: RTCIceServer[]): UsePeerConnection
 
     if (!remoteDescriptionSetRef.current) {
       Sentry.logger.info("ICE candidate received before remote description, buffering");
-      pendingIceCandidatesRef.current.push(candidate);
+      const pending = pendingIceCandidatesRef.current;
+      if (pending.length >= PENDING_ICE_CANDIDATES_MAX) pending.shift();
+      pending.push(candidate);
       return;
     }
 

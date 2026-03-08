@@ -31,6 +31,7 @@ export const backendUrl = {
   },
 
   economy: {
+    wallet: () => `${V1}/economy/wallet`,
     convert: () => `${V1}/economy/convert`,
     daily: {
       progress: (params?: URLSearchParams) => `${V1}/economy/daily/progress${qs(params)}`,
@@ -49,6 +50,7 @@ export const backendUrl = {
       purchase: () => `${V1}/economy/shop/purchase`,
     },
     boost: {
+      active: () => `${V1}/economy/boost/active`,
       purchase: () => `${V1}/economy/boost/purchase`,
     },
   },
@@ -127,3 +129,5 @@ export const backendUrl = {
   },
 
 } as const;
+
+

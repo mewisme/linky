@@ -15,10 +15,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import type { ResourcesAPI } from "@/shared/types/resources.types";
 import type { UsersAPI } from "@/entities/user/types/users.types";
-import { VideoContainer } from "./video-container";
-import { useBlockUser } from "@/features/user/hooks/use-block-user";
 import { useChatPanelStore } from "@/features/chat/model/chat-panel-store";
-import { useChatUnreadIndicator } from "@/features/chat/hooks/use-chat-unread-indicator";
 import { useEffect } from "react";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
 import { useUserContext } from "@/providers/user/user-provider";
@@ -32,40 +29,15 @@ interface ChatPageContentProps {
 export function ChatPageContent({ initialProgress, initialFavorites }: ChatPageContentProps) {
   const { authLoading } = useUserContext();
 
-  const localStream = useVideoChatStore((s) => s.localStream);
-  const remoteStream = useVideoChatStore((s) => s.remoteStream);
-  const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
-  const isMuted = useVideoChatStore((s) => s.isMuted);
-  const isVideoOff = useVideoChatStore((s) => s.isVideoOff);
-  const remoteMuted = useVideoChatStore((s) => s.remoteMuted);
-  const chatMessages = useVideoChatStore((s) => s.chatMessages);
-  const peerInfo = useVideoChatStore((s) => s.peerInfo);
   const error = useVideoChatStore((s) => s.error);
   const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
 
-  const {
-    isInActiveCall,
-    start,
-    skip,
-    endCall,
-    toggleMute,
-    toggleVideo,
-    toggleScreenShare,
-    isSharingScreen,
-    sendFavoriteNotification,
-    clearError,
-    isPassive,
-  } = useGlobalCallContext();
+  const { isInActiveCall, clearError } = useGlobalCallContext();
 
-  const { blockUser: handleBlockUser } = useBlockUser();
-
-  const isChatOpen = useChatPanelStore((s) => s.isChatPanelOpen);
-  const toggleChatPanel = useChatPanelStore((s) => s.toggleChatPanel);
   const openChatPanel = useChatPanelStore((s) => s.openChatPanel);
-  const { hasUnreadMessages } = useChatUnreadIndicator(chatMessages, isChatOpen);
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const shouldOpen = searchParams.get("open_chat_panel") === "true";
@@ -87,59 +59,26 @@ export function ChatPageContent({ initialProgress, initialFavorites }: ChatPageC
 
   return (
     <ReactionEffectProvider>
-      <main className="relative flex flex-1 flex-col overflow-hidden h-full">
-        <AlertDialog open={!!error && !authLoading} onOpenChange={(open) => !open && clearError()}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Error</AlertDialogTitle>
-              <AlertDialogDescription>{error}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction onClick={clearError}>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      <AlertDialog open={!!error && !authLoading} onOpenChange={(open) => !open && clearError()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{error}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={clearError}>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-        {!isFloatingMode && (
-          <VideoContainer
-            localStream={localStream}
-            remoteStream={remoteStream}
-            connectionStatus={connectionStatus}
-            isInActiveCall={isInActiveCall}
-            isMuted={isMuted}
-            isVideoOff={isVideoOff}
-            remoteMuted={remoteMuted}
-            isChatOpen={isChatOpen}
-            hasUnreadMessages={hasUnreadMessages}
-            peerInfo={peerInfo}
-            onStart={start}
-            onSkip={skip}
-            onEndCall={endCall}
-            onToggleMute={toggleMute}
-            onToggleVideo={toggleVideo}
-            onToggleChat={toggleChatPanel}
-            onToggleScreenShare={toggleScreenShare}
-            isSharingScreen={isSharingScreen}
-            onBlockUser={async (userId) => {
-              await handleBlockUser(userId);
-              endCall();
-            }}
-            sendFavoriteNotification={sendFavoriteNotification}
-            isPassive={isPassive}
-            initialProgress={initialProgress ?? undefined}
-            initialFavorites={initialFavorites ?? undefined}
-          />
-        )}
-
-        {isFloatingMode && isInActiveCall && (
-          <div className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4">
-            <p className="text-lg text-muted-foreground">Call is minimized</p>
-            <Button onClick={handleRestoreFullUI} size="lg">
-              Restore Full View
-            </Button>
-          </div>
-        )}
-      </main>
+      {isFloatingMode && isInActiveCall && (
+        <div className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4">
+          <p className="text-lg text-muted-foreground">Call is minimized</p>
+          <Button onClick={handleRestoreFullUI} size="lg">
+            Restore Full View
+          </Button>
+        </div>
+      )}
     </ReactionEffectProvider>
   );
 }

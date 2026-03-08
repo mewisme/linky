@@ -35,7 +35,7 @@ export default function Home() {
     };
   }, []);
 
-  const startChatHref = isSignedIn && isLoaded ? "/chat" : "/sign-in";
+  const startChatHref = isSignedIn && isLoaded ? "/call" : "/sign-in";
 
   return (
     <>

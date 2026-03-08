@@ -5,7 +5,7 @@ export class VideoChatPage {
   constructor(private readonly page: Page) { }
 
   async goto() {
-    await this.page.goto('/chat');
+    await this.page.goto('/call');
     await waitForClerkReady(this.page);
   }
 

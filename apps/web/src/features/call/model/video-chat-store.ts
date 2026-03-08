@@ -5,6 +5,7 @@ import type { ChatMessage, ChatMessageDeliveryStatus } from "@/features/chat/typ
 import type { NetworkQuality } from "@/features/call/lib/webrtc/network-monitor";
 import type { QualityTier } from "@/features/call/lib/webrtc/adaptive-encoding";
 import type { UsersAPI } from "@/entities/user/types/users.types";
+import type { ResourcesAPI } from "@/shared/types/resources.types";
 import { create } from "zustand";
 
 export type ConnectionStatus =
@@ -46,6 +47,8 @@ interface VideoChatStore {
   isPeerSharingScreen: boolean;
   screenStream: MediaStream | null;
   isPeerTyping: boolean;
+  callInitialProgress: UsersAPI.Progress.GetMe.Response | null;
+  callInitialFavorites: ResourcesAPI.Favorites.Get.Response | null;
 
   setLocalStream: (stream: MediaStream | null) => void;
   setRemoteStream: (stream: MediaStream | null) => void;
@@ -72,6 +75,10 @@ interface VideoChatStore {
   setPeerSharingScreen: (sharing: boolean) => void;
   setScreenStream: (stream: MediaStream | null) => void;
   setPeerTyping: (isTyping: boolean) => void;
+  setCallInitialData: (
+    progress: UsersAPI.Progress.GetMe.Response | null,
+    favorites: ResourcesAPI.Favorites.Get.Response | null
+  ) => void;
 
   resetState: () => void;
   resetPeerState: () => void;
@@ -104,6 +111,8 @@ const initialState = {
   isPeerSharingScreen: false,
   screenStream: null as MediaStream | null,
   isPeerTyping: false,
+  callInitialProgress: null as UsersAPI.Progress.GetMe.Response | null,
+  callInitialFavorites: null as ResourcesAPI.Favorites.Get.Response | null,
 };
 
 export const useVideoChatStore = create<VideoChatStore>((set) => ({
@@ -143,6 +152,8 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setPeerSharingScreen: (sharing) => set({ isPeerSharingScreen: sharing }),
   setScreenStream: (stream) => set({ screenStream: stream }),
   setPeerTyping: (isTyping) => set({ isPeerTyping: isTyping }),
+  setCallInitialData: (progress, favorites) =>
+    set({ callInitialProgress: progress, callInitialFavorites: favorites }),
 
   resetState: () => set(initialState),
   resetPeerState: () =>

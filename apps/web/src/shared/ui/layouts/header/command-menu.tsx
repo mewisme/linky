@@ -126,14 +126,14 @@ export function CommandMenu() {
             id: 'start-chat',
             label: 'Start Video Chat',
             icon: IconVideo,
-            href: '/chat',
+            href: '/call',
             keywords: ['video', 'call', 'match', 'random'],
           },
           {
             id: 'call-history',
             label: 'Call History',
             icon: IconHistory,
-            href: '/chat/call-history',
+            href: '/call/history',
             keywords: ['history', 'calls', 'past'],
           },
           {

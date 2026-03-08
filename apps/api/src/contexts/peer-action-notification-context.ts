@@ -34,7 +34,7 @@ export async function sendPeerActionPush(params: PeerActionPushParams): Promise<
     await sendPushOnly(params.userId, {
       title: params.title,
       body: params.body,
-      url: params.url ?? "/chat?open_chat_panel=true",
+      url: params.url ?? "/call?open_chat_panel=true",
       onlyWhenBlurred: true,
     });
   } catch (error) {

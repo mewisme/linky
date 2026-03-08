@@ -9,7 +9,7 @@ test.describe("Notification Center", () => {
     const page = await userContext.newPage();
 
     try {
-      await page.goto("/chat");
+      await page.goto("/call");
       await page.waitForLoadState("networkidle");
 
       const bell = page.locator('[data-testid="notifications-bell"]');
@@ -26,7 +26,7 @@ test.describe("Notification Center", () => {
     const page = await userContext.newPage();
 
     try {
-      await page.goto("/chat");
+      await page.goto("/call");
       await page.waitForLoadState("networkidle");
 
       await page.click('[data-testid="notifications-bell"]');
@@ -45,7 +45,7 @@ test.describe("Notification Center", () => {
     const page = await userContext.newPage();
 
     try {
-      await page.goto("/chat");
+      await page.goto("/call");
       await page.waitForLoadState("networkidle");
 
       await page.click('[data-testid="notifications-bell"]');

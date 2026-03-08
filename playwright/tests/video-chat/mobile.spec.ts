@@ -41,7 +41,7 @@ test.describe('Video Chat - Mobile Viewport', () => {
 
     try {
       await openChatPage(user1Page);
-      await user2Page.goto('/chat');
+      await user2Page.goto('/call');
 
       await waitForIdle(user1Page);
       await waitForIdle(user2Page);

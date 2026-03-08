@@ -38,7 +38,7 @@ export function setupScreenShareHandler(socket: AuthenticatedSocket, io: Namespa
           peerSocket: peerSocket as AuthenticatedSocket,
           title: "Screen sharing started",
           body: `${socket.data.userName || "Anonymous"} started sharing their screen`,
-          url: "/chat",
+          url: "/call",
         });
       }
     }

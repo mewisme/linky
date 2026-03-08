@@ -102,6 +102,7 @@ interface VideoControlsProps {
   onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   initialFavorites?: ResourcesAPI.Favorites.Get.Response | null;
+  hideChatToggle?: boolean;
 }
 
 interface ControlButtonProps {
@@ -186,6 +187,7 @@ export function VideoControls({
   onBlockUser,
   sendFavoriteNotification,
   initialFavorites,
+  hideChatToggle = false,
 }: VideoControlsProps) {
   const isMobile = useIsMobile();
   const { user } = useUserContext();
@@ -360,6 +362,7 @@ export function VideoControls({
         label: "Show Chat",
         variant: "outline",
         onClick: onToggleChat,
+        visible: !hideChatToggle,
         dynamicLabel: (ctx) => (ctx.isChatOpen ? "Hide Chat" : "Show Chat"),
         testId: "chat-toggle-button",
       },
@@ -455,6 +458,7 @@ export function VideoControls({
       isFavoriteLoading,
       isFloatingMode,
       isMobile,
+      hideChatToggle,
     ]
   );
 

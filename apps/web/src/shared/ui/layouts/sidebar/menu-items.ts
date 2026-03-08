@@ -42,7 +42,7 @@ export const menuItems: MenuItem[] = [
     label: "Video Chat",
     icon: IconVideo,
     description: "Start a video chat",
-    href: "/chat",
+    href: "/call",
     category: "Navigation",
   },
   {
@@ -53,7 +53,7 @@ export const menuItems: MenuItem[] = [
         label: "Call History",
         icon: IconHistory,
         description: "View your call history",
-        href: "/chat/call-history",
+        href: "/call/history",
         category: "Navigation",
       },
     ],

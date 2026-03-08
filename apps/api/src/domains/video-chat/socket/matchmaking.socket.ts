@@ -85,7 +85,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
             peerSocket: user1Socket,
             title: "Match Found!",
             body: "Someone is ready to chat — head back!",
-            url: "/chat",
+            url: "/call",
           }).catch((err: unknown) => logger.warn(err as Error, "Push to user1 failed"));
         }
 
@@ -95,7 +95,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
             peerSocket: user2Socket,
             title: "Match Found!",
             body: "Someone is ready to chat — head back!",
-            url: "/chat",
+            url: "/call",
           }).catch((err: unknown) => logger.warn(err as Error, "Push to user2 failed"));
         }
       }

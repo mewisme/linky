@@ -447,27 +447,6 @@ export function FloatingVideoContainer({
         isMobile={isMobile}
         layoutMode={layoutMode}
       />
-      {!isMobile && (
-        <FloatingVideoControls
-          connectionStatus={connectionStatus}
-          isInActiveCall={isInActiveCall}
-          isMuted={isMuted}
-          isVideoOff={isVideoOff}
-          hasLocalStream={!!localStream}
-          isChatOpen={isChatOpen}
-          hasUnreadMessages={hasUnreadMessages}
-          peerInfo={peerInfo}
-          onStart={onStart}
-          onSkip={onSkip}
-          onEndCall={onEndCall}
-          onToggleMute={onToggleMute}
-          onToggleVideo={onToggleVideo}
-          onToggleChat={onToggleChat}
-          sendFavoriteNotification={sendFavoriteNotification}
-          isVisible={isControlsVisible}
-          isMobile={false}
-        />
-      )}
     </motion.div>
   );
 }

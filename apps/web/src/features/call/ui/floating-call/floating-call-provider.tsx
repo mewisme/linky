@@ -17,7 +17,7 @@ interface FloatingCallProviderProps {
 export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const isOnChatPage = pathname === "/chat";
+  const isOnCallPage = pathname === "/call";
 
   const localStream = useVideoChatStore((s) => s.localStream);
   const remoteStream = useVideoChatStore((s) => s.remoteStream);
@@ -45,7 +45,7 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
   const { hasUnreadMessages } = useChatUnreadIndicator(chatMessages, isChatOpen);
 
   useEffect(() => {
-    if (isOnChatPage) {
+    if (isOnCallPage) {
       return;
     }
 
@@ -55,15 +55,15 @@ export function FloatingCallProvider({ children }: FloatingCallProviderProps) {
         useVideoChatStore.getState().setFloatingMode(false);
       }
     }
-  }, [isInActiveCall, isOnChatPage]);
+  }, [isInActiveCall, isOnCallPage]);
 
-  const shouldShowFloating = isInActiveCall && !isOnChatPage;
+  const shouldShowFloating = isInActiveCall && !isOnCallPage;
 
   const handleExpand = () => {
-    if (isOnChatPage) {
+    if (isOnCallPage) {
       useVideoChatStore.getState().setFloatingMode(false);
     } else {
-      router.push("/chat");
+      router.push("/call");
     }
   };
 

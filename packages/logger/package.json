@@ -1,6 +1,6 @@
 {
   "name": "@ws/logger",
-  "version": "0.69.0",
+  "version": "0.70.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -29,7 +29,7 @@
     "@types/node": "catalog:",
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
-    "eslint": "^9.39.3",
+    "eslint": "^9.39.4",
     "tsx": "^4.21.0",
     "typescript": "catalog:"
   },

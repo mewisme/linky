@@ -16,7 +16,6 @@ export function ChatPanelHost() {
 
   const chatMessages = useVideoChatStore((s) => s.chatMessages);
   const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
-  const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
   const isPeerTyping = useVideoChatStore((s) => s.isPeerTyping);
 
   const { isInActiveCall, sendMessage, sendTyping } = useGlobalCallContext();
@@ -27,8 +26,7 @@ export function ChatPanelHost() {
 
   if (!isInActiveCall) return null;
 
-  const shouldRenderOnThisRoute = pathname !== "/chat" || !isFloatingMode;
-  if (!shouldRenderOnThisRoute) return null;
+  if (pathname !== "/call") return null;
 
   return (
     <ChatSidebar

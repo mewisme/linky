@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/entities/user/types/users.types";
@@ -44,7 +45,9 @@ export function FloatingVideoControls({
   sendFavoriteNotification,
   isVisible,
 }: FloatingVideoControlsProps) {
+  const pathname = usePathname();
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
+  const hideChatToggle = pathname === "/call/chat";
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -101,6 +104,7 @@ export function FloatingVideoControls({
           onToggleVideo={onToggleVideo}
           onToggleChat={onToggleChat}
           sendFavoriteNotification={sendFavoriteNotification}
+          hideChatToggle={hideChatToggle}
         />
       </div>
     </div>

@@ -133,7 +133,7 @@ export function setupChatMessageHandler(
         peerSocket: peerSocket as AuthenticatedSocket,
         title: "New chat message",
         body: notificationBody,
-        url: "/chat?open_chat_panel=true",
+        url: "/call?open_chat_panel=true",
       });
     }
   };

@@ -12,7 +12,7 @@ export async function createUserContext(
 }
 
 export async function openChatPage(page: Page): Promise<void> {
-  await page.goto('/chat');
+  await page.goto('/call');
   await waitForClerkReady(page);
 }
 

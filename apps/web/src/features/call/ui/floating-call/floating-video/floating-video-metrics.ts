@@ -7,7 +7,7 @@ export interface FloatingVideoMetrics {
   isMobile: boolean;
 }
 
-const DESKTOP_WIDTH = "320px";
+const DESKTOP_WIDTH = "180px";
 const MOBILE_WIDTH = "160px";
 const MOBILE_MAX_HEIGHT_VH = 28;
 

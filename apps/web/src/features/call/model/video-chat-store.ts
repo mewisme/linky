@@ -128,6 +128,8 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setCallStartedAt: (timestamp) => set({ callStartedAt: timestamp }),
   addChatMessage: (message) =>
     set((s) => {
+      const exists = s.chatMessages.some((m) => m.id === message.id);
+      if (exists) return s;
       const next = [...s.chatMessages, message];
       return { chatMessages: next.slice(-chatMessageLimit) };
     }),

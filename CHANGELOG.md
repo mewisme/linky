@@ -2,10 +2,9 @@
 
 🔨 Other Changes
 
-- Implement user experience functions for total and daily experience tracking ([9eae26f](../../commit/9eae26f))
-- Prevent duplicate chat messages from being added ([653852e](../../commit/653852e))
-- Add success toast notification for peer connection ([b959917](../../commit/b959917))
-- Update package versions to 0.70.1 and refresh version lock ([b0fab22](../../commit/b0fab22))
+- Update package dependencies and remove unused files ([cdbc977](../../commit/cdbc977))
+- Remove replay sampling rates from Sentry configuration ([0a11d91](../../commit/0a11d91))
+- Update package versions to 0.71.0 and refresh version lock ([5b4c3da](../../commit/5b4c3da))
 
 
-📋 Full Changelog: [b0fab22...9eae26f](../../compare/b0fab22...9eae26f)
+📋 Full Changelog: [5b4c3da...cdbc977](../../compare/5b4c3da...cdbc977)

@@ -58,3 +58,5 @@ local/
 docker-compose.local.yml
 
 .claude/
+# next-agents-md
+.next-docs/

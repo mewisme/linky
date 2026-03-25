@@ -8,6 +8,7 @@ import { createUserReport, listUserReports } from "@/domains/reports/service/rep
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
+import { generateReportAiSummary } from "@/domains/reports/service/report-ai-summary.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:route");
@@ -77,6 +78,11 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
         ...contextData,
       });
 
+      setImmediate(() => {
+        generateReportAiSummary(report.id).catch((error) => {
+          logger.error(error as Error, "Error generating report AI summary");
+        });
+      });
     } catch (error) {
       logger.error(error as Error, "Error creating report context");
     }

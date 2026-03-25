@@ -3,15 +3,35 @@ import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("infra:ollama:embedding:service");
-const EMBEDDING_MODEL = "nomic-embed-text:v1.5";
 
 const ollama = new Ollama({
-  host: config.ollamaUrl,
+  host: config.ollamaEmbeddingUrl,
 });
 
 export interface EmbeddingResult {
   embedding: number[];
   modelName: string;
+}
+
+export async function onLoadModel(model: string): Promise<void> {
+  await ollama.pull({ model, stream: false });
+}
+
+export async function pullEmbeddingModelAtStartup(): Promise<void> {
+  if (!config.ollamaEmbeddingUrl?.trim()) {
+    logger.warn("OLLAMA_EMBEDDING_URL is not set; skipping Ollama embedding model pull");
+    return;
+  }
+  try {
+    logger.info("Pulling Ollama embedding model if missing: %s", config.ollamaEmbeddingModel);
+    await onLoadModel(config.ollamaEmbeddingModel);
+    logger.info("Ollama embedding model available: %s", config.ollamaEmbeddingModel);
+  } catch (error: unknown) {
+    logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      "Failed to pull Ollama embedding model; embedding calls may fail until the model exists locally",
+    );
+  }
 }
 
 export async function embedText(text: string): Promise<EmbeddingResult | null> {
@@ -23,7 +43,7 @@ export async function embedText(text: string): Promise<EmbeddingResult | null> {
 
   try {
     const response = await Promise.race([
-      ollama.embed({ model: EMBEDDING_MODEL, input: text }),
+      ollama.embed({ model: config.ollamaEmbeddingModel, input: text }),
       timeoutPromise,
     ]);
 
@@ -41,7 +61,7 @@ export async function embedText(text: string): Promise<EmbeddingResult | null> {
 
     return {
       embedding,
-      modelName: response.model ?? EMBEDDING_MODEL,
+      modelName: response.model ?? config.ollamaEmbeddingModel,
     };
   } catch (error) {
     logger.error(

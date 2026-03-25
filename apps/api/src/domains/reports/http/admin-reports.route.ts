@@ -4,6 +4,9 @@ import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.j
 import type { ReportStatus } from "@/domains/reports/types/report-status.types.js";
 import type { ReportUpdate } from "@/domains/reports/types/report.types.js";
 import { fetchReportById, fetchReportWithContext, listReports, updateReportById } from "@/domains/reports/service/reports.service.js";
+import { getReportAiSummaryByReportId } from "@/infra/supabase/repositories/report-ai-summaries.js";
+import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
+import { generateReportAiSummary } from "@/domains/reports/service/report-ai-summary.service.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:admin:route");
@@ -24,8 +27,15 @@ router.get("/", async (req: Request, res: Response) => {
       reportedUserId,
     });
 
+    const rowsWithAi = await Promise.all(
+      data.map(async (r) => ({
+        ...r,
+        ai_summary: await getReportAiSummaryByReportId(r?.id ?? ""),
+      })),
+    );
+
     return res.json({
-      data,
+      data: rowsWithAi,
       count,
       limit,
       offset,
@@ -59,7 +69,8 @@ router.get("/:id", async (req: Request, res: Response) => {
       });
     }
 
-    return res.json(reportWithContext);
+    const aiSummary = await getReportAiSummaryByReportId(id);
+    return res.json({ ...reportWithContext, ai_summary: aiSummary });
   } catch (error) {
     logger.error(error as Error, "Unexpected error in GET /admin/reports/:id");
     return res.status(500).json({
@@ -68,6 +79,45 @@ router.get("/:id", async (req: Request, res: Response) => {
     });
   }
 });
+
+router.post(
+  "/:id/ai-summary:generate",
+  createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 5 }),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params as { id: string };
+
+      if (!id) {
+        return res.status(400).json({
+          error: "Bad Request",
+          message: "Report ID is required",
+        });
+      }
+
+      const existing = await fetchReportById(id);
+      if (!existing) {
+        return res.status(404).json({
+          error: "Not Found",
+          message: "Report not found",
+        });
+      }
+
+      setImmediate(() => {
+        generateReportAiSummary(id, { force: true }).catch((error) => {
+          logger.error(error as Error, "Error regenerating report AI summary");
+        });
+      });
+
+      return res.status(202).json({ success: true });
+    } catch (error) {
+      logger.error(error as Error, "Unexpected error in POST /admin/reports/:id/ai-summary:generate");
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: "Failed to generate report AI summary",
+      });
+    }
+  },
+);
 
 router.patch("/:id", async (req: Request, res: Response) => {
   try {

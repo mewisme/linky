@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ws/ui/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ws/ui/components/ui/select'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query'
 import { useRouter } from 'next/navigation'
 
@@ -15,7 +15,7 @@ import { Separator } from '@ws/ui/components/ui/separator'
 import { Textarea } from '@ws/ui/components/ui/textarea'
 import { formatDuration } from '@/entities/call-history/utils/call-history'
 import { toast } from '@ws/ui/components/ui/sonner'
-import { updateAdminReport } from '@/features/admin/api/reports'
+import { generateAdminReportAiSummary, updateAdminReport } from '@/features/admin/api/reports'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
 const getStatusBadgeVariant = (status: AdminAPI.Reports.ReportStatus) => {
@@ -68,15 +68,106 @@ export function AdminReportDetailClient({ report }: Props) {
     }
   })
 
+  const generateAiMutation = useMutation({
+    mutationFn: () => generateAdminReportAiSummary(report.id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['admin-report', report.id] })
+      await queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
+      toast.success('AI summary generation started')
+      router.refresh()
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to start AI summary generation')
+    }
+  })
+
   const handleSave = () => {
     updateMutation.mutate({ status, admin_notes: adminNotes || null })
   }
 
   const context = report.context
+  const ai = report.ai_summary
+
+  const shouldPollAi = useMemo(() => {
+    return ai?.status === 'pending'
+  }, [ai?.status])
+
+  useEffect(() => {
+    if (!shouldPollAi) return
+
+    let active = true
+    let attempts = 0
+    const maxAttempts = 20
+    const intervalMs = 1500
+
+    const tick = () => {
+      if (!active) return
+      attempts += 1
+      router.refresh()
+      if (attempts >= maxAttempts) return
+      setTimeout(tick, intervalMs)
+    }
+
+    const t = setTimeout(tick, intervalMs)
+    return () => {
+      active = false
+      clearTimeout(t)
+    }
+  }, [router, shouldPollAi])
 
   return (
     <AppLayout label="Report Details" description="View and manage report" backButton className="space-y-4">
       <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle>AI Summary</CardTitle>
+                <CardDescription>Generated moderation assist (non-authoritative)</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => generateAiMutation.mutate()}
+                disabled={generateAiMutation.isPending}
+              >
+                {generateAiMutation.isPending ? 'Starting…' : 'Regenerate'}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {!ai && (
+              <div className="text-sm text-muted-foreground">
+                No AI summary yet.
+              </div>
+            )}
+            {ai && ai.status !== 'ready' && (
+              <div className="text-sm text-muted-foreground">
+                Status: <span className="font-mono">{ai.status}</span>
+                {ai.status === 'failed' && ai.error_message ? (
+                  <div className="mt-2 text-destructive">{ai.error_message}</div>
+                ) : null}
+              </div>
+            )}
+            {ai && ai.status === 'ready' && (
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-muted-foreground">Severity</Label>
+                  <div className="mt-1 text-sm bg-muted p-2 rounded-md">{ai.severity ?? 'unknown'}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Summary</Label>
+                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">{ai.summary}</div>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Suggested Action</Label>
+                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">{ai.suggested_action}</div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">

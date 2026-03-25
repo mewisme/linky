@@ -7,7 +7,11 @@ services:
     environment:
       NODE_ENV: production
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_EMBEDDING_URL: ${OLLAMA_EMBEDDING_URL:-http://ollama:11434}
+      OLLAMA_CLOUD_URL: ${OLLAMA_CLOUD_URL:-https://ollama.com}
+      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-bge-m3}
+      OLLAMA_CLOUD_MODEL: ${OLLAMA_CLOUD_MODEL:-ministral-3:14b}
+      OLLAMA_EMBEDDING_TIMEOUT: ${OLLAMA_EMBEDDING_TIMEOUT:-60000}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node dist/healthcheck.js"]
@@ -40,9 +44,11 @@ services:
       - linky-network
 
   ollama:
-    image: mewthedev/ollama-nomic-1.5:latest
+    image: mewthedev/oe:latest
     container_name: linky-ollama
     restart: unless-stopped
+    environment:
+      OLLAMA_VULKAN: "1"
     healthcheck:
       test: "ollama --version && ollama ps || exit 1"
       interval: 1m30s
@@ -60,4 +66,4 @@ volumes:
 
 networks:
   linky-network:
-    external: true
+    driver: bridge

@@ -433,3 +433,79 @@
 - Evaluate SFU option (mediasoup or Livekit) before committing
 - If mesh-only (2-4 users): extend room management, signaling, and frontend layout
 - Gate behind feature flag during rollout
+---
+
+## Section 5: Ollama Cloud Feature TODOs
+
+### 5.8 Admin Report Summarization
+- Use after a user submits a report following a call
+- AI reads report reason, report context, and available chat snapshot
+- Generate:
+  - short summary
+  - severity
+  - suggested action
+- Best fit for the `reports` domain and admin dashboard
+- High value because it reduces manual moderation workload
+
+### 5.9 Report Classification / Moderation Assist
+- Auto-label reports as:
+  - `harassment`
+  - `spam`
+  - `sexual`
+  - `self-harm`
+  - `underage-risk`
+  - `other`
+- Do not auto-ban users
+- Only provide recommendation/support data for admins
+- Strong fit because the current docs explicitly note missing automated content scanning
+
+### 5.10 AI Broadcast / Admin Announcement Writer
+- Admin provides target audience and a few key points
+- Model generates:
+  - title
+  - body
+  - CTA
+  - tone variants
+- Best fit for the `broadcasts` domain
+- Easy to ship and relatively low risk
+
+### 5.11 AI Bio Rewrite Assistant
+- Suggest rewrites for user profile bios to make them clearer, friendlier, and safer
+- Support transformations such as:
+  - "make it shorter"
+  - "friendly tone"
+  - "remove risky wording"
+- Best fit for `user details` / profile flows
+- Does not require embedding models
+
+### 5.12 Opener / Icebreaker Suggestions
+- Generate 3-5 opening lines before or during a match
+- Use interest tags, short profile context, and user language
+- Strong fit for the random video chat product
+- Candidate surfaces:
+  - `/chat`
+  - pre-queue / pre-match UI
+
+### 5.13 Call History / Connection Recap
+- After a call, generate a lightweight recap such as:
+  - "You talked about..."
+  - "You could follow up with..."
+- Could also be surfaced in favorites/history views
+- Only makes sense if enough chat/text context is available
+
+### 5.14 Smart Reply for Chat Text
+- Suggest quick replies inside the chat panel
+- Use short context from the most recent messages
+- Good UX upside, but requires careful latency and privacy controls
+
+### 5.15 Admin Notes / Resolution Notes Drafting
+- When an admin reviews a report, AI drafts `admin_notes`
+- Small feature, but practical and time-saving
+
+### 5.16 Changelog / CMS Text Normalization
+- Standardize or correct changelog/admin-managed CMS content
+- Candidate actions:
+  - rewrite
+  - shorten
+  - clarify
+  - clean up wording

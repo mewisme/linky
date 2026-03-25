@@ -11,6 +11,7 @@ import { initializeMqttClient, attachSocketIO } from "@/infra/mqtt/client.js";
 import { setupGracefulShutdown } from "@/middleware/graceful-shutdown.js";
 import { startJobs } from "@/jobs/index.js";
 import { initializeWebPush } from "@/infra/push/web-push.client.js";
+import { pullEmbeddingModelAtStartup } from "@/infra/ollama/embedding.service.js";
 
 const logger = createLogger("api:server");
 
@@ -39,6 +40,8 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   } catch (error: unknown) {
     logger.error(error as Error, "Failed to connect to Redis, continuing without Redis");
   }
+
+  await pullEmbeddingModelAtStartup();
 
   initializeMqttClient();
 

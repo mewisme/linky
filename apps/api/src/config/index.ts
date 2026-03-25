@@ -47,7 +47,11 @@ export const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 30000,
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
   // Ollama
-  ollamaUrl: process.env.OLLAMA_URL as string,
+  ollamaEmbeddingUrl: process.env.OLLAMA_EMBEDDING_URL as string,
+  ollamaEmbeddingModel: process.env.OLLAMA_EMBEDDING_MODEL as string || "bge-m3",
+  ollamaCloudUrl: process.env.OLLAMA_CLOUD_URL as string || "https://ollama.com",
+  ollamaCloudModel: process.env.OLLAMA_CLOUD_MODEL as string || "ministral-3:14b",
+  ollamaCloudApiKey: process.env.OLLAMA_CLOUD_API_KEY as string,
   ollamaEmbeddingTimeout: Number(process.env.OLLAMA_EMBEDDING_TIMEOUT) || 60000,
   // Web Push (VAPID)
   vapidSubject: process.env.VAPID_SUBJECT as string,

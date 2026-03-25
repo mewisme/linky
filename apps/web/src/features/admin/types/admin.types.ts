@@ -422,6 +422,23 @@ export namespace AdminAPI {
   export namespace Reports {
     export type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
 
+    export type AiSummaryStatus = "pending" | "ready" | "failed";
+    export type AiSummarySeverity = "low" | "medium" | "high" | "critical";
+
+    export interface AiSummary {
+      report_id: string;
+      status: AiSummaryStatus;
+      summary: string | null;
+      severity: AiSummarySeverity | null;
+      suggested_action: string | null;
+      model: string | null;
+      prompt_version: string | null;
+      raw_json: unknown | null;
+      error_message: string | null;
+      created_at: string;
+      updated_at: string;
+    }
+
     export interface ReportContext {
       id: string;
       report_id: string;
@@ -451,6 +468,7 @@ export namespace AdminAPI {
       created_at: string;
       updated_at: string;
       context?: ReportContext | null;
+      ai_summary?: AiSummary | null;
     }
 
     export namespace Get {

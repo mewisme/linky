@@ -11,6 +11,7 @@ import {
   PillStatus,
 } from "@ws/ui/components/kibo-ui/pill"
 import { useMemo } from 'react'
+import { Badge } from '@ws/ui/components/ui/badge'
 
 export function getIconForStatus(status: AdminAPI.Reports.ReportStatus) {
   switch (status) {
@@ -23,6 +24,16 @@ export function getIconForStatus(status: AdminAPI.Reports.ReportStatus) {
     case 'dismissed':
   }
   return <IconAlertCircle className="size-4 text-amber-500" />
+}
+
+function getAiSeverityVariant(severity: AdminAPI.Reports.AiSummarySeverity | null | undefined) {
+  switch (severity) {
+    case "critical": return "destructive";
+    case "high": return "default";
+    case "medium": return "secondary";
+    case "low": return "outline";
+    default: return "outline";
+  }
 }
 
 export interface RowCallbacks {
@@ -112,6 +123,36 @@ export const columns = (callbacks?: RowCallbacks): ColumnDef<AdminAPI.Reports.Re
         </Pill>
       )
     },
+  },
+  {
+    id: "ai_severity",
+    header: "AI Severity",
+    cell: ({ row }) => {
+      const ai = row.original.ai_summary
+      const severity = ai?.severity ?? null
+      if (!ai) return <span className="text-muted-foreground/50">—</span>
+      if (ai.status !== "ready") return <span className="text-muted-foreground/70">{ai.status}</span>
+      return (
+        <Badge variant={getAiSeverityVariant(severity)}>
+          {(severity ?? "unknown").toString()}
+        </Badge>
+      )
+    }
+  },
+  {
+    id: "ai_summary",
+    header: "AI Summary",
+    cell: ({ row }) => {
+      const ai = row.original.ai_summary
+      if (!ai) return <span className="text-muted-foreground/50">—</span>
+      if (ai.status === "failed") {
+        return <div className="max-w-[280px] truncate text-destructive">{ai.error_message ?? "failed"}</div>
+      }
+      if (ai.status !== "ready") {
+        return <div className="max-w-[280px] truncate text-muted-foreground">{ai.status}</div>
+      }
+      return <div className="max-w-[280px] truncate text-muted-foreground">{ai.summary}</div>
+    }
   },
   {
     accessorKey: 'created_at',

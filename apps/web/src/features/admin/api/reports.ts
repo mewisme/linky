@@ -38,3 +38,14 @@ export async function updateAdminReport(
     return result;
   });
 }
+
+export async function generateAdminReportAiSummary(id: string): Promise<{ success: true }> {
+  return withSentryAction("generateAdminReportAiSummary", async () => {
+    const result = await serverFetch<{ success: true }>(
+      `${backendUrl.admin.reportById(id)}/ai-summary:generate`,
+      { method: 'POST' },
+    );
+    revalidateTag(cacheTags.adminReports, 'max');
+    return result;
+  });
+}

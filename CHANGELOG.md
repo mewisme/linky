@@ -2,9 +2,8 @@
 
 🔨 Other Changes
 
-- Update package dependencies and remove unused files ([cdbc977](../../commit/cdbc977))
-- Remove replay sampling rates from Sentry configuration ([0a11d91](../../commit/0a11d91))
-- Update package versions to 0.71.0 and refresh version lock ([5b4c3da](../../commit/5b4c3da))
+- Implement AI moderation assist for user reports ([47e6aa5](../../commit/47e6aa5))
+- Update package versions to 0.71.1 and refresh version lock ([4050955](../../commit/4050955))
 
 
-📋 Full Changelog: [5b4c3da...cdbc977](../../compare/5b4c3da...cdbc977)
+📋 Full Changelog: [4050955...47e6aa5](../../compare/4050955...47e6aa5)

@@ -374,6 +374,34 @@ export namespace AdminAPI {
   }
 
   export namespace Broadcasts {
+    export type AiBroadcastTone = "friendly" | "professional" | "direct";
+
+    export interface AiBroadcastDraftPrimary {
+      title: string;
+      body: string;
+      cta: string;
+    }
+
+    export interface AiBroadcastToneVariant extends AiBroadcastDraftPrimary {
+      tone: AiBroadcastTone;
+    }
+
+    export interface AiBroadcastDraft {
+      primary: AiBroadcastDraftPrimary;
+      tone_variants: AiBroadcastToneVariant[];
+    }
+
+    export namespace AiGenerate {
+      export interface Body {
+        audience: string;
+        key_points: string;
+      }
+
+      export interface Response {
+        draft: AiBroadcastDraft;
+      }
+    }
+
     export interface HistoryRow {
       id: string;
       created_by_user_id: string;

@@ -36,3 +36,47 @@ export function buildReportSummaryPrompt(params: {
     `report_context_json: ${context ? context : "null"}`,
   ].join("\n");
 }
+
+export const BROADCAST_AI_PROMPT_VERSION = "broadcast-ai-v1";
+
+export type BroadcastAiTone = "friendly" | "professional" | "direct";
+
+export interface BroadcastAiDraftOutput {
+  primary: {
+    title: string;
+    body: string;
+    cta: string;
+  };
+  tone_variants: Array<{
+    tone: BroadcastAiTone;
+    title: string;
+    body: string;
+    cta: string;
+  }>;
+}
+
+export function buildBroadcastAiDraftPrompt(params: {
+  audience: string;
+  keyPoints: string;
+}): string {
+  const audience = clipText(params.audience.trim(), 400);
+  const keyPoints = clipText(params.keyPoints.trim(), 1400);
+
+  return [
+    `You are an internal marketing assistant for a real-time video chat app.`,
+    `Your task is to write an admin announcement draft for notifications.`,
+    ``,
+    `Output rules (strict):`,
+    `- Output ONLY valid JSON. No markdown, no explanations.`,
+    `- JSON schema must be exactly: {"primary":{"title":string,"body":string,"cta":string},"tone_variants":[{"tone":"friendly"|"professional"|"direct","title":string,"body":string,"cta":string}]}`,
+    `- Provide exactly 3 tone_variants, in any order, with tones: friendly, professional, direct.`,
+    `- Keep "title" <= 80 characters.`,
+    `- Keep "body" <= 700 characters.`,
+    `- Keep "cta" <= 120 characters.`,
+    `- "body" must NOT include "cta". "cta" must be separate.`,
+    ``,
+    `Inputs:`,
+    `audience: ${JSON.stringify(audience)}`,
+    `key_points: ${JSON.stringify(keyPoints)}`,
+  ].join("\n");
+}

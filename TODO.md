@@ -437,7 +437,7 @@
 
 ## Section 5: Ollama Cloud Feature TODOs
 
-### 5.8 Admin Report Summarization
+### 5.8 Admin Report Summarization (done)
 - Use after a user submits a report following a call
 - AI reads report reason, report context, and available chat snapshot
 - Generate:

@@ -1,8 +1,10 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
 import { sendBroadcastToAllUsers } from "@/contexts/broadcast-context.js";
+import { generateBroadcastAiDraft } from "@/contexts/broadcast-ai-context.js";
 import { listBroadcastHistory } from "@/infra/supabase/repositories/broadcast-history.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:broadcasts:route");
@@ -12,6 +14,11 @@ interface BroadcastBody {
   title?: string;
   deliveryMode?: "push_only" | "push_and_save";
   url?: string;
+}
+
+interface BroadcastAiGenerateBody {
+  audience: string;
+  key_points: string;
 }
 
 router.get("/", async (req: Request, res: Response) => {
@@ -118,5 +125,67 @@ router.post("/", async (req: Request, res: Response) => {
     });
   }
 });
+
+router.post(
+  "/ai-generate",
+  createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 3 }),
+  async (req: Request, res: Response) => {
+    try {
+      const clerkUserId = req.auth?.sub;
+
+      if (!clerkUserId) {
+        return res.status(401).json({
+          error: "Unauthorized",
+          message: "User ID not found in authentication token",
+        });
+      }
+
+      const createdByUserId = await getUserIdByClerkId(clerkUserId);
+      if (!createdByUserId) {
+        return res.status(404).json({
+          error: "Not Found",
+          message: "User not found in database",
+        });
+      }
+
+      const { audience, key_points } = req.body as BroadcastAiGenerateBody;
+
+      if (!audience || typeof audience !== "string" || !audience.trim()) {
+        return res.status(400).json({
+          error: "Bad Request",
+          message: "audience is required and must be a non-empty string",
+        });
+      }
+
+      if (!key_points || typeof key_points !== "string" || !key_points.trim()) {
+        return res.status(400).json({
+          error: "Bad Request",
+          message: "key_points is required and must be a non-empty string",
+        });
+      }
+
+      const draft = await generateBroadcastAiDraft({
+        audience,
+        keyPoints: key_points,
+        createdByUserId,
+      });
+
+      return res.json({ draft });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("already in progress")) {
+        return res.status(429).json({
+          error: "Too Many Requests",
+          message: error.message,
+        });
+      }
+
+      logger.error(error as Error, "Unexpected error in POST /admin/broadcasts/ai-generate");
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: "Failed to generate broadcast draft",
+      });
+    }
+  },
+);
 
 export default router;

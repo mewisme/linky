@@ -31,3 +31,14 @@ export async function createBroadcast(
     return result;
   });
 }
+
+export async function generateBroadcastAiDraft(
+  data: AdminAPI.Broadcasts.AiGenerate.Body,
+): Promise<AdminAPI.Broadcasts.AiGenerate.Response> {
+  return withSentryAction("generateBroadcastAiDraft", async () => {
+    return serverFetch<AdminAPI.Broadcasts.AiGenerate.Response>(
+      backendUrl.admin.broadcastsAiGenerate(),
+      { method: "POST", body: JSON.stringify(data) },
+    )
+  })
+}

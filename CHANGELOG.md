@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Implement AI moderation assist for user reports ([47e6aa5](../../commit/47e6aa5))
-- Update package versions to 0.71.1 and refresh version lock ([4050955](../../commit/4050955))
+- Implement AI draft generation for broadcasts ([db7a05c](../../commit/db7a05c))
+- Update package versions to 0.72.0 and refresh version lock ([c8636db](../../commit/c8636db))
 
 
-📋 Full Changelog: [4050955...47e6aa5](../../compare/4050955...47e6aa5)
+📋 Full Changelog: [c8636db...db7a05c](../../compare/c8636db...db7a05c)

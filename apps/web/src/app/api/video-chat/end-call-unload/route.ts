@@ -1,7 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
-import { publicEnv } from "@/shared/env/public-env";
+import { backendUrl } from "@/lib/http/backend-url";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,11 +16,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/video-chat/end-call-unload`, {
+    let authToken: string | null = null;
+    const authHeader = request.headers.get("authorization");
+    if (authHeader) {
+      authToken = authHeader.replace("Bearer ", "");
+    } else {
+      try {
+        const { getToken } = await auth({ acceptsToken: "any" });
+        authToken = await getToken();
+      } catch {
+        Sentry.logger.warn("Failed to retrieve Clerk token for unload proxy");
+      }
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (authToken) {
+      headers["Authorization"] = `Bearer ${authToken}`;
+    }
+
+    const response = await fetch(backendUrl.videoChat.endCallUnload(), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({ socketId }),
     });
 

@@ -9,13 +9,24 @@ import { sendPeerActionPush } from "@/contexts/peer-action-notification-context.
 
 const logger = createLogger("api:video-chat:matchmaking:socket");
 
+const activeIntervals: ReturnType<typeof setInterval>[] = [];
+
+export function clearMatchmakingIntervals(): void {
+  for (const id of activeIntervals) {
+    clearInterval(id);
+  }
+  activeIntervals.length = 0;
+  logger.info("All matchmaking intervals cleared");
+}
+
 export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMatchmaking, rooms: VideoChatRooms): void {
-  setInterval(async () => {
+  const cleanupId = setInterval(async () => {
     await matchmaking.cleanupStaleSockets(io);
     await matchmaking.cleanupExpiredEntries(io);
   }, 30 * 1000);
+  activeIntervals.push(cleanupId);
 
-  setInterval(async () => {
+  const matchId = setInterval(async () => {
     const queueSize = await matchmaking.getQueueSize();
     if (queueSize >= 2) {
       const matched = await matchmaking.tryMatch(io);
@@ -26,6 +37,20 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
           logger.error("Match failed: Invalid user data");
           return;
         }
+
+        const now = Date.now();
+        const user1WaitMs = now - user1.joinedAt.getTime();
+        const user2WaitMs = now - user2.joinedAt.getTime();
+        const avgWaitMs = Math.round((user1WaitMs + user2WaitMs) / 2);
+
+        logger.info(
+          "Match KPI: avgWaitMs=%d user1WaitMs=%d user2WaitMs=%d queueSize=%d activeRooms=%d",
+          avgWaitMs,
+          user1WaitMs,
+          user2WaitMs,
+          queueSize,
+          rooms.getRoomCount(),
+        );
 
         const roomId = rooms.createRoom(user1.socketId, user2.socketId);
         const isUser1Offerer = user1.socketId < user2.socketId;
@@ -107,10 +132,11 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
       }
     }
   }, 1000);
+  activeIntervals.push(matchId);
 }
 
 export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
-  setInterval(() => {
+  const heartbeatId = setInterval(() => {
     const roomCount = rooms.getRoomCount();
     if (roomCount === 0) {
       return;
@@ -144,5 +170,6 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
       }
     }
   }, 4000);
+  activeIntervals.push(heartbeatId);
 }
 

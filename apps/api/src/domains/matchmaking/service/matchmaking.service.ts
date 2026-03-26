@@ -160,21 +160,15 @@ export class MatchmakingService {
       }
 
       const now = Date.now();
-      this.logger.info(
-        "tryMatch: queue snapshot queueSize=%d validUsers=%d stale=%d users=%o",
+      this.logger.debug(
+        "tryMatch: queue snapshot queueSize=%d validUsers=%d stale=%d",
         queueSize,
         queueUsers.length,
         staleUserIds.length,
-        queueUsers.map((u) => ({
-          userId: u.userId,
-          interests: u.interestTags,
-          waitSec: Math.round((now - u.joinedAt) / 1000),
-          hasFavorites: (favoritesMap.get(u.userId)?.size ?? 0) > 0,
-          hasEmbedding: embeddingsMap.has(u.userId),
-        })),
       );
 
       const embeddingPairs: EmbeddingPair[] = [];
+      const pairIndices: Array<{ i: number; j: number }> = [];
       for (let i = 0; i < queueUsers.length; i++) {
         for (let j = i + 1; j < queueUsers.length; j++) {
           const userA = queueUsers[i]!;
@@ -185,98 +179,78 @@ export class MatchmakingService {
             embeddingA: embeddingsMap.get(userA.userId) ?? null,
             embeddingB: embeddingsMap.get(userB.userId) ?? null,
           });
+          pairIndices.push({ i, j });
         }
       }
 
-      const embeddingSimilarityMap = calculateEmbeddingSimilarities(embeddingPairs);
+      const [embeddingSimilarityMap, skipResults] = await Promise.all([
+        Promise.resolve(calculateEmbeddingSimilarities(embeddingPairs)),
+        Promise.all(
+          pairIndices.map(({ i, j }) =>
+            this.store.hasSkip(queueUsers[i]!.userId, queueUsers[j]!.userId)
+          )
+        ),
+      ]);
 
       const allCandidates: Array<ScoredCandidatePair & { hasSkipCooldown: boolean }> = [];
 
-      for (let i = 0; i < queueUsers.length; i++) {
-        for (let j = i + 1; j < queueUsers.length; j++) {
-          const userA = queueUsers[i]!;
-          const userB = queueUsers[j]!;
+      for (let pairIdx = 0; pairIdx < pairIndices.length; pairIdx++) {
+        const { i, j } = pairIndices[pairIdx]!;
+        const userA = queueUsers[i]!;
+        const userB = queueUsers[j]!;
 
-          const hasSkipCooldown = await this.store.hasSkip(userA.userId, userB.userId);
+        const hasSkipCooldown = skipResults[pairIdx]!;
 
-          const blockedSetA = blockedSetsMap.get(userA.userId);
-          const blockedSetB = blockedSetsMap.get(userB.userId);
-          const isBlocked = blockedSetA?.has(userB.userId) || blockedSetB?.has(userA.userId);
+        const blockedSetA = blockedSetsMap.get(userA.userId);
+        const blockedSetB = blockedSetsMap.get(userB.userId);
+        const isBlocked = blockedSetA?.has(userB.userId) || blockedSetB?.has(userA.userId);
 
-          const favoritesA = favoritesMap.get(userA.userId);
-          const favoritesB = favoritesMap.get(userB.userId);
-
-          const favoriteType = calculateFavoriteType(favoritesA, favoritesB, userA.userId, userB.userId);
-
-          const embeddingSimilarity = getEmbeddingSimilarityFromMap(
-            embeddingSimilarityMap,
-            userA.userId,
-            userB.userId
-          );
-
-          const { score: baseScore, commonInterests, embeddingScore } = calculateRedisCandidateScoreWithEmbedding(
-            userA,
-            userB,
-            now,
-            embeddingSimilarity
-          );
-
-          let finalScore = baseScore;
-          if (favoriteType === "mutual") {
-            finalScore += 10000;
-          } else if (favoriteType === "one-way") {
-            finalScore += 5000;
-          }
-
-          if (isBlocked) {
-            this.logger.info(
-              "tryMatch: pair blocked %s <-> %s",
-              userA.userId,
-              userB.userId,
-            );
-            continue;
-          }
-
-          this.logger.info(
-            "tryMatch: pair scored %o",
-            {
-              userA: userA.userId,
-              userB: userB.userId,
-              finalScore,
-              commonInterests,
-              favoriteType,
-              embeddingScore,
-              hasSkipCooldown,
-            },
-          );
-
-          const candidate: ScoredCandidatePair & { hasSkipCooldown: boolean } = {
-            userA,
-            userB,
-            score: finalScore,
-            commonInterests,
-            favoriteType,
-            hasSkipCooldown,
-          };
-
-          allCandidates.push(candidate);
+        if (isBlocked) {
+          continue;
         }
+
+        const favoritesA = favoritesMap.get(userA.userId);
+        const favoritesB = favoritesMap.get(userB.userId);
+
+        const favoriteType = calculateFavoriteType(favoritesA, favoritesB, userA.userId, userB.userId);
+
+        const embeddingSimilarity = getEmbeddingSimilarityFromMap(
+          embeddingSimilarityMap,
+          userA.userId,
+          userB.userId
+        );
+
+        const { score: baseScore, commonInterests } = calculateRedisCandidateScoreWithEmbedding(
+          userA,
+          userB,
+          now,
+          embeddingSimilarity
+        );
+
+        let finalScore = baseScore;
+        if (favoriteType === "mutual") {
+          finalScore += 10000;
+        } else if (favoriteType === "one-way") {
+          finalScore += 5000;
+        }
+
+        allCandidates.push({
+          userA,
+          userB,
+          score: finalScore,
+          commonInterests,
+          favoriteType,
+          hasSkipCooldown,
+        });
       }
 
       if (allCandidates.length === 0) {
         return null;
       }
 
-      this.logger.info(
-        "tryMatch: candidates total=%d sorted=%o",
+      this.logger.debug(
+        "tryMatch: candidates total=%d",
         allCandidates.length,
-        allCandidates.map((c) => ({
-          pair: `${c.userA.userId} <-> ${c.userB.userId}`,
-          score: c.score,
-          common: c.commonInterests,
-          fav: c.favoriteType,
-          skip: c.hasSkipCooldown,
-        })),
       );
 
       const noSkipCandidates = allCandidates.filter((candidate) => !candidate.hasSkipCooldown);

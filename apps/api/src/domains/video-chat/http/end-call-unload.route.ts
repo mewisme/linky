@@ -4,17 +4,24 @@ import { createLogger } from "@/utils/logger.js";
 import { recordCallHistory, recordCallHistoryFromRoom } from "@/domains/video-chat/socket/call-history.socket.js";
 import { type AuthenticatedSocket } from "@/socket/auth.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:video-chat:end-call-unload:route");
+const unloadRateLimit = createRateLimitMiddleware({ windowMs: 10_000, maxRequests: 5 });
 
-router.post("/end-call-unload", async (req: Request, res: Response) => {
+router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Response) => {
   try {
     const { socketId } = req.body;
+    const callerClerkId = req.auth?.sub;
 
     if (!socketId || typeof socketId !== "string") {
       logger.warn("Invalid request: missing or invalid socketId");
       return res.status(400).json({ error: "socketId is required" });
+    }
+
+    if (!callerClerkId) {
+      return res.status(401).json({ error: "Unauthorized", message: "Missing authentication" });
     }
 
     const context = getVideoChatContext();
@@ -55,6 +62,16 @@ router.post("/end-call-unload", async (req: Request, res: Response) => {
     }
 
     const clerkUserId = socket.data.userId;
+
+    if (clerkUserId !== callerClerkId) {
+      logger.warn(
+        "Ownership mismatch: caller=%s socket owner=%s socketId=%s",
+        callerClerkId,
+        clerkUserId,
+        socketId,
+      );
+      return res.status(403).json({ error: "Forbidden", message: "Socket does not belong to caller" });
+    }
     if (clerkUserId) {
       const dbUserId = await getUserIdByClerkId(clerkUserId);
       if (dbUserId) {

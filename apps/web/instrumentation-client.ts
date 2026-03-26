@@ -2,15 +2,17 @@ import * as Sentry from "@sentry/nextjs";
 
 import { publicEnv } from "@/shared/env/public-env";
 
-const isEnabled = !publicEnv.isDev || publicEnv.SENTRY_ENABLED;
+const isEnabled =
+  (process.env.NODE_ENV === "production" || publicEnv.SENTRY_ENABLED) &&
+  Boolean(publicEnv.SENTRY_DSN);
 
 Sentry.init({
   dsn: publicEnv.SENTRY_DSN,
   enabled: isEnabled,
-  sendDefaultPii: true,
-  tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
-  enableLogs: true,
-  enableMetrics: true,
+  sendDefaultPii: false,
+  tracesSampleRate: 0.05,
+  enableLogs: false,
+  enableMetrics: false,
   integrations: isEnabled
     ? [
       Sentry.feedbackIntegration({

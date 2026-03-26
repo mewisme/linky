@@ -48,6 +48,7 @@ export default function CallLayout({
     endCall,
     toggleMute,
     toggleVideo,
+    swapCamera,
     toggleScreenShare,
     isSharingScreen,
     sendFavoriteNotification,
@@ -87,6 +88,7 @@ export default function CallLayout({
           onToggleMute={toggleMute}
           onToggleVideo={toggleVideo}
           onToggleChat={handleToggleChat}
+          onSwapCamera={swapCamera}
           onToggleScreenShare={toggleScreenShare}
           isSharingScreen={isSharingScreen}
           onBlockUser={async (userId) => {

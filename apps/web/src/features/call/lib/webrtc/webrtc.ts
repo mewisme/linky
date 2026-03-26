@@ -26,6 +26,39 @@ export function createPeerConnection(iceServers: RTCIceServer[]): RTCPeerConnect
   });
 }
 
+function isDeviceNotFoundError(error: unknown): boolean {
+  return (
+    error instanceof DOMException &&
+    (error.name === "NotFoundError" || error.name === "DevicesNotFoundError")
+  );
+}
+
+function getMediaErrorMessage(error: unknown): string {
+  if (!(error instanceof DOMException)) {
+    return "An unexpected error occurred while accessing your camera/microphone.";
+  }
+
+  switch (error.name) {
+    case "NotAllowedError":
+    case "PermissionDeniedError":
+      return "Camera/microphone access was denied. Please allow access in your browser settings and try again.";
+    case "NotFoundError":
+    case "DevicesNotFoundError":
+      return "No microphone found. Please connect a microphone to start a call.";
+    case "NotReadableError":
+    case "TrackStartError":
+      return "Your camera or microphone is already in use by another application. Please close it and try again.";
+    case "OverconstrainedError":
+      return "Your camera does not support the requested video quality. Trying with default settings may help.";
+    case "AbortError":
+      return "Media access was interrupted. Please try again.";
+    case "SecurityError":
+      return "Media access is blocked by your browser's security policy. Ensure you are using HTTPS.";
+    default:
+      return `Failed to access camera/microphone: ${error.message}`;
+  }
+}
+
 export async function getUserMedia(
   video: boolean = true,
   audio: boolean = true
@@ -36,7 +69,17 @@ export async function getUserMedia(
       audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
     });
   } catch (error) {
-    throw new Error(`Failed to get user media: ${error instanceof Error ? error.message : "Unknown error"}`);
+    if (video && isDeviceNotFoundError(error)) {
+      try {
+        return await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
+        });
+      } catch (audioOnlyError) {
+        throw new Error(getMediaErrorMessage(audioOnlyError));
+      }
+    }
+    throw new Error(getMediaErrorMessage(error));
   }
 }
 

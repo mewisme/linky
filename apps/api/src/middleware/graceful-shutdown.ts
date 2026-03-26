@@ -5,6 +5,7 @@ import { redisClient } from "@/infra/redis/client.js";
 import { mqttClient } from "@/infra/mqtt/client.js";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { clearMatchmakingIntervals } from "@/domains/video-chat/socket/matchmaking.socket.js";
 
 const logger = createLogger("middleware:graceful-shutdown");
 
@@ -31,6 +32,8 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
     }, config.shutdownTimeout);
 
     try {
+      clearMatchmakingIntervals();
+
       await new Promise<void>((resolve) => {
         if (!httpServer) {
           resolve();

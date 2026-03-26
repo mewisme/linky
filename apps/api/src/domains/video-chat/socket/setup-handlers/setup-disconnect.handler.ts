@@ -1,5 +1,5 @@
 import type { VideoChatMatchmaking, VideoChatRooms } from "../types.js";
-import { attachmentRateState, messageRateState } from "../helpers/rate-limit.helper.js";
+import { cleanupRateLimitState } from "../helpers/rate-limit.helper.js";
 
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
@@ -65,18 +65,20 @@ export function setupDisconnectHandler(
         }
       }
 
+      const callDurationMs = Date.now() - room.createdAt.getTime();
       rooms.deleteRoom(room.id);
+      logger.info(
+        "Call teardown: reason=disconnect:%s socket=%s durationMs=%d",
+        reason,
+        socket.id,
+        callDurationMs,
+      );
     }
 
-    messageRateState.delete(socket.id);
-    attachmentRateState.delete(socket.id);
+    cleanupRateLimitState(socket);
 
-    if (isNamespaceDisconnect && !wasInRoom) {
-      logger.info("Namespace disconnect (queued): socket=%s user=%s reason=%s dequeued=%s", socket.id, userId, reason, false);
-    } else if (isNamespaceDisconnect && wasInRoom) {
-      logger.info("Namespace disconnect (in-room): socket=%s user=%s reason=%s dequeued=%s", socket.id, userId, reason, true);
-    } else {
-      logger.info("Client disconnected: socket=%s user=%s reason=%s wasInRoom=%s dequeued=%s", socket.id, userId, reason, wasInRoom, shouldDequeueFromMatchmaking);
+    if (!wasInRoom) {
+      logger.debug("Disconnect (no room): socket=%s user=%s reason=%s", socket.id, userId, reason);
     }
   });
 }

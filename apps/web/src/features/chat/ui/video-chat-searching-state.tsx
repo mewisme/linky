@@ -7,6 +7,8 @@ import Link from "next/link";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { getQueueStatus } from "@/actions/matchmaking";
+import { Button } from "@ws/ui/components/ui/button";
+import { IconPhoneOff } from "@tabler/icons-react";
 
 const BASE_HINTS = [
   "You earn EXP by talking",
@@ -37,13 +39,15 @@ function formatQueueLabel(queueSize: number): string {
 
 interface VideoChatSearchingStateProps {
   progress?: UsersAPI.Progress.GetMe.Response | null;
+  onEndCall?: () => void;
 }
 
-export function VideoChatSearchingState({ progress }: VideoChatSearchingStateProps) {
+export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearchingStateProps) {
   const [hintIndex, setHintIndex] = useState(0);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
-  const startedAt = useRef(Date.now());
+  const [showEndSearch, setShowEndSearch] = useState(false);
+  const startedAt = useRef(0);
   const hasFetchedQueue = useRef(false);
 
   const hints = BASE_HINTS;
@@ -56,10 +60,21 @@ export function VideoChatSearchingState({ progress }: VideoChatSearchingStatePro
   }, [hints.length]);
 
   useEffect(() => {
+    if (startedAt.current === 0) {
+      startedAt.current = Date.now();
+    }
     const tickId = setInterval(() => {
       setElapsedMs(Date.now() - startedAt.current);
     }, 1000);
     return () => clearInterval(tickId);
+  }, []);
+
+  useEffect(() => {
+    setShowEndSearch(false);
+    const timeoutId = setTimeout(() => {
+      setShowEndSearch(true);
+    }, 1500);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   useEffect(() => {
@@ -160,6 +175,27 @@ export function VideoChatSearchingState({ progress }: VideoChatSearchingStatePro
               </Link>
             </motion.div>
           )}
+          <AnimatePresence>
+            {onEndCall && showEndSearch && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.25 }}
+                className="w-full max-w-xs"
+              >
+                <Button
+                  variant="destructive"
+                  onClick={onEndCall}
+                  className="mt-1 h-10 w-full gap-2"
+                  data-testid="chat-cancel-search-button"
+                >
+                  <IconPhoneOff className="size-4" />
+                  End Search
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

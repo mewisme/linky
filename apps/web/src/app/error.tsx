@@ -6,7 +6,6 @@ import {
   IconRefresh
 } from "@tabler/icons-react";
 
-import * as Sentry from "@sentry/nextjs";
 import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
 import { Outfit } from "next/font/google";
@@ -25,7 +24,6 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    Sentry.captureException(error);
     trackEvent({ name: "error_occurred", properties: { message: error.message, digest: error.digest ?? null } });
   }, [error]);
 

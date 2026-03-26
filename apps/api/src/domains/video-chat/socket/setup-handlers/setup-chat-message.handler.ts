@@ -33,7 +33,7 @@ export function setupChatMessageHandler(
     data: ChatMessageInputPayload,
     acknowledge?: (response: { ok: boolean; error?: string }) => void,
   ) => {
-    if (!checkRateLimit(messageRateState, socket.id, messageRateLimit)) {
+    if (!checkRateLimit(messageRateState, socket, messageRateLimit)) {
       emitChatError(socket, "Message rate limit exceeded.");
       acknowledge?.({ ok: false, error: "Message rate limit exceeded." });
       return;
@@ -78,7 +78,7 @@ export function setupChatMessageHandler(
       return;
     }
 
-    if (data.attachment && !checkRateLimit(attachmentRateState, socket.id, attachmentRateLimit)) {
+    if (data.attachment && !checkRateLimit(attachmentRateState, socket, attachmentRateLimit)) {
       emitChatError(socket, "Attachment rate limit exceeded.");
       acknowledge?.({ ok: false, error: "Attachment rate limit exceeded." });
       return;

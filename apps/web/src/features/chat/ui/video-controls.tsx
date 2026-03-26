@@ -25,6 +25,7 @@ import {
   IconPictureInPicture,
   IconScreenShare,
   IconScreenShareOff,
+  IconSwitchHorizontal,
   IconBan,
 } from "@tabler/icons-react";
 import {
@@ -96,6 +97,7 @@ interface VideoControlsProps {
   onEndCall: () => void;
   onToggleMute: () => void;
   onToggleVideo: () => void;
+  onSwapCamera?: () => void;
   onToggleChat: () => void;
   onToggleScreenShare?: () => void;
   isSharingScreen?: boolean;
@@ -181,6 +183,7 @@ export function VideoControls({
   onEndCall,
   onToggleMute,
   onToggleVideo,
+  onSwapCamera,
   onToggleChat,
   onToggleScreenShare,
   isSharingScreen = false,
@@ -336,6 +339,9 @@ export function VideoControls({
         dynamicIcon: (ctx) => (ctx.isVideoOff ? IconVideoOff : IconVideo),
         dynamicLabel: (ctx) => (ctx.isVideoOff ? "Camera On" : "Camera Off"),
         dynamicVariant: (ctx) => (ctx.isVideoOff ? "destructive" : "outline"),
+        visible:
+          (connectionStatus === "in_call" || connectionStatus === "reconnecting") &&
+          hasLocalStream,
         testId: "chat-video-toggle-button",
       },
       {
@@ -354,6 +360,20 @@ export function VideoControls({
         testId: (ctx) => ctx.connectionStatus === "searching"
           ? "chat-cancel-search-button"
           : "chat-end-call-button",
+      },
+      {
+        id: "swap-camera",
+        priority: "overflow",
+        icon: IconSwitchHorizontal,
+        label: "Swap Camera",
+        variant: "outline",
+        onClick: () => onSwapCamera?.(),
+        visible:
+          !!onSwapCamera &&
+          (connectionStatus === "in_call" || connectionStatus === "reconnecting") &&
+          hasLocalStream,
+        disabled: !hasLocalStream,
+        testId: "chat-swap-camera-button",
       },
       {
         id: "chat",
@@ -503,24 +523,15 @@ export function VideoControls({
           />
         ))}
 
-        {showOverflowMenu &&
-          (isMobile ? (
-            <MoreOptionsDrawer
-              controls={visibleOverflowControls}
-              context={context}
-              hasUnreadIndicator={hasUnreadMessagesIndicator}
-              onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
-              onReportOpen={() => setIsReportOpen(true)}
-            />
-          ) : (
-            <MoreOptionsMenu
-              controls={visibleOverflowControls}
-              context={context}
-              hasUnreadIndicator={hasUnreadMessagesIndicator}
-              onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
-              onReportOpen={() => setIsReportOpen(true)}
-            />
-          ))}
+        {showOverflowMenu && (
+          <MoreOptionsMenu
+            controls={visibleOverflowControls}
+            context={context}
+            hasUnreadIndicator={hasUnreadMessagesIndicator}
+            onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
+            onReportOpen={() => setIsReportOpen(true)}
+          />
+        )}
       </TooltipProvider>
 
       <Dialog open={isPeerInfoOpen} onOpenChange={setIsPeerInfoOpen}>

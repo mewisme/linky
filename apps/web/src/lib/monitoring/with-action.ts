@@ -8,7 +8,7 @@ export async function withSentryAction<T>(
 ): Promise<T> {
   return Sentry.withServerActionInstrumentation(
     name,
-    { headers: await headers(), recordResponse: true },
+    { headers: await headers(), recordResponse: false },
     fn,
   ) as Promise<T>;
 }

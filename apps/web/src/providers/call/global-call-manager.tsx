@@ -14,6 +14,7 @@ interface GlobalCallContextValue {
   endCall: () => void;
   toggleMute: () => void;
   toggleVideo: () => void;
+  swapCamera: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
   isSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
@@ -39,6 +40,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     endCall: videoChat.endCall,
     toggleMute: videoChat.toggleMute,
     toggleVideo: videoChat.toggleVideo,
+    swapCamera: videoChat.swapCamera,
     toggleScreenShare: videoChat.toggleScreenShare,
     isSharingScreen: videoChat.isSharingScreen,
     sendFavoriteNotification: videoChat.sendFavoriteNotification,
@@ -53,6 +55,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     videoChat.endCall,
     videoChat.toggleMute,
     videoChat.toggleVideo,
+    videoChat.swapCamera,
     videoChat.toggleScreenShare,
     videoChat.isSharingScreen,
     videoChat.sendFavoriteNotification,

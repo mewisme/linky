@@ -5,6 +5,7 @@ import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
+import { useHotkey } from "@tanstack/react-hotkeys";
 
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import type { SignalData } from "@/lib/realtime/socket";
@@ -53,6 +54,7 @@ export interface UseVideoChatReturn {
   endCall: () => void;
   toggleMute: () => void;
   toggleVideo: () => void;
+  swapCamera: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
   isSharingScreen: boolean;
   isPeerSharingScreen: boolean;
@@ -741,6 +743,15 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onEndCall: (data: { message: string }) => {
+        const currentStatus = connectionStatusRef.current;
+        const isInCall =
+          currentStatus === "matched" ||
+          currentStatus === "in_call" ||
+          currentStatus === "reconnecting";
+        if (!isInCall) {
+          return;
+        }
+
         monitoring.stopMonitoring();
         recoveryController.stop();
         toast(`Call ended - ${data.message}`);
@@ -849,21 +860,18 @@ export function useVideoChat(): UseVideoChatReturn {
       }
 
       if (!authReady) {
-        Sentry.metrics.count("auth_required", 1);
         actionsRef.current.setError("Authentication required. Please sign in.");
         return;
       }
 
       const token = await getToken();
       if (!token) {
-        Sentry.metrics.count("auth_required", 1);
         actionsRef.current.setError("Authentication required. Please sign in.");
         return;
       }
 
       const socket = socketSignaling.getSocket();
       if (!socket?.connected) {
-        Sentry.metrics.count("socket_not_connected", 1);
         actionsRef.current.setError("Connection not ready. Please wait a moment and try again.");
         toast.error("Connection not ready. Please wait...");
         return;
@@ -871,7 +879,6 @@ export function useVideoChat(): UseVideoChatReturn {
 
       const claimed = tabCoordination.claimOwnership(null);
       if (!claimed) {
-        Sentry.metrics.count("tab_ownership_claimed", 1);
         actionsRef.current.setError("Another tab owns the call. Please close other tabs or switch the call.");
         toast.error("Call is active in another tab");
         return;
@@ -887,7 +894,6 @@ export function useVideoChat(): UseVideoChatReturn {
       }
 
       if (iceServersRef.current.length === 0) {
-        Sentry.metrics.count("ice_servers_not_found", 1);
         throw new Error("Failed to obtain ICE servers");
       }
 
@@ -898,12 +904,16 @@ export function useVideoChat(): UseVideoChatReturn {
       actionsRef.current.setVideoOff(initialVideoOff);
 
       const stream = await mediaStream.acquireMedia(initialMuted, initialVideoOff);
+
+      if (!mediaStream.hasCamera()) {
+        actionsRef.current.setVideoOff(true);
+      }
+
       actionsRef.current.setLocalStream(stream);
 
       const initialize = initializeConnectionRef(peerCallbacks, socketCallbacks as Record<string, (...args: unknown[]) => void>);
       await initialize(stream);
     } catch (err) {
-      Sentry.metrics.count("error_starting_video_chat", 1);
       Sentry.logger.error("Error starting video chat", { error: err instanceof Error ? err.message : "Unknown error" });
       actionsRef.current.setError(err instanceof Error ? err.message : "Failed to start video chat");
       actionsRef.current.setConnectionStatus("idle");
@@ -925,7 +935,6 @@ export function useVideoChat(): UseVideoChatReturn {
   ]);
 
   const skip = useCallback(() => {
-    Sentry.metrics.count("matchmaking_skipped", 1);
     peerConnection.closePeer();
     actionsRef.current.setRemoteStream(null);
     actionsRef.current.clearChatMessages();
@@ -938,7 +947,6 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [peerConnection, socketSignaling, refreshUserProgress]);
 
   const endCall = useCallback(() => {
-    Sentry.metrics.count("call_ended", 1);
     monitoring.stopMonitoring();
     recoveryController.stop();
     socketSignaling.sendEndCall();
@@ -951,19 +959,48 @@ export function useVideoChat(): UseVideoChatReturn {
     setTimeout(() => refreshUserProgress(), 400);
   }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination, monitoring]);
 
+  useHotkey(
+    "Mod+D",
+    (event) => {
+      event.preventDefault();
+      endCall();
+    },
+    {
+      preventDefault: true,
+      enabled:
+        state.connectionStatus === "searching" ||
+        state.connectionStatus === "matched" ||
+        state.connectionStatus === "in_call" ||
+        state.connectionStatus === "reconnecting",
+    }
+  );
+
   const toggleMute = useCallback(() => {
-    Sentry.metrics.count("mute_toggled", 1);
     const newMutedState = mediaStream.toggleMute();
     actionsRef.current.setMuted(newMutedState);
     socketSignaling.sendMuteToggle(newMutedState);
   }, [mediaStream, socketSignaling]);
 
   const toggleVideo = useCallback(() => {
-    Sentry.metrics.count("video_toggled", 1);
     const newVideoOffState = mediaStream.toggleVideo();
     actionsRef.current.setVideoOff(newVideoOffState);
     socketSignaling.sendVideoToggle(newVideoOffState);
   }, [mediaStream, socketSignaling]);
+
+  const swapCamera = useCallback(async () => {
+    const nextTrack = await mediaStream.swapCamera();
+    if (!nextTrack) {
+      return;
+    }
+
+    actionsRef.current.setLocalStream(mediaStream.getStream());
+
+    try {
+      await peerConnection.replaceVideoTrack(nextTrack);
+    } catch {
+      // PeerConnection not ready or no sender yet
+    }
+  }, [mediaStream, peerConnection]);
 
   const createMessageId = useCallback(() => {
     if (globalThis.crypto?.randomUUID) {
@@ -974,7 +1011,6 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const sendMessage = useCallback(
     (draft: ChatMessageDraft) => {
-      Sentry.metrics.count("chat_message_sent", 1);
       const socketId = socketSignaling.getSocketId();
       const timestamp = Date.now();
       const messageText = draft.message?.trim() || null;
@@ -1039,7 +1075,6 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const sendTyping = useCallback(
     (isTyping: boolean) => {
-      Sentry.metrics.count("chat_typing", 1);
       socketSignaling.sendChatTyping(isTyping);
     },
     [socketSignaling]
@@ -1050,9 +1085,7 @@ export function useVideoChat(): UseVideoChatReturn {
   }, []);
 
   const toggleScreenShare = async () => {
-    Sentry.metrics.count("screen_share_toggled", 1);
     if (isSharingScreen) {
-      Sentry.metrics.count("screen_share_stopped", 1);
       removeScreenTrackEndedListener();
       screenShare.stopScreenShare();
       actionsRef.current.setSharingScreen(false);
@@ -1070,7 +1103,6 @@ export function useVideoChat(): UseVideoChatReturn {
     } else {
       try {
         removeScreenTrackEndedListener();
-        Sentry.metrics.count("screen_share_started", 1);
         const stream = await screenShare.startScreenShare();
         const screenTrack = stream.getVideoTracks()[0];
 
@@ -1099,7 +1131,6 @@ export function useVideoChat(): UseVideoChatReturn {
           socketSignaling.sendScreenShareToggle(true, stream.id);
         }
       } catch (error) {
-        Sentry.metrics.count("screen_share_failed", 1);
         actionsRef.current.setSharingScreen(false);
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         if (errorMessage !== "Screen sharing cancelled or failed") {
@@ -1108,6 +1139,19 @@ export function useVideoChat(): UseVideoChatReturn {
       }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      monitoring.stopMonitoring();
+      recoveryController.stop();
+      iceServerCache.resetSession();
+      if (turnCredentialRefreshTimerRef.current) {
+        clearInterval(turnCredentialRefreshTimerRef.current);
+        turnCredentialRefreshTimerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useUnloadEndCall(
     isInActiveCall,
@@ -1137,6 +1181,7 @@ export function useVideoChat(): UseVideoChatReturn {
     endCall,
     toggleMute,
     toggleVideo,
+    swapCamera,
     toggleScreenShare,
     isSharingScreen,
     isPeerSharingScreen,

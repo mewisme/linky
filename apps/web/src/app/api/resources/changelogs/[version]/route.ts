@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/shared/types/api.types";
@@ -34,7 +33,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    Sentry.logger.error("Error in /api/resources/changelogs/[version]", { error });
+    console.error("Error in /api/resources/changelogs/[version]", error);
     return NextResponse.json(
       { error: "Internal Server Error", message: "Failed to fetch changelog" },
       { status: 500 }

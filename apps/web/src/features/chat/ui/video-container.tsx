@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CallTimer } from "./call-timer";
 import { ConnectionQualityIndicator } from "./connection-quality-indicator";
@@ -40,6 +40,7 @@ interface VideoContainerProps {
   onEndCall: () => void;
   onToggleMute: () => void;
   onToggleVideo: () => void;
+  onSwapCamera?: () => void;
   onToggleChat: () => void;
   onToggleScreenShare?: () => void;
   isSharingScreen?: boolean;
@@ -66,6 +67,7 @@ export function VideoContainer({
   onEndCall,
   onToggleMute,
   onToggleVideo,
+  onSwapCamera,
   onToggleChat,
   onToggleScreenShare,
   isSharingScreen,
@@ -90,6 +92,10 @@ export function VideoContainer({
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
 
   const queryClient = useQueryClient();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   useEffect(() => {
     if (connectionStatus === "ended") {
       queryClient.invalidateQueries({ queryKey: ["user-progress"] });
@@ -239,7 +245,7 @@ export function VideoContainer({
       ) : (
         <>
           {connectionStatus === "searching" ? (
-            <VideoChatSearchingState progress={initialProgress} />
+            <VideoChatSearchingState progress={initialProgress} onEndCall={onEndCall} />
           ) : localStream ? (
             <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
               <VideoPlayer
@@ -258,36 +264,47 @@ export function VideoContainer({
               )}
             </div>
           ) : connectionStatus === "idle" || connectionStatus === "ended" ? (
-            <VideoChatIdleState onStart={onStart} initialProgress={initialProgress} />
+            <VideoChatIdleState
+              onStart={onStart}
+              onEndCall={onEndCall}
+              connectionStatus={connectionStatus}
+              initialProgress={initialProgress}
+            />
           ) : (
             <div className="h-full w-full" />
           )}
         </>
       )}
 
-      <div data-reaction-exclude className="relative" style={{ zIndex: 110 }}>
-        <VideoControls
-          connectionStatus={connectionStatus}
-          isInActiveCall={isInActiveCall}
-          isMuted={isMuted}
-          isVideoOff={isVideoOff}
-          hasLocalStream={!!localStream}
-          isChatOpen={isChatOpen}
-          hasUnreadMessages={hasUnreadMessages}
-          peerInfo={peerInfo}
-          onStart={onStart}
-          onSkip={onSkip}
-          onEndCall={onEndCall}
-          onToggleMute={onToggleMute}
-          onToggleVideo={onToggleVideo}
-          onToggleChat={onToggleChat}
-          onToggleScreenShare={onToggleScreenShare}
-          isSharingScreen={isSharingScreen}
-          onBlockUser={onBlockUser}
-          sendFavoriteNotification={sendFavoriteNotification}
-          initialFavorites={initialFavorites}
-        />
-      </div>
+      {isMounted &&
+        (connectionStatus === "matched" ||
+          connectionStatus === "in_call" ||
+          connectionStatus === "reconnecting") && (
+          <div data-reaction-exclude className="relative" style={{ zIndex: 110 }}>
+            <VideoControls
+              connectionStatus={connectionStatus}
+              isInActiveCall={isInActiveCall}
+              isMuted={isMuted}
+              isVideoOff={isVideoOff}
+              hasLocalStream={!!localStream}
+              isChatOpen={isChatOpen}
+              hasUnreadMessages={hasUnreadMessages}
+              peerInfo={peerInfo}
+              onStart={onStart}
+              onSkip={onSkip}
+              onEndCall={onEndCall}
+              onToggleMute={onToggleMute}
+              onToggleVideo={onToggleVideo}
+              onSwapCamera={onSwapCamera}
+              onToggleChat={onToggleChat}
+              onToggleScreenShare={onToggleScreenShare}
+              isSharingScreen={isSharingScreen}
+              onBlockUser={onBlockUser}
+              sendFavoriteNotification={sendFavoriteNotification}
+              initialFavorites={initialFavorites}
+            />
+          </div>
+        )}
     </div>
   );
 }

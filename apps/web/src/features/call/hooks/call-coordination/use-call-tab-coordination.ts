@@ -16,33 +16,29 @@ export function useCallTabCoordination(options: UseCallTabCoordinationOptions = 
   const initializationAttemptedRef = useRef(false);
 
   useEffect(() => {
-    Sentry.metrics.count("use_call_tab_coordination", 1);
     if (!initializationAttemptedRef.current) {
       callTabCoordinator.initialize();
       initializationAttemptedRef.current = true;
     }
 
     const unsubscribe = callTabCoordinator.onStateChange((newState) => {
-      Sentry.metrics.count("use_call_tab_coordination_on_state_change", 1);
       setState(newState);
     });
 
     return () => {
-      Sentry.metrics.count("use_call_tab_coordination_unsubscribe", 1);
       unsubscribe();
     };
   }, []);
 
   useEffect(() => {
-    Sentry.metrics.count("use_call_tab_coordination_use_effect", 1);
     const wasOwner = previousOwnershipRef.current;
     const isOwner = state.isCallOwner;
 
     if (wasOwner && !isOwner) {
-      Sentry.logger.info("Ownership lost", { tabId: state.tabId });
+      Sentry.metrics.count("tab_ownership_lost", 1);
       onOwnershipLost?.();
     } else if (!wasOwner && isOwner) {
-      Sentry.logger.info("Ownership gained", { tabId: state.tabId });
+      Sentry.metrics.count("tab_ownership_gained", 1);
       onOwnershipGained?.();
       onSwitchApproved?.();
     }
@@ -51,22 +47,19 @@ export function useCallTabCoordination(options: UseCallTabCoordinationOptions = 
   }, [state.isCallOwner, state.tabId, onOwnershipLost, onOwnershipGained, onSwitchApproved]);
 
   const claimOwnership = useCallback((roomId: string | null = null) => {
-    Sentry.metrics.count("use_call_tab_coordination_claim_ownership", 1);
     return callTabCoordinator.claimOwnership(roomId);
   }, []);
 
   const releaseOwnership = useCallback(() => {
-    Sentry.metrics.count("use_call_tab_coordination_release_ownership", 1);
     callTabCoordinator.releaseOwnership();
   }, []);
 
   const requestSwitch = useCallback(() => {
-    Sentry.metrics.count("use_call_tab_coordination_request_switch", 1);
+    Sentry.metrics.count("tab_switch_requested", 1);
     callTabCoordinator.requestSwitch();
   }, []);
 
   const isPassive = state.activeCallTabId !== null && !state.isCallOwner;
-  Sentry.metrics.count("use_call_tab_coordination_return", 1);
 
   return {
     tabId: state.tabId,

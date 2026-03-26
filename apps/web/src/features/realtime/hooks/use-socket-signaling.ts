@@ -64,12 +64,16 @@ export interface UseSocketSignalingReturn {
   currentSocketIdRef: RefObject<string | null>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type HandlerMap = Map<string, (...args: any[]) => void>;
+
 export function useSocketSignaling(): UseSocketSignalingReturn {
   const { socket: globalSocket, registerCallbacks, unregisterCallbacks } = useSocket();
   const socketRef = useRef<Socket | null>(globalSocket);
   const callbacksRef = useRef<SocketCallbacks | null>(null);
   const currentSocketIdRef = useRef<string | null>(null);
   const listenersRegisteredRef = useRef<boolean>(false);
+  const handlersRef = useRef<HandlerMap>(new Map());
 
   useEffect(() => {
     socketRef.current = globalSocket;
@@ -78,111 +82,127 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }
   }, [globalSocket]);
 
+  const unregisterSocketListeners = useCallback((socket: Socket) => {
+    for (const [event, handler] of handlersRef.current) {
+      socket.off(event, handler);
+    }
+    handlersRef.current.clear();
+  }, []);
+
   const registerSocketListeners = useCallback((socket: Socket, callbacks: SocketCallbacks) => {
-    socket.on("joined-queue", (data) => {
+    const handlers: HandlerMap = new Map();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const register = (event: string, handler: (...args: any[]) => void) => {
+      handlers.set(event, handler);
+      socket.on(event, handler);
+    };
+
+    register("joined-queue", (data: { message: string; queueSize: number }) => {
       publishPresence('matching');
       callbacks.onJoinedQueue(data);
     });
 
-    socket.on("matched", (data) => {
+    register("matched", (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onMatched(data);
     });
 
-    socket.on("signal", (data) => {
+    register("signal", (data: SignalData) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onSignal(data);
     });
 
-    socket.on("peer-left", (data) => {
+    register("peer-left", (data: { message: string }) => {
       publishPresence('matching');
       socketHealthMonitor.markEventReceived();
       callbacks.onPeerLeft(data);
     });
 
-    socket.on("peer-skipped", (data) => {
+    register("peer-skipped", (data: { message: string; queueSize: number }) => {
       publishPresence('matching');
       callbacks.onPeerSkipped(data);
     });
 
-    socket.on("skipped", (data) => {
+    register("skipped", (data: { message: string; queueSize: number }) => {
       publishPresence('matching');
       callbacks.onSkipped(data);
     });
 
-    socket.on("end-call", (data) => {
+    register("end-call", (data: { message: string }) => {
       publishPresence('available');
       socketHealthMonitor.markEventReceived();
       callbacks.onEndCall(data);
     });
 
-    socket.on("chat:message", (data) => {
+    register("chat:message", (data: ChatMessagePayload) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onChatMessage(data);
     });
 
-    socket.on("chat:typing", (data) => {
+    register("chat:typing", (data: ChatTypingPayload) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onChatTyping(data);
     });
 
-    socket.on("chat:error", (data) => {
+    register("chat:error", (data: ChatErrorPayload) => {
       callbacks.onChatError(data);
     });
 
-    socket.on("mute-toggle", (data) => {
+    register("mute-toggle", (data: { muted: boolean }) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onMuteToggle(data);
     });
 
-    socket.on("video-toggle", (data) => {
+    register("video-toggle", (data: { videoOff: boolean }) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onVideoToggle(data);
     });
 
-    socket.on("screen-share:toggle", (data) => {
+    register("screen-share:toggle", (data: { sharing: boolean; streamId?: string }) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onScreenShareToggle(data);
     });
 
-    socket.on("queue-timeout", (data) => {
+    register("queue-timeout", (data: { message: string }) => {
       publishPresence('available');
       callbacks.onQueueTimeout(data);
     });
 
-    socket.on("dequeued", (data) => {
+    register("dequeued", (data: { reason: string }) => {
       publishPresence('available');
       callbacks.onDequeued(data);
     });
 
-    socket.on("error", (data) => {
-      Sentry.logger.error("Socket error", { message: data.message });
-      publishPresence('offline');
+    register("video-chat:error", (data: { message: string }) => {
+      Sentry.logger.error("Video chat error", { message: data.message });
       callbacks.onError(data);
     });
 
-    socket.on("favorite:added", (data) => {
+    register("favorite:added", (data: { from_user_id: string; from_user_name: string }) => {
       callbacks.onFavoriteAdded(data);
     });
 
-    socket.on("favorite:added:self", (data) => {
+    register("favorite:added:self", (data: { favorite_user_id: string }) => {
       callbacks.onFavoriteAddedSelf(data);
     });
 
-    socket.on("favorite:removed", (data) => {
+    register("favorite:removed", (data: { from_user_id: string; from_user_name: string }) => {
       callbacks.onFavoriteRemoved(data);
     });
 
-    socket.on("favorite:removed:self", (data) => {
+    register("favorite:removed:self", (data: { favorite_user_id: string }) => {
       callbacks.onFavoriteRemovedSelf(data);
     });
+
+    handlersRef.current = handlers;
   }, []);
 
   const initializeSocket = useCallback(
@@ -199,26 +219,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       const socket = socketRef.current;
 
       if (listenersRegisteredRef.current) {
-        socket.removeAllListeners("joined-queue");
-        socket.removeAllListeners("matched");
-        socket.removeAllListeners("signal");
-        socket.removeAllListeners("peer-left");
-        socket.removeAllListeners("peer-skipped");
-        socket.removeAllListeners("skipped");
-        socket.removeAllListeners("end-call");
-        socket.removeAllListeners("chat:message");
-        socket.removeAllListeners("chat:typing");
-        socket.removeAllListeners("chat:error");
-        socket.removeAllListeners("mute-toggle");
-        socket.removeAllListeners("video-toggle");
-        socket.removeAllListeners("screen-share:toggle");
-        socket.removeAllListeners("queue-timeout");
-        socket.removeAllListeners("dequeued");
-        socket.removeAllListeners("error");
-        socket.removeAllListeners("favorite:added");
-        socket.removeAllListeners("favorite:added:self");
-        socket.removeAllListeners("favorite:removed");
-        socket.removeAllListeners("favorite:removed:self");
+        unregisterSocketListeners(socket);
         unregisterCallbacks('socket-signaling');
       }
 
@@ -235,7 +236,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         onForcedTeardown: callbacks.onForcedTeardown,
       });
     },
-    [registerSocketListeners, registerCallbacks, unregisterCallbacks]
+    [registerSocketListeners, unregisterSocketListeners, registerCallbacks, unregisterCallbacks]
   );
 
   const sendSignal = useCallback((data: SignalData) => {
@@ -379,27 +380,9 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const removeAllListeners = useCallback(() => {
     if (socketRef.current) {
-      socketRef.current.removeAllListeners("joined-queue");
-      socketRef.current.removeAllListeners("matched");
-      socketRef.current.removeAllListeners("signal");
-      socketRef.current.removeAllListeners("peer-left");
-      socketRef.current.removeAllListeners("peer-skipped");
-      socketRef.current.removeAllListeners("skipped");
-      socketRef.current.removeAllListeners("end-call");
-      socketRef.current.removeAllListeners("chat:message");
-      socketRef.current.removeAllListeners("chat:typing");
-      socketRef.current.removeAllListeners("chat:error");
-      socketRef.current.removeAllListeners("mute-toggle");
-      socketRef.current.removeAllListeners("video-toggle");
-      socketRef.current.removeAllListeners("screen-share:toggle");
-      socketRef.current.removeAllListeners("queue-timeout");
-      socketRef.current.removeAllListeners("error");
-      socketRef.current.removeAllListeners("favorite:added");
-      socketRef.current.removeAllListeners("favorite:added:self");
-      socketRef.current.removeAllListeners("favorite:removed");
-      socketRef.current.removeAllListeners("favorite:removed:self");
+      unregisterSocketListeners(socketRef.current);
     }
-  }, []);
+  }, [unregisterSocketListeners]);
 
   const disconnectSocket = useCallback(() => {
     listenersRegisteredRef.current = false;

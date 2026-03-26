@@ -14,11 +14,7 @@ export async function socketAuthMiddleware(
   next: (err?: Error) => void
 ): Promise<void> {
   try {
-    const tokenFromAuth = socket.handshake.auth?.token as string | undefined;
-
-    const tokenFromQuery = socket.handshake.query?.token as string | undefined;
-
-    const token = tokenFromAuth || tokenFromQuery;
+    const token = socket.handshake.auth?.token as string | undefined;
 
     if (!token) {
       logger.warn("Socket connection rejected: No token provided: %s", socket.id);

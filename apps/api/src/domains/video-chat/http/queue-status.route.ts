@@ -1,7 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { getVideoChatContext } from "@/domains/video-chat/socket/video-chat.socket.js";
+import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 const router: Router = Router();
+const queueStatusRateLimit = createRateLimitMiddleware({ windowMs: 10_000, maxRequests: 10 });
 
 interface QueueStatusCache {
   queueSize: number;
@@ -17,7 +19,7 @@ function estimateWait(queueSize: number): number | null {
   return Math.max(5, 30 - queueSize * 3);
 }
 
-router.get("/queue-status", async (_req: Request, res: Response) => {
+router.get("/queue-status", queueStatusRateLimit, async (_req: Request, res: Response) => {
   const now = Date.now();
 
   if (cache && now - cache.cachedAt < CACHE_TTL_MS) {

@@ -1,7 +1,5 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
-
 import {
   getExistingSubscription,
   registerServiceWorker,
@@ -43,8 +41,6 @@ export function usePushNotifications() {
 
   const enablePush = useCallback(async () => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      Sentry.metrics.count("push_notifications_not_supported", 1);
-      Sentry.logger.error("Push notifications are not supported in this browser");
       toast.error("Push notifications are not supported in this browser");
       return;
     }
@@ -54,8 +50,6 @@ export function usePushNotifications() {
       setPermissionState(permission);
 
       if (permission !== "granted") {
-        Sentry.metrics.count("push_notifications_permission_denied", 1);
-        Sentry.logger.error("Notification permission denied");
         toast.error("Notification permission denied");
         return;
       }
@@ -63,8 +57,6 @@ export function usePushNotifications() {
       const registration = await registerServiceWorker();
       const token = await getToken();
       if (!token) {
-        Sentry.metrics.count("push_notifications_token_not_found", 1);
-        Sentry.logger.error("Please sign in again to enable push notifications");
         toast.error("Please sign in again to enable push notifications");
         return;
       }
@@ -76,19 +68,13 @@ export function usePushNotifications() {
 
       await subscribeToPushAPI(subscription.toJSON(), token);
       setSubscribed(true);
-      Sentry.metrics.count("push_notifications_enabled", 1);
-      Sentry.logger.info("Push notifications enabled");
       toast.success("Push notifications enabled");
     } catch (error) {
-      Sentry.metrics.count("push_notifications_enable_failed", 1);
-      Sentry.logger.error("Failed to enable push notifications", { error: error instanceof Error ? error.message : "Unknown error" });
       const message =
         error instanceof Error ? error.message : "Failed to enable push notifications";
       const isUnauthorized =
         typeof message === "string" &&
         (message.toLowerCase().includes("unauthorized") || message.includes("401"));
-      Sentry.metrics.count(isUnauthorized ? "push_notifications_unauthorized" : "push_notifications_enable_failed", 1);
-      Sentry.logger.error(isUnauthorized ? "Unauthorized" : "Failed to enable push notifications", { error: message });
       toast.error(
         isUnauthorized
           ? "Session expired or invalid. Please sign in again and try enabling push notifications."
@@ -102,8 +88,6 @@ export function usePushNotifications() {
     try {
       const existingSub = await getExistingSubscription();
       if (!existingSub) {
-        Sentry.metrics.count("push_notifications_disabled", 1);
-        Sentry.logger.info("Push notifications disabled");
         setSubscribed(false);
         return;
       }

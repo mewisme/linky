@@ -40,8 +40,13 @@ export function setupEndCallHandler(
         }
       }
 
+      const callDurationMs = Date.now() - room.createdAt.getTime();
       rooms.deleteRoom(room.id);
-      logger.info("Call ended by user: %s", socket.id);
+      logger.info(
+        "Call teardown: reason=user_ended socket=%s durationMs=%d",
+        socket.id,
+        callDurationMs,
+      );
     }
   });
 }

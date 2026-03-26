@@ -94,8 +94,9 @@ export class VideoHealthTracker {
       }
 
       this.lastMetrics = metrics;
+      const prevFramesReceived = this.lastFramesReceived;
       this.detectStall(metrics);
-      this.updateFrameRate(metrics);
+      this.updateFrameRate(metrics, prevFramesReceived);
     } catch (err) {
       Sentry.logger.warn("[VideoHealthTracker] Failed to check video health", { error: err });
     }
@@ -160,13 +161,13 @@ export class VideoHealthTracker {
     this.lastFramesReceived = metrics.framesReceived;
   }
 
-  private updateFrameRate(metrics: VideoHealthMetrics): void {
+  private updateFrameRate(metrics: VideoHealthMetrics, prevFramesReceived: number): void {
     if (!this.callbacks) {
       return;
     }
 
     const timeDelta = metrics.timestamp - this.lastFrameTimestamp;
-    const framesDelta = metrics.framesReceived - this.lastFramesReceived;
+    const framesDelta = metrics.framesReceived - prevFramesReceived;
 
     if (timeDelta >= FRAME_RATE_WINDOW_MS && framesDelta > 0) {
       const fps = (framesDelta / timeDelta) * 1000;

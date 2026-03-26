@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
-import { IconBolt, IconFlame, IconPlayerPlay, IconStar, IconTrophy } from "@tabler/icons-react";
+import { IconBolt, IconFlame, IconPhoneOff, IconPlayerPlay, IconStar, IconTrophy } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import type { UsersAPI } from "@/entities/user/types/users.types";
@@ -35,10 +35,12 @@ function formatExpEarned(exp: number): string {
 
 interface VideoChatIdleStateProps {
   onStart: () => void;
+  onEndCall?: () => void;
+  connectionStatus?: "idle" | "searching" | "matched" | "in_call" | "reconnecting" | "ended";
   initialProgress?: UsersAPI.Progress.GetMe.Response | null;
 }
 
-export function VideoChatIdleState({ onStart, initialProgress }: VideoChatIdleStateProps) {
+export function VideoChatIdleState({ onStart, onEndCall, connectionStatus, initialProgress }: VideoChatIdleStateProps) {
   const { user } = useUserContext();
   const { data: progress } = useQuery({
     queryKey: ["user-progress"],
@@ -142,6 +144,18 @@ export function VideoChatIdleState({ onStart, initialProgress }: VideoChatIdleSt
           <IconPlayerPlay className="size-5" />
           Start Chat
         </Button>
+        {connectionStatus === "searching" && onEndCall && (
+          <Button
+            size="lg"
+            variant="destructive"
+            onClick={onEndCall}
+            className="h-12 w-full gap-2 rounded-xl px-6 text-base font-semibold sm:h-14 sm:px-8"
+            data-testid="chat-cancel-search-button"
+          >
+            <IconPhoneOff className="size-5" />
+            End Search
+          </Button>
+        )}
 
         <p className="text-xs text-muted-foreground">
           You earn EXP by talking

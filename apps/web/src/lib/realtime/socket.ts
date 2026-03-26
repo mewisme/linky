@@ -107,10 +107,6 @@ export function updateToken(socket: Socket, token: string | null): void {
     socket.auth = { token };
   }
 
-  if (socket.io && socket.io.opts) {
-    socket.io.opts.query = { ...socket.io.opts.query, token };
-  }
-
   if (socket.connected) {
     Sentry.logger.info("Token updated, reconnecting socket with new token");
     socket.once("disconnect", () => {
@@ -152,7 +148,7 @@ export interface SocketEvents {
   "peer-skipped": (data: { message: string; queueSize: number }) => void;
   "end-call": (data: { message: string }) => void;
   skipped: (data: { message: string; queueSize: number }) => void;
-  error: (data: { message: string }) => void;
+  "video-chat:error": (data: { message: string }) => void;
   "queue-timeout": (data: { message: string }) => void;
 }
 

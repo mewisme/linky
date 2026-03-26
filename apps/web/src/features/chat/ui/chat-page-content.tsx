@@ -3,6 +3,7 @@
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -55,11 +56,15 @@ export function ChatPageContent() {
       <AlertDialog open={!!error && !authLoading} onOpenChange={(open) => !open && clearError()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogTitle>Something went wrong</AlertDialogTitle>
             <AlertDialogDescription>{error}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={clearError}>OK</AlertDialogAction>
+            <AlertDialogCancel onClick={clearError}>Dismiss</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              clearError();
+              window.location.reload();
+            }}>Refresh Page</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

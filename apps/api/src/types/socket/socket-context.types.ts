@@ -6,6 +6,7 @@ export interface AuthenticatedSocket extends Socket {
     userId?: string;
     userName?: string;
     userImageUrl?: string;
+    dbUserId?: string;
     auth?: Awaited<ReturnType<typeof verifyToken>>;
     visibility?: "foreground" | "background";
   };

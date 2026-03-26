@@ -10,7 +10,7 @@ export function setupJoinHandler(
 ): void {
   socket.on("join", async () => {
     if (rooms.isInRoom(socket.id)) {
-      socket.emit("error", {
+      socket.emit("video-chat:error", {
         message: "Already in a room. Please disconnect first.",
       });
       return;
@@ -32,7 +32,7 @@ export function setupJoinHandler(
 
     const added = await matchmaking.enqueue(socket);
     if (!added) {
-      socket.emit("error", {
+      socket.emit("video-chat:error", {
         message: "Already in queue.",
       });
       return;

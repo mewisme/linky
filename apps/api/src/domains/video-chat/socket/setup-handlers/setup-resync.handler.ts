@@ -23,7 +23,7 @@ export function setupResyncHandler(
 
     const roomWithUserId = rooms.findRoomByUserId(userId, io);
     if (!roomWithUserId) {
-      socket.emit("error", {
+      socket.emit("video-chat:error", {
         message: "No active room to resync. Please start a new call.",
       });
       return;

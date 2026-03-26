@@ -4,6 +4,17 @@ import type { SentryLike } from "./types.js";
 
 const isDev = process.env.NODE_ENV !== "production";
 
+function extractErrorFromArgs(args: unknown[]): Error | null {
+  for (const arg of args) {
+    if (arg instanceof Error) return arg;
+    if (typeof arg === "object" && arg !== null) {
+      const maybeError = (arg as { error?: unknown }).error;
+      if (maybeError instanceof Error) return maybeError;
+    }
+  }
+  return null;
+}
+
 export const createBaseLogger = (sentry?: SentryLike) => {
   const options: LoggerOptions = {
     level: isDev ? "debug" : "info",
@@ -33,40 +44,31 @@ export const createBaseLogger = (sentry?: SentryLike) => {
                 ? format(args[1], ...args.slice(2))
                 : "";
 
-          let context: Record<string, unknown> | undefined;
-
-          if (
-            typeof args[0] === "object" &&
-            args[0] !== null &&
-            !(args[0] instanceof Error)
-          ) {
-            context = args[0] as Record<string, unknown>;
-          }
-
-          if (sentry?.logger && formattedMessage) {
+          if (formattedMessage) {
             switch (levelLabel) {
               case "trace":
-                sentry.logger.trace(formattedMessage, context);
-                sentry.captureMessage(formattedMessage, context);
                 break;
               case "debug":
-                sentry.logger.debug(formattedMessage, context);
-                sentry.captureMessage(formattedMessage, context);
                 break;
               case "info":
-                sentry.logger.info(formattedMessage, context);
                 break;
               case "warn":
-                sentry.logger.warn(formattedMessage, context);
-                sentry.captureMessage(formattedMessage, context);
                 break;
               case "error":
-                sentry.logger.error(formattedMessage, context);
-                sentry.captureException(context, { level: "error" });
+                {
+                  const err = extractErrorFromArgs(args);
+                  if (err) {
+                    sentry.captureException(err, { level: "error" });
+                  }
+                }
                 break;
               case "fatal":
-                sentry.logger.fatal(formattedMessage, context);
-                sentry.captureException(context, { level: "fatal" });
+                {
+                  const err = extractErrorFromArgs(args);
+                  if (err) {
+                    sentry.captureException(err, { level: "fatal" });
+                  }
+                }
                 break;
             }
           }

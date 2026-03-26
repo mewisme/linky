@@ -9,7 +9,7 @@ export function setupScreenShareHandler(socket: AuthenticatedSocket, io: Namespa
   socket.on("screen-share:toggle", async (data: ScreenShareTogglePayload) => {
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      socket.emit("error", {
+      socket.emit("video-chat:error", {
         message: "Not in a room",
       });
       return;

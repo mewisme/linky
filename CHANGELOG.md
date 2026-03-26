@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Implement AI draft generation for broadcasts ([db7a05c](../../commit/db7a05c))
-- Update package versions to 0.72.0 and refresh version lock ([c8636db](../../commit/c8636db))
+- Update package versions and dependencies ([8a81d91](../../commit/8a81d91))
+- Update package versions to 0.73.0 and refresh version lock ([ce13fbb](../../commit/ce13fbb))
 
 
-📋 Full Changelog: [c8636db...db7a05c](../../compare/c8636db...db7a05c)
+📋 Full Changelog: [ce13fbb...8a81d91](../../compare/ce13fbb...8a81d91)

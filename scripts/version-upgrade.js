@@ -288,15 +288,6 @@ function analyzeCommits(commits) {
   for (const commit of commits) {
     const lower = commit.toLowerCase();
 
-    if (
-      lower.startsWith('skip') ||
-      lower.includes('bump new version') ||
-      lower.includes('skip:') ||
-      lower.includes('update package versions')
-    ) {
-      continue;
-    }
-
     const firstWord = lower.split(' ')[0];
     let bumpType = 'none';
 

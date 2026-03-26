@@ -307,6 +307,7 @@ function analyzeCommits(commits) {
     }
 
     else if (
+      lower.startsWith('chore') ||
       lower.startsWith('fix') ||
       lower.startsWith('perf') ||
       lower.startsWith('refactor') ||

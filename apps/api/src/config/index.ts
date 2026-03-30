@@ -47,6 +47,28 @@ export const config = {
   ollamaCloudModel: process.env.OLLAMA_CLOUD_MODEL as string || "ministral-3:14b",
   ollamaCloudApiKey: process.env.OLLAMA_CLOUD_API_KEY as string,
   ollamaEmbeddingTimeout: Number(process.env.OLLAMA_EMBEDDING_TIMEOUT) || 60000,
+  embedMaxChunkChars: Math.min(
+    1800,
+    Math.max(1200, Number(process.env.EMBED_MAX_CHUNK_CHARS) || 1500),
+  ),
+  embedChunkOverlapChars: Math.min(
+    250,
+    Math.max(150, Number(process.env.EMBED_CHUNK_OVERLAP_CHARS) || 200),
+  ),
+  embedBatchSize: Math.min(32, Math.max(1, Number(process.env.EMBED_BATCH_SIZE) || 8)),
+  embedMaxChunksPerJob: Math.min(256, Math.max(4, Number(process.env.EMBED_MAX_CHUNKS_PER_JOB) || 64)),
+  embedMaxTotalInputCharsPerJob: Math.max(
+    8192,
+    Number(process.env.EMBED_MAX_TOTAL_INPUT_CHARS_PER_JOB) || 200_000,
+  ),
+  embedExpectedDimension: Number(process.env.EMBED_EXPECTED_DIMENSION) || 1024,
+  embedOllamaConcurrency: Math.min(16, Math.max(1, Number(process.env.EMBED_OLLAMA_CONCURRENCY) || 2)),
+  embedRetryCount: Math.min(5, Math.max(0, Number(process.env.EMBED_RETRY_COUNT) || 2)),
+  embedRetryBaseDelayMs: Math.max(50, Number(process.env.EMBED_RETRY_BASE_DELAY_MS) || 400),
+  embedMaxBatchTotalChars: Math.max(
+    4096,
+    Number(process.env.EMBED_MAX_BATCH_TOTAL_CHARS) || 14_000,
+  ),
   // Web Push (VAPID)
   vapidSubject: process.env.VAPID_SUBJECT as string,
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY as string,

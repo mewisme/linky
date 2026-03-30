@@ -1,11 +1,12 @@
 import { getUserEmbeddingByUserId, upsertUserEmbedding } from "@/infra/supabase/repositories/user-embeddings.js";
 
+import { config } from "@/config/index.js";
 import { tryEnqueueAsyncJob } from "@/jobs/job-queue.js";
 import { buildEmbeddingInput, type SemanticProfileInput } from "./embedding-input.builder.js";
 import { createHash } from "node:crypto";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
-import { embedText } from "@/infra/ollama/embedding.service.js";
+import { embedSemanticProfileText } from "@/infra/ollama/embedding.service.js";
 import { getUserProfileAggregateByUserId } from "./user-profile.service.js";
 
 const logger = createLogger("api:user:embedding-job:service");
@@ -58,6 +59,7 @@ function toSemanticProfile(profile: { user: unknown; details: unknown; settings:
 }
 
 async function runEmbeddingJob(userId: string): Promise<void> {
+  const jobStarted = Date.now();
   try {
     const profile = await getUserProfileAggregateByUserId(userId);
 
@@ -71,17 +73,37 @@ async function runEmbeddingJob(userId: string): Promise<void> {
     const sourceHash = computeSourceHash(input);
 
     const existing = await getUserEmbeddingByUserId(userId);
-    if (existing && existing.source_hash === sourceHash && hasNonNullEmbedding(existing.embedding)) {
+    const modelMatches =
+      existing?.model_name != null && existing.model_name === config.ollamaEmbeddingModel;
+    if (
+      existing &&
+      existing.source_hash === sourceHash &&
+      hasNonNullEmbedding(existing.embedding) &&
+      modelMatches
+    ) {
       return;
     }
 
-    const result = await embedText(input || " ");
+    logger.info({ userId, sourceTextChars: input.length }, "User embedding job started");
+
+    const result = await embedSemanticProfileText(input, { userId, jobLabel: "user_profile" });
     if (!result) {
-      logger.warn("Embedding job failed: Ollama returned null for user %s", userId);
+      logger.warn(
+        { userId, durationMs: Date.now() - jobStarted },
+        "Embedding job failed: Ollama returned null for user",
+      );
       return;
     }
 
     await upsertUserEmbedding(userId, result.embedding, result.modelName, sourceHash);
+    logger.info(
+      {
+        userId,
+        model: result.modelName,
+        durationMs: Date.now() - jobStarted,
+      },
+      "User embedding job persisted",
+    );
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Embedding job failed for user %s", userId);
   }
@@ -123,6 +145,9 @@ export async function checkEmbeddingRegenerationNeeded(userId: string): Promise<
       return true;
     }
     if (!hasNonNullEmbedding(existing.embedding)) {
+      return true;
+    }
+    if (existing.model_name !== config.ollamaEmbeddingModel) {
       return true;
     }
     return existing.source_hash !== sourceHash;

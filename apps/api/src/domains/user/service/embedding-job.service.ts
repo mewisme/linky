@@ -10,6 +10,23 @@ import { getUserProfileAggregateByUserId } from "./user-profile.service.js";
 
 const logger = createLogger("api:user:embedding-job:service");
 
+function hasNonNullEmbedding(embedding: unknown): boolean {
+  if (embedding == null) return false;
+  if (typeof embedding === "string") {
+    const t = embedding.trim();
+    if (t === "" || t === "null") return false;
+    try {
+      const parsed = JSON.parse(t) as unknown;
+      if (Array.isArray(parsed)) return parsed.length > 0;
+    } catch {
+      return t.length > 0;
+    }
+    return false;
+  }
+  if (Array.isArray(embedding)) return embedding.length > 0;
+  return false;
+}
+
 function computeSourceHash(input: string): string {
   return createHash("sha256").update(input, "utf8").digest("hex");
 }
@@ -54,7 +71,7 @@ async function runEmbeddingJob(userId: string): Promise<void> {
     const sourceHash = computeSourceHash(input);
 
     const existing = await getUserEmbeddingByUserId(userId);
-    if (existing && existing.source_hash === sourceHash) {
+    if (existing && existing.source_hash === sourceHash && hasNonNullEmbedding(existing.embedding)) {
       return;
     }
 
@@ -102,7 +119,13 @@ export async function checkEmbeddingRegenerationNeeded(userId: string): Promise<
     const sourceHash = computeSourceHash(input);
     const existing = await getUserEmbeddingByUserId(userId);
 
-    return !existing || existing.source_hash !== sourceHash;
+    if (!existing) {
+      return true;
+    }
+    if (!hasNonNullEmbedding(existing.embedding)) {
+      return true;
+    }
+    return existing.source_hash !== sourceHash;
   } catch {
     return false;
   }

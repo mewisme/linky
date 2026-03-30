@@ -2,6 +2,7 @@ import type { MatchStateStore, QueueEntry } from "./match-state-store.interface.
 
 import type { Socket } from "socket.io";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getBlockedUserIds } from "@/infra/supabase/repositories/user-blocks.js";
 import { getFavoritesByUserId } from "@/infra/supabase/repositories/favorites.js";
 import { getInterestTags } from "@/infra/supabase/repositories/user-details.js";
@@ -189,7 +190,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
         expiresAt: now + INTEREST_TAGS_TTL,
       });
     } catch (error) {
-      this.logger.error(error as Error, "Failed to cache interests for %s", userId);
+      this.logger.error(toLoggableError(error), "Failed to cache interests for %s", userId);
     }
 
     try {
@@ -199,7 +200,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
         expiresAt: now + FAVORITES_TTL,
       });
     } catch (error) {
-      this.logger.error(error as Error, "Failed to cache favorites for %s", userId);
+      this.logger.error(toLoggableError(error), "Failed to cache favorites for %s", userId);
     }
 
     try {
@@ -209,7 +210,7 @@ export class MemoryMatchStateStore implements MatchStateStore {
         expiresAt: now + BLOCKS_TTL,
       });
     } catch (error) {
-      this.logger.error(error as Error, "Failed to cache blocks for %s", userId);
+      this.logger.error(toLoggableError(error), "Failed to cache blocks for %s", userId);
     }
   }
 

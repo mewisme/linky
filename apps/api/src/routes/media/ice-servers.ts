@@ -1,6 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { CloudflareTurnResponse } from "@/domains/video-chat/types/call.types.js";
 
 const router: ExpressRouter = Router();
@@ -54,7 +55,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
       clearTimeout(timeoutId);
 
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
-        logger.error(fetchError instanceof Error ? fetchError : new Error(String(fetchError)), "ICE servers request timeout");
+        logger.error(toLoggableError(fetchError), "ICE servers request timeout");
         return res.status(504).json({
           error: "Request timeout",
           message: "ICE server request timed out",
@@ -64,7 +65,7 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
       throw fetchError;
     }
   } catch (error: unknown) {
-    logger.error(error as Error, "Error fetching ICE servers");
+    logger.error(toLoggableError(error), "Error fetching ICE servers");
     res.status(500).json({
       error: "Internal server error",
       message: "Failed to fetch ICE servers",

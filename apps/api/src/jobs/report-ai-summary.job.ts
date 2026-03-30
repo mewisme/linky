@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { generateReportAiSummary } from "@/domains/reports/service/report-ai-summary.service.js";
 import { tryEnqueueAsyncJob } from "@/jobs/job-queue.js";
 
@@ -26,7 +27,7 @@ export function enqueueReportAiSummaryJob(payload: ReportAiSummaryJobPayload): v
 
     setImmediate(() => {
       generateReportAiSummary(payload.reportId, { force: payload.force === true }).catch((error) => {
-        logger.error(error as Error, "Report AI summary job failed for report %s", payload.reportId);
+        logger.error(toLoggableError(error), "Report AI summary job failed for report %s", payload.reportId);
       });
     });
   })();

@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { AdminUserUpdate } from "@/domains/admin/types/admin.types.js";
 import { redisClient } from "@/infra/redis/client.js";
 import {
@@ -47,11 +48,8 @@ router.get("/", async (req: Request, res: Response) => {
               try {
                 const presenceState = await redisClient.hGet("presence", user.clerk_user_id);
                 if (presenceState) presence = presenceState;
-              } catch (presenceError) {
-                logger.warn(
-                  presenceError instanceof Error ? presenceError : new Error(String(presenceError)),
-                  "Error fetching presence from Redis",
-                );
+              } catch (presenceError: unknown) {
+                logger.warn(toLoggableError(presenceError), "Error fetching presence from Redis");
               }
             }
             return { ...user, presence };
@@ -72,7 +70,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/users");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/users");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch users",
@@ -103,7 +101,7 @@ router.patch("/batch", async (req: Request, res: Response) => {
     const users = await patchAdminUsers(ids, userData);
     return res.json({ data: users });
   } catch (error: unknown) {
-    const err = error as Error;
+    const err = toLoggableError(error);
     logger.error(err, "Unexpected error in PATCH /admin/users/batch");
     if (
       err.message === "Cannot assign superadmin role via API"
@@ -134,7 +132,7 @@ router.delete("/batch", requireSuperAdmin, async (req: Request, res: Response) =
     await hardDeleteUsers(ids);
     return res.json({ success: true, message: "Users deleted successfully" });
   } catch (error: unknown) {
-    const err = error as Error;
+    const err = toLoggableError(error);
     logger.error(err, "Unexpected error in DELETE /admin/users/batch");
 
     if (err.message === "User not found") {
@@ -187,8 +185,8 @@ router.get("/:id", async (req: Request, res: Response) => {
         if (presenceState) {
           presence = presenceState;
         }
-      } catch (presenceError) {
-        logger.warn(presenceError instanceof Error ? presenceError : new Error(String(presenceError)), "Error fetching presence from Redis");
+      } catch (presenceError: unknown) {
+        logger.warn(toLoggableError(presenceError), "Error fetching presence from Redis");
       }
     }
 
@@ -197,7 +195,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       presence,
     });
   } catch (error: any) {
-    logger.error(error as Error, "Unexpected error in GET /admin/users/:id");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/users/:id");
 
     if (error.code === "PGRST116") {
       return res.status(404).json({
@@ -238,7 +236,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error: unknown) {
-    const err = error as Error;
+    const err = toLoggableError(error);
     logger.error(err, "Unexpected error in PUT /admin/users/:id");
 
     if (err.message === "User not found") {
@@ -299,7 +297,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error: unknown) {
-    const err = error as Error;
+    const err = toLoggableError(error);
     logger.error(err, "Unexpected error in PATCH /admin/users/:id");
 
     if (err.message === "User not found") {
@@ -368,7 +366,7 @@ router.delete("/:id", requireSuperAdmin, async (req: Request, res: Response) => 
 
     return res.json({ success: true, message: "User deleted successfully" });
   } catch (error: unknown) {
-    const err = error as Error;
+    const err = toLoggableError(error);
     logger.error(err, "Unexpected error in DELETE /admin/users/:id");
 
     if (err.message === "User not found") {

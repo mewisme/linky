@@ -8,6 +8,7 @@ import {
   getUserCountry,
 } from "@/infra/supabase/repositories/call-history.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 
@@ -85,7 +86,7 @@ router.get("/", async (req: Request, res: Response) => {
       offset,
     });
   } catch (error: unknown) {
-    logger.error(error as Error, "Unexpected error in GET /call-history");
+    logger.error(toLoggableError(error), "Unexpected error in GET /call-history");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch call history",
@@ -175,7 +176,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       }
     }
 
-    logger.error(error as Error, "Unexpected error in GET /call-history/:id");
+    logger.error(toLoggableError(error), "Unexpected error in GET /call-history/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch call history",
@@ -236,7 +237,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     return res.status(201).json(callHistory);
   } catch (error: unknown) {
-    logger.error(error as Error, "Unexpected error in POST /call-history");
+    logger.error(toLoggableError(error), "Unexpected error in POST /call-history");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to create call history",

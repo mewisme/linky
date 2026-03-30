@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { UserSettingsUpdate } from "@/domains/user/types/user-settings.types.js";
 import {
   fetchUserSettings,
@@ -53,7 +54,7 @@ router.get("/me", async (req: Request, res: Response) => {
       });
     }
 
-    logger.error(error as Error, "Unexpected error in GET /user-settings/me");
+    logger.error(toLoggableError(error), "Unexpected error in GET /user-settings/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user settings",
@@ -93,7 +94,7 @@ router.put("/me", async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PUT /user-settings/me");
+    logger.error(toLoggableError(error), "Unexpected error in PUT /user-settings/me");
 
     if (error instanceof Error && error.message === "User settings not found") {
       return res.status(404).json({
@@ -141,7 +142,7 @@ router.patch("/me", async (req: Request, res: Response) => {
 
     return res.json(userSettings);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PATCH /user-settings/me");
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /user-settings/me");
 
     if (error instanceof Error && error.message === "User settings not found") {
       return res.status(404).json({

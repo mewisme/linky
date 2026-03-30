@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { UpdateUserCountryBody } from "@/domains/user/types/user.types.js";
 import {
   fetchUserByClerkUserId,
@@ -27,7 +28,7 @@ router.get("/me", async (req: Request, res: Response) => {
     const { user, error } = await fetchUserByClerkUserId(clerkUserId);
 
     if (error) {
-      logger.error(error as Error, "Error fetching user from database");
+      logger.error(toLoggableError(error), "Error fetching user from database");
 
       if (error.code === "PGRST116") {
         return res.status(404).json({
@@ -56,7 +57,7 @@ router.get("/me", async (req: Request, res: Response) => {
         const { updatedUser, updateError } = await tryUpdateUserCountryFromHeader(clerkUserId, countryHeader);
 
         if (updateError) {
-          logger.error(updateError instanceof Error ? updateError : new Error(String(updateError)), "Error updating user country");
+          logger.error(toLoggableError(updateError), "Error updating user country");
         } else if (updatedUser) {
           return res.json(updatedUser);
         }
@@ -65,7 +66,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /users/me");
+    logger.error(toLoggableError(error), "Unexpected error in GET /users/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",
@@ -94,7 +95,7 @@ router.patch("/me/country", async (req: Request, res: Response) => {
     const { user, error } = await updateUserCountryByClerkUserId(clerk_user_id, country);
 
     if (error) {
-      logger.error(error as Error, "Error updating user country");
+      logger.error(toLoggableError(error), "Error updating user country");
       return res.status(500).json({
         error: "Internal Server Error",
         message: "Failed to update user country",
@@ -110,7 +111,7 @@ router.patch("/me/country", async (req: Request, res: Response) => {
 
     return res.json(user);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PATCH /users/me/country");
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /users/me/country");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",
@@ -155,7 +156,7 @@ router.patch("/timezone", async (req: Request, res: Response) => {
 
     return res.status(200).json({ timezone: tz });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PATCH /users/timezone");
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /users/timezone");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "An unexpected error occurred",

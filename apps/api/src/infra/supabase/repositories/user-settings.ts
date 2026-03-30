@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type UserSettingsInsert = TablesInsert<"user_settings">;
@@ -19,7 +20,7 @@ export async function getUserSettingsByUserId(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user settings");
+    logger.error(toLoggableError(error), "Error fetching user settings");
     throw error;
   }
 
@@ -37,7 +38,7 @@ export async function createUserSettings(userId: string, data: Omit<UserSettings
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating user settings");
+    logger.error(toLoggableError(error), "Error creating user settings");
     throw error;
   }
 
@@ -59,7 +60,7 @@ export async function updateUserSettings(userId: string, data: UserSettingsUpdat
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error updating user settings");
+    logger.error(toLoggableError(error), "Error updating user settings");
     throw error;
   }
 
@@ -81,7 +82,7 @@ export async function patchUserSettings(userId: string, data: Partial<UserSettin
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error patching user settings");
+    logger.error(toLoggableError(error), "Error patching user settings");
     throw error;
   }
 

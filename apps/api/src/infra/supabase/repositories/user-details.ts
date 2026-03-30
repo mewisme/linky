@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getInterestTagsByIds } from "./interest-tags.js";
 import { supabase } from "@/infra/supabase/client.js";
 
@@ -20,7 +21,7 @@ export async function getUserDetailsByUserId(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user details");
+    logger.error(toLoggableError(error), "Error fetching user details");
     throw error;
   }
 
@@ -38,7 +39,7 @@ export async function getUserTimezone(userId: string): Promise<string | null> {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user timezone");
+    logger.error(toLoggableError(error), "Error fetching user timezone");
     throw error;
   }
 
@@ -60,7 +61,7 @@ export async function setUserTimezoneOnce(
       .select("user_id")
       .single();
     if (error) {
-      logger.error(error as Error, "Error creating user details with timezone");
+      logger.error(toLoggableError(error), "Error creating user details with timezone");
       throw error;
     }
     return { set: true };
@@ -74,11 +75,11 @@ export async function setUserTimezoneOnce(
     .single();
 
   if (error) {
-    const msg = (error as { message?: string }).message ?? String(error);
+    const msg = toLoggableError(error).message;
     if (msg.includes("TIMEZONE_LOCKED")) {
       return { alreadySet: true };
     }
-    logger.error(error as Error, "Error setting user timezone");
+    logger.error(toLoggableError(error), "Error setting user timezone");
     throw error;
   }
 
@@ -97,7 +98,7 @@ export async function getUserDetailsByUserIds(userIds: string[]) {
     .in("user_id", userIds);
 
   if (error) {
-    logger.error(error as Error, "Error fetching user details batch");
+    logger.error(toLoggableError(error), "Error fetching user details batch");
     throw error;
   }
 
@@ -115,7 +116,7 @@ export async function getUserDetailsWithTags(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user details with tags");
+    logger.error(toLoggableError(error), "Error fetching user details with tags");
     throw error;
   }
 
@@ -133,7 +134,7 @@ export async function createUserDetails(userId: string, data: Omit<UserDetailsIn
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating user details");
+    logger.error(toLoggableError(error), "Error creating user details");
     throw error;
   }
 
@@ -155,7 +156,7 @@ export async function updateUserDetails(userId: string, data: UserDetailsUpdate)
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error updating user details");
+    logger.error(toLoggableError(error), "Error updating user details");
     throw error;
   }
 
@@ -177,7 +178,7 @@ export async function patchUserDetails(userId: string, data: Partial<UserDetails
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error patching user details");
+    logger.error(toLoggableError(error), "Error patching user details");
     throw error;
   }
 
@@ -195,7 +196,7 @@ export async function getUserWithDetails(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user with details");
+    logger.error(toLoggableError(error), "Error fetching user with details");
     throw error;
   }
 
@@ -213,7 +214,7 @@ export async function getPublicUserInfo(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching public user info");
+    logger.error(toLoggableError(error), "Error fetching public user info");
     throw error;
   }
 
@@ -253,7 +254,7 @@ export async function addInterestTags(userId: string, tagIds: string[]) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error adding interest tags");
+    logger.error(toLoggableError(error), "Error adding interest tags");
     throw error;
   }
 
@@ -282,7 +283,7 @@ export async function removeInterestTags(userId: string, tagIds: string[]) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error removing interest tags");
+    logger.error(toLoggableError(error), "Error removing interest tags");
     throw error;
   }
 
@@ -318,7 +319,7 @@ export async function replaceInterestTags(userId: string, tagIds: string[]) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error replacing interest tags");
+    logger.error(toLoggableError(error), "Error replacing interest tags");
     throw error;
   }
 
@@ -339,7 +340,7 @@ export async function clearInterestTags(userId: string) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error clearing interest tags");
+    logger.error(toLoggableError(error), "Error clearing interest tags");
     throw error;
   }
 
@@ -358,7 +359,7 @@ export async function getInterestTags(userId: string) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error fetching interest tags");
+    logger.error(toLoggableError(error), "Error fetching interest tags");
     throw error;
   }
 

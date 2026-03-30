@@ -18,6 +18,7 @@ import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
 import { addDays } from "@/utils/date-helpers.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
 
 const logger = createLogger("api:user:streak:service");
@@ -84,11 +85,8 @@ export async function addCallDurationToStreak(
       streakCount: result.currentStreak,
       date: dateStr,
     };
-  } catch (error) {
-    logger.error(
-      "Error adding call duration to streak: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Error adding call duration to streak");
     throw error;
   }
 }
@@ -112,11 +110,8 @@ export async function getUserStreakData(userId: string): Promise<UserStreak | nu
       lastContinuationUsedFreeze: record.last_continuation_used_freeze ?? false,
       updatedAt: record.updated_at,
     };
-  } catch (error) {
-    logger.error(
-      "Error getting user streak data: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Error getting user streak data");
     throw error;
   }
 }
@@ -142,11 +137,8 @@ export async function getUserStreakHistory(
       })),
       count: result.count,
     };
-  } catch (error) {
-    logger.error(
-      "Error getting user streak history: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Error getting user streak history");
     throw error;
   }
 }
@@ -195,11 +187,8 @@ export async function getUserStreakCalendar(
         }));
       },
     );
-  } catch (error) {
-    logger.error(
-      "Error getting user streak calendar: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Error getting user streak calendar");
     throw error;
   }
 }

@@ -1,6 +1,7 @@
 import { getCacheKey, shouldVersionKey } from "@/infra/redis/cache-namespace.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
@@ -23,7 +24,7 @@ export async function getCachedData<T>(
       return JSON.parse(cached) as T;
     }
   } catch (error) {
-    logger.warn(error as Error, `Redis cache read failed for key ${cacheKey}`);
+    logger.warn(toLoggableError(error), `Redis cache read failed for key ${cacheKey}`);
   }
 
   const data = await fetchFromDb();
@@ -35,7 +36,7 @@ export async function getCachedData<T>(
         `set-cached-${cacheKey}`
       );
     } catch (error) {
-      logger.warn(error as Error, `Failed to cache data for key ${cacheKey}`);
+      logger.warn(toLoggableError(error), `Failed to cache data for key ${cacheKey}`);
     }
   }
 
@@ -51,7 +52,7 @@ export async function invalidateCacheKey(key: string): Promise<void> {
       `invalidate-${cacheKey}`
     );
   } catch (error) {
-    logger.warn(error as Error, `Failed to invalidate cache for key ${cacheKey}`);
+    logger.warn(toLoggableError(error), `Failed to invalidate cache for key ${cacheKey}`);
   }
 }
 
@@ -66,7 +67,7 @@ export async function invalidateCacheKeys(keys: string[]): Promise<void> {
       `invalidate-multiple`
     );
   } catch (error) {
-    logger.warn(error as Error, `Failed to invalidate cache for keys ${cacheKeys.join(", ")}`);
+    logger.warn(toLoggableError(error), `Failed to invalidate cache for keys ${cacheKeys.join(", ")}`);
   }
 }
 
@@ -79,6 +80,6 @@ export async function updateCachedData<T>(key: string, data: T, ttl?: number): P
       `update-cached-${cacheKey}`
     );
   } catch (error) {
-    logger.warn(error as Error, `Failed to update cache for key ${cacheKey}`);
+    logger.warn(toLoggableError(error), `Failed to update cache for key ${cacheKey}`);
   }
 }

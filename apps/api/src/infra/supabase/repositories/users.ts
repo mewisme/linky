@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type UserUpdate = TablesUpdate<"users">;
@@ -53,7 +54,7 @@ export async function getUsers(options: GetUsersOptions = {}): Promise<GetUsersR
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error(error as Error, "Error fetching users");
+    logger.error(toLoggableError(error), "Error fetching users");
     throw error;
   }
 
@@ -67,7 +68,7 @@ export async function getActiveUserIds(): Promise<string[]> {
     .or("deleted.is.null,deleted.eq.false");
 
   if (error) {
-    logger.error(error as Error, "Error fetching active user IDs");
+    logger.error(toLoggableError(error), "Error fetching active user IDs");
     throw error;
   }
 
@@ -82,7 +83,7 @@ export async function getUserById(id: string) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error fetching user");
+    logger.error(toLoggableError(error), "Error fetching user");
     throw error;
   }
 
@@ -98,7 +99,7 @@ export async function getUserByEmail(email: string) {
     .maybeSingle();
 
   if (error) {
-    logger.error(error as Error, "Error fetching user by email");
+    logger.error(toLoggableError(error), "Error fetching user by email");
     throw error;
   }
 
@@ -113,7 +114,7 @@ export async function getUserByClerkId(clerkUserId: string) {
     .maybeSingle();
 
   if (error) {
-    logger.error(error as Error, "Error fetching user by clerk id");
+    logger.error(toLoggableError(error), "Error fetching user by clerk id");
     throw error;
   }
 
@@ -128,7 +129,7 @@ export async function getUserInternalId(clerkUserId: string): Promise<string | n
     .maybeSingle();
 
   if (error) {
-    logger.error(error as Error, "Error fetching user internal id");
+    logger.error(toLoggableError(error), "Error fetching user internal id");
     throw error;
   }
 
@@ -167,7 +168,7 @@ export async function updateUser(id: string, userData: UserUpdate) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error updating user");
+    logger.error(toLoggableError(error), "Error updating user");
     throw error;
   }
 
@@ -206,7 +207,7 @@ export async function patchUser(id: string, userData: Partial<UserUpdate>) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error updating user");
+    logger.error(toLoggableError(error), "Error updating user");
     throw error;
   }
 
@@ -220,7 +221,7 @@ export async function softDeleteUserByClerkId(clerkUserId: string): Promise<void
     .eq("clerk_user_id", clerkUserId);
 
   if (error) {
-    logger.error(error as Error, "Error soft-deleting user");
+    logger.error(toLoggableError(error), "Error soft-deleting user");
     throw error;
   }
 }
@@ -232,7 +233,7 @@ export async function softDeleteUserById(id: string): Promise<void> {
     .eq("id", id);
 
   if (error) {
-    logger.error(error as Error, "Error soft-deleting user by id");
+    logger.error(toLoggableError(error), "Error soft-deleting user by id");
     throw error;
   }
 }
@@ -241,7 +242,7 @@ export async function hardDeleteUserById(id: string): Promise<void> {
   const { error } = await supabase.from("users").delete().eq("id", id);
 
   if (error) {
-    logger.error(error as Error, "Error hard-deleting user");
+    logger.error(toLoggableError(error), "Error hard-deleting user");
     throw error;
   }
 }
@@ -250,7 +251,7 @@ export async function createUser(params: UserInsert) {
   const { data, error } = await supabase.from("users").insert(params).select().single();
 
   if (error) {
-    logger.error(error as Error, "Error creating user");
+    logger.error(toLoggableError(error), "Error creating user");
     throw error;
   }
 
@@ -265,7 +266,7 @@ export async function getUsersByIds(ids: string[]): Promise<unknown[]> {
     .in("id", ids);
 
   if (error) {
-    logger.error(error as Error, "Error fetching users by ids");
+    logger.error(toLoggableError(error), "Error fetching users by ids");
     throw error;
   }
   return data ?? [];
@@ -283,7 +284,7 @@ export async function patchUsersByIds(
     .select();
 
   if (error) {
-    logger.error(error as Error, "Error batch patching users");
+    logger.error(toLoggableError(error), "Error batch patching users");
     throw error;
   }
   return data ?? [];
@@ -305,7 +306,7 @@ export async function getUsersIdsPaginated(
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error(error as Error, "Error fetching user IDs");
+    logger.error(toLoggableError(error), "Error fetching user IDs");
     throw error;
   }
 

@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:user-levels");
@@ -22,7 +23,7 @@ export async function incrementUserExp(userId: string, seconds: number): Promise
   });
 
   if (error) {
-    logger.error(error as Error, "Error incrementing user exp");
+    logger.error(toLoggableError(error), "Error incrementing user exp");
     throw error;
   }
 }
@@ -38,7 +39,7 @@ export async function getUserLevel(userId: string): Promise<UserLevelRecord | nu
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user level");
+    logger.error(toLoggableError(error), "Error fetching user level");
     throw error;
   }
 
@@ -56,7 +57,7 @@ export async function getUserLevelsByUserIds(
     .in("user_id", userIds);
 
   if (error) {
-    logger.error(error as Error, "Error fetching user levels batch");
+    logger.error(toLoggableError(error), "Error fetching user levels batch");
     throw error;
   }
 

@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type ReportContextInsert = TablesInsert<"report_contexts">;
@@ -34,7 +35,7 @@ export async function createReportContext(
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating report context");
+    logger.error(toLoggableError(error), "Error creating report context");
     throw error;
   }
 
@@ -52,7 +53,7 @@ export async function getReportContextByReportId(reportId: string): Promise<Repo
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching report context");
+    logger.error(toLoggableError(error), "Error fetching report context");
     throw error;
   }
 
@@ -70,7 +71,7 @@ export async function getReportWithContext(reportId: string) {
     if (reportError.code === "PGRST116") {
       return null;
     }
-    logger.error(reportError instanceof Error ? reportError : new Error(String(reportError)), "Error fetching report");
+    logger.error(toLoggableError(reportError), "Error fetching report");
     throw reportError;
   }
 
@@ -81,7 +82,7 @@ export async function getReportWithContext(reportId: string) {
     .single();
 
   if (contextError && contextError.code !== "PGRST116") {
-    logger.error(contextError instanceof Error ? contextError : new Error(String(contextError)), "Error fetching report context");
+    logger.error(toLoggableError(contextError), "Error fetching report context");
     throw new Error(contextError.message);
   }
 

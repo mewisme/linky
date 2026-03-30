@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:user-streaks");
@@ -47,7 +48,7 @@ export async function upsertUserStreakDay(
   });
 
   if (error) {
-    logger.error(error as Error, "Error upserting user streak day");
+    logger.error(toLoggableError(error), "Error upserting user streak day");
     throw error;
   }
 
@@ -73,7 +74,7 @@ export async function getUserStreak(userId: string): Promise<UserStreakRecord | 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user streak");
+    logger.error(toLoggableError(error), "Error fetching user streak");
     throw error;
   }
 
@@ -92,7 +93,7 @@ export async function getStreakDayByUserAndDate(
     .eq("date", dateStr)
     .maybeSingle();
   if (error) {
-    logger.error(error as Error, "Error fetching streak day by date");
+    logger.error(toLoggableError(error), "Error fetching streak day by date");
     throw error;
   }
   return data;
@@ -104,7 +105,7 @@ export async function clearLastContinuationUsedFreeze(userId: string): Promise<v
     .update({ last_continuation_used_freeze: false })
     .eq("user_id", userId);
   if (error) {
-    logger.error(error as Error, "Error clearing last_continuation_used_freeze");
+    logger.error(toLoggableError(error), "Error clearing last_continuation_used_freeze");
     throw error;
   }
 }
@@ -123,7 +124,7 @@ export async function getUserStreakDays(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error(error as Error, "Error fetching user streak days");
+    logger.error(toLoggableError(error), "Error fetching user streak days");
     throw error;
   }
 
@@ -154,7 +155,7 @@ export async function getUserStreakDaysByMonth(
     .order("date", { ascending: true });
 
   if (error) {
-    logger.error(error as Error, "Error fetching user streak days by month");
+    logger.error(toLoggableError(error), "Error fetching user streak days by month");
     throw error;
   }
 

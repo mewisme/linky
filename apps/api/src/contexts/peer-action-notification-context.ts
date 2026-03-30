@@ -1,5 +1,6 @@
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { sendPushOnly } from "@/domains/notification/service/push.service.js";
 
 const logger = createLogger("context:peer-action-notification");
@@ -38,6 +39,6 @@ export async function sendPeerActionPush(params: PeerActionPushParams): Promise<
       onlyWhenBlurred: true,
     });
   } catch (error) {
-    logger.warn(error as Error, "Failed to send peer action push to user %s", params.userId);
+    logger.warn(toLoggableError(error), "Failed to send peer action push to user %s", params.userId);
   }
 }

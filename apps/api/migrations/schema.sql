@@ -2017,7 +2017,7 @@ COMMENT ON COLUMN "public"."user_details"."timezone" IS 'IANA timezone; set once
 CREATE TABLE IF NOT EXISTS "public"."user_embeddings" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "user_id" "uuid" NOT NULL,
-    "embedding" "public"."vector"(768),
+    "embedding" "public"."vector"(1024),
     "model_name" character varying(100),
     "source_hash" character varying(64) DEFAULT ''::character varying NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,

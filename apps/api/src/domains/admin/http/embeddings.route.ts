@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import {
   syncEmbeddingsForUsers,
   scheduleSyncAllEmbeddings,
@@ -37,11 +38,8 @@ router.post("/compare", async (req: Request, res: Response) => {
       user_a_updated_at: result.user_a_updated_at,
       user_b_updated_at: result.user_b_updated_at,
     });
-  } catch (error) {
-    logger.error(
-      "Unexpected error in POST /admin/embeddings/compare: %o",
-      error as Error
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/compare");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to compare embeddings",
@@ -75,11 +73,8 @@ router.post("/similar", async (req: Request, res: Response) => {
       base_user_id: result.base_user_id,
       results: result.results,
     });
-  } catch (error) {
-    logger.error(
-      "Unexpected error in POST /admin/embeddings/similar: %o",
-      error as Error
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/similar");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to find similar users",
@@ -122,11 +117,8 @@ router.post("/sync", async (req: Request, res: Response) => {
       accepted_user_ids: result.accepted_user_ids,
       skipped_user_ids: result.skipped_user_ids,
     });
-  } catch (error) {
-    logger.error(
-      "Unexpected error in POST /admin/embeddings/sync: %o",
-      error as Error
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/sync");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to sync embeddings",
@@ -138,11 +130,8 @@ router.post("/sync-all", async (req: Request, res: Response) => {
   try {
     scheduleSyncAllEmbeddings();
     return res.json({ message: "Embedding sync job accepted" });
-  } catch (error) {
-    logger.error(
-      "Unexpected error in POST /admin/embeddings/sync-all: %o",
-      error as Error
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/sync-all");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to schedule embedding sync",

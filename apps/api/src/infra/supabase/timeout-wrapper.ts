@@ -1,6 +1,7 @@
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 const logger = createLogger("infra:supabase:timeout-wrapper");
 
 export async function withSupabaseTimeout<T>(
@@ -16,7 +17,7 @@ export async function withSupabaseTimeout<T>(
   try {
     return await Promise.race([operation(), timeoutPromise]);
   } catch (error) {
-    logger.error(error as Error, "Supabase operation failed: %s", operationName);
+    logger.error(toLoggableError(error), "Supabase operation failed: %s", operationName);
     throw error;
   }
 }

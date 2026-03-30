@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:level-rewards");
@@ -25,7 +26,7 @@ export async function getLevelRewardsByLevel(level: number): Promise<LevelReward
     .order("reward_type", { ascending: true });
 
   if (error) {
-    logger.error(error as Error, "Error fetching level rewards by level");
+    logger.error(toLoggableError(error), "Error fetching level rewards by level");
     throw error;
   }
 
@@ -44,7 +45,7 @@ export async function getLevelRewardsUpToLevel(level: number): Promise<LevelRewa
     .order("reward_type", { ascending: true });
 
   if (error) {
-    logger.error(error as Error, "Error fetching level rewards up to level");
+    logger.error(toLoggableError(error), "Error fetching level rewards up to level");
     throw error;
   }
 
@@ -62,7 +63,7 @@ export async function getAllLevelRewards(): Promise<LevelRewardRecord[]> {
     .order("reward_type", { ascending: true });
 
   if (error) {
-    logger.error(error as Error, "Error fetching all level rewards");
+    logger.error(toLoggableError(error), "Error fetching all level rewards");
     throw error;
   }
 
@@ -83,7 +84,7 @@ export async function getLevelRewardById(id: string): Promise<LevelRewardRecord 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching level reward");
+    logger.error(toLoggableError(error), "Error fetching level reward");
     throw error;
   }
 
@@ -103,7 +104,7 @@ export async function createLevelReward(data: LevelRewardInsert): Promise<LevelR
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating level reward");
+    logger.error(toLoggableError(error), "Error creating level reward");
     throw error;
   }
 
@@ -129,7 +130,7 @@ export async function updateLevelReward(id: string, data: LevelRewardUpdate): Pr
     if (error.code === "PGRST116") {
       throw new Error("Level reward not found");
     }
-    logger.error(error as Error, "Error updating level reward");
+    logger.error(toLoggableError(error), "Error updating level reward");
     throw error;
   }
 
@@ -150,7 +151,7 @@ export async function deleteLevelReward(id: string): Promise<void> {
     .eq("id", id);
 
   if (error) {
-    logger.error(error as Error, "Error deleting level reward");
+    logger.error(toLoggableError(error), "Error deleting level reward");
     throw error;
   }
 }

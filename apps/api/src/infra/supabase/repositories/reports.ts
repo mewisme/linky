@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type ReportInsert = TablesInsert<"reports">;
@@ -53,7 +54,7 @@ export async function getReports(options: GetReportsOptions = {}): Promise<GetRe
   const { data, error, count } = await query;
 
   if (error) {
-    logger.error(error as Error, "Error fetching reports");
+    logger.error(toLoggableError(error), "Error fetching reports");
     throw error;
   }
 
@@ -71,7 +72,7 @@ export async function getReportById(id: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching report");
+    logger.error(toLoggableError(error), "Error fetching report");
     throw error;
   }
 
@@ -86,7 +87,7 @@ export async function createReport(reportData: Omit<ReportInsert, "id" | "create
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating report");
+    logger.error(toLoggableError(error), "Error creating report");
     throw error;
   }
 
@@ -102,7 +103,7 @@ export async function updateReport(id: string, updateData: ReportUpdate) {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error updating report");
+    logger.error(toLoggableError(error), "Error updating report");
     throw error;
   }
 
@@ -120,7 +121,7 @@ export async function getUserReports(userId: string, options: { limit?: number; 
     .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error(error as Error, "Error fetching user reports");
+    logger.error(toLoggableError(error), "Error fetching user reports");
     throw error;
   }
 

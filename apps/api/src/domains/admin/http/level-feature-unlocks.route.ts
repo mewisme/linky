@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type {
   AdminLevelFeatureUnlockInsert,
   AdminLevelFeatureUnlockUpdate,
@@ -22,11 +23,8 @@ router.get("/", async (req: Request, res: Response) => {
     return res.json({
       data: unlocks,
     });
-  } catch (error) {
-    logger.error(
-      "Unexpected error in GET /admin/level-feature-unlocks: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/level-feature-unlocks");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch level feature unlocks",
@@ -55,11 +53,8 @@ router.get("/:id", async (req: Request, res: Response) => {
     }
 
     return res.json(unlock);
-  } catch (error) {
-    logger.error(
-      "Unexpected error in GET /admin/level-feature-unlocks/:id: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/level-feature-unlocks/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch level feature unlock",
@@ -102,11 +97,8 @@ router.post("/", async (req: Request, res: Response) => {
     const created = await createAdminLevelFeatureUnlock(unlockData);
 
     return res.status(201).json(created);
-  } catch (error) {
-    logger.error(
-      "Unexpected error in POST /admin/level-feature-unlocks: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/level-feature-unlocks");
 
     if (error instanceof Error && (error.message.includes("duplicate") || error.message.includes("unique"))) {
       return res.status(409).json({
@@ -172,11 +164,8 @@ router.put("/:id", async (req: Request, res: Response) => {
     const updated = await updateAdminLevelFeatureUnlock(id, unlockData);
 
     return res.json(updated);
-  } catch (error) {
-    logger.error(
-      "Unexpected error in PUT /admin/level-feature-unlocks/:id: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in PUT /admin/level-feature-unlocks/:id");
 
     if (error instanceof Error && error.message === "Level feature unlock not found") {
       return res.status(404).json({
@@ -249,11 +238,8 @@ router.patch("/:id", async (req: Request, res: Response) => {
     const updated = await updateAdminLevelFeatureUnlock(id, unlockData);
 
     return res.json(updated);
-  } catch (error) {
-    logger.error(
-      "Unexpected error in PATCH /admin/level-feature-unlocks/:id: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /admin/level-feature-unlocks/:id");
 
     if (error instanceof Error && error.message === "Level feature unlock not found") {
       return res.status(404).json({
@@ -292,11 +278,8 @@ router.delete("/:id", async (req: Request, res: Response) => {
     return res.json({
       message: "Level feature unlock deleted successfully",
     });
-  } catch (error) {
-    logger.error(
-      "Unexpected error in DELETE /admin/level-feature-unlocks/:id: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in DELETE /admin/level-feature-unlocks/:id");
 
     return res.status(500).json({
       error: "Internal Server Error",

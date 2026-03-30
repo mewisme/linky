@@ -4,6 +4,7 @@ import type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js
 import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 
 export type { AuthenticatedSocket } from "@/types/socket/socket-context.types.js";
 
@@ -31,7 +32,7 @@ export async function socketAuthMiddleware(
       userName = user.firstName || user.username || "Anonymous";
       userImageUrl = user.imageUrl;
     } catch (err: unknown) {
-      logger.warn(err instanceof Error ? err : new Error(String(err)), "Failed to fetch user profile from Clerk: %s", payload.sub);
+      logger.warn(toLoggableError(err), "Failed to fetch user profile from Clerk: %s", payload.sub);
     }
 
     (socket as AuthenticatedSocket).data = {
@@ -43,7 +44,7 @@ export async function socketAuthMiddleware(
 
     next();
   } catch (error: unknown) {
-    logger.error(error as Error, "Socket authentication failed");
+    logger.error(toLoggableError(error), "Socket authentication failed");
     next(new Error("Authentication failed"));
   }
 }
@@ -64,7 +65,7 @@ export async function adminNamespaceAuthMiddleware(
     }
     next();
   } catch (error: unknown) {
-    logger.error(error as Error, "Admin namespace auth failed");
+    logger.error(toLoggableError(error), "Admin namespace auth failed");
     next(new Error("Authorization failed"));
   }
 }

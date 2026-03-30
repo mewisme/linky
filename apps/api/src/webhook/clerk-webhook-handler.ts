@@ -18,6 +18,7 @@ import { canAutoRemoveUserEmail } from "@/utils/clerk-validation-email.js";
 import { clerk } from "@/infra/clerk/client.js";
 import { createLogger } from "@/utils/logger.js";
 
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 const logger = createLogger("webhook:clerk");
 
 export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<void> {
@@ -71,14 +72,14 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
             await clerk.users.deleteUser(evt.data.id);
             logger.info(`Deleted automation test user ${evt.data.id} from Clerk after created`);
           } catch (error) {
-            logger.error(error as Error, "Error deleting user from Clerk");
+            logger.error(toLoggableError(error), "Error deleting user from Clerk");
           }
         } else {
           try {
             await createUser(payload);
             logger.info(`Created user ${evt.data.id} in Supabase`);
           } catch (error) {
-            logger.error(error as Error, "Error creating user in Supabase");
+            logger.error(toLoggableError(error), "Error creating user in Supabase");
           }
         }
       }
@@ -106,7 +107,7 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
           await invalidate(REDIS_CACHE_KEYS.userProfile(existing.id));
           logger.info(`User ${evt.data.id} updated in Supabase`);
         } catch (error) {
-          logger.error(error as Error, "Error updating user in Supabase");
+          logger.error(toLoggableError(error), "Error updating user in Supabase");
         }
       }
       break;
@@ -118,7 +119,7 @@ export async function handleClerkWebhookEvent(evt: ClerkWebhookEvent): Promise<v
           await softDeleteUserByClerkId(evt.data.id);
           logger.info(`Soft deleted user ${evt.data.id} in Supabase`);
         } catch (error) {
-          logger.error(error as Error, "Error soft deleting user in Supabase");
+          logger.error(toLoggableError(error), "Error soft deleting user in Supabase");
         }
         await invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users"));
       }

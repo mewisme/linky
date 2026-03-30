@@ -1,6 +1,7 @@
 import { getCacheKey, shouldVersionKey } from "@/infra/redis/cache-namespace.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
@@ -24,20 +25,12 @@ export async function getOrSet<T>(
     if (cached !== null) {
       try {
         return JSON.parse(cached) as T;
-      } catch (error) {
-        logger.warn(
-          "Cache JSON parse failed for key %s: %o",
-          cacheKey,
-          error as Error,
-        );
+      } catch (error: unknown) {
+        logger.warn(toLoggableError(error), "Cache JSON parse failed for key %s", cacheKey);
       }
     }
-  } catch (error) {
-    logger.warn(
-      "Cache read failed for key %s: %o",
-      cacheKey,
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.warn(toLoggableError(error), "Cache read failed for key %s", cacheKey);
   }
 
   const data = await fetchFromDb();
@@ -47,12 +40,8 @@ export async function getOrSet<T>(
       () => redisClient.set(cacheKey, JSON.stringify(data), { EX: ttlSeconds }),
       `cache-set:${cacheKey}`,
     );
-  } catch (error) {
-    logger.warn(
-      "Cache write failed for key %s: %o",
-      cacheKey,
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.warn(toLoggableError(error), "Cache write failed for key %s", cacheKey);
   }
 
   return data;
@@ -62,12 +51,8 @@ export async function invalidate(key: string): Promise<void> {
   const cacheKey = resolveCacheKey(key);
   try {
     await withRedisTimeout(() => redisClient.del(cacheKey), `cache-del:${cacheKey}`);
-  } catch (error) {
-    logger.warn(
-      "Cache invalidate failed for key %s: %o",
-      cacheKey,
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.warn(toLoggableError(error), "Cache invalidate failed for key %s", cacheKey);
   }
 }
 
@@ -94,12 +79,8 @@ export async function invalidateByPrefix(prefix: string): Promise<void> {
       const batch = keys.splice(0, keys.length);
       await withRedisTimeout(() => (redisClient as any).del(...batch), `cache-del-batch:${cachePrefix}`);
     }
-  } catch (error) {
-    logger.warn(
-      "Cache prefix invalidation failed for prefix %s: %o",
-      cachePrefix,
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.warn(toLoggableError(error), "Cache prefix invalidation failed for prefix %s", cachePrefix);
   }
 }
 

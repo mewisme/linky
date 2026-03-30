@@ -1,5 +1,6 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type ReportAiSummaryInsert = TablesInsert<"report_ai_summaries">;
@@ -16,7 +17,7 @@ export async function getReportAiSummaryByReportId(reportId: string): Promise<Re
 
   if (error) {
     if (error.code === "PGRST116") return null;
-    logger.error(error as Error, "Error fetching report AI summary");
+    logger.error(toLoggableError(error), "Error fetching report AI summary");
     throw error;
   }
 
@@ -33,7 +34,7 @@ export async function upsertReportAiSummary(
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error upserting report AI summary");
+    logger.error(toLoggableError(error), "Error upserting report AI summary");
     throw error;
   }
 
@@ -52,7 +53,7 @@ export async function updateReportAiSummary(
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error updating report AI summary");
+    logger.error(toLoggableError(error), "Error updating report AI summary");
     throw error;
   }
 

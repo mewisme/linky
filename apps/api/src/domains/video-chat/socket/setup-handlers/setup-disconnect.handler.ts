@@ -6,6 +6,7 @@ import type { Namespace } from "socket.io";
 import { getDbUserId } from "../helpers/user.helper.js";
 import { logger } from "../helpers/logger.helper.js";
 import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 
 export function setupDisconnectHandler(
   socket: AuthenticatedSocket,
@@ -46,7 +47,7 @@ export function setupDisconnectHandler(
       const peerSocket = peerId ? (io.sockets.get(peerId) as AuthenticatedSocket | undefined) : undefined;
 
       recordCallHistory(io, room, socket, peerSocket).catch((error) => {
-        logger.error(error instanceof Error ? error : new Error(String(error)), "Failed to record call history");
+        logger.error(toLoggableError(error), "Failed to record call history");
       });
 
       if (peerId && peerSocket && peerSocket.connected) {

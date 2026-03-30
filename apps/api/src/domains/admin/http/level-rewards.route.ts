@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { AdminLevelRewardInsert, AdminLevelRewardUpdate } from "@/domains/admin/types/level-reward.types.js";
 import {
   createAdminLevelReward,
@@ -20,7 +21,7 @@ router.get("/", async (req: Request, res: Response) => {
       data: rewards,
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/level-rewards");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/level-rewards");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch level rewards",
@@ -50,7 +51,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     return res.json(reward);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/level-rewards/:id");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/level-rewards/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch level reward",
@@ -94,7 +95,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     return res.status(201).json(created);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in POST /admin/level-rewards");
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/level-rewards");
 
     if (error instanceof Error && (error.message.includes("duplicate") || error.message.includes("unique"))) {
       return res.status(409).json({
@@ -161,7 +162,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     return res.json(updated);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PUT /admin/level-rewards/:id");
+    logger.error(toLoggableError(error), "Unexpected error in PUT /admin/level-rewards/:id");
 
     if (error instanceof Error && error.message === "Level reward not found") {
       return res.status(404).json({
@@ -235,7 +236,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     return res.json(updated);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PATCH /admin/level-rewards/:id");
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /admin/level-rewards/:id");
 
     if (error instanceof Error && error.message === "Level reward not found") {
       return res.status(404).json({
@@ -275,7 +276,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
       message: "Level reward deleted successfully",
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in DELETE /admin/level-rewards/:id");
+    logger.error(toLoggableError(error), "Unexpected error in DELETE /admin/level-rewards/:id");
 
     return res.status(500).json({
       error: "Internal Server Error",

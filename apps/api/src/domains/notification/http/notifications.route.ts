@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import {
   getUserNotifications,
   markRead,
@@ -38,7 +39,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json({ notifications });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /notifications/me");
+    logger.error(toLoggableError(error), "Unexpected error in GET /notifications/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch notifications",
@@ -69,7 +70,7 @@ router.get("/me/unread-count", async (req: Request, res: Response) => {
 
     return res.json({ count });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /notifications/me/unread-count");
+    logger.error(toLoggableError(error), "Unexpected error in GET /notifications/me/unread-count");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch unread count",
@@ -109,7 +110,7 @@ router.patch("/:id/read", async (req: Request, res: Response) => {
 
     return res.status(204).send();
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PATCH /notifications/:id/read");
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /notifications/:id/read");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to mark notification as read",
@@ -140,7 +141,7 @@ router.patch("/read-all", async (req: Request, res: Response) => {
 
     return res.status(204).send();
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PATCH /notifications/read-all");
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /notifications/read-all");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to mark all notifications as read",

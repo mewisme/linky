@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { generateText } from "@/infra/ollama/cloud.service.js";
 import { REPORT_SUMMARY_PROMPT_VERSION, buildReportSummaryPrompt } from "@/infra/ollama/prompt.js";
 import { fetchReportWithContext } from "@/domains/reports/service/reports.service.js";
@@ -156,7 +157,7 @@ export async function generateReportAiSummary(reportId: string, options?: { forc
 
     await setCooldown(reportId);
   } catch (error) {
-    logger.error(error as Error, "Failed generating report AI summary: %s", reportId);
+    logger.error(toLoggableError(error), "Failed generating report AI summary: %s", reportId);
     await upsertReportAiSummary({
       report_id: reportId,
       status: "failed" as ReportAiSummaryStatus,
@@ -166,7 +167,7 @@ export async function generateReportAiSummary(reportId: string, options?: { forc
       model: config.ollamaCloudModel ?? null,
       prompt_version: dedupeHash,
       raw_json: null,
-      error_message: error instanceof Error ? error.message : String(error),
+      error_message: toLoggableError(error).message,
       updated_at: new Date().toISOString(),
     });
     await setCooldown(reportId);

@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { verifyToken } from "@clerk/backend";
 
 export async function clerkMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -21,7 +22,7 @@ export async function clerkMiddleware(req: Request, res: Response, next: NextFun
     req.auth = payload;
     next();
   } catch (error: unknown) {
-    logger.error(error as Error, "Clerk token verification error");
+    logger.error(toLoggableError(error), "Clerk token verification error");
     return res.status(401).json({ error: "Unauthorized" });
   }
 }

@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { requireSuperAdmin } from "@/lib/auth/role-guard.js";
 import {
   listAdminConfig,
@@ -17,7 +18,7 @@ router.get("/", requireSuperAdmin, async (req: Request, res: Response) => {
     const rows = await listAdminConfig();
     return res.json({ data: rows });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/config");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/config");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch admin config",
@@ -38,7 +39,7 @@ router.get("/:key", requireSuperAdmin, async (req: Request, res: Response) => {
     }
     return res.json(row);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/config/:key");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/config/:key");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch config",
@@ -58,7 +59,7 @@ router.post("/", requireSuperAdmin, async (req: Request, res: Response) => {
     const row = await setConfig(key.trim(), value as Json);
     return res.status(201).json(row);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in POST /admin/config");
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/config");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to set config",
@@ -80,7 +81,7 @@ router.delete("/:key", requireSuperAdmin, async (req: Request, res: Response) =>
     await unsetConfig(key);
     return res.status(204).send();
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in DELETE /admin/config/:key");
+    logger.error(toLoggableError(error), "Unexpected error in DELETE /admin/config/:key");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to unset config",

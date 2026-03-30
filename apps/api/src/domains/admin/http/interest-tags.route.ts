@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { AdminInterestTagInsert, AdminInterestTagUpdate } from "@/domains/admin/types/admin.types.js";
 import {
   createAdminInterestTag,
@@ -51,7 +52,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/interest-tags");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/interest-tags");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tags",
@@ -74,7 +75,7 @@ router.post("/import", async (req: Request, res: Response) => {
 
     return res.json(result);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in POST /admin/interest-tags/import");
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/interest-tags/import");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to import interest tags",
@@ -104,7 +105,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     return res.json(tag);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/interest-tags/:id");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/interest-tags/:id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch interest tag",
@@ -134,7 +135,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     return res.status(201).json(created);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in POST /admin/interest-tags");
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/interest-tags");
 
     if (error instanceof Error && error.message.includes("duplicate") || (error instanceof Error && error.message.includes("unique"))) {
       return res.status(409).json({
@@ -183,7 +184,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
     return res.json(updated);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PUT /admin/interest-tags/:id");
+    logger.error(toLoggableError(error), "Unexpected error in PUT /admin/interest-tags/:id");
 
     if (error instanceof Error && error.message === "Interest tag not found") {
       return res.status(404).json({
@@ -239,7 +240,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     return res.json(updated);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in PATCH /admin/interest-tags/:id");
+    logger.error(toLoggableError(error), "Unexpected error in PATCH /admin/interest-tags/:id");
 
     if (error instanceof Error && error.message === "Interest tag not found") {
       return res.status(404).json({
@@ -280,7 +281,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
       data: deleted,
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in DELETE /admin/interest-tags/:id");
+    logger.error(toLoggableError(error), "Unexpected error in DELETE /admin/interest-tags/:id");
 
     if (error instanceof Error && error.message === "Interest tag not found") {
       return res.status(404).json({
@@ -312,11 +313,8 @@ router.delete("/:id/hard", async (req: Request, res: Response) => {
     return res.json({
       message: "Interest tag permanently deleted",
     });
-  } catch (error) {
-    logger.error(
-      "Unexpected error in DELETE /admin/interest-tags/:id/hard: %o",
-      error as Error,
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Unexpected error in DELETE /admin/interest-tags/:id/hard");
 
     return res.status(500).json({
       error: "Internal Server Error",

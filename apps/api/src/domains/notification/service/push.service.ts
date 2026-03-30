@@ -8,6 +8,7 @@ import {
 
 import type { NotificationRecord } from "@/domains/notification/types/notification.types.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { sendPushNotification } from "@/infra/push/web-push.client.js";
 
 const logger = createLogger("api:notification:service:push");
@@ -87,7 +88,7 @@ export async function sendPushToUser(userId: string, notification: NotificationR
 
     logger.info("Push notifications sent to user %s (%d subscriptions)", userId, subscriptions.length);
   } catch (error) {
-    logger.error(error as Error, "Error sending push to user %s", userId);
+    logger.error(toLoggableError(error), "Error sending push to user %s", userId);
     throw error;
   }
 }
@@ -136,7 +137,7 @@ export async function sendPushOnly(userId: string, options: PushOnlyOptions): Pr
 
     logger.info("Push-only sent to user %s (%d subscriptions)", userId, subscriptions.length);
   } catch (error) {
-    logger.error(error as Error, "Error sending push-only to user %s", userId);
+    logger.error(toLoggableError(error), "Error sending push-only to user %s", userId);
     throw error;
   }
 }
@@ -146,7 +147,7 @@ export async function handlePushError(error: unknown, endpoint: string): Promise
     logger.info("Subscription expired, deleting: %s", endpoint);
     await deleteExpiredSubscription(endpoint);
   } else {
-    logger.error(error as Error, "Push notification error for endpoint %s", endpoint);
+    logger.error(toLoggableError(error), "Push notification error for endpoint %s", endpoint);
   }
 }
 

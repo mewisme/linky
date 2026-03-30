@@ -5,6 +5,7 @@ import type { Json } from "@/types/database/supabase.types.js";
 import type { Namespace } from "socket.io";
 import { createLogger } from "@/utils/logger.js";
 
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 const logger = createLogger("api:reports:context:service");
 
 export async function collectReportContext(
@@ -53,7 +54,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error(error as Error, "Error fetching call history");
+      logger.error(toLoggableError(error), "Error fetching call history");
     }
   }
 
@@ -96,7 +97,7 @@ export async function collectReportContext(
         }
       }
     } catch (error) {
-      logger.error(error as Error, "Error fetching room context");
+      logger.error(toLoggableError(error), "Error fetching room context");
     }
   }
 

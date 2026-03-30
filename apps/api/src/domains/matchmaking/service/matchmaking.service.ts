@@ -8,6 +8,7 @@ import type { EmbeddingPair } from "@/domains/matchmaking/types/embedding.types.
 import type { MatchStateStore } from "@/domains/matchmaking/store/index.js";
 import type { QueuedUser } from "@/domains/matchmaking/types/matchmaking.types.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUserEmbeddingsMap } from "@/infra/supabase/repositories/user-embeddings.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 
@@ -400,7 +401,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error(error as Error, "Failed to cleanup stale sockets");
+      this.logger.error(toLoggableError(error), "Failed to cleanup stale sockets");
     }
   }
 
@@ -436,7 +437,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error(error as Error, "Failed to cleanup expired entries");
+      this.logger.error(toLoggableError(error), "Failed to cleanup expired entries");
     }
   }
 
@@ -455,7 +456,7 @@ export class MatchmakingService {
         result.set(userId, tags);
       }
     } catch (error) {
-      this.logger.error(error as Error, "Failed to load interest tags");
+      this.logger.error(toLoggableError(error), "Failed to load interest tags");
     }
 
     return result;
@@ -478,7 +479,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error(error as Error, "Failed to load favorites");
+      this.logger.error(toLoggableError(error), "Failed to load favorites");
     }
 
     return result;
@@ -501,7 +502,7 @@ export class MatchmakingService {
         }
       }
     } catch (error) {
-      this.logger.error(error as Error, "Failed to load blocked sets");
+      this.logger.error(toLoggableError(error), "Failed to load blocked sets");
     }
 
     return result;
@@ -511,7 +512,7 @@ export class MatchmakingService {
     try {
       return await getUserEmbeddingsMap(userIds);
     } catch (error) {
-      this.logger.error(error as Error, "Failed to load embeddings");
+      this.logger.error(toLoggableError(error), "Failed to load embeddings");
       return new Map();
     }
   }

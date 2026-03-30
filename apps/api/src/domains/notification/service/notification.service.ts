@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import {
   createNotification as createNotificationRepo,
   getUserNotifications as getUserNotificationsRepo,
@@ -41,7 +42,7 @@ export async function createNotification(
     try {
       await sendPushToUser(userId, notification);
     } catch (error) {
-      logger.warn(error as Error, "Failed to send push notification to user %s", userId);
+      logger.warn(toLoggableError(error), "Failed to send push notification to user %s", userId);
     }
   }
 
@@ -95,7 +96,7 @@ async function tryDeliverViaSocket(userId: string, notification: NotificationRec
       return true;
     }
   } catch (error) {
-    logger.error(error as Error, "Error delivering notification via socket");
+    logger.error(toLoggableError(error), "Error delivering notification via socket");
   }
 
   return false;
@@ -114,6 +115,6 @@ async function tryEmitToSocket(userId: string, event: string, data: unknown): Pr
       logger.info("Event %s emitted to user %s", event, userId);
     }
   } catch (error) {
-    logger.error(error as Error, "Error emitting to socket");
+    logger.error(toLoggableError(error), "Error emitting to socket");
   }
 }

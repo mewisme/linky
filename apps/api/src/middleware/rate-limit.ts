@@ -2,6 +2,7 @@ import { type Request, type Response, type NextFunction } from "express";
 import { redisClient } from "@/infra/redis/client.js";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
 const logger = createLogger("middleware:rate-limit");
@@ -49,7 +50,7 @@ export function createRateLimitMiddleware(options?: {
 
       next();
     } catch (error) {
-      logger.error(error as Error, "Rate limit check failed");
+      logger.error(toLoggableError(error), "Rate limit check failed");
       next();
     }
   };

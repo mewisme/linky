@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { createReportContext } from "@/infra/supabase/repositories/report-contexts.js";
 import { collectReportContext } from "@/services/report-context.js";
@@ -80,12 +81,12 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
 
       enqueueReportAiSummaryJob({ reportId: report.id });
     } catch (error) {
-      logger.error(error as Error, "Error creating report context");
+      logger.error(toLoggableError(error), "Error creating report context");
     }
 
     return res.status(201).json(report);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in POST /reports");
+    logger.error(toLoggableError(error), "Unexpected error in POST /reports");
 
     if (error instanceof Error && error.message.includes("violates check constraint")) {
       return res.status(400).json({
@@ -145,7 +146,7 @@ router.get("/me", async (req: Request, res: Response) => {
       offset,
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /reports/me");
+    logger.error(toLoggableError(error), "Unexpected error in GET /reports/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user reports",

@@ -2,6 +2,7 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 import { Webhook } from "svix";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
 import { processClerkWebhookDelivery } from "@/contexts/clerk-webhook-context.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
@@ -40,10 +41,7 @@ router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) =
         "svix-signature": svixSignature,
       }) as ClerkWebhookEvent;
     } catch (err: unknown) {
-      logger.error(
-        "Webhook verification failed: %o",
-        err instanceof Error ? err : new Error(String(err)),
-      );
+      logger.error(toLoggableError(err), "Webhook verification failed");
       return res.status(400).json({
         error: "Bad Request",
         message: "Webhook verification failed",
@@ -57,10 +55,7 @@ router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) =
       message: "Webhook processed",
     });
   } catch (error: unknown) {
-    logger.error(
-      "Error processing webhook: %o",
-      error as Error,
-    );
+    logger.error(toLoggableError(error), "Error processing webhook");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to process webhook",

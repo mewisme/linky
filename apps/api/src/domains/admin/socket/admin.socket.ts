@@ -3,6 +3,7 @@ import type { Socket } from "socket.io";
 import { checkIfUserIsAdmin } from "@/infra/admin-cache/index.js";
 import { createLogger } from "@/utils/logger.js";
 
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 const logger = createLogger("api:admin:socket:auth");
 
 export async function adminNamespaceAuthMiddleware(socket: Socket, next: (err?: Error) => void): Promise<void> {
@@ -18,7 +19,7 @@ export async function adminNamespaceAuthMiddleware(socket: Socket, next: (err?: 
     }
     next();
   } catch (error) {
-    logger.error(error as Error, "Admin namespace auth failed");
+    logger.error(toLoggableError(error), "Admin namespace auth failed");
     next(new Error("Authorization failed"));
   }
 }

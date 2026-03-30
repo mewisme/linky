@@ -5,6 +5,7 @@ import morgan from "morgan";
 import { setupExpressErrorHandler } from "@sentry/node";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { clientIpMiddleware } from "./client-ip.js";
 import { requestIdMiddleware } from "./request-id.js";
 import { jsonBodySizeLimitMiddleware } from "./json-body-size-limit.js";
@@ -73,11 +74,12 @@ export function setupErrorHandlers(app: Express): void {
 
   setupExpressErrorHandler(app);
 
-  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    logger.error(err instanceof Error ? err : new Error(String(err)), "Internal server error");
-    if (err.stack) {
-      logger.trace(err instanceof Error ? err : new Error(String(err)), "Stack trace");
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    const logErr = toLoggableError(err);
+    logger.error(logErr, "Internal server error");
+    if (logErr.stack) {
+      logger.trace(logErr, "Stack trace");
     }
-    res.status(500).json({ error: "An unexpected error occurred", message: err.message });
+    res.status(500).json({ error: "An unexpected error occurred", message: logErr.message });
   });
 }

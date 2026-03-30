@@ -4,6 +4,7 @@ import { getUserStreakData, getUserStreakHistory } from "./user-streak.service.j
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getCallDurationsForUserOnLocalDate } from "@/infra/supabase/repositories/call-history.js";
 import { getExpToday } from "@/infra/redis/cache/exp-today.js";
 import { getOrSet } from "@/infra/redis/cache/index.js";
@@ -134,7 +135,7 @@ export async function getUserProgressInsights(
       },
     );
   } catch (error) {
-    logger.error(error as Error, "Error getting user progress insights");
+    logger.error(toLoggableError(error), "Error getting user progress insights");
     throw error;
   }
 }

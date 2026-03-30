@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { subscribe, unsubscribe } from "@/domains/notification/service/push.service.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { config } from "@/config/index.js";
@@ -40,7 +41,7 @@ router.post("/subscribe", async (req: Request, res: Response) => {
 
     return res.status(201).json(record);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in POST /push/subscribe");
+    logger.error(toLoggableError(error), "Unexpected error in POST /push/subscribe");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to subscribe to push notifications",
@@ -80,7 +81,7 @@ router.delete("/unsubscribe", async (req: Request, res: Response) => {
 
     return res.status(204).send();
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in DELETE /push/unsubscribe");
+    logger.error(toLoggableError(error), "Unexpected error in DELETE /push/unsubscribe");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to unsubscribe from push notifications",
@@ -99,7 +100,7 @@ router.get("/vapid-public-key", (_req: Request, res: Response) => {
 
     return res.json({ publicKey: config.vapidPublicKey });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /push/vapid-public-key");
+    logger.error(toLoggableError(error), "Unexpected error in GET /push/vapid-public-key");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch VAPID public key",

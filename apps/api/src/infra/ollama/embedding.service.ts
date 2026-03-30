@@ -1,6 +1,7 @@
 import { Ollama } from "ollama";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 
 const logger = createLogger("infra:ollama:embedding:service");
 
@@ -28,7 +29,7 @@ export async function pullEmbeddingModelAtStartup(): Promise<void> {
     logger.info("Ollama embedding model available: %s", config.ollamaEmbeddingModel);
   } catch (error: unknown) {
     logger.error(
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       "Failed to pull Ollama embedding model; embedding calls may fail until the model exists locally",
     );
   }
@@ -63,11 +64,8 @@ export async function embedText(text: string): Promise<EmbeddingResult | null> {
       embedding,
       modelName: response.model ?? config.ollamaEmbeddingModel,
     };
-  } catch (error) {
-    logger.error(
-      "Ollama embedding failed: %s",
-      error instanceof Error ? error.message : String(error)
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Ollama embedding failed");
     return null;
   }
 }

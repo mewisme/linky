@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:user-embeddings");
@@ -14,7 +15,7 @@ export async function getUserEmbeddingByUserId(userId: string) {
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user embedding");
+    logger.error(toLoggableError(error), "Error fetching user embedding");
     throw error;
   }
 
@@ -43,7 +44,7 @@ export async function upsertUserEmbedding(
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error upserting user embedding");
+    logger.error(toLoggableError(error), "Error upserting user embedding");
     throw error;
   }
 
@@ -59,7 +60,7 @@ export async function getUserEmbeddingsByUserIds(userIds: string[]) {
     .in("user_id", userIds);
 
   if (error) {
-    logger.error(error as Error, "Error fetching user embeddings");
+    logger.error(toLoggableError(error), "Error fetching user embeddings");
     throw error;
   }
 
@@ -75,7 +76,7 @@ export async function getEmbeddingMetadataByUserIds(userIds: string[]) {
     .in("user_id", userIds);
 
   if (error) {
-    logger.error(error as Error, "Error fetching embedding metadata");
+    logger.error(toLoggableError(error), "Error fetching embedding metadata");
     throw error;
   }
 
@@ -90,7 +91,7 @@ export async function getAllUserEmbeddingsExcluding(excludeUserId: string) {
     .not("embedding", "is", null);
 
   if (error) {
-    logger.error(error as Error, "Error fetching user embeddings");
+    logger.error(toLoggableError(error), "Error fetching user embeddings");
     throw error;
   }
 
@@ -122,7 +123,7 @@ export async function findSimilarUsersByEmbedding(
   const { data, error } = await supabase.rpc("find_similar_users_by_embedding", rpcArgs);
 
   if (error) {
-    logger.error(error as Error, "Error finding similar users");
+    logger.error(toLoggableError(error), "Error finding similar users");
     throw error;
   }
 
@@ -148,7 +149,7 @@ export async function getUserEmbeddingsMap(userIds: string[]): Promise<Map<strin
           result.set(record.user_id, parsed);
         }
       } catch (error) {
-        logger.error(error as Error, "Failed to parse embedding for user %s", record.user_id);
+        logger.error(toLoggableError(error), "Failed to parse embedding for user %s", record.user_id);
       }
     }
   }

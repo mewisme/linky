@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:user-exp-daily");
@@ -33,7 +34,7 @@ export async function incrementUserExpDaily(
   });
 
   if (error) {
-    logger.error(error as Error, "Error incrementing user exp daily");
+    logger.error(toLoggableError(error), "Error incrementing user exp daily");
     throw error;
   }
 }
@@ -59,7 +60,7 @@ export async function incrementDailyExpWithMilestones(
   });
 
   if (error) {
-    logger.error(error as Error, "Error incrementing daily exp with milestones");
+    logger.error(toLoggableError(error), "Error incrementing daily exp with milestones");
     throw error;
   }
 }
@@ -83,7 +84,7 @@ export async function getUserExpDaily(
     if (error.code === "PGRST116") {
       return 0;
     }
-    logger.error(error as Error, "Error fetching user exp daily");
+    logger.error(toLoggableError(error), "Error fetching user exp daily");
     throw error;
   }
 

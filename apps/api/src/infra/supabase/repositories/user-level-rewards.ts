@@ -1,5 +1,6 @@
 import type { TablesInsert } from "@/types/database/supabase.types.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:user-level-rewards");
@@ -21,7 +22,7 @@ export async function getUserLevelRewards(userId: string): Promise<UserLevelRewa
     .order("granted_at", { ascending: false });
 
   if (error) {
-    logger.error(error as Error, "Error fetching user level rewards");
+    logger.error(toLoggableError(error), "Error fetching user level rewards");
     throw error;
   }
 
@@ -35,7 +36,7 @@ export async function getUserLevelRewardIds(userId: string): Promise<string[]> {
     .eq("user_id", userId);
 
   if (error) {
-    logger.error(error as Error, "Error fetching user level reward IDs");
+    logger.error(toLoggableError(error), "Error fetching user level reward IDs");
     throw error;
   }
 
@@ -54,7 +55,7 @@ export async function hasUserLevelReward(userId: string, levelRewardId: string):
     if (error.code === "PGRST116") {
       return false;
     }
-    logger.error(error as Error, "Error checking user level reward");
+    logger.error(toLoggableError(error), "Error checking user level reward");
     throw error;
   }
 
@@ -77,7 +78,7 @@ export async function grantUserLevelReward(data: UserLevelRewardInsert): Promise
         return reward;
       }
     }
-    logger.error(error as Error, "Error granting user level reward");
+    logger.error(toLoggableError(error), "Error granting user level reward");
     throw error;
   }
 
@@ -107,7 +108,7 @@ export async function grantUserLevelRewards(userId: string, levelRewardIds: stri
     .select();
 
   if (error) {
-    logger.error(error as Error, "Error granting user level rewards");
+    logger.error(toLoggableError(error), "Error granting user level rewards");
     throw error;
   }
 

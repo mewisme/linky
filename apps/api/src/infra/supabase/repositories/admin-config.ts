@@ -1,5 +1,6 @@
 import type { Json } from "@/types/database/supabase.types.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:admin-config");
@@ -16,7 +17,7 @@ export async function getAllAdminConfig(): Promise<AdminConfigRow[]> {
     .order("key", { ascending: true });
 
   if (error) {
-    logger.error(error as Error, "Error fetching admin config");
+    logger.error(toLoggableError(error), "Error fetching admin config");
     throw error;
   }
 
@@ -34,7 +35,7 @@ export async function getAdminConfigByKey<T = Json>(key: string): Promise<AdminC
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching admin config by key");
+    logger.error(toLoggableError(error), "Error fetching admin config by key");
     throw error;
   }
 
@@ -49,7 +50,7 @@ export async function setAdminConfig(key: string, value: Json): Promise<AdminCon
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error setting admin config");
+    logger.error(toLoggableError(error), "Error setting admin config");
     throw error;
   }
 
@@ -60,7 +61,7 @@ export async function unsetAdminConfig(key: string): Promise<void> {
   const { error } = await supabase.from("admin_config").delete().eq("key", key);
 
   if (error) {
-    logger.error(error as Error, "Error unsetting admin config");
+    logger.error(toLoggableError(error), "Error unsetting admin config");
     throw error;
   }
 }

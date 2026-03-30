@@ -5,6 +5,7 @@ import { invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { calculateLevelFromExp as calcLevel } from "@/logic/level-from-exp.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getStreakExpBonusForStreak } from "@/infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "@/infra/supabase/repositories/user-streaks.js";
 import { grantFreezesForLevel } from "./user-streak-freeze.service.js";
@@ -82,7 +83,7 @@ export async function addCallExp(
       logger.info("User leveled up: user=%s from=%d to=%d", userId, levelBeforeValue, levelAfterValue);
     }
   } catch (error) {
-    logger.error(error as Error, "Error adding call exp");
+    logger.error(toLoggableError(error), "Error adding call exp");
     throw error;
   }
 }
@@ -120,7 +121,7 @@ export async function getUserLevelData(
       updatedAt: record.updated_at,
     };
   } catch (error) {
-    logger.error(error as Error, "Error getting user level data");
+    logger.error(toLoggableError(error), "Error getting user level data");
     throw error;
   }
 }

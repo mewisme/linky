@@ -11,6 +11,7 @@ import {
 } from "@/infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
@@ -48,10 +49,7 @@ router.get("/", async (req: Request, res: Response) => {
       count: favorites.length,
     });
   } catch (error: unknown) {
-    logger.error(
-      "Unexpected error in GET /favorites: %o",
-      error as Error
-    );
+    logger.error(toLoggableError(error), "Unexpected error in GET /favorites");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch favorites",
@@ -121,10 +119,7 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
       message: "User added to favorites",
     });
   } catch (error: unknown) {
-    logger.error(
-      "Unexpected error in POST /favorites: %o",
-      error as Error
-    );
+    logger.error(toLoggableError(error), "Unexpected error in POST /favorites");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to add favorite",
@@ -178,7 +173,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
       try {
         await decrementFavoriteLimit(userId);
       } catch (error: unknown) {
-        logger.error(error as Error, "Failed to refund daily limit");
+        logger.error(toLoggableError(error), "Failed to refund daily limit");
       }
     }
 
@@ -189,10 +184,7 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
       refunded: isSameDay,
     });
   } catch (error: unknown) {
-    logger.error(
-      "Unexpected error in DELETE /favorites/:favorite_user_id: %o",
-      error as Error
-    );
+    logger.error(toLoggableError(error), "Unexpected error in DELETE /favorites/:favorite_user_id");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to remove favorite",

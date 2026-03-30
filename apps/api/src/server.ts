@@ -5,6 +5,7 @@ import { setupRoutes } from "@/routes/index.js";
 import { createSocketServer } from "@/socket/index.js";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { connectRedis } from "@/infra/redis/client.js";
 import { preloadReferenceData } from "@/infra/redis/cache-preload.js";
 import { attachSocketIO } from "@/infra/presence/presence-handler.js";
@@ -39,13 +40,13 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
     await connectRedis();
     preloadReferenceData();
   } catch (error: unknown) {
-    logger.error(error as Error, "Failed to connect to Redis, continuing without Redis");
+    logger.error(toLoggableError(error), "Failed to connect to Redis, continuing without Redis");
   }
 
   await pullEmbeddingModelAtStartup();
 
   initializeAdminCache().catch((error) => {
-    logger.error(error as Error, "Failed to initialize admin cache");
+    logger.error(toLoggableError(error), "Failed to initialize admin cache");
   });
 
   startJobs();
@@ -55,7 +56,7 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
   });
 
   httpServer.on("error", (error: Error) => {
-    logger.fatal(error as Error, "HTTP server error");
+    logger.fatal(toLoggableError(error), "HTTP server error");
   });
 
   setupGracefulShutdown(httpServer, io);

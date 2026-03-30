@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { sendBroadcastToAllUsers } from "@/contexts/broadcast-context.js";
 import { generateBroadcastAiDraft } from "@/contexts/broadcast-ai-context.js";
 import { listBroadcastHistory } from "@/infra/supabase/repositories/broadcast-history.js";
@@ -38,7 +39,7 @@ router.get("/", async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /admin/broadcasts");
+    logger.error(toLoggableError(error), "Unexpected error in GET /admin/broadcasts");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to list broadcasts",
@@ -118,7 +119,7 @@ router.post("/", async (req: Request, res: Response) => {
           : `Broadcast sent to ${sent} user(s).`,
     });
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in POST /admin/broadcasts");
+    logger.error(toLoggableError(error), "Unexpected error in POST /admin/broadcasts");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to send broadcast",
@@ -179,7 +180,7 @@ router.post(
         });
       }
 
-      logger.error(error as Error, "Unexpected error in POST /admin/broadcasts/ai-generate");
+      logger.error(toLoggableError(error), "Unexpected error in POST /admin/broadcasts/ai-generate");
       return res.status(500).json({
         error: "Internal Server Error",
         message: "Failed to generate broadcast draft",

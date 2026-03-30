@@ -19,6 +19,7 @@ import { REDIS_CACHE_TTL_SECONDS } from "@/infra/redis/cache/policy.js";
 import { calculateLevelFromExp } from "@/logic/level-from-exp.js";
 import { clerk } from "@/infra/clerk/client.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { hashFilters } from "@/infra/redis/cache/hash.js";
 
 type UserRole = "member" | "admin" | "superadmin";
@@ -139,7 +140,7 @@ export async function softDeleteUser(id: string): Promise<void> {
     try {
       await clerk.users.deleteUser(user.clerk_user_id ?? "");
     } catch (error) {
-      logger.error(error as Error, "Error deleting user from Clerk");
+      logger.error(toLoggableError(error), "Error deleting user from Clerk");
     }
   }
   await Promise.allSettled([
@@ -160,7 +161,7 @@ export async function hardDeleteUser(id: string): Promise<void> {
   try {
     await clerk.users.deleteUser(user.clerk_user_id ?? "");
   } catch (error) {
-    logger.error(error as Error, "Error deleting user from Clerk");
+    logger.error(toLoggableError(error), "Error deleting user from Clerk");
   }
   await Promise.allSettled([
     invalidateByPrefix(REDIS_CACHE_KEYS.adminPrefix("users")),

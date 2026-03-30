@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:streak-exp-bonuses");
@@ -30,7 +31,7 @@ export async function getStreakExpBonusForStreak(streakLength: number): Promise<
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching streak EXP bonus");
+    logger.error(toLoggableError(error), "Error fetching streak EXP bonus");
     throw error;
   }
 
@@ -44,7 +45,7 @@ export async function getAllStreakExpBonuses(): Promise<StreakExpBonusRecord[]> 
     .order("min_streak", { ascending: true });
 
   if (error) {
-    logger.error(error as Error, "Error fetching all streak EXP bonuses");
+    logger.error(toLoggableError(error), "Error fetching all streak EXP bonuses");
     throw error;
   }
 
@@ -62,7 +63,7 @@ export async function getStreakExpBonusById(id: string): Promise<StreakExpBonusR
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching streak EXP bonus");
+    logger.error(toLoggableError(error), "Error fetching streak EXP bonus");
     throw error;
   }
 
@@ -77,7 +78,7 @@ export async function createStreakExpBonus(data: StreakExpBonusInsert): Promise<
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating streak EXP bonus");
+    logger.error(toLoggableError(error), "Error creating streak EXP bonus");
     throw error;
   }
 
@@ -96,7 +97,7 @@ export async function updateStreakExpBonus(id: string, data: StreakExpBonusUpdat
     if (error.code === "PGRST116") {
       throw new Error("Streak EXP bonus not found");
     }
-    logger.error(error as Error, "Error updating streak EXP bonus");
+    logger.error(toLoggableError(error), "Error updating streak EXP bonus");
     throw error;
   }
 
@@ -110,7 +111,7 @@ export async function deleteStreakExpBonus(id: string): Promise<void> {
     .eq("id", id);
 
   if (error) {
-    logger.error(error as Error, "Error deleting streak EXP bonus");
+    logger.error(toLoggableError(error), "Error deleting streak EXP bonus");
     throw error;
   }
 }

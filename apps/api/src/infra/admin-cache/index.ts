@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { supabase } from "@/infra/supabase/client.js";
 
@@ -46,7 +47,7 @@ export async function getAdminRole(clerkUserId: string): Promise<AdminRole | nul
 
     return role;
   } catch (error) {
-    logger.error(error as Error, "Error checking admin role");
+    logger.error(toLoggableError(error), "Error checking admin role");
     return null;
   }
 }
@@ -59,7 +60,7 @@ async function refreshAdminCache(): Promise<void> {
       .in("role", ["admin", "superadmin"]);
 
     if (error) {
-      logger.error(error as Error, "Error refreshing admin cache");
+      logger.error(toLoggableError(error), "Error refreshing admin cache");
       return;
     }
 
@@ -73,7 +74,7 @@ async function refreshAdminCache(): Promise<void> {
       await redisClient.set(key, value, { EX: ADMIN_CACHE_TTL_SECONDS });
     }
   } catch (error) {
-    logger.error(error as Error, "Error refreshing admin cache");
+    logger.error(toLoggableError(error), "Error refreshing admin cache");
   }
 }
 

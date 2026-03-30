@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:broadcast-history");
@@ -43,7 +44,7 @@ export async function createBroadcastHistory(params: {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating broadcast history");
+    logger.error(toLoggableError(error), "Error creating broadcast history");
     throw error;
   }
 
@@ -67,7 +68,7 @@ export async function listBroadcastHistory(
     .range(from, to);
 
   if (error) {
-    logger.error(error as Error, "Error listing broadcast history");
+    logger.error(toLoggableError(error), "Error listing broadcast history");
     throw error;
   }
 

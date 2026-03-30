@@ -10,6 +10,7 @@ import {
 
 import { cosineSimilarity } from "@/domains/embeddings/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUsersIdsPaginated } from "@/infra/supabase/repositories/users.js";
 
 const logger = createLogger("api:admin:embeddings:service");
@@ -125,12 +126,8 @@ export async function syncEmbeddingsForUsers(userIds: string[]): Promise<{
       } else {
         skipped.push(userId);
       }
-    } catch (error) {
-      logger.warn(
-        error instanceof Error ? error : new Error(String(error)),
-        "Embedding sync failed for user %s",
-        userId
-      );
+    } catch (error: unknown) {
+      logger.warn(toLoggableError(error), "Embedding sync failed for user %s", userId);
       skipped.push(userId);
     }
   }
@@ -154,23 +151,16 @@ export function scheduleSyncAllEmbeddings(): void {
             if (needed) {
               scheduleEmbeddingRegeneration(userId);
             }
-          } catch (error) {
-logger.warn(
-            error instanceof Error ? error : new Error(String(error)),
-            "Embedding sync-all failed for user %s",
-            userId
-          );
+          } catch (error: unknown) {
+            logger.warn(toLoggableError(error), "Embedding sync-all failed for user %s", userId);
           }
         }
 
         hasMore = more;
         page += 1;
       }
-    } catch (error) {
-      logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        "Embedding sync-all batch failed"
-      );
+    } catch (error: unknown) {
+      logger.error(toLoggableError(error), "Embedding sync-all batch failed");
     }
   });
 }

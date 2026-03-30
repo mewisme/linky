@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:call-history");
@@ -44,7 +45,7 @@ export async function createCallHistory(params: CreateCallHistoryParams): Promis
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating call history");
+    logger.error(toLoggableError(error), "Error creating call history");
     throw error;
   }
 
@@ -65,7 +66,7 @@ export async function getCallHistoryByUserId(
     .range(offset, offset + limit - 1);
 
   if (error) {
-    logger.error(error as Error, "Error fetching call history");
+    logger.error(toLoggableError(error), "Error fetching call history");
     throw error;
   }
 
@@ -83,7 +84,7 @@ export async function getCallHistoryById(id: string): Promise<CallHistoryRecord 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching call history by ID");
+    logger.error(toLoggableError(error), "Error fetching call history by ID");
     throw error;
   }
 
@@ -101,7 +102,7 @@ export async function getUserIdByClerkId(clerkUserId: string): Promise<string | 
     if (error.code === "PGRST116") {
       return null;
     }
-    logger.error(error as Error, "Error fetching user by Clerk ID");
+    logger.error(toLoggableError(error), "Error fetching user by Clerk ID");
     throw error;
   }
 
@@ -131,7 +132,7 @@ export async function getCallDurationsForUserOnLocalDate(
     .lt("ended_at", end.toISOString());
 
   if (error) {
-    logger.error(error as Error, "Error fetching call durations for derive");
+    logger.error(toLoggableError(error), "Error fetching call durations for derive");
     throw error;
   }
 
@@ -153,7 +154,7 @@ export async function getUserCountry(userId: string): Promise<string | null> {
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error fetching user country");
+    logger.error(toLoggableError(error), "Error fetching user country");
     return null;
   }
 

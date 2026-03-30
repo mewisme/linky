@@ -1,4 +1,5 @@
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 const logger = createLogger("infra:supabase:repositories:user-blocks");
@@ -17,7 +18,7 @@ export async function getBlockedUserIds(userId: string): Promise<string[]> {
     .eq("blocker_user_id", userId);
 
   if (error) {
-    logger.error(error as Error, "Error fetching blocked users");
+    logger.error(toLoggableError(error), "Error fetching blocked users");
     throw error;
   }
 
@@ -32,7 +33,7 @@ export async function isBlocked(blockerId: string, targetId: string): Promise<bo
     .maybeSingle();
 
   if (error) {
-    logger.error(error as Error, "Error checking if blocked");
+    logger.error(toLoggableError(error), "Error checking if blocked");
     throw error;
   }
 
@@ -50,7 +51,7 @@ export async function createBlock(blockerId: string, blockedId: string): Promise
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating block");
+    logger.error(toLoggableError(error), "Error creating block");
     throw error;
   }
 
@@ -65,7 +66,7 @@ export async function deleteBlock(blockerId: string, blockedId: string): Promise
     .eq("blocked_user_id", blockedId);
 
   if (error) {
-    logger.error(error as Error, "Error deleting block");
+    logger.error(toLoggableError(error), "Error deleting block");
     throw error;
   }
 
@@ -91,7 +92,7 @@ export async function getBlockedUsersWithDetails(userId: string): Promise<Blocke
     .order("created_at", { ascending: false });
 
   if (error) {
-    logger.error(error as Error, "Error fetching blocked users with details");
+    logger.error(toLoggableError(error), "Error fetching blocked users with details");
     throw error;
   }
 
@@ -107,7 +108,7 @@ export async function checkBlockExists(blockerId: string, blockedId: string): Pr
     .maybeSingle();
 
   if (error) {
-    logger.error(error as Error, "Error checking block exists");
+    logger.error(toLoggableError(error), "Error checking block exists");
     throw error;
   }
 

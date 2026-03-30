@@ -3,6 +3,7 @@ import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { invalidate } from "@/infra/redis/cache/index.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 
 const logger = createLogger("context:call-ended");
 
@@ -81,17 +82,17 @@ export async function applyCallEndedProgress(params: {
 
   if (callerProgressResult.status === "rejected") {
     logger.error(
-      "Failed to apply call progress for caller %s: %o",
+      toLoggableError(callerProgressResult.reason),
+      "Failed to apply call progress for caller %s",
       callerId,
-      callerProgressResult.reason instanceof Error ? callerProgressResult.reason : new Error(String(callerProgressResult.reason)),
     );
   }
 
   if (calleeProgressResult.status === "rejected") {
     logger.error(
-      "Failed to apply call progress for callee %s: %o",
+      toLoggableError(calleeProgressResult.reason),
+      "Failed to apply call progress for callee %s",
       calleeId,
-      calleeProgressResult.reason instanceof Error ? calleeProgressResult.reason : new Error(String(calleeProgressResult.reason)),
     );
   }
 

@@ -1,5 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUserLevelData } from "@/domains/user/service/user-level.service.js";
 import { getUserIdByClerkUserId } from "@/domains/user/service/user-settings.service.js";
 
@@ -36,7 +37,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
     return res.json(userLevel);
   } catch (error) {
-    logger.error(error as Error, "Unexpected error in GET /user-level/me");
+    logger.error(toLoggableError(error), "Unexpected error in GET /user-level/me");
     return res.status(500).json({
       error: "Internal Server Error",
       message: "Failed to fetch user level",

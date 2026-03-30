@@ -2,6 +2,7 @@ import { RedisClientType, RedisFunctions, RedisModules, RedisScripts, RespVersio
 
 import { config } from '@/config/index.js'
 import { createLogger } from '@/utils/logger.js'
+import { toLoggableError } from '@/utils/to-loggable-error.js'
 
 const logger = createLogger("infra:redis:client");
 
@@ -23,7 +24,7 @@ const redisConfig = config.redisUrl && config.redisUrl.startsWith('redis://')
 export const redisClient = createClient(redisConfig) as RedisClientType<RedisModules, RedisFunctions, RedisScripts, RespVersions, TypeMapping>
 
 redisClient.on('error', (err) => {
-  logger.error(err instanceof Error ? err : new Error(String(err)), "Redis Client Error")
+  logger.error(toLoggableError(err), "Redis Client Error")
 })
 
 redisClient.on('connect', () => {
@@ -41,8 +42,8 @@ redisClient.on('reconnecting', () => {
 export async function connectRedis(): Promise<void> {
   try {
     await redisClient.connect()
-  } catch (error) {
-    logger.error(error instanceof Error ? error : new Error(String(error as string)), "Failed to connect to Redis")
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Failed to connect to Redis")
     throw error
   }
 }

@@ -1,6 +1,7 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
 
 type NotificationInsert = TablesInsert<"notifications">;
@@ -39,7 +40,7 @@ export async function createNotification(
     .single();
 
   if (error) {
-    logger.error(error as Error, "Error creating notification");
+    logger.error(toLoggableError(error), "Error creating notification");
     throw error;
   }
 
@@ -66,7 +67,7 @@ export async function getUserNotifications(
   const { data, error } = await query;
 
   if (error) {
-    logger.error(error as Error, "Error fetching user notifications");
+    logger.error(toLoggableError(error), "Error fetching user notifications");
     throw error;
   }
 
@@ -81,7 +82,7 @@ export async function markNotificationRead(notificationId: string, userId: strin
     .eq("user_id", userId);
 
   if (error) {
-    logger.error(error as Error, "Error marking notification as read");
+    logger.error(toLoggableError(error), "Error marking notification as read");
     throw error;
   }
 
@@ -96,7 +97,7 @@ export async function markAllNotificationsRead(userId: string): Promise<boolean>
     .eq("is_read", false);
 
   if (error) {
-    logger.error(error as Error, "Error marking all notifications as read");
+    logger.error(toLoggableError(error), "Error marking all notifications as read");
     throw error;
   }
 
@@ -111,7 +112,7 @@ export async function getUnreadCount(userId: string): Promise<number> {
     .eq("is_read", false);
 
   if (error) {
-    logger.error(error as Error, "Error getting unread count");
+    logger.error(toLoggableError(error), "Error getting unread count");
     throw error;
   }
 

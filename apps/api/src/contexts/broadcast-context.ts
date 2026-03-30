@@ -1,5 +1,6 @@
 import { createBroadcastHistory } from "@/infra/supabase/repositories/broadcast-history.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { createNotification } from "@/domains/notification/service/notification.service.js";
 import { getActiveUserIds } from "@/infra/supabase/repositories/users.js";
 import { sendPushOnly } from "@/domains/notification/service/push.service.js";
@@ -32,7 +33,7 @@ export async function sendBroadcastToAllUsers(params: SendBroadcastParams): Prom
         });
         sent++;
       } catch (error) {
-        logger.warn(error as Error, "Failed to send push-only broadcast to user %s", userId);
+        logger.warn(toLoggableError(error), "Failed to send push-only broadcast to user %s", userId);
       }
     }
 
@@ -55,7 +56,7 @@ export async function sendBroadcastToAllUsers(params: SendBroadcastParams): Prom
       });
       sent++;
     } catch (error) {
-      logger.warn(error as Error, "Failed to send broadcast to user %s", userId);
+      logger.warn(toLoggableError(error), "Failed to send broadcast to user %s", userId);
     }
   }
 

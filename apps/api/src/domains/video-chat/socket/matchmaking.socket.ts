@@ -1,5 +1,6 @@
 import type { Namespace } from "socket.io";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { MatchedPayload, RoomPingPayload } from "@/domains/video-chat/types/socket-event.types.js";
 import { getPublicUserInfo } from "@/infra/supabase/repositories/user-details.js";
@@ -73,7 +74,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user1Info = await getPublicUserInfo(dbUserId1);
             }
           } catch (error) {
-            logger.error(error as Error, "Failed to fetch user info");
+            logger.error(toLoggableError(error), "Failed to fetch user info");
           }
         }
 
@@ -84,7 +85,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
               user2Info = await getPublicUserInfo(dbUserId2);
             }
           } catch (error) {
-            logger.error(error as Error, "Failed to fetch user info");
+            logger.error(toLoggableError(error), "Failed to fetch user info");
           }
         }
 
@@ -117,7 +118,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
             title: "Match Found!",
             body: "Someone is ready to chat — head back!",
             url: "/call",
-          }).catch((err: unknown) => logger.warn(err as Error, "Push to user1 failed"));
+          }).catch((err: unknown) => logger.warn(toLoggableError(err), "Push to user1 failed"));
         }
 
         if (dbUserId2) {
@@ -127,7 +128,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
             title: "Match Found!",
             body: "Someone is ready to chat — head back!",
             url: "/call",
-          }).catch((err: unknown) => logger.warn(err as Error, "Push to user2 failed"));
+          }).catch((err: unknown) => logger.warn(toLoggableError(err), "Push to user2 failed"));
         }
       }
     }

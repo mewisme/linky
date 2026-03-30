@@ -4,6 +4,7 @@ import { tryEnqueueAsyncJob } from "@/jobs/job-queue.js";
 import { buildEmbeddingInput, type SemanticProfileInput } from "./embedding-input.builder.js";
 import { createHash } from "node:crypto";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { embedText } from "@/infra/ollama/embedding.service.js";
 import { getUserProfileAggregateByUserId } from "./user-profile.service.js";
 
@@ -64,12 +65,8 @@ async function runEmbeddingJob(userId: string): Promise<void> {
     }
 
     await upsertUserEmbedding(userId, result.embedding, result.modelName, sourceHash);
-  } catch (error) {
-    logger.error(
-      "Embedding job failed for user %s: %s",
-      userId,
-      error instanceof Error ? error.message : String(error)
-    );
+  } catch (error: unknown) {
+    logger.error(toLoggableError(error), "Embedding job failed for user %s", userId);
   }
 }
 

@@ -1,6 +1,7 @@
 import { Ollama } from "ollama";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 
 const logger = createLogger("infra:ollama:cloud:service");
 
@@ -40,9 +41,9 @@ export async function generateText(prompt: string, options?: { timeoutMs?: numbe
     }
 
     return text;
-  } catch (error) {
+  } catch (error: unknown) {
     logger.error(
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       "Ollama cloud generate failed (model: %s)",
       config.ollamaCloudModel,
     );

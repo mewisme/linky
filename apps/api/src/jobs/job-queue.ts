@@ -4,6 +4,7 @@ import { enqueueAiJob } from "@ws/sdk-internal";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 
 const logger = createLogger("jobs:queue");
 
@@ -18,9 +19,9 @@ export async function tryEnqueueAsyncJob(envelope: AiJobEnvelope): Promise<boole
       "async-job-enqueue",
     );
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     logger.warn(
-      error instanceof Error ? error : new Error(String(error)),
+      toLoggableError(error),
       "Async job enqueue failed; falling back to in-process execution when applicable",
     );
     return false;

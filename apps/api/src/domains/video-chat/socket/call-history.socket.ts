@@ -2,6 +2,7 @@ import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoom, VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getTimezoneForUser } from "@/domains/user/index.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { recordCallHistoryInDatabase } from "@/domains/video-chat/service/call-history.service.js";
@@ -33,12 +34,8 @@ async function acquireIdempotencyLock(key: string): Promise<boolean> {
     );
 
     return result === "OK";
-  } catch (error) {
-    logger.warn(
-      error as Error,
-      "Failed to acquire idempotency lock for key %s",
-      key,
-    );
+  } catch (error: unknown) {
+    logger.warn(toLoggableError(error), "Failed to acquire idempotency lock for key %s", key);
     return true;
   }
 }
@@ -137,7 +134,7 @@ export async function recordCallHistory(
 
     logger.info("Call history recorded: duration=%ds", durationSeconds);
   } catch (error) {
-    logger.error(error as Error, "Error recording call history");
+    logger.error(toLoggableError(error), "Error recording call history");
   }
 }
 
@@ -189,7 +186,7 @@ export async function recordCallHistoryFromRoom(
 
     logger.info("Call history recorded from room (no sockets): duration=%ds", safeDuration);
   } catch (error) {
-    logger.error(error as Error, "Error recording call history from room");
+    logger.error(toLoggableError(error), "Error recording call history from room");
   }
 }
 

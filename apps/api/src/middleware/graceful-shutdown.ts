@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/node";
 import { redisClient } from "@/infra/redis/client.js";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
+import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { clearMatchmakingIntervals } from "@/domains/video-chat/socket/matchmaking.socket.js";
 
 const logger = createLogger("middleware:graceful-shutdown");
@@ -51,7 +52,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
           await redisClient.quit();
         }
       } catch (error) {
-        logger.warn(error as Error, "Error closing Redis connection");
+        logger.warn(toLoggableError(error), "Error closing Redis connection");
       }
 
       clearTimeout(shutdownTimer);
@@ -59,7 +60,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
       await Sentry.close(2000);
       process.exit(0);
     } catch (error) {
-      logger.error(error as Error, "Error during shutdown");
+      logger.error(toLoggableError(error), "Error during shutdown");
       clearTimeout(shutdownTimer);
       process.exit(1);
     }
@@ -76,7 +77,7 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
   });
 
   process.on("unhandledRejection", (reason: unknown) => {
-    logger.fatal(reason as Error, "Unhandled rejection");
+    logger.fatal(toLoggableError(reason), "Unhandled rejection");
     shutdown("unhandledRejection").catch(() => {
       process.exit(1);
     });

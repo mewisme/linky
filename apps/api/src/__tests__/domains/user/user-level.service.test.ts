@@ -5,8 +5,6 @@ const mockGetUserLevel = vi.fn();
 const mockIncrementUserExp = vi.fn();
 const mockGetUserStreak = vi.fn();
 const mockGetStreakExpBonusForStreak = vi.fn();
-const mockGetActiveFavoriteExpBoostRules = vi.fn();
-const mockCheckFavoriteExists = vi.fn();
 const mockGrantRewardsForLevel = vi.fn();
 const mockGrantFreezesForLevel = vi.fn();
 const mockInvalidate = vi.fn();
@@ -26,14 +24,6 @@ vi.mock("../../../infra/supabase/repositories/streak-exp-bonuses.js", () => ({
 
 vi.mock("../../../infra/supabase/repositories/user-streaks.js", () => ({
   getUserStreak: (...args: unknown[]) => mockGetUserStreak(...args),
-}));
-
-vi.mock("../../../infra/supabase/repositories/favorite-exp-boost-rules.js", () => ({
-  getActiveFavoriteExpBoostRules: (...args: unknown[]) => mockGetActiveFavoriteExpBoostRules(...args),
-}));
-
-vi.mock("../../../infra/supabase/repositories/favorites.js", () => ({
-  checkFavoriteExists: (...args: unknown[]) => mockCheckFavoriteExists(...args),
 }));
 
 vi.mock("../../../domains/user/service/user-level-reward.service.js", () => ({
@@ -65,7 +55,6 @@ beforeEach(() => {
     .mockResolvedValue({ total_exp_seconds: 100 });
   mockGetUserStreak.mockResolvedValue(null);
   mockGetStreakExpBonusForStreak.mockResolvedValue(null);
-  mockGetActiveFavoriteExpBoostRules.mockResolvedValue(null);
   mockInvalidate.mockResolvedValue(undefined);
   mockInvalidateByPrefix.mockResolvedValue(undefined);
   mockIncrExpToday.mockResolvedValue(undefined);
@@ -90,7 +79,7 @@ describe("addCallExp", () => {
     expect(mockIncrementUserExp).not.toHaveBeenCalled();
   });
 
-  it("happy path: incrementUserExp with expToAdd = durationSeconds when no streak/favorite bonus", async () => {
+  it("happy path: incrementUserExp with expToAdd = durationSeconds when no streak bonus", async () => {
     await addCallExp("u1", 120);
     expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 120);
   });
@@ -131,34 +120,6 @@ describe("addCallExp", () => {
     mockGetUserStreak.mockResolvedValue({ current_streak: 5 });
     mockGetStreakExpBonusForStreak.mockResolvedValue(null);
     await addCallExp("u1", 100);
-    expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 100);
-  });
-
-  it("favorite: both favorited -> mutual_multiplier", async () => {
-    mockCheckFavoriteExists.mockResolvedValue(true).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
-    mockGetActiveFavoriteExpBoostRules.mockResolvedValue({ mutual_multiplier: 2, one_way_multiplier: 1.5 });
-    await addCallExp("u1", 100, { counterpartUserId: "u2" });
-    expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 200);
-  });
-
-  it("favorite: one-way -> one_way_multiplier", async () => {
-    mockCheckFavoriteExists.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
-    mockGetActiveFavoriteExpBoostRules.mockResolvedValue({ mutual_multiplier: 2, one_way_multiplier: 1.5 });
-    await addCallExp("u1", 100, { counterpartUserId: "u2" });
-    expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 150);
-  });
-
-  it("favorite: neither -> no boost", async () => {
-    mockCheckFavoriteExists.mockResolvedValue(false);
-    mockGetActiveFavoriteExpBoostRules.mockResolvedValue({ mutual_multiplier: 2, one_way_multiplier: 1.5 });
-    await addCallExp("u1", 100, { counterpartUserId: "u2" });
-    expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 100);
-  });
-
-  it("favorite: getActiveFavoriteExpBoostRules returns null -> no boost", async () => {
-    mockCheckFavoriteExists.mockResolvedValue(true);
-    mockGetActiveFavoriteExpBoostRules.mockResolvedValue(null);
-    await addCallExp("u1", 100, { counterpartUserId: "u2" });
     expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 100);
   });
 

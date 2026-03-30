@@ -4,9 +4,7 @@ import { invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
 
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { calculateLevelFromExp as calcLevel } from "@/logic/level-from-exp.js";
-import { checkFavoriteExists } from "@/infra/supabase/repositories/favorites.js";
 import { createLogger } from "@/utils/logger.js";
-import { getActiveFavoriteExpBoostRules } from "@/infra/supabase/repositories/favorite-exp-boost-rules.js";
 import { getStreakExpBonusForStreak } from "@/infra/supabase/repositories/streak-exp-bonuses.js";
 import { getUserStreak } from "@/infra/supabase/repositories/user-streaks.js";
 import { grantFreezesForLevel } from "./user-streak-freeze.service.js";
@@ -57,21 +55,6 @@ export async function addCallExp(
       const bonus = await getStreakExpBonusForStreak(streakData.current_streak);
       if (bonus) {
         expToAdd = Math.floor(durationSeconds * bonus.bonus_multiplier);
-      }
-    }
-
-    const counterpartUserId = options?.counterpartUserId;
-    if (counterpartUserId) {
-      const [aFavB, bFavA] = await Promise.all([
-        checkFavoriteExists(userId, counterpartUserId),
-        checkFavoriteExists(counterpartUserId, userId),
-      ]);
-      const rules = await getActiveFavoriteExpBoostRules();
-      if (rules) {
-        const mult = aFavB && bFavA ? rules.mutual_multiplier : aFavB || bFavA ? rules.one_way_multiplier : 1;
-        if (mult > 1) {
-          expToAdd = Math.floor(expToAdd * mult);
-        }
       }
     }
 

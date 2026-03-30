@@ -41,6 +41,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
     restoreMutation,
     restoreManyMutation,
     embeddingSyncMutation,
+    embeddingSyncAllMutation,
   } = useUsersMutations();
 
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
@@ -173,6 +174,15 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
             </ToggleGroup>
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
               <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => embeddingSyncAllMutation.mutate()}
+              disabled={embeddingSyncAllMutation.isPending}
+            >
+              <IconRefreshDot className={`w-4 h-4 ${embeddingSyncAllMutation.isPending ? 'animate-spin' : ''}`} />
+              Sync all embeddings
             </Button>
           </>
         }

@@ -10,13 +10,19 @@ export interface EmbeddingSyncResponse {
 }
 
 export interface EmbeddingCompareResponse {
-  similarity: number;
-  user1: string;
-  user2: string;
+  similarity_score: number;
+  model_name: string;
+  user_a_updated_at: string;
+  user_b_updated_at: string;
 }
 
 export interface EmbeddingSimilarResponse {
-  similar_users: { user_id: string; similarity: number }[];
+  base_user_id: string;
+  results: { user_id: string; similarity_score: number }[];
+}
+
+export interface EmbeddingSyncAllResponse {
+  message: string;
 }
 
 export async function syncEmbeddings(userIds: string[]): Promise<EmbeddingSyncResponse> {
@@ -35,7 +41,7 @@ export async function compareEmbeddings(
   return withSentryAction("compareEmbeddings", async () => {
     return serverFetch(backendUrl.admin.embeddingsCompare(), {
       method: 'POST',
-      body: JSON.stringify({ user_id_1: userId1, user_id_2: userId2 }),
+      body: JSON.stringify({ user_id_a: userId1, user_id_b: userId2 }),
     });
   });
 }
@@ -48,6 +54,14 @@ export async function findSimilarUsers(
     return serverFetch(backendUrl.admin.embeddingsSimilar(), {
       method: 'POST',
       body: JSON.stringify({ user_id: userId, limit }),
+    });
+  });
+}
+
+export async function syncAllEmbeddings(): Promise<EmbeddingSyncAllResponse> {
+  return withSentryAction("syncAllEmbeddings", async () => {
+    return serverFetch(backendUrl.admin.embeddingsSyncAll(), {
+      method: 'POST',
     });
   });
 }

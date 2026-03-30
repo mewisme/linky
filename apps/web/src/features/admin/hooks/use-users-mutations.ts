@@ -12,7 +12,7 @@ import {
 import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { syncEmbeddings } from '@/features/admin/api/embeddings';
+import { syncAllEmbeddings, syncEmbeddings } from '@/features/admin/api/embeddings';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 
@@ -116,6 +116,17 @@ export function useUsersMutations() {
     },
   });
 
+  const embeddingSyncAllMutation = useMutation({
+    mutationFn: () => syncAllEmbeddings(),
+    onSuccess: async (data: { message: string }) => {
+      await invalidateAndRefetch();
+      toast.success(data.message || 'Embedding sync all accepted');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'An error occurred during embedding sync all');
+    },
+  });
+
   return {
     updateMutation,
     softDeleteMutation,
@@ -124,5 +135,6 @@ export function useUsersMutations() {
     restoreMutation,
     restoreManyMutation,
     embeddingSyncMutation,
+    embeddingSyncAllMutation,
   };
 }

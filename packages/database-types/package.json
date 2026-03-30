@@ -1,6 +1,6 @@
 {
   "name": "@ws/database-types",
-  "version": "0.73.3",
+  "version": "0.74.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,10 @@
     "build": "tsc",
     "check-types": "tsc --noEmit"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "main": "./dist/index.js",
   "types": "./src/index.ts",
   "exports": {

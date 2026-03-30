@@ -2,11 +2,11 @@
 
 🐛 Bug Fixes
 
-- Normalize API error logging and worker embedding compatibility ([87c3f04](../../commit/87c3f04))
+- Embedding sync after null vectors; expand worker-ai logs ([8c31d70](../../commit/8c31d70))
 
 🔨 Other Changes
 
-- Update package versions to 0.74.1 and refresh version lock ([71165b0](../../commit/71165b0))
+- Update package versions to 0.74.2 and refresh version lock ([344a772](../../commit/344a772))
 
 
-📋 Full Changelog: [71165b0...87c3f04](../../compare/71165b0...87c3f04)
+📋 Full Changelog: [344a772...8c31d70](../../compare/344a772...8c31d70)

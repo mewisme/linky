@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+♻️ Refactoring
 
-- Redis workers, Socket presence, and shared job packages ([9f1e985](../../commit/9f1e985))
+- Enhance Redis connection handling in AI job executor ([3bdc5ba](../../commit/3bdc5ba))
 
 🔨 Other Changes
 
-- Update package versions to 0.73.3 and refresh version lock ([f9228c3](../../commit/f9228c3))
+- Update package versions to 0.74.0 and refresh version lock ([efc189d](../../commit/efc189d))
 
 
-📋 Full Changelog: [f9228c3...9f1e985](../../compare/f9228c3...9f1e985)
+📋 Full Changelog: [efc189d...3bdc5ba](../../compare/efc189d...3bdc5ba)

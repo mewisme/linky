@@ -6,7 +6,7 @@ import type { ReportUpdate } from "@/domains/reports/types/report.types.js";
 import { fetchReportById, fetchReportWithContext, listReports, updateReportById } from "@/domains/reports/service/reports.service.js";
 import { getReportAiSummaryByReportId } from "@/infra/supabase/repositories/report-ai-summaries.js";
 import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
-import { generateReportAiSummary } from "@/domains/reports/service/report-ai-summary.service.js";
+import { enqueueReportAiSummaryJob } from "@/jobs/report-ai-summary.job.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:admin:route");
@@ -102,11 +102,7 @@ router.post(
         });
       }
 
-      setImmediate(() => {
-        generateReportAiSummary(id, { force: true }).catch((error) => {
-          logger.error(error as Error, "Error regenerating report AI summary");
-        });
-      });
+      enqueueReportAiSummaryJob({ reportId: id, force: true });
 
       return res.status(202).json({ success: true });
     } catch (error) {

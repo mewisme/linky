@@ -3,7 +3,7 @@ import { Webhook } from "svix";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
-import { handleClerkWebhookEvent } from "@/webhook/clerk-webhook-handler.js";
+import { processClerkWebhookDelivery } from "@/contexts/clerk-webhook-context.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
 
 const router: ExpressRouter = Router();
@@ -50,7 +50,7 @@ router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) =
       });
     }
 
-    await handleClerkWebhookEvent(evt);
+    await processClerkWebhookDelivery(svixId, evt);
 
     return res.status(200).json({
       success: true,

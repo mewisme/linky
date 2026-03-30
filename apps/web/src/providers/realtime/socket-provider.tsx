@@ -6,7 +6,7 @@ import { Socket } from "socket.io-client";
 import { createNamespaceSockets, updateToken } from "@/lib/realtime/socket";
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";
 import { backendRestartDetector } from "@/lib/realtime/backend-restart-detector";
-import { publishPresence } from "@/lib/messaging/mqtt-client";
+import { publishPresence, setPresencePublisher } from "@/lib/realtime/presence";
 import { getUserTimezone } from "@/shared/utils/timezone";
 import { syncUserTimezone } from "@/features/user/api/profile";
 
@@ -129,6 +129,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
           setSocketId(newSocketId);
           socketIdRef.current = newSocketId;
           useSocketStore.getState().setConnectionState("connected");
+          setPresencePublisher((state) => {
+            if (chatSocket.connected) {
+              chatSocket.emit("client:presence", { state });
+            }
+          });
           publishPresence('online');
           socketHealthMonitor.markEventReceived();
 
@@ -146,6 +151,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
           const wasConnected = socketIdRef.current !== null;
           backendRestartDetector.recordDisconnect(reason, wasConnected);
           useSocketStore.getState().setConnectionState("disconnected");
+          setPresencePublisher(null);
           publishPresence('offline');
 
           if (healthCheckIntervalRef.current) {
@@ -162,6 +168,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
         chatSocket.on("connect_error", (error) => {
           Sentry.logger.error("[SocketProvider] Connection error", { error });
           useSocketStore.getState().setConnectionState("disconnected");
+          setPresencePublisher(null);
           publishPresence('offline');
           callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
         });
@@ -256,6 +263,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
         if ((socketRef.current as any)._visibilityCleanup) {
           (socketRef.current as any)._visibilityCleanup();
         }
+        setPresencePublisher(null);
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
         socketRef.current = null;

@@ -1,7 +1,7 @@
 import {
   checkEmbeddingRegenerationNeeded,
   scheduleEmbeddingRegeneration,
-} from "@/domains/user/service/embedding-job.service.js";
+} from "@/domains/user/index.js";
 import {
   findSimilarUsersByEmbedding,
   getUserEmbeddingByUserId,

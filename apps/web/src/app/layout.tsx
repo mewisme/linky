@@ -5,7 +5,6 @@ import { ClerkProvider } from "@/providers/clerk/clerk-provider";
 import { ClerkReadyIndicator } from "@/shared/ui/clerk/clerk-ready-indicator";
 import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata } from "next";
-import { MqttProvider } from "@/providers/realtime/mqtt-provider";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import { Outfit } from "next/font/google";
 import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
@@ -95,11 +94,9 @@ export default function RootLayout({
               <UserProvider>
                 <ClerkReadyIndicator />
                 <SocketProvider>
-                  <MqttProvider>
-                    <ProgressBarProvider>
-                      {children}
-                    </ProgressBarProvider>
-                  </MqttProvider>
+                  <ProgressBarProvider>
+                    {children}
+                  </ProgressBarProvider>
                 </SocketProvider>
               </UserProvider>
               <ToasterProvider />

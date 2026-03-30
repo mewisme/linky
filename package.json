@@ -13,10 +13,14 @@
     "build:web": "turbo run build --filter=@ws/web",
     "dev": "turbo run dev",
     "dev:api": "turbo run dev --filter=@ws/api",
+    "dev:worker-ai": "turbo run dev --filter=@ws/worker-ai",
+    "dev:worker-jobs": "turbo run dev --filter=@ws/worker-jobs",
     "dev:web": "turbo run dev --filter=@ws/web",
     "start": "turbo run start",
     "start:api": "turbo run start --filter=@ws/api",
     "start:web": "turbo run start --filter=@ws/web",
+    "start:worker-ai": "turbo run start --filter=@ws/worker-ai",
+    "start:worker-jobs": "turbo run start --filter=@ws/worker-jobs",
     "lint": "turbo run lint",
     "lint:api": "turbo run lint --filter=@ws/api",
     "lint:web": "turbo run lint --filter=@ws/web",
@@ -38,7 +42,7 @@
     "@types/node": "catalog:",
     "dotenv": "^17.3.1",
     "prettier": "^3.8.1",
-    "turbo": "^2.8.20",
+    "turbo": "^2.9.0",
     "typescript": "catalog:"
   }
 }

@@ -10,11 +10,21 @@ permissions:
   packages: write
 
 jobs:
-  build-linky-api:
+  build-linky-images:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: linky-worker-ai
+            dockerfile: apps/worker-ai/Dockerfile
+          - image: linky-worker-jobs
+            dockerfile: apps/worker-jobs/Dockerfile
+          - image: linky-api
+            dockerfile: apps/api/Dockerfile
 
     env:
-      IMAGE_NAME: linky-api
+      IMAGE_NAME: ${{ matrix.image }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
     steps:
@@ -31,7 +41,7 @@ jobs:
         id: check
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/tags/${{ steps.pkg.outputs.version }})
+            "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/tags/${{ steps.pkg.outputs.version }}")
           if [ "$STATUS" = "200" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
@@ -40,7 +50,7 @@ jobs:
 
       - name: Skip build if exists
         if: steps.check.outputs.exists == 'true'
-        run: echo "Image exists on Docker Hub — skipping build."
+        run: echo "Image ${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }} exists on Docker Hub — skipping build."
 
       - name: Login to Docker Hub
         if: steps.check.outputs.exists != 'true'
@@ -66,7 +76,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Dockerfile
+          file: ${{ matrix.dockerfile }}
           platforms: linux/amd64
           push: true
           tags: |
@@ -74,5 +84,5 @@ jobs:
             docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ env.IMAGE_NAME }}
+          cache-to: type=gha,mode=max,scope=${{ env.IMAGE_NAME }}

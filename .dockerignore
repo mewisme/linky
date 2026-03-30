@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.git
+.turbo
+out
+**/dist
+.next
+**/.next
+playwright-report
+test-results
+coverage
+.DS_Store
+*.log

@@ -2,7 +2,6 @@ import { type Server as HTTPServer } from "http";
 import { type Server as SocketIOServer } from "socket.io";
 import * as Sentry from "@sentry/node";
 import { redisClient } from "@/infra/redis/client.js";
-import { mqttClient } from "@/infra/mqtt/client.js";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 import { clearMatchmakingIntervals } from "@/domains/video-chat/socket/matchmaking.socket.js";
@@ -53,14 +52,6 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
         }
       } catch (error) {
         logger.warn(error as Error, "Error closing Redis connection");
-      }
-
-      try {
-        if (mqttClient.connected) {
-          mqttClient.end();
-        }
-      } catch (error) {
-        logger.warn(error as Error, "Error closing MQTT connection");
       }
 
       clearTimeout(shutdownTimer);

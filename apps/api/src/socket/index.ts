@@ -9,6 +9,7 @@ import { MatchmakingService } from "@/domains/matchmaking/service/matchmaking.se
 import { RedisMatchStateStore, MemoryMatchStateStore } from "@/domains/matchmaking/store/index.js";
 import { RoomService } from "@/domains/video-chat/service/rooms.service.js";
 import { createLogger } from "@/utils/logger.js";
+import { setupPresenceHandlers } from "./presence.js";
 
 const logger = createLogger("api:socket:server");
 
@@ -42,6 +43,7 @@ export function createSocketServer(httpServer: HTTPServer): SocketIOServer {
   const rooms = new RoomService();
 
   setupSocketHandlers(chat);
+  setupPresenceHandlers(chat);
   setupVideoChatHandlers(chat, matchmaking, rooms);
 
   return io;

@@ -1,0 +1,33 @@
+{
+  "name": "@ws/worker-ai",
+  "version": "0.73.3",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "files": ["dist"],
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "prebuild": "pnpm check-types",
+    "build": "tsup",
+    "start": "node --import=dist/instrument.js dist/index.js",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sentry/node": "^10.45.0",
+    "@ws/api": "workspace:*",
+    "@ws/config": "workspace:*",
+    "@ws/logger": "workspace:*",
+    "@ws/sdk-internal": "workspace:*",
+    "@ws/shared-types": "workspace:*",
+    "@ws/validation": "workspace:*",
+    "dotenv": "catalog:",
+    "redis": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@ws/typescript-config": "workspace:*",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}

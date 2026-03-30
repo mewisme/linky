@@ -7,11 +7,12 @@ import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 import { connectRedis } from "@/infra/redis/client.js";
 import { preloadReferenceData } from "@/infra/redis/cache-preload.js";
-import { initializeMqttClient, attachSocketIO } from "@/infra/mqtt/client.js";
+import { attachSocketIO } from "@/infra/presence/presence-handler.js";
 import { setupGracefulShutdown } from "@/middleware/graceful-shutdown.js";
 import { startJobs } from "@/jobs/index.js";
 import { initializeWebPush } from "@/infra/push/web-push.client.js";
 import { pullEmbeddingModelAtStartup } from "@/infra/ollama/embedding.service.js";
+import { initializeAdminCache } from "@/infra/admin-cache/index.js";
 
 const logger = createLogger("api:server");
 
@@ -43,7 +44,9 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
 
   await pullEmbeddingModelAtStartup();
 
-  initializeMqttClient();
+  initializeAdminCache().catch((error) => {
+    logger.error(error as Error, "Failed to initialize admin cache");
+  });
 
   startJobs();
 

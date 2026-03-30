@@ -29,8 +29,8 @@
     "@types/node": "catalog:",
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
-    "eslint": "^9.39.4",
-    "tsx": "^4.21.0",
+    "eslint": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   },
   "license": "MIT"

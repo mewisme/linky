@@ -21,12 +21,6 @@ export const config = {
   // Supabase
   supabaseUrl: process.env.SUPABASE_URL as string,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
-  // MQTT
-  mqttUrl: process.env.MQTT_CLIENT_URL as string,
-  mqttPort: process.env.MQTT_CLIENT_PORT as string,
-  mqttWsPort: process.env.MQTT_CLIENT_WS_PORT as string,
-  mqttUsername: process.env.MQTT_CLIENT_USERNAME as string,
-  mqttPassword: process.env.MQTT_CLIENT_PASSWORD as string,
   // Redis
   redisUrl: process.env.REDIS_URL as string,
   redisPort: process.env.REDIS_PORT as string,

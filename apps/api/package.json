@@ -5,9 +5,20 @@
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    },
+    "./worker-ai": {
+      "types": "./src/worker/ai-job-executor.d.ts",
+      "import": "./dist/worker/ai-job-executor.js"
+    },
+    "./worker-jobs": {
+      "types": "./src/worker/jobs-job-executor.d.ts",
+      "import": "./dist/worker/jobs-job-executor.js"
+    }
+  },
   "scripts": {
     "dev": "tsx watch --import=./src/instrument.ts src/index.ts",
     "prebuild": "pnpm check-types",
@@ -26,19 +37,21 @@
     "@sentry/node": "^10.45.0",
     "@supabase/supabase-js": "^2.100.0",
     "@ws/logger": "workspace:*",
+    "@ws/sdk-internal": "workspace:*",
+    "@ws/shared-types": "workspace:*",
+    "@ws/validation": "workspace:*",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
+    "dotenv": "catalog:",
     "express": "^5.2.1",
     "morgan": "^1.10.1",
-    "mqtt": "^5.15.1",
     "node-cron": "^4.2.1",
     "ollama": "^0.6.3",
-    "redis": "^5.11.0",
-    "socket.io": "^4.8.3",
+    "redis": "catalog:",
+    "socket.io": "catalog:",
     "svix": "^1.89.0",
     "web-push": "^3.6.7",
-    "zod": "^4.3.6"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/compression": "^1.8.1",
@@ -51,10 +64,10 @@
     "@vitest/coverage-v8": "^4.1.1",
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
-    "eslint": "^9.39.4",
-    "tsup": "^8.5.1",
-    "tsx": "^4.21.0",
+    "eslint": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.1.1"
+    "vitest": "catalog:"
   }
 }

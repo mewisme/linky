@@ -2,9 +2,10 @@ import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoom, VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 import { createLogger } from "@/utils/logger.js";
-import { getTimezoneForUser } from "@/domains/user/service/user-details.service.js";
+import { getTimezoneForUser } from "@/domains/user/index.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { recordCallHistoryInDatabase } from "@/domains/video-chat/service/call-history.service.js";
+import { applyCallEndedProgress } from "@/contexts/call-ended-context.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
@@ -102,12 +103,23 @@ export async function recordCallHistory(
       getTimezoneForUser(calleeId),
     ]);
 
+    const safeDuration = durationSeconds > 0 ? durationSeconds : 0;
+
     await recordCallHistoryInDatabase({
       callerId,
       calleeId,
       startedAt: room.startedAt,
       endedAt,
-      durationSeconds: durationSeconds > 0 ? durationSeconds : 0,
+      durationSeconds: safeDuration,
+      callerTimezone,
+      calleeTimezone,
+    });
+
+    await applyCallEndedProgress({
+      callerId,
+      calleeId,
+      endedAt,
+      durationSeconds: safeDuration,
       callerTimezone,
       calleeTimezone,
       onStreakCompleted(userId, payload) {
@@ -160,6 +172,15 @@ export async function recordCallHistoryFromRoom(
       callerId: callerDbId,
       calleeId: calleeDbId,
       startedAt: room.startedAt,
+      endedAt,
+      durationSeconds: safeDuration,
+      callerTimezone,
+      calleeTimezone,
+    });
+
+    await applyCallEndedProgress({
+      callerId: callerDbId,
+      calleeId: calleeDbId,
       endedAt,
       durationSeconds: safeDuration,
       callerTimezone,

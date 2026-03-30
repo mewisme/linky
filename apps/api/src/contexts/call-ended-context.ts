@@ -1,0 +1,112 @@
+import { addCallExp, addCallDurationToStreak } from "@/domains/user/index.js";
+import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
+import { invalidate } from "@/infra/redis/cache/index.js";
+import { toUserLocalDateString } from "@/utils/timezone.js";
+import { createLogger } from "@/utils/logger.js";
+
+const logger = createLogger("context:call-ended");
+
+export type OnStreakCompleted = (userId: string, payload: { streakCount: number; date: string }) => void;
+
+interface ApplyCallProgressParams {
+  userId: string;
+  counterpartUserId: string;
+  durationSeconds: number;
+  callEndDate: Date;
+  timezone: string;
+}
+
+interface ApplyCallProgressResult {
+  streakResult: Awaited<ReturnType<typeof addCallDurationToStreak>>;
+}
+
+async function applyCallProgressForUser(params: ApplyCallProgressParams): Promise<ApplyCallProgressResult> {
+  const { userId, counterpartUserId, durationSeconds, callEndDate, timezone } = params;
+
+  const dateStr = toUserLocalDateString(new Date(callEndDate), timezone);
+
+  await Promise.allSettled([
+    invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone)),
+    addCallExp(userId, durationSeconds, {
+      timezone,
+      counterpartUserId,
+      dateForExpToday: dateStr,
+    }),
+  ]);
+
+  const streakResult = await addCallDurationToStreak(userId, durationSeconds, callEndDate, timezone);
+
+  return { streakResult };
+}
+
+export async function applyCallEndedProgress(params: {
+  callerId: string;
+  calleeId: string;
+  endedAt: Date;
+  durationSeconds: number;
+  callerTimezone: string;
+  calleeTimezone: string;
+  onStreakCompleted?: OnStreakCompleted;
+}): Promise<void> {
+  const {
+    callerId,
+    calleeId,
+    endedAt,
+    durationSeconds,
+    callerTimezone,
+    calleeTimezone,
+    onStreakCompleted,
+  } = params;
+
+  if (durationSeconds <= 0) {
+    return;
+  }
+
+  const [callerProgressResult, calleeProgressResult] = await Promise.allSettled([
+    applyCallProgressForUser({
+      userId: callerId,
+      counterpartUserId: calleeId,
+      durationSeconds,
+      callEndDate: endedAt,
+      timezone: callerTimezone,
+    }),
+    applyCallProgressForUser({
+      userId: calleeId,
+      counterpartUserId: callerId,
+      durationSeconds,
+      callEndDate: endedAt,
+      timezone: calleeTimezone,
+    }),
+  ]);
+
+  if (callerProgressResult.status === "rejected") {
+    logger.error(
+      "Failed to apply call progress for caller %s: %o",
+      callerId,
+      callerProgressResult.reason instanceof Error ? callerProgressResult.reason : new Error(String(callerProgressResult.reason)),
+    );
+  }
+
+  if (calleeProgressResult.status === "rejected") {
+    logger.error(
+      "Failed to apply call progress for callee %s: %o",
+      calleeId,
+      calleeProgressResult.reason instanceof Error ? calleeProgressResult.reason : new Error(String(calleeProgressResult.reason)),
+    );
+  }
+
+  if (onStreakCompleted) {
+    if (callerProgressResult.status === "fulfilled" && callerProgressResult.value.streakResult?.firstTimeValid) {
+      onStreakCompleted(callerId, {
+        streakCount: callerProgressResult.value.streakResult.streakCount,
+        date: callerProgressResult.value.streakResult.date,
+      });
+    }
+    if (calleeProgressResult.status === "fulfilled" && calleeProgressResult.value.streakResult?.firstTimeValid) {
+      onStreakCompleted(calleeId, {
+        streakCount: calleeProgressResult.value.streakResult.streakCount,
+        date: calleeProgressResult.value.streakResult.date,
+      });
+    }
+  }
+}

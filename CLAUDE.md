@@ -2,55 +2,74 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+For dependency boundaries between apps and shared packages (workers, queues, what must stay in `apps/api`), see [.cursor/skills/project-architecture-operating-manual/SKILL.md](.cursor/skills/project-architecture-operating-manual/SKILL.md).
+
 ## Project Overview
 
-Linky is a real-time video chat platform. Turborepo monorepo with pnpm 10.28.2 and Node.js 20+.
+Linky is a real-time video chat platform. Turborepo monorepo with pnpm 10.33.0 (see root `package.json` `packageManager`) and Node.js 20+.
 
 ## Common Commands
 
 ```bash
 # Development
-pnpm dev                # All apps
-pnpm dev:api            # Backend only (Express, port 3001)
-pnpm dev:web            # Frontend only (Next.js, port 3000)
+pnpm dev                  # All apps (turbo)
+pnpm dev:api              # API only (Express; default PORT 7270, override via env)
+pnpm dev:web              # Frontend only (Next.js, port 3000)
+pnpm dev:worker-ai        # AI job worker
+pnpm dev:worker-jobs      # General job worker
 
 # Build
-pnpm build              # All packages
-pnpm build:api          # API only
-pnpm build:web          # Web only
+pnpm build                # All packages
+pnpm build:api            # API only
+pnpm build:web            # Web only
+pnpm start:api            # Production API (after build)
+pnpm start:worker-ai
+pnpm start:worker-jobs
 
 # Lint & Type Check
-pnpm lint               # ESLint all
-pnpm lint:api           # ESLint API
-pnpm lint:web           # ESLint web
-pnpm check-types        # TypeScript check all
-pnpm format             # Prettier
+pnpm lint                 # ESLint all
+pnpm lint:api             # ESLint API
+pnpm lint:web             # ESLint web
+pnpm check-types          # TypeScript all workspaces
+pnpm check-types:api      # API only
+pnpm check-types:web      # Web only
+pnpm format               # Prettier
 
 # Testing - Backend Unit (Vitest)
 cd apps/api
-pnpm vitest run                          # All unit tests
-pnpm vitest run src/__tests__/cache      # Test directory
+pnpm vitest run                            # All unit tests
+pnpm vitest run src/__tests__/cache        # Test directory
 pnpm vitest run src/__tests__/domains/user.test.ts  # Single file
 
 # Testing - E2E (Playwright, from root)
-pnpm test               # All e2e tests
-pnpm test:ui            # Playwright UI mode
-pnpm test:debug         # Debug mode
-pnpm test:report        # View HTML report
+pnpm test                 # All e2e tests
+pnpm test:ui              # Playwright UI mode
+pnpm test:debug           # Debug mode
+pnpm test:trace           # With trace
+pnpm test:report          # View HTML report
 ```
 
 ## Monorepo Structure
 
 ```
 apps/
-  api/          Express.js backend (domain-driven architecture)
-  web/          Next.js 16 frontend (App Router)
+  api/           Express backend (DDD); enqueues work to Redis queues
+  web/           Next.js 16 frontend (App Router)
+  worker-ai/     Dequeues AI jobs; runs `executeAiJob` from @ws/api/worker-ai
+  worker-jobs/   Dequeues general jobs (non-AI queue)
 packages/
-  ui/           Shared React component library (Radix UI + shadcn)
-  logger/       Pino-based logging (@ws/logger)
+  config/             Shared env parsing (Zod); @ws/config
+  database-types/     Supabase-oriented DB types; @ws/database-types
   eslint-config/      Shared ESLint configs
-  typescript-config/  Shared TypeScript configs
+  logger/             Pino bootstrap; @ws/logger
+  sdk-internal/       Redis queue enqueue/dequeue helpers; @ws/sdk-internal
+  shared-types/       Cross-app queue keys and job envelope types; @ws/shared-types
+  typescript-config/  Shared TS configs
+  ui/                 Shared React library (Radix + shadcn); @ws/ui
+  validation/         Shared Zod schemas for job envelopes; @ws/validation
 ```
+
+**Queue contracts:** payload shapes and keys live in `@ws/shared-types` and `@ws/validation`. The API enqueues via `apps/api/src/jobs/` and Redis; workers use `@ws/sdk-internal` to dequeue. `@ws/api` exposes subpath exports `./worker-ai` and `./worker-jobs` so worker runtimes can call small executor modules under `apps/api/src/worker/` without duplicating domain logic.
 
 ## Backend Architecture (apps/api)
 
@@ -63,6 +82,8 @@ The API follows strict domain-driven design. Key rule: **domains must NOT import
 - **routes/** - Express route composition and mounting. Wires domain routers to URL paths. No business logic.
 - **socket/** - Socket.IO server setup, namespace wiring (`/chat`, `/admin`, `/video-chat`), auth middleware
 - **contexts/** - Cross-domain orchestration. The ONLY place where multiple domains can be coordinated.
+- **jobs/** - Enqueue helpers and job modules invoked from domains or contexts (Redis-backed)
+- **worker/** - Executor modules published as `@ws/api/worker-ai` and `@ws/api/worker-jobs` for standalone worker processes
 - **middleware/** - Express middleware (Clerk auth, admin check, rate limiting, graceful shutdown)
 - **types/** - Cross-domain shared types, database types, socket event types
 - **config/** - Environment variable loading and validation
@@ -192,6 +213,7 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 | Frontend | Next.js 16 + React 19 |
 | Database | Supabase (Postgres) + pgvector |
 | Cache | Redis |
+| Background jobs | Redis queues; `worker-ai` / `worker-jobs` apps |
 | Auth | Clerk |
 | Realtime | Socket.IO + MQTT |
 | Storage | AWS S3 |
@@ -202,6 +224,8 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 
 ## Docker
 
-Backend runs via Docker Compose with profiles: `app` (API service), `infra` (Redis), `ollama` (embedding model). Health check endpoint: `GET /healthz`.
+Root build context (`.`) with per-app Dockerfiles: `apps/api/Dockerfile`, `apps/worker-ai/Dockerfile`, `apps/worker-jobs/Dockerfile`. See [docker-compose.yml](docker-compose.yml): services `api` (maps host port 7270), `worker-ai`, `worker-jobs`, `redis`, `ollama`. API container health: `node dist/healthcheck.js`. Local `.env` is loaded via Compose `env_file` where configured.
+
+HTTP health: `GET /healthz` on the API.
 
 <!-- NEXT-AGENTS-MD-START -->[Next.js Docs Index]|root: ./.next-docs|STOP. What you remember about Next.js is WRONG for this project. Always search docs and read before any task.|If docs missing, run this command first: npx @next/codemod agents-md --output CLAUDE.md|01-app:{04-glossary.mdx}|01-app/01-getting-started:{01-installation.mdx,02-project-structure.mdx,03-layouts-and-pages.mdx,04-linking-and-navigating.mdx,05-server-and-client-components.mdx,06-fetching-data.mdx,07-mutating-data.mdx,08-caching.mdx,09-revalidating.mdx,10-error-handling.mdx,11-css.mdx,12-images.mdx,13-fonts.mdx,14-metadata-and-og-images.mdx,15-route-handlers.mdx,16-proxy.mdx,17-deploying.mdx,18-upgrading.mdx}|01-app/02-guides:{ai-agents.mdx,analytics.mdx,authentication.mdx,backend-for-frontend.mdx,caching-without-cache-components.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,data-security.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instant-navigation.mdx,instrumentation.mdx,internationalization.mdx,json-ld.mdx,lazy-loading.mdx,local-development.mdx,mcp.mdx,mdx.mdx,memory-usage.mdx,migrating-to-cache-components.mdx,multi-tenant.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,prefetching.mdx,preserving-ui-state.mdx,production-checklist.mdx,progressive-web-apps.mdx,public-static-pages.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,single-page-applications.mdx,static-exports.mdx,streaming.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx,videos.mdx}|01-app/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|01-app/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|01-app/02-guides/upgrading:{codemods.mdx,version-14.mdx,version-15.mdx,version-16.mdx}|01-app/03-api-reference:{07-edge.mdx,08-turbopack.mdx}|01-app/03-api-reference/01-directives:{use-cache-private.mdx,use-cache-remote.mdx,use-cache.mdx,use-client.mdx,use-server.mdx}|01-app/03-api-reference/02-components:{font.mdx,form.mdx,image.mdx,link.mdx,script.mdx}|01-app/03-api-reference/03-file-conventions/01-metadata:{app-icons.mdx,manifest.mdx,opengraph-image.mdx,robots.mdx,sitemap.mdx}|01-app/03-api-reference/03-file-conventions/02-route-segment-config:{dynamicParams.mdx,instant.mdx,maxDuration.mdx,preferredRegion.mdx,runtime.mdx}|01-app/03-api-reference/03-file-conventions:{default.mdx,dynamic-routes.mdx,error.mdx,forbidden.mdx,instrumentation-client.mdx,instrumentation.mdx,intercepting-routes.mdx,layout.mdx,loading.mdx,mdx-components.mdx,not-found.mdx,page.mdx,parallel-routes.mdx,proxy.mdx,public-folder.mdx,route-groups.mdx,route.mdx,src-folder.mdx,template.mdx,unauthorized.mdx}|01-app/03-api-reference/04-functions:{after.mdx,cacheLife.mdx,cacheTag.mdx,catchError.mdx,connection.mdx,cookies.mdx,draft-mode.mdx,fetch.mdx,forbidden.mdx,generate-image-metadata.mdx,generate-metadata.mdx,generate-sitemaps.mdx,generate-static-params.mdx,generate-viewport.mdx,headers.mdx,image-response.mdx,next-request.mdx,next-response.mdx,not-found.mdx,permanentRedirect.mdx,redirect.mdx,refresh.mdx,revalidatePath.mdx,revalidateTag.mdx,unauthorized.mdx,unstable_cache.mdx,unstable_noStore.mdx,unstable_rethrow.mdx,updateTag.mdx,use-link-status.mdx,use-params.mdx,use-pathname.mdx,use-report-web-vitals.mdx,use-router.mdx,use-search-params.mdx,use-selected-layout-segment.mdx,use-selected-layout-segments.mdx,userAgent.mdx}|01-app/03-api-reference/05-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,appDir.mdx,assetPrefix.mdx,authInterrupts.mdx,basePath.mdx,cacheComponents.mdx,cacheHandlers.mdx,cacheLife.mdx,compress.mdx,crossOrigin.mdx,cssChunking.mdx,deploymentId.mdx,devIndicators.mdx,distDir.mdx,env.mdx,expireTime.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,htmlLimitedBots.mdx,httpAgentOptions.mdx,images.mdx,incrementalCacheHandlerPath.mdx,inlineCss.mdx,logging.mdx,mdxRs.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactCompiler.mdx,reactMaxHeadersLength.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,sassOptions.mdx,serverActions.mdx,serverComponentsHmrCache.mdx,serverExternalPackages.mdx,staleTimes.mdx,staticGeneration.mdx,taint.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,turbopackFileSystemCache.mdx,turbopackIgnoreIssue.mdx,typedRoutes.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,viewTransition.mdx,webVitalsAttribution.mdx,webpack.mdx}|01-app/03-api-reference/05-config:{02-typescript.mdx,03-eslint.mdx}|01-app/03-api-reference/06-cli:{create-next-app.mdx,next.mdx}|02-pages/01-getting-started:{01-installation.mdx,02-project-structure.mdx,04-images.mdx,05-fonts.mdx,06-css.mdx,11-deploying.mdx}|02-pages/02-guides:{analytics.mdx,authentication.mdx,babel.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instrumentation.mdx,internationalization.mdx,lazy-loading.mdx,mdx.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,post-css.mdx,preview-mode.mdx,production-checklist.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,static-exports.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx}|02-pages/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|02-pages/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|02-pages/02-guides/upgrading:{codemods.mdx,version-10.mdx,version-11.mdx,version-12.mdx,version-13.mdx,version-14.mdx,version-9.mdx}|02-pages/03-building-your-application/01-routing:{01-pages-and-layouts.mdx,02-dynamic-routes.mdx,03-linking-and-navigating.mdx,05-custom-app.mdx,06-custom-document.mdx,07-api-routes.mdx,08-custom-error.mdx}|02-pages/03-building-your-application/02-rendering:{01-server-side-rendering.mdx,02-static-site-generation.mdx,04-automatic-static-optimization.mdx,05-client-side-rendering.mdx}|02-pages/03-building-your-application/03-data-fetching:{01-get-static-props.mdx,02-get-static-paths.mdx,03-forms-and-mutations.mdx,03-get-server-side-props.mdx,05-client-side.mdx}|02-pages/03-building-your-application/06-configuring:{12-error-handling.mdx}|02-pages/04-api-reference:{06-edge.mdx,08-turbopack.mdx}|02-pages/04-api-reference/01-components:{font.mdx,form.mdx,head.mdx,image-legacy.mdx,image.mdx,link.mdx,script.mdx}|02-pages/04-api-reference/02-file-conventions:{instrumentation.mdx,proxy.mdx,public-folder.mdx,src-folder.mdx}|02-pages/04-api-reference/03-functions:{get-initial-props.mdx,get-server-side-props.mdx,get-static-paths.mdx,get-static-props.mdx,next-request.mdx,next-response.mdx,use-params.mdx,use-report-web-vitals.mdx,use-router.mdx,use-search-params.mdx,userAgent.mdx}|02-pages/04-api-reference/04-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,assetPrefix.mdx,basePath.mdx,bundlePagesRouterDependencies.mdx,compress.mdx,crossOrigin.mdx,deploymentId.mdx,devIndicators.mdx,distDir.mdx,env.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,httpAgentOptions.mdx,images.mdx,logging.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,serverExternalPackages.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,webVitalsAttribution.mdx,webpack.mdx}|02-pages/04-api-reference/04-config:{01-typescript.mdx,02-eslint.mdx}|02-pages/04-api-reference/05-cli:{create-next-app.mdx,next.mdx}|03-architecture:{accessibility.mdx,fast-refresh.mdx,nextjs-compiler.mdx,supported-browsers.mdx}|04-community:{01-contribution-guide.mdx,02-rspack.mdx}<!-- NEXT-AGENTS-MD-END -->

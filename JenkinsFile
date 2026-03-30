@@ -11,7 +11,9 @@ pipeline {
 
   environment {
     LINKY_API_URL = 'https://api.linkynow.site'
-    DOCKER_IMAGE_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-api'
+    DOCKER_IMAGE_API_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-api'
+    DOCKER_IMAGE_WORKER_AI_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-worker-ai'
+    DOCKER_IMAGE_WORKER_JOBS_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-worker-jobs'
   }
 
   stages {
@@ -57,29 +59,76 @@ pipeline {
 
             echo '- Checking Docker Hub & Remote versions'
 
-            def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_URL/tags"
+            def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_API_URL/tags"
             def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
-            def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
-            def matchedTag = latestDigest ? tagsDockerHubJson.results.find { tag -> tag.name != "latest" &&  tag.images.any { img -> img.digest == latestDigest } }  : null
+            def tagsDockerHubWorkerAiResponse = httpRequest url: "$DOCKER_IMAGE_WORKER_AI_URL/tags"
+            def tagsDockerHubWorkerAiJson = readJSON text: tagsDockerHubWorkerAiResponse.content
 
-            def compareRemoteResult = compareVersions v1: remoteVersion, v2: matchedTag?.name
-            
-            if (compareRemoteResult == 0) {
+            def tagsDockerHubWorkerJobsResponse = httpRequest url: "$DOCKER_IMAGE_WORKER_JOBS_URL/tags"
+            def tagsDockerHubWorkerJobsJson = readJSON text: tagsDockerHubWorkerJobsResponse.content
+
+            def latestDigestMain = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+            def matchedTagMain = latestDigestMain
+              ? tagsDockerHubJson.results.find { tag ->
+                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestMain }
+                }
+              : null
+
+            def latestDigestWorkerAi = tagsDockerHubWorkerAiJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+            def matchedTagWorkerAi = latestDigestWorkerAi
+              ? tagsDockerHubWorkerAiJson.results.find { tag ->
+                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestWorkerAi }
+                }
+              : null
+
+            def latestDigestWorkerJobs = tagsDockerHubWorkerJobsJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+            def matchedTagWorkerJobs = latestDigestWorkerJobs
+              ? tagsDockerHubWorkerJobsJson.results.find { tag ->
+                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestWorkerJobs }
+                }
+              : null
+
+            def dockerMainVersion = matchedTagMain?.name
+            def dockerWorkerAiVersion = matchedTagWorkerAi?.name
+            def dockerWorkerJobsVersion = matchedTagWorkerJobs?.name
+
+            echo "Docker Hub main version: ${dockerMainVersion}"
+            echo "Docker Hub worker-ai version: ${dockerWorkerAiVersion}"
+            echo "Docker Hub worker-jobs version: ${dockerWorkerJobsVersion}"
+            echo "Remote version: ${remoteVersion}"
+            echo "Local version: ${localVersion}"
+
+            def allDockerVersionsSame =
+              dockerMainVersion &&
+              dockerWorkerAiVersion &&
+              dockerWorkerJobsVersion &&
+              compareVersions(v1: dockerMainVersion, v2: dockerWorkerAiVersion) == 0 &&
+              compareVersions(v1: dockerMainVersion, v2: dockerWorkerJobsVersion) == 0
+
+            def allDockerMatchRemote =
+              allDockerVersionsSame &&
+              compareVersions(v1: remoteVersion, v2: dockerMainVersion) == 0
+
+            if (allDockerMatchRemote) {
+              echo '✔ All 3 Docker Hub versions are the same'
               echo '✔ Docker Hub & Remote versions are the same'
 
-              def compareLocalResult = compareVersions v1: localVersion, v2: matchedTag?.name
-              if (compareLocalResult == 0) {
+              def allDockerMatchLocal =
+                compareVersions(v1: localVersion, v2: dockerMainVersion) == 0 &&
+                compareVersions(v1: localVersion, v2: dockerWorkerAiVersion) == 0 &&
+                compareVersions(v1: localVersion, v2: dockerWorkerJobsVersion) == 0
+
+              if (allDockerMatchLocal) {
                 echo '✔ Docker Hub & Local versions are the same'
                 echo '✔ No need to deploy'
-
                 doPull = false
               }
 
               return true
             }
 
-            echo '△ Docker Hub & Remote versions are different'
+            echo '△ Docker Hub versions are not fully synced with Remote yet'
             echo '△ Waiting for Github Actions to complete'
             return false
           }

@@ -2,7 +2,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { useRef, useCallback, useEffect, useMemo, type RefObject } from "react";
-import { publishPresence } from "@/lib/messaging/mqtt-client";
+import { publishPresence } from "@/lib/realtime/presence";
 import { type SignalData } from "@/lib/realtime/socket";
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/features/chat/types/chat-message.types";
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";

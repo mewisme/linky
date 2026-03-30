@@ -20,6 +20,12 @@ export {
   getUserStreakData,
   getUserStreakHistory,
 } from "./service/user-streak.service.js";
+export { getTimezoneForUser } from "./service/user-details.service.js";
+export {
+  checkEmbeddingRegenerationNeeded,
+  runUserEmbeddingRegenerationJob,
+  scheduleEmbeddingRegeneration,
+} from "./service/embedding-job.service.js";
 
 export type { UserLevel, LevelCalculationParams } from "./types/user-level.types.js";
 export type { UserStreak, UserStreakDay } from "./types/user-streak.types.js";

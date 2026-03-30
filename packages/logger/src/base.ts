@@ -19,65 +19,65 @@ export const createBaseLogger = (sentry?: SentryLike) => {
   const options: LoggerOptions = {
     level: isDev ? "debug" : "info",
     base: null,
-
-    transport: isDev
-      ? {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "HH:MM:ss",
-          ignore: "scope",
-          messageFormat: "{scope} {msg}",
-        },
-      }
-      : undefined,
-
-    hooks: sentry
-      ? {
-        logMethod(args, method, level) {
-          const levelLabel = this.levels.labels[level] as Level;
-
-          const formattedMessage =
-            typeof args[0] === "string"
-              ? format(...args)
-              : typeof args[1] === "string"
-                ? format(args[1], ...args.slice(2))
-                : "";
-
-          if (formattedMessage) {
-            switch (levelLabel) {
-              case "trace":
-                break;
-              case "debug":
-                break;
-              case "info":
-                break;
-              case "warn":
-                break;
-              case "error":
-                {
-                  const err = extractErrorFromArgs(args);
-                  if (err) {
-                    sentry.captureException(err, { level: "error" });
-                  }
-                }
-                break;
-              case "fatal":
-                {
-                  const err = extractErrorFromArgs(args);
-                  if (err) {
-                    sentry.captureException(err, { level: "fatal" });
-                  }
-                }
-                break;
-            }
-          }
-
-          method.apply(this, args);
-        },
-      }
-      : undefined,
   };
+
+  if (isDev) {
+    options.transport = {
+      target: "pino-pretty",
+      options: {
+        colorize: true,
+        translateTime: "HH:MM:ss",
+        ignore: "scope",
+        messageFormat: "{scope} {msg}",
+      },
+    };
+  }
+
+  if (sentry) {
+    options.hooks = {
+      logMethod(args, method, level) {
+        const levelLabel = this.levels.labels[level] as Level;
+
+        const formattedMessage =
+          typeof args[0] === "string"
+            ? format(...args)
+            : typeof args[1] === "string"
+              ? format(args[1], ...args.slice(2))
+              : "";
+
+        if (formattedMessage) {
+          switch (levelLabel) {
+            case "trace":
+              break;
+            case "debug":
+              break;
+            case "info":
+              break;
+            case "warn":
+              break;
+            case "error":
+              {
+                const err = extractErrorFromArgs(args);
+                if (err) {
+                  sentry.captureException(err, { level: "error" });
+                }
+              }
+              break;
+            case "fatal":
+              {
+                const err = extractErrorFromArgs(args);
+                if (err) {
+                  sentry.captureException(err, { level: "fatal" });
+                }
+              }
+              break;
+          }
+        }
+
+        method.apply(this, args);
+      },
+    };
+  }
 
   return pino(options);
 };

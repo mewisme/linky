@@ -1,12 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+🐛 Bug Fixes
 
-- Enhance Redis connection handling in AI job executor ([3bdc5ba](../../commit/3bdc5ba))
+- Normalize API error logging and worker embedding compatibility ([87c3f04](../../commit/87c3f04))
 
 🔨 Other Changes
 
-- Update package versions to 0.74.0 and refresh version lock ([efc189d](../../commit/efc189d))
+- Update package versions to 0.74.1 and refresh version lock ([71165b0](../../commit/71165b0))
 
 
-📋 Full Changelog: [efc189d...3bdc5ba](../../compare/efc189d...3bdc5ba)
+📋 Full Changelog: [71165b0...87c3f04](../../compare/71165b0...87c3f04)

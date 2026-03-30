@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Remove legacy economy and seasons surfaces ([7fa4ea4](../../commit/7fa4ea4))
-- Update package versions to 0.73.1 and refresh version lock ([068d64d](../../commit/068d64d))
+- Remove changelog feature across api web and db ([fee7d75](../../commit/fee7d75))
+- Update package versions to 0.73.2 and refresh version lock ([d76b0b7](../../commit/d76b0b7))
 
 
-📋 Full Changelog: [068d64d...7fa4ea4](../../compare/068d64d...7fa4ea4)
+📋 Full Changelog: [d76b0b7...fee7d75](../../compare/d76b0b7...fee7d75)

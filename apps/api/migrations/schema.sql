@@ -4773,3 +4773,10 @@ DROP TABLE IF EXISTS "public"."user_monthly_checkins";
 DROP TABLE IF EXISTS "public"."user_coin_transactions";
 DROP TABLE IF EXISTS "public"."user_exp_transactions";
 DROP TABLE IF EXISTS "public"."user_wallets";
+
+-- 034_remove_changelogs.sql
+-- DESTRUCTIVE: remove changelog feature database objects
+DROP TRIGGER IF EXISTS "trigger_update_changelogs_updated_at" ON "public"."changelogs";
+DROP VIEW IF EXISTS "public"."changelogs_with_creator";
+DROP TABLE IF EXISTS "public"."changelogs";
+DROP FUNCTION IF EXISTS "public"."update_changelogs_updated_at"();

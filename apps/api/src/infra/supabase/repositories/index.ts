@@ -17,8 +17,6 @@ export {
 } from "./interest-tags.js";
 export { getInterestTags as getAllInterestTags } from "./interest-tags.js";
 
-export * from "./changelogs.js";
-
 export * from "./reports.js";
 export * from "./report-ai-summaries.js";
 

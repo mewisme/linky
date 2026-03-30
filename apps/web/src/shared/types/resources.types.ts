@@ -64,53 +64,6 @@ export namespace ResourcesAPI {
     }
   }
 
-  export namespace Changelogs {
-    export interface Changelog {
-      id: string;
-      version: string;
-      title: string;
-      release_date: string;
-      s3_key: string;
-      created_by: string;
-      is_published: boolean;
-      order: number | null;
-      created_at: string;
-      updated_at: string;
-    }
-
-    export interface ChangelogWithDownloadUrl extends Changelog {
-      download_url: string | null;
-    }
-
-    export namespace Get {
-      export interface QueryParams {
-        limit?: number;
-        offset?: number;
-        order_by?: "release_date" | "order";
-      }
-
-      export interface Pagination {
-        limit: number;
-        offset: number;
-        total: number;
-        totalPages: number;
-      }
-
-      export interface Response {
-        data: Changelog[];
-        pagination: Pagination;
-      }
-    }
-
-    export namespace GetByVersion {
-      export interface PathParams {
-        version: string;
-      }
-
-      export type Response = ChangelogWithDownloadUrl;
-    }
-  }
-
   export namespace Reports {
     export type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
 

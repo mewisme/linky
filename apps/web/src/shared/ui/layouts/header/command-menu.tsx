@@ -19,7 +19,6 @@ import {
   IconBolt,
   IconBug,
   IconChartLine,
-  IconContract,
   IconFlag,
   IconGift,
   IconHeart,
@@ -315,13 +314,6 @@ export function CommandMenu() {
             icon: IconTags,
             href: '/admin/interest-tags',
             keywords: ['tags', 'interests'],
-          },
-          {
-            id: 'admin-changelogs',
-            label: 'Change Logs',
-            icon: IconContract,
-            href: '/admin/changelogs',
-            keywords: ['changelog', 'updates', 'releases'],
           },
           {
             id: 'admin-reports',

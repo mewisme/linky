@@ -11,7 +11,6 @@ export const cacheTags = {
   interestTagsPublic: 'interest-tags-public',
   adminUsers: 'admin-users',
   adminBroadcasts: 'admin-broadcasts',
-  adminChangelogs: 'admin-changelogs',
   adminReports: 'admin-reports',
   adminLevelRewards: 'admin-level-rewards',
   adminLevelFeatureUnlocks: 'admin-level-feature-unlocks',
@@ -19,6 +18,5 @@ export const cacheTags = {
   adminInterestTags: 'admin-interest-tags',
   adminConfig: 'admin-config',
   notifications: 'notifications',
-  changelog: 'changelog',
   matchmaking: 'matchmaking',
 } as const;

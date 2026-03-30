@@ -1,7 +1,6 @@
 export const CACHE_TTL = {
   REFERENCE_DATA: 24 * 60 * 60,
   INTEREST_TAGS: 24 * 60 * 60,
-  CHANGELOGS: 24 * 60 * 60,
   USER_DATA: 15 * 60,
   USER_DETAILS: 15 * 60,
   USER_SETTINGS: 15 * 60,
@@ -13,8 +12,6 @@ export const CACHE_TTL = {
 export const CACHE_KEYS = {
   interestTags: () => "ref:interest-tags",
   interestTag: (id: string) => `ref:interest-tag:${id}`,
-  changelogs: () => "ref:changelogs",
-  changelog: (version: string) => `ref:changelog:${version}`,
 
   userDetails: (userId: string) => `user:details:${userId}`,
   userSettings: (userId: string) => `user:settings:${userId}`,

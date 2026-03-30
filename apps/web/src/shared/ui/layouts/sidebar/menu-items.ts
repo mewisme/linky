@@ -3,7 +3,6 @@ import {
   IconBell,
   IconBolt,
   IconChartLine,
-  IconContract,
   IconFlag,
   IconGift,
   IconHeart,
@@ -145,13 +144,6 @@ export const menuItems: MenuItem[] = [
         icon: IconTags,
         description: "View the interest tags list",
         href: "/admin/interest-tags",
-        category: "Admin",
-      },
-      {
-        label: "Change Logs",
-        icon: IconContract,
-        description: "Manage the change logs",
-        href: "/admin/changelogs",
         category: "Admin",
       },
       {

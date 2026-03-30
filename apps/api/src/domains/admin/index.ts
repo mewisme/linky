@@ -1,7 +1,6 @@
 import { Router, type Router as ExpressRouter } from "express";
 import usersRouter from "./http/users.route.js";
 import interestTagsRouter from "./http/interest-tags.route.js";
-import changelogsRouter from "./http/changelogs.route.js";
 import levelRewardsRouter from "./http/level-rewards.route.js";
 import levelFeatureUnlocksRouter from "./http/level-feature-unlocks.route.js";
 import streakExpBonusesRouter from "./http/streak-exp-bonuses.route.js";
@@ -22,7 +21,6 @@ export function createAdminRouter(deps: { reportsRouter: ExpressRouter }): Expre
   router.use("/broadcasts", broadcastsRouter);
   router.use("/embeddings", embeddingsRouter);
   router.use("/interest-tags", interestTagsRouter);
-  router.use("/changelogs", changelogsRouter);
   router.use("/level-rewards", levelRewardsRouter);
   router.use("/level-feature-unlocks", levelFeatureUnlocksRouter);
   router.use("/streak-exp-bonuses", streakExpBonusesRouter);

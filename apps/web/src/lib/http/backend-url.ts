@@ -62,8 +62,6 @@ export const backendUrl = {
   },
 
   resources: {
-    changelogs: (params?: URLSearchParams) => `${V1}/changelogs${qs(params)}`,
-    changelogByVersion: (version: string) => `${V1}/changelogs/${version}`,
     callHistory: (params?: URLSearchParams) => `${V1}/call-history${qs(params)}`,
     callHistoryById: (id: string) => `${V1}/call-history/${id}`,
     favorites: (params?: URLSearchParams) => `${V1}/favorites${qs(params)}`,
@@ -79,8 +77,6 @@ export const backendUrl = {
     configByKey: (key: string) => `${V1}/admin/config/${encodeURIComponent(key)}`,
     broadcasts: (params?: URLSearchParams) => `${V1}/admin/broadcasts${qs(params)}`,
     broadcastsAiGenerate: () => `${V1}/admin/broadcasts/ai-generate`,
-    changelogs: (params?: URLSearchParams) => `${V1}/admin/changelogs${qs(params)}`,
-    changelogById: (id: string) => `${V1}/admin/changelogs/${id}`,
     interestTags: (params?: URLSearchParams) => `${V1}/admin/interest-tags${qs(params)}`,
     interestTagById: (id: string) => `${V1}/admin/interest-tags/${id}`,
     interestTagHardDelete: (id: string) => `${V1}/admin/interest-tags/${id}/hard`,

@@ -2,8 +2,23 @@ import type { AiJobEnvelope } from "@ws/shared-types";
 
 import { generateReportAiSummary } from "@/domains/reports/service/report-ai-summary.service.js";
 import { runUserEmbeddingRegenerationJob } from "@/domains/user/service/embedding-job.service.js";
+import { connectRedis, redisClient } from "@/infra/redis/client.js";
+
+let redisConnectPromise: Promise<void> | null = null;
+
+async function ensureWorkerRedisConnected(): Promise<void> {
+  if (redisClient.isOpen) return;
+  if (!redisConnectPromise) {
+    redisConnectPromise = connectRedis().finally(() => {
+      redisConnectPromise = null;
+    });
+  }
+  await redisConnectPromise;
+}
 
 export async function executeAiJob(envelope: AiJobEnvelope): Promise<void> {
+  await ensureWorkerRedisConnected();
+
   switch (envelope.type) {
     case "report_ai_summary": {
       await generateReportAiSummary(envelope.payload.reportId, {

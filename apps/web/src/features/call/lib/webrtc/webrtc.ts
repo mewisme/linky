@@ -33,6 +33,13 @@ function isDeviceNotFoundError(error: unknown): boolean {
   );
 }
 
+function isCameraPermissionError(error: unknown): boolean {
+  return (
+    error instanceof DOMException &&
+    (error.name === "NotAllowedError" || error.name === "PermissionDeniedError")
+  );
+}
+
 function getMediaErrorMessage(error: unknown): string {
   if (!(error instanceof DOMException)) {
     return "An unexpected error occurred while accessing your camera/microphone.";
@@ -69,7 +76,7 @@ export async function getUserMedia(
       audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
     });
   } catch (error) {
-    if (video && isDeviceNotFoundError(error)) {
+    if (video && (isDeviceNotFoundError(error) || isCameraPermissionError(error))) {
       try {
         return await navigator.mediaDevices.getUserMedia({
           video: false,

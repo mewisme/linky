@@ -13,6 +13,21 @@ type PresencePublisher = (state: PresenceState) => void;
 let publisher: PresencePublisher | null = null;
 let lastState: PresenceState | null = null;
 
+export function isPresenceState(value: unknown): value is PresenceState {
+  return (
+    value === "offline" ||
+    value === "online" ||
+    value === "available" ||
+    value === "matching" ||
+    value === "in_call" ||
+    value === "idle"
+  );
+}
+
+export function getLastPresenceState(): PresenceState | null {
+  return lastState;
+}
+
 export function setPresencePublisher(next: PresencePublisher | null): void {
   publisher = next;
   if (publisher && lastState) {

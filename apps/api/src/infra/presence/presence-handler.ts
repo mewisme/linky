@@ -7,6 +7,32 @@ export function attachSocketIO(io: ReturnType<typeof createSocketServer>): void 
   ioRef = io;
 }
 
+function socketsKeyForUser(userId: string): string {
+  return `presence:sockets:${userId}`;
+}
+
+export async function handlePresenceConnect(
+  userId: string,
+  socketId: string
+): Promise<void> {
+  const key = socketsKeyForUser(userId);
+  await redisClient.sAdd(key, socketId);
+  await redisClient.expire(key, 60 * 60);
+  await handlePresenceMessage(userId, "online");
+}
+
+export async function handlePresenceDisconnect(
+  userId: string,
+  socketId: string
+): Promise<void> {
+  const key = socketsKeyForUser(userId);
+  await redisClient.sRem(key, socketId);
+  const remaining = await redisClient.sCard(key);
+  if (remaining > 0) return;
+  await redisClient.del(key);
+  await handlePresenceMessage(userId, "offline");
+}
+
 export async function handlePresenceMessage(
   clientId: string,
   state: string

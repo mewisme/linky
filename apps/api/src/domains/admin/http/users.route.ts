@@ -12,6 +12,7 @@ import {
   patchAdminUsers,
   updateAdminUser,
 } from "@/domains/admin/service/admin-users.service.js";
+import { isPresenceState } from "@/domains/admin/types/presence.types.js";
 import { requireSuperAdmin } from "@/lib/auth/role-guard.js";
 import {
   assertCannotAssignSuperadmin,
@@ -47,7 +48,7 @@ router.get("/", async (req: Request, res: Response) => {
             if (user.clerk_user_id) {
               try {
                 const presenceState = await redisClient.hGet("presence", user.clerk_user_id);
-                if (presenceState) presence = presenceState;
+                if (isPresenceState(presenceState)) presence = presenceState;
               } catch (presenceError: unknown) {
                 logger.warn(toLoggableError(presenceError), "Error fetching presence from Redis");
               }
@@ -182,7 +183,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     if ((user as any).clerk_user_id) {
       try {
         const presenceState = await redisClient.hGet("presence", (user as any).clerk_user_id);
-        if (presenceState) {
+        if (isPresenceState(presenceState)) {
           presence = presenceState;
         }
       } catch (presenceError: unknown) {

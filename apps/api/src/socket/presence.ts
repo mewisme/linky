@@ -1,32 +1,18 @@
 import type { Namespace } from "socket.io";
-import { handlePresenceMessage } from "@/infra/presence/presence-handler.js";
+import { isPresenceState } from "@/domains/admin/types/presence.types.js";
+import {
+  handlePresenceConnect,
+  handlePresenceDisconnect,
+  handlePresenceMessage,
+} from "@/infra/presence/presence-handler.js";
 import type { AuthenticatedSocket } from "./auth.js";
-
-type PresenceState =
-  | "offline"
-  | "online"
-  | "available"
-  | "matching"
-  | "in_call"
-  | "idle";
-
-function isPresenceState(value: unknown): value is PresenceState {
-  return (
-    value === "offline" ||
-    value === "online" ||
-    value === "available" ||
-    value === "matching" ||
-    value === "in_call" ||
-    value === "idle"
-  );
-}
 
 export function setupPresenceHandlers(chat: Namespace): void {
   chat.on("connection", (socket: AuthenticatedSocket) => {
     const userId = socket.data?.userId;
     if (!userId) return;
 
-    void handlePresenceMessage(userId, "online");
+    void handlePresenceConnect(userId, socket.id);
 
     socket.on("client:presence", (payload: unknown) => {
       if (!payload || typeof payload !== "object") return;
@@ -36,7 +22,7 @@ export function setupPresenceHandlers(chat: Namespace): void {
     });
 
     socket.on("disconnect", () => {
-      void handlePresenceMessage(userId, "offline");
+      void handlePresenceDisconnect(userId, socket.id);
     });
   });
 }

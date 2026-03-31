@@ -6,7 +6,11 @@ import { Socket } from "socket.io-client";
 import { createNamespaceSockets, updateToken } from "@/lib/realtime/socket";
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";
 import { backendRestartDetector } from "@/lib/realtime/backend-restart-detector";
-import { publishPresence, setPresencePublisher } from "@/lib/realtime/presence";
+import {
+  getLastPresenceState,
+  publishPresence,
+  setPresencePublisher,
+} from "@/lib/realtime/presence";
 import { getUserTimezone } from "@/shared/utils/timezone";
 import { syncUserTimezone } from "@/features/user/api/profile";
 
@@ -135,6 +139,9 @@ export function SocketProvider({ children }: SocketProviderProps) {
             }
           });
           publishPresence('online');
+          if (document.visibilityState === "hidden") {
+            publishPresence("idle");
+          }
           socketHealthMonitor.markEventReceived();
 
           if (isBackendRestart) {
@@ -216,6 +223,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
         }
         const visibility = document.visibilityState === "visible" ? "foreground" : "background";
         chatSocket.emit(`client:visibility:${visibility}`);
+        const currentPresence = getLastPresenceState();
+        if (currentPresence === "online" || currentPresence === "idle") {
+          publishPresence(visibility === "foreground" ? "online" : "idle");
+        }
       };
 
       document.addEventListener("visibilitychange", handleVisibilityChange);

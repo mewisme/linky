@@ -538,6 +538,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
         peerConnection.initializePeerConnection(localStream, peerCallbacks, iceServersRef.current);
         isOffererRef.current = data.isOfferer;
+        socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
 
         const pc = peerConnection.getPeerConnection();
         if (pc) {

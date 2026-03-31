@@ -113,6 +113,11 @@ export function useMediaStream(): UseMediaStreamReturn {
 
   const toggleVideo = useCallback((): boolean => {
     if (!streamRef.current) return isVideoOffRef.current;
+    if (streamRef.current.getVideoTracks().length === 0) {
+      isVideoOffRef.current = true;
+      hasCameraRef.current = false;
+      return true;
+    }
 
     const newVideoOffState = !isVideoOffRef.current;
     streamRef.current.getVideoTracks().forEach((track) => {

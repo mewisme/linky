@@ -40,6 +40,21 @@ function isCameraPermissionError(error: unknown): boolean {
   );
 }
 
+function shouldRetryWithoutVideo(error: unknown): boolean {
+  if (!(error instanceof DOMException)) {
+    return false;
+  }
+
+  return (
+    isDeviceNotFoundError(error) ||
+    isCameraPermissionError(error) ||
+    error.name === "NotReadableError" ||
+    error.name === "TrackStartError" ||
+    error.name === "OverconstrainedError" ||
+    error.name === "AbortError"
+  );
+}
+
 function getMediaErrorMessage(error: unknown): string {
   if (!(error instanceof DOMException)) {
     return "An unexpected error occurred while accessing your camera/microphone.";
@@ -76,7 +91,7 @@ export async function getUserMedia(
       audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
     });
   } catch (error) {
-    if (video && (isDeviceNotFoundError(error) || isCameraPermissionError(error))) {
+    if (video && shouldRetryWithoutVideo(error)) {
       try {
         return await navigator.mediaDevices.getUserMedia({
           video: false,

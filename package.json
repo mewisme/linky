@@ -33,6 +33,7 @@
     "test:debug": "pnpm exec playwright test --debug",
     "test:trace": "pnpm exec playwright test --trace",
     "test:report": "pnpm exec playwright show-report",
+    "test:report:last": "node scripts/playwright-show-last-report.mjs",
     "test:report:excel": "node scripts/playwright-json-to-excel.mjs",
     "test:codegen": "pnpm exec playwright codegen",
     "upver": "node scripts/generate-changelog.js && node scripts/version-upgrade.js"

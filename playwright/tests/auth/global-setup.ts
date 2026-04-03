@@ -3,10 +3,19 @@ import * as path from 'path';
 
 import { FullConfig, chromium } from '@playwright/test';
 
-import { TEST_USERS } from '../../fixtures/users.fixtures';
 import { authenticateUser } from '../../fixtures/auth.fixtures';
+import { TEST_USERS } from '../../fixtures/users.fixtures';
+import { playwrightReportSlug } from '../../helpers/report-slug';
 
 async function globalSetup(config: FullConfig) {
+  const reportRoot = path.join(process.cwd(), 'playwright-report');
+  fs.mkdirSync(reportRoot, { recursive: true });
+  fs.writeFileSync(
+    path.join(reportRoot, '.last-run-slug'),
+    `${playwrightReportSlug()}\n`,
+    'utf8',
+  );
+
   const baseURL = config.projects[0].use.baseURL;
   const storageDir = path.dirname(TEST_USERS.user1.storageStatePath);
 

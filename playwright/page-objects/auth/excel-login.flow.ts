@@ -7,10 +7,14 @@ import {
 import { cellStr, type LoginTestRow } from "../../test-data/excel";
 
 function identifierFieldError(page: Page) {
-  return page
+  const byClerkClass = page
     .locator('input[name="identifier"]')
     .locator("..")
     .locator(".cl-formFieldErrorText, #error-identifier");
+  const bySiblingBlock = page.locator('input[name="identifier"]').locator(
+    'xpath=ancestor::div[.//input[@name="identifier"] and following-sibling::*[normalize-space(.)]][1]/following-sibling::*[normalize-space(.)][1]',
+  );
+  return byClerkClass.or(bySiblingBlock);
 }
 
 function passwordFieldError(page: Page) {
@@ -90,6 +94,16 @@ export async function runExcelLoginFlow(
     const t = (await page.locator("#error-password").first().innerText()).trim();
     expect(t).toContain(expectedMessage);
     return;
+  }
+
+  if (page.url().includes("/sign-in")) {
+    if (await identifierFieldError(page).isVisible().catch(() => false)) {
+      const t = (await identifierFieldError(page).first().innerText()).trim();
+      if (t) {
+        expect(t).toContain(expectedMessage);
+        return;
+      }
+    }
   }
 
   if (page.url().includes("factor-two")) {

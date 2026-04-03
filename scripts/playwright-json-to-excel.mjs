@@ -6,8 +6,31 @@ import XLSX from "xlsx";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 
-const inputPath = path.resolve(root, process.argv[2] ?? "playwright-report/results.json");
-const outputPath = path.resolve(root, process.argv[3] ?? "playwright-report/results.xlsx");
+function defaultReportSlug() {
+  const env = process.env.PLAYWRIGHT_REPORT_SLUG?.trim();
+  if (env) {
+    return env;
+  }
+  const marker = path.join(root, "playwright-report", ".last-run-slug");
+  if (fs.existsSync(marker)) {
+    const s = fs.readFileSync(marker, "utf8").trim();
+    if (s) {
+      return s;
+    }
+  }
+  return "all";
+}
+
+const slug = defaultReportSlug();
+const defaultDir = path.join("playwright-report", slug);
+const inputPath = path.resolve(
+  root,
+  process.argv[2] ?? path.join(defaultDir, "results.json"),
+);
+const outputPath = path.resolve(
+  root,
+  process.argv[3] ?? path.join(defaultDir, "results.xlsx"),
+);
 
 if (!fs.existsSync(inputPath)) {
   console.error(

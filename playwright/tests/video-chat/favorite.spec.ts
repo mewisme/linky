@@ -1,4 +1,4 @@
-import { addFavorite, createUserContext, openChatPage, removeFavorite, startCall, waitForIdle, waitForInCall, waitForToast } from '../../utils/video-chat/helpers';
+import { addFavorite, createUserContext, openChatPage, removeFavorite, startCall, waitForIdle, waitForInCall, waitForToast } from '../../helpers/video-chat/helpers';
 import { expect, test } from '@playwright/test';
 
 import { TEST_USERS } from '../../fixtures/users.fixtures';

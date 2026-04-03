@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { TEST_USERS } from "../../fixtures/users.fixtures";
-import { createUserContext } from "../../utils/video-chat/helpers";
+import { createUserContext } from "../../helpers/video-chat/helpers";
 
 test.describe("Push Notifications Settings", () => {
   test("should show push notification settings page", async ({ browser }) => {

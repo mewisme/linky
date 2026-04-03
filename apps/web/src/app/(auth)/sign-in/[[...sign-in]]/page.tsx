@@ -2,9 +2,20 @@
 
 import { SignIn, SignedIn, SignedOut } from "@clerk/nextjs";
 
-import Link from "next/link";
-import { useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
+
+function SignedInRedirect({ href }: { href: string }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace(href);
+  }, [router, href]);
+
+  return (
+    <p className="text-muted-foreground text-center text-sm">Redirecting…</p>
+  );
+}
 
 export default function SignInPage() {
   const searchParams = useSearchParams();
@@ -31,9 +42,7 @@ export default function SignInPage() {
         />
       </SignedOut>
       <SignedIn treatPendingAsSignedOut={false}>
-        <Link href={redirectUrl}>
-          Proceed to redirect URL
-        </Link>
+        <SignedInRedirect href={redirectUrl} />
       </SignedIn>
     </div>
   );

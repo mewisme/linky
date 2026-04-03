@@ -1,4 +1,4 @@
-import { createUserContext, openChatPage, sendChatMessage, startCall, toggleChat, waitForChatMessage, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
+import { createUserContext, openChatPage, sendChatMessage, startCall, toggleChat, waitForChatMessage, waitForIdle, waitForInCall } from '../../helpers/video-chat/helpers';
 import { expect, test } from '@playwright/test';
 
 import { TEST_USERS } from '../../fixtures/users.fixtures';

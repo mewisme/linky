@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { waitForClerkReady } from '../../../utils/clerk-helpers';
+import { waitForClerkReady } from '../../../helpers/clerk-helpers';
 
 export class VideoChatPage {
   constructor(private readonly page: Page) { }

@@ -33,6 +33,7 @@
     "test:debug": "pnpm exec playwright test --debug",
     "test:trace": "pnpm exec playwright test --trace",
     "test:report": "pnpm exec playwright show-report",
+    "test:report:excel": "node scripts/playwright-json-to-excel.mjs",
     "test:codegen": "pnpm exec playwright codegen",
     "upver": "node scripts/generate-changelog.js && node scripts/version-upgrade.js"
   },
@@ -43,6 +44,7 @@
     "dotenv": "^17.3.1",
     "prettier": "^3.8.1",
     "turbo": "^2.9.0",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "xlsx": "^0.18.5"
   }
 }

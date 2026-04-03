@@ -4,7 +4,7 @@ import {
   startCall,
   waitForIdle,
   waitForInCall,
-} from "../../utils/video-chat/helpers";
+} from "../../helpers/video-chat/helpers";
 import { expect, test } from "@playwright/test";
 
 import { TEST_USERS } from "../../fixtures/users.fixtures";

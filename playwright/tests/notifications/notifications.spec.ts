@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import { TEST_USERS } from "../../fixtures/users.fixtures";
-import { createUserContext } from "../../utils/video-chat/helpers";
+import { createUserContext } from "../../helpers/video-chat/helpers";
 
 test.describe("Notification Center", () => {
   test("should show notification bell in header", async ({ browser }) => {

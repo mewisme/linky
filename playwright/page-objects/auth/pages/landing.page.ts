@@ -4,7 +4,7 @@ export class LandingPage {
   constructor(private readonly page: Page) { }
 
   goToChatButton() {
-    return this.page.getByRole('button', { name: 'Start Chatting Now' });
+    return this.page.getByTestId('start-chat-button');
   }
 
   async waitUntilVisible() {

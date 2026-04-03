@@ -1,8 +1,8 @@
-import { createUserContext, openChatPage, startCall, waitForIdle, waitForInCall } from '../../utils/video-chat/helpers';
+import { createUserContext, openChatPage, startCall, waitForIdle, waitForInCall } from '../../helpers/video-chat/helpers';
 import { expect, test } from '@playwright/test';
 
 import { TEST_USERS } from '../../fixtures/users.fixtures';
-import { waitForClerkReady } from '../../utils/clerk-helpers';
+import { waitForClerkReady } from '../../helpers/clerk-helpers';
 
 test.describe('Video Chat - Reconnect Handling', () => {
   test('should reconnect and return to in-call state after page reload', async ({ browser }) => {

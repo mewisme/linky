@@ -1,10 +1,10 @@
-import { IdentifierPage } from '../flows/auth/pages/identifier.page';
-import { LandingPage } from '../flows/auth/pages/landing.page';
-import { OTPPage } from '../flows/auth/pages/otp.page';
+import { IdentifierPage } from '../page-objects/auth/pages/identifier.page';
+import { OTPPage } from '../page-objects/auth/pages/otp.page';
 import { Page } from '@playwright/test';
-import { PasswordPage } from '../flows/auth/pages/password.page';
+import { PasswordPage } from '../page-objects/auth/pages/password.page';
 import { TestUser } from './users.fixtures';
-import { waitForClerkReady } from '../utils/clerk-helpers';
+import { waitForClerkReady } from '../helpers/clerk-helpers';
+import { waitForRedirectToHome } from '../helpers/wait-for-home';
 
 export async function authenticateUser(
   page: Page,
@@ -33,14 +33,8 @@ export async function authenticateUser(
     await otpPage.waitUntilHidden();
   }
 
-  const landingPage = new LandingPage(page);
   await page.waitForTimeout(1000);
-  await landingPage.waitUntilVisible();
-  await landingPage.goToChatButton().waitFor({ state: 'visible' });
-
-  await page.waitForURL((url) => !url.pathname.includes('/sign-in'), {
-    timeout: 10000,
-  });
+  await waitForRedirectToHome(page, 20000);
 }
 
 export async function saveStorageState(

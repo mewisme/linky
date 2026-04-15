@@ -1,12 +1,13 @@
 ## What's Changed
 
-✨ Features
-
-- Implement presence state validation and enhance presence handling ([92fe9cb](../../commit/92fe9cb))
-
 🔨 Other Changes
 
-- Update package versions to 0.74.4 and refresh version lock ([e0b130f](../../commit/e0b130f))
+- Update package dependencies and improve authentication handling ([0cdb606](../../commit/0cdb606))
+- Enhance Playwright reporting and authentication flow ([81b4a3f](../../commit/81b4a3f))
+- Enhance Playwright test setup and user authentication flows ([e640ace](../../commit/e640ace))
+- Enhance video handling and error management in media stream ([571504b](../../commit/571504b))
+- Camera permission error handling in getUserMedia ([9d44492](../../commit/9d44492))
+- Update package versions to 0.75.0 and refresh version lock ([2c3d0de](../../commit/2c3d0de))
 
 
-📋 Full Changelog: [e0b130f...92fe9cb](../../compare/e0b130f...92fe9cb)
+📋 Full Changelog: [2c3d0de...0cdb606](../../compare/2c3d0de...0cdb606)

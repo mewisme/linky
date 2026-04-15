@@ -17,13 +17,15 @@ import React, { useTransition } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
 import { Input } from '@ws/ui/components/ui/input'
-import type { UserResource } from '@clerk/types'
+import type { useUser } from '@clerk/nextjs'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
+type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
+
 interface ProfileNameFieldsProps {
-  user: UserResource
+  user: ClerkUser
   userStore: { country: string | null } | null
   updateUserCountry: (country: string) => Promise<unknown>
 }

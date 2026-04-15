@@ -13,17 +13,15 @@ import {
   AlertDialogTitle,
 } from "@ws/ui/components/ui/alert-dialog"
 import {
-  CreateExternalAccountParams,
-  ExternalAccountResource,
-  OAuthStrategy,
-} from '@clerk/types'
+  useUser,
+} from '@clerk/nextjs'
 import {
   IconBrandDiscord,
   IconBrandFacebook,
   IconBrandGoogle,
   IconX,
 } from '@tabler/icons-react'
-import { useReverification, useUser } from '@clerk/nextjs'
+import { useReverification } from '@clerk/nextjs'
 
 import { cn } from '@ws/ui/lib/utils'
 import { formatProvider } from './security-utils'
@@ -33,6 +31,10 @@ import { useState } from 'react'
 
 const providers = ['google', 'facebook', 'discord'] as const
 type BaseProvider = (typeof providers)[number]
+type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
+type ExternalAccountResource = ClerkUser['externalAccounts'][number]
+type CreateExternalAccountParams = Parameters<ClerkUser['createExternalAccount']>[0]
+type OAuthStrategy = CreateExternalAccountParams['strategy']
 
 function ProviderIcon({ provider }: { provider: BaseProvider }) {
   if (provider === 'google') return <IconBrandGoogle className="size-4" />

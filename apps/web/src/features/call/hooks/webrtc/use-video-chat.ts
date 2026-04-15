@@ -94,6 +94,7 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [queryClient]);
 
   const tabCoordination = useCallTabCoordination({
+    scopeId: user?.id ?? null,
     onOwnershipLost: () => {
       iceRestartCancelRef.current = true;
       monitoring.stopMonitoring();

@@ -13,10 +13,10 @@
     "dist"
   ],
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./src/index.ts",
       "import": "./dist/index.js"
     }
   },
@@ -25,8 +25,8 @@
     "pino-pretty": "^13.1.3"
   },
   "devDependencies": {
-    "@sentry/node": "^10.45.0",
-    "@types/node": "catalog:",
+    "@sentry/node": "^10.48.0",
+    "@types/node": "25.6.0",
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
     "eslint": "catalog:",

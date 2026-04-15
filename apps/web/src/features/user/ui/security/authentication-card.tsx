@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@ws/ui/components/ui/card'
-import type { ExternalAccountResource, UserResource } from '@clerk/types'
+import type { useUser } from '@clerk/nextjs'
 import {
   IconCircleCheckFilled,
   IconCircleXFilled,
@@ -22,8 +22,10 @@ import { Button } from '@ws/ui/components/ui/button'
 import { PasswordModal } from './password-modal'
 import { ProviderList } from './provider-list'
 
+type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
+
 interface AuthenticationCardProps {
-  user: UserResource
+  user: ClerkUser
 }
 
 export function AuthenticationCard({ user }: AuthenticationCardProps) {

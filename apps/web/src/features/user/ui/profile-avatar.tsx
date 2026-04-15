@@ -7,13 +7,15 @@ import {
 } from '@ws/ui/components/ui/avatar'
 
 import { IconCamera } from '@tabler/icons-react'
-import type { UserResource } from '@clerk/types'
+import type { useUser } from '@clerk/nextjs'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { useTransition } from 'react'
 
+type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
+
 interface ProfileAvatarProps {
-  user: UserResource
+  user: ClerkUser
 }
 
 export function ProfileAvatar({ user }: ProfileAvatarProps) {

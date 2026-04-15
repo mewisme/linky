@@ -4,13 +4,14 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { callTabCoordinator, type CallTabState } from "@/features/call/lib/call-coordination/call-tab-coordinator";
 
 interface UseCallTabCoordinationOptions {
+  scopeId?: string | null;
   onOwnershipLost?: () => void;
   onOwnershipGained?: () => void;
   onSwitchApproved?: () => void;
 }
 
 export function useCallTabCoordination(options: UseCallTabCoordinationOptions = {}) {
-  const { onOwnershipLost, onOwnershipGained, onSwitchApproved } = options;
+  const { scopeId, onOwnershipLost, onOwnershipGained, onSwitchApproved } = options;
   const [state, setState] = useState<CallTabState>(() => callTabCoordinator.getState());
   const previousOwnershipRef = useRef(state.isCallOwner);
   const initializationAttemptedRef = useRef(false);
@@ -29,6 +30,11 @@ export function useCallTabCoordination(options: UseCallTabCoordinationOptions = 
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    callTabCoordinator.setScopeId(scopeId ?? null);
+    setState(callTabCoordinator.getState());
+  }, [scopeId]);
 
   useEffect(() => {
     const wasOwner = previousOwnershipRef.current;

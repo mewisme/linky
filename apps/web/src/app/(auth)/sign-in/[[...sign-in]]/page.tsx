@@ -1,6 +1,6 @@
 "use client";
 
-import { SignIn, SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignIn, useAuth } from "@clerk/nextjs";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
@@ -18,6 +18,7 @@ function SignedInRedirect({ href }: { href: string }) {
 }
 
 export default function SignInPage() {
+  const { isLoaded, isSignedIn } = useAuth();
   const searchParams = useSearchParams();
 
   const redirectUrl = useMemo(() => {
@@ -34,16 +35,15 @@ export default function SignInPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
-      <SignedOut>
+      {!isLoaded ? null : !isSignedIn ? (
         <SignIn
           routing="path"
           path="/sign-in"
           fallbackRedirectUrl={redirectUrl}
         />
-      </SignedOut>
-      <SignedIn treatPendingAsSignedOut={false}>
+      ) : (
         <SignedInRedirect href={redirectUrl} />
-      </SignedIn>
+      )}
     </div>
   );
 }

@@ -22,16 +22,18 @@ import { useEffect, useState, useTransition } from 'react'
 import { Button } from '@ws/ui/components/ui/button'
 import { Input } from '@ws/ui/components/ui/input'
 import { Label } from '@ws/ui/components/ui/label'
-import type { UserResource } from '@clerk/types'
+import type { useUser } from '@clerk/nextjs'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useIsMobile } from '@ws/ui/hooks/use-mobile'
 import { useReverification } from '@clerk/nextjs'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
+type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
+
 interface PasswordModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  user: UserResource
+  user: ClerkUser
   mode: 'change' | 'set'
 }
 

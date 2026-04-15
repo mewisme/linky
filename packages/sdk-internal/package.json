@@ -22,10 +22,10 @@
   },
   "dependencies": {
     "@ws/shared-types": "workspace:*",
-    "redis": "catalog:"
+    "redis": "5.12.1"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
+    "@types/node": "25.6.0",
     "@ws/typescript-config": "workspace:*",
     "typescript": "catalog:"
   }

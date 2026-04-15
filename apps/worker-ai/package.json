@@ -15,18 +15,19 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@sentry/node": "^10.45.0",
+    "@sentry/node": "^10.48.0",
     "@ws/api": "workspace:*",
     "@ws/config": "workspace:*",
     "@ws/logger": "workspace:*",
     "@ws/sdk-internal": "workspace:*",
     "@ws/shared-types": "workspace:*",
     "@ws/validation": "workspace:*",
-    "dotenv": "catalog:",
-    "redis": "catalog:"
+    "dotenv": "17.4.2",
+    "react": "19.2.5",
+    "redis": "5.12.1"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
+    "@types/node": "25.6.0",
     "@ws/typescript-config": "workspace:*",
     "tsup": "catalog:",
     "tsx": "catalog:",

@@ -881,7 +881,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       const claimed = tabCoordination.claimOwnership(null);
       if (!claimed) {
-        actionsRef.current.setError("Another tab owns the call. Please close other tabs or switch the call.");
+        actionsRef.current.setError(null);
         toast.error("Call is active in another tab");
         return;
       }

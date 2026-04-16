@@ -26,18 +26,21 @@ import { useUserStore } from '@/entities/user/model/user-store';
 import { menuItems, type MenuItem } from './menu-items';
 import { isAdmin, isSuperAdmin } from '@/shared/utils/roles';
 import { AppSidebarHeader } from './app-sidebar-header';
+import { useDevelopmentStore } from '@/shared/model/development-store';
 
 export type { MenuItem };
 
 export function AppSidebar() {
   const { user: userStore } = useUserStore();
   const { variant, collapsible } = useSidebarStore();
+  const isDevelopmentModeEnabled = useDevelopmentStore((state) => state.isDevelopmentModeEnabled);
   const pathname = usePathname()
   const { state, setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
 
   useEffect(() => {
     useSidebarStore.persist.rehydrate();
+    useDevelopmentStore.persist.rehydrate();
   }, []);
 
   useEffect(() => {
@@ -58,11 +61,12 @@ export function AppSidebar() {
         if (!item.subItems) return item;
         const subItems = item.subItems.filter((sub) => {
           if (sub.isSuperAdminOnly && !isSuperAdmin(userStore?.role)) return false;
+          if (sub.requiresDevelopmentMode && !isDevelopmentModeEnabled) return false;
           return true;
         });
         return { ...item, subItems };
       });
-  }, [userStore?.role]);
+  }, [isDevelopmentModeEnabled, userStore?.role]);
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>

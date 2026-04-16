@@ -1,7 +1,6 @@
 'use client'
 
-import { FIELD_LABELS, useProfileEdit } from '@/shared/ui/context-menu/profile/profile-edit-context'
-import { IconCalendar, IconCheck, IconLoader2, IconUser, IconX } from '@tabler/icons-react'
+import { IconCalendar, IconEdit, IconLoader2, IconUser } from '@tabler/icons-react'
 import {
   Select,
   SelectContent,
@@ -9,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ws/ui/components/ui/select'
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
 import { DatePicker } from '@/shared/ui/common/date-picker'
@@ -38,8 +37,7 @@ export function PersonalInfoSection({
 }: PersonalInfoSectionProps) {
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
-  const [editingDateOfBirth, setEditingDateOfBirth] = useState(false)
-  const [editingGender, setEditingGender] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
   const [gender, setGender] = useState('')
 
@@ -56,52 +54,45 @@ export function PersonalInfoSection({
   }
 
   useEffect(() => {
-    if (!userDetails) return
     setDateOfBirth(
-      userDetails.date_of_birth
+      userDetails?.date_of_birth
         ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
         : undefined
     )
-    setGender(userDetails.gender || '')
+    setGender(userDetails?.gender || '')
   }, [userDetails])
 
-  const profileEdit = useProfileEdit()
-  const profileEditRef = useRef(profileEdit)
-  profileEditRef.current = profileEdit
-  useEffect(() => {
-    const ctx = profileEditRef.current
-    if (!ctx) return
-    ctx.register('dateOfBirth', FIELD_LABELS.dateOfBirth, () => setEditingDateOfBirth(true))
-    ctx.register('gender', FIELD_LABELS.gender, () => setEditingGender(true))
-    return () => {
-      profileEditRef.current?.unregister('dateOfBirth')
-      profileEditRef.current?.unregister('gender')
-    }
-  }, [])
-
-  const handleUpdateDateOfBirth = () => {
-    startTransition(async () => {
-      try {
-        const dateString = dateOfBirth
-          ? formatDateString(dateOfBirth)
-          : null
-        await updateUserDetails({ date_of_birth: dateString })
-        playSound('success')
-        toast.success('Date of birth updated')
-        setEditingDateOfBirth(false)
-      } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : 'Update failed')
-      }
-    })
+  const handleStartEdit = () => {
+    setDateOfBirth(
+      userDetails?.date_of_birth
+        ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
+        : undefined
+    )
+    setGender(userDetails?.gender || '')
+    setIsEditing(true)
   }
 
-  const handleUpdateGender = () => {
+  const handleCancel = () => {
+    setDateOfBirth(
+      userDetails?.date_of_birth
+        ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
+        : undefined
+    )
+    setGender(userDetails?.gender || '')
+    setIsEditing(false)
+  }
+
+  const handleSave = () => {
     startTransition(async () => {
       try {
-        await updateUserDetails({ gender: gender || null })
+        const dateString = dateOfBirth ? formatDateString(dateOfBirth) : null
+        await updateUserDetails({
+          date_of_birth: dateString,
+          gender: gender || null,
+        })
         playSound('success')
-        toast.success('Gender updated')
-        setEditingGender(false)
+        toast.success('Personal information updated')
+        setIsEditing(false)
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : 'Update failed')
       }
@@ -109,130 +100,107 @@ export function PersonalInfoSection({
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <IconUser className="size-4 shrink-0" aria-hidden />
-        <span>Personal Information</span>
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-muted/30 p-4 sm:flex-row sm:items-start">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <IconCalendar className="size-4 text-muted-foreground" aria-hidden />
-          </div>
-          <div className="min-w-0 flex-1 space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Date of Birth</p>
-            {editingDateOfBirth ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <DatePicker
-                  value={dateOfBirth}
-                  onChange={setDateOfBirth}
-                />
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleUpdateDateOfBirth}
-                    disabled={isPending}
-                    aria-label={isPending ? 'Saving' : 'Save'}
-                  >
-                    {isPending ? (
-                      <IconLoader2 className="size-4 animate-spin" />
-                    ) : (
-                      <IconCheck className="size-4 text-green-600" />
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setDateOfBirth(
-                        userDetails?.date_of_birth
-                          ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
-                          : undefined
-                      )
-                      setEditingDateOfBirth(false)
-                    }}
-                    aria-label="Cancel"
-                  >
-                    <IconX className="size-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-foreground">
-                {userDetails?.date_of_birth
-                  ? new Date(userDetails.date_of_birth).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })
-                  : 'Not provided'}
-              </p>
-            )}
-          </div>
+    <div className="group/personal space-y-3 rounded-xl transition-colors hover:bg-muted/10">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <IconUser className="size-4 shrink-0" aria-hidden />
+          <span>Personal Information</span>
         </div>
+        {!isEditing && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="gap-1 text-muted-foreground sm:opacity-0 sm:transition-opacity sm:group-hover/personal:opacity-100"
+            onClick={handleStartEdit}
+          >
+            <IconEdit className="size-4" />
+            Edit
+          </Button>
+        )}
+      </div>
+      <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+        <div className="flex flex-wrap gap-4">
+          <div className="min-w-56 flex-1">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <IconCalendar className="size-4 text-muted-foreground" aria-hidden />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Date of Birth</p>
+                {isEditing ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DatePicker
+                      value={dateOfBirth}
+                      onChange={setDateOfBirth}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground">
+                    {userDetails?.date_of_birth
+                      ? new Date(userDetails.date_of_birth).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                      : 'Not provided'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
-        <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-muted/30 p-4 sm:flex-row sm:items-start">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <IconUser className="size-4 text-muted-foreground" aria-hidden />
-          </div>
-          <div className="min-w-0 flex-1 space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Gender</p>
-            {editingGender ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <Select
-                  value={gender}
-                  onValueChange={(value) => setGender(value || '')}
-                >
-                  <SelectTrigger className="w-full min-w-0 sm:max-w-48">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {genderOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleUpdateGender}
-                    disabled={isPending}
-                    aria-label={isPending ? 'Saving' : 'Save'}
-                  >
-                    {isPending ? (
-                      <IconLoader2 className="size-4 animate-spin" />
-                    ) : (
-                      <IconCheck className="size-4 text-green-600" />
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setGender(userDetails?.gender ?? '')
-                      setEditingGender(false)
-                    }}
-                    aria-label="Cancel"
-                  >
-                    <IconX className="size-4 text-destructive" />
-                  </Button>
-                </div>
+          <div className="min-w-56 flex-1">
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <IconUser className="size-4 text-muted-foreground" aria-hidden />
               </div>
-            ) : (
-              <p className="text-sm capitalize text-foreground">
-                {userDetails?.gender
-                  ? genderOptions.find((g) => g.value === userDetails.gender)?.label ||
-                  userDetails.gender
-                  : 'Not provided'}
-              </p>
-            )}
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Gender</p>
+                {isEditing ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Select
+                      value={gender}
+                      onValueChange={(value) => setGender(value || '')}
+                    >
+                      <SelectTrigger className="w-48 min-w-0">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {genderOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <p className="text-sm capitalize text-foreground">
+                    {userDetails?.gender
+                      ? genderOptions.find((g) => g.value === userDetails.gender)?.label ||
+                      userDetails.gender
+                      : 'Not provided'}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      {isEditing && (
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleSave} disabled={isPending}>
+            {isPending && (
+              <IconLoader2 className="mr-2 size-4 animate-spin" />
+            )}
+            Save
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

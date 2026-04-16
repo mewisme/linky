@@ -3,6 +3,7 @@ import {
   IconBell,
   IconBolt,
   IconChartLine,
+  IconCode,
   IconFlag,
   IconGift,
   IconHeart,
@@ -32,6 +33,7 @@ export interface MenuItem {
   href?: string;
   isAdmin?: boolean;
   isSuperAdminOnly?: boolean;
+  requiresDevelopmentMode?: boolean;
   open?: boolean;
   subItems?: MenuItem[];
 }
@@ -108,6 +110,14 @@ export const menuItems: MenuItem[] = [
         description: "View your reports",
         href: "/user/reports",
         category: "Account",
+      },
+      {
+        label: "Development",
+        icon: IconCode,
+        description: "Preview upcoming development features",
+        href: "/user/development",
+        category: "Account",
+        requiresDevelopmentMode: true,
       },
     ],
   },
@@ -195,6 +205,13 @@ export const menuItems: MenuItem[] = [
         icon: IconBell,
         description: "Push notification settings",
         href: "/settings/notifications",
+        category: "Settings",
+      },
+      {
+        label: "Development",
+        icon: IconCode,
+        description: "Manage local development settings",
+        href: "/settings/development",
         category: "Settings",
       },
     ],

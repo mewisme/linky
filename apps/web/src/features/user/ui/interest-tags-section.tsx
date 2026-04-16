@@ -2,11 +2,11 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-import { FIELD_LABELS, useProfileEdit } from '@/shared/ui/context-menu/profile/profile-edit-context'
 import {
   IconCheck,
   IconChevronDown,
   IconChevronUp,
+  IconEdit,
   IconLoader2,
   IconTags,
 } from '@tabler/icons-react'
@@ -27,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@ws/ui/components/ui/tooltip'
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 
 import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
@@ -82,16 +82,6 @@ export function InterestTagsSection({
     }
   }, [userDetails])
 
-  const profileEdit = useProfileEdit()
-  const profileEditRef = useRef(profileEdit)
-  profileEditRef.current = profileEdit
-  useEffect(() => {
-    const ctx = profileEditRef.current
-    if (!ctx) return
-    ctx.register('interestTags', FIELD_LABELS.interestTags, () => setEditingTags(true))
-    return () => profileEditRef.current?.unregister('interestTags')
-  }, [])
-
   const handleUpdateTags = () => {
     startTransition(async () => {
       try {
@@ -127,32 +117,45 @@ export function InterestTagsSection({
     selectedTags.length > INITIAL_TAGS_VISIBLE
 
   return (
-    <div className="space-y-3">
+    <div className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
       <div className="flex items-center justify-between gap-2 py-0.5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconTags className="size-4 shrink-0" aria-hidden />
           <span>Interests</span>
         </div>
-        {showToggle && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 shrink-0 px-1.5 text-muted-foreground"
-            onClick={() => setShowAllTags((prev) => !prev)}
-          >
-            {showAllTags ? (
-              <>
-                <IconChevronUp className="size-4 mr-1 shrink-0" />
-                Show less
-              </>
-            ) : (
-              <>
-                <IconChevronDown className="size-4 mr-1 shrink-0" />
-                More ({selectedTags.length - INITIAL_TAGS_VISIBLE})
-              </>
-            )}
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {!editingTags && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-muted-foreground sm:opacity-0 sm:transition-opacity sm:group-hover/interests:opacity-100"
+              onClick={() => setEditingTags(true)}
+            >
+              <IconEdit className="size-4" />
+              Edit
+            </Button>
+          )}
+          {showToggle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 shrink-0 px-1.5 text-muted-foreground"
+              onClick={() => setShowAllTags((prev) => !prev)}
+            >
+              {showAllTags ? (
+                <>
+                  <IconChevronUp className="size-4 mr-1 shrink-0" />
+                  Show less
+                </>
+              ) : (
+                <>
+                  <IconChevronDown className="size-4 mr-1 shrink-0" />
+                  More ({selectedTags.length - INITIAL_TAGS_VISIBLE})
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </div>
 
       {editingTags ? (

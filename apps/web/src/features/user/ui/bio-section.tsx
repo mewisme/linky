@@ -1,14 +1,13 @@
 'use client'
 
-import { IconInfoCircle, IconLoader2 } from '@tabler/icons-react'
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { IconEdit, IconInfoCircle, IconLoader2 } from '@tabler/icons-react'
+import { useEffect, useState, useTransition } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
 import { Textarea } from '@ws/ui/components/ui/textarea'
 import type { UserDetails } from '@/entities/user/model/user-store'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
-import { FIELD_LABELS, useProfileEdit } from '@/shared/ui/context-menu/profile/profile-edit-context'
 
 const BIO_MAX_LENGTH = 300
 
@@ -30,16 +29,6 @@ export function BioSection({
     setBio(userDetails?.bio ?? '')
   }, [userDetails])
 
-  const profileEdit = useProfileEdit()
-  const profileEditRef = useRef(profileEdit)
-  profileEditRef.current = profileEdit
-  useEffect(() => {
-    const ctx = profileEditRef.current
-    if (!ctx) return
-    ctx.register('bio', FIELD_LABELS.bio, () => setEditingBio(true))
-    return () => profileEditRef.current?.unregister('bio')
-  }, [])
-
   const handleUpdateBio = () => {
     const value = bio.trim() || null
     startTransition(async () => {
@@ -55,10 +44,23 @@ export function BioSection({
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <IconInfoCircle className="size-4 shrink-0" aria-hidden />
-        <span>Bio</span>
+    <div className="group/bio space-y-2 rounded-xl transition-colors hover:bg-muted/10">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <IconInfoCircle className="size-4 shrink-0" aria-hidden />
+          <span>Bio</span>
+        </div>
+        {!editingBio && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1 text-muted-foreground sm:opacity-0 sm:transition-opacity sm:group-hover/bio:opacity-100"
+            onClick={() => setEditingBio(true)}
+          >
+            <IconEdit className="size-4" />
+            Edit
+          </Button>
+        )}
       </div>
       {editingBio ? (
         <div className="space-y-3">
@@ -99,11 +101,15 @@ export function BioSection({
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 sm:px-5 sm:py-4">
+        <button
+          type="button"
+          className="w-full rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-left transition-colors hover:border-border sm:px-5 sm:py-4"
+          onClick={() => setEditingBio(true)}
+        >
           <p className="text-sm leading-relaxed text-muted-foreground">
             {userDetails?.bio || 'Not provided'}
           </p>
-        </div>
+        </button>
       )}
     </div>
   )

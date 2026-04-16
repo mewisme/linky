@@ -7,8 +7,16 @@ import { getPublicUserInfo } from "@/infra/supabase/repositories/user-details.js
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import type { VideoChatMatchmaking, VideoChatRooms } from "@/domains/video-chat/socket/types.js";
 import { sendPeerActionPush } from "@/contexts/peer-action-notification-context.js";
+import { applyCallEndedProgress } from "@/contexts/call-ended-context.js";
+import {
+  calculateLevelFromExp,
+  computeExpSecondsForCallDuration,
+  getTimezoneForUser,
+} from "@/domains/user/index.js";
+import { getUserProgressInsights } from "@/domains/user/service/user-progress.service.js";
 
 const logger = createLogger("api:video-chat:matchmaking:socket");
+const PERIODIC_PERSIST_INTERVAL_SECONDS = 15;
 
 const activeIntervals: ReturnType<typeof setInterval>[] = [];
 
@@ -93,6 +101,17 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
         if (room && dbUserId1 && dbUserId2) {
           room.user1DbId = dbUserId1;
           room.user2DbId = dbUserId2;
+          void Promise.all([
+            getTimezoneForUser(dbUserId1),
+            getTimezoneForUser(dbUserId2),
+          ])
+            .then(([timezone1, timezone2]) => {
+              room.user1Timezone = timezone1;
+              room.user2Timezone = timezone2;
+            })
+            .catch((error: unknown) => {
+              logger.warn(toLoggableError(error), "Failed to preload room timezones");
+            });
         }
 
         user1Socket.emit("matched", {
@@ -136,6 +155,49 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
   activeIntervals.push(matchId);
 }
 
+function applyRealtimeCallProjection(
+  progress: Awaited<ReturnType<typeof getUserProgressInsights>>,
+  unpersistedElapsedSeconds: number,
+  projectedExpGain: number,
+) {
+  if (!progress) {
+    return null;
+  }
+
+  const projectedTotalExpSeconds = progress.expProgress.totalExpSeconds + projectedExpGain;
+  const nextLevel = calculateLevelFromExp(projectedTotalExpSeconds);
+  const progressDenominator = projectedTotalExpSeconds + nextLevel.expToNextLevel;
+  const projectedPercentage =
+    progressDenominator > 0
+      ? Math.min(100, Math.max(0, (projectedTotalExpSeconds / progressDenominator) * 100))
+      : 100;
+
+  return {
+    ...progress,
+    currentLevel: nextLevel.level,
+    expProgress: {
+      ...progress.expProgress,
+      totalExpSeconds: projectedTotalExpSeconds,
+      expToNextLevel: nextLevel.expToNextLevel,
+      progressPercentage: projectedPercentage,
+    },
+    expEarnedToday: (progress.expEarnedToday ?? 0) + projectedExpGain,
+    remainingSecondsToNextLevel: nextLevel.expToNextLevel,
+    todayCallDurationSeconds: progress.todayCallDurationSeconds + unpersistedElapsedSeconds,
+    todayCallDuration: {
+      ...progress.todayCallDuration,
+      totalSeconds: progress.todayCallDuration.totalSeconds + unpersistedElapsedSeconds,
+      isValid: progress.todayCallDuration.totalSeconds + unpersistedElapsedSeconds >= progress.streakRequiredSeconds,
+    },
+    streakRemainingSeconds: Math.max(0, progress.streakRequiredSeconds - (progress.todayCallDurationSeconds + unpersistedElapsedSeconds)),
+    isTodayStreakComplete: progress.todayCallDurationSeconds + unpersistedElapsedSeconds >= progress.streakRequiredSeconds,
+    streak: {
+      ...progress.streak,
+      remainingSecondsToKeepStreak: Math.max(0, progress.streakRequiredSeconds - (progress.todayCallDurationSeconds + unpersistedElapsedSeconds)),
+    },
+  };
+}
+
 export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
   const heartbeatId = setInterval(async () => {
     const roomCount = rooms.getRoomCount();
@@ -146,28 +208,82 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
     const allRooms = rooms.getAllRooms();
 
     for (const room of allRooms) {
-      const user1Socket = io.sockets.get(room.user1) as AuthenticatedSocket | undefined;
-      const user2Socket = io.sockets.get(room.user2) as AuthenticatedSocket | undefined;
+      try {
+        const user1Socket = io.sockets.get(room.user1) as AuthenticatedSocket | undefined;
+        const user2Socket = io.sockets.get(room.user2) as AuthenticatedSocket | undefined;
 
-      const payload = {
-        timestamp: Date.now(),
-        roomId: room.id,
-      } satisfies RoomPingPayload;
+        const payload = {
+          timestamp: Date.now(),
+          roomId: room.id,
+        } satisfies RoomPingPayload;
 
-      const user1Connected = user1Socket?.connected ?? false;
-      const user2Connected = user2Socket?.connected ?? false;
+        const user1Connected = user1Socket?.connected ?? false;
+        const user2Connected = user2Socket?.connected ?? false;
 
-      if (user1Connected) {
-        user1Socket!.emit("room-ping", payload);
-      }
+        if (user1Connected) {
+          user1Socket!.emit("room-ping", payload);
+        }
 
-      if (user2Connected) {
-        user2Socket!.emit("room-ping", payload);
-      }
+        if (user2Connected) {
+          user2Socket!.emit("room-ping", payload);
+        }
 
-      if (!user1Connected && !user2Connected) {
-        logger.info("Both sockets disconnected in room %s - cleaning up", room.id);
-        rooms.deleteRoom(room.id);
+        if (room.user1DbId && room.user2DbId) {
+          if (!room.user1Timezone || !room.user2Timezone) {
+            const [timezone1, timezone2] = await Promise.all([
+              getTimezoneForUser(room.user1DbId),
+              getTimezoneForUser(room.user2DbId),
+            ]);
+            room.user1Timezone = timezone1;
+            room.user2Timezone = timezone2;
+          }
+
+          const elapsedSeconds = Math.max(0, Math.floor((Date.now() - room.startedAt.getTime()) / 1000));
+          const persistedDurationSeconds = room.persistedDurationSeconds ?? 0;
+          const persistedTarget = Math.floor(elapsedSeconds / PERIODIC_PERSIST_INTERVAL_SECONDS) * PERIODIC_PERSIST_INTERVAL_SECONDS;
+          const persistChunkSeconds = Math.max(0, persistedTarget - persistedDurationSeconds);
+
+          if (persistChunkSeconds > 0) {
+            await applyCallEndedProgress({
+              callerId: room.user1DbId,
+              calleeId: room.user2DbId,
+              endedAt: new Date(),
+              durationSeconds: persistChunkSeconds,
+              callerTimezone: room.user1Timezone,
+              calleeTimezone: room.user2Timezone,
+            });
+            room.persistedDurationSeconds = persistedDurationSeconds + persistChunkSeconds;
+          }
+
+          const [user1Progress, user2Progress] = await Promise.all([
+            getUserProgressInsights(room.user1DbId, room.user1Timezone),
+            getUserProgressInsights(room.user2DbId, room.user2Timezone),
+          ]);
+
+          const unpersistedElapsedSeconds = Math.max(0, elapsedSeconds - (room.persistedDurationSeconds ?? 0));
+          const [user1ProjectedGain, user2ProjectedGain] = await Promise.all([
+            computeExpSecondsForCallDuration(room.user1DbId, unpersistedElapsedSeconds),
+            computeExpSecondsForCallDuration(room.user2DbId, unpersistedElapsedSeconds),
+          ]);
+
+          const user1Projected = applyRealtimeCallProjection(user1Progress, unpersistedElapsedSeconds, user1ProjectedGain);
+          const user2Projected = applyRealtimeCallProjection(user2Progress, unpersistedElapsedSeconds, user2ProjectedGain);
+
+          if (user1Connected && user1Projected) {
+            user1Socket!.emit("user:progress:update", user1Projected);
+          }
+
+          if (user2Connected && user2Projected) {
+            user2Socket!.emit("user:progress:update", user2Projected);
+          }
+        }
+
+        if (!user1Connected && !user2Connected) {
+          logger.info("Both sockets disconnected in room %s - cleaning up", room.id);
+          rooms.deleteRoom(room.id);
+        }
+      } catch (error: unknown) {
+        logger.warn(toLoggableError(error), "Room heartbeat iteration failed for room=%s", room.id);
       }
     }
   }, 4000);

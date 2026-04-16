@@ -1,12 +1,13 @@
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
-import type { VideoChatRoom, VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
+import type { VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getTimezoneForUser } from "@/domains/user/index.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { recordCallHistoryInDatabase } from "@/domains/video-chat/service/call-history.service.js";
 import { applyCallEndedProgress } from "@/contexts/call-ended-context.js";
+import { getUserProgressInsights } from "@/domains/user/service/user-progress.service.js";
 import { redisClient } from "@/infra/redis/client.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
@@ -42,7 +43,7 @@ async function acquireIdempotencyLock(key: string): Promise<boolean> {
 
 export async function recordCallHistory(
   io: Namespace,
-  room: VideoChatRoom,
+  room: VideoChatRoomRecord,
   socket1: AuthenticatedSocket,
   socket2: AuthenticatedSocket | undefined,
 ): Promise<void> {
@@ -101,6 +102,8 @@ export async function recordCallHistory(
     ]);
 
     const safeDuration = durationSeconds > 0 ? durationSeconds : 0;
+    const persistedDuration = room.persistedDurationSeconds ?? 0;
+    const remainingDuration = Math.max(0, safeDuration - persistedDuration);
 
     await recordCallHistoryInDatabase({
       callerId,
@@ -112,25 +115,39 @@ export async function recordCallHistory(
       calleeTimezone,
     });
 
-    await applyCallEndedProgress({
-      callerId,
-      calleeId,
-      endedAt,
-      durationSeconds: safeDuration,
-      callerTimezone,
-      calleeTimezone,
-      onStreakCompleted(userId, payload) {
-        const socket = userId === callerId ? callerSocket : userId === calleeId ? calleeSocket : undefined;
-        if (!socket?.connected) {
-          return;
-        }
-        socket.emit(STREAK_COMPLETED_EVENT, {
-          userId,
-          streakCount: payload.streakCount,
-          date: payload.date,
-        });
-      },
-    });
+    if (remainingDuration > 0) {
+      await applyCallEndedProgress({
+        callerId,
+        calleeId,
+        endedAt,
+        durationSeconds: remainingDuration,
+        callerTimezone,
+        calleeTimezone,
+        onStreakCompleted(userId, payload) {
+          const socket = userId === callerId ? callerSocket : userId === calleeId ? calleeSocket : undefined;
+          if (!socket?.connected) {
+            return;
+          }
+          socket.emit(STREAK_COMPLETED_EVENT, {
+            userId,
+            streakCount: payload.streakCount,
+            date: payload.date,
+          });
+        },
+      });
+    }
+
+    const [callerProgress, calleeProgress] = await Promise.all([
+      getUserProgressInsights(callerId, callerTimezone),
+      getUserProgressInsights(calleeId, calleeTimezone),
+    ]);
+
+    if (callerSocket.connected && callerProgress) {
+      callerSocket.emit("user:progress:update", callerProgress);
+    }
+    if (calleeSocket?.connected && calleeProgress) {
+      calleeSocket.emit("user:progress:update", calleeProgress);
+    }
 
     logger.info("Call history recorded: duration=%ds", durationSeconds);
   } catch (error) {
@@ -159,6 +176,8 @@ export async function recordCallHistoryFromRoom(
     const endedAt = new Date();
     const durationSeconds = Math.floor((endedAt.getTime() - room.startedAt.getTime()) / 1000);
     const safeDuration = durationSeconds > 0 ? durationSeconds : 0;
+    const persistedDuration = room.persistedDurationSeconds ?? 0;
+    const remainingDuration = Math.max(0, safeDuration - persistedDuration);
 
     const [callerTimezone, calleeTimezone] = await Promise.all([
       getTimezoneForUser(callerDbId),
@@ -175,14 +194,16 @@ export async function recordCallHistoryFromRoom(
       calleeTimezone,
     });
 
-    await applyCallEndedProgress({
-      callerId: callerDbId,
-      calleeId: calleeDbId,
-      endedAt,
-      durationSeconds: safeDuration,
-      callerTimezone,
-      calleeTimezone,
-    });
+    if (remainingDuration > 0) {
+      await applyCallEndedProgress({
+        callerId: callerDbId,
+        calleeId: calleeDbId,
+        endedAt,
+        durationSeconds: remainingDuration,
+        callerTimezone,
+        calleeTimezone,
+      });
+    }
 
     logger.info("Call history recorded from room (no sockets): duration=%ds", safeDuration);
   } catch (error) {

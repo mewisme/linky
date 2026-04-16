@@ -89,9 +89,20 @@ export function useVideoChat(): UseVideoChatReturn {
   const isSharingScreen = useVideoChatStore((s) => s.isSharingScreen);
   const isPeerSharingScreen = useVideoChatStore((s) => s.isPeerSharingScreen);
 
-  const refreshUserProgress = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["user-progress"] });
+  const refreshUserProgress = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["user-progress"] });
+    await queryClient.refetchQueries({ queryKey: ["user-progress"], type: "active" });
   }, [queryClient]);
+
+  const syncUserProgressAfterCallEnd = useCallback(() => {
+    void refreshUserProgress();
+    setTimeout(() => {
+      void refreshUserProgress();
+    }, 1200);
+    setTimeout(() => {
+      void refreshUserProgress();
+    }, 3500);
+  }, [refreshUserProgress]);
 
   const tabCoordination = useCallTabCoordination({
     scopeId: user?.id ?? null,
@@ -726,7 +737,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setError(null);
         toast(`Peer skipped - ${data.message}`);
-        refreshUserProgress();
+        syncUserProgressAfterCallEnd();
       },
 
       onSkipped: (_data: { message: string; queueSize: number }) => {
@@ -944,7 +955,9 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setConnectionStatus("searching");
     socketSignaling.skipPeer();
     trackEvent({ name: "matchmaking_skipped" });
-    setTimeout(() => refreshUserProgress(), 400);
+    setTimeout(() => {
+      void refreshUserProgress();
+    }, 400);
   }, [peerConnection, socketSignaling, refreshUserProgress]);
 
   const endCall = useCallback(() => {
@@ -957,7 +970,12 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setCallStartedAt(null);
     tabCoordination.releaseOwnership();
     resetPeerState();
-    setTimeout(() => refreshUserProgress(), 400);
+    setTimeout(() => {
+      void refreshUserProgress();
+    }, 400);
+    setTimeout(() => {
+      void refreshUserProgress();
+    }, 1500);
   }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination, monitoring]);
 
   useHotkey(

@@ -65,6 +65,7 @@ export interface UseVideoChatReturn {
 }
 
 export function useVideoChat(): UseVideoChatReturn {
+  const chatMessageMaxLength = 200;
   const {
     state: { getToken },
     user: { user },
@@ -1028,68 +1029,85 @@ export function useVideoChat(): UseVideoChatReturn {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }, []);
 
+  const splitMessageText = useCallback((message: string) => {
+    if (message.length <= chatMessageMaxLength) {
+      return [message];
+    }
+    const chunks: string[] = [];
+    for (let start = 0; start < message.length; start += chatMessageMaxLength) {
+      chunks.push(message.slice(start, start + chatMessageMaxLength));
+    }
+    return chunks;
+  }, []);
+
   const sendMessage = useCallback(
     (draft: ChatMessageDraft) => {
       const socketId = socketSignaling.getSocketId();
-      const timestamp = Date.now();
       const messageText = draft.message?.trim() || null;
 
       if (draft.type === "text" && !messageText) {
         return;
       }
 
-      const id = createMessageId();
-      const payload: ChatMessageInputPayload = {
-        id,
+      const baseTimestamp = Date.now();
+      const messageParts =
+        draft.type === "text" && messageText
+          ? splitMessageText(messageText)
+          : [messageText];
+      const payloads: ChatMessageInputPayload[] = messageParts.map((part, index) => ({
+        id: createMessageId(),
         type: draft.type,
-        message: messageText,
+        message: part,
         attachment: draft.attachment || null,
         metadata: draft.metadata || null,
-        timestamp,
-      };
+        timestamp: baseTimestamp + index,
+      }));
 
-      const localMessage: ChatMessage = {
-        id,
-        type: payload.type,
-        sender: {
-          socketId: socketId || "unknown",
-          userId: user?.id || "unknown",
-          displayName: user?.firstName || user?.username || "You",
-          avatarUrl: user?.imageUrl || null,
-        },
-        timestamp,
-        message: payload.message,
-        attachment: payload.attachment,
-        metadata: payload.metadata,
-        isOwn: true,
-        localStatus: "sending",
-      };
+      for (const payload of payloads) {
+        const localMessage: ChatMessage = {
+          id: payload.id,
+          type: payload.type,
+          sender: {
+            socketId: socketId || "unknown",
+            userId: user?.id || "unknown",
+            displayName: user?.firstName || user?.username || "You",
+            avatarUrl: user?.imageUrl || null,
+          },
+          timestamp: payload.timestamp ?? baseTimestamp,
+          message: payload.message,
+          attachment: payload.attachment,
+          metadata: payload.metadata,
+          isOwn: true,
+          localStatus: "sending",
+        };
+        actionsRef.current.addChatMessage(localMessage);
+      }
 
-      actionsRef.current.addChatMessage(localMessage);
+      trackEvent({ name: draft.type === "text" ? "chat_message_sent" : "chat_attachment_sent" });
 
-      trackEvent({ name: payload.type === "text" ? "chat_message_sent" : "chat_attachment_sent" });
-
-      const sendOperation =
-        payload.type === "text"
-          ? socketSignaling.sendChatMessage(payload)
-          : socketSignaling.sendChatAttachment(payload);
-
-      sendOperation
-        .then((ack) => {
-          if (ack.ok) {
-            actionsRef.current.updateChatMessageStatus(id, "sent");
-          } else {
-            actionsRef.current.updateChatMessageStatus(id, "failed");
-            if (ack.error) {
-              toast.error(ack.error);
+      void (async () => {
+        for (const payload of payloads) {
+          const sendOperation =
+            payload.type === "text"
+              ? socketSignaling.sendChatMessage(payload)
+              : socketSignaling.sendChatAttachment(payload);
+          try {
+            const ack = await sendOperation;
+            if (ack.ok) {
+              actionsRef.current.updateChatMessageStatus(payload.id, "sent");
+            } else {
+              actionsRef.current.updateChatMessageStatus(payload.id, "failed");
+              if (ack.error) {
+                toast.error(ack.error);
+              }
             }
+          } catch {
+            actionsRef.current.updateChatMessageStatus(payload.id, "failed");
           }
-        })
-        .catch(() => {
-          actionsRef.current.updateChatMessageStatus(id, "failed");
-        });
+        }
+      })();
     },
-    [socketSignaling, user, createMessageId]
+    [socketSignaling, user, createMessageId, splitMessageText]
   );
 
   const sendTyping = useCallback(

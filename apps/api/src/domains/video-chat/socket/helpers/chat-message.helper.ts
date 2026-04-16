@@ -8,7 +8,7 @@ import type {
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 
 export const maxAttachmentBytes = 5 * 1024 * 1024;
-export const maxMessageLength = 2000;
+export const maxMessageLength = 200;
 
 export function sanitizeMessageText(message: string | null): string | null {
   if (typeof message !== "string") return null;

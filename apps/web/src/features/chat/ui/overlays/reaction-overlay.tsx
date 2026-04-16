@@ -33,6 +33,7 @@ function randomIntInRange(min: number, max: number): number {
 export function ReactionOverlay() {
   const { reactions, removeReaction } = useReactionEffectContext();
   const [reactionInstancesById, setReactionInstancesById] = useState<Record<string, ReactionInstance[]>>({});
+  const [completedCountByReaction, setCompletedCountByReaction] = useState<Record<string, number>>({});
   const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
 
   useEffect(() => {
@@ -105,24 +106,45 @@ export function ReactionOverlay() {
 
       return hasChanges ? next : prev;
     });
+
+    setCompletedCountByReaction((prev) => {
+      const next = { ...prev };
+      let hasChanges = false;
+      for (const reactionId of reactions.map((reaction) => reaction.id)) {
+        if (next[reactionId] === undefined) {
+          next[reactionId] = 0;
+          hasChanges = true;
+        }
+      }
+      for (const reactionId of Object.keys(next)) {
+        if (!reactions.some((reaction) => reaction.id === reactionId)) {
+          delete next[reactionId];
+          hasChanges = true;
+        }
+      }
+      return hasChanges ? next : prev;
+    });
   }, [reactions]);
 
-  const handleReactionComplete = (reactionId: string) => {
-    setReactionInstancesById((prev) => {
-      if (!prev[reactionId]) {
-        return prev;
+  const handleReactionComplete = (reactionId: string, totalInstances: number) => {
+    setCompletedCountByReaction((prev) => {
+      const nextCount = (prev[reactionId] ?? 0) + 1;
+      if (nextCount >= totalInstances) {
+        removeReaction(reactionId);
       }
-      const next = { ...prev };
-      delete next[reactionId];
-      return next;
+      return {
+        ...prev,
+        [reactionId]: nextCount,
+      };
     });
-    removeReaction(reactionId);
   };
 
   const allInstances: Array<{ reactionId: string; instance: ReactionInstance; isLocal: boolean; type: string }> = [];
+  const instanceCountByReaction: Record<string, number> = {};
   Object.entries(reactionInstancesById).forEach(([reactionId, instances]) => {
     const reaction = reactions.find((r) => r.id === reactionId);
     if (!reaction) return;
+    instanceCountByReaction[reactionId] = instances.length;
     instances.forEach((instance) => {
       allInstances.push({ reactionId, instance, isLocal: reaction.isLocal, type: reaction.type });
     });
@@ -170,7 +192,7 @@ export function ReactionOverlay() {
                 times: [0, 0.1, 0.7, 1],
                 ease: "easeOut",
               }}
-              onAnimationComplete={() => handleReactionComplete(reactionId)}
+              onAnimationComplete={() => handleReactionComplete(reactionId, instanceCountByReaction[reactionId] ?? 1)}
               className="pointer-events-none fixed"
               style={{
                 left: `${instance.x}px`,

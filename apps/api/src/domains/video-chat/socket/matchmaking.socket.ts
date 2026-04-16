@@ -275,6 +275,8 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
               user1Projected.isTodayStreakComplete
             ) {
               const payload = {
+                eventKey: `${room.id}:${room.user1DbId}:${user1Projected.todayDate}:heartbeat`,
+                completedUserId: room.user1DbId,
                 userId: room.user1DbId,
                 streakCount: (user1Progress?.streak.currentStreak ?? 0) + 1,
                 date: user1Projected.todayDate,
@@ -298,6 +300,8 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
               user2Projected.isTodayStreakComplete
             ) {
               const payload = {
+                eventKey: `${room.id}:${room.user2DbId}:${user2Projected.todayDate}:heartbeat`,
+                completedUserId: room.user2DbId,
                 userId: room.user2DbId,
                 streakCount: (user2Progress?.streak.currentStreak ?? 0) + 1,
                 date: user2Projected.todayDate,

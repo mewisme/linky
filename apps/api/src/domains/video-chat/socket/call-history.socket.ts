@@ -138,6 +138,8 @@ export async function recordCallHistory(
             room.hasEmittedStreakCompletedUser2 = true;
           }
           const eventPayload = {
+            eventKey: `${room.id}:${userId}:${payload.date}:final`,
+            completedUserId: userId,
             userId,
             streakCount: payload.streakCount,
             date: payload.date,

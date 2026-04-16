@@ -43,6 +43,7 @@ const STREAK_COMPLETED_EVENT = "streak:completed";
 const USER_PROGRESS_UPDATE_EVENT = "user:progress:update";
 
 const STREAK_TOAST_DEBOUNCE_MS = 2000;
+const STREAK_EVENT_DEDUP_WINDOW_MS = 30000;
 
 export function ReactionEffectProvider({ children }: ReactionEffectProviderProps) {
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
@@ -52,6 +53,7 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   const queryClient = useQueryClient();
   const currentUserIdRef = useRef<string | null>(null);
   const lastStreakToastAtRef = useRef(0);
+  const seenStreakEventKeysRef = useRef<Map<string, number>>(new Map());
   // eslint-disable-next-line react-hooks/refs
   currentUserIdRef.current = store.user?.id ?? null;
 
@@ -105,15 +107,24 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   useEffect(() => {
     if (!socket) return;
     const handleStreakCompleted = (data: {
+      eventKey?: string;
+      completedUserId?: string;
       userId: string;
       streakCount: number;
       date: string;
       freezeUsed?: boolean;
     }) => {
-      const current = currentUserIdRef.current;
-      if (!current || data.userId !== current) return;
       if (useVideoChatStore.getState().connectionStatus !== "in_call") return;
       const now = Date.now();
+      for (const [key, timestamp] of seenStreakEventKeysRef.current.entries()) {
+        if (now - timestamp > STREAK_EVENT_DEDUP_WINDOW_MS) {
+          seenStreakEventKeysRef.current.delete(key);
+        }
+      }
+      const actorUserId = data.completedUserId ?? data.userId;
+      const dedupeKey = data.eventKey ?? `${actorUserId}:${data.date}:${data.streakCount}:${data.freezeUsed ? "freeze" : "normal"}`;
+      if (seenStreakEventKeysRef.current.has(dedupeKey)) return;
+      seenStreakEventKeysRef.current.set(dedupeKey, now);
       if (now - lastStreakToastAtRef.current < STREAK_TOAST_DEBOUNCE_MS) return;
       lastStreakToastAtRef.current = now;
       if (data.freezeUsed) {

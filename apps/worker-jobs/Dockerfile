@@ -1,23 +1,24 @@
 # syntax=docker/dockerfile:1
 
-ARG PNPM_VERSION=10.33.0
+ARG TURBO_VERSION=2.9.6
 
-FROM node:25-alpine AS base
+FROM node:24-alpine AS base
 RUN apk add --no-cache libc6-compat
-RUN npm install -g pnpm@${PNPM_VERSION}
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 
 FROM base AS pruner
-RUN npm install -g turbo@2.9.0
+RUN npm install -g turbo@${TURBO_VERSION}
 COPY . .
 RUN turbo prune @ws/worker-jobs --docker
 
 FROM base AS builder
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
-COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-RUN pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
 RUN pnpm exec turbo run build --filter=@ws/worker-jobs
 

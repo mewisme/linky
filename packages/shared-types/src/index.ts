@@ -20,6 +20,18 @@ export type UserEmbeddingRegenerateJobEnvelope = {
 
 export type AiJobEnvelope = ReportAiSummaryJobEnvelope | UserEmbeddingRegenerateJobEnvelope;
 
-export type JobsJobEnvelope = never;
+export type ApplyCallExpJobEnvelope = {
+  v: 1;
+  type: "apply_call_exp";
+  payload: {
+    userId: string;
+    durationSeconds: number;
+    timezone?: string;
+    counterpartUserId?: string;
+    dateForExpToday?: string;
+  };
+};
 
-export type AnyJobEnvelope = AiJobEnvelope;
+export type JobsJobEnvelope = ApplyCallExpJobEnvelope;
+
+export type AnyJobEnvelope = AiJobEnvelope | JobsJobEnvelope;

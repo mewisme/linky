@@ -1,6 +1,6 @@
 {
   "name": "@ws/api",
-  "version": "0.75.1",
+  "version": "0.75.2",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -13,11 +13,11 @@
       "import": "./dist/index.js"
     },
     "./worker-ai": {
-      "types": "./src/worker/ai-job-executor.d.ts",
+      "types": "./dist/worker/ai-job-executor.d.ts",
       "import": "./dist/worker/ai-job-executor.js"
     },
     "./worker-jobs": {
-      "types": "./src/worker/jobs-job-executor.d.ts",
+      "types": "./dist/worker/jobs-job-executor.d.ts",
       "import": "./dist/worker/jobs-job-executor.js"
     }
   },

@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const mockTryEnqueueApplyCallExpJob = vi.fn();
+
+vi.mock("@/jobs/worker-jobs/apply-call-exp.job.js", () => ({
+  tryEnqueueApplyCallExpJob: (...args: unknown[]) => mockTryEnqueueApplyCallExpJob(...args),
+}));
+
 import { applyCallEndedProgress } from "@/contexts/call-ended-context.js";
 
 const mockInvalidate = vi.fn();
@@ -20,6 +26,7 @@ beforeEach(() => {
   mockInvalidate.mockResolvedValue(undefined);
   mockAddCallExp.mockResolvedValue(undefined);
   mockAddCallDurationToStreak.mockResolvedValue(null);
+  mockTryEnqueueApplyCallExpJob.mockResolvedValue(true);
 });
 
 describe("applyCallEndedProgress", () => {
@@ -93,6 +100,14 @@ describe("applyCallEndedProgress", () => {
 
     expect(mockAddCallExp).toHaveBeenCalledTimes(2);
     expect(mockAddCallDurationToStreak).toHaveBeenCalledTimes(2);
+    expect(mockTryEnqueueApplyCallExpJob).toHaveBeenCalledTimes(1);
+    expect(mockTryEnqueueApplyCallExpJob).toHaveBeenCalledWith({
+      userId: "c1",
+      durationSeconds: 300,
+      timezone: "America/New_York",
+      counterpartUserId: "c2",
+      dateForExpToday: "2024-06-15",
+    });
   });
 
   it("onStreakCompleted: called for both users when both return firstTimeValid", async () => {

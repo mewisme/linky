@@ -21,6 +21,7 @@ docs/
  │    ├── 01-overview.md             ← Platform overview, tech stack, project structure
  │    ├── 02-architecture.md         ← System architecture, layer model, data flow
  │    ├── 03-authentication.md       ← Clerk auth, JWT flow, middleware, webhooks
+ │    ├── playwright-e2e-commands.md ← Playwright E2E: scripts, env, reports, Excel export
  │    ├── 04-video-chat-system.md    ← WebRTC, rooms, signaling, call lifecycle
  │    ├── 05-matchmaking.md          ← Queue, scoring, embedding similarity, state stores
  │    ├── 06-embedding-system.md     ← Ollama, semantic profiles, vector storage

@@ -1,7 +1,7 @@
 import { getUserEmbeddingByUserId, upsertUserEmbedding } from "@/infra/supabase/repositories/user-embeddings.js";
 
 import { config } from "@/config/index.js";
-import { tryEnqueueAsyncJob } from "@/jobs/job-queue.js";
+import { tryEnqueueUserEmbeddingRegenerateJob } from "@/jobs/worker-ai/user-embedding-regenerate.job.js";
 import { buildEmbeddingInput, type SemanticProfileInput } from "./embedding-input.builder.js";
 import { createHash } from "node:crypto";
 import { createLogger } from "@/utils/logger.js";
@@ -115,11 +115,7 @@ export async function runUserEmbeddingRegenerationJob(userId: string): Promise<v
 
 export function scheduleEmbeddingRegeneration(userId: string): void {
   void (async () => {
-    const enqueued = await tryEnqueueAsyncJob({
-      v: 1,
-      type: "user_embedding_regenerate",
-      payload: { userId },
-    });
+    const enqueued = await tryEnqueueUserEmbeddingRegenerateJob(userId);
     if (!enqueued) {
       setImmediate(() => {
         runEmbeddingJob(userId).catch(() => {});

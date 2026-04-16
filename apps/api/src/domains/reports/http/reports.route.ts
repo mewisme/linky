@@ -9,7 +9,7 @@ import { createUserReport, listUserReports } from "@/domains/reports/service/rep
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
 import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
-import { enqueueReportAiSummaryJob } from "@/jobs/report-ai-summary.job.js";
+import { enqueueReportAiSummaryJob } from "@/jobs/worker-ai/report-ai-summary.job.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:route");

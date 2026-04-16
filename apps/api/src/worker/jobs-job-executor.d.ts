@@ -1,1 +1,3 @@
-export function executeGeneralJob(payload: unknown): Promise<void>;
+import type { JobsJobEnvelope } from "@ws/shared-types";
+
+export function executeGeneralJob(envelope: JobsJobEnvelope): Promise<void>;

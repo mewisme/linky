@@ -1,6 +1,6 @@
 {
   "name": "@ws/worker-jobs",
-  "version": "0.75.1",
+  "version": "0.75.2",
   "private": true,
   "type": "module",
   "main": "dist/index.js",
@@ -15,10 +15,12 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@ws/api": "workspace:*",
     "@ws/config": "workspace:*",
     "@ws/logger": "workspace:*",
     "@ws/sdk-internal": "workspace:*",
     "@ws/shared-types": "workspace:*",
+    "@ws/validation": "workspace:*",
     "dotenv": "17.4.2",
     "redis": "5.12.1"
   },

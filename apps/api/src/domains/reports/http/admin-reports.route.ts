@@ -7,7 +7,7 @@ import type { ReportUpdate } from "@/domains/reports/types/report.types.js";
 import { fetchReportById, fetchReportWithContext, listReports, updateReportById } from "@/domains/reports/service/reports.service.js";
 import { getReportAiSummaryByReportId } from "@/infra/supabase/repositories/report-ai-summaries.js";
 import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
-import { enqueueReportAiSummaryJob } from "@/jobs/report-ai-summary.job.js";
+import { enqueueReportAiSummaryJob } from "@/jobs/worker-ai/report-ai-summary.job.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:admin:route");

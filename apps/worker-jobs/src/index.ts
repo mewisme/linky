@@ -1,10 +1,13 @@
 import "dotenv/config";
 
+import { inspect } from "node:util";
 import { createClient } from "redis";
 
 import { initLogger } from "@ws/logger";
 import { dequeueGeneralJob } from "@ws/sdk-internal";
-import { JOBS_QUEUE_KEY } from "@ws/shared-types";
+import { JOBS_QUEUE_KEY, type JobsJobEnvelope } from "@ws/shared-types";
+import { safeParseJobsJobEnvelope } from "@ws/validation";
+import { executeGeneralJob } from "@ws/api/worker-jobs";
 
 import { getWorkerRedisOptions } from "./redis-options.js";
 
@@ -15,6 +18,13 @@ const client = createClient(getWorkerRedisOptions());
 
 let stopping = false;
 
+function formatJobsJobLabel(envelope: JobsJobEnvelope): string {
+  switch (envelope.type) {
+    case "apply_call_exp":
+      return `type=apply_call_exp userId=${envelope.payload.userId} durationSeconds=${envelope.payload.durationSeconds}`;
+  }
+}
+
 async function loop(): Promise<void> {
   while (!stopping) {
     const raw = await dequeueGeneralJob(client, 5);
@@ -22,7 +32,27 @@ async function loop(): Promise<void> {
       continue;
     }
 
-    logger.warn("No general job handlers registered yet. Dropping payload length=%d", raw.length);
+    const parsed = safeParseJobsJobEnvelope(raw);
+    if (!parsed.ok) {
+      logger.error(
+        "Invalid general job payload dropped: %s (payloadBytes=%d)",
+        parsed.error,
+        Buffer.byteLength(raw, "utf8"),
+      );
+      continue;
+    }
+
+    const label = formatJobsJobLabel(parsed.data);
+    const started = Date.now();
+    logger.info("General job dequeued (%s)", label);
+
+    try {
+      await executeGeneralJob(parsed.data);
+      logger.info("General job completed (%s, durationMs=%d)", label, Date.now() - started);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(inspect(error));
+      logger.error(err, "General job failed (%s, durationMs=%d)", label, Date.now() - started);
+    }
   }
 }
 

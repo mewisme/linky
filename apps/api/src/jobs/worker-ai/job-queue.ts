@@ -6,23 +6,20 @@ import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 
-const logger = createLogger("jobs:queue");
+const logger = createLogger("jobs:worker-ai:queue");
 
-export async function tryEnqueueAsyncJob(envelope: AiJobEnvelope): Promise<boolean> {
+export async function tryEnqueueAiJob(envelope: AiJobEnvelope): Promise<boolean> {
   if (!redisClient.isOpen) {
     return false;
   }
 
   try {
-    await withRedisTimeout(
-      () => enqueueAiJob(redisClient, envelope),
-      "async-job-enqueue",
-    );
+    await withRedisTimeout(() => enqueueAiJob(redisClient, envelope), "worker-ai-enqueue");
     return true;
   } catch (error: unknown) {
     logger.warn(
       toLoggableError(error),
-      "Async job enqueue failed; falling back to in-process execution when applicable",
+      "worker-ai job enqueue failed; falling back to in-process execution when applicable",
     );
     return false;
   }

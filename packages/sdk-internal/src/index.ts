@@ -1,4 +1,9 @@
-import { AI_JOB_QUEUE_KEY, JOBS_QUEUE_KEY, type AiJobEnvelope } from "@ws/shared-types";
+import {
+  AI_JOB_QUEUE_KEY,
+  JOBS_QUEUE_KEY,
+  type AiJobEnvelope,
+  type JobsJobEnvelope,
+} from "@ws/shared-types";
 
 type RedisListClient = {
   lPush: (key: string, element: string) => Promise<unknown>;
@@ -7,6 +12,10 @@ type RedisListClient = {
 
 export async function enqueueAiJob(client: RedisListClient, envelope: AiJobEnvelope): Promise<void> {
   await client.lPush(AI_JOB_QUEUE_KEY, JSON.stringify(envelope));
+}
+
+export async function enqueueGeneralJob(client: RedisListClient, envelope: JobsJobEnvelope): Promise<void> {
+  await client.lPush(JOBS_QUEUE_KEY, JSON.stringify(envelope));
 }
 
 export async function dequeueAiJob(client: RedisListClient, timeoutSeconds: number): Promise<string | null> {

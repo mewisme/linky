@@ -1,4 +1,5 @@
 import { addCallExp, addCallDurationToStreak } from "@/domains/user/index.js";
+import { tryEnqueueApplyCallExpJob } from "@/jobs/worker-jobs/apply-call-exp.job.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { invalidate } from "@/infra/redis/cache/index.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
@@ -26,14 +27,29 @@ async function applyCallProgressForUser(params: ApplyCallProgressParams): Promis
 
   const dateStr = toUserLocalDateString(new Date(callEndDate), timezone);
 
-  await Promise.allSettled([
-    invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone)),
-    addCallExp(userId, durationSeconds, {
+  try {
+    await addCallExp(userId, durationSeconds, {
       timezone,
       counterpartUserId,
       dateForExpToday: dateStr,
-    }),
-  ]);
+    });
+  } catch (error) {
+    logger.error(toLoggableError(error), "addCallExp failed user=%s", userId);
+    const enqueued = await tryEnqueueApplyCallExpJob({
+      userId,
+      durationSeconds,
+      timezone,
+      counterpartUserId,
+      dateForExpToday: dateStr,
+    });
+    if (!enqueued) {
+      logger.error("apply_call_exp job not enqueued for user=%s (redis unavailable?)", userId);
+    }
+  }
+
+  void invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone)).catch((err) => {
+    logger.warn(toLoggableError(err), "invalidate user progress failed user=%s", userId);
+  });
 
   const streakResult = await addCallDurationToStreak(userId, durationSeconds, callEndDate, timezone);
 

@@ -40,6 +40,7 @@ export const applyCallExpEnvelopeSchema = z.object({
   payload: z.object({
     userId: z.string().uuid(),
     durationSeconds: z.number().int().positive(),
+    expSecondsToAdd: z.number().int().nonnegative().optional(),
     timezone: z.string().min(1).optional(),
     counterpartUserId: z.string().uuid().optional(),
     dateForExpToday: z

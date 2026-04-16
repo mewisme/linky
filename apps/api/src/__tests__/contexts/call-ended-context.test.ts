@@ -11,10 +11,12 @@ import { applyCallEndedProgress } from "@/contexts/call-ended-context.js";
 const mockInvalidate = vi.fn();
 const mockAddCallExp = vi.fn();
 const mockAddCallDurationToStreak = vi.fn();
+const mockComputeExpSecondsForCallDuration = vi.fn();
 
 vi.mock("@/domains/user/index.js", () => ({
   addCallExp: (...args: unknown[]) => mockAddCallExp(...args),
   addCallDurationToStreak: (...args: unknown[]) => mockAddCallDurationToStreak(...args),
+  computeExpSecondsForCallDuration: (...args: unknown[]) => mockComputeExpSecondsForCallDuration(...args),
 }));
 
 vi.mock("@/infra/redis/cache/index.js", () => ({
@@ -27,6 +29,9 @@ beforeEach(() => {
   mockAddCallExp.mockResolvedValue(undefined);
   mockAddCallDurationToStreak.mockResolvedValue(null);
   mockTryEnqueueApplyCallExpJob.mockResolvedValue(true);
+  mockComputeExpSecondsForCallDuration.mockImplementation((_userId: string, duration: number) =>
+    Promise.resolve(duration),
+  );
 });
 
 describe("applyCallEndedProgress", () => {
@@ -42,6 +47,7 @@ describe("applyCallEndedProgress", () => {
     await applyCallEndedProgress({ ...baseParams, durationSeconds: 0 });
 
     expect(mockInvalidate).not.toHaveBeenCalled();
+    expect(mockComputeExpSecondsForCallDuration).not.toHaveBeenCalled();
     expect(mockAddCallExp).not.toHaveBeenCalled();
     expect(mockAddCallDurationToStreak).not.toHaveBeenCalled();
   });
@@ -56,11 +62,13 @@ describe("applyCallEndedProgress", () => {
       timezone: "America/New_York",
       counterpartUserId: "c2",
       dateForExpToday: "2024-06-15",
+      expSecondsToAdd: 300,
     });
     expect(mockAddCallExp).toHaveBeenCalledWith("c2", 300, {
       timezone: "Europe/Paris",
       counterpartUserId: "c1",
       dateForExpToday: "2024-06-15",
+      expSecondsToAdd: 300,
     });
 
     expect(mockAddCallDurationToStreak).toHaveBeenCalledWith("c1", 300, baseParams.endedAt, "America/New_York");
@@ -104,6 +112,7 @@ describe("applyCallEndedProgress", () => {
     expect(mockTryEnqueueApplyCallExpJob).toHaveBeenCalledWith({
       userId: "c1",
       durationSeconds: 300,
+      expSecondsToAdd: 300,
       timezone: "America/New_York",
       counterpartUserId: "c2",
       dateForExpToday: "2024-06-15",

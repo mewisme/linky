@@ -1,4 +1,8 @@
-import { addCallExp, getUserLevelData } from "../../../domains/user/service/user-level.service.js";
+import {
+  addCallExp,
+  computeExpSecondsForCallDuration,
+  getUserLevelData,
+} from "../../../domains/user/service/user-level.service.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetUserLevel = vi.fn();
@@ -116,6 +120,15 @@ describe("addCallExp", () => {
     expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 150);
   });
 
+  it("expSecondsToAdd: uses override and does not read streak for bonus", async () => {
+    mockGetUserStreak.mockResolvedValue({ current_streak: 99 });
+    mockGetStreakExpBonusForStreak.mockResolvedValue({ bonus_multiplier: 2 });
+    await addCallExp("u1", 100, { expSecondsToAdd: 77 });
+    expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 77);
+    expect(mockGetUserStreak).not.toHaveBeenCalled();
+    expect(mockGetStreakExpBonusForStreak).not.toHaveBeenCalled();
+  });
+
   it("streak bonus: getStreakExpBonusForStreak returns null -> no bonus", async () => {
     mockGetUserStreak.mockResolvedValue({ current_streak: 5 });
     mockGetStreakExpBonusForStreak.mockResolvedValue(null);
@@ -143,6 +156,26 @@ describe("addCallExp", () => {
   it("repo throw propagates", async () => {
     mockGetUserLevel.mockRejectedValue(new Error("db error"));
     await expect(addCallExp("u1", 100)).rejects.toThrow("db error");
+  });
+});
+
+describe("computeExpSecondsForCallDuration", () => {
+  it("returns 0 when durationSeconds <= 0 or userId invalid", async () => {
+    expect(await computeExpSecondsForCallDuration("u1", 0)).toBe(0);
+    expect(await computeExpSecondsForCallDuration("u1", -1)).toBe(0);
+    expect(await computeExpSecondsForCallDuration("", 60)).toBe(0);
+    expect(mockGetUserStreak).not.toHaveBeenCalled();
+  });
+
+  it("returns duration when no streak bonus", async () => {
+    mockGetUserStreak.mockResolvedValue(null);
+    expect(await computeExpSecondsForCallDuration("u1", 120)).toBe(120);
+  });
+
+  it("applies streak multiplier like addCallExp", async () => {
+    mockGetUserStreak.mockResolvedValue({ current_streak: 3 });
+    mockGetStreakExpBonusForStreak.mockResolvedValue({ bonus_multiplier: 1.25 });
+    expect(await computeExpSecondsForCallDuration("u1", 100)).toBe(125);
   });
 });
 

@@ -1,7 +1,20 @@
 "use client";
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@ws/ui/components/ui/alert-dialog";
+
+import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "@/features/call/lib/webrtc/video-chat-media-errors";
 import { useVideoChat } from "@/features/call/hooks/webrtc/use-video-chat";
+import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types";
 
 interface GlobalCallContextValue {
@@ -30,6 +43,8 @@ interface GlobalCallManagerProps {
 
 export function GlobalCallManager({ children }: GlobalCallManagerProps) {
   const videoChat = useVideoChat();
+  const error = useVideoChatStore((s) => s.error);
+  const isNoMicrophoneError = error === VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE;
 
   const contextValue = useMemo<GlobalCallContextValue>(() => ({
     isInActiveCall: videoChat.isInActiveCall,
@@ -65,6 +80,40 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
 
   return (
     <GlobalCallContext.Provider value={contextValue}>
+      <AlertDialog
+        open={!!error}
+        onOpenChange={(open) => {
+          if (!open) {
+            videoChat.clearError();
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isNoMicrophoneError ? "No microphone found" : "Something went wrong"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{error}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {isNoMicrophoneError ? (
+              <AlertDialogAction onClick={videoChat.clearError}>OK</AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel onClick={videoChat.clearError}>Dismiss</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    videoChat.clearError();
+                    window.location.reload();
+                  }}
+                >
+                  Refresh Page
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {children}
     </GlobalCallContext.Provider>
   );

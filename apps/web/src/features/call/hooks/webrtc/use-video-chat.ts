@@ -322,6 +322,7 @@ export function useVideoChat(): UseVideoChatReturn {
     return async (stream: MediaStream) => {
       peerConnection.initializePeerConnection(stream, peerCallbacks, iceServersRef.current);
       await socketSignaling.initializeSocket(socketCallbacks as never);
+      actionsRef.current.setConnectionStatus("searching");
       socketSignaling.joinQueue();
     };
   }, [peerConnection, socketSignaling]);
@@ -452,9 +453,7 @@ export function useVideoChat(): UseVideoChatReturn {
         if (currentStatus === "searching") {
           const isTransportClose = reason === "transport close" || reason === "transport error";
           if (isTransportClose) {
-            actionsRef.current.setConnectionStatus("idle");
-            actionsRef.current.setError("Connection lost during matchmaking. Please try again.");
-            toast.error("Connection lost. Please try again.");
+            return;
           }
         } else if (isInCall) {
           startReconnecting();
@@ -808,11 +807,13 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onDequeued: (data: { reason: string }) => {
         const currentStatus = connectionStatusRef.current;
+        const reasonNorm = (data.reason ?? "").toLowerCase();
         if (currentStatus === "searching") {
-          actionsRef.current.setConnectionStatus("idle");
-          if (!data.reason.includes("matched")) {
-            toast.error("Removed from matchmaking queue");
+          if (reasonNorm.includes("matched")) {
+            return;
           }
+          actionsRef.current.setConnectionStatus("idle");
+          toast.error("Removed from matchmaking queue");
         }
       },
 
@@ -849,7 +850,6 @@ export function useVideoChat(): UseVideoChatReturn {
       getToken,
       monitoring,
       isMobile,
-      state.connectionStatus,
     ]
   );
 
@@ -886,8 +886,6 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
-      actionsRef.current.setConnectionStatus("searching");
-
       if (iceServersRef.current.length === 0) {
         iceServersRef.current = await iceServerCache.getIceServers(
           (opts) => getTokenRef.current(opts),
@@ -917,10 +915,11 @@ export function useVideoChat(): UseVideoChatReturn {
       await initialize(stream);
     } catch (err) {
       Sentry.logger.error("Error starting video chat", { error: err instanceof Error ? err.message : "Unknown error" });
-      actionsRef.current.setError(err instanceof Error ? err.message : "Failed to start video chat");
+      const message = err instanceof Error ? err.message : "Failed to start video chat";
       actionsRef.current.setConnectionStatus("idle");
       tabCoordination.releaseOwnership();
       cleanup();
+      actionsRef.current.setError(message);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [

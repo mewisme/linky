@@ -1,4 +1,8 @@
-import { addCallExp, addCallDurationToStreak } from "@/domains/user/index.js";
+import {
+  addCallExp,
+  addCallDurationToStreak,
+  computeExpSecondsForCallDuration,
+} from "@/domains/user/index.js";
 import { tryEnqueueApplyCallExpJob } from "@/jobs/worker-jobs/apply-call-exp.job.js";
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { invalidate } from "@/infra/redis/cache/index.js";
@@ -26,18 +30,21 @@ async function applyCallProgressForUser(params: ApplyCallProgressParams): Promis
   const { userId, counterpartUserId, durationSeconds, callEndDate, timezone } = params;
 
   const dateStr = toUserLocalDateString(new Date(callEndDate), timezone);
+  const expSecondsToAdd = await computeExpSecondsForCallDuration(userId, durationSeconds);
 
   try {
     await addCallExp(userId, durationSeconds, {
       timezone,
       counterpartUserId,
       dateForExpToday: dateStr,
+      expSecondsToAdd,
     });
   } catch (error) {
     logger.error(toLoggableError(error), "addCallExp failed user=%s", userId);
     const enqueued = await tryEnqueueApplyCallExpJob({
       userId,
       durationSeconds,
+      expSecondsToAdd,
       timezone,
       counterpartUserId,
       dateForExpToday: dateStr,

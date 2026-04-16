@@ -1,6 +1,8 @@
 import { apiUrl } from "@/lib/http/api-url";
 import { fetchData } from "@/lib/http/client-api";
 
+import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "./video-chat-media-errors";
+
 export interface IceServersResponse {
   iceServers: RTCIceServer[];
 }
@@ -55,6 +57,8 @@ function shouldRetryWithoutVideo(error: unknown): boolean {
   );
 }
 
+export { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE, isVideoChatNoMicrophoneError } from "./video-chat-media-errors";
+
 function getMediaErrorMessage(error: unknown): string {
   if (!(error instanceof DOMException)) {
     return "An unexpected error occurred while accessing your camera/microphone.";
@@ -66,7 +70,7 @@ function getMediaErrorMessage(error: unknown): string {
       return "Camera/microphone access was denied. Please allow access in your browser settings and try again.";
     case "NotFoundError":
     case "DevicesNotFoundError":
-      return "No microphone found. Please connect a microphone to start a call.";
+      return VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE;
     case "NotReadableError":
     case "TrackStartError":
       return "Your camera or microphone is already in use by another application. Please close it and try again.";

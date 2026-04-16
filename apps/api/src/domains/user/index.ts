@@ -12,6 +12,7 @@ export type { UserSettingsUpdate } from "./types/user-settings.types.js";
 
 export {
   addCallExp,
+  computeExpSecondsForCallDuration,
   getUserLevelData,
   calculateLevelFromExp,
 } from "./service/user-level.service.js";

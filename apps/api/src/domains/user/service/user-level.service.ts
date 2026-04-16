@@ -31,6 +31,25 @@ export interface AddCallExpOptions {
   timezone?: string;
   counterpartUserId?: string;
   dateForExpToday?: string;
+  expSecondsToAdd?: number;
+}
+
+export async function computeExpSecondsForCallDuration(
+  userId: string,
+  durationSeconds: number,
+): Promise<number> {
+  if (durationSeconds <= 0) return 0;
+  if (!userId || typeof userId !== "string" || userId.trim() === "") return 0;
+
+  let expToAdd = durationSeconds;
+  const streakData = await getUserStreak(userId);
+  if (streakData && streakData.current_streak > 0) {
+    const bonus = await getStreakExpBonusForStreak(streakData.current_streak);
+    if (bonus) {
+      expToAdd = Math.floor(durationSeconds * bonus.bonus_multiplier);
+    }
+  }
+  return expToAdd;
 }
 
 export async function addCallExp(
@@ -49,14 +68,11 @@ export async function addCallExp(
       ? calculateLevelFromExp(levelBefore.total_exp_seconds, DEFAULT_LEVEL_PARAMS).level
       : 1;
 
-    let expToAdd = durationSeconds;
-
-    const streakData = await getUserStreak(userId);
-    if (streakData && streakData.current_streak > 0) {
-      const bonus = await getStreakExpBonusForStreak(streakData.current_streak);
-      if (bonus) {
-        expToAdd = Math.floor(durationSeconds * bonus.bonus_multiplier);
-      }
+    let expToAdd: number;
+    if (options?.expSecondsToAdd != null) {
+      expToAdd = Math.max(0, options.expSecondsToAdd);
+    } else {
+      expToAdd = await computeExpSecondsForCallDuration(userId, durationSeconds);
     }
 
     const dateForExpToday = options?.dateForExpToday;

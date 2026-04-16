@@ -26,6 +26,7 @@ export type ApplyCallExpJobEnvelope = {
   payload: {
     userId: string;
     durationSeconds: number;
+    expSecondsToAdd?: number;
     timezone?: string;
     counterpartUserId?: string;
     dateForExpToday?: string;

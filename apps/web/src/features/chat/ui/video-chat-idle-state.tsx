@@ -1,7 +1,14 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
-import { IconBolt, IconFlame, IconPhoneOff, IconPlayerPlay, IconStar, IconTrophy } from "@tabler/icons-react";
+import {
+  IconBolt,
+  IconFlame,
+  IconPhoneOff,
+  IconPlayerPlay,
+  IconStar,
+  IconTrophy,
+} from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import type { UsersAPI } from "@/entities/user/types/users.types";
@@ -40,7 +47,12 @@ interface VideoChatIdleStateProps {
   initialProgress?: UsersAPI.Progress.GetMe.Response | null;
 }
 
-export function VideoChatIdleState({ onStart, onEndCall, connectionStatus, initialProgress }: VideoChatIdleStateProps) {
+export function VideoChatIdleState({
+  onStart,
+  onEndCall,
+  connectionStatus,
+  initialProgress,
+}: VideoChatIdleStateProps) {
   const { user } = useUserContext();
   const { data: progress } = useQuery({
     queryKey: ["user-progress"],
@@ -80,9 +92,7 @@ export function VideoChatIdleState({ onStart, onEndCall, connectionStatus, initi
               {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <h2 className="text-lg font-semibold text-foreground sm:text-xl">
-            Ready to start a chat?
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Ready to start a chat?</h2>
         </div>
 
         {progress && (

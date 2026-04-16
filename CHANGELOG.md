@@ -1,12 +1,12 @@
 ## What's Changed
 
-✨ Features
+⚡️ Performance
 
-- Enhance user experience tracking and database schema ([78c0ee3](../../commit/78c0ee3))
+- Enhance video chat event tracking and reaction handling ([1fb4c63](../../commit/1fb4c63))
 
 🔨 Other Changes
 
-- Update package versions to 0.77.0 and refresh version lock ([86fcd96](../../commit/86fcd96))
+- Update package versions to 0.78.0 and refresh version lock ([4189f72](../../commit/4189f72))
 
 
-📋 Full Changelog: [86fcd96...78c0ee3](../../compare/86fcd96...78c0ee3)
+📋 Full Changelog: [4189f72...1fb4c63](../../compare/4189f72...1fb4c63)

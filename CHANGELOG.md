@@ -1,12 +1,13 @@
 ## What's Changed
 
-🐛 Bug Fixes
+♻️ Refactoring
 
-- Remove unused cron import and update error handling in video chat ([f367808](../../commit/f367808))
+- Consolidate worker functionality and update Docker configurations ([b8b4a18](../../commit/b8b4a18))
 
 🔨 Other Changes
 
-- Update package versions to 0.75.1 and refresh version lock ([005ce05](../../commit/005ce05))
+- Update Dockerfiles to use Turbo version 2.9.6 and Node 24, enabling corepack for pnpm ([362c217](../../commit/362c217))
+- Update package versions to 0.75.2 and refresh version lock ([2f0301a](../../commit/2f0301a))
 
 
-📋 Full Changelog: [005ce05...f367808](../../compare/005ce05...f367808)
+📋 Full Changelog: [2f0301a...b8b4a18](../../compare/2f0301a...b8b4a18)

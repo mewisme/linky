@@ -1,12 +1,12 @@
 ## What's Changed
 
-♻️ Refactoring
+✨ Features
 
-- Streamline user progress insights and presence handling ([48fcd5e](../../commit/48fcd5e))
+- Enhance video chat functionality and user progress tracking ([253edd8](../../commit/253edd8))
 
 🔨 Other Changes
 
-- Update package versions to 0.76.0 and refresh version lock ([1de2a3b](../../commit/1de2a3b))
+- Update package versions to 0.76.1 and refresh version lock ([087af08](../../commit/087af08))
 
 
-📋 Full Changelog: [1de2a3b...48fcd5e](../../compare/1de2a3b...48fcd5e)
+📋 Full Changelog: [087af08...253edd8](../../compare/087af08...253edd8)

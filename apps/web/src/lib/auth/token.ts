@@ -12,9 +12,6 @@ export async function getToken(): Promise<string> {
   let token: string | null = null;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     token = await getToken({ template: 'server_action' });
-    if (!token) {
-      token = await getToken();
-    }
     if (token) return token;
     if (attempt < MAX_RETRIES) await new Promise((r) => setTimeout(r, 100 * attempt));
   }

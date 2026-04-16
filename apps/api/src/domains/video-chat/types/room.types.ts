@@ -14,6 +14,9 @@ export interface VideoChatRoomRecord extends VideoChatRoom {
   user2DbId?: string;
   user1Timezone?: string;
   user2Timezone?: string;
-  persistedDurationSeconds?: number;
+  lastProjectedTotalExpUser1?: number;
+  lastProjectedTotalExpUser2?: number;
+  hasEmittedStreakCompletedUser1?: boolean;
+  hasEmittedStreakCompletedUser2?: boolean;
 }
 

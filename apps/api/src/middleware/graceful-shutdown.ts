@@ -5,7 +5,8 @@ import { redisClient } from "@/infra/redis/client.js";
 import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
-import { clearMatchmakingIntervals } from "@/domains/video-chat/socket/matchmaking.socket.js";
+import { clearMatchmakingIntervals, persistActiveRoomCallHistories } from "@/domains/video-chat/socket/matchmaking.socket.js";
+import { getVideoChatContext } from "@/domains/video-chat/socket/video-chat.socket.js";
 
 const logger = createLogger("middleware:graceful-shutdown");
 
@@ -33,6 +34,10 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
 
     try {
       clearMatchmakingIntervals();
+      const videoChatContext = getVideoChatContext();
+      if (videoChatContext) {
+        await persistActiveRoomCallHistories(videoChatContext.io, videoChatContext.rooms);
+      }
 
       await new Promise<void>((resolve) => {
         if (!httpServer) {

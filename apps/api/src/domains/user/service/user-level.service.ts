@@ -1,8 +1,5 @@
 import type { LevelCalculationParams, UserLevel } from "@/domains/user/types/user-level.types.js";
 import { getUserLevel, incrementUserExp } from "@/infra/supabase/repositories/user-levels.js";
-import { invalidate, invalidateByPrefix } from "@/infra/redis/cache/index.js";
-
-import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
 import { calculateLevelFromExp as calcLevel } from "@/logic/level-from-exp.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
@@ -10,7 +7,6 @@ import { getStreakExpBonusForStreak } from "@/infra/supabase/repositories/streak
 import { getUserStreak } from "@/infra/supabase/repositories/user-streaks.js";
 import { grantFreezesForLevel } from "./user-streak-freeze.service.js";
 import { grantRewardsForLevel } from "./user-level-reward.service.js";
-import { incrExpToday } from "@/infra/redis/cache/exp-today.js";
 import { incrementDailyExpWithMilestones } from "@/infra/supabase/repositories/user-exp-daily.js";
 
 const logger = createLogger("api:user:level:service");
@@ -60,8 +56,6 @@ export async function addCallExp(
   if (durationSeconds <= 0) return;
   if (!userId || typeof userId !== "string" || userId.trim() === "") return;
 
-  const timezone = options?.timezone;
-
   try {
     const levelBefore = await getUserLevel(userId);
     const levelBeforeValue = levelBefore
@@ -76,19 +70,29 @@ export async function addCallExp(
     }
 
     const dateForExpToday = options?.dateForExpToday;
+    const totalBefore = levelBefore?.total_exp_seconds ?? 0;
+    logger.info(
+      "addCallExp start user=%s duration=%d expToAdd=%d totalBefore=%d date=%s",
+      userId,
+      durationSeconds,
+      expToAdd,
+      totalBefore,
+      dateForExpToday ?? "n/a",
+    );
     await incrementUserExp(userId, expToAdd);
     if (dateForExpToday) {
-      await Promise.all([
-        incrementDailyExpWithMilestones(userId, dateForExpToday, expToAdd),
-        incrExpToday(userId, dateForExpToday, expToAdd),
-      ]);
-    }
-    await invalidateByPrefix(`user:progress:${userId}:`);
-    if (timezone) {
-      await invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone));
+      await incrementDailyExpWithMilestones(userId, dateForExpToday, expToAdd);
     }
 
     const levelAfter = await getUserLevel(userId);
+    const totalAfter = levelAfter?.total_exp_seconds ?? totalBefore;
+    logger.info(
+      "addCallExp done user=%s expToAdd=%d totalAfter=%d delta=%d",
+      userId,
+      expToAdd,
+      totalAfter,
+      totalAfter - totalBefore,
+    );
     const levelAfterValue = levelAfter
       ? calculateLevelFromExp(levelAfter.total_exp_seconds, DEFAULT_LEVEL_PARAMS).level
       : 1;

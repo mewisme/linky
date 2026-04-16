@@ -4,8 +4,6 @@ import {
   computeExpSecondsForCallDuration,
 } from "@/domains/user/index.js";
 import { tryEnqueueApplyCallExpJob } from "@/jobs/worker-jobs/apply-call-exp.job.js";
-import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
-import { invalidate } from "@/infra/redis/cache/index.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
@@ -54,10 +52,6 @@ async function applyCallProgressForUser(params: ApplyCallProgressParams): Promis
     }
   }
 
-  void invalidate(REDIS_CACHE_KEYS.userProgress(userId, timezone)).catch((err) => {
-    logger.warn(toLoggableError(err), "invalidate user progress failed user=%s", userId);
-  });
-
   const streakResult = await addCallDurationToStreak(userId, durationSeconds, callEndDate, timezone);
 
   return { streakResult };
@@ -83,8 +77,18 @@ export async function applyCallEndedProgress(params: {
   } = params;
 
   if (durationSeconds <= 0) {
+    logger.info("applyCallEndedProgress skip duration<=0 caller=%s callee=%s", callerId, calleeId);
     return;
   }
+
+  logger.info(
+    "applyCallEndedProgress start caller=%s callee=%s duration=%d callerTz=%s calleeTz=%s",
+    callerId,
+    calleeId,
+    durationSeconds,
+    callerTimezone,
+    calleeTimezone,
+  );
 
   const [callerProgressResult, calleeProgressResult] = await Promise.allSettled([
     applyCallProgressForUser({
@@ -118,6 +122,13 @@ export async function applyCallEndedProgress(params: {
       calleeId,
     );
   }
+
+  logger.info(
+    "applyCallEndedProgress done callerStatus=%s calleeStatus=%s duration=%d",
+    callerProgressResult.status,
+    calleeProgressResult.status,
+    durationSeconds,
+  );
 
   if (onStreakCompleted) {
     if (callerProgressResult.status === "fulfilled" && callerProgressResult.value.streakResult?.firstTimeValid) {

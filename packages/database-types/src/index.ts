@@ -17,14 +17,17 @@ export type Database = {
       admin_config: {
         Row: {
           key: string
+          updated_at: string | null
           value: Json | null
         }
         Insert: {
           key: string
+          updated_at?: string | null
           value?: Json | null
         }
         Update: {
           key?: string
+          updated_at?: string | null
           value?: Json | null
         }
         Relationships: []
@@ -36,6 +39,7 @@ export type Database = {
           id: string
           message: string
           title: string | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string
@@ -43,6 +47,7 @@ export type Database = {
           id?: string
           message: string
           title?: string | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string
@@ -50,6 +55,7 @@ export type Database = {
           id?: string
           message?: string
           title?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -181,14 +187,17 @@ export type Database = {
       economy_config: {
         Row: {
           key: string
+          updated_at: string | null
           value_json: Json
         }
         Insert: {
           key: string
+          updated_at?: string | null
           value_json: Json
         }
         Update: {
           key?: string
+          updated_at?: string | null
           value_json?: Json
         }
         Relationships: []
@@ -201,6 +210,7 @@ export type Database = {
           health_status: Database["public"]["Enums"]["economy_health_status"]
           id: string
           metrics_snapshot: Json
+          updated_at: string | null
         }
         Insert: {
           actions_taken?: Json
@@ -209,6 +219,7 @@ export type Database = {
           health_status: Database["public"]["Enums"]["economy_health_status"]
           id?: string
           metrics_snapshot?: Json
+          updated_at?: string | null
         }
         Update: {
           actions_taken?: Json
@@ -217,6 +228,7 @@ export type Database = {
           health_status?: Database["public"]["Enums"]["economy_health_status"]
           id?: string
           metrics_snapshot?: Json
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -314,6 +326,7 @@ export type Database = {
           is_read: boolean
           payload: Json
           type: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -322,6 +335,7 @@ export type Database = {
           is_read?: boolean
           payload?: Json
           type: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -330,6 +344,7 @@ export type Database = {
           is_read?: boolean
           payload?: Json
           type?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -370,6 +385,7 @@ export type Database = {
           endpoint: string
           id: string
           p256dh: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -378,6 +394,7 @@ export type Database = {
           endpoint: string
           id?: string
           p256dh: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -386,6 +403,7 @@ export type Database = {
           endpoint?: string
           id?: string
           p256dh?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -485,6 +503,7 @@ export type Database = {
           reported_role: string | null
           reporter_role: string | null
           room_id: string | null
+          updated_at: string | null
         }
         Insert: {
           behavior_flags?: Json | null
@@ -501,6 +520,7 @@ export type Database = {
           reported_role?: string | null
           reporter_role?: string | null
           room_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           behavior_flags?: Json | null
@@ -517,6 +537,7 @@ export type Database = {
           reported_role?: string | null
           reporter_role?: string | null
           room_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -720,18 +741,21 @@ export type Database = {
           blocker_user_id: string
           created_at: string
           id: string
+          updated_at: string | null
         }
         Insert: {
           blocked_user_id: string
           blocker_user_id: string
           created_at?: string
           id?: string
+          updated_at?: string | null
         }
         Update: {
           blocked_user_id?: string
           blocker_user_id?: string
           created_at?: string
           id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1013,18 +1037,21 @@ export type Database = {
           created_at: string | null
           favorite_user_id: string
           id: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           favorite_user_id: string
           id?: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           favorite_user_id?: string
           id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1091,18 +1118,21 @@ export type Database = {
           granted_at: string
           id: string
           level_reward_id: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           granted_at?: string
           id?: string
           level_reward_id: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           granted_at?: string
           id?: string
           level_reward_id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1265,6 +1295,7 @@ export type Database = {
           id: string
           is_valid: boolean
           total_call_seconds: number
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -1273,6 +1304,7 @@ export type Database = {
           id?: string
           is_valid?: boolean
           total_call_seconds?: number
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -1281,6 +1313,7 @@ export type Database = {
           id?: string
           is_valid?: boolean
           total_call_seconds?: number
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1318,16 +1351,19 @@ export type Database = {
         Row: {
           granted_at: string
           level_feature_unlock_id: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           granted_at?: string
           level_feature_unlock_id: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           granted_at?: string
           level_feature_unlock_id?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "@ws/ui/internal-lib/motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import Image from "next/image";
 import { useReactionEffectContext } from "@/providers/realtime/reaction-effect-provider";
@@ -12,122 +12,115 @@ interface ReactionInstance {
   y: number;
   scale: number;
   delay: number;
+  duration: number;
   initialRotation: number;
   swayAmplitude: number;
 }
 
-interface ReactionOverlayProps {
-  containerRef: React.RefObject<HTMLDivElement | null>;
+const BURST_COUNT_MIN = 10;
+const BURST_COUNT_MAX = 20;
+const ANIMATION_DURATION_MIN = 1.25;
+const ANIMATION_DURATION_MAX = 1.9;
+
+function randomInRange(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
 }
 
-export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
+function randomIntInRange(min: number, max: number): number {
+  return Math.floor(randomInRange(min, max + 1));
+}
+
+export function ReactionOverlay() {
   const { reactions, removeReaction } = useReactionEffectContext();
-  const [reactionInstances, setReactionInstances] = useState<Map<string, ReactionInstance[]>>(new Map());
-  const processedReactionIdsRef = useRef<Set<string>>(new Set());
-  const reactionInstancesRef = useRef<Map<string, ReactionInstance[]>>(new Map());
-  const removeReactionTimeoutIdsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const [reactionInstancesById, setReactionInstancesById] = useState<Record<string, ReactionInstance[]>>({});
   const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
 
   useEffect(() => {
-    return () => {
-      removeReactionTimeoutIdsRef.current.forEach((id) => clearTimeout(id));
-      removeReactionTimeoutIdsRef.current.clear();
-    };
-  }, []);
+    setReactionInstancesById((prev) => {
+      const next: Record<string, ReactionInstance[]> = { ...prev };
+      const activeIds = new Set(reactions.map((reaction) => reaction.id));
+      let hasChanges = false;
 
-  useEffect(() => {
-    reactionInstancesRef.current = reactionInstances;
-  }, [reactionInstances]);
+      for (const reaction of reactions) {
+        if (next[reaction.id]) {
+          continue;
+        }
 
-  useEffect(() => {
-    reactions.forEach((reaction) => {
-      if (processedReactionIdsRef.current.has(reaction.id)) return;
+        const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1280;
+        const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
+        const instances: ReactionInstance[] = [];
+        const burstCount = randomIntInRange(BURST_COUNT_MIN, BURST_COUNT_MAX);
 
-      const container = containerRef.current;
-      if (!container) return;
+        if (reaction.isLocal && reaction.tapPosition) {
+          for (let i = 0; i < burstCount; i++) {
+            const spreadX = randomInRange(-24, 24);
+            const spreadY = randomInRange(-16, 16);
+            instances.push({
+              id: `${reaction.id}-${i}`,
+              x: reaction.tapPosition.x + spreadX,
+              y: reaction.tapPosition.y + spreadY,
+              scale: randomInRange(0.9, 1.2),
+              delay: i * randomInRange(0.03, 0.08),
+              duration: randomInRange(ANIMATION_DURATION_MIN, ANIMATION_DURATION_MAX),
+              initialRotation: (Math.random() - 0.5) * 30,
+              swayAmplitude: Math.random() * 8 + 4,
+            });
+          }
+        } else {
+          const idParts = reaction.id.split("-");
+          const reactionIndexStr = idParts.length >= 3 ? idParts[2] : undefined;
+          const reactionIndex = reactionIndexStr ? parseInt(reactionIndexStr, 10) : 0;
+          const minX = viewportWidth * 0.2;
+          const maxX = viewportWidth * 0.8;
 
-      const containerRect = container.getBoundingClientRect();
-      const containerWidth = containerRect.width;
-      const containerHeight = containerRect.height;
-      const containerTop = containerRect.top;
-      const containerLeft = containerRect.left;
+          for (let i = 0; i < burstCount; i++) {
+            const randomX = Math.random() * (maxX - minX) + minX;
+            const randomScale = Math.random() * 0.45 + 1.15;
+            const initialRotation = (Math.random() - 0.5) * 30;
+            const swayAmplitude = Math.random() * 8 + 4;
 
-      const instances: ReactionInstance[] = [];
+            instances.push({
+              id: `${reaction.id}-${i}`,
+              x: randomX,
+              y: viewportHeight,
+              scale: randomScale,
+              delay: (isNaN(reactionIndex) ? 0 : reactionIndex * 0.1) + i * randomInRange(0.04, 0.1),
+              duration: randomInRange(ANIMATION_DURATION_MIN, ANIMATION_DURATION_MAX),
+              initialRotation,
+              swayAmplitude,
+            });
+          }
+        }
 
-      if (reaction.isLocal && reaction.tapPosition) {
-        const screenX = containerLeft + reaction.tapPosition.x;
-        const screenY = containerTop + reaction.tapPosition.y;
-        instances.push({
-          id: reaction.id,
-          x: screenX,
-          y: screenY,
-          scale: 1,
-          delay: 0,
-          initialRotation: (Math.random() - 0.5) * 30,
-          swayAmplitude: Math.random() * 8 + 4,
-        });
-      } else {
-        const idParts = reaction.id.split("-");
-        const reactionIndexStr = idParts.length >= 3 ? idParts[2] : undefined;
-        const reactionIndex = reactionIndexStr ? parseInt(reactionIndexStr, 10) : 0;
-        const minX = containerWidth * 0.2;
-        const maxX = containerWidth * 0.8;
-        const randomX = Math.random() * (maxX - minX) + minX;
-        const screenX = containerLeft + randomX;
-        const screenY = containerTop + containerHeight;
-        const randomScale = Math.random() * 0.45 + 1.15;
-        const initialRotation = (Math.random() - 0.5) * 30;
-        const swayAmplitude = Math.random() * 8 + 4;
-
-        instances.push({
-          id: reaction.id,
-          x: screenX,
-          y: screenY,
-          scale: randomScale,
-          delay: isNaN(reactionIndex) ? 0 : reactionIndex * 0.1,
-          initialRotation,
-          swayAmplitude,
-        });
+        next[reaction.id] = instances;
+        hasChanges = true;
       }
 
-      processedReactionIdsRef.current.add(reaction.id);
-      setReactionInstances((prev) => {
-        const next = new Map(prev);
-        next.set(reaction.id, instances);
-        return next;
-      });
+      for (const reactionId of Object.keys(next)) {
+        if (!activeIds.has(reactionId)) {
+          delete next[reactionId];
+          hasChanges = true;
+        }
+      }
+
+      return hasChanges ? next : prev;
     });
-
-    const currentReactionIds = new Set(reactions.map((r) => r.id));
-    const removedReactionIds = Array.from(reactionInstancesRef.current.keys()).filter(
-      (id) => !currentReactionIds.has(id)
-    );
-
-    if (removedReactionIds.length > 0) {
-      removedReactionIds.forEach((id) => processedReactionIdsRef.current.delete(id));
-      setReactionInstances((prev) => {
-        const next = new Map(prev);
-        removedReactionIds.forEach((id) => next.delete(id));
-        return next;
-      });
-    }
-  }, [reactions, containerRef]);
+  }, [reactions]);
 
   const handleReactionComplete = (reactionId: string) => {
-    setReactionInstances((prev) => {
-      const next = new Map(prev);
-      next.delete(reactionId);
+    setReactionInstancesById((prev) => {
+      if (!prev[reactionId]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[reactionId];
       return next;
     });
-    const timeoutId = setTimeout(() => {
-      removeReactionTimeoutIdsRef.current.delete(timeoutId);
-      removeReaction(reactionId);
-    }, 0);
-    removeReactionTimeoutIdsRef.current.add(timeoutId);
+    removeReaction(reactionId);
   };
 
   const allInstances: Array<{ reactionId: string; instance: ReactionInstance; isLocal: boolean; type: string }> = [];
-  reactionInstances.forEach((instances, reactionId) => {
+  Object.entries(reactionInstancesById).forEach(([reactionId, instances]) => {
     const reaction = reactions.find((r) => r.id === reactionId);
     if (!reaction) return;
     instances.forEach((instance) => {
@@ -135,8 +128,12 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
     });
   });
 
+  if (allInstances.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 100 }}>
+    <div className="fixed inset-0 pointer-events-none">
       <AnimatePresence>
         {allInstances.map(({ reactionId, instance, isLocal, type }) => {
           const remoteDistance = -(viewportHeight * 2 / 3);
@@ -168,7 +165,7 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
                 rotate: instance.initialRotation,
               }}
               transition={{
-                duration: 1,
+                duration: instance.duration,
                 delay: instance.delay,
                 times: [0, 0.1, 0.7, 1],
                 ease: "easeOut",
@@ -178,6 +175,7 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
               style={{
                 left: `${instance.x}px`,
                 top: `${instance.y}px`,
+                zIndex: 120,
                 transform: "translate(-50%, -50%)",
                 willChange: "transform, opacity",
               }}
@@ -186,7 +184,7 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
                 initial={{ y: 0 }}
                 animate={{ y: isLocal ? -120 : remoteDistance }}
                 transition={{
-                  duration: 1,
+                  duration: instance.duration,
                   delay: instance.delay,
                   ease: "easeOut",
                 }}

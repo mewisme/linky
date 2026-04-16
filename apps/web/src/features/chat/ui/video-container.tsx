@@ -9,7 +9,6 @@ import { ConnectionQualityIndicator } from "./connection-quality-indicator";
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import { DraggableVideoOverlay } from "./draggable-video-overlay";
 import { PassiveTabBanner } from "./passive-tab-banner";
-import { ReactionOverlay } from "./overlays/reaction-overlay";
 import type { ResourcesAPI } from "@/shared/types/resources.types";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { VideoChatIdleState } from "./video-chat-idle-state";
@@ -129,7 +128,7 @@ export function VideoContainer({
       const y = mousePosition.elementY ?? 0;
 
       if (x > 0 && y > 0) {
-        handleTap(x, y);
+        handleTap(e.clientX, e.clientY);
       }
     },
     [isActive, handleTap, mousePosition]
@@ -231,8 +230,6 @@ export function VideoContainer({
               </div>
             )}
           </div>
-          <ReactionOverlay containerRef={containerRef} />
-
           {isLocalCameraOn && (
             <DraggableVideoOverlay
               localStream={localStream}

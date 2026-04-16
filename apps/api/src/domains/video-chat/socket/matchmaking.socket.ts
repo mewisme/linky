@@ -7,16 +7,16 @@ import { getPublicUserInfo } from "@/infra/supabase/repositories/user-details.js
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import type { VideoChatMatchmaking, VideoChatRooms } from "@/domains/video-chat/socket/types.js";
 import { sendPeerActionPush } from "@/contexts/peer-action-notification-context.js";
-import { applyCallEndedProgress } from "@/contexts/call-ended-context.js";
 import {
   calculateLevelFromExp,
   computeExpSecondsForCallDuration,
   getTimezoneForUser,
 } from "@/domains/user/index.js";
 import { getUserProgressInsights } from "@/domains/user/service/user-progress.service.js";
+import { persistRoomCallHistory, recordCallHistoryFromRoom } from "@/domains/video-chat/socket/call-history.socket.js";
 
 const logger = createLogger("api:video-chat:matchmaking:socket");
-const PERIODIC_PERSIST_INTERVAL_SECONDS = 15;
+const STREAK_COMPLETED_EVENT = "streak:completed";
 
 const activeIntervals: ReturnType<typeof setInterval>[] = [];
 
@@ -159,12 +159,16 @@ function applyRealtimeCallProjection(
   progress: Awaited<ReturnType<typeof getUserProgressInsights>>,
   unpersistedElapsedSeconds: number,
   projectedExpGain: number,
+  minTotalExpSeconds: number,
 ) {
   if (!progress) {
     return null;
   }
 
-  const projectedTotalExpSeconds = progress.expProgress.totalExpSeconds + projectedExpGain;
+  const projectedTotalExpSeconds = Math.max(
+    minTotalExpSeconds,
+    progress.expProgress.totalExpSeconds + projectedExpGain,
+  );
   const nextLevel = calculateLevelFromExp(projectedTotalExpSeconds);
   const progressDenominator = projectedTotalExpSeconds + nextLevel.expToNextLevel;
   const projectedPercentage =
@@ -239,54 +243,112 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
           }
 
           const elapsedSeconds = Math.max(0, Math.floor((Date.now() - room.startedAt.getTime()) / 1000));
-          const persistedDurationSeconds = room.persistedDurationSeconds ?? 0;
-          const persistedTarget = Math.floor(elapsedSeconds / PERIODIC_PERSIST_INTERVAL_SECONDS) * PERIODIC_PERSIST_INTERVAL_SECONDS;
-          const persistChunkSeconds = Math.max(0, persistedTarget - persistedDurationSeconds);
-
-          if (persistChunkSeconds > 0) {
-            await applyCallEndedProgress({
-              callerId: room.user1DbId,
-              calleeId: room.user2DbId,
-              endedAt: new Date(),
-              durationSeconds: persistChunkSeconds,
-              callerTimezone: room.user1Timezone,
-              calleeTimezone: room.user2Timezone,
-            });
-            room.persistedDurationSeconds = persistedDurationSeconds + persistChunkSeconds;
-          }
 
           const [user1Progress, user2Progress] = await Promise.all([
             getUserProgressInsights(room.user1DbId, room.user1Timezone),
             getUserProgressInsights(room.user2DbId, room.user2Timezone),
           ]);
 
-          const unpersistedElapsedSeconds = Math.max(0, elapsedSeconds - (room.persistedDurationSeconds ?? 0));
+          const unpersistedElapsedSeconds = elapsedSeconds;
           const [user1ProjectedGain, user2ProjectedGain] = await Promise.all([
             computeExpSecondsForCallDuration(room.user1DbId, unpersistedElapsedSeconds),
             computeExpSecondsForCallDuration(room.user2DbId, unpersistedElapsedSeconds),
           ]);
 
-          const user1Projected = applyRealtimeCallProjection(user1Progress, unpersistedElapsedSeconds, user1ProjectedGain);
-          const user2Projected = applyRealtimeCallProjection(user2Progress, unpersistedElapsedSeconds, user2ProjectedGain);
+          const user1Projected = applyRealtimeCallProjection(
+            user1Progress,
+            unpersistedElapsedSeconds,
+            user1ProjectedGain,
+            room.lastProjectedTotalExpUser1 ?? 0,
+          );
+          const user2Projected = applyRealtimeCallProjection(
+            user2Progress,
+            unpersistedElapsedSeconds,
+            user2ProjectedGain,
+            room.lastProjectedTotalExpUser2 ?? 0,
+          );
 
           if (user1Connected && user1Projected) {
+            if (
+              !room.hasEmittedStreakCompletedUser1 &&
+              !user1Progress?.isTodayStreakComplete &&
+              user1Projected.isTodayStreakComplete
+            ) {
+              const payload = {
+                userId: room.user1DbId,
+                streakCount: (user1Progress?.streak.currentStreak ?? 0) + 1,
+                date: user1Projected.todayDate,
+              };
+              if (user1Connected) {
+                user1Socket!.emit(STREAK_COMPLETED_EVENT, payload);
+              }
+              if (user2Connected) {
+                user2Socket!.emit(STREAK_COMPLETED_EVENT, payload);
+              }
+              room.hasEmittedStreakCompletedUser1 = true;
+            }
+            room.lastProjectedTotalExpUser1 = user1Projected.expProgress.totalExpSeconds;
             user1Socket!.emit("user:progress:update", user1Projected);
           }
 
           if (user2Connected && user2Projected) {
+            if (
+              !room.hasEmittedStreakCompletedUser2 &&
+              !user2Progress?.isTodayStreakComplete &&
+              user2Projected.isTodayStreakComplete
+            ) {
+              const payload = {
+                userId: room.user2DbId,
+                streakCount: (user2Progress?.streak.currentStreak ?? 0) + 1,
+                date: user2Projected.todayDate,
+              };
+              if (user2Connected) {
+                user2Socket!.emit(STREAK_COMPLETED_EVENT, payload);
+              }
+              if (user1Connected) {
+                user1Socket!.emit(STREAK_COMPLETED_EVENT, payload);
+              }
+              room.hasEmittedStreakCompletedUser2 = true;
+            }
+            room.lastProjectedTotalExpUser2 = user2Projected.expProgress.totalExpSeconds;
             user2Socket!.emit("user:progress:update", user2Projected);
           }
         }
 
         if (!user1Connected && !user2Connected) {
           logger.info("Both sockets disconnected in room %s - cleaning up", room.id);
+          await recordCallHistoryFromRoom(io, room);
           rooms.deleteRoom(room.id);
         }
       } catch (error: unknown) {
         logger.warn(toLoggableError(error), "Room heartbeat iteration failed for room=%s", room.id);
       }
     }
-  }, 4000);
+  }, 5000);
   activeIntervals.push(heartbeatId);
+}
+
+export async function persistActiveRoomCallHistories(io: Namespace, rooms: VideoChatRooms): Promise<void> {
+  const activeRooms = rooms.getAllRooms();
+  if (activeRooms.length === 0) {
+    return;
+  }
+
+  logger.info("Persisting active room call histories before shutdown: rooms=%d", activeRooms.length);
+
+  const results = await Promise.allSettled(
+    activeRooms.map(async (room) => {
+      await persistRoomCallHistory(io, room);
+      rooms.deleteRoom(room.id);
+    }),
+  );
+
+  const failed = results.filter((result) => result.status === "rejected").length;
+  if (failed > 0) {
+    logger.warn("Failed persisting some room call histories during shutdown: failed=%d total=%d", failed, activeRooms.length);
+    return;
+  }
+
+  logger.info("Persisted all active room call histories during shutdown: total=%d", activeRooms.length);
 }
 

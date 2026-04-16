@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { VideoContainer } from "@/features/chat/ui/video-container";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
-import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
 import { useChatPanelStore } from "@/features/chat/model/chat-panel-store";
 import { useChatUnreadIndicator } from "@/features/chat/hooks/use-chat-unread-indicator";
@@ -68,9 +67,8 @@ export default function CallLayout({
     pathname === "/call" && !isFloatingMode;
 
   return (
-    <ReactionEffectProvider>
-      <main className="relative flex flex-1 flex-col overflow-hidden h-full">
-        {showInlineVideo && (
+    <main className="relative flex flex-1 flex-col overflow-hidden h-full">
+      {showInlineVideo && (
         <VideoContainer
           localStream={localStream}
           remoteStream={remoteStream}
@@ -100,9 +98,8 @@ export default function CallLayout({
           initialProgress={callInitialProgress ?? undefined}
           initialFavorites={callInitialFavorites ?? undefined}
         />
-        )}
-        {children}
-      </main>
-    </ReactionEffectProvider>
+      )}
+      {children}
+    </main>
   );
 }

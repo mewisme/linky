@@ -3,7 +3,6 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@ws/ui/components/ui/button";
-import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import { useChatPanelStore } from "@/features/chat/model/chat-panel-store";
 import { useEffect } from "react";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
@@ -38,7 +37,7 @@ export function ChatPageContent() {
   };
 
   return (
-    <ReactionEffectProvider>
+    <>
       {isFloatingMode && isInActiveCall && (
         <div className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4">
           <p className="text-lg text-muted-foreground">Call is minimized</p>
@@ -47,6 +46,6 @@ export function ChatPageContent() {
           </Button>
         </div>
       )}
-    </ReactionEffectProvider>
+    </>
   );
 }

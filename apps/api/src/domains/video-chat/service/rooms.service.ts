@@ -19,7 +19,10 @@ export class RoomService {
       createdAt: new Date(),
       startedAt: new Date(),
       recentChatMessages: [],
-      persistedDurationSeconds: 0,
+      lastProjectedTotalExpUser1: 0,
+      lastProjectedTotalExpUser2: 0,
+      hasEmittedStreakCompletedUser1: false,
+      hasEmittedStreakCompletedUser2: false,
     };
 
     this.rooms.set(roomId, room);

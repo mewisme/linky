@@ -4,7 +4,6 @@ import { getUserStreakData, getUserStreakHistory } from "./user-streak.service.j
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getCallDurationsForUserOnLocalDate } from "@/infra/supabase/repositories/call-history.js";
-import { getExpToday } from "@/infra/redis/cache/exp-today.js";
 import { getUserExpDaily } from "@/infra/supabase/repositories/user-exp-daily.js";
 import { getUserLevelData } from "./user-level.service.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
@@ -81,10 +80,7 @@ export async function getUserProgressInsights(
         ? Math.min(100, Math.max(0, (expInCurrentLevel / totalExpForLevel) * 100))
         : 100;
 
-    let expEarnedToday = await getExpToday(userId, todayStr);
-    if (expEarnedToday <= 0) {
-      expEarnedToday = await getUserExpDaily(userId, todayStr);
-    }
+    let expEarnedToday = await getUserExpDaily(userId, todayStr);
     if (expEarnedToday <= 0) {
       expEarnedToday = await getCallDurationsForUserOnLocalDate(userId, todayStr, timezone);
     }

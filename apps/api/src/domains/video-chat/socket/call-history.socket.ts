@@ -102,8 +102,6 @@ export async function recordCallHistory(
     ]);
 
     const safeDuration = durationSeconds > 0 ? durationSeconds : 0;
-    const persistedDuration = room.persistedDurationSeconds ?? 0;
-    const remainingDuration = Math.max(0, safeDuration - persistedDuration);
 
     await recordCallHistoryInDatabase({
       callerId,
@@ -115,24 +113,41 @@ export async function recordCallHistory(
       calleeTimezone,
     });
 
-    if (remainingDuration > 0) {
+    if (safeDuration > 0) {
       await applyCallEndedProgress({
         callerId,
         calleeId,
         endedAt,
-        durationSeconds: remainingDuration,
+        durationSeconds: safeDuration,
         callerTimezone,
         calleeTimezone,
         onStreakCompleted(userId, payload) {
-          const socket = userId === callerId ? callerSocket : userId === calleeId ? calleeSocket : undefined;
-          if (!socket?.connected) {
+          if (userId === callerId && room.hasEmittedStreakCompletedUser1) {
             return;
           }
-          socket.emit(STREAK_COMPLETED_EVENT, {
+          if (userId === calleeId && room.hasEmittedStreakCompletedUser2) {
+            return;
+          }
+          const targetSocket = userId === callerId ? callerSocket : userId === calleeId ? calleeSocket : undefined;
+          if (!targetSocket?.connected && !callerSocket.connected && !calleeSocket?.connected) {
+            return;
+          }
+          if (userId === callerId) {
+            room.hasEmittedStreakCompletedUser1 = true;
+          } else if (userId === calleeId) {
+            room.hasEmittedStreakCompletedUser2 = true;
+          }
+          const eventPayload = {
             userId,
             streakCount: payload.streakCount,
             date: payload.date,
-          });
+          };
+          if (callerSocket.connected) {
+            callerSocket.emit(STREAK_COMPLETED_EVENT, eventPayload);
+          }
+          if (calleeSocket?.connected) {
+            calleeSocket.emit(STREAK_COMPLETED_EVENT, eventPayload);
+          }
         },
       });
     }
@@ -176,8 +191,6 @@ export async function recordCallHistoryFromRoom(
     const endedAt = new Date();
     const durationSeconds = Math.floor((endedAt.getTime() - room.startedAt.getTime()) / 1000);
     const safeDuration = durationSeconds > 0 ? durationSeconds : 0;
-    const persistedDuration = room.persistedDurationSeconds ?? 0;
-    const remainingDuration = Math.max(0, safeDuration - persistedDuration);
 
     const [callerTimezone, calleeTimezone] = await Promise.all([
       getTimezoneForUser(callerDbId),
@@ -194,12 +207,12 @@ export async function recordCallHistoryFromRoom(
       calleeTimezone,
     });
 
-    if (remainingDuration > 0) {
+    if (safeDuration > 0) {
       await applyCallEndedProgress({
         callerId: callerDbId,
         calleeId: calleeDbId,
         endedAt,
-        durationSeconds: remainingDuration,
+        durationSeconds: safeDuration,
         callerTimezone,
         calleeTimezone,
       });
@@ -209,5 +222,24 @@ export async function recordCallHistoryFromRoom(
   } catch (error) {
     logger.error(toLoggableError(error), "Error recording call history from room");
   }
+}
+
+export async function persistRoomCallHistory(
+  io: Namespace,
+  room: VideoChatRoomRecord,
+): Promise<void> {
+  if (room.user1DbId && room.user2DbId) {
+    await recordCallHistoryFromRoom(io, room);
+    return;
+  }
+
+  const socket1 = io.sockets.get(room.user1) as AuthenticatedSocket | undefined;
+  if (!socket1) {
+    logger.warn("Cannot persist room call history: user1 socket not found room=%s", room.id);
+    return;
+  }
+
+  const socket2 = io.sockets.get(room.user2) as AuthenticatedSocket | undefined;
+  await recordCallHistory(io, room, socket1, socket2);
 }
 

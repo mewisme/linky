@@ -141,6 +141,7 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
         {allInstances.map(({ reactionId, instance, isLocal, type }) => {
           const remoteDistance = -(viewportHeight * 2 / 3);
           const imagePath = type === "heart" ? "/images/heart.png" : `/images/reactions/${type}.png`;
+          const isPartyReaction = type === "party";
           return (
             <motion.div
               key={instance.id}
@@ -191,18 +192,31 @@ export function ReactionOverlay({ containerRef }: ReactionOverlayProps) {
                 }}
                 className="pointer-events-none"
               >
-                <Image
-                  src={imagePath}
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 pointer-events-none"
-                  style={{
-                    width: `${32 * instance.scale}px`,
-                    height: `${32 * instance.scale}px`,
-                    pointerEvents: "none",
-                  }}
-                />
+                {isPartyReaction ? (
+                  <span
+                    className="pointer-events-none select-none leading-none"
+                    style={{
+                      fontSize: `${32 * instance.scale}px`,
+                      pointerEvents: "none",
+                    }}
+                    aria-hidden
+                  >
+                    🎉
+                  </span>
+                ) : (
+                  <Image
+                    src={imagePath}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 pointer-events-none"
+                    style={{
+                      width: `${32 * instance.scale}px`,
+                      height: `${32 * instance.scale}px`,
+                      pointerEvents: "none",
+                    }}
+                  />
+                )}
               </motion.div>
             </motion.div>
           );

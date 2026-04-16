@@ -2,7 +2,6 @@ import { Router, type Request, type Response, type Router as ExpressRouter } fro
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { AdminUserUpdate } from "@/domains/admin/types/admin.types.js";
-import { redisClient } from "@/infra/redis/client.js";
 import {
   getUser,
   hardDeleteUser,
@@ -21,6 +20,7 @@ import {
   assertTargetNotSuperadmin,
 } from "@/lib/auth/superadmin-invariants.js";
 import { getUserByClerkId } from "@/infra/supabase/repositories/index.js";
+import { getPresenceState } from "@/infra/presence/presence-handler.js";
 import { parseGetUsersQuery } from "../helper/users-query.js";
 
 const router: ExpressRouter = Router();
@@ -46,12 +46,8 @@ router.get("/", async (req: Request, res: Response) => {
           (users || []).map(async (user: any) => {
             let presence = "offline";
             if (user.clerk_user_id) {
-              try {
-                const presenceState = await redisClient.hGet("presence", user.clerk_user_id);
-                if (isPresenceState(presenceState)) presence = presenceState;
-              } catch (presenceError: unknown) {
-                logger.warn(toLoggableError(presenceError), "Error fetching presence from Redis");
-              }
+              const presenceState = getPresenceState(user.clerk_user_id);
+              if (isPresenceState(presenceState)) presence = presenceState;
             }
             return { ...user, presence };
           }),
@@ -181,13 +177,9 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     let presence = "offline";
     if ((user as any).clerk_user_id) {
-      try {
-        const presenceState = await redisClient.hGet("presence", (user as any).clerk_user_id);
-        if (isPresenceState(presenceState)) {
-          presence = presenceState;
-        }
-      } catch (presenceError: unknown) {
-        logger.warn(toLoggableError(presenceError), "Error fetching presence from Redis");
+      const presenceState = getPresenceState((user as any).clerk_user_id);
+      if (isPresenceState(presenceState)) {
+        presence = presenceState;
       }
     }
 

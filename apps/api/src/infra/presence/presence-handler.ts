@@ -1,7 +1,9 @@
 import { createSocketServer } from "@/socket/index.js";
-import { redisClient } from "@/infra/redis/client.js";
+import { isPresenceState, type PresenceState } from "@/domains/admin/types/presence.types.js";
 
 let ioRef: ReturnType<typeof createSocketServer> | null = null;
+const userSockets = new Map<string, Set<string>>();
+const presenceByUser = new Map<string, PresenceState>();
 
 export function attachSocketIO(io: ReturnType<typeof createSocketServer>): void {
   ioRef = io;
@@ -16,8 +18,9 @@ export async function handlePresenceConnect(
   socketId: string
 ): Promise<void> {
   const key = socketsKeyForUser(userId);
-  await redisClient.sAdd(key, socketId);
-  await redisClient.expire(key, 60 * 60);
+  const sockets = userSockets.get(key) ?? new Set<string>();
+  sockets.add(socketId);
+  userSockets.set(key, sockets);
   await handlePresenceMessage(userId, "online");
 }
 
@@ -26,10 +29,17 @@ export async function handlePresenceDisconnect(
   socketId: string
 ): Promise<void> {
   const key = socketsKeyForUser(userId);
-  await redisClient.sRem(key, socketId);
-  const remaining = await redisClient.sCard(key);
-  if (remaining > 0) return;
-  await redisClient.del(key);
+  const sockets = userSockets.get(key);
+  if (!sockets) {
+    return;
+  }
+
+  sockets.delete(socketId);
+  if (sockets.size > 0) {
+    return;
+  }
+
+  userSockets.delete(key);
   await handlePresenceMessage(userId, "offline");
 }
 
@@ -37,30 +47,22 @@ export async function handlePresenceMessage(
   clientId: string,
   state: string
 ): Promise<void> {
-  const now = Date.now();
-
-  await redisClient.hSet("presence", clientId, state);
-  await redisClient.hSet("presence:ts", clientId, now.toString());
-
-  if (state === "available" || state === "matching") {
-    await redisClient.sAdd("match:available", clientId);
-    await redisClient.sRem("match:in_call", clientId);
-  } else if (state === "in_call") {
-    await redisClient.sRem("match:available", clientId);
-    await redisClient.sAdd("match:in_call", clientId);
-  } else if (state === "online" || state === "idle") {
-    await redisClient.sRem("match:available", clientId);
-    await redisClient.sRem("match:in_call", clientId);
+  if (!isPresenceState(state)) {
+    return;
   }
 
+  const now = Date.now();
   if (state === "offline") {
-    await redisClient.hDel("presence", clientId);
-    await redisClient.hDel("presence:ts", clientId);
-    await redisClient.sRem("match:available", clientId);
-    await redisClient.sRem("match:in_call", clientId);
+    presenceByUser.delete(clientId);
+  } else {
+    presenceByUser.set(clientId, state);
   }
 
   emitToAdminSockets(clientId, state, now);
+}
+
+export function getPresenceState(userId: string): PresenceState {
+  return presenceByUser.get(userId) ?? "offline";
 }
 
 function emitToAdminSockets(

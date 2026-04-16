@@ -6,6 +6,9 @@ import { toast } from "@ws/ui/components/ui/sonner";
 import { useSocket } from "@/features/realtime/hooks/use-socket";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/providers/user/user-provider";
+import { useQueryClient } from "@ws/ui/internal-lib/react-query";
+import { useVideoChatStore } from "@/features/call/model/video-chat-store";
+import { UsersAPI } from "@/entities/user/types/users.types";
 
 interface FloatingReaction {
   id: string;
@@ -37,6 +40,7 @@ interface ReactionEffectProviderProps {
 }
 
 const STREAK_COMPLETED_EVENT = "streak:completed";
+const USER_PROGRESS_UPDATE_EVENT = "user:progress:update";
 
 const STREAK_TOAST_DEBOUNCE_MS = 2000;
 
@@ -45,6 +49,7 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   const { socket } = useSocket();
   const { store } = useUserContext();
   const { play } = useSoundWithSettings();
+  const queryClient = useQueryClient();
   const currentUserIdRef = useRef<string | null>(null);
   const lastStreakToastAtRef = useRef(0);
   // eslint-disable-next-line react-hooks/refs
@@ -88,6 +93,17 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
 
   useEffect(() => {
     if (!socket) return;
+    const handleProgressUpdate = (data: UsersAPI.Progress.GetMe.Response) => {
+      queryClient.setQueryData(["user-progress"], data);
+    };
+    socket.on(USER_PROGRESS_UPDATE_EVENT, handleProgressUpdate);
+    return () => {
+      socket.off(USER_PROGRESS_UPDATE_EVENT, handleProgressUpdate);
+    };
+  }, [queryClient, socket]);
+
+  useEffect(() => {
+    if (!socket) return;
     const handleStreakCompleted = (data: {
       userId: string;
       streakCount: number;
@@ -96,21 +112,23 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
     }) => {
       const current = currentUserIdRef.current;
       if (!current || data.userId !== current) return;
+      if (useVideoChatStore.getState().connectionStatus !== "in_call") return;
       const now = Date.now();
       if (now - lastStreakToastAtRef.current < STREAK_TOAST_DEBOUNCE_MS) return;
       lastStreakToastAtRef.current = now;
       if (data.freezeUsed) {
-        toast.success("Streak saved by freeze");
+        toast.success("Streak saved by freeze 🎉");
       } else {
-        toast.success("Streak completed! Keep it going!");
+        toast.success(`Streak completed! ${data.streakCount} days 🎉`);
         play("reward");
       }
+      triggerRemoteReactions(1, "party");
     };
     socket.on(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     return () => {
       socket.off(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     };
-  }, [play, socket]);
+  }, [play, socket, triggerRemoteReactions]);
 
   const value: ReactionEffectContextValue = {
     triggerLocalReaction,

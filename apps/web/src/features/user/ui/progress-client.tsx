@@ -19,8 +19,9 @@ import { StreakCalendar } from "./streak-calendar";
 import { StreakMiniCalendar } from "./streak-mini-calendar";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { getUserProgress } from "@/features/user/api/profile";
-import { useQuery } from "@ws/ui/internal-lib/react-query";
-import { useState } from "react";
+import { useSocket } from "@/features/realtime/hooks/use-socket";
+import { useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
+import { useEffect, useState } from "react";
 
 function formatSeconds(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -52,6 +53,8 @@ interface ProgressClientProps {
 
 export function ProgressClient({ initialData }: ProgressClientProps) {
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
@@ -60,6 +63,18 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     staleTime: Infinity,
     gcTime: 10 * 60 * 1000,
   });
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleProgressUpdate = (nextProgress: UsersAPI.Progress.GetMe.Response) => {
+      queryClient.setQueryData(["user-progress"], nextProgress);
+    };
+
+    socket.on("user:progress:update", handleProgressUpdate);
+    return () => {
+      socket.off("user:progress:update", handleProgressUpdate);
+    };
+  }, [queryClient, socket]);
 
   if (isLoading) {
     return (

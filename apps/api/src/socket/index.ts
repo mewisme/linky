@@ -6,7 +6,7 @@ import { setupVideoChatHandlers } from "@/domains/video-chat/socket/video-chat.s
 import { socketAuthMiddleware } from "./auth.js";
 import { setupAdminNamespace } from "@/domains/admin/socket/admin.socket.js";
 import { MatchmakingService } from "@/domains/matchmaking/service/matchmaking.service.js";
-import { RedisMatchStateStore, MemoryMatchStateStore } from "@/domains/matchmaking/store/index.js";
+import { MemoryMatchStateStore } from "@/domains/matchmaking/store/index.js";
 import { RoomService } from "@/domains/video-chat/service/rooms.service.js";
 import { createLogger } from "@/utils/logger.js";
 import { setupPresenceHandlers } from "./presence.js";
@@ -30,14 +30,9 @@ export function createSocketServer(httpServer: HTTPServer): SocketIOServer {
   chat.use(socketAuthMiddleware);
   setupAdminNamespace(admin, { socketAuthMiddleware });
 
-  const matchStateStore = config.useMemoryMatchmaking
-    ? new MemoryMatchStateStore()
-    : new RedisMatchStateStore();
+  const matchStateStore = new MemoryMatchStateStore();
 
-  logger.info(
-    "Matchmaking mode: %s",
-    config.useMemoryMatchmaking ? "In-Memory" : "Redis"
-  );
+  logger.info("Matchmaking mode: In-Memory");
 
   const matchmaking = new MatchmakingService(matchStateStore);
   const rooms = new RoomService();

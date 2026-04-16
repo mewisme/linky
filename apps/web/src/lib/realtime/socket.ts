@@ -150,6 +150,7 @@ export interface SocketEvents {
   skipped: (data: { message: string; queueSize: number }) => void;
   "video-chat:error": (data: { message: string }) => void;
   "queue-timeout": (data: { message: string }) => void;
+  "user:progress:update": (data: UsersAPI.Progress.GetMe.Response) => void;
 }
 
 export interface SignalData {

@@ -2,17 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getUserProgressInsights } from "../../../domains/user/service/user-progress.service.js";
 
-const mockGetOrSet = vi.fn();
 const mockGetUserLevelData = vi.fn();
 const mockGetUserStreakData = vi.fn();
 const mockGetUserStreakHistory = vi.fn();
 const mockGetExpToday = vi.fn();
 const mockGetUserExpDaily = vi.fn();
 const mockGetCallDurationsForUserOnLocalDate = vi.fn();
-
-vi.mock("../../../infra/redis/cache/index.js", () => ({
-  getOrSet: (...args: unknown[]) => mockGetOrSet(...args),
-}));
 
 vi.mock("../../../domains/user/service/user-level.service.js", () => ({
   getUserLevelData: (...args: unknown[]) => mockGetUserLevelData(...args),
@@ -37,7 +32,6 @@ vi.mock("../../../infra/supabase/repositories/call-history.js", () => ({
 
 beforeEach(() => {
   vi.useFakeTimers({ now: new Date("2024-06-15T12:00:00Z") });
-  mockGetOrSet.mockImplementation((_k: string, _ttl: number, fetch: () => Promise<unknown>) => fetch());
   mockGetUserLevelData.mockResolvedValue({
     level: 1,
     totalExpSeconds: 0,
@@ -63,16 +57,6 @@ describe("getUserProgressInsights", () => {
   it("returns null when userId is invalid", async () => {
     expect(await getUserProgressInsights("", "UTC")).toBeNull();
     expect(await getUserProgressInsights("   ", "UTC")).toBeNull();
-    expect(mockGetOrSet).not.toHaveBeenCalled();
-  });
-
-  it("calls getOrSet with REDIS_CACHE_KEYS.userProgress and USER_PROGRESS ttl", async () => {
-    await getUserProgressInsights("u1", "Europe/Paris");
-    expect(mockGetOrSet).toHaveBeenCalledWith(
-      "user:progress:u1:Europe/Paris",
-      45,
-      expect.any(Function),
-    );
   });
 
   it("when getUserLevelData returns null, fetch returns null", async () => {
@@ -84,7 +68,7 @@ describe("getUserProgressInsights", () => {
   it("returns composed ProgressInsights shape when mocks return valid data", async () => {
     mockGetUserLevelData.mockResolvedValue({
       level: 1,
-      totalExpSeconds: 0,
+      totalExpSeconds: 200,
       expToNextLevel: 0,
     });
     mockGetUserStreakHistory.mockResolvedValue({

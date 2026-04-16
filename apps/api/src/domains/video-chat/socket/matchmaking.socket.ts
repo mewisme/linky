@@ -137,7 +137,7 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
 }
 
 export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
-  const heartbeatId = setInterval(() => {
+  const heartbeatId = setInterval(async () => {
     const roomCount = rooms.getRoomCount();
     if (roomCount === 0) {
       return;

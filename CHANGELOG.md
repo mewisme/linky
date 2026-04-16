@@ -2,11 +2,11 @@
 
 ⚡️ Performance
 
-- Enhance video chat event tracking and reaction handling ([1fb4c63](../../commit/1fb4c63))
+- Limit chat message length and implement message splitting ([b5c882c](../../commit/b5c882c))
 
 🔨 Other Changes
 
-- Update package versions to 0.78.0 and refresh version lock ([4189f72](../../commit/4189f72))
+- Update package versions to 0.78.1 and refresh version lock ([3e93a27](../../commit/3e93a27))
 
 
-📋 Full Changelog: [4189f72...1fb4c63](../../compare/4189f72...1fb4c63)
+📋 Full Changelog: [3e93a27...b5c882c](../../compare/3e93a27...b5c882c)

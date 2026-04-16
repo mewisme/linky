@@ -8,7 +8,7 @@ import {
   markAllNotificationsRead as markAllNotificationsReadAction,
   markNotificationRead as markNotificationReadAction,
 } from "@/features/notifications/api";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 
 import type { Notification } from "@/entities/notification/types/notifications.types";
 import { trackEvent } from "@/lib/telemetry/events/client";
@@ -17,15 +17,16 @@ import { useSocket } from "@/features/realtime/hooks/use-socket";
 import { useUserContext } from "@/providers/user/user-provider";
 
 const PAGE_SIZE = 20;
+let notificationsBootstrappedForUserId: string | null = null;
+let notificationsInFlight: Promise<void> | null = null;
 
 export function useNotifications() {
-  const { authReady } = useUserContext();
+  const { authReady, user } = useUserContext();
   const notifications = useNotificationsStore((s) => s.notifications);
   const unreadCount = useNotificationsStore((s) => s.unreadCount);
   const isLoading = useNotificationsStore((s) => s.isLoading);
   const hasMore = useNotificationsStore((s) => s.hasMore);
   const { socket: chatSocket } = useSocket();
-  const fetchedRef = useRef(false);
 
   const fetchNotifications = useCallback(async () => {
     Sentry.metrics.count("fetch_notifications", 1);
@@ -101,12 +102,23 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
-    if (authReady && !fetchedRef.current) {
-      Sentry.metrics.count("fetch_notifications_started", 1);
-      fetchedRef.current = true;
-      void fetchNotifications();
+    if (!authReady) {
+      notificationsBootstrappedForUserId = null;
+      notificationsInFlight = null;
+      return;
     }
-  }, [authReady, fetchNotifications]);
+    const userId = user.user?.id ?? "__signed-in__";
+    if (notificationsBootstrappedForUserId === userId) return;
+    if (notificationsInFlight) return;
+    Sentry.metrics.count("fetch_notifications_started", 1);
+    notificationsInFlight = fetchNotifications()
+      .then(() => {
+        notificationsBootstrappedForUserId = userId;
+      })
+      .finally(() => {
+        notificationsInFlight = null;
+      });
+  }, [authReady, fetchNotifications, user.user?.id]);
 
   useEffect(() => {
     if (!chatSocket) return;

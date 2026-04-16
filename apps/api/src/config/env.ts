@@ -1,6 +1,12 @@
-import "dotenv/config";
+import { config as loadDotenv } from "dotenv";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { z } from "zod";
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnvPath = resolve(currentDir, "../../../../.env");
+loadDotenv({ path: rootEnvPath, quiet: true });
 
 const envSchema = z.object({
   SENTRY_DSN: z.string().optional(),

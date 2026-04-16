@@ -3,7 +3,10 @@
 ARG TURBO_VERSION=2.9.6
 
 FROM node:24-alpine AS base
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache \
+  ca-certificates \
+  libc6-compat \
+  tzdata
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -12,7 +15,7 @@ WORKDIR /app
 FROM base AS pruner
 RUN npm install -g turbo@${TURBO_VERSION}
 COPY . .
-RUN turbo prune @ws/worker-jobs --docker
+RUN turbo prune @ws/worker --docker
 
 FROM base AS builder
 WORKDIR /app
@@ -20,7 +23,7 @@ COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/full/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
-RUN pnpm exec turbo run build --filter=@ws/worker-jobs
+RUN pnpm exec turbo run build --filter=@ws/worker
 
 FROM base AS runner
 WORKDIR /app
@@ -40,14 +43,20 @@ COPY --from=builder /app/packages/config/dist ./packages/config/dist
 COPY --from=builder /app/packages/shared-types/package.json ./packages/shared-types/
 COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
 
+COPY --from=builder /app/packages/validation/package.json ./packages/validation/
+COPY --from=builder /app/packages/validation/dist ./packages/validation/dist
+
 COPY --from=builder /app/packages/sdk-internal/package.json ./packages/sdk-internal/
 COPY --from=builder /app/packages/sdk-internal/dist ./packages/sdk-internal/dist
 
-COPY --from=builder /app/apps/worker-jobs/package.json ./apps/worker-jobs/
-COPY --from=builder /app/apps/worker-jobs/dist ./apps/worker-jobs/dist
+COPY --from=builder /app/packages/internal-worker-api/package.json ./packages/internal-worker-api/
+COPY --from=builder /app/packages/internal-worker-api/dist ./packages/internal-worker-api/dist
+
+COPY --from=builder /app/apps/worker/package.json ./apps/worker/
+COPY --from=builder /app/apps/worker/dist ./apps/worker/dist
 
 RUN pnpm install --prod --frozen-lockfile
 
-WORKDIR /app/apps/worker-jobs
+WORKDIR /app/apps/worker
 ENTRYPOINT ["node"]
-CMD ["./dist/index.js"]
+CMD ["--import=./dist/instrument.js", "./dist/index.js"]

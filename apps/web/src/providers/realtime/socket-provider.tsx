@@ -18,6 +18,8 @@ import { useUserContext } from "@/providers/user/user-provider";
 import { useSocketStore } from "@/features/realtime/model/socket-store";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 
+let lastSyncedTimezone: string | null = null;
+
 export type ConnectionState = "disconnected" | "connecting" | "connected" | "reconnecting";
 
 type SocketEventCallback = {
@@ -119,9 +121,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
       const existingConnectListeners = chatSocket.listeners("connect").length;
       if (existingConnectListeners === 0) {
         chatSocket.on("connect", () => {
-          if (!timezoneSyncedRef.current) {
+          const timezone = getUserTimezone();
+          if (!timezoneSyncedRef.current || lastSyncedTimezone !== timezone) {
             timezoneSyncedRef.current = true;
-            syncUserTimezone(getUserTimezone()).catch(() => { });
+            lastSyncedTimezone = timezone;
+            syncUserTimezone(timezone).catch(() => { });
           }
 
           const visibility = document.visibilityState === "visible" ? "foreground" : "background";

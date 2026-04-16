@@ -16,10 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: linky-worker-ai
-            dockerfile: apps/worker-ai/Dockerfile
-          - image: linky-worker-jobs
-            dockerfile: apps/worker-jobs/Dockerfile
+          - image: linky-worker
+            dockerfile: apps/worker/Dockerfile
           - image: linky-api
             dockerfile: apps/api/Dockerfile
 

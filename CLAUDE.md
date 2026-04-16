@@ -15,16 +15,14 @@ Linky is a real-time video chat platform. Turborepo monorepo with pnpm 10.33.0 (
 pnpm dev                  # All apps (turbo)
 pnpm dev:api              # API only (Express; default PORT 7270, override via env)
 pnpm dev:web              # Frontend only (Next.js, port 3000)
-pnpm dev:worker-ai        # AI job worker
-pnpm dev:worker-jobs      # General job worker
+pnpm dev:worker           # Background worker (AI + general Redis queues; calls internal HTTP API)
 
 # Build
 pnpm build                # All packages
 pnpm build:api            # API only
 pnpm build:web            # Web only
 pnpm start:api            # Production API (after build)
-pnpm start:worker-ai
-pnpm start:worker-jobs
+pnpm start:worker
 
 # Lint & Type Check
 pnpm lint                 # ESLint all
@@ -55,8 +53,7 @@ pnpm test:report          # View HTML report
 apps/
   api/           Express backend (DDD); enqueues work to Redis queues
   web/           Next.js 16 frontend (App Router)
-  worker-ai/     Dequeues AI jobs; runs `executeAiJob` from @ws/api/worker-ai
-  worker-jobs/   Dequeues general jobs (non-AI queue)
+  worker/        Dequeues AI and general jobs; invokes private HTTP routes on the API
 packages/
   config/             Shared env parsing (Zod); @ws/config
   database-types/     Supabase-oriented DB types; @ws/database-types
@@ -67,9 +64,10 @@ packages/
   typescript-config/  Shared TS configs
   ui/                 Shared React library (Radix + shadcn); @ws/ui
   validation/         Shared Zod schemas for job envelopes; @ws/validation
+  internal-worker-api/ Internal worker HTTP paths, env parsing, auth header helpers; @ws/internal-worker-api
 ```
 
-**Queue contracts:** payload shapes and keys live in `@ws/shared-types` and `@ws/validation`. The API enqueues via `apps/api/src/jobs/` and Redis; workers use `@ws/sdk-internal` to dequeue. `@ws/api` exposes subpath exports `./worker-ai` and `./worker-jobs` so worker runtimes can call small executor modules under `apps/api/src/worker/` without duplicating domain logic.
+**Queue contracts:** payload shapes and keys live in `@ws/shared-types` and `@ws/validation`. The API enqueues via `apps/api/src/jobs/` and Redis; the worker uses `@ws/sdk-internal` to dequeue and calls authenticated internal routes under `/internal/worker/v1` on `apps/api` to execute jobs (no direct imports from `@ws/api` in the worker runtime).
 
 ## Backend Architecture (apps/api)
 
@@ -83,7 +81,7 @@ The API follows strict domain-driven design. Key rule: **domains must NOT import
 - **socket/** - Socket.IO server setup, namespace wiring (`/chat`, `/admin`, `/video-chat`), auth middleware
 - **contexts/** - Cross-domain orchestration. The ONLY place where multiple domains can be coordinated.
 - **jobs/** - Enqueue helpers and job modules invoked from domains or contexts (Redis-backed)
-- **worker/** - Executor modules published as `@ws/api/worker-ai` and `@ws/api/worker-jobs` for standalone worker processes
+- **worker/** - Job execution helpers used by internal worker HTTP routes and in-process enqueue fallbacks
 - **middleware/** - Express middleware (Clerk auth, admin check, rate limiting, graceful shutdown)
 - **types/** - Cross-domain shared types, database types, socket event types
 - **config/** - Environment variable loading and validation
@@ -213,7 +211,7 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 | Frontend | Next.js 16 + React 19 |
 | Database | Supabase (Postgres) + pgvector |
 | Cache | Redis |
-| Background jobs | Redis queues; `worker-ai` / `worker-jobs` apps |
+| Background jobs | Redis queues; `worker` app |
 | Auth | Clerk |
 | Realtime | Socket.IO + MQTT |
 | Storage | AWS S3 |
@@ -224,7 +222,7 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 
 ## Docker
 
-Root build context (`.`) with per-app Dockerfiles: `apps/api/Dockerfile`, `apps/worker-ai/Dockerfile`, `apps/worker-jobs/Dockerfile`. See [docker-compose.yml](docker-compose.yml): services `api` (maps host port 7270), `worker-ai`, `worker-jobs`, `redis`, `ollama`. API container health: `node dist/healthcheck.js`. Local `.env` is loaded via Compose `env_file` where configured.
+Root build context (`.`) with per-app Dockerfiles: `apps/api/Dockerfile`, `apps/worker/Dockerfile`. See [docker-compose.yml](docker-compose.yml): services `api` (maps host port 7270), `worker`, `redis`, `ollama`. API container health: `node dist/healthcheck.js`. Local `.env` is loaded via Compose `env_file` where configured. Workers require `INTERNAL_API_BASE_URL` and `INTERNAL_WORKER_SECRET` (same value as on the API) for internal HTTP calls.
 
 HTTP health: `GET /healthz` on the API.
 

@@ -27,29 +27,25 @@ services:
         condition: service_healthy
       ollama:
         condition: service_healthy
-      worker-ai:
-        condition: service_healthy
-      worker-jobs:
-        condition: service_healthy
     networks:
       - linky-network
     env_file:
       - .env
 
-  worker-ai:
+  worker:
     build:
       context: .
-      dockerfile: apps/worker-ai/Dockerfile
-    image: mewthedev/linky-worker-ai:latest
-    container_name: linky-worker-ai
+      dockerfile: apps/worker/Dockerfile
+    image: mewthedev/linky-worker:latest
+    container_name: linky-worker
     environment:
       NODE_ENV: production
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      OLLAMA_EMBEDDING_URL: ${OLLAMA_EMBEDDING_URL:-http://ollama:11434}
-      OLLAMA_CLOUD_URL: ${OLLAMA_CLOUD_URL:-https://ollama.com}
-      OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-bge-m3}
-      OLLAMA_CLOUD_MODEL: ${OLLAMA_CLOUD_MODEL:-ministral-3:14b}
-      OLLAMA_EMBEDDING_TIMEOUT: ${OLLAMA_EMBEDDING_TIMEOUT:-60000}
+      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://api:7270}
+      INTERNAL_API_TIMEOUT_MS_AI: 120000
+      INTERNAL_API_TIMEOUT_MS_GENERAL: 30000
+      INTERNAL_API_MAX_RETRIES: 3
+      INTERNAL_API_RETRY_BASE_DELAY_MS: 500
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node ./dist/healthcheck.js"]
@@ -60,31 +56,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      ollama:
-        condition: service_healthy
-    networks:
-      - linky-network
-    env_file:
-      - .env
-
-  worker-jobs:
-    build:
-      context: .
-      dockerfile: apps/worker-jobs/Dockerfile
-    image: mewthedev/linky-worker-jobs:latest
-    container_name: linky-worker-jobs
-    environment:
-      NODE_ENV: production
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "node ./dist/healthcheck.js"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-    depends_on:
-      redis:
+      api:
         condition: service_healthy
     networks:
       - linky-network

@@ -81,6 +81,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.103.1
         version: 2.103.1
+      '@ws/internal-worker-api':
+        specifier: workspace:*
+        version: link:../../packages/internal-worker-api
       '@ws/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -324,63 +327,17 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
-  apps/worker-ai:
+  apps/worker:
     dependencies:
       '@sentry/node':
         specifier: ^10.48.0
         version: 10.48.0
-      '@ws/api':
-        specifier: workspace:*
-        version: file:apps/api(@opentelemetry/api@1.9.1)(react@19.2.5)
       '@ws/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@ws/logger':
+      '@ws/internal-worker-api':
         specifier: workspace:*
-        version: link:../../packages/logger
-      '@ws/sdk-internal':
-        specifier: workspace:*
-        version: link:../../packages/sdk-internal
-      '@ws/shared-types':
-        specifier: workspace:*
-        version: link:../../packages/shared-types
-      '@ws/validation':
-        specifier: workspace:*
-        version: link:../../packages/validation
-      dotenv:
-        specifier: 17.4.2
-        version: 17.4.2
-      react:
-        specifier: 19.2.5
-        version: 19.2.5
-      redis:
-        specifier: 5.12.1
-        version: 5.12.1(@opentelemetry/api@1.9.1)
-    devDependencies:
-      '@types/node':
-        specifier: 25.6.0
-        version: 25.6.0
-      '@ws/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      tsup:
-        specifier: 'catalog:'
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.9)(tsx@4.21.0)(typescript@5.9.3)
-      tsx:
-        specifier: 'catalog:'
-        version: 4.21.0
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-
-  apps/worker-jobs:
-    dependencies:
-      '@ws/api':
-        specifier: workspace:*
-        version: file:apps/api(@opentelemetry/api@1.9.1)(react@19.2.5)
-      '@ws/config':
-        specifier: workspace:*
-        version: link:../../packages/config
+        version: link:../../packages/internal-worker-api
       '@ws/logger':
         specifier: workspace:*
         version: link:../../packages/logger
@@ -479,6 +436,22 @@ importers:
       typescript-eslint:
         specifier: ^8.58.2
         version: 8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/internal-worker-api:
+    dependencies:
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: 25.6.0
+        version: 25.6.0
+      '@ws/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
 
   packages/logger:
     dependencies:
@@ -4437,21 +4410,6 @@ packages:
 
   '@webassemblyjs/wast-printer@1.14.1':
     resolution: {integrity: sha512-kPSSXE6De1XOR820C90RIo2ogvZG+c3KiHzqUoO/F34Y2shGzesfqv7o57xrxovZJH/MetF5UjroJ/R/3isoiw==}
-
-  '@ws/api@file:apps/api':
-    resolution: {directory: apps/api, type: directory}
-
-  '@ws/logger@file:packages/logger':
-    resolution: {directory: packages/logger, type: directory}
-
-  '@ws/sdk-internal@file:packages/sdk-internal':
-    resolution: {directory: packages/sdk-internal, type: directory}
-
-  '@ws/shared-types@file:packages/shared-types':
-    resolution: {directory: packages/shared-types, type: directory}
-
-  '@ws/validation@file:packages/validation':
-    resolution: {directory: packages/validation, type: directory}
 
   '@xstate/fsm@1.6.5':
     resolution: {integrity: sha512-b5o1I6aLNeYlU/3CPlj/Z91ybk1gUsKT+5NAJI+2W4UjvS5KLG28K9v5UvNoFVjHV8PajVZ00RH3vnjyQO7ZAw==}
@@ -12645,60 +12603,6 @@ snapshots:
     dependencies:
       '@webassemblyjs/ast': 1.14.1
       '@xtuc/long': 4.2.2
-
-  '@ws/api@file:apps/api(@opentelemetry/api@1.9.1)(react@19.2.5)':
-    dependencies:
-      '@aws-sdk/client-s3': 3.1030.0
-      '@aws-sdk/lib-storage': 3.1030.0(@aws-sdk/client-s3@3.1030.0)
-      '@aws-sdk/s3-request-presigner': 3.1030.0
-      '@clerk/backend': 3.2.10(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      '@sentry/node': 10.48.0
-      '@supabase/supabase-js': 2.103.1
-      '@ws/logger': file:packages/logger
-      '@ws/sdk-internal': file:packages/sdk-internal(@opentelemetry/api@1.9.1)
-      '@ws/shared-types': file:packages/shared-types
-      '@ws/validation': file:packages/validation
-      compression: 1.8.1
-      cors: 2.8.6
-      dotenv: 17.4.2
-      express: 5.2.1
-      morgan: 1.10.1
-      node-cron: 4.2.1
-      ollama: 0.6.3
-      redis: 5.12.1(@opentelemetry/api@1.9.1)
-      socket.io: 4.8.3
-      svix: 1.90.0
-      web-push: 3.6.7
-      zod: 4.3.6
-    transitivePeerDependencies:
-      - '@node-rs/xxhash'
-      - '@opentelemetry/api'
-      - '@opentelemetry/exporter-trace-otlp-http'
-      - aws-crt
-      - bufferutil
-      - react
-      - react-dom
-      - supports-color
-      - utf-8-validate
-
-  '@ws/logger@file:packages/logger':
-    dependencies:
-      pino: 10.3.1
-      pino-pretty: 13.1.3
-
-  '@ws/sdk-internal@file:packages/sdk-internal(@opentelemetry/api@1.9.1)':
-    dependencies:
-      '@ws/shared-types': file:packages/shared-types
-      redis: 5.12.1(@opentelemetry/api@1.9.1)
-    transitivePeerDependencies:
-      - '@node-rs/xxhash'
-      - '@opentelemetry/api'
-
-  '@ws/shared-types@file:packages/shared-types': {}
-
-  '@ws/validation@file:packages/validation':
-    dependencies:
-      zod: 4.3.6
 
   '@xstate/fsm@1.6.5': {}
 

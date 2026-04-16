@@ -7,6 +7,9 @@ export default defineConfig({
     include: ["src/__tests__/**/*.test.ts"],
     environment: "node",
     setupFiles: ["./src/__tests__/setup.ts"],
+    env: {
+      INTERNAL_WORKER_SECRET: "test-internal-worker-secret-key-min-32-chars",
+    },
   },
   resolve: {
     alias: {

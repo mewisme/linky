@@ -6,8 +6,7 @@ Linky is a real-time video chat platform built as a Turborepo monorepo. It inclu
 
 - `apps/web` - Next.js 16 + React 19 frontend
 - `apps/api` - Express + TypeScript backend (domain-driven architecture)
-- `apps/worker-ai` - AI queue worker
-- `apps/worker-jobs` - general jobs queue worker
+- `apps/worker` - background worker (Redis queues; calls internal API to execute jobs)
 - `packages/*` - shared libraries (`@ws/ui`, `@ws/logger`, `@ws/config`, types, validation)
 
 ## Tech Stack
@@ -58,8 +57,7 @@ Default local ports:
 pnpm dev
 pnpm dev:web
 pnpm dev:api
-pnpm dev:worker-ai
-pnpm dev:worker-jobs
+pnpm dev:worker
 
 # Build
 pnpm build
@@ -102,8 +100,7 @@ pnpm test:report
 ### Workers
 
 - API enqueues jobs.
-- `worker-ai` handles AI-specific execution.
-- `worker-jobs` handles general background jobs.
+- `worker` dequeues from the AI and general Redis queues and invokes private HTTP endpoints on the API to run job handlers.
 
 Shared queue contracts and validation live in workspace packages (`@ws/shared-types`, `@ws/validation`).
 

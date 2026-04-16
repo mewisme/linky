@@ -15,12 +15,17 @@ export function UserAuthProvider({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const user = useUser();
   const authRef = useRef(auth);
+  // eslint-disable-next-line react-hooks/refs
   authRef.current = auth;
 
   const getClerkToken = useCallback((options?: { skipCache?: boolean }) => {
+    const skipCache = options?.skipCache ?? false;
     return authRef.current.getToken({
       template: "client",
-      skipCache: options?.skipCache ?? false,
+      skipCache,
+    }).then((token) => {
+      if (token) return token;
+      return authRef.current.getToken({ skipCache });
     });
   }, []);
 

@@ -11,14 +11,6 @@
   "exports": {
     ".": {
       "import": "./dist/index.js"
-    },
-    "./worker-ai": {
-      "types": "./dist/worker/ai-job-executor.d.ts",
-      "import": "./dist/worker/ai-job-executor.js"
-    },
-    "./worker-jobs": {
-      "types": "./dist/worker/jobs-job-executor.d.ts",
-      "import": "./dist/worker/jobs-job-executor.js"
     }
   },
   "scripts": {
@@ -38,6 +30,7 @@
     "@clerk/backend": "^3.2.10",
     "@sentry/node": "^10.48.0",
     "@supabase/supabase-js": "^2.103.1",
+    "@ws/internal-worker-api": "workspace:*",
     "@ws/logger": "workspace:*",
     "@ws/sdk-internal": "workspace:*",
     "@ws/shared-types": "workspace:*",

@@ -5,6 +5,8 @@ import iceServersRouter from "./media/ice-servers.js";
 import s3Router from "./media/s3.js";
 import webhookRouter from "./webhook.js";
 import healthRouter from "./health.js";
+import { createInternalWorkerRouter } from "./internal-worker.route.js";
+import { INTERNAL_WORKER_V1_PREFIX } from "@ws/internal-worker-api";
 import { createAdminRouter } from "../domains/admin/index.js";
 import reportsAdminRouter from "@/domains/reports/http/admin-reports.route.js";
 import { clerkMiddleware } from "@/middleware/clerk.js";
@@ -37,6 +39,8 @@ export function setupRoutes(app: Express): void {
 
   app.use("/api/v1/interest-tags", interestTagsRouter);
   app.use("/api/v1/matchmaking", queueStatusRouter);
+
+  app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
 
   app.use(clerkMiddleware);
 

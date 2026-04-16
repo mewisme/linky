@@ -1,6 +1,12 @@
-import 'dotenv/config';
+import { config as loadDotenv } from "dotenv";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { parseCorsOrigin } from '../utils/cors.js';
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnvPath = resolve(currentDir, "../../../../.env");
+loadDotenv({ path: rootEnvPath, quiet: true });
 
 export const config = {
   port: Number(process.env.PORT) || 7270,
@@ -21,6 +27,7 @@ export const config = {
   // Supabase
   supabaseUrl: process.env.SUPABASE_URL as string,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
+  internalWorkerSecret: process.env.INTERNAL_WORKER_SECRET ?? "",
   // Redis
   redisUrl: process.env.REDIS_URL as string,
   redisPort: process.env.REDIS_PORT as string,

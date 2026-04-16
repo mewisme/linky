@@ -9,6 +9,9 @@ import { UserTokenProvider, useUserTokenContext } from "./user-token-provider";
 import { UserDataProvider, useUserDataContext } from "./user-data-provider";
 import { UserDetailsProvider, useUserDetailsContext } from "./user-details-provider";
 import { UserSettingsProvider, useUserSettingsContext } from "./user-settings-provider";
+
+let lastBootstrappedUserId: string | null = null;
+let bootstrapInFlight: Promise<void> | null = null;
 interface State {
   updateUserCountry: (country: string) => Promise<UsersAPI.GetMe.Response>;
   updateUserDetails: (data: UsersAPI.UserDetails.PatchMe.Body) => Promise<UserDetails>;
@@ -72,16 +75,27 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
   fetchUserSettingsRef.current = fetchUserSettings;
 
   useEffect(() => {
-    if (!auth.isLoaded || !auth.isSignedIn) return;
+    if (!auth.isLoaded) return;
+    if (!auth.isSignedIn) {
+      lastBootstrappedUserId = null;
+      bootstrapInFlight = null;
+      return;
+    }
+    const userId = user.user?.id ?? "__signed-in__";
+    if (lastBootstrappedUserId === userId) return;
+    if (bootstrapInFlight) return;
     const run = async () => {
-      await Promise.all([
+      bootstrapInFlight = Promise.all([
         fetchUserDataRef.current(),
         fetchUserDetailsRef.current(),
         fetchUserSettingsRef.current(),
-      ]);
+      ]).then(() => undefined);
+      await bootstrapInFlight;
+      lastBootstrappedUserId = userId;
+      bootstrapInFlight = null;
     };
     void run();
-  }, [auth.isLoaded, auth.isSignedIn]);
+  }, [auth.isLoaded, auth.isSignedIn, user.user?.id]);
 
   const value = useMemo<UserContextData>(() => {
     return { user, auth, store, state, authReady, authLoading };

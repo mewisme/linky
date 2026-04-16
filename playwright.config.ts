@@ -1,10 +1,16 @@
-import 'dotenv/config';
+import { config as loadDotenv } from "dotenv";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import path from 'node:path';
 
 import { defineConfig, devices } from '@playwright/test';
 
 import { playwrightReportSlug } from './playwright/helpers/report-slug';
+
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const rootEnvPath = resolve(currentDir, ".env");
+loadDotenv({ path: rootEnvPath, quiet: true });
 
 const ignoreHttpsErrors =
   process.env.PLAYWRIGHT_IGNORE_HTTPS_ERRORS === 'true' ||

@@ -1,5 +1,5 @@
 {
-  "name": "@ws/worker-jobs",
+  "name": "@ws/worker",
   "version": "0.75.2",
   "private": true,
   "type": "module",
@@ -11,12 +11,13 @@
     "dev": "tsx watch src/index.ts",
     "prebuild": "pnpm check-types",
     "build": "tsup",
-    "start": "node dist/index.js",
+    "start": "node --import=dist/instrument.js dist/index.js",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@ws/api": "workspace:*",
+    "@sentry/node": "^10.48.0",
     "@ws/config": "workspace:*",
+    "@ws/internal-worker-api": "workspace:*",
     "@ws/logger": "workspace:*",
     "@ws/sdk-internal": "workspace:*",
     "@ws/shared-types": "workspace:*",

@@ -431,12 +431,12 @@ BEGIN
   v_reward_3600 := (12 * v_milestone_reward_multiplier * v_daily_reward_multiplier)::integer;
 
   IF v_exp >= 600 AND NOT v_600 THEN
-    UPDATE user_exp_daily
+    UPDATE user_exp_daily ud
     SET milestone_600_claimed = true
-    WHERE user_id = p_user_id
-      AND date = p_date
-      AND NOT milestone_600_claimed
-      AND exp_seconds >= 600;
+    WHERE ud.user_id = p_user_id
+      AND ud.date = p_date
+      AND NOT ud.milestone_600_claimed
+      AND ud.exp_seconds >= 600;
     GET DIAGNOSTICS v_updated = ROW_COUNT;
     IF v_updated > 0 THEN
       INSERT INTO user_wallets (user_id, coin_balance, total_earned, total_spent)
@@ -462,12 +462,12 @@ BEGIN
     AND ud.date = p_date;
 
   IF v_exp >= 1800 AND NOT v_1800 THEN
-    UPDATE user_exp_daily
+    UPDATE user_exp_daily ud
     SET milestone_1800_claimed = true
-    WHERE user_id = p_user_id
-      AND date = p_date
-      AND NOT milestone_1800_claimed
-      AND exp_seconds >= 1800;
+    WHERE ud.user_id = p_user_id
+      AND ud.date = p_date
+      AND NOT ud.milestone_1800_claimed
+      AND ud.exp_seconds >= 1800;
     GET DIAGNOSTICS v_updated = ROW_COUNT;
     IF v_updated > 0 THEN
       INSERT INTO user_wallets (user_id, coin_balance, total_earned, total_spent)
@@ -493,12 +493,12 @@ BEGIN
     AND ud.date = p_date;
 
   IF v_exp >= 3600 AND NOT v_3600 THEN
-    UPDATE user_exp_daily
+    UPDATE user_exp_daily ud
     SET milestone_3600_claimed = true
-    WHERE user_id = p_user_id
-      AND date = p_date
-      AND NOT milestone_3600_claimed
-      AND exp_seconds >= 3600;
+    WHERE ud.user_id = p_user_id
+      AND ud.date = p_date
+      AND NOT ud.milestone_3600_claimed
+      AND ud.exp_seconds >= 3600;
     GET DIAGNOSTICS v_updated = ROW_COUNT;
     IF v_updated > 0 THEN
       INSERT INTO user_wallets (user_id, coin_balance, total_earned, total_spent)

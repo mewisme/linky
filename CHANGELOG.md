@@ -2,11 +2,11 @@
 
 ✨ Features
 
-- Enhance video chat functionality and user progress tracking ([253edd8](../../commit/253edd8))
+- Enhance user experience tracking and database schema ([78c0ee3](../../commit/78c0ee3))
 
 🔨 Other Changes
 
-- Update package versions to 0.76.1 and refresh version lock ([087af08](../../commit/087af08))
+- Update package versions to 0.77.0 and refresh version lock ([86fcd96](../../commit/86fcd96))
 
 
-📋 Full Changelog: [087af08...253edd8](../../compare/087af08...253edd8)
+📋 Full Changelog: [86fcd96...78c0ee3](../../compare/86fcd96...78c0ee3)

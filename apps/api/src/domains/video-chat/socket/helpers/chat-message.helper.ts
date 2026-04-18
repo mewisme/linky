@@ -6,6 +6,8 @@ import type {
   ChatMessageType,
 } from "@/domains/video-chat/types/socket-event.types.js";
 import type { AuthenticatedSocket } from "@/socket/auth.js";
+import type { BackendUserMessage } from "@ws/shared-types";
+import { userFacingPayload } from "@/types/user-message.js";
 
 export const maxAttachmentBytes = 5 * 1024 * 1024;
 export const maxMessageLength = 200;
@@ -59,7 +61,7 @@ export function createChatSnapshot(message: ChatMessagePayload): ChatMessageSnap
   };
 }
 
-export function emitChatError(socket: AuthenticatedSocket, message: string): void {
-  const payload: ChatErrorPayload = { message };
+export function emitChatError(socket: AuthenticatedSocket, userMessage: BackendUserMessage): void {
+  const payload: ChatErrorPayload = userFacingPayload(userMessage);
   socket.emit("chat:error", payload);
 }

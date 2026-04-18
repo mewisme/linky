@@ -11,6 +11,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import { Input } from '@ws/ui/components/ui/input'
 import type { useUser } from '@clerk/nextjs'
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { ComboboxCountry } from '@/shared/ui/common/combobox-country'
@@ -32,6 +33,9 @@ export function ProfileNameFields({
   startEditingSignal,
   onEditingChange,
 }: ProfileNameFieldsProps) {
+  const t = useTranslations("user");
+  const tp = useTranslations("user.profile");
+  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [isEditing, setIsEditing] = React.useState(false)
@@ -82,10 +86,10 @@ export function ProfileNameFields({
           updateUserCountry(country),
         ])
         playSound('success')
-        toast.success('Profile updated')
+        toast.success(t('profileUpdated'))
         setIsEditing(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : 'Update failed')
+        toast.error(error instanceof Error ? error.message : t('updateFailed'))
       }
     })
   }
@@ -99,15 +103,15 @@ export function ProfileNameFields({
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               className="min-w-0"
-              placeholder="First name"
-              aria-label="First name"
+              placeholder={tp("firstNamePlaceholder")}
+              aria-label={tp("firstNameAria")}
             />
             <Input
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               className="min-w-0"
-              placeholder="Last name"
-              aria-label="Last name"
+              placeholder={tp("lastNamePlaceholder")}
+              aria-label={tp("lastNameAria")}
             />
             <ComboboxCountry
               country={country}
@@ -117,13 +121,13 @@ export function ProfileNameFields({
           </div>
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={handleCancel}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button size="sm" onClick={handleSave} disabled={isPending}>
               {isPending && (
                 <IconLoader2 className="mr-2 size-4 animate-spin" />
               )}
-              Save
+              {tc("save")}
             </Button>
           </div>
         </div>
@@ -137,7 +141,7 @@ export function ProfileNameFields({
           <div className="mt-1 flex items-center justify-center gap-2 sm:justify-start">
             <CountryFlag countryCode={country} className="size-5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              {lookup.byIso(country)?.country ?? 'Not provided'}
+              {lookup.byIso(country)?.country ?? tp('notProvided')}
             </p>
           </div>
         </div>

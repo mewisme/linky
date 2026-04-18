@@ -14,6 +14,7 @@ import { Label } from "@ws/ui/components/ui/label";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import dynamic from "next/dynamic";
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 
 const StreakExpBonusesDataTable = dynamic(
@@ -26,6 +27,9 @@ interface StreakExpBonusesClientProps {
 }
 
 export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientProps) {
+  const t = useTranslations("admin");
+  const tl = useTranslations("admin.levelForm");
+  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
 
@@ -68,7 +72,7 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
 
       const isUpdate = !!variables.id || !!editingBonus?.id;
       playSound('success');
-      toast.success(isUpdate ? "Updated successfully!" : "Created successfully!");
+      toast.success(isUpdate ? t("crudUpdated") : t("crudCreated"));
 
       if (isModalOpen) {
         setIsModalOpen(false);
@@ -77,7 +81,7 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message || "An error occurred");
+      toast.error(error.message || t("genericError"));
     }
   });
 
@@ -89,10 +93,10 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
         refetchType: 'active'
       });
       await refetch();
-      toast.success("Streak EXP bonus deleted successfully");
+      toast.success(t("streakBonusDeleted"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "An error occurred during deletion");
+      toast.error(error.message || t("deleteError"));
     },
   });
 
@@ -123,7 +127,7 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
   }
 
   return (
-    <AppLayout label="Streak EXP Bonuses" description="Manage EXP bonus multipliers based on streak length">
+    <AppLayout sidebarItem="adminStreakExp">
       <StreakExpBonusesDataTable
         initialData={data?.data || []}
         callbacks={rowCallbacks}
@@ -134,7 +138,7 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
         }
         rightColumnVisibilityContent={
           <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
-            <IconPlus className="w-4 h-4 mr-2" /> Add New Bonus
+            <IconPlus className="w-4 h-4 mr-2" /> {t("streakExpModal.addNew")}
           </Button>
         }
       />
@@ -143,33 +147,33 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
           <form onSubmit={onFormSubmit}>
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">
-                {editingBonus ? "Update Streak EXP Bonus" : "Create Streak EXP Bonus"}
+                {editingBonus ? t("streakExpModal.updateTitle") : t("streakExpModal.createTitle")}
               </DialogTitle>
               <DialogDescription>
-                Define EXP bonus multipliers that apply when users have streaks within specific ranges.
+                {t("streakExpModal.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="min_streak">Min Streak <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="min_streak">{tl("minStreak")} <span className="text-destructive">*</span></Label>
                   <Input
                     id="min_streak"
                     type="number"
                     min="0"
-                    placeholder="e.g. 7"
+                    placeholder={tl("minStreakPlaceholder")}
                     value={formData.min_streak || ""}
                     required
                     onChange={e => setFormData({ ...formData, min_streak: parseInt(e.target.value) || 0 })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="max_streak">Max Streak <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="max_streak">{tl("maxStreak")} <span className="text-destructive">*</span></Label>
                   <Input
                     id="max_streak"
                     type="number"
                     min={formData.min_streak || 0}
-                    placeholder="e.g. 30"
+                    placeholder={tl("maxStreakPlaceholder")}
                     value={formData.max_streak || ""}
                     required
                     onChange={e => setFormData({ ...formData, max_streak: parseInt(e.target.value) || 0 })}
@@ -177,26 +181,26 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bonus_multiplier">Bonus Multiplier <span className="text-destructive">*</span></Label>
+                <Label htmlFor="bonus_multiplier">{tl("bonusMultiplier")} <span className="text-destructive">*</span></Label>
                 <Input
                   id="bonus_multiplier"
                   type="number"
                   min="1.0"
                   step="0.01"
-                  placeholder="e.g. 1.50 for 50% bonus"
+                  placeholder={tl("bonusPlaceholder")}
                   value={formData.bonus_multiplier || ""}
                   required
                   onChange={e => setFormData({ ...formData, bonus_multiplier: parseFloat(e.target.value) || 1.0 })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Multiplier applied to EXP. Must be at least 1.0 (e.g., 1.50 = 50% bonus).
+                  {t("streakExpModal.multiplierHint")}
                 </p>
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>{tc("cancel")}</Button>
               <Button type="submit" disabled={upsertMutation.isPending} className="min-w-[100px]">
-                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Save Changes"}
+                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : t("streakExpModal.saveChanges")}
               </Button>
             </DialogFooter>
           </form>

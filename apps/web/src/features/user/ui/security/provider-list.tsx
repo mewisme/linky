@@ -24,9 +24,9 @@ import {
 import { useReverification } from '@clerk/nextjs'
 
 import { cn } from '@ws/ui/lib/utils'
-import { formatProvider } from './security-utils'
 import { toast } from '@ws/ui/components/ui/sonner'
-import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useRouter } from '@/i18n/navigation'
 import { useState } from 'react'
 
 const providers = ['google', 'facebook', 'discord'] as const
@@ -47,7 +47,18 @@ interface ProviderListProps {
   userProviders: ExternalAccountResource[]
 }
 
+function providerDisplayName(
+  provider: BaseProvider,
+  ts: (key: 'providerGoogle' | 'providerFacebook' | 'providerDiscord') => string,
+): string {
+  if (provider === 'google') return ts('providerGoogle')
+  if (provider === 'facebook') return ts('providerFacebook')
+  return ts('providerDiscord')
+}
+
 export function ProviderList({ userProviders }: ProviderListProps) {
+  const t = useTranslations('user')
+  const ts = useTranslations('user.securitySessions')
   const router = useRouter()
   const { user } = useUser()
   const [hovered, setHovered] = useState<string | null>(null)
@@ -80,9 +91,9 @@ export function ProviderList({ userProviders }: ProviderListProps) {
         router.push(redirectUrl)
       }
 
-      toast.success('Redirected user to oauth provider')
+      toast.success(t('oauthRedirected'))
     } catch (err) {
-      toast.error('Failed to connect provider. Please try again.')
+      toast.error(t('oauthConnectFailed'))
       Sentry.captureException(err, {
         tags: { provider: strategy },
       })
@@ -110,11 +121,11 @@ export function ProviderList({ userProviders }: ProviderListProps) {
     if (!pendingAccount) return
     try {
       await accountDestroy(pendingAccount)
-      toast.success('Sign-in method disconnected successfully.')
+      toast.success(t('signInDisconnected'))
       setDestroyDialogOpen(false)
       setPendingAccount(null)
     } catch (err) {
-      toast.error('Failed to disconnect. Please try again.')
+      toast.error(t('disconnectFailed'))
       Sentry.captureException(err)
     }
   }
@@ -131,27 +142,23 @@ export function ProviderList({ userProviders }: ProviderListProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Disconnect this sign-in method?
+              {ts('disconnectTitle')}
             </AlertDialogTitle>
 
             <AlertDialogDescription>
-              You are about to remove this provider from your account.
-              <br />
-              <br />
-              After disconnecting, you will no longer be able to sign in using this
-              provider unless you link it again.
+              {ts('disconnectDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <AlertDialogCancel>
-              Keep connected
+              {ts('keepConnected')}
             </AlertDialogCancel>
 
             <AlertDialogAction
               onClick={confirmDestroy}
             >
-              Yes, disconnect
+              {ts('yesDisconnect')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -182,7 +189,11 @@ export function ProviderList({ userProviders }: ProviderListProps) {
               <ProviderIcon provider={item.provider} />
             )}
 
-            {formatProvider(item.provider, item.linked)}
+            {item.linked
+              ? providerDisplayName(item.provider, ts)
+              : ts('connectProvider', {
+                  provider: providerDisplayName(item.provider, ts),
+                })}
           </span>
         ))}
       </div>

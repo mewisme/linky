@@ -3,6 +3,7 @@ import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRooms } from "../types.js";
 import { logger } from "../helpers/logger.helper.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 const VALID_SIGNAL_TYPES = new Set(["offer", "answer", "ice-candidate"]);
 const MAX_SDP_LENGTH = 65_536;
@@ -37,17 +38,23 @@ export function setupSignalHandler(
   socket.on("signal", (data: SignalPayload) => {
     if (!isValidSignalPayload(data)) {
       logger.warn("Invalid signal payload from socket: %s", socket.id);
-      socket.emit("video-chat:error", {
-        message: "Invalid signal payload.",
-      });
+      socket.emit(
+        "video-chat:error",
+        userFacingPayload(
+          toUserMessage("SIGNAL_INVALID", { key: "call.signal.invalidPayload" }, "Invalid signal payload."),
+        ),
+      );
       return;
     }
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      socket.emit("video-chat:error", {
-        message: "Not in a room. Cannot send signal.",
-      });
+      socket.emit(
+        "video-chat:error",
+        userFacingPayload(
+          toUserMessage("SIGNAL_NOT_IN_ROOM", { key: "call.signal.notInRoom" }, "Not in a room. Cannot send signal."),
+        ),
+      );
       return;
     }
 
@@ -58,9 +65,16 @@ export function setupSignalHandler(
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      socket.emit("video-chat:error", {
-        message: "Peer disconnected. Cannot send signal.",
-      });
+      socket.emit(
+        "video-chat:error",
+        userFacingPayload(
+          toUserMessage(
+            "SIGNAL_PEER_DISCONNECTED",
+            { key: "call.signal.peerDisconnected" },
+            "Peer disconnected. Cannot send signal.",
+          ),
+        ),
+      );
       return;
     }
 

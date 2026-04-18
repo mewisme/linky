@@ -6,6 +6,7 @@ import { recordCallHistory, recordCallHistoryFromRoom } from "@/domains/video-ch
 import { type AuthenticatedSocket } from "@/socket/auth.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:video-chat:end-call-unload:route");
@@ -22,7 +23,11 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
     }
 
     if (!callerClerkId) {
-      return res.status(401).json({ error: "Unauthorized", message: "Missing authentication" });
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Missing authentication",
+        userMessage: toUserMessage("API_UNAUTHORIZED", { key: "api.missingAuth" }, "Missing authentication"),
+      });
     }
 
     const context = getVideoChatContext();
@@ -51,7 +56,13 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
           const peerSocket = io.sockets.get(peerId) as AuthenticatedSocket | undefined;
           if (peerSocket && peerSocket.connected) {
             io.to(peerId).emit("end-call", {
-              message: "The other person left the page. The call has ended.",
+              ...userFacingPayload(
+                toUserMessage(
+                  "END_PEER_LEFT_PAGE",
+                  { key: "call.end.peerLeftPage" },
+                  "The other person left the page. The call has ended.",
+                ),
+              ),
             });
             logger.info("Notified peer of end-call: %s", peerId);
           }
@@ -59,7 +70,11 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
         rooms.deleteRoom(room.id);
         logger.info("Room cleaned up for disconnected socket: %s", socketId);
       }
-      return res.status(200).json({ success: true, message: "Cleanup completed" });
+      return res.status(200).json({
+        success: true,
+        message: "Cleanup completed",
+        userMessage: toUserMessage("API_CLEANUP_OK", { key: "api.cleanupCompleted" }, "Cleanup completed"),
+      });
     }
 
     const clerkUserId = socket.data.userId;
@@ -71,7 +86,11 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
         clerkUserId,
         socketId,
       );
-      return res.status(403).json({ error: "Forbidden", message: "Socket does not belong to caller" });
+      return res.status(403).json({
+        error: "Forbidden",
+        message: "Socket does not belong to caller",
+        userMessage: toUserMessage("API_SOCKET_FORBIDDEN", { key: "api.socketForbidden" }, "Socket does not belong to caller"),
+      });
     }
     if (clerkUserId) {
       const dbUserId = await getUserIdByClerkId(clerkUserId);
@@ -98,7 +117,13 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
         const peerSocketFinal = io.sockets.get(peerId);
         if (peerSocketFinal && peerSocketFinal.connected) {
           io.to(peerId).emit("end-call", {
-            message: "The other person left the page. The call has ended.",
+            ...userFacingPayload(
+              toUserMessage(
+                "END_PEER_LEFT_PAGE",
+                { key: "call.end.peerLeftPage" },
+                "The other person left the page. The call has ended.",
+              ),
+            ),
           });
         } else {
           logger.warn("Peer socket not found or disconnected: %s", peerId);
@@ -117,7 +142,11 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
       logger.info("Socket not in room: %s", socketId);
     }
 
-    res.status(200).json({ success: true, message: "End-call processed" });
+    res.status(200).json({
+      success: true,
+      message: "End-call processed",
+      userMessage: toUserMessage("API_END_CALL_OK", { key: "api.endCallProcessed" }, "End-call processed"),
+    });
   } catch (error) {
     logger.error(toLoggableError(error), "Error processing unload end-call");
     res.status(500).json({ error: "Internal server error" });

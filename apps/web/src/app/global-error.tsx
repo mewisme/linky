@@ -10,9 +10,10 @@ import {
 
 import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
-import NextError from "next/error";
+import en from "@/messages/en.json";
+import vi from "@/messages/vi.json";
 import { Outfit } from "next/font/google";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -25,12 +26,23 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [lang, setLang] = useState<"en" | "vi">("en");
+  const [m, setM] = useState(en.errorsPage);
+
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
 
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    if (navigator.language.toLowerCase().startsWith("vi")) {
+      setLang("vi");
+      setM(vi.errorsPage);
+    }
+  }, []);
+
   return (
-    <html lang="en">
+    <html lang={lang}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -100,7 +112,12 @@ export default function GlobalError({
             />
           </div>
 
-          <NextError error={error} statusCode={500} />
+          <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
+            {m.title}
+          </h1>
+          <p className="mb-10 text-lg text-muted-foreground">
+            {m.description}
+          </p>
 
           <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-center sm:gap-4">
             <Button
@@ -113,7 +130,7 @@ export default function GlobalError({
                 size={18}
                 className="mr-2 transition-transform duration-500 group-hover:rotate-180"
               />
-              Try again
+              {m.tryAgain}
             </Button>
 
             <Button
@@ -124,7 +141,7 @@ export default function GlobalError({
             >
               <Link href="/">
                 <IconHome size={18} className="mr-2" />
-                Go to Home
+                {m.goHome}
               </Link>
             </Button>
           </div>
@@ -132,7 +149,7 @@ export default function GlobalError({
           <div className="mt-12 w-full rounded-xl border border-border/50 bg-muted/30 p-4 text-left">
             <div className="mb-2 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-muted-foreground">
               <span className="h-2 w-2 animate-pulse rounded-full bg-destructive" />
-              Error Reference
+              {m.errorReference}
             </div>
             <code className="block break-all rounded bg-destructive/5 p-2 text-sm font-mono text-destructive/80">
               {error.digest ?? "ERR_RUNTIME_EXCEPTION"}

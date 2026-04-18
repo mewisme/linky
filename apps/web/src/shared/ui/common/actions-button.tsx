@@ -38,6 +38,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import { IconDotsVertical } from '@tabler/icons-react'
 import { cn } from '@ws/ui/lib/utils'
 import { useIsMobile } from '@ws/ui/hooks/use-mobile'
+import { useTranslations } from 'next-intl'
 
 export type ActionItem =
   | ActionItemSimple
@@ -321,9 +322,11 @@ interface PendingConfirm {
 export function ActionsButton({
   actions,
   trigger,
-  title = 'Actions',
+  title,
   className,
 }: ActionsButtonProps) {
+  const t = useTranslations('common')
+  const resolvedTitle = title ?? t('actionsMenu')
   const isMobile = useIsMobile()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -381,7 +384,7 @@ export function ActionsButton({
       className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
       size="icon"
     >
-      <span className="sr-only">Open menu</span>
+      <span className="sr-only">{t('openMenu')}</span>
       <IconDotsVertical />
     </Button>
   )
@@ -396,7 +399,7 @@ export function ActionsButton({
             <DrawerTrigger asChild>{triggerButton}</DrawerTrigger>
             <DrawerContent>
               <DrawerHeader>
-                <DrawerTitle>{title}</DrawerTitle>
+                <DrawerTitle>{resolvedTitle}</DrawerTitle>
               </DrawerHeader>
               <div className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto px-4 pb-8">
                 {flatItems.map((item, i) => {
@@ -441,7 +444,7 @@ export function ActionsButton({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>
-                {pendingConfirm?.confirmAction.cancelLabel ?? 'Cancel'}
+                {pendingConfirm?.confirmAction.cancelLabel ?? t('cancel')}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmDialogConfirm}
@@ -451,7 +454,7 @@ export function ActionsButton({
                     : undefined
                 }
               >
-                {pendingConfirm?.confirmAction.confirmLabel ?? 'Confirm'}
+                {pendingConfirm?.confirmAction.confirmLabel ?? t('confirmAction')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -475,7 +478,7 @@ export function ActionsButton({
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>{triggerButton}</DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="overflow-hidden">
-            <DropdownMenuLabel>{title}</DropdownMenuLabel>
+            <DropdownMenuLabel>{resolvedTitle}</DropdownMenuLabel>
             {actions.map((item, i) =>
               renderDropdownItem(item, i, confirmHandlers)
             )}
@@ -494,7 +497,7 @@ export function ActionsButton({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {pendingConfirm?.confirmAction.cancelLabel ?? 'Cancel'}
+              {pendingConfirm?.confirmAction.cancelLabel ?? t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDialogConfirm}
@@ -504,7 +507,7 @@ export function ActionsButton({
                   : undefined
               }
             >
-              {pendingConfirm?.confirmAction.confirmLabel ?? 'Confirm'}
+              {pendingConfirm?.confirmAction.confirmLabel ?? t('confirmAction')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

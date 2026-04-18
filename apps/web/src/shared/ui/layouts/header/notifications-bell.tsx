@@ -17,8 +17,10 @@ import { IconBell } from "@tabler/icons-react";
 import { NotificationsPanel } from "@/features/notifications/ui/notifications-panel";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useNotifications } from "@/features/notifications/hooks/use-notifications";
+import { useTranslations } from "next-intl";
 
 export function NotificationsBell() {
+  const t = useTranslations("notifications");
   const isMobile = useIsMobile();
   const {
     notifications,
@@ -35,7 +37,7 @@ export function NotificationsBell() {
       variant="outline"
       size="icon"
       className="relative"
-      aria-label="Notifications"
+      aria-label={t("bellAria")}
       data-testid="notifications-bell"
     >
       <IconBell className="size-4" />

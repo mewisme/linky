@@ -1,28 +1,26 @@
-export function getClerkErrorMessage(error: unknown): string {
+export function getClerkErrorMessage(error: unknown, fallbackMessage = 'Something went wrong'): string {
   if (error instanceof Error) return error.message
   const e = error as { errors?: Array<{ message?: string; longMessage?: string }> }
   const first = e?.errors?.[0]
-  return first?.longMessage ?? first?.message ?? 'Something went wrong'
+  return first?.longMessage ?? first?.message ?? fallbackMessage
 }
 
-export function getPasswordStrength(value: string): 'Weak' | 'Medium' | 'Strong' | null {
+export type PasswordStrengthLevel = 'weak' | 'medium' | 'strong'
+
+export function getPasswordStrength(value: string): PasswordStrengthLevel | null {
   if (value.length === 0) return null
-  if (value.length < 8) return 'Weak'
-  if (value.length < 12) return 'Medium'
-  return 'Strong'
-}
-
-export function formatProvider(provider: string, isConnected: boolean): string {
-  const s = provider.replace(/^oauth_/, '')
-  return isConnected ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : `Connect ${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()}`
+  if (value.length < 8) return 'weak'
+  if (value.length < 12) return 'medium'
+  return 'strong'
 }
 
 export function formatDeviceLabel(
-  activity: { browserName?: string; deviceType?: string } | null | undefined
+  activity: { browserName?: string; deviceType?: string } | null | undefined,
+  unknownDevice: string,
 ): string {
-  if (!activity) return 'Unknown device'
+  if (!activity) return unknownDevice
   const parts = [activity.deviceType, activity.browserName].filter(Boolean)
-  return parts.length > 0 ? parts.join(' - ') : 'Unknown device'
+  return parts.length > 0 ? parts.join(' - ') : unknownDevice
 }
 
 export function formatLocation(

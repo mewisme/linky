@@ -3,6 +3,7 @@
 import { IconAlertTriangle, IconAlertCircle } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import type { NetworkQuality } from "@/features/call/lib/webrtc/network-monitor";
+import { useTranslations } from "next-intl";
 
 interface ConnectionQualityIndicatorProps {
   networkQuality: NetworkQuality;
@@ -15,6 +16,7 @@ export function ConnectionQualityIndicator({
   isVideoStalled,
   isMobile = false,
 }: ConnectionQualityIndicatorProps) {
+  const t = useTranslations("chat");
   const [visible, setVisible] = useState(false);
   const [displayState, setDisplayState] = useState<"warning" | "critical" | "hidden">("hidden");
 
@@ -50,7 +52,7 @@ export function ConnectionQualityIndicator({
       ? "bg-red-500/10 border-red-500/20"
       : "bg-yellow-500/10 border-yellow-500/20";
 
-  const message = displayState === "critical" ? "Poor connection" : "Unstable connection";
+  const message = displayState === "critical" ? t("connectionPoor") : t("connectionUnstable");
 
   const Icon = displayState === "critical" ? IconAlertCircle : IconAlertTriangle;
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconCode } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { useDevelopmentStore } from "@/shared/model/development-store";
@@ -26,6 +27,8 @@ import {
 } from "@ws/ui/components/animate-ui/components/radix/alert-dialog";
 
 export function DevelopmentSettingsClient() {
+  const t = useTranslations("settings.developmentPage");
+  const tc = useTranslations("common");
   const isDevelopmentModeEnabled = useDevelopmentStore(
     (state) => state.isDevelopmentModeEnabled
   );
@@ -57,15 +60,15 @@ export function DevelopmentSettingsClient() {
 
   return (
     <AppLayout
-      label="Development"
-      description="Manage local development preferences for this browser"
+      label={t("label")}
+      description={t("description")}
       className="space-y-4"
     >
       <Card>
         <CardHeader>
-          <CardTitle>Development</CardTitle>
+          <CardTitle>{t("cardTitle")}</CardTitle>
           <CardDescription>
-            This setting is saved locally in your browser and is not tied to your account.
+            {t("cardDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -73,10 +76,10 @@ export function DevelopmentSettingsClient() {
             <div className="space-y-0.5">
               <Label htmlFor="development-mode" className="flex items-center gap-2">
                 <IconCode className="size-4" />
-                Enable Development Mode
+                {t("enableLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                Turn on development-only behaviors wherever this flag is used.
+                {t("enableHint")}
               </p>
             </div>
             <Switch
@@ -91,16 +94,15 @@ export function DevelopmentSettingsClient() {
       <AlertDialog open={isEnableDialogOpen} onOpenChange={setIsEnableDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Enable Development Mode?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialogTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Development mode can expose experimental features and diagnostics that are not intended
-              for regular usage. Only enable this if you understand the security risks and trust this device.
+              {t("dialogDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmEnable}>
-              I Understand, Enable
+              {t("dialogConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

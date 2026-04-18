@@ -24,12 +24,53 @@ import {
 } from "@tabler/icons-react";
 
 import type { ElementType } from "react";
+import { useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
+
+export type MenuItemId =
+  | "videoChat"
+  | "chat"
+  | "callHistory"
+  | "connections"
+  | "favorites"
+  | "blockedUsers"
+  | "user"
+  | "profile"
+  | "security"
+  | "progress"
+  | "userReports"
+  | "userDevelopment"
+  | "adminPanel"
+  | "adminConfig"
+  | "adminBroadcasts"
+  | "adminUsers"
+  | "adminInterestTags"
+  | "adminReports"
+  | "adminLevelRewards"
+  | "adminFeatureUnlocks"
+  | "adminStreakExp"
+  | "settings"
+  | "settingsAppearance"
+  | "settingsNotifications"
+  | "settingsDevelopment";
+
+export interface MenuItemDef {
+  id: MenuItemId;
+  icon: ElementType;
+  href?: string;
+  isAdmin?: boolean;
+  isSuperAdminOnly?: boolean;
+  requiresDevelopmentMode?: boolean;
+  open?: boolean;
+  subItems?: MenuItemDef[];
+}
 
 export interface MenuItem {
+  id: MenuItemId;
   label: string;
   icon: ElementType;
   description?: string;
-  category?: string;
   href?: string;
   isAdmin?: boolean;
   isSuperAdminOnly?: boolean;
@@ -38,181 +79,170 @@ export interface MenuItem {
   subItems?: MenuItem[];
 }
 
-export const menuItems: MenuItem[] = [
+function mapDef(
+  def: MenuItemDef,
+  tRoot: (key: string) => string,
+): MenuItem {
+  const description = tRoot(`sidebar.items.${def.id}.description`);
+  return {
+    id: def.id,
+    label: tRoot(`sidebar.items.${def.id}.label`),
+    description: description || undefined,
+    icon: def.icon,
+    href: def.href,
+    isAdmin: def.isAdmin,
+    isSuperAdminOnly: def.isSuperAdminOnly,
+    requiresDevelopmentMode: def.requiresDevelopmentMode,
+    open: def.open,
+    subItems: def.subItems?.map((s) => mapDef(s, tRoot)),
+  };
+}
+
+export function buildMenuItems(t: (key: string) => string): MenuItem[] {
+  return menuItemDefinitions.map((def) => mapDef(def, t));
+}
+
+export async function getMenuItems(): Promise<MenuItem[]> {
+  const t = await getTranslations();
+  return buildMenuItems(t as (key: string) => string);
+}
+
+export function useMenuItems(): MenuItem[] {
+  const locale = useLocale();
+  const t = useTranslations();
+  return useMemo(
+    () => buildMenuItems(t as (key: string) => string),
+    [locale, t],
+  );
+}
+
+export const menuItemDefinitions: MenuItemDef[] = [
   {
-    label: "Video Chat",
+    id: "videoChat",
     icon: IconVideo,
-    description: "Start a video chat",
     href: "/call",
-    category: "Navigation",
   },
   {
-    label: "Chat",
-    icon: IconMessages,
-    subItems: [
-      {
-        label: "Call History",
-        icon: IconHistory,
-        description: "View your call history",
-        href: "/call/history",
-        category: "Navigation",
-      },
-    ],
-  },
-  {
-    label: "Connections",
+    id: "connections",
     icon: IconUsers,
     subItems: [
       {
-        label: "Favorites",
+        id: "favorites",
         icon: IconHeart,
-        description: "View your favorites",
         href: "/connections/favorites",
-        category: "Account",
       },
       {
-        label: "Blocked Users",
+        id: "blockedUsers",
         icon: IconBan,
-        description: "Manage blocked users",
         href: "/connections/blocked-users",
-        category: "Connections",
+      },
+      {
+        id: "callHistory",
+        icon: IconHistory,
+        href: "/call/history",
       },
     ],
   },
   {
-    label: "User",
+    id: "user",
     icon: IconUser,
     subItems: [
       {
-        label: "Profile",
+        id: "profile",
         icon: IconId,
-        description: "View your profile",
         href: "/user/profile",
-        category: "Account",
       },
       {
-        label: "Security",
+        id: "security",
         icon: IconShield,
-        description: "View your security settings",
         href: "/user/security",
-        category: "Account",
       },
       {
-        label: "Progress",
+        id: "progress",
         icon: IconChartLine,
-        description: "View your level and streak progress",
         href: "/user/progress",
-        category: "Account",
       },
       {
-        label: "Reports",
+        id: "userReports",
         icon: IconFlag,
-        description: "View your reports",
         href: "/user/reports",
-        category: "Account",
       },
       {
-        label: "Development",
+        id: "userDevelopment",
         icon: IconCode,
-        description: "Preview upcoming development features",
         href: "/user/development",
-        category: "Account",
         requiresDevelopmentMode: true,
       },
     ],
   },
   {
-    label: "Admin Panel",
+    id: "adminPanel",
     icon: IconUserShield,
-    description: "View the admin dashboard",
     href: "/admin",
     isAdmin: true,
     subItems: [
       {
-        label: "Configuration",
+        id: "adminConfig",
         icon: IconSettingsCog,
-        description: "View the config",
         href: "/admin/config",
-        category: "Admin",
+        isSuperAdminOnly: true,
       },
       {
-        label: "Broadcast Management",
+        id: "adminBroadcasts",
         icon: IconSpeakerphone,
-        description: "Send announcements to all users",
         href: "/admin/broadcasts",
-        category: "Admin",
       },
       {
-        label: "Users Management",
+        id: "adminUsers",
         icon: IconUsers,
-        description: "View the users list",
         href: "/admin/users",
-        category: "Admin",
       },
       {
-        label: "Interest Tags",
+        id: "adminInterestTags",
         icon: IconTags,
-        description: "View the interest tags list",
         href: "/admin/interest-tags",
-        category: "Admin",
       },
       {
-        label: "Reports",
+        id: "adminReports",
         icon: IconFlag,
-        description: "Manage reports",
         href: "/admin/reports",
-        category: "Admin",
       },
       {
-        label: "Level Rewards",
+        id: "adminLevelRewards",
         icon: IconGift,
-        description: "Manage level rewards",
         href: "/admin/level-rewards",
-        category: "Admin",
       },
       {
-        label: "Feature Unlocks",
+        id: "adminFeatureUnlocks",
         icon: IconLock,
-        description: "Manage level-based feature unlocks",
         href: "/admin/level-feature-unlocks",
-        category: "Admin",
       },
       {
-        label: "Streak EXP",
+        id: "adminStreakExp",
         icon: IconBolt,
-        description: "Manage streak EXP bonus multipliers",
         href: "/admin/streak-exp-bonuses",
-        category: "Admin",
       },
     ],
   },
   {
-    label: "Settings",
+    id: "settings",
     icon: IconSettings,
-    description: "View the settings",
     href: "/settings",
-    category: "Settings",
     subItems: [
       {
-        label: "Appearance",
+        id: "settingsAppearance",
         icon: IconPalette,
-        description: "Manage the appearance settings",
         href: "/settings/appearance",
-        category: "Settings",
       },
       {
-        label: "Notifications",
+        id: "settingsNotifications",
         icon: IconBell,
-        description: "Push notification settings",
         href: "/settings/notifications",
-        category: "Settings",
       },
       {
-        label: "Development",
+        id: "settingsDevelopment",
         icon: IconCode,
-        description: "Manage local development settings",
         href: "/settings/development",
-        category: "Settings",
       },
     ],
   },

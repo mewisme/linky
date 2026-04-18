@@ -9,6 +9,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import { IconRefresh } from '@tabler/icons-react'
 import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
+import { useTranslations } from 'next-intl'
 import { trackEvent } from '@/lib/telemetry/events/client'
 import { useBlockedUsersStore } from "@/features/user/model/blocked-users-store";
 
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function BlockedUsersClient({ initialData }: Props) {
+  const t = useTranslations('user')
   const [data, setData] = useState<BlockedUserWithDetails[]>(initialData)
   const [isFetching, startFetching] = useTransition()
 
@@ -31,7 +33,7 @@ export function BlockedUsersClient({ initialData }: Props) {
         const res = await getBlockedUsers()
         setData(res.blocked_users)
       } catch {
-        toast.error('Failed to load blocked users')
+        toast.error(t('blockedLoadFailed'))
       }
     })
   }
@@ -42,14 +44,14 @@ export function BlockedUsersClient({ initialData }: Props) {
       useBlockedUsersStore.getState().unblockUser(user.blocked_user_id)
       setData((prev) => prev.filter((u) => u.id !== user.id))
       trackEvent({ name: 'user_unblocked' })
-      toast.success('User unblocked')
+      toast.success(t('userUnblocked'))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to unblock user')
+      toast.error(error instanceof Error ? error.message : t('unblockFailed'))
     }
   }
 
   return (
-    <AppLayout label="Blocked Users" description="Manage users you have blocked">
+    <AppLayout label={t('blockedUsersTitle')} description={t('blockedUsersDescription')}>
       <BlockedUsersDataTable
         initialData={data}
         callbacks={{ onUnblock: handleUnblock }}

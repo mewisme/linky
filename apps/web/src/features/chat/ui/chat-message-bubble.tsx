@@ -1,4 +1,7 @@
+"use client";
+
 import type { ChatMessage } from "@/features/chat/types/chat-message.types";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { ImageZoom } from "@ws/ui/components/kibo-ui/image-zoom";
 import { cn } from "@ws/ui/lib/utils";
@@ -10,6 +13,7 @@ export function ChatMessageBubble({
   message: ChatMessage;
   className?: string;
 }) {
+  const t = useTranslations("chat");
   if (message.type === "system") {
     return (
       <div className="w-full text-center text-sm text-muted-foreground">
@@ -34,7 +38,7 @@ export function ChatMessageBubble({
         <ImageZoom>
           <Image
             src={attachmentUrl}
-            alt="Chat attachment"
+            alt={t("attachmentAlt")}
             width={attachment?.width || 320}
             height={attachment?.height || 240}
             className="max-h-64 w-auto rounded-lg"
@@ -46,7 +50,7 @@ export function ChatMessageBubble({
         <ImageZoom>
           <Image
             src={attachmentUrl}
-            alt="Chat media"
+            alt={t("mediaAlt")}
             width={attachment?.width || 320}
             height={attachment?.height || 240}
             className="max-h-64 w-auto rounded-lg"

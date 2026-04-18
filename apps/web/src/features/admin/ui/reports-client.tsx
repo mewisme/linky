@@ -12,7 +12,8 @@ import { Label } from '@ws/ui/components/ui/label'
 import dynamic from 'next/dynamic'
 import { getAdminReports } from '@/features/admin/api/reports'
 import { useQuery } from '@ws/ui/internal-lib/react-query'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 
 const AdminReportsDataTable = dynamic(
   () => import('@/shared/ui/data-table/admin-reports/data-table').then(mod => ({ default: mod.AdminReportsDataTable })),
@@ -23,6 +24,7 @@ interface ReportsClientProps {
 }
 
 export function ReportsClient({ initialData }: ReportsClientProps) {
+  const t = useTranslations('admin.reportsList')
   const router = useRouter()
   const [data, setData] = useState<AdminAPI.Reports.Report[]>([])
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -55,39 +57,39 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
   }
 
   return (
-    <AppLayout label="Reports" description="Manage all reports">
+    <AppLayout sidebarItem="adminReports">
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg bg-card">
           <div className="flex-1 space-y-2">
-            <Label htmlFor="status-filter">Status</Label>
+            <Label htmlFor="status-filter">{t('statusFilter')}</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger id="status-filter">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="reviewed">Reviewed</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="dismissed">Dismissed</SelectItem>
+                <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                <SelectItem value="pending">{t('statusPending')}</SelectItem>
+                <SelectItem value="reviewed">{t('statusReviewed')}</SelectItem>
+                <SelectItem value="resolved">{t('statusResolved')}</SelectItem>
+                <SelectItem value="dismissed">{t('statusDismissed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="flex-1 space-y-2">
-            <Label htmlFor="reporter-filter">Reporter User ID</Label>
+            <Label htmlFor="reporter-filter">{t('reporterFilter')}</Label>
             <Input
               id="reporter-filter"
-              placeholder="Filter by reporter user ID..."
+              placeholder={t('reporterPlaceholder')}
               value={reporterUserIdFilter}
               onChange={(e) => setReporterUserIdFilter(e.target.value)}
               className="font-mono text-sm"
             />
           </div>
           <div className="flex-1 space-y-2">
-            <Label htmlFor="reported-filter">Reported User ID</Label>
+            <Label htmlFor="reported-filter">{t('reportedFilter')}</Label>
             <Input
               id="reported-filter"
-              placeholder="Filter by reported user ID..."
+              placeholder={t('reportedPlaceholder')}
               value={reportedUserIdFilter}
               onChange={(e) => setReportedUserIdFilter(e.target.value)}
               className="font-mono text-sm"

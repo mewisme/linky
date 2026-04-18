@@ -1,11 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import type { AdminAPI } from '@/features/admin/types/admin.types'
-import { columns, type RowCallbacks } from './define-data'
+import { useAdminReportsColumns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 import { cn } from '@ws/ui/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface AdminReportsDataTableProps {
   initialData: AdminAPI.Reports.Report[]
@@ -16,13 +15,14 @@ interface AdminReportsDataTableProps {
 }
 
 export function AdminReportsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: AdminReportsDataTableProps) {
-  const tableColumns = useMemo(() => columns(callbacks), [callbacks])
+  const t = useTranslations('dataTable')
+  const tableColumns = useAdminReportsColumns(callbacks)
 
   return (
     <DataTable
       initialData={initialData}
       filterColumn="reason"
-      filterPlaceholder="Filter by reason..."
+      filterPlaceholder={t('adminReports.filterPlaceholder')}
       initialColumnVisibility={{
         reviewed_by: false,
       }}

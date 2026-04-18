@@ -1,5 +1,19 @@
 import { expect, type Page } from "@playwright/test";
 
+function isLocaleHomePathname(pathname: string): boolean {
+  const p = pathname.replace(/\/$/, "") || "/";
+  return p === "/" || p === "/vi";
+}
+
+function isAuthPathname(pathname: string): boolean {
+  return (
+    pathname.startsWith("/sign-in") ||
+    pathname.startsWith("/sign-up") ||
+    pathname.startsWith("/vi/sign-in") ||
+    pathname.startsWith("/vi/sign-up")
+  );
+}
+
 export function isPostAuthAppUrl(url: URL): boolean {
   const href = url.href;
   if (href.includes("verify-email")) {
@@ -8,11 +22,10 @@ export function isPostAuthAppUrl(url: URL): boolean {
   if (href.includes("factor-two")) {
     return false;
   }
-  const p = url.pathname.replace(/\/$/, "") || "/";
-  if (p === "/") {
+  if (isLocaleHomePathname(url.pathname)) {
     return true;
   }
-  if (url.pathname.startsWith("/sign-in") || url.pathname.startsWith("/sign-up")) {
+  if (isAuthPathname(url.pathname)) {
     return false;
   }
   return true;

@@ -6,6 +6,7 @@ import type { ChatMessage } from "@/features/chat/types/chat-message.types";
 import { ChatMessageBubble } from "./chat-message-bubble";
 import { cn } from "@ws/ui/lib/utils";
 import { motion } from "@ws/ui/internal-lib/motion";
+import { useTranslations } from "next-intl";
 
 const GROUP_TIME_GAP = 2 * 60 * 1000;
 
@@ -52,6 +53,7 @@ export function ChatMessageList({
   isPeerTyping: boolean;
   peerInfo?: PeerInfo | null;
 }) {
+  const t = useTranslations("chat");
   return (
     <div className="flex flex-col" data-testid="chat-messages-container">
       {chatMessages.map((msg, index) => {
@@ -83,9 +85,9 @@ export function ChatMessageList({
 
         const statusLabel =
           msg.localStatus === "failed"
-            ? "Failed to send"
+            ? t("failedToSend")
             : msg.localStatus === "sending"
-              ? "Sending..."
+              ? t("sending")
               : null;
 
         return (

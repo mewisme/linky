@@ -12,6 +12,7 @@ import {
 } from '@ws/ui/components/animate-ui/components/radix/alert-dialog';
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
+import { useTranslations } from 'next-intl';
 
 interface BulkDeleteDialogProps {
   open: boolean;
@@ -26,21 +27,25 @@ export function BulkDeleteDialog({
   pendingUsers,
   onConfirm,
 }: BulkDeleteDialogProps) {
+  const t = useTranslations('admin');
+  const tc = useTranslations('common');
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {pendingUsers.length} user(s)?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('bulkDeleteUsersTitle', { count: pendingUsers.length })}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. Users will be removed from Clerk.
+            {t('bulkDeleteUsersDescription')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
           >
-            Delete
+            {t('bulkActionDelete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

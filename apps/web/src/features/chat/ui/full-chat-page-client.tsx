@@ -5,10 +5,12 @@ import { FullPageChatContent } from "./full-page-chat-content";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { useEffect } from "react";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
+import { useTranslations } from "next-intl";
 
 export function FullChatPageClient() {
+  const t = useTranslations("chat");
   const router = useRouter();
 
   const chatMessages = useVideoChatStore((s) => s.chatMessages);
@@ -38,7 +40,7 @@ export function FullChatPageClient() {
           className="gap-2"
         >
           <IconArrowLeft className="size-4" />
-          Back to Call
+          {t("backToCall")}
         </Button>
       </header>
       <FullPageChatContent
@@ -49,7 +51,7 @@ export function FullChatPageClient() {
         isPeerTyping={isPeerTyping}
         peerInfo={peerInfo ? {
           avatarUrl: peerInfo.avatar_url,
-          displayName: `${peerInfo.first_name ?? ""} ${peerInfo.last_name ?? ""}`.trim() || "Peer",
+          displayName: `${peerInfo.first_name ?? ""} ${peerInfo.last_name ?? ""}`.trim() || t("peerFallback"),
         } : null}
       />
     </div>

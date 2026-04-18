@@ -8,26 +8,27 @@ import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessa
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";
 import type { Socket } from "socket.io-client";
 import type { UsersAPI } from "@/entities/user/types/users.types";
+import type { UserFacingSocketPayload } from "@/lib/realtime/socket";
 
 import { useSocket } from "./use-socket";
 
 export interface SocketCallbacks {
-  onJoinedQueue: (data: { message: string; queueSize: number }) => void;
+  onJoinedQueue: (data: UserFacingSocketPayload & { queueSize: number }) => void;
   onMatched: (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => void;
   onSignal: (data: SignalData) => void;
-  onPeerLeft: (data: { message: string; queueSize?: number }) => void;
-  onPeerSkipped: (data: { message: string; queueSize: number }) => void;
-  onSkipped: (data: { message: string; queueSize: number }) => void;
-  onEndCall: (data: { message: string }) => void;
+  onPeerLeft: (data: UserFacingSocketPayload & { queueSize?: number }) => void;
+  onPeerSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => void;
+  onSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => void;
+  onEndCall: (data: UserFacingSocketPayload) => void;
   onChatMessage: (data: ChatMessagePayload) => void;
   onChatTyping: (data: ChatTypingPayload) => void;
   onChatError: (data: ChatErrorPayload) => void;
   onMuteToggle: (data: { muted: boolean }) => void;
   onVideoToggle: (data: { videoOff: boolean }) => void;
   onScreenShareToggle: (data: { sharing: boolean; streamId?: string }) => void;
-  onQueueTimeout: (data: { message: string }) => void;
+  onQueueTimeout: (data: UserFacingSocketPayload) => void;
   onDequeued: (data: { reason: string }) => void;
-  onError: (data: { message: string }) => void;
+  onError: (data: UserFacingSocketPayload) => void;
   onConnect: () => void;
   onDisconnect: (reason: string) => void;
   onConnectError: (error: Error) => void;
@@ -98,7 +99,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       socket.on(event, handler);
     };
 
-    register("joined-queue", (data: { message: string; queueSize: number }) => {
+    register("joined-queue", (data: UserFacingSocketPayload & { queueSize: number }) => {
       publishPresence('matching');
       callbacks.onJoinedQueue(data);
     });
@@ -115,23 +116,23 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onSignal(data);
     });
 
-    register("peer-left", (data: { message: string }) => {
+    register("peer-left", (data: UserFacingSocketPayload) => {
       publishPresence('matching');
       socketHealthMonitor.markEventReceived();
       callbacks.onPeerLeft(data);
     });
 
-    register("peer-skipped", (data: { message: string; queueSize: number }) => {
+    register("peer-skipped", (data: UserFacingSocketPayload & { queueSize: number }) => {
       publishPresence('matching');
       callbacks.onPeerSkipped(data);
     });
 
-    register("skipped", (data: { message: string; queueSize: number }) => {
+    register("skipped", (data: UserFacingSocketPayload & { queueSize: number }) => {
       publishPresence('matching');
       callbacks.onSkipped(data);
     });
 
-    register("end-call", (data: { message: string }) => {
+    register("end-call", (data: UserFacingSocketPayload) => {
       publishPresence('available');
       socketHealthMonitor.markEventReceived();
       callbacks.onEndCall(data);
@@ -171,7 +172,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onScreenShareToggle(data);
     });
 
-    register("queue-timeout", (data: { message: string }) => {
+    register("queue-timeout", (data: UserFacingSocketPayload) => {
       publishPresence('available');
       callbacks.onQueueTimeout(data);
     });
@@ -181,7 +182,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onDequeued(data);
     });
 
-    register("video-chat:error", (data: { message: string }) => {
+    register("video-chat:error", (data: UserFacingSocketPayload) => {
       Sentry.logger.error("Video chat error", { message: data.message });
       callbacks.onError(data);
     });

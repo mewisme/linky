@@ -1,6 +1,8 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
+import type { BackendUserMessage } from "@ws/shared-types";
+import { useTranslations } from "next-intl";
 import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { toast } from "@ws/ui/components/ui/sonner";
@@ -8,7 +10,7 @@ import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useHotkey } from "@tanstack/react-hotkeys";
 
 import type { UsersAPI } from "@/entities/user/types/users.types";
-import type { SignalData } from "@/lib/realtime/socket";
+import type { SignalData, UserFacingSocketPayload } from "@/lib/realtime/socket";
 import type {
   ChatMessage,
   ChatMessageDraft,
@@ -34,6 +36,7 @@ import { iceServerCache } from "@/features/call/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/features/call/lib/webrtc/webrtc-recovery";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
+import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -77,6 +80,12 @@ export function useVideoChat(): UseVideoChatReturn {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const { play } = useSoundWithSettings();
+  const t = useTranslations();
+  const resolveUserMessage = useCallback(
+    (msg: BackendUserMessage) =>
+      resolveBackendMessage(msg, t as (key: string, values?: Record<string, unknown>) => string),
+    [t],
+  );
 
   const { state, actions } = useVideoChatState();
 
@@ -167,7 +176,7 @@ export function useVideoChat(): UseVideoChatReturn {
       } catch (err) {
         Sentry.logger.error("Failed to fetch ICE servers", { error: err });
         if (mounted) {
-          actionsRef.current.setError("Failed to initialize connection. Please refresh the page.");
+          actionsRef.current.setError(t("call.failedInitIce"));
         }
       }
     }
@@ -177,7 +186,7 @@ export function useVideoChat(): UseVideoChatReturn {
     return () => {
       mounted = false;
     };
-  }, [authReady]);
+  }, [authReady, t]);
 
   const refreshTurnCredentials = useCallback(async () => {
     const pc = peerConnection.getPeerConnection();
@@ -347,7 +356,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
         if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
           hasShownConnectedToastRef.current = true;
-          toast.success("You are now connected with your peer.");
+          toast.success(t("call.connectedToast"));
           play('join_call')
         }
       },
@@ -408,7 +417,7 @@ export function useVideoChat(): UseVideoChatReturn {
             }
             if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
               hasShownConnectedToastRef.current = true;
-              toast.success("You are now connected with your peer.");
+              toast.success(t("call.connectedToast"));
               play('join_call');
             }
           } else {
@@ -427,8 +436,7 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [socketSignaling, startReconnecting, completeReconnection, peerConnection]
+    [socketSignaling, startReconnecting, completeReconnection, peerConnection, t, play]
   );
 
   const socketCallbacks = useMemo(
@@ -487,8 +495,8 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onConnectError: () => {
-        actionsRef.current.setError("Failed to connect to server. Please refresh the page.");
-        toast.error("Failed to connect. Please refresh the page.");
+        actionsRef.current.setError(t("call.failedConnectServer"));
+        toast.error(t("call.connectErrorToast"));
       },
       onResyncRequired: () => {
         const currentStatus = connectionStatusRef.current;
@@ -508,7 +516,7 @@ export function useVideoChat(): UseVideoChatReturn {
         resetPeerState();
       },
 
-      onJoinedQueue: (_data: { message: string; queueSize: number }) => {
+      onJoinedQueue: (_data: UserFacingSocketPayload & { queueSize: number }) => {
         actionsRef.current.setConnectionStatus("searching");
         trackEvent({ name: "matchmaking_started" });
       },
@@ -543,7 +551,7 @@ export function useVideoChat(): UseVideoChatReturn {
             );
           } catch (err) {
             Sentry.logger.error("ICE servers not available for match", { error: err });
-            actionsRef.current.setError("Connection configuration not ready. Please try again.");
+            actionsRef.current.setError(t("call.connectionConfigNotReady"));
             return;
           }
         }
@@ -656,7 +664,7 @@ export function useVideoChat(): UseVideoChatReturn {
             });
           } catch (err) {
             Sentry.logger.error("Error creating offer", { error: err instanceof Error ? err.message : "Unknown error" });
-            actionsRef.current.setError("Failed to establish connection. Please try again.");
+            actionsRef.current.setError(t("call.failedEstablishConnection"));
             actionsRef.current.setConnectionStatus("ended");
             recoveryController.stop();
           }
@@ -700,12 +708,12 @@ export function useVideoChat(): UseVideoChatReturn {
           const currentPc = peerConnection.getPeerConnection();
           if (currentPc && currentPc.signalingState !== "closed") {
             Sentry.logger.error("Error handling signal", { error: err instanceof Error ? err.message : "Unknown error" });
-            actionsRef.current.setError("Failed to process connection signal. Please try again.");
+            actionsRef.current.setError(t("call.failedProcessSignal"));
           }
         }
       },
 
-      onPeerLeft: (data: { message: string; queueSize?: number }) => {
+      onPeerLeft: (data: UserFacingSocketPayload & { queueSize?: number }) => {
         monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
@@ -717,15 +725,16 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setConnectionStatus("ended");
 
+        const text = resolveUserMessage(data.userMessage);
         if (data.queueSize !== undefined) {
           actionsRef.current.setError(null);
-          toast(data.message);
+          toast(text);
         } else {
-          toast.error(data.message);
+          toast.error(text);
         }
       },
 
-      onPeerSkipped: (data: { message: string; queueSize: number }) => {
+      onPeerSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => {
         monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
@@ -737,11 +746,11 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setError(null);
-        toast(data.message);
+        toast(resolveUserMessage(data.userMessage));
         syncUserProgressAfterCallEnd();
       },
 
-      onSkipped: (data: { message: string; queueSize: number }) => {
+      onSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => {
         monitoring.stopMonitoring();
         recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");
@@ -752,11 +761,11 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
-        toast(data.message);
+        toast(resolveUserMessage(data.userMessage));
         refreshUserProgress();
       },
 
-      onEndCall: (data: { message: string }) => {
+      onEndCall: (data: UserFacingSocketPayload) => {
         const currentStatus = connectionStatusRef.current;
         const isInCall =
           currentStatus === "matched" ||
@@ -768,7 +777,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
         monitoring.stopMonitoring();
         recoveryController.stop();
-        toast(data.message);
+        toast(resolveUserMessage(data.userMessage));
         play('leave_call')
         isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("ended");
@@ -797,7 +806,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onChatError: (data: ChatErrorPayload) => {
-        toast.error(data.message);
+        toast.error(resolveUserMessage(data.userMessage));
       },
 
       onMuteToggle: (data: { muted: boolean }) => {
@@ -812,10 +821,11 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setPeerSharingScreen(data.sharing);
       },
 
-      onQueueTimeout: (data: { message: string }) => {
-        actionsRef.current.setError(data.message);
+      onQueueTimeout: (data: UserFacingSocketPayload) => {
+        const text = resolveUserMessage(data.userMessage);
+        actionsRef.current.setError(text);
         actionsRef.current.setConnectionStatus("idle");
-        toast.error(`Queue timeout - ${data.message}`);
+        toast.error(t("call.queueTimeoutToast", { message: text }));
       },
 
       onDequeued: (data: { reason: string }) => {
@@ -826,24 +836,25 @@ export function useVideoChat(): UseVideoChatReturn {
             return;
           }
           actionsRef.current.setConnectionStatus("idle");
-          toast.error("Removed from matchmaking queue");
+          toast.error(t("call.removedFromQueue"));
         }
       },
 
-      onError: (data: { message: string }) => {
-        actionsRef.current.setError(data.message);
-        toast.error(`Error - ${data.message}`);
+      onError: (data: UserFacingSocketPayload) => {
+        const text = resolveUserMessage(data.userMessage);
+        actionsRef.current.setError(text);
+        toast.error(t("call.errorToast", { message: text }));
       },
 
       onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => {
-        toast.success(`${data.from_user_name} added you to favorites ❤️`);
+        toast.success(t("call.addedToFavorites", { name: data.from_user_name }));
       },
 
       onFavoriteAddedSelf: () => {
       },
 
       onFavoriteRemoved: (data: { from_user_id: string; from_user_name: string }) => {
-        toast(`${data.from_user_name} removed you from favorites`);
+        toast(t("call.removedFromFavorites", { name: data.from_user_name }));
       },
 
       onFavoriteRemovedSelf: () => {
@@ -863,6 +874,8 @@ export function useVideoChat(): UseVideoChatReturn {
       getToken,
       monitoring,
       isMobile,
+      t,
+      resolveUserMessage,
     ]
   );
 
@@ -875,27 +888,27 @@ export function useVideoChat(): UseVideoChatReturn {
       }
 
       if (!authReady) {
-        actionsRef.current.setError("Authentication required. Please sign in.");
+        actionsRef.current.setError(t("errors.authRequired"));
         return;
       }
 
       const token = await getToken();
       if (!token) {
-        actionsRef.current.setError("Authentication required. Please sign in.");
+        actionsRef.current.setError(t("errors.authRequired"));
         return;
       }
 
       const socket = socketSignaling.getSocket();
       if (!socket?.connected) {
-        actionsRef.current.setError("Connection not ready. Please wait a moment and try again.");
-        toast.error("Connection not ready. Please wait...");
+        actionsRef.current.setError(t("call.connectionNotReady"));
+        toast.error(t("call.connectionNotReadyToast"));
         return;
       }
 
       const claimed = tabCoordination.claimOwnership(null);
       if (!claimed) {
         actionsRef.current.setError(null);
-        toast.error("Call is active in another tab");
+        toast.error(t("call.activeInOtherTab"));
         return;
       }
 
@@ -928,7 +941,7 @@ export function useVideoChat(): UseVideoChatReturn {
       await initialize(stream);
     } catch (err) {
       Sentry.logger.error("Error starting video chat", { error: err instanceof Error ? err.message : "Unknown error" });
-      const message = err instanceof Error ? err.message : "Failed to start video chat";
+      const message = err instanceof Error ? err.message : t("call.failedToStart");
       actionsRef.current.setConnectionStatus("idle");
       tabCoordination.releaseOwnership();
       cleanup();
@@ -967,7 +980,7 @@ export function useVideoChat(): UseVideoChatReturn {
     recoveryController.stop();
     socketSignaling.sendEndCall();
     trackEvent({ name: "call_ended" });
-    toast("You ended the call.");
+    toast(t("call.youEndedCall"));
     actionsRef.current.setConnectionStatus("ended");
     actionsRef.current.setCallStartedAt(null);
     tabCoordination.releaseOwnership();
@@ -978,7 +991,7 @@ export function useVideoChat(): UseVideoChatReturn {
     setTimeout(() => {
       void refreshUserProgress();
     }, 1500);
-  }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination, monitoring]);
+  }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination, monitoring, t]);
 
   useHotkey(
     "Mod+D",
@@ -1172,7 +1185,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setSharingScreen(false);
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         if (errorMessage !== "Screen sharing cancelled or failed") {
-          toast.error("Failed to start screen sharing. Please try again.");
+          toast.error(t("call.screenShareFailed"));
         }
       }
     }

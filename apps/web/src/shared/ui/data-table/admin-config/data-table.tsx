@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
 import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { columns, type RowCallbacks } from './define-data';
+import { useAdminConfigColumns, type RowCallbacks } from './define-data';
 import { DataTable } from '../data-table';
 import { cn } from '@ws/ui/lib/utils';
 
@@ -21,7 +20,7 @@ export function AdminConfigDataTable({
   leftColumnVisibilityContent = null,
   rightColumnVisibilityContent = null,
 }: AdminConfigDataTableProps) {
-  const tableColumns = useMemo(() => columns(callbacks), [callbacks]);
+  const tableColumns = useAdminConfigColumns(callbacks);
 
   return (
     <DataTable

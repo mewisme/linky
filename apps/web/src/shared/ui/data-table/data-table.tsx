@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@ws/ui/components/ui/button"
 import { Label } from "@ws/ui/components/ui/label"
 import { cn } from "@ws/ui/lib/utils"
+import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
 interface DataTableProps<TData> {
@@ -36,6 +37,7 @@ interface DataTableProps<TData> {
 }
 
 export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName, selectionResetKey }: DataTableProps<TData>) {
+  const t = useTranslations("dataTable.common")
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -44,6 +46,9 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
     pageIndex: 0,
     pageSize: 10,
   })
+
+  const filterColumnLabel =
+    filterColumn?.replace(/_/g, " ") ?? ""
 
   useEffect(() => {
     if (selectionResetKey === undefined) return
@@ -77,7 +82,10 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
         {filterColumn ? (
           <InputGroup className="max-w-sm">
             <InputGroupInput
-              placeholder={filterPlaceholder || `Filter ${filterColumn}...`}
+              placeholder={
+                filterPlaceholder ??
+                t("filterColumnPlaceholder", { column: filterColumnLabel })
+              }
               value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
               onChange={(event) =>
                 table.getColumn(filterColumn)?.setFilterValue(event.target.value)
@@ -96,8 +104,8 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto" size="sm">
                 <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
+                <span className="hidden lg:inline">{t("customizeColumns")}</span>
+                <span className="lg:hidden">{t("columnsShort")}</span>
                 <IconChevronDown />
               </Button>
             </DropdownMenuTrigger>
@@ -173,7 +181,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {t("noResults")}
                 </TableCell>
               </TableRow>
             )}
@@ -182,13 +190,15 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {t("rowsSelected", {
+            selected: table.getFilteredSelectedRowModel().rows.length,
+            total: table.getFilteredRowModel().rows.length,
+          })}
         </div>
         <div className="flex w-full items-center gap-8 lg:w-fit">
           <div className="hidden items-center gap-2 lg:flex">
             <Label htmlFor="rows-per-page" className="text-sm font-medium">
-              Rows per page
+              {t("rowsPerPage")}
             </Label>
             <Select
               value={`${table.getState().pagination.pageSize}`}
@@ -211,8 +221,10 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
             </Select>
           </div>
           <div className="flex w-fit items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
+            {t("pageIndicator", {
+              current: table.getState().pagination.pageIndex + 1,
+              total: table.getPageCount(),
+            })}
           </div>
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
             <Button
@@ -221,7 +233,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
               onClick={() => table.setPageIndex(0)}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to first page</span>
+              <span className="sr-only">{t("goToFirstPage")}</span>
               <IconChevronsLeft />
             </Button>
             <Button
@@ -231,7 +243,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">Go to previous page</span>
+              <span className="sr-only">{t("goToPreviousPage")}</span>
               <IconChevronLeft />
             </Button>
             <Button
@@ -241,7 +253,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to next page</span>
+              <span className="sr-only">{t("goToNextPage")}</span>
               <IconChevronRight />
             </Button>
             <Button
@@ -251,7 +263,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
               onClick={() => table.setPageIndex(table.getPageCount() - 1)}
               disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">Go to last page</span>
+              <span className="sr-only">{t("goToLastPage")}</span>
               <IconChevronsRight />
             </Button>
           </div>

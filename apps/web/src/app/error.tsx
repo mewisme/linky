@@ -7,22 +7,24 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Outfit } from "next/font/google";
 import { trackEvent } from "@/lib/telemetry/events/client";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
 const outfit = Outfit({
   subsets: ["latin"],
 });
 
-export default function Error({
+export default function RootErrorFallback({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errorsPage");
   useEffect(() => {
     trackEvent({ name: "error_occurred", properties: { message: error.message, digest: error.digest ?? null } });
   }, [error]);
@@ -39,12 +41,11 @@ export default function Error({
         </div>
 
         <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
-          Something went wrong!
+          {t("title")}
         </h1>
 
         <p className="mb-10 text-lg text-muted-foreground">
-          An unexpected error occurred while processing your request.
-          Our team has been notified and we&apos;re working to fix it.
+          {t("description")}
         </p>
 
         <div className="flex flex-col-reverse gap-3 w-full sm:flex-row sm:justify-center sm:gap-4">
@@ -55,7 +56,7 @@ export default function Error({
             className="group px-8 font-medium border-border hover:bg-secondary"
           >
             <IconRefresh size={18} className="mr-2 transition-transform group-hover:rotate-180 duration-500" />
-            Try again
+            {t("tryAgain")}
           </Button>
 
           <Button
@@ -66,7 +67,7 @@ export default function Error({
           >
             <Link href="/">
               <IconHome size={18} className="mr-2" />
-              Go to Home
+              {t("goHome")}
             </Link>
           </Button>
         </div>
@@ -74,7 +75,7 @@ export default function Error({
         <div className="mt-12 w-full rounded-xl border border-border/50 bg-muted/30 p-4 text-left">
           <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">
             <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
-            Error Reference
+            {t("errorReference")}
           </div>
           <code className="block text-sm font-mono text-destructive/80 break-all bg-destructive/5 p-2 rounded">
             {error.digest || "ERR_RUNTIME_EXCEPTION"}

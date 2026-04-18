@@ -7,16 +7,17 @@ import {
 } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/navigation";
 import { Outfit } from "next/font/google";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 const outfit = Outfit({
   subsets: ["latin"],
 });
 
-export default function NotFound() {
+export default function RootNotFoundFallback() {
   const router = useRouter();
+  const t = useTranslations("notFoundPage");
   return (
     <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${outfit.className}`}>
       <div className="absolute top-0 left-0 -z-10 h-full w-full">
@@ -30,12 +31,11 @@ export default function NotFound() {
         </div>
 
         <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
-          Page not found
+          {t("title")}
         </h1>
 
         <p className="mb-10 text-lg text-muted-foreground">
-          Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved,
-          deleted, or the URL might be mistyped.
+          {t("description")}
         </p>
 
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:gap-4">
@@ -46,7 +46,7 @@ export default function NotFound() {
             onClick={() => router.back()}
           >
             <IconArrowLeft size={18} className="mr-2 transition-transform group-hover:-translate-x-1" />
-            Go back
+            {t("goBack")}
           </Button>
 
           <Button
@@ -57,7 +57,7 @@ export default function NotFound() {
           >
             <Link href="/">
               <IconHomeLink size={18} className="mr-2" />
-              Back to Dashboard
+              {t("backToDashboard")}
             </Link>
           </Button>
         </div>

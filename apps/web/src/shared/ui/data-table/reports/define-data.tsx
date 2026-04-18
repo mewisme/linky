@@ -11,6 +11,7 @@ import {
   PillStatus,
 } from "@ws/ui/components/kibo-ui/pill"
 import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 
 export function getIconForStatus(status: ResourcesAPI.Reports.ReportStatus) {
   switch (status) {
@@ -28,89 +29,92 @@ export function getIconForStatus(status: ResourcesAPI.Reports.ReportStatus) {
 export type RowCallbacks = Record<string, unknown>;
 
 function ReportsActionsCell({ row }: { row: { original: ResourcesAPI.Reports.Report } }) {
+  const t = useTranslations('dataTable')
   const report = row.original;
 
   const actions: ActionItem[] = useMemo(() => [
     {
       type: 'item',
-      label: 'Copy report ID',
+      label: t('reports.copyReportId'),
       icon: <IconCopy className="size-4" />,
       onClick: () => {
         navigator.clipboard.writeText(report.id);
-        toast.success('Report ID copied to clipboard');
+        toast.success(t('reports.reportIdCopied'));
       },
     },
-  ], [report]);
+  ], [report, t]);
 
-  return <ActionsButton actions={actions} title="Actions" className="flex justify-end" />;
+  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- API compatibility
-export const columns = (_callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Reports.Report>[] => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className='justify-center flex'
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'reported_user_id',
-    header: 'Reported User',
-    cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('reported_user_id')}</div>,
-  },
-  {
-    accessorKey: 'reason',
-    header: 'Reason',
-    cell: ({ row }) => {
-      const reason = row.getValue('reason') as string
-      return (
-        <div className="max-w-[300px] truncate">{reason}</div>
-      )
+export function useReportColumns(_callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Reports.Report>[] {
+  const t = useTranslations('dataTable')
+  return useMemo(() => [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label={t('common.selectAllAria')}
+          className='justify-center flex'
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label={t('common.selectRowAria')}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => {
-      const status = row.getValue('status') as ResourcesAPI.Reports.ReportStatus
-      return (
-        <Pill>
-          <PillStatus>
-            {getIconForStatus(status)}
-          </PillStatus>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </Pill>
-      )
+    {
+      accessorKey: 'reported_user_id',
+      header: t('reports.reportedUser'),
+      cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('reported_user_id')}</div>,
     },
-  },
-  {
-    accessorKey: 'created_at',
-    header: 'Created At',
-    cell: ({ row }) => {
-      const date = new Date(row.getValue('created_at'))
-      return (
-        <div className="text-sm text-muted-foreground">
-          {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-        </div>
-      )
+    {
+      accessorKey: 'reason',
+      header: t('reports.reason'),
+      cell: ({ row }) => {
+        const reason = row.getValue('reason') as string
+        return (
+          <div className="max-w-[300px] truncate">{reason}</div>
+        )
+      },
     },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => <ReportsActionsCell row={row} />,
-  }
-]
+    {
+      accessorKey: 'status',
+      header: t('reports.status'),
+      cell: ({ row }) => {
+        const status = row.getValue('status') as ResourcesAPI.Reports.ReportStatus
+        return (
+          <Pill>
+            <PillStatus>
+              {getIconForStatus(status)}
+            </PillStatus>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </Pill>
+        )
+      },
+    },
+    {
+      accessorKey: 'created_at',
+      header: t('reports.createdAt'),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue('created_at'))
+        return (
+          <div className="text-sm text-muted-foreground">
+            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </div>
+        )
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => <ReportsActionsCell row={row} />,
+    }
+  ], [t])
+}

@@ -13,6 +13,7 @@ import {
 import { ActionsButton, type ActionItem } from '@/shared/ui/common/actions-button';
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 
 type LevelReward = AdminAPI.LevelRewards.LevelReward;
 
@@ -22,115 +23,119 @@ export interface RowCallbacks {
 }
 
 function LevelRewardActionsCell({ row, callbacks }: { row: { original: LevelReward }, callbacks?: RowCallbacks }) {
+  const t = useTranslations('dataTable')
   const reward = row.original;
 
   const actions: ActionItem[] = useMemo(() => [
     {
       type: 'item',
-      label: 'Copy reward ID',
+      label: t('levelRewards.copyRewardId'),
       icon: <IconCopy className="size-4" />,
       onClick: () => {
         navigator.clipboard.writeText(reward.id);
-        toast.success('Reward ID copied to clipboard');
+        toast.success(t('levelRewards.rewardIdCopied'));
       },
     },
     {
       type: 'item',
-      label: 'Edit Details',
+      label: t('levelRewards.editDetails'),
       icon: <IconEdit className="size-4" />,
       onClick: () => callbacks?.onEdit(reward),
     },
     { type: 'separator' },
     {
       type: 'item',
-      label: 'Delete',
+      label: t('levelRewards.delete'),
       icon: <IconTrash className="size-4" />,
       onClick: () => callbacks?.onDelete(reward),
       variant: 'destructive',
       confirmAction: {
-        title: 'Are you sure?',
-        description: 'This action cannot be undone. This will permanently delete the level reward.',
-        confirmLabel: 'Yes, delete',
-        cancelLabel: 'No, go back',
+        title: t('confirm.deleteTitle'),
+        description: t('levelRewards.deleteDescription'),
+        confirmLabel: t('confirm.yesDelete'),
+        cancelLabel: t('confirm.noGoBack'),
         variant: 'destructive',
       },
     },
-  ], [reward, callbacks]);
+  ], [reward, callbacks, t]);
 
-  return <ActionsButton actions={actions} title="Actions" />;
+  return <ActionsButton actions={actions} title={t('common.actions')} />;
 }
 
-export const columns = (callbacks?: RowCallbacks): ColumnDef<LevelReward>[] => [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className='justify-center flex'
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'level_required',
-    header: 'Level Required',
-    cell: ({ row }) => {
-      return (
-        <Badge variant="outline" className="px-3 py-1 font-bold text-base">
-          Level {row.original.level_required}
-        </Badge>
-      )
+export function useLevelRewardColumns(callbacks?: RowCallbacks): ColumnDef<LevelReward>[] {
+  const t = useTranslations('dataTable')
+  return useMemo(() => [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label={t('common.selectAllAria')}
+          className='justify-center flex'
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label={t('common.selectRowAria')}
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'level_required',
+      header: t('levelRewards.levelRequired'),
+      cell: ({ row }) => {
+        return (
+          <Badge variant="outline" className="px-3 py-1 font-bold text-base">
+            {t('levelRewards.levelPrefix', { level: row.original.level_required })}
+          </Badge>
+        )
+      }
+    },
+    {
+      accessorKey: 'reward_type',
+      header: t('levelRewards.rewardType'),
+      cell: ({ row }) => {
+        return (
+          <div className="font-medium">{row.original.reward_type}</div>
+        )
+      }
+    },
+    {
+      accessorKey: 'reward_payload',
+      header: t('levelRewards.rewardDetails'),
+      cell: ({ row }) => {
+        const payload = row.original.reward_payload;
+        return (
+          <div className="max-w-[300px] truncate text-muted-foreground text-sm">
+            {JSON.stringify(payload)}
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: 'created_at',
+      header: t('levelRewards.created'),
+      cell: ({ row }) => {
+        return (
+          <div className="text-sm text-muted-foreground">
+            {new Date(row.original.created_at).toLocaleDateString()}
+          </div>
+        )
+      }
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        return <LevelRewardActionsCell row={row} callbacks={callbacks} />;
+      }
     }
-  },
-  {
-    accessorKey: 'reward_type',
-    header: 'Reward Type',
-    cell: ({ row }) => {
-      return (
-        <div className="font-medium">{row.original.reward_type}</div>
-      )
-    }
-  },
-  {
-    accessorKey: 'reward_payload',
-    header: 'Reward Details',
-    cell: ({ row }) => {
-      const payload = row.original.reward_payload;
-      return (
-        <div className="max-w-[300px] truncate text-muted-foreground text-sm">
-          {JSON.stringify(payload)}
-        </div>
-      )
-    }
-  },
-  {
-    accessorKey: 'created_at',
-    header: 'Created',
-    cell: ({ row }) => {
-      return (
-        <div className="text-sm text-muted-foreground">
-          {new Date(row.original.created_at).toLocaleDateString()}
-        </div>
-      )
-    }
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      return <LevelRewardActionsCell row={row} callbacks={callbacks} />;
-    }
-  }
-]
+  ], [callbacks, t])
+}

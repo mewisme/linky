@@ -3,6 +3,7 @@ import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatMatchmaking, VideoChatRooms } from "../types.js";
 import { logger } from "../helpers/logger.helper.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupResyncHandler(
   socket: AuthenticatedSocket,
@@ -23,9 +24,16 @@ export function setupResyncHandler(
 
     const roomWithUserId = rooms.findRoomByUserId(userId, io);
     if (!roomWithUserId) {
-      socket.emit("video-chat:error", {
-        message: "No active room to resync. Please start a new call.",
-      });
+      socket.emit(
+        "video-chat:error",
+        userFacingPayload(
+          toUserMessage(
+            "RESYNC_NO_ROOM",
+            { key: "call.resync.noActiveRoom" },
+            "No active room to resync. Please start a new call.",
+          ),
+        ),
+      );
       return;
     }
 
@@ -46,7 +54,13 @@ export function setupResyncHandler(
     if (!peerSocket || !peerSocket.connected) {
       rooms.deleteRoom(roomWithUserId.id);
       socket.emit("peer-left", {
-        message: "The other person is offline. The call has ended.",
+        ...userFacingPayload(
+          toUserMessage(
+            "RESYNC_PEER_OFFLINE",
+            { key: "call.resync.peerOffline" },
+            "The other person is offline. The call has ended.",
+          ),
+        ),
       });
       return;
     }

@@ -1,14 +1,31 @@
+import type { BackendUserMessage } from "@ws/shared-types";
+
 export interface SocketErrorPayload {
   message: string;
+  userMessage: BackendUserMessage;
 }
 
 export interface QueueStatusPayload {
   message: string;
+  userMessage: BackendUserMessage;
   queueSize: number;
 }
 
 export interface PeerLeftPayload {
   message: string;
+  userMessage: BackendUserMessage;
+}
+
+export interface PeerSkippedPayload {
+  message: string;
+  userMessage: BackendUserMessage;
+  queueSize: number;
+}
+
+export interface SkippedPayload {
+  message: string;
+  userMessage: BackendUserMessage;
+  queueSize: number;
 }
 
 export interface SignalPayload {
@@ -35,6 +52,7 @@ export interface ChatTypingPayload {
 
 export interface ChatErrorPayload {
   message: string;
+  userMessage: BackendUserMessage;
 }
 
 export interface MuteTogglePayload {
@@ -64,6 +82,7 @@ export interface FavoriteEventPayload {
 
 export interface EndCallPayload {
   message: string;
+  userMessage: BackendUserMessage;
 }
 
 export interface ResyncSessionPayload {
@@ -88,3 +107,12 @@ export interface ScreenShareTogglePayload {
   streamId?: string;
 }
 
+export interface QueueTimeoutPayload {
+  message: string;
+  userMessage: BackendUserMessage;
+}
+
+export interface VideoChatErrorPayload {
+  message: string;
+  userMessage: BackendUserMessage;
+}

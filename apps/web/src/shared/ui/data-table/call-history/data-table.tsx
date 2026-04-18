@@ -1,9 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import type { CallHistoryRecord } from '@/entities/call-history/types/call-history.types'
-import { columns, type RowCallbacks } from './define-data'
+import { useCallHistoryColumns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 import { cn } from '@ws/ui/lib/utils'
 
@@ -15,7 +13,7 @@ interface CallHistoryDataTableProps {
 }
 
 export function CallHistoryDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null }: CallHistoryDataTableProps) {
-  const tableColumns = useMemo(() => columns(callbacks), [callbacks])
+  const tableColumns = useCallHistoryColumns(callbacks)
 
   return (
     <DataTable

@@ -1,9 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import type { ResourcesAPI } from '@/shared/types/resources.types'
-import { columns, type RowCallbacks } from './define-data'
+import { useReportColumns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 import { cn } from '@ws/ui/lib/utils'
 
@@ -15,7 +13,7 @@ interface ReportsDataTableProps {
 }
 
 export function ReportsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null }: ReportsDataTableProps) {
-  const tableColumns = useMemo(() => columns(callbacks), [callbacks])
+  const tableColumns = useReportColumns(callbacks)
 
   return (
     <DataTable

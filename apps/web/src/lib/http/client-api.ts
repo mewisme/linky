@@ -1,4 +1,5 @@
 import { apiUrl } from "./api-url";
+import { ApiError, parseApiErrorBody } from "@/lib/http/api-error";
 
 interface FetchOptions extends RequestInit {
   token?: string;
@@ -22,7 +23,13 @@ async function request<T>(
   const body = options.body !== undefined ? JSON.stringify(options.body) : undefined;
   const response = await fetch(url, { ...options, method, headers, body });
   if (!response.ok) {
-    throw new Error((await response.text()) || response.statusText);
+    const text = await response.text();
+    const parsed = parseApiErrorBody(text || "");
+    throw new ApiError(parsed.message || response.statusText, {
+      status: response.status,
+      userMessage: parsed.userMessage,
+      rawBody: text,
+    });
   }
   const text = await response.text();
   if (!text) {

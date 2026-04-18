@@ -6,6 +6,7 @@ import { getDbUserId } from "../helpers/user.helper.js";
 import { logger } from "../helpers/logger.helper.js";
 import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupEndCallHandler(
   socket: AuthenticatedSocket,
@@ -36,7 +37,9 @@ export function setupEndCallHandler(
         const peerSocket = io.sockets.get(peerId);
         if (peerSocket && peerSocket.connected) {
           io.to(peerId).emit("end-call", {
-            message: "The other person ended the call.",
+            ...userFacingPayload(
+              toUserMessage("END_PEER_ENDED", { key: "call.end.peerEnded" }, "The other person ended the call."),
+            ),
           });
         }
       }

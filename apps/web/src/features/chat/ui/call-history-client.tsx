@@ -26,7 +26,7 @@ export function CallHistoryClient({ initialData }: Props) {
   })
 
   return (
-    <AppLayout label="Call History" description="View your call history">
+    <AppLayout sidebarItem="callHistory">
       <CallHistoryDataTable
         initialData={data?.data || []}
         leftColumnVisibilityContent={

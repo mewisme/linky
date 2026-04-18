@@ -24,6 +24,7 @@ import {
   IconHeart,
   IconHistory,
   IconHome,
+  IconLanguage,
   IconId,
   IconLayoutSidebar,
   IconLock,
@@ -45,12 +46,15 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@ws/ui/components/
 import { Kbd, KbdGroup } from '@ws/ui/components/ui/kbd'
 import { isAdmin, isSuperAdmin } from '@/shared/utils/roles'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useRouter as useNextRouter } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
 
 import { Logo } from '@/shared/ui/layouts/header/landing/logo'
 import { Separator } from '@ws/ui/components/ui/separator'
 import { trackEvent } from '@/lib/telemetry/events/client'
 import { useCommandMenuStore } from '@/shared/model/command-menu-store'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
+import { useLocalePreferenceStore } from '@/shared/model/locale-preference-store'
 import { useSidebarStore } from '@/shared/model/sidebar-store'
 import { useTheme } from 'next-themes'
 import { useUserContext } from '@/providers/user/user-provider'
@@ -66,13 +70,15 @@ interface CommandAction {
   keywords?: string[]
 }
 
-interface CommandGroup {
+interface CommandGroupDef {
+  id: string
   heading: string
   actions: CommandAction[]
   showForAdmin?: boolean
 }
 
 function CommandMenuFooter() {
+  const t = useTranslations()
   return (
     <>
       <div className="flex h-10" />
@@ -81,7 +87,7 @@ function CommandMenuFooter() {
         <Logo className="size-10 text-muted-foreground" aria-hidden draw />
 
         <div className="flex shrink-0 items-center gap-2">
-          <span>Enter to open</span>
+          <span>{t('commandMenu.ui.enterToOpen')}</span>
           <Kbd>
             <CornerDownLeftIcon />
           </Kbd>
@@ -89,7 +95,7 @@ function CommandMenuFooter() {
             orientation="vertical"
             className="data-[orientation=vertical]:h-4"
           />
-          <span className="text-muted-foreground">Exit</span>
+          <span className="text-muted-foreground">{t('commandMenu.ui.exit')}</span>
           <Kbd>Esc</Kbd>
         </div>
       </div>
@@ -97,14 +103,23 @@ function CommandMenuFooter() {
   )
 }
 
+function parseKeywords(tRoot: ReturnType<typeof useTranslations>, key: string): string[] {
+  return (tRoot as (k: string) => string)(`commandMenu.keywords.${key}`).split(/\s+/).filter(Boolean)
+}
+
 export function CommandMenu() {
   const { isOpen, open, setOpen } = useCommandMenuStore()
   const router = useRouter()
+  const pathname = usePathname()
+  const nextRouter = useNextRouter()
+  const setPersistedLocale = useLocalePreferenceStore((s) => s.setLocale)
   const { setTheme, resolvedTheme } = useTheme()
   const { auth: { signOut, isSignedIn } } = useUserContext()
   const { user: userStore } = useUserStore()
   const { setCollapsible, setVariant, variant, collapsible } = useSidebarStore()
   const [feedback, setFeedback] = useState<any>(null);
+  const locale = useLocale()
+  const t = useTranslations()
 
   useEffect(() => {
     const feedbackIntegration = Sentry.getFeedback();
@@ -116,261 +131,307 @@ export function CommandMenu() {
   const isAdminUser = isAdmin(userStore?.role)
   const isSuperAdminUser = isSuperAdmin(userStore?.role)
 
-  const commandGroups = useMemo<CommandGroup[]>(() => [
-    {
-      heading: 'Quick Actions',
-      actions: [
-        ...(isSignedIn ? [
-          {
-            id: 'start-chat',
-            label: 'Start Video Chat',
-            icon: IconVideo,
-            href: '/call',
-            keywords: ['video', 'call', 'match', 'random'],
-          },
-          {
-            id: 'call-history',
-            label: 'Call History',
-            icon: IconHistory,
-            href: '/call/history',
-            keywords: ['history', 'calls', 'past'],
-          },
-          {
-            id: 'favorites',
-            label: 'Favorites',
-            icon: IconHeart,
-            href: '/connections/favorites',
-            keywords: ['favorites', 'connections', 'saved'],
-          },
-        ] : [
-          {
-            id: 'sign-in',
-            label: 'Sign In',
-            icon: IconLogin,
-            href: '/sign-in',
-            keywords: ['signin', 'signup'],
-          },
-          {
-            id: 'sign-up',
-            label: 'Sign Up',
-            icon: IconUserPlus,
-            href: '/sign-up',
-            keywords: ['signup', 'signin'],
-          },
-        ])
-      ],
+  const switchLocale = useCallback(
+    (next: 'en' | 'vi') => {
+      if (next === locale) return
+      setPersistedLocale(next)
+      router.replace(pathname, { locale: next })
+      nextRouter.refresh()
     },
-    ...[
+    [locale, pathname, router, nextRouter, setPersistedLocale],
+  )
+
+  const commandGroups = useMemo<CommandGroupDef[]>(() => {
+    return [
       {
-        heading: 'Help & Support',
+        id: 'quickActions',
+        heading: t('commandMenu.groups.quickActions'),
+        actions: [
+          ...(isSignedIn ? [
+            {
+              id: 'start-chat',
+              label: t('sidebar.items.videoChat.label'),
+              icon: IconVideo,
+              href: '/call',
+              keywords: parseKeywords(t, 'startChat'),
+            },
+            {
+              id: 'call-history',
+              label: t('sidebar.items.callHistory.label'),
+              icon: IconHistory,
+              href: '/call/history',
+              keywords: parseKeywords(t, 'callHistory'),
+            },
+            {
+              id: 'favorites',
+              label: t('sidebar.items.favorites.label'),
+              icon: IconHeart,
+              href: '/connections/favorites',
+              keywords: parseKeywords(t, 'favorites'),
+            },
+          ] : [
+            {
+              id: 'sign-in',
+              label: t('commandMenu.commands.signIn'),
+              icon: IconLogin,
+              href: '/sign-in',
+              keywords: parseKeywords(t, 'signIn'),
+            },
+            {
+              id: 'sign-up',
+              label: t('commandMenu.commands.signUp'),
+              icon: IconUserPlus,
+              href: '/sign-up',
+              keywords: parseKeywords(t, 'signUp'),
+            },
+          ]),
+          ...(locale === 'vi'
+            ? [
+              {
+                id: 'locale-en',
+                label: t('commandMenu.commands.localeEnglish'),
+                icon: IconLanguage,
+                onSelect: async () => {
+                  switchLocale('en')
+                },
+                keywords: parseKeywords(t, 'localeEnglish'),
+              },
+            ]
+            : []),
+          ...(locale === 'en'
+            ? [
+              {
+                id: 'locale-vi',
+                label: t('commandMenu.commands.localeVietnamese'),
+                icon: IconLanguage,
+                onSelect: async () => {
+                  switchLocale('vi')
+                },
+                keywords: parseKeywords(t, 'localeVietnamese'),
+              },
+            ]
+            : []),
+        ],
+      },
+      {
+        id: 'helpSupport',
+        heading: t('commandMenu.groups.helpSupport'),
         actions: [
           {
             id: 'feedback',
-            label: 'Report an Issue',
+            label: t('commandMenu.commands.feedback'),
             icon: IconBug,
             onSelect: async () => {
               const form = await feedback?.createForm();
               form.appendToDom();
               form.open();
             },
-            keywords: ['feedback', 'report', 'issue'],
+            keywords: parseKeywords(t, 'feedback'),
           },
         ],
       },
-    ],
-    {
-      heading: 'Preferences',
-      actions: [
-        {
-          id: 'appearance',
-          label: 'Appearance',
-          icon: IconPalette,
-          href: '/settings/appearance',
-          keywords: ['theme', 'colors', 'dark', 'light'],
-        },
-        ...(isSignedIn ? [
-          {
-            id: 'blocked-users',
-            label: 'Blocked Users',
-            icon: IconBan,
-            href: '/settings/blocked-users',
-            keywords: ['block', 'ban'],
-          },
-        ] : []),
-        {
-          id: 'notifications',
-          label: 'Notifications',
-          icon: IconBell,
-          href: '/settings/notifications',
-          keywords: ['push', 'alerts'],
-        },
-        {
-          id: 'toggle-theme',
-          label: `${resolvedTheme === 'dark' ? 'Light' : 'Dark'} Mode`,
-          icon: IconPalette,
-          onSelect: async () => {
-            setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
-          },
-          keywords: ['theme', 'dark', 'light', 'mode'],
-        },
-        {
-          id: 'sidebar-variant',
-          label: 'Sidebar Style',
-          icon: IconVersions,
-          onSelect: async () => {
-            setVariant(variant === 'sidebar' ? 'floating' : 'sidebar')
-          },
-          keywords: ['sidebar', 'style', 'variant', 'floating'],
-        },
-        {
-          id: 'sidebar-collapsible',
-          label: 'Sidebar Behavior',
-          icon: IconLayoutSidebar,
-          onSelect: async () => {
-            setCollapsible(collapsible === 'offcanvas' ? 'icon' : 'offcanvas')
-          },
-          keywords: ['sidebar', 'collapsible', 'behavior'],
-        },
-      ],
-    },
-    {
-      heading: 'Navigation',
-      actions: [
-        {
-          id: 'home',
-          label: 'Home',
-          icon: IconHome,
-          href: '/',
-        },
-        ...(isSignedIn ? [
-          {
-            id: 'profile',
-            label: 'Profile',
-            icon: IconId,
-            href: '/user/profile',
-            keywords: ['account', 'user'],
-          },
-          {
-            id: 'security',
-            label: 'Security',
-            icon: IconShield,
-            href: '/user/security',
-            keywords: ['password', 'auth', 'safety'],
-          },
-          {
-            id: 'progress',
-            label: 'Progress',
-            icon: IconChartLine,
-            href: '/user/progress',
-            keywords: ['level', 'streak', 'stats', 'xp'],
-          },
-          {
-            id: 'user-reports',
-            label: 'My Reports',
-            icon: IconFlag,
-            href: '/user/reports',
-            keywords: ['reports', 'flags'],
-          },
-          {
-            id: 'settings',
-            label: 'Settings',
-            icon: IconSettings,
-            href: '/settings',
-          },
-        ] : []),
-      ],
-    },
-    ...(isAdminUser ? [
       {
-        heading: 'Admin',
-        showForAdmin: true,
+        id: 'preferences',
+        heading: t('commandMenu.groups.preferences'),
         actions: [
           {
-            id: 'admin-dashboard',
-            label: 'Admin Dashboard',
-            icon: IconUserShield,
-            href: '/admin',
-            keywords: ['admin', 'dashboard', 'panel'],
+            id: 'appearance',
+            label: t('sidebar.items.settingsAppearance.label'),
+            icon: IconPalette,
+            href: '/settings/appearance',
+            keywords: parseKeywords(t, 'appearance'),
           },
-          ...(isSuperAdminUser ? [
+          ...(isSignedIn ? [
             {
-              id: 'admin-config',
-              label: 'Config',
-              icon: IconSettingsCog,
-              href: '/admin/config',
-              keywords: ['config', 'settings'],
+              id: 'blocked-users',
+              label: t('sidebar.items.blockedUsers.label'),
+              icon: IconBan,
+              href: '/settings/blocked-users',
+              keywords: parseKeywords(t, 'blockedUsers'),
             },
           ] : []),
           {
-            id: 'admin-users',
-            label: 'Manage Users',
-            icon: IconUsers,
-            href: '/admin/users',
-            keywords: ['users', 'accounts'],
+            id: 'notifications',
+            label: t('sidebar.items.settingsNotifications.label'),
+            icon: IconBell,
+            href: '/settings/notifications',
+            keywords: parseKeywords(t, 'notifications'),
           },
           {
-            id: 'admin-tags',
-            label: 'Interest Tags',
-            icon: IconTags,
-            href: '/admin/interest-tags',
-            keywords: ['tags', 'interests'],
-          },
-          {
-            id: 'admin-reports',
-            label: 'Manage Reports',
-            icon: IconFlag,
-            href: '/admin/reports',
-            keywords: ['reports', 'flags', 'moderation'],
-          },
-          {
-            id: 'admin-rewards',
-            label: 'Level Rewards',
-            icon: IconGift,
-            href: '/admin/level-rewards',
-            keywords: ['rewards', 'levels'],
-          },
-          {
-            id: 'admin-features',
-            label: 'Feature Unlocks',
-            icon: IconLock,
-            href: '/admin/level-feature-unlocks',
-            keywords: ['features', 'unlocks', 'levels'],
-          },
-          {
-            id: 'admin-bonuses',
-            label: 'Streak Bonuses',
-            icon: IconBolt,
-            href: '/admin/streak-exp-bonuses',
-            keywords: ['streak', 'bonus', 'xp', 'multiplier'],
-          },
-          {
-            id: 'admin-broadcasts',
-            label: 'Broadcasts',
-            icon: IconSpeakerphone,
-            href: '/admin/broadcasts',
-            keywords: ['broadcast', 'announcements', 'notifications'],
-          },
-        ],
-      }
-    ] : []),
-    ...(isSignedIn ? [
-      {
-        heading: 'Account',
-        actions: [
-          {
-            id: 'logout',
-            label: 'Logout',
-            icon: IconLogout,
+            id: 'toggle-theme',
+            label: resolvedTheme === 'dark'
+              ? t('commandMenu.commands.toggleThemeLight')
+              : t('commandMenu.commands.toggleThemeDark'),
+            icon: IconPalette,
             onSelect: async () => {
-              trackEvent({ name: "sign_out" });
-              signOut();
+              setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
             },
-            keywords: ['signout', 'exit', 'leave'],
+            keywords: parseKeywords(t, 'toggleTheme'),
+          },
+          {
+            id: 'sidebar-variant',
+            label: t('commandMenu.commands.sidebarStyle'),
+            icon: IconVersions,
+            onSelect: async () => {
+              setVariant(variant === 'sidebar' ? 'floating' : 'sidebar')
+            },
+            keywords: parseKeywords(t, 'sidebarVariant'),
+          },
+          {
+            id: 'sidebar-collapsible',
+            label: t('commandMenu.commands.sidebarBehavior'),
+            icon: IconLayoutSidebar,
+            onSelect: async () => {
+              setCollapsible(collapsible === 'offcanvas' ? 'icon' : 'offcanvas')
+            },
+            keywords: parseKeywords(t, 'sidebarCollapsible'),
           },
         ],
       },
-    ] : []),
-  ], [collapsible, feedback, isAdminUser, isSignedIn, isSuperAdminUser, resolvedTheme, setCollapsible, setTheme, setVariant, signOut, variant])
+      {
+        id: 'navigation',
+        heading: t('commandMenu.groups.navigation'),
+        actions: [
+          {
+            id: 'home',
+            label: t('navigation.home'),
+            icon: IconHome,
+            href: '/',
+            keywords: parseKeywords(t, 'home'),
+          },
+          ...(isSignedIn ? [
+            {
+              id: 'profile',
+              label: t('sidebar.items.profile.label'),
+              icon: IconId,
+              href: '/user/profile',
+              keywords: parseKeywords(t, 'profile'),
+            },
+            {
+              id: 'security',
+              label: t('sidebar.items.security.label'),
+              icon: IconShield,
+              href: '/user/security',
+              keywords: parseKeywords(t, 'security'),
+            },
+            {
+              id: 'progress',
+              label: t('sidebar.items.progress.label'),
+              icon: IconChartLine,
+              href: '/user/progress',
+              keywords: parseKeywords(t, 'progress'),
+            },
+            {
+              id: 'user-reports',
+              label: t('commandMenu.commands.myReports'),
+              icon: IconFlag,
+              href: '/user/reports',
+              keywords: parseKeywords(t, 'userReports'),
+            },
+            {
+              id: 'settings',
+              label: t('sidebar.items.settings.label'),
+              icon: IconSettings,
+              href: '/settings',
+              keywords: parseKeywords(t, 'settings'),
+            },
+          ] : []),
+        ],
+      },
+      ...(isAdminUser ? [
+        {
+          id: 'admin',
+          heading: t('commandMenu.groups.admin'),
+          showForAdmin: true,
+          actions: [
+            {
+              id: 'admin-dashboard',
+              label: t('sidebar.items.adminPanel.label'),
+              icon: IconUserShield,
+              href: '/admin',
+              keywords: parseKeywords(t, 'adminDashboard'),
+            },
+            ...(isSuperAdminUser ? [
+              {
+                id: 'admin-config',
+                label: t('sidebar.items.adminConfig.label'),
+                icon: IconSettingsCog,
+                href: '/admin/config',
+                keywords: parseKeywords(t, 'adminConfig'),
+              },
+            ] : []),
+            {
+              id: 'admin-users',
+              label: t('commandMenu.commands.manageUsers'),
+              icon: IconUsers,
+              href: '/admin/users',
+              keywords: parseKeywords(t, 'adminUsers'),
+            },
+            {
+              id: 'admin-tags',
+              label: t('sidebar.items.adminInterestTags.label'),
+              icon: IconTags,
+              href: '/admin/interest-tags',
+              keywords: parseKeywords(t, 'adminTags'),
+            },
+            {
+              id: 'admin-reports',
+              label: t('commandMenu.commands.manageReports'),
+              icon: IconFlag,
+              href: '/admin/reports',
+              keywords: parseKeywords(t, 'adminReports'),
+            },
+            {
+              id: 'admin-rewards',
+              label: t('sidebar.items.adminLevelRewards.label'),
+              icon: IconGift,
+              href: '/admin/level-rewards',
+              keywords: parseKeywords(t, 'adminRewards'),
+            },
+            {
+              id: 'admin-features',
+              label: t('sidebar.items.adminFeatureUnlocks.label'),
+              icon: IconLock,
+              href: '/admin/level-feature-unlocks',
+              keywords: parseKeywords(t, 'adminFeatures'),
+            },
+            {
+              id: 'admin-bonuses',
+              label: t('sidebar.items.adminStreakExp.label'),
+              icon: IconBolt,
+              href: '/admin/streak-exp-bonuses',
+              keywords: parseKeywords(t, 'adminBonuses'),
+            },
+            {
+              id: 'admin-broadcasts',
+              label: t('sidebar.items.adminBroadcasts.label'),
+              icon: IconSpeakerphone,
+              href: '/admin/broadcasts',
+              keywords: parseKeywords(t, 'adminBroadcasts'),
+            },
+          ],
+        }
+      ] : []),
+      ...(isSignedIn ? [
+        {
+          id: 'account',
+          heading: t('commandMenu.groups.account'),
+          actions: [
+            {
+              id: 'logout',
+              label: t('commandMenu.commands.logout'),
+              icon: IconLogout,
+              onSelect: async () => {
+                trackEvent({ name: "sign_out" });
+                signOut();
+              },
+              keywords: parseKeywords(t, 'logout'),
+            },
+          ],
+        },
+      ] : []),
+    ]
+  }, [collapsible, feedback, isAdminUser, isSignedIn, isSuperAdminUser, locale, resolvedTheme, setCollapsible, setTheme, setVariant, signOut, switchLocale, t, variant])
 
   const filteredGroups = useMemo(() => {
     return commandGroups
@@ -397,7 +458,7 @@ export function CommandMenu() {
   return (
     <>
       <InputGroup onClick={open}>
-        <InputGroupInput className='cursor-pointer ring-0' placeholder="Search..." readOnly />
+        <InputGroupInput className='cursor-pointer ring-0' placeholder={t('commandMenu.ui.searchPlaceholder')} readOnly />
         <InputGroupAddon>
           <Search />
         </InputGroupAddon>
@@ -416,11 +477,11 @@ export function CommandMenu() {
         }}
       >
         <Command>
-          <CommandInput placeholder="Search commands and pages..." />
+          <CommandInput placeholder={t('commandMenu.ui.commandInputPlaceholder')} />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t('commandMenu.ui.noResults')}</CommandEmpty>
             {filteredGroups.map((group, groupIndex) => (
-              <div key={group.heading}>
+              <div key={group.id}>
                 <CommandGroup heading={group.heading}>
                   {group.actions.map((action) => (
                     <CommandItem

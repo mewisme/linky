@@ -3,7 +3,7 @@
 import { IconBolt, IconShieldCheck, IconWorld } from "@tabler/icons-react";
 
 import { BorderBeamSimple } from "@ws/ui/components/ui/border-beam-simple";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { MotionEffect } from "@/shared/ui/effects/motion-effect";
 import { Outfit } from "next/font/google";
 import { RainbowButton } from "@ws/ui/components/ui/rainbow-button";

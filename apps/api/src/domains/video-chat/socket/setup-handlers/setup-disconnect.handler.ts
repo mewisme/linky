@@ -7,6 +7,7 @@ import { getDbUserId } from "../helpers/user.helper.js";
 import { logger } from "../helpers/logger.helper.js";
 import { recordCallHistory } from "@/domains/video-chat/socket/call-history.socket.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupDisconnectHandler(
   socket: AuthenticatedSocket,
@@ -52,7 +53,13 @@ export function setupDisconnectHandler(
 
       if (peerId && peerSocket && peerSocket.connected) {
         io.to(peerId).emit("end-call", {
-          message: "The other person lost connection. The call has ended.",
+          ...userFacingPayload(
+            toUserMessage(
+              "END_PEER_LOST_CONNECTION",
+              { key: "call.end.peerLostConnection" },
+              "The other person lost connection. The call has ended.",
+            ),
+          ),
         });
 
         const peerDbUserId = await getDbUserId(peerSocket);

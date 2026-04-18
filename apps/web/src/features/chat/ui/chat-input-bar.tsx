@@ -9,6 +9,7 @@ import { compressImageFile } from "@/features/chat/lib/image-compression";
 import { dataUrlByteSize } from "@/features/chat/lib/blob-utils";
 import { maxAttachmentBytes } from "@/features/chat/lib/attachment-limits";
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 
 /* -------------------------------------------------- */
 /* Main component                                     */
@@ -23,6 +24,7 @@ export function ChatInputBar({
   onSendMessage: (draft: ChatMessageDraft) => void;
   onSendTyping: (isTyping: boolean) => void;
 }) {
+  const t = useTranslations("chat");
   const [text, setText] = useState("");
   const [isComposing, setIsComposing] = useState(false);
   const [attachmentDraft, setAttachmentDraft] =
@@ -128,7 +130,7 @@ export function ChatInputBar({
       const encodedSize = dataUrlByteSize(result.dataUrl);
 
       if (encodedSize > maxAttachmentBytes) {
-        toast.error("Image exceeds 5MB after compression.");
+        toast.error(t("imageTooLarge"));
         return;
       }
 
@@ -149,7 +151,7 @@ export function ChatInputBar({
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to prepare image for sending."
+          : t("imagePrepareFailed")
       );
     } finally {
       setIsPreparingAttachment(false);
@@ -190,13 +192,13 @@ export function ChatInputBar({
             }
           }}
           disabled={!isInCall}
-          placeholder="Type a message..." />
+          placeholder={t("placeholder")} />
         <InputGroupAddon align="block-end">
           <InputGroupButton
             variant={'ghost'}
             className="rounded-full"
             size="icon-sm"
-            aria-label="Send image"
+            aria-label={t("sendImageAria")}
             disabled={!isInCall}
             onClick={() => fileInputRef.current?.click()}
           >
@@ -219,7 +221,7 @@ export function ChatInputBar({
               variant={'ghost'}
               className="rounded-full"
               size="icon-sm"
-              aria-label="Send GIF"
+              aria-label={t("sendGifAria")}
             >
               <IconMoodSmile />
             </InputGroupButton>
@@ -232,7 +234,7 @@ export function ChatInputBar({
             size="icon-xs"
           >
             <IconArrowUp />
-            <span className="sr-only">Send</span>
+            <span className="sr-only">{t("sendMessageSrOnly")}</span>
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>

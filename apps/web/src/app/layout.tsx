@@ -2,18 +2,15 @@ import "@/shared/styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@/providers/clerk/clerk-provider";
-import { ClerkReadyIndicator } from "@/shared/ui/clerk/clerk-ready-indicator";
 import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import { Outfit } from "next/font/google";
-import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
-import { SocketProvider } from "@/providers/realtime/socket-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/providers/ui/theme-provider";
-import { ServiceWorkerUpdateProvider } from "@/providers/ui/service-worker-update-provider";
 import { ToasterProvider } from "@/providers/ui/toaster-provider";
-import { UserProvider } from "@/providers/user/user-provider";
 import { publicEnv } from "@/shared/env/public-env";
 
 const outfit = Outfit({
@@ -21,10 +18,11 @@ const outfit = Outfit({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations();
   const appUrl = publicEnv.APP_URL;
   return {
-    title: "Linky",
-    description: "Connecting you everywhere",
+    title: t("common.appName"),
+    description: t("common.tagline"),
     keywords: ["linky", "chat", "video", "call", "connect", "world"],
     authors: [{ name: "Mew", url: "https://mewis.me" }],
     metadataBase: new URL(appUrl),
@@ -50,8 +48,8 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: "Mew",
     publisher: "Mew",
     openGraph: {
-      title: "Linky",
-      description: "Meet new people, make friends, and have fun!",
+      title: t("common.appName"),
+      description: t("marketing.heroTitle"),
       url: appUrl,
       images: [
         {
@@ -61,53 +59,50 @@ export async function generateMetadata(): Promise<Metadata> {
         },
       ],
       type: "website",
-      siteName: "Linky",
+      siteName: t("common.appName"),
       locale: "vi_VN",
       countryName: "Vietnam",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Linky",
-      description: "Meet new people, make friends, and have fun!",
+      title: t("common.appName"),
+      description: t("marketing.heroTitle"),
       images: ["/og"],
     },
     appleWebApp: {
       capable: true,
-      title: "Linky",
+      title: t("common.appName"),
       statusBarStyle: "black-translucent",
     },
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <HideDevelopmentMode>
       <ClerkProvider>
-        <html lang="en" suppressHydrationWarning>
+        <html lang={locale} suppressHydrationWarning>
           <body
             className={`${outfit.className} antialiased`}
           >
+            <NextIntlClientProvider key={locale} locale={locale} messages={messages}>
             <ThemeProvider
               attribute="class"
               defaultTheme="system"
               enableSystem
               disableTransitionOnChange
             >
-              <ServiceWorkerUpdateProvider />
               <ToasterProvider />
-              <UserProvider>
-                <ClerkReadyIndicator />
-                <SocketProvider>
-                  <ProgressBarProvider>
-                    {children}
-                  </ProgressBarProvider>
-                </SocketProvider>
-              </UserProvider>
+              {children}
             </ThemeProvider>
+            </NextIntlClientProvider>
             <Analytics />
             <SpeedInsights />
             <OpenPanelComponent

@@ -15,6 +15,7 @@ import {
 
 import { Button } from "@ws/ui/components/ui/button";
 import { IconDotsVertical } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 export interface MoreOptionsMenuProps {
   controls: ControlConfig[];
@@ -31,6 +32,7 @@ export function MoreOptionsMenu({
   onPeerInfoOpen,
   onReportOpen,
 }: MoreOptionsMenuProps) {
+  const t = useTranslations("call.controls");
   return (
     <DropdownMenu>
       <Tooltip>
@@ -53,7 +55,7 @@ export function MoreOptionsMenu({
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent>
-          <p>More options</p>
+          <p>{t("moreOptions")}</p>
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end" side="top" className="mb-2">

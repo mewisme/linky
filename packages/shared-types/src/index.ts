@@ -36,3 +36,10 @@ export type ApplyCallExpJobEnvelope = {
 export type JobsJobEnvelope = ApplyCallExpJobEnvelope;
 
 export type AnyJobEnvelope = AiJobEnvelope | JobsJobEnvelope;
+
+export type {
+  BackendI18nPayload,
+  BackendUserMessage,
+  UiLocale,
+} from "./user-message.js";
+export { isUiLocale } from "./user-message.js";

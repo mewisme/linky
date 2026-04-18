@@ -36,7 +36,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
   }, [reports])
 
   return (
-    <AppLayout label="Reports" description="View your submitted reports">
+    <AppLayout sidebarItem="userReports">
       <ReportsDataTable
         initialData={data}
         leftColumnVisibilityContent={

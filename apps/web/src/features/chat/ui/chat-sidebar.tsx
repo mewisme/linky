@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@ws/ui/components/ui/sheet";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { ChatInputBar } from "./chat-input-bar";
@@ -16,6 +16,7 @@ import { ChatMessageList, type PeerInfo } from "./chat-message-list";
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import { IconMaximize } from "@tabler/icons-react";
 import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
+import { useTranslations } from "next-intl";
 
 export function ChatContent({
   chatMessages,
@@ -84,6 +85,7 @@ export function ChatSidebar({
   isPeerTyping: boolean;
   peerInfo?: PeerInfo | null;
 }) {
+  const t = useTranslations("chat");
   const pathname = usePathname();
   const router = useRouter();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -97,7 +99,7 @@ export function ChatSidebar({
         className="p-0 [&>button]:hidden"
       >
         <SheetHeader className="flex flex-row items-center justify-between border-t border-b p-4">
-          <SheetTitle>Chat</SheetTitle>
+          <SheetTitle>{t("sheetTitle")}</SheetTitle>
           {showOpenFullChat && (
             <Button
               variant="ghost"
@@ -106,7 +108,7 @@ export function ChatSidebar({
               className="gap-1.5 shrink-0"
             >
               <IconMaximize className="size-4" />
-              Open Full Chat
+              {t("openFullChat")}
             </Button>
           )}
         </SheetHeader>

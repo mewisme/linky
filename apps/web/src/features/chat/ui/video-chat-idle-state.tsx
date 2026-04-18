@@ -16,6 +16,7 @@ import type { UsersAPI } from "@/entities/user/types/users.types";
 import { getUserProgress } from "@/features/user/api/profile";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useUserContext } from "@/providers/user/user-provider";
+import { useTranslations } from "next-intl";
 
 const PRESTIGE_MILESTONES = [
   { level: 50, tier: "I" },
@@ -35,10 +36,14 @@ function getPrestigeProximity(currentLevel: number): { levelsAway: number; tier:
   return null;
 }
 
-function formatExpEarned(exp: number): string {
-  if (exp < 60) return `${exp} EXP`;
+function formatExpEarned(
+  exp: number,
+  expUnit: string,
+  minUnit: string,
+): string {
+  if (exp < 60) return `${exp} ${expUnit}`;
   const minutes = Math.floor(exp / 60);
-  return `${minutes} min`;
+  return `${minutes} ${minUnit}`;
 }
 
 interface VideoChatIdleStateProps {
@@ -54,6 +59,7 @@ export function VideoChatIdleState({
   connectionStatus,
   initialProgress,
 }: VideoChatIdleStateProps) {
+  const t = useTranslations("call.idle");
   const { user } = useUserContext();
   const { data: progress, isPending } = useQuery({
     queryKey: ["user-progress"],
@@ -65,7 +71,7 @@ export function VideoChatIdleState({
   const showFullCardSkeleton = isPending && progress === undefined;
 
   const displayName =
-    user.user?.firstName || user.user?.username || "You";
+    user.user?.firstName || user.user?.username || t("you");
 
   const prestigeProximity = progress ? getPrestigeProximity(progress.currentLevel) : null;
   const showLevelProximity = progress && progress.expProgress.progressPercentage >= 85;
@@ -74,6 +80,9 @@ export function VideoChatIdleState({
     !progress.isTodayStreakComplete &&
     progress.streak.currentStreak > 0;
   const showExpToday = progress && progress.expEarnedToday > 0;
+
+  const expUnit = t("expUnit");
+  const minUnit = t("minUnit");
 
   return (
     <div
@@ -122,7 +131,7 @@ export function VideoChatIdleState({
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <h2 className="text-lg font-semibold text-foreground sm:text-xl">Ready to start a chat?</h2>
+              <h2 className="text-lg font-semibold text-foreground sm:text-xl">{t("readyTitle")}</h2>
             </div>
 
             {progress && (
@@ -130,16 +139,19 @@ export function VideoChatIdleState({
                 <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <IconStar className="size-3.5 shrink-0" />
-                    Level {progress.currentLevel}
+                    {t("levelLabel", { level: progress.currentLevel })}
                   </span>
                   <span className="tabular-nums">
-                    {progress.expProgress.progressPercentage.toFixed(0)}% to next
+                    {t("percentToNext", {
+                      percent: progress.expProgress.progressPercentage.toFixed(0),
+                    })}
                   </span>
                   {progress.streak.currentStreak > 0 && (
                     <span className="inline-flex items-center gap-1">
                       <IconFlame className="size-3.5 shrink-0 text-orange-500" />
-                      {progress.streak.currentStreak} day
-                      {progress.streak.currentStreak !== 1 ? "s" : ""} streak
+                      {progress.streak.currentStreak === 1
+                        ? t("dayStreak", { count: progress.streak.currentStreak })
+                        : t("daysStreak", { count: progress.streak.currentStreak })}
                     </span>
                   )}
                 </div>
@@ -149,25 +161,35 @@ export function VideoChatIdleState({
                     {showExpToday && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                         <IconBolt className="size-3 shrink-0" />
-                        Today: {formatExpEarned(progress.expEarnedToday)} earned
+                        {t("todayEarned", {
+                          amount: formatExpEarned(progress.expEarnedToday, expUnit, minUnit),
+                        })}
                       </span>
                     )}
                     {showLevelProximity && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">
                         <IconStar className="size-3 shrink-0" />
-                        Almost Level {progress.currentLevel + 1}!
+                        {t("almostLevel", { level: progress.currentLevel + 1 })}
                       </span>
                     )}
                     {showStreakReminder && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
                         <IconFlame className="size-3 shrink-0" />
-                        Complete your streak today
+                        {t("completeStreakToday")}
                       </span>
                     )}
                     {prestigeProximity && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-xs font-medium text-purple-600 dark:text-purple-400">
                         <IconTrophy className="size-3 shrink-0" />
-                        {prestigeProximity.levelsAway} level{prestigeProximity.levelsAway !== 1 ? "s" : ""} to Prestige {prestigeProximity.tier}
+                        {prestigeProximity.levelsAway === 1
+                          ? t("prestigeProximity", {
+                            levels: prestigeProximity.levelsAway,
+                            tier: prestigeProximity.tier,
+                          })
+                          : t("prestigeProximityPlural", {
+                            levels: prestigeProximity.levelsAway,
+                            tier: prestigeProximity.tier,
+                          })}
                       </span>
                     )}
                   </div>
@@ -182,7 +204,7 @@ export function VideoChatIdleState({
               data-testid="chat-start-button"
             >
               <IconPlayerPlay className="size-5" />
-              Start Chat
+              {t("startChat")}
             </Button>
             {connectionStatus === "searching" && onEndCall && (
               <Button
@@ -193,12 +215,12 @@ export function VideoChatIdleState({
                 data-testid="chat-cancel-search-button"
               >
                 <IconPhoneOff className="size-5" />
-                End Search
+                {t("endSearch")}
               </Button>
             )}
 
             <p className="text-xs text-muted-foreground">
-              You earn EXP by talking
+              {t("footerHint")}
             </p>
           </>
         )}

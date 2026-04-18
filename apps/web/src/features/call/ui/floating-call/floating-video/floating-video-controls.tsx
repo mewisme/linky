@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/entities/user/types/users.types";

@@ -31,30 +31,44 @@ import { cn } from "@ws/ui/lib/utils";
 import { createBroadcast, generateBroadcastAiDraft } from "@/features/admin/api/broadcasts";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { useTranslations } from "next-intl";
 
-const formSchema = z.object({
-  title: z.string().optional(),
-  message: z.string().min(1, "Message is required"),
-  pushUrl: z
-    .string()
-    .optional()
-    .refine((v) => !v || v.startsWith("/"), "URL must start with /"),
-  deliveryMode: z.enum(["push_only", "push_and_save"]),
-  audience: z.string().optional(),
-  key_points: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  title?: string;
+  message: string;
+  pushUrl?: string;
+  deliveryMode: "push_only" | "push_and_save";
+  audience?: string;
+  key_points?: string;
+};
 
 interface FormCreateBroadcastProps {
   onSuccess?: () => void;
 }
 
 export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
+  const t = useTranslations("admin");
+  const tbf = useTranslations("admin.broadcastForm");
   const { play: playSound } = useSoundWithSettings();
   const [aiDraft, setAiDraft] = useState<AdminAPI.Broadcasts.AiBroadcastDraft | null>(null);
   const [selectedTone, setSelectedTone] = useState<"primary" | AdminAPI.Broadcasts.AiBroadcastTone>("primary");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const formSchema = useMemo(
+    () =>
+      z.object({
+        title: z.string().optional(),
+        message: z.string().min(1, tbf("messageRequired")),
+        pushUrl: z
+          .string()
+          .optional()
+          .refine((v) => !v || v.startsWith("/"), tbf("urlMustStartWithSlash")),
+        deliveryMode: z.enum(["push_only", "push_and_save"]),
+        audience: z.string().optional(),
+        key_points: z.string().optional(),
+      }),
+    [tbf],
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -80,12 +94,12 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       } satisfies AdminAPI.Broadcasts.Post.Body);
 
       playSound("success");
-      toast.success(res.message ?? `Broadcast sent to ${res.sent} user(s).`);
+      toast.success(res.message ?? t("broadcastSent", { count: res.sent }));
       form.reset();
       onSuccess?.();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to send broadcast"
+        error instanceof Error ? error.message : t("broadcastSendFailed")
       );
     }
   }
@@ -103,11 +117,11 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
     const keyPoints = form.getValues("key_points")?.trim() ?? "";
 
     if (!audience) {
-      toast.error("Audience is required for AI generation");
+      toast.error(t("audienceRequired"));
       return;
     }
     if (!keyPoints) {
-      toast.error("Key points are required for AI generation");
+      toast.error(t("keyPointsRequired"));
       return;
     }
 
@@ -119,9 +133,9 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       });
       setAiDraft(res.draft);
       setSelectedTone("primary");
-      toast.success("AI draft generated");
+      toast.success(t("aiDraftGenerated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to generate AI draft");
+      toast.error(error instanceof Error ? error.message : t("aiDraftFailed"));
     } finally {
       setIsGenerating(false);
     }
@@ -131,15 +145,15 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
     if (!selectedDraft) return;
     form.setValue("title", selectedDraft.title);
     form.setValue("message", `${selectedDraft.body}\n\n${selectedDraft.cta}`);
-    toast.success("Draft applied to the form");
+    toast.success(t("draftApplied"));
   }
 
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-4 pb-4 sm:px-6">
-        <CardTitle className="text-base sm:text-lg">New broadcast</CardTitle>
+        <CardTitle className="text-base sm:text-lg">{tbf("newBroadcast")}</CardTitle>
         <CardDescription className="text-sm">
-          Save to in-app notifications or send a push-only announcement.
+          {tbf("cardDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-4 pt-0 sm:px-6">
@@ -151,8 +165,8 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
             <div className="space-y-3 rounded-lg border bg-background p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-medium">AI broadcast writer</div>
-                  <div className="text-xs text-muted-foreground">Generate a draft for the notification message.</div>
+                  <div className="text-sm font-medium">{tbf("aiWriterTitle")}</div>
+                  <div className="text-xs text-muted-foreground">{tbf("aiWriterDescription")}</div>
                 </div>
                 <Button
                   type="button"
@@ -163,12 +177,12 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                   {isGenerating ? (
                     <>
                       <IconLoader2 className="mr-2 size-4 animate-spin" />
-                      Generating…
+                      {tbf("generating")}
                     </>
                   ) : (
                     <>
                       <IconSparkles className="mr-2 size-4" />
-                      Generate
+                      {tbf("generate")}
                     </>
                   )}
                 </Button>
@@ -180,9 +194,9 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                   name="audience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="broadcast-audience">Target audience</FormLabel>
+                      <FormLabel htmlFor="broadcast-audience">{tbf("targetAudience")}</FormLabel>
                       <FormControl>
-                        <Input id="broadcast-audience" placeholder="e.g. all new users" className="bg-background" {...field} />
+                        <Input id="broadcast-audience" placeholder={tbf("audiencePlaceholder")} className="bg-background" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -196,11 +210,11 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                   name="key_points"
                   render={({ field }) => (
                     <FormItem className="sm:col-span-2">
-                      <FormLabel htmlFor="broadcast-key-points">Key points</FormLabel>
+                      <FormLabel htmlFor="broadcast-key-points">{tbf("keyPoints")}</FormLabel>
                       <FormControl>
                         <Textarea
                           id="broadcast-key-points"
-                          placeholder="e.g. what happened, why it matters, what to do next"
+                          placeholder={tbf("keyPointsPlaceholder")}
                           rows={4}
                           className="bg-background min-h-[120px] resize-y sm:min-h-[140px]"
                           {...field}
@@ -217,7 +231,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                   <Separator />
 
                   <div className="space-y-2">
-                    <div className="text-sm font-medium">Preview</div>
+                    <div className="text-sm font-medium">{tbf("preview")}</div>
                     <RadioGroup
                       value={selectedTone}
                       onValueChange={(v) => setSelectedTone(v as typeof selectedTone)}
@@ -225,7 +239,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                     >
                       <FormItem className="flex items-center space-x-2">
                         <RadioGroupItem value="primary" id="tone-primary" />
-                        <FormLabel htmlFor="tone-primary" className="font-normal">Recommended</FormLabel>
+                        <FormLabel htmlFor="tone-primary" className="font-normal">{tbf("recommended")}</FormLabel>
                       </FormItem>
                       {(["friendly", "professional", "direct"] as AdminAPI.Broadcasts.AiBroadcastTone[]).map((tone) => (
                         <FormItem key={tone} className="flex items-center space-x-2">
@@ -238,18 +252,18 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
                   <div className="space-y-2">
                     <div>
-                      <div className="text-xs font-medium text-muted-foreground">Title</div>
+                      <div className="text-xs font-medium text-muted-foreground">{tbf("titleLabel")}</div>
                       <div className="mt-1 rounded-md bg-muted p-3 text-sm">{selectedDraft.title}</div>
                     </div>
                     <div>
-                      <div className="text-xs font-medium text-muted-foreground">Message</div>
-                      <div className="mt-1 rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">{selectedDraft.body}\n\n{selectedDraft.cta}</div>
+                      <div className="text-xs font-medium text-muted-foreground">{tbf("messageLabel")}</div>
+                      <div className="mt-1 rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">{`${selectedDraft.body}\n\n${selectedDraft.cta}`}</div>
                     </div>
                   </div>
 
                   <div className="flex justify-end">
                     <Button type="button" variant="outline" onClick={onUseAiDraft}>
-                      Use draft
+                      {tbf("useDraft")}
                     </Button>
                   </div>
                 </div>
@@ -262,11 +276,11 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="broadcast-title">Title (optional)</FormLabel>
+                    <FormLabel htmlFor="broadcast-title">{tbf("titleOptional")}</FormLabel>
                     <FormControl>
                       <Input
                         id="broadcast-title"
-                        placeholder="e.g. Announcement"
+                        placeholder={tbf("titlePlaceholder")}
                         className="bg-background"
                         {...field}
                       />
@@ -280,11 +294,11 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                 name="pushUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="broadcast-url">Push URL (optional)</FormLabel>
+                    <FormLabel htmlFor="broadcast-url">{tbf("pushUrlOptional")}</FormLabel>
                     <FormControl>
                       <Input
                         id="broadcast-url"
-                        placeholder="/notifications"
+                        placeholder={tbf("pushUrlPlaceholder")}
                         className="bg-background font-mono text-sm"
                         {...field}
                       />
@@ -300,11 +314,11 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
               name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="broadcast-message">Message</FormLabel>
+                  <FormLabel htmlFor="broadcast-message">{tbf("message")}</FormLabel>
                   <FormControl>
                     <Textarea
                       id="broadcast-message"
-                      placeholder="Write your announcement..."
+                      placeholder={tbf("messagePlaceholder")}
                       rows={5}
                       className="bg-background min-h-[120px] resize-y sm:min-h-[140px]"
                       {...field}
@@ -322,7 +336,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
               name="deliveryMode"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Delivery</FormLabel>
+                  <FormLabel>{tbf("delivery")}</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -344,10 +358,10 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                             id="delivery-push-and-save"
                             className="size-4 shrink-0"
                           />
-                          Push + in-app (save)
+                          {tbf("deliveryPushAndSaveTitle")}
                         </span>
                         <span className="text-muted-foreground pl-6 text-xs sm:text-sm">
-                          Notification stored for later viewing.
+                          {tbf("deliveryPushAndSaveHint")}
                         </span>
                       </Label>
                       <Label
@@ -365,10 +379,10 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                             id="delivery-push-only"
                             className="size-4 shrink-0"
                           />
-                          Push only (no in-app)
+                          {tbf("deliveryPushOnlyTitle")}
                         </span>
                         <span className="text-muted-foreground pl-6 text-xs sm:text-sm">
-                          One-time push, not saved in app.
+                          {tbf("deliveryPushOnlyHint")}
                         </span>
                       </Label>
                     </RadioGroup>
@@ -388,12 +402,12 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
                 {isSubmitting ? (
                   <>
                     <IconLoader2 className="mr-2 size-4 animate-spin" />
-                    Sending...
+                    {tbf("sending")}
                   </>
                 ) : (
                   <>
                     <IconSend className="mr-2 size-4" />
-                    Send broadcast
+                    {tbf("sendBroadcast")}
                   </>
                 )}
               </Button>

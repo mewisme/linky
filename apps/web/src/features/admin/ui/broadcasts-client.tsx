@@ -16,6 +16,7 @@ import { IconRefresh } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { getBroadcasts } from "@/features/admin/api/broadcasts";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
+import { useTranslations } from "next-intl";
 
 const BroadcastsDataTable = dynamic(
   () =>
@@ -29,6 +30,7 @@ interface BroadcastsClientProps {
 }
 
 export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
+  const t = useTranslations("admin");
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["admin", "broadcasts"],
     queryFn: () => getBroadcasts({ limit: '50', offset: '0' }),
@@ -40,8 +42,7 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
 
   return (
     <AppLayout
-      label="Broadcasts"
-      description="Send an announcement to all users"
+      sidebarItem="adminBroadcasts"
       className="space-y-4"
     >
       <div className="space-y-6">
@@ -49,9 +50,9 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Broadcast history</CardTitle>
+            <CardTitle>{t("broadcastHistoryTitle")}</CardTitle>
             <CardDescription>
-              Recent broadcasts and who created them.
+              {t("broadcastHistoryDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -19,6 +19,7 @@ import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { Button } from '@ws/ui/components/ui/button';
 import { IconProps } from '@tabler/icons-react';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
+import { useTranslations } from 'next-intl';
 
 export interface BulkAction {
   label: string;
@@ -32,6 +33,8 @@ interface BulkActionsProps {
 }
 
 export function BulkActions({ bulkActions, selected }: BulkActionsProps) {
+  const t = useTranslations('admin');
+  const tc = useTranslations('common');
   const isMobile = useIsMobile();
 
   return (
@@ -40,12 +43,12 @@ export function BulkActions({ bulkActions, selected }: BulkActionsProps) {
         <Drawer>
           <DrawerTrigger asChild>
             <Button variant="outline" size="sm">
-              Actions
+              {tc('actionsMenu')}
             </Button>
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>Bulk Actions</DrawerTitle>
+              <DrawerTitle>{t('bulkActionsDrawerTitle')}</DrawerTitle>
             </DrawerHeader>
             <div className="p-4 flex flex-col gap-2">
               {bulkActions.map((action) => (
@@ -67,7 +70,7 @@ export function BulkActions({ bulkActions, selected }: BulkActionsProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
-              Actions
+              {tc('actionsMenu')}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>

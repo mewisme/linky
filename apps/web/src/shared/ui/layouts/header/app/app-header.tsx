@@ -2,7 +2,7 @@
 
 import { Button } from "@ws/ui/components/ui/button"
 import { CommandMenu } from '@/shared/ui/layouts/header/command-menu'
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { Logo } from "../landing/logo"
 import { NotificationsBell } from "../notifications-bell"
 import { SidebarTrigger } from '@ws/ui/components/animate-ui/components/radix/sidebar'

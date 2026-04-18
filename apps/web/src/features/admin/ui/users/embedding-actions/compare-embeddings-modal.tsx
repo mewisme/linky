@@ -23,6 +23,7 @@ import { Label } from '@ws/ui/components/ui/label';
 import { UserSearchSelect } from './user-search-select';
 import { compareEmbeddings } from '@/features/admin/api/embeddings';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 interface CompareEmbeddingsModalProps {
@@ -32,23 +33,24 @@ interface CompareEmbeddingsModalProps {
   users: AdminAPI.User[];
 }
 
-function formatUserLabel(user: AdminAPI.User): string {
-  const email = user.email ?? 'no-email';
-  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Unknown';
-  return `${name} (${email})`;
-}
-
 export function CompareEmbeddingsModal({
   open,
   onOpenChange,
   user,
   users,
 }: CompareEmbeddingsModalProps) {
+  const te = useTranslations('admin.embedding');
   const isMobile = useIsMobile();
   const [secondUser, setSecondUser] = useState<AdminAPI.User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<EmbeddingCompareResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const formatUserLabel = (u: AdminAPI.User): string => {
+    const email = u.email ?? te('noEmail');
+    const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || te('unknownName');
+    return `${name} (${email})`;
+  };
 
   const handleOpenChange = (next: boolean) => {
     if (!next && isLoading) return;
@@ -68,8 +70,8 @@ export function CompareEmbeddingsModal({
     try {
       const data = await compareEmbeddings(user.id, secondUser.id);
       setResult(data);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to compare embeddings');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : te('compareFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -78,19 +80,19 @@ export function CompareEmbeddingsModal({
   const body = (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>User A (from row)</Label>
+        <Label>{te('userA')}</Label>
         <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
           {formatUserLabel(user)}
         </div>
       </div>
       <div className="space-y-2">
-        <Label>User B</Label>
+        <Label>{te('userB')}</Label>
         <UserSearchSelect
           users={users}
           value={secondUser}
           onChange={setSecondUser}
           excludeUserId={user.id}
-          placeholder="Select user to compare"
+          placeholder={te('selectComparePlaceholder')}
           disabled={isLoading}
         />
       </div>
@@ -101,13 +103,17 @@ export function CompareEmbeddingsModal({
       )}
       {result && (
         <div className="space-y-2 rounded-md border p-3">
-          <p className="text-sm font-medium">Similarity score: {(result.similarity_score * 100).toFixed(2)}%</p>
-          <p className="text-xs text-muted-foreground">Model: {result.model_name}</p>
-          <p className="text-xs text-muted-foreground">
-            User A updated: {result.user_a_updated_at}
+          <p className="text-sm font-medium">
+            {te('similarityScore', { score: (result.similarity_score * 100).toFixed(2) })}
           </p>
           <p className="text-xs text-muted-foreground">
-            User B updated: {result.user_b_updated_at}
+            {te('modelLabel')} {result.model_name}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {te('userAUpdated')} {result.user_a_updated_at}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {te('userBUpdated')} {result.user_b_updated_at}
           </p>
         </div>
       )}
@@ -118,7 +124,7 @@ export function CompareEmbeddingsModal({
           onClick={() => handleOpenChange(false)}
           disabled={isLoading}
         >
-          Close
+          {te('close')}
         </Button>
         <Button
           type="button"
@@ -126,7 +132,7 @@ export function CompareEmbeddingsModal({
           disabled={!secondUser || isLoading}
         >
           {isLoading && <IconLoader2 className="mr-2 size-4 animate-spin" />}
-          Compare
+          {te('compare')}
         </Button>
       </div>
     </div>
@@ -137,9 +143,9 @@ export function CompareEmbeddingsModal({
       <Drawer open={open} onOpenChange={handleOpenChange} dismissible={false}>
         <DrawerContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DrawerHeader>
-            <DrawerTitle>Compare embeddings</DrawerTitle>
+            <DrawerTitle>{te('compareTitle')}</DrawerTitle>
             <DrawerDescription>
-              Compare embedding similarity between two users.
+              {te('compareDescription')}
             </DrawerDescription>
           </DrawerHeader>
           <div className="px-4 pb-4">{body}</div>
@@ -155,9 +161,9 @@ export function CompareEmbeddingsModal({
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Compare embeddings</DialogTitle>
+          <DialogTitle>{te('compareTitle')}</DialogTitle>
           <DialogDescription>
-            Compare embedding similarity between two users.
+            {te('compareDescription')}
           </DialogDescription>
         </DialogHeader>
         {body}

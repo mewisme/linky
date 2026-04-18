@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useAuth } from "@clerk/nextjs";
 import {
   IconAlertTriangle,
@@ -22,6 +22,7 @@ import {
 import { Button } from "@ws/ui/components/ui/button";
 import { Badge } from "@ws/ui/components/ui/badge";
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,9 @@ import {
 } from "@ws/ui/components/animate-ui/components/radix/alert-dialog";
 
 export function UserDevelopmentClient() {
+  const t = useTranslations("development");
+  const ts = useTranslations("settings");
+  const tc = useTranslations("common");
   const router = useRouter();
   const { getToken } = useAuth();
   const isDevelopmentModeEnabled = useDevelopmentStore(
@@ -85,14 +89,14 @@ export function UserDevelopmentClient() {
     try {
       const nextToken = await getToken();
       if (!nextToken) {
-        toast.error("Unable to retrieve Clerk token.");
+        toast.error(t("clerkTokenError"));
         return;
       }
       setToken(nextToken);
-      toast.success("Clerk token retrieved.");
+      toast.success(t("clerkTokenSuccess"));
       setIsGetTokenDialogOpen(false);
     } catch {
-      toast.error("Unable to retrieve Clerk token.");
+      toast.error(t("clerkTokenError"));
     } finally {
       setIsFetchingToken(false);
     }
@@ -102,9 +106,9 @@ export function UserDevelopmentClient() {
     if (!token) return;
     try {
       await navigator.clipboard.writeText(token);
-      toast.success("Token copied to clipboard.");
+      toast.success(t("tokenCopied"));
     } catch {
-      toast.error("Failed to copy token.");
+      toast.error(t("tokenCopyFailed"));
     }
   };
 
@@ -114,18 +118,18 @@ export function UserDevelopmentClient() {
 
   return (
     <AppLayout
-      label="Development"
-      description="Sandbox for development-only tooling and future experiments"
+      label={ts("development")}
+      description={t("pageDescription")}
       className="space-y-5"
     >
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <IconFlask className="size-5" />
-            Security-Sensitive Tools
+            {t("sensitiveToolsTitle")}
           </CardTitle>
           <CardDescription>
-            Run advanced development operations that should stay hidden in normal usage.
+            {t("sensitiveToolsDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -134,25 +138,25 @@ export function UserDevelopmentClient() {
               <div className="space-y-1">
                 <p className="flex items-center gap-2 text-sm font-medium">
                   <IconKey className="size-4" />
-                  Clerk Token Access
+                  {t("clerkTokenAccess")}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Retrieve your active Clerk token for debugging requests in local tools.
+                  {t("clerkTokenHint")}
                 </p>
               </div>
-              <Badge variant="secondary">Restricted</Badge>
+              <Badge variant="secondary">{t("restricted")}</Badge>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button onClick={() => setIsGetTokenDialogOpen(true)} disabled={isFetchingToken}>
-                Get Clerk Token
+                {t("getClerkToken")}
               </Button>
               <Button variant="outline" onClick={handleCopyToken} disabled={!token}>
-                Copy Token
+                {t("copyToken")}
               </Button>
             </div>
             {tokenPreview ? (
               <div className="mt-4 rounded-md border bg-background p-3">
-                <p className="text-xs text-muted-foreground">Latest token preview</p>
+                <p className="text-xs text-muted-foreground">{t("tokenPreviewLabel")}</p>
                 <p className="mt-1 break-all font-mono text-xs">{tokenPreview}</p>
               </div>
             ) : null}
@@ -166,30 +170,30 @@ export function UserDevelopmentClient() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <IconAlertTriangle className="size-4" />
-              Security Confirmation Required
+              {t("securityConfirmTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <span className="block">
-                Are you sure you want to retrieve your Clerk token?
+                {t("securityConfirmLine1")}
               </span>
               <span className="block">
-                If this token is leaked, others can impersonate your current session and access protected resources.
+                {t("securityConfirmLine2")}
               </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmGetToken}
               disabled={confirmCountdown > 0 || isFetchingToken}
               className="min-w-40"
             >
               {confirmCountdown > 0 ? (
-                <>Activate in {confirmCountdown}s</>
+                <>{t("activateIn", { seconds: confirmCountdown })}</>
               ) : (
                 <>
                   <IconLock className="mr-2 size-4" />
-                  I Understand, Do It
+                  {t("understandDoIt")}
                 </>
               )}
             </AlertDialogAction>

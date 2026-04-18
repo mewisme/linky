@@ -194,6 +194,17 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 - `@ws/ui/*` maps to shared UI components
 - Workspace packages use `@ws/<package>` imports
 
+### Internationalization (next-intl)
+
+- **Locales:** `en` (default) and `vi`. **`localePrefix: "as-needed"`** in [`apps/web/src/i18n/routing.ts`](apps/web/src/i18n/routing.ts): English has **no** prefix (`/call`), Vietnamese uses **`/vi/...`** (`/vi/call`). Use **`Link`**, **`useRouter`**, and **`usePathname`** from [`apps/web/src/i18n/navigation.ts`](apps/web/src/i18n/navigation.ts); `usePathname()` returns the pathname **without** the locale prefix. Keep **`useSearchParams`** from `next/navigation` where needed.
+- **UI language preference** is **not** stored in Postgres; it lives in the persisted client store [`apps/web/src/shared/model/locale-preference-store.ts`](apps/web/src/shared/model/locale-preference-store.ts) (`localStorage`). [`apps/web/src/providers/i18n/locale-sync.tsx`](apps/web/src/providers/i18n/locale-sync.tsx) aligns the URL with that preference after hydration.
+- **Wiring:** `createNextIntlPlugin("./src/i18n/request.ts")` in [`apps/web/next.config.ts`](apps/web/next.config.ts); [`apps/web/src/i18n/request.ts`](apps/web/src/i18n/request.ts) loads [`apps/web/src/messages/{locale}.json`](apps/web/src/messages/en.json). Root layout uses `NextIntlClientProvider`; locale-aware navigation helpers live under `src/i18n/`. [`apps/web/src/proxy.ts`](apps/web/src/proxy.ts) composes Clerk with next-intl; **`/api`** and **`/trpc`** skip `intlMiddleware` (return `NextResponse.next()`).
+- **Messages:** Add user-facing copy to `en.json` and keep **`vi.json` in key-for-key parity**. Use nested objects and ICU placeholders (`{count}`, `{name}`) for dynamic segments. Common top-level namespaces include `common`, `errors`, `errorsPage`, `notFoundPage`, `user`, `admin`, `dataTable` (with nested sections such as `dataTable.users`, `dataTable.importInterestTags`), `chat`, `call`, `settings`, `notifications`, `development`, etc.
+- **Client UI:** Use `useTranslations('namespace')` from `next-intl` in client components and client hooks (e.g. hooks that call `toast`). For nested keys, use dot paths: `t('dataTable.importInterestTags.dialogTitle')`.
+- **Data tables:** Column definitions live in `shared/ui/data-table/**/define-data.tsx`. Export **`useXxxColumns(callbacks?)`** hooks that call `useTranslations` and return `useMemo`’d column defs; sibling `*-data-table.tsx` files call that hook (do not export a static `columns` factory for new work). Translate headers, action labels, `aria-label`s, and confirmation copy.
+- **API errors / realtime:** Prefer typed `BackendUserMessage` / `BackendI18nPayload` from `@ws/shared-types` on the server; the web app resolves copies via helpers such as `resolveBackendMessage` and HTTP `ApiError` parsing where those flows exist. Do not hardcode user-facing English in API bodies when a structured `userMessage` is available.
+- **Env:** For any new public env vars used by the frontend, follow [`.cursor/skills/frontend-env/SKILL.md`](.cursor/skills/frontend-env/SKILL.md).
+
 ## Code Conventions
 
 - **Comments are forbidden by default.** Only add comments to explain WHY, never WHAT. Prefer clear naming and structure.
@@ -217,6 +228,7 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 | Storage | AWS S3 |
 | UI | Radix UI + shadcn + Tailwind CSS 4 |
 | State | Zustand + TanStack React Query |
+| i18n | next-intl (messages in `apps/web/src/messages/`) |
 | Testing | Vitest (unit) + Playwright (e2e) |
 | Logging | Pino (@ws/logger) |
 

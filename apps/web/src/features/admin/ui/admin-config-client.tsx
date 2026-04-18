@@ -37,7 +37,8 @@ import { Textarea } from '@ws/ui/components/ui/textarea';
 import dynamic from 'next/dynamic';
 import { isSuperAdmin } from '@/shared/utils/roles';
 import { toast } from '@ws/ui/components/ui/sonner';
-import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 import { useUserStore } from '@/entities/user/model/user-store';
 
@@ -54,16 +55,16 @@ interface AdminConfigClientProps {
 }
 
 function parseValue(raw: string): AdminAPI.Config.Set.Body['value'] {
-  const t = raw.trim();
-  if (t === '') return null;
-  if (t === 'true') return true;
-  if (t === 'false') return false;
-  const n = Number(t);
-  if (!Number.isNaN(n) && t !== '') return n;
+  const trimmed = raw.trim();
+  if (trimmed === '') return null;
+  if (trimmed === 'true') return true;
+  if (trimmed === 'false') return false;
+  const n = Number(trimmed);
+  if (!Number.isNaN(n) && trimmed !== '') return n;
   try {
-    return JSON.parse(t) as AdminAPI.Config.Set.Body['value'];
+    return JSON.parse(trimmed) as AdminAPI.Config.Set.Body['value'];
   } catch {
-    return t;
+    return trimmed;
   }
 }
 
@@ -75,6 +76,8 @@ function valueToFormString(value: AdminAPI.Config.Item['value']): string {
 }
 
 export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
+  const ta = useTranslations('admin');
+  const tc = useTranslations('common');
   const router = useRouter();
   const { user: userStore } = useUserStore();
   const { play: playSound } = useSoundWithSettings();
@@ -106,14 +109,14 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       await queryClient.invalidateQueries({ queryKey: ['admin-config'], refetchType: 'active' });
       await refetch();
       playSound('success');
-      toast.success('Config set successfully');
+      toast.success(ta('configSet'));
       setSetDialogOpen(false);
       setFormKey('');
       setFormValue('');
       setIsEditingKey(false);
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? 'Failed to set config');
+      toast.error(err.message ?? ta('configSetFailed'));
     },
   });
 
@@ -123,17 +126,17 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       await queryClient.invalidateQueries({ queryKey: ['admin-config'], refetchType: 'active' });
       await refetch();
       playSound('success');
-      toast.success('Config unset successfully');
+      toast.success(ta('configUnset'));
       setUnsetKey(null);
     },
     onError: (err: Error) => {
-      toast.error(err.message ?? 'Failed to unset config');
+      toast.error(err.message ?? ta('configUnsetFailed'));
     },
   });
 
   const handleSet = () => {
     if (!formKey.trim()) {
-      toast.error('Key is required');
+      toast.error(ta('keyRequired'));
       return;
     }
     setMutation.mutate({ key: formKey.trim(), value: parseValue(formValue) });
@@ -162,10 +165,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
   const rows = data?.data ?? [];
 
   return (
-    <AppLayout
-      label="Admin Config"
-      description="Key-value config (superadmin only). Used by backend e.g. clerk_auto_remove_email_prefix."
-    >
+    <AppLayout label={ta('configPageTitle')} description={ta('configPageDescription')}>
       <div className="space-y-4">
         <AdminConfigDataTable
           initialData={rows}
@@ -183,7 +183,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
           rightColumnVisibilityContent={
             <Button size="sm" onClick={handleOpenSet} className="bg-primary hover:opacity-90 shadow-md">
               <IconPlus className="h-4 w-4" />
-              Set
+              {ta('configForm.setButton')}
             </Button>
           }
         />
@@ -202,16 +202,18 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{isEditingKey ? 'Update config' : 'Set config'}</DialogTitle>
+            <DialogTitle>
+              {isEditingKey ? ta('configForm.dialogUpdateTitle') : ta('configForm.dialogSetTitle')}
+            </DialogTitle>
             <DialogDescription>
               {isEditingKey
-                ? 'Change the value. Key cannot be edited.'
-                : 'Key should be snake_case. Value: string, number, boolean, or JSON.'}
+                ? ta('configForm.dialogUpdateDescription')
+                : ta('configForm.dialogSetDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="config-key">Key</Label>
+              <Label htmlFor="config-key">{ta('configForm.keyLabel')}</Label>
               <Input
                 id="config-key"
                 value={formKey}
@@ -221,7 +223,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="config-value">Value</Label>
+              <Label htmlFor="config-value">{ta('configForm.valueLabel')}</Label>
               <Textarea
                 id="config-value"
                 value={formValue}
@@ -233,14 +235,14 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSetDialogOpen(false)}>
-              Cancel
+              {tc('cancel')}
             </Button>
             <Button
               onClick={handleSet}
               disabled={setMutation.isPending || !formKey.trim()}
             >
               {setMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditingKey ? 'Update' : 'Set'}
+              {isEditingKey ? ta('configForm.updateButton') : ta('configForm.setButton')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -249,19 +251,19 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       <AlertDialog open={!!unsetKey} onOpenChange={(open) => !open && setUnsetKey(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Unset config</AlertDialogTitle>
+            <AlertDialogTitle>{ta('configForm.unsetTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Remove key &quot;{unsetKey}&quot;? This cannot be undone.
+              {ta('configForm.unsetDescriptionWithKey', { key: unsetKey ?? '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => unsetKey && unsetMutation.mutate(unsetKey)}
               disabled={unsetMutation.isPending}
             >
               {unsetMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Unset
+              {ta('configForm.unsetAction')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

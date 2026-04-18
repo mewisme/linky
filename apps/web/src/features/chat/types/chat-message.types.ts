@@ -1,3 +1,5 @@
+import type { BackendUserMessage } from "@ws/shared-types";
+
 export type ChatMessageType = "text" | "image" | "gif" | "sticker" | "system";
 
 export type ChatMessageDeliveryStatus = "sending" | "sent" | "failed";
@@ -67,4 +69,5 @@ export interface ChatTypingPayload {
 
 export interface ChatErrorPayload {
   message: string;
+  userMessage: BackendUserMessage;
 }

@@ -15,12 +15,14 @@ import type { UsersAPI } from '@/entities/user/types/users.types'
 import { useUserContext } from '@/providers/user/user-provider'
 import { useMemo, useState } from 'react'
 import { Button } from '@ws/ui/components/ui/button'
+import { useTranslations } from 'next-intl'
 
 interface ProfilePageContentProps {
   initialUserDetails: UsersAPI.UserDetails.GetMe.Response | null
 }
 
 function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
+  const tp = useTranslations('user.profile')
   const {
     user: { user },
     store: { user: userStore, userDetails: storeUserDetails },
@@ -38,7 +40,7 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
       <CardContent className="p-0">
         <div className="flex flex-col">
           <section
-            aria-label="Profile identity"
+            aria-label={tp('profileIdentityAria')}
             className="group/profile-header relative flex flex-col items-center gap-6 border-b border-border/50 bg-muted/20 px-4 py-8 sm:flex-row sm:items-start sm:gap-8 sm:px-6 sm:py-10"
           >
             <ProfileAvatar user={user!} />
@@ -58,16 +60,16 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
                 onClick={() => setHeaderEditSignal((current) => current + 1)}
               >
                 <IconEdit className="size-4" />
-                Edit
+                {tp('edit')}
               </Button>
             )}
           </section>
 
           <section
-            aria-label="Additional information"
+            aria-label={tp('additionalInfoAria')}
             className="flex flex-col gap-4 px-4 py-6 sm:gap-5 sm:px-6 sm:py-8"
           >
-            <h2 className="sr-only">Additional information</h2>
+            <h2 className="sr-only">{tp('additionalInfoHeading')}</h2>
 
             <BioSection
               userDetails={userDetails}
@@ -102,7 +104,7 @@ export function UserProfileClient({ initialUserDetails }: Props) {
   if (!isLoaded || !user) return null
 
   return (
-    <AppLayout label="User Profile" description="Manage your account settings" className="space-y-4">
+    <AppLayout sidebarItem="profile" className="space-y-4">
       <ProfilePageContent initialUserDetails={initialUserDetails} />
     </AppLayout>
   )

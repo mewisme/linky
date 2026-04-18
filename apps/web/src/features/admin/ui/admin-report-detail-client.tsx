@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ws/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ws/ui/components/ui/select'
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 
 import type { AdminAPI } from '@/features/admin/types/admin.types'
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
@@ -15,8 +15,17 @@ import { Separator } from '@ws/ui/components/ui/separator'
 import { Textarea } from '@ws/ui/components/ui/textarea'
 import { formatDuration } from '@/entities/call-history/utils/call-history'
 import { toast } from '@ws/ui/components/ui/sonner'
+import { useLocale, useTranslations } from 'next-intl'
 import { generateAdminReportAiSummary, updateAdminReport } from '@/features/admin/api/reports'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
+
+const DATE_FMT: Intl.DateTimeFormatOptions = {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+}
 
 const getStatusBadgeVariant = (status: AdminAPI.Reports.ReportStatus) => {
   switch (status) {
@@ -38,11 +47,27 @@ const getStatusColor = (status: AdminAPI.Reports.ReportStatus) => {
   }
 }
 
+function reportStatusLabel(
+  status: AdminAPI.Reports.ReportStatus,
+  t: (key: string) => string,
+) {
+  switch (status) {
+    case 'pending': return t('reportDetail.statusPending')
+    case 'reviewed': return t('reportDetail.statusReviewed')
+    case 'resolved': return t('reportDetail.statusResolved')
+    case 'dismissed': return t('reportDetail.statusDismissed')
+    default: return status
+  }
+}
+
 interface Props {
   report: AdminAPI.Reports.GetById.Response
 }
 
 export function AdminReportDetailClient({ report }: Props) {
+  const t = useTranslations('admin')
+  const tc = useTranslations('common')
+  const locale = useLocale()
   const { play: playSound } = useSoundWithSettings()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -61,10 +86,10 @@ export function AdminReportDetailClient({ report }: Props) {
       await queryClient.invalidateQueries({ queryKey: ['admin-report', report.id] })
       await queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
       playSound('success')
-      toast.success('Report updated successfully')
+      toast.success(t('reportUpdated'))
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during update')
+      toast.error(error.message || t('reportUpdateFailed'))
     }
   })
 
@@ -73,11 +98,11 @@ export function AdminReportDetailClient({ report }: Props) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-report', report.id] })
       await queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
-      toast.success('AI summary generation started')
+      toast.success(t('aiSummaryStarted'))
       router.refresh()
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to start AI summary generation')
+      toast.error(error.message || t('aiSummaryFailed'))
     }
   })
 
@@ -108,22 +133,24 @@ export function AdminReportDetailClient({ report }: Props) {
       setTimeout(tick, intervalMs)
     }
 
-    const t = setTimeout(tick, intervalMs)
+    const pollTimer = setTimeout(tick, intervalMs)
     return () => {
       active = false
-      clearTimeout(t)
+      clearTimeout(pollTimer)
     }
   }, [router, shouldPollAi])
 
+  const fmtDate = (iso: string) => new Date(iso).toLocaleString(locale, DATE_FMT)
+
   return (
-    <AppLayout label="Report Details" description="View and manage report" backButton className="space-y-4">
+    <AppLayout label={t('reportDetailTitle')} description={t('reportDetailDescription')} backButton className="space-y-4">
       <div className="space-y-6">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <CardTitle>AI Summary</CardTitle>
-                <CardDescription>Generated moderation assist (non-authoritative)</CardDescription>
+                <CardTitle>{t('reportDetail.aiSummaryTitle')}</CardTitle>
+                <CardDescription>{t('reportDetail.aiSummaryDescription')}</CardDescription>
               </div>
               <Button
                 variant="outline"
@@ -131,19 +158,19 @@ export function AdminReportDetailClient({ report }: Props) {
                 onClick={() => generateAiMutation.mutate()}
                 disabled={generateAiMutation.isPending}
               >
-                {generateAiMutation.isPending ? 'Starting…' : 'Regenerate'}
+                {generateAiMutation.isPending ? t('reportDetail.starting') : t('reportDetail.regenerate')}
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {!ai && (
               <div className="text-sm text-muted-foreground">
-                No AI summary yet.
+                {t('reportDetail.noAiSummary')}
               </div>
             )}
             {ai && ai.status !== 'ready' && (
               <div className="text-sm text-muted-foreground">
-                Status: <span className="font-mono">{ai.status}</span>
+                {t('reportDetail.statusLabel')} <span className="font-mono">{ai.status}</span>
                 {ai.status === 'failed' && ai.error_message ? (
                   <div className="mt-2 text-destructive">{ai.error_message}</div>
                 ) : null}
@@ -152,15 +179,15 @@ export function AdminReportDetailClient({ report }: Props) {
             {ai && ai.status === 'ready' && (
               <div className="space-y-3">
                 <div>
-                  <Label className="text-muted-foreground">Severity</Label>
-                  <div className="mt-1 text-sm bg-muted p-2 rounded-md">{ai.severity ?? 'unknown'}</div>
+                  <Label className="text-muted-foreground">{t('reportDetail.severity')}</Label>
+                  <div className="mt-1 text-sm bg-muted p-2 rounded-md">{ai.severity ?? t('reportDetail.unknown')}</div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Summary</Label>
+                  <Label className="text-muted-foreground">{t('reportDetail.summary')}</Label>
                   <div className="mt-2 p-3 bg-muted rounded-md text-sm">{ai.summary}</div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Suggested Action</Label>
+                  <Label className="text-muted-foreground">{t('reportDetail.suggestedAction')}</Label>
                   <div className="mt-2 p-3 bg-muted rounded-md text-sm">{ai.suggested_action}</div>
                 </div>
               </div>
@@ -172,54 +199,54 @@ export function AdminReportDetailClient({ report }: Props) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Report Information</CardTitle>
-                <CardDescription>Report ID: <span className="font-mono text-xs">{report.id}</span></CardDescription>
+                <CardTitle>{t('reportDetail.reportInfoTitle')}</CardTitle>
+                <CardDescription>{t('reportDetail.reportIdLabel')} <span className="font-mono text-xs">{report.id}</span></CardDescription>
               </div>
               <Badge variant={getStatusBadgeVariant(report.status)} className={getStatusColor(report.status)}>
-                {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                {reportStatusLabel(report.status, t as unknown as (key: string) => string)}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-muted-foreground">Reporter User ID</Label>
+                <Label className="text-muted-foreground">{t('reportDetail.reporterUserId')}</Label>
                 <div className="font-mono text-sm mt-1">{report.reporter_user_id}</div>
               </div>
               <div>
-                <Label className="text-muted-foreground">Reported User ID</Label>
+                <Label className="text-muted-foreground">{t('reportDetail.reportedUserId')}</Label>
                 <div className="font-mono text-sm mt-1">{report.reported_user_id}</div>
               </div>
               <div>
-                <Label className="text-muted-foreground">Created At</Label>
+                <Label className="text-muted-foreground">{t('reportDetail.createdAt')}</Label>
                 <div className="text-sm mt-1">
-                  {new Date(report.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  {fmtDate(report.created_at)}
                 </div>
               </div>
               <div>
-                <Label className="text-muted-foreground">Updated At</Label>
+                <Label className="text-muted-foreground">{t('reportDetail.updatedAt')}</Label>
                 <div className="text-sm mt-1">
-                  {new Date(report.updated_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  {fmtDate(report.updated_at)}
                 </div>
               </div>
               {report.reviewed_by && (
                 <div>
-                  <Label className="text-muted-foreground">Reviewed By</Label>
+                  <Label className="text-muted-foreground">{t('reportDetail.reviewedBy')}</Label>
                   <div className="font-mono text-sm mt-1">{report.reviewed_by}</div>
                 </div>
               )}
               {report.reviewed_at && (
                 <div>
-                  <Label className="text-muted-foreground">Reviewed At</Label>
+                  <Label className="text-muted-foreground">{t('reportDetail.reviewedAt')}</Label>
                   <div className="text-sm mt-1">
-                    {new Date(report.reviewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {fmtDate(report.reviewed_at)}
                   </div>
                 </div>
               )}
             </div>
             <Separator />
             <div>
-              <Label className="text-muted-foreground">Reason</Label>
+              <Label className="text-muted-foreground">{t('reportDetail.reason')}</Label>
               <div className="mt-2 p-3 bg-muted rounded-md text-sm">{report.reason}</div>
             </div>
           </CardContent>
@@ -228,60 +255,60 @@ export function AdminReportDetailClient({ report }: Props) {
         {context && (
           <Card>
             <CardHeader>
-              <CardTitle>Context Snapshot</CardTitle>
-              <CardDescription>Call and behavior context at the time of report</CardDescription>
+              <CardTitle>{t('reportDetail.contextSnapshotTitle')}</CardTitle>
+              <CardDescription>{t('reportDetail.contextSnapshotDescription')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {context.call_id && (
                   <div>
-                    <Label className="text-muted-foreground">Call ID</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.callId')}</Label>
                     <div className="font-mono text-sm mt-1">{context.call_id}</div>
                   </div>
                 )}
                 {context.room_id && (
                   <div>
-                    <Label className="text-muted-foreground">Room ID</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.roomId')}</Label>
                     <div className="font-mono text-sm mt-1">{context.room_id}</div>
                   </div>
                 )}
                 {context.duration_seconds !== null && (
                   <div>
-                    <Label className="text-muted-foreground">Duration</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.duration')}</Label>
                     <div className="text-sm mt-1">{formatDuration(context.duration_seconds)}</div>
                   </div>
                 )}
                 {context.ended_by && (
                   <div>
-                    <Label className="text-muted-foreground">Ended By</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.endedBy')}</Label>
                     <div className="text-sm mt-1">{context.ended_by}</div>
                   </div>
                 )}
                 {context.reporter_role && (
                   <div>
-                    <Label className="text-muted-foreground">Reporter Role</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.reporterRole')}</Label>
                     <div className="text-sm mt-1">{context.reporter_role}</div>
                   </div>
                 )}
                 {context.reported_role && (
                   <div>
-                    <Label className="text-muted-foreground">Reported Role</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.reportedRole')}</Label>
                     <div className="text-sm mt-1">{context.reported_role}</div>
                   </div>
                 )}
                 {context.call_started_at && (
                   <div>
-                    <Label className="text-muted-foreground">Call Started At</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.callStartedAt')}</Label>
                     <div className="text-sm mt-1">
-                      {new Date(context.call_started_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {fmtDate(context.call_started_at)}
                     </div>
                   </div>
                 )}
                 {context.call_ended_at && (
                   <div>
-                    <Label className="text-muted-foreground">Call Ended At</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.callEndedAt')}</Label>
                     <div className="text-sm mt-1">
-                      {new Date(context.call_ended_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {fmtDate(context.call_ended_at)}
                     </div>
                   </div>
                 )}
@@ -290,7 +317,7 @@ export function AdminReportDetailClient({ report }: Props) {
                 <>
                   <Separator />
                   <div>
-                    <Label className="text-muted-foreground">Behavior Flags</Label>
+                    <Label className="text-muted-foreground">{t('reportDetail.behaviorFlags')}</Label>
                     <div className="mt-2 p-3 bg-muted rounded-md">
                       <pre className="text-xs overflow-auto">
                         {JSON.stringify(context.behavior_flags, null, 2)}
@@ -305,29 +332,29 @@ export function AdminReportDetailClient({ report }: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Admin Actions</CardTitle>
-            <CardDescription>Update report status and add admin notes</CardDescription>
+            <CardTitle>{t('reportDetail.adminActionsTitle')}</CardTitle>
+            <CardDescription>{t('reportDetail.adminActionsDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+              <Label htmlFor="status">{t('reportDetail.statusField')}</Label>
               <Select value={status} onValueChange={(value) => setStatus(value as AdminAPI.Reports.ReportStatus)}>
                 <SelectTrigger id="status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="reviewed">Reviewed</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="dismissed">Dismissed</SelectItem>
+                  <SelectItem value="pending">{t('reportDetail.statusPending')}</SelectItem>
+                  <SelectItem value="reviewed">{t('reportDetail.statusReviewed')}</SelectItem>
+                  <SelectItem value="resolved">{t('reportDetail.statusResolved')}</SelectItem>
+                  <SelectItem value="dismissed">{t('reportDetail.statusDismissed')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-notes">Admin Notes</Label>
+              <Label htmlFor="admin-notes">{t('reportDetail.adminNotes')}</Label>
               <Textarea
                 id="admin-notes"
-                placeholder="Add admin notes..."
+                placeholder={t('reportDetail.adminNotesPlaceholder')}
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 rows={6}
@@ -335,10 +362,10 @@ export function AdminReportDetailClient({ report }: Props) {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => router.back()}>
-                Cancel
+                {tc('cancel')}
               </Button>
               <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                {updateMutation.isPending ? t('reportDetail.saving') : t('reportDetail.saveChanges')}
               </Button>
             </div>
           </CardContent>

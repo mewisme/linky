@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { IconDotsVertical } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 export interface MoreOptionsDrawerProps {
   controls: ControlConfig[];
@@ -34,6 +35,7 @@ export function MoreOptionsDrawer({
   onPeerInfoOpen,
   onReportOpen,
 }: MoreOptionsDrawerProps) {
+  const t = useTranslations("call.controls");
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -72,12 +74,12 @@ export function MoreOptionsDrawer({
           </DrawerTrigger>
         </TooltipTrigger>
         <TooltipContent>
-          <p>More options</p>
+          <p>{t("moreOptions")}</p>
         </TooltipContent>
       </Tooltip>
       <DrawerContent className="z-120" style={{ zIndex: 120 }}>
         <DrawerHeader>
-          <DrawerTitle>More Options</DrawerTitle>
+          <DrawerTitle>{t("moreOptionsTitle")}</DrawerTitle>
         </DrawerHeader>
         <div className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto px-4 pb-8">
           {controls.map((control) => {

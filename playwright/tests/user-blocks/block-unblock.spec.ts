@@ -52,7 +52,7 @@ test.describe("User Blocking", () => {
     const page = await userContext.newPage();
 
     try {
-      await page.goto("/settings/blocked-users");
+      await page.goto("/connections/blocked-users");
       await page.waitForLoadState("networkidle");
 
       const heading = page.locator("h1");

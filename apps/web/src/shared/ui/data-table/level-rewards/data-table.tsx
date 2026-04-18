@@ -1,11 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import { AdminAPI } from '@/features/admin/types/admin.types'
-import { columns, type RowCallbacks } from './define-data'
+import { useLevelRewardColumns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 import { cn } from '@ws/ui/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface LevelRewardsDataTableProps {
   initialData: AdminAPI.LevelRewards.LevelReward[]
@@ -16,13 +15,14 @@ interface LevelRewardsDataTableProps {
 }
 
 export function LevelRewardsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: LevelRewardsDataTableProps) {
-  const tableColumns = useMemo(() => columns(callbacks), [callbacks])
+  const t = useTranslations('dataTable')
+  const tableColumns = useLevelRewardColumns(callbacks)
 
   return (
     <DataTable
       initialData={initialData}
       filterColumn="reward_type"
-      filterPlaceholder="Search by reward type..."
+      filterPlaceholder={t('levelRewards.filterPlaceholder')}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}
       className={cn(className)}

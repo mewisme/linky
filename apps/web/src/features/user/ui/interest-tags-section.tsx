@@ -35,6 +35,7 @@ import type { ResourcesAPI } from '@/shared/types/resources.types'
 import type { UserDetails } from '@/entities/user/model/user-store'
 import { getInterestTags } from "@/actions/resources/interest-tags";
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
@@ -51,6 +52,9 @@ export function InterestTagsSection({
   userDetails,
   updateUserDetails,
 }: InterestTagsSectionProps) {
+  const t = useTranslations("user");
+  const tp = useTranslations("user.profile");
+  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [editingTags, setEditingTags] = useState(false)
@@ -88,10 +92,10 @@ export function InterestTagsSection({
         await updateUserDetails({ interest_tags: selectedTagIds })
         trackEvent({ name: "interest_tags_updated" })
         playSound('success')
-        toast.success('Interest tags updated')
+        toast.success(t('interestTagsUpdated'))
         setEditingTags(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : 'Update failed')
+        toast.error(error instanceof Error ? error.message : t('updateFailed'))
       }
     })
   }
@@ -121,7 +125,7 @@ export function InterestTagsSection({
       <div className="flex items-center justify-between gap-2 py-0.5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconTags className="size-4 shrink-0" aria-hidden />
-          <span>Interests</span>
+          <span>{tp("interests")}</span>
         </div>
         <div className="flex items-center gap-1">
           {!editingTags && (
@@ -132,7 +136,7 @@ export function InterestTagsSection({
               onClick={() => setEditingTags(true)}
             >
               <IconEdit className="size-4" />
-              Edit
+              {tp("edit")}
             </Button>
           )}
           {showToggle && (
@@ -145,12 +149,12 @@ export function InterestTagsSection({
               {showAllTags ? (
                 <>
                   <IconChevronUp className="size-4 mr-1 shrink-0" />
-                  Show less
+                  {tp("showLess")}
                 </>
               ) : (
                 <>
                   <IconChevronDown className="size-4 mr-1 shrink-0" />
-                  More ({selectedTags.length - INITIAL_TAGS_VISIBLE})
+                  {tp("moreTags", { count: selectedTags.length - INITIAL_TAGS_VISIBLE })}
                 </>
               )}
             </Button>
@@ -181,9 +185,9 @@ export function InterestTagsSection({
               ) : null}
             </TagsTrigger>
             <TagsContent>
-              <TagsInput placeholder="Search tags..." />
+              <TagsInput placeholder={tp("searchTags")} />
               <TagsList>
-                <TagsEmpty>No tags found.</TagsEmpty>
+                <TagsEmpty>{tp("noTagsFound")}</TagsEmpty>
                 <TagsGroup>
                   {availableTags.map((tag) => {
                     const isSelected = selectedTagIds.includes(tag.id)
@@ -235,7 +239,7 @@ export function InterestTagsSection({
                 setEditingTags(false)
               }}
             >
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               size="sm"
@@ -245,7 +249,7 @@ export function InterestTagsSection({
               {isPending && (
                 <IconLoader2 className="mr-2 size-4 animate-spin" />
               )}
-              Save
+              {tc("save")}
             </Button>
           </div>
         </div>
@@ -290,7 +294,7 @@ export function InterestTagsSection({
             </div>
           ) : (
             <p className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground sm:px-5 sm:py-4">
-              No interests selected
+              {tp("noInterestsSelected")}
             </p>
           )}
         </>

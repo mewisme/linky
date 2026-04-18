@@ -26,6 +26,7 @@ import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { Switch } from "@ws/ui/components/ui/switch";
 import dynamic from "next/dynamic";
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 
 const EmojiPickerLazy = dynamic(
@@ -58,6 +59,9 @@ interface InterestTagsClientProps {
 }
 
 export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
+  const t = useTranslations("admin");
+  const tif = useTranslations("admin.interestTagForm");
+  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
@@ -100,7 +104,7 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
 
       const isUpdate = !!variables.id || !!editingTag?.id;
       playSound('success');
-      toast.success(isUpdate ? "Updated successfully!" : "Created successfully!");
+      toast.success(isUpdate ? t("crudUpdated") : t("crudCreated"));
 
       if (isModalOpen) {
         setIsModalOpen(false);
@@ -109,7 +113,7 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message || "An error occurred");
+      toast.error(error.message || t("genericError"));
     }
   });
 
@@ -124,10 +128,10 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
         refetchType: 'active'
       });
       await refetch();
-      toast.success("Tag deleted successfully");
+      toast.success(t("tagDeleted"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "An error occurred during deletion");
+      toast.error(error.message || t("deleteError"));
     },
   });
 
@@ -162,7 +166,7 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
   }
 
   return (
-    <AppLayout label="Interest Tags" description="Manage interest tags for user personalization">
+    <AppLayout sidebarItem="adminInterestTags">
       <InterestTagsDataTable
         initialData={data?.data || []}
         callbacks={rowCallbacks}
@@ -174,10 +178,10 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
         rightColumnVisibilityContent={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)} data-testid="admin-interest-tags-import-button">
-              <IconFileImport className="w-4 h-4 mr-2" /> Import JSON
+              <IconFileImport className="w-4 h-4 mr-2" /> {tif("importJson")}
             </Button>
             <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm" data-testid="admin-interest-tag-create-button">
-              <IconPlus className="w-4 h-4 mr-2" /> Add New Tag
+              <IconPlus className="w-4 h-4 mr-2" /> {tif("addNewTag")}
             </Button>
           </div>
         }
@@ -187,27 +191,27 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
           <form onSubmit={onFormSubmit}>
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">
-                {editingTag ? "Update Interest Tag" : "Create Interest Tag"}
+                {editingTag ? tif("updateTitle") : tif("createTitle")}
               </DialogTitle>
               <DialogDescription>
-                Interest tags help the system recommend more accurate content to users.
+                {tif("modalDescription")}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Display Name <span className="text-destructive">*</span></Label>
-                  <Input id="name" placeholder="e.g. Technology" value={formData.name} required onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                  <Label htmlFor="name">{tif("displayName")} <span className="text-destructive">*</span></Label>
+                  <Input id="name" placeholder={tif("displayNamePlaceholder")} value={formData.name} required onChange={e => setFormData({ ...formData, name: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input id="category" placeholder="e.g. Hobbies" value={formData.category || ""} onChange={e => setFormData({ ...formData, category: e.target.value })} />
+                  <Label htmlFor="category">{tif("category")}</Label>
+                  <Input id="category" placeholder={tif("categoryPlaceholder")} value={formData.category || ""} onChange={e => setFormData({ ...formData, category: e.target.value })} />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="icon">Icon / Emoji</Label>
+                <Label htmlFor="icon">{tif("icon")}</Label>
                 <div className="flex gap-2 flex-row">
-                  <Input id="icon" placeholder="e.g. 🎨, ⚽, 💻..." value={formData.icon || ""} onChange={e => setFormData({ ...formData, icon: e.target.value })} />
+                  <Input id="icon" placeholder={tif("iconPlaceholder")} value={formData.icon || ""} onChange={e => setFormData({ ...formData, icon: e.target.value })} />
                   <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
                     <PopoverTrigger asChild>
                       <Button variant="outline">
@@ -226,11 +230,11 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Detailed Description</Label>
+                <Label htmlFor="description">{tif("detailedDescription")}</Label>
                 <textarea
                   id="description"
                   rows={3}
-                  placeholder="Provide a brief context for this tag..."
+                  placeholder={tif("descriptionPlaceholder")}
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   value={formData.description || ""}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -238,8 +242,8 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
               </div>
               <div className="flex items-center justify-between p-4 bg-muted/40 rounded-xl border border-dashed border-primary/20">
                 <div className="space-y-0.5">
-                  <Label className="text-base">Visibility Status</Label>
-                  <p className="text-xs text-muted-foreground italic">Allow users to see and select this tag</p>
+                  <Label className="text-base">{tif("visibilityStatus")}</Label>
+                  <p className="text-xs text-muted-foreground italic">{tif("visibilityHint")}</p>
                 </div>
                 <Switch
                   checked={formData.is_active}
@@ -248,9 +252,9 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>{tc("cancel")}</Button>
               <Button type="submit" disabled={upsertMutation.isPending} className="min-w-[100px]">
-                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Save Changes"}
+                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : tif("saveChanges")}
               </Button>
             </DialogFooter>
           </form>

@@ -22,6 +22,7 @@ import { Input } from '@ws/ui/components/ui/input';
 import { Label } from '@ws/ui/components/ui/label';
 import { findSimilarUsers } from '@/features/admin/api/embeddings';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 interface SimilarResult {
@@ -41,23 +42,24 @@ interface FindSimilarUsersModalProps {
   users: AdminAPI.User[];
 }
 
-function formatUserLabel(user: AdminAPI.User): string {
-  const email = user.email ?? 'no-email';
-  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Unknown';
-  return `${name} (${email})`;
-}
-
 export function FindSimilarUsersModal({
   open,
   onOpenChange,
   user,
   users,
 }: FindSimilarUsersModalProps) {
+  const te = useTranslations('admin.embedding');
   const isMobile = useIsMobile();
   const [limit, setLimit] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<FindSimilarResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const formatUserLabel = (u: AdminAPI.User): string => {
+    const email = u.email ?? te('noEmail');
+    const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || te('unknownName');
+    return `${name} (${email})`;
+  };
 
   const handleOpenChange = (next: boolean) => {
     if (!next && isLoading) return;
@@ -77,8 +79,8 @@ export function FindSimilarUsersModal({
     try {
       const data = await findSimilarUsers(user.id, effectiveLimit);
       setResult(data as unknown as FindSimilarResponse);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to find similar users');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : te('findSimilarFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -89,13 +91,13 @@ export function FindSimilarUsersModal({
   const formSection = (
     <>
       <div className="space-y-2">
-        <Label>Base user (from row)</Label>
+        <Label>{te('baseUserFromRow')}</Label>
         <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
           {formatUserLabel(user)}
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="limit">Result limit (1–100)</Label>
+        <Label htmlFor="limit">{te('resultLimit')}</Label>
         <Input
           id="limit"
           type="number"
@@ -116,7 +118,7 @@ export function FindSimilarUsersModal({
 
   const resultSection = result && (
     <div className="space-y-2">
-      <p className="text-sm font-medium">Similar users (ranked)</p>
+      <p className="text-sm font-medium">{te('similarUsersRanked')}</p>
       <div className="max-h-[200px] overflow-y-auto rounded-md border">
         <div className="space-y-1 p-2">
           {result.results.map((r, i) => {
@@ -149,7 +151,7 @@ export function FindSimilarUsersModal({
         onClick={() => handleOpenChange(false)}
         disabled={isLoading}
       >
-        Close
+        {te('close')}
       </Button>
       <Button
         type="button"
@@ -157,7 +159,7 @@ export function FindSimilarUsersModal({
         disabled={isLoading}
       >
         {isLoading && <IconLoader2 className="mr-2 size-4 animate-spin" />}
-        Find similar
+        {te('findSimilar')}
       </Button>
     </div>
   );
@@ -167,9 +169,9 @@ export function FindSimilarUsersModal({
       <Drawer open={open} onOpenChange={handleOpenChange} dismissible={false}>
         <DrawerContent className="flex max-h-[90vh] flex-col sm:max-w-md">
           <DrawerHeader className="shrink-0">
-            <DrawerTitle>Find similar users</DrawerTitle>
+            <DrawerTitle>{te('findSimilarTitle')}</DrawerTitle>
             <DrawerDescription>
-              Find users with similar embeddings to this user.
+              {te('findSimilarDescription')}
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4">
@@ -189,9 +191,9 @@ export function FindSimilarUsersModal({
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader className="shrink-0">
-          <DialogTitle>Find similar users</DialogTitle>
+          <DialogTitle>{te('findSimilarTitle')}</DialogTitle>
           <DialogDescription>
-            Find users with similar embeddings to this user.
+            {te('findSimilarDescription')}
           </DialogDescription>
         </DialogHeader>
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">

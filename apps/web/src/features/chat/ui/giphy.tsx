@@ -20,6 +20,7 @@ import {
 } from "@/features/chat/lib/giphy-client";
 import { ButtonGroup } from "@ws/ui/components/ui/button-group";
 import { Loading } from "@/shared/ui/common/loading";
+import { useTranslations } from "next-intl";
 
 /* -------------------------------------------------- */
 /* GiphyPickerContent                                 */
@@ -46,6 +47,7 @@ function GiphyPickerContent({
   onSelect,
   className,
 }: GiphyPickerContentProps) {
+  const t = useTranslations("chat");
   return (
     <div
       className={cn("flex flex-col", className)}
@@ -63,7 +65,7 @@ function GiphyPickerContent({
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Search GIFs"
+            placeholder={t("searchGifsPlaceholder")}
             className="w-full rounded-md border bg-background py-2 pl-8 pr-2 text-sm outline-none"
             data-slot="giphy-picker-search"
           />
@@ -75,14 +77,14 @@ function GiphyPickerContent({
             variant={type === "gifs" ? "default" : "outline"}
             onClick={() => onTypeChange("gifs")}
           >
-            GIF
+            {t("gifTab")}
           </Button>
           <Button
             size="sm"
             variant={type === "stickers" ? "default" : "outline"}
             onClick={() => onTypeChange("stickers")}
           >
-            Sticker
+            {t("stickerTab")}
           </Button>
         </ButtonGroup>
       </div>
@@ -90,7 +92,7 @@ function GiphyPickerContent({
       <ScrollArea className="h-40" data-slot="giphy-picker-grid">
         <div className="grid grid-cols-3 gap-2 pr-2">
           {loading && (
-            <Loading title="Loading giphy..." />
+            <Loading title={t("loadingGiphy")} />
           )}
 
           {!loading &&

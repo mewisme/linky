@@ -11,6 +11,7 @@ import {
 import { Button } from "@ws/ui/components/ui/button"
 import { Calendar } from "@ws/ui/components/ui/calendar"
 import { ChevronDownIcon } from "@ws/ui/internal-lib/icons"
+import { useTranslations } from "next-intl"
 
 interface DatePickerProps {
   value: Date | undefined;
@@ -18,6 +19,7 @@ interface DatePickerProps {
 }
 
 export function DatePicker({ value, onChange }: DatePickerProps) {
+  const t = useTranslations("common")
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -28,7 +30,7 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
           id="date"
           className="w-48 justify-between font-normal"
         >
-          {value ? value.toLocaleDateString() : "Select date"}
+          {value ? value.toLocaleDateString() : t("selectDate")}
           <ChevronDownIcon />
         </Button>
       </PopoverTrigger>

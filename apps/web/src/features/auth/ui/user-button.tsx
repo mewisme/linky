@@ -14,15 +14,17 @@ import {
 import { LogOutIcon, ShieldIcon, UserIcon } from "@ws/ui/internal-lib/icons";
 
 import { Kbd } from "@ws/ui/components/ui/kbd";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { isAdmin } from "@/shared/utils/roles";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useUserStore } from "@/entities/user/model/user-store";
 
 export function UserButton() {
+  const t = useTranslations("sidebarHeader");
   const { user, auth: { signOut } } = useUserContext();
   const { user: userStore } = useUserStore();
 
@@ -56,14 +58,14 @@ export function UserButton() {
         side="bottom"
         sideOffset={4}
       >
-        <DropdownMenuLabel className='text-xs text-muted-foreground'>My Account</DropdownMenuLabel>
+        <DropdownMenuLabel className='text-xs text-muted-foreground'>{t("myAccount")}</DropdownMenuLabel>
         <DropdownMenuGroup>
           <Link href='/user/profile'>
             <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
               <div className="flex size-6 items-center justify-center rounded-sm border">
                 <UserIcon className='size-4 shrink-0' />
               </div>
-              <span>Manage Account</span>
+              <span>{t("manageAccount")}</span>
             </DropdownMenuItem>
           </Link>
           {isAdmin(userStore?.role) && (
@@ -72,7 +74,7 @@ export function UserButton() {
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <ShieldIcon className='size-4 shrink-0' />
                 </div>
-                <span>Admin Dashboard</span>
+                <span>{t("adminDashboard")}</span>
               </DropdownMenuItem>
             </Link>
           )}
@@ -87,7 +89,7 @@ export function UserButton() {
             <div className="flex size-6 items-center justify-center rounded-sm border">
               <LogOutIcon className='size-4 shrink-0 dark:text-red-400 text-red-500' />
             </div>
-            <span className='dark:text-red-400'>Logout</span>
+            <span className='dark:text-red-400'>{t("logout")}</span>
             <DropdownMenuShortcut>
               <Kbd>⇧⌘Q</Kbd>
             </DropdownMenuShortcut>

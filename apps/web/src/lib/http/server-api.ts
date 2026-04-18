@@ -1,6 +1,7 @@
 'use server'
 
 import { getToken } from '@/lib/auth/token';
+import { ApiError, parseApiErrorBody } from '@/lib/http/api-error';
 
 export async function serverFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const token = await getToken();
@@ -14,7 +15,12 @@ export async function serverFetch<T>(url: string, options: RequestInit = {}): Pr
   const response = await fetch(url, { ...options, headers });
   if (!response.ok) {
     const text = await response.text().catch(() => response.statusText);
-    throw new Error(text || response.statusText);
+    const parsed = parseApiErrorBody(text || "");
+    throw new ApiError(parsed.message || response.statusText, {
+      status: response.status,
+      userMessage: parsed.userMessage,
+      rawBody: text,
+    });
   }
 
   const text = await response.text();

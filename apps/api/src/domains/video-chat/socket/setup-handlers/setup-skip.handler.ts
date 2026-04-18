@@ -3,6 +3,7 @@ import type { Namespace } from "socket.io";
 import type { VideoChatMatchmaking, VideoChatRooms } from "../types.js";
 import { logger } from "../helpers/logger.helper.js";
 import { getDbUserId } from "../helpers/user.helper.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupSkipHandler(
   socket: AuthenticatedSocket,
@@ -39,12 +40,24 @@ export function setupSkipHandler(
             if (peerAdded) {
               const peerQueueSize = await matchmaking.getQueueSize();
               io.to(peerId).emit("peer-skipped", {
-                message: "The other person skipped. You are looking for a new match.",
+                ...userFacingPayload(
+                  toUserMessage(
+                    "SKIP_PEER_SEARCHING",
+                    { key: "call.skip.peerSearching" },
+                    "The other person skipped. You are looking for a new match.",
+                  ),
+                ),
                 queueSize: peerQueueSize,
               });
             } else {
               io.to(peerId).emit("peer-left", {
-                message: "The other person skipped. Try joining the queue again.",
+                ...userFacingPayload(
+                  toUserMessage(
+                    "SKIP_PEER_REJOIN",
+                    { key: "call.skip.peerRejoinQueue" },
+                    "The other person skipped. Try joining the queue again.",
+                  ),
+                ),
               });
             }
           }
@@ -59,7 +72,9 @@ export function setupSkipHandler(
 
     const queueSize = await matchmaking.getQueueSize();
     socket.emit("skipped", {
-      message: "You skipped. Looking for a new match…",
+      ...userFacingPayload(
+        toUserMessage("SKIP_SELF", { key: "call.skip.self" }, "You skipped. Looking for a new match…"),
+      ),
       queueSize,
     });
   });

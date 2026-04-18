@@ -7,6 +7,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import { Textarea } from '@ws/ui/components/ui/textarea'
 import type { UserDetails } from '@/entities/user/model/user-store'
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
 const BIO_MAX_LENGTH = 300
@@ -20,6 +21,9 @@ export function BioSection({
   userDetails,
   updateUserDetails,
 }: BioSectionProps) {
+  const t = useTranslations("user");
+  const tp = useTranslations("user.profile");
+  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [editingBio, setEditingBio] = useState(false)
@@ -35,10 +39,10 @@ export function BioSection({
       try {
         await updateUserDetails({ bio: value })
         playSound('success')
-        toast.success('Bio updated')
+        toast.success(t('bioUpdated'))
         setEditingBio(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : 'Update failed')
+        toast.error(error instanceof Error ? error.message : t('updateFailed'))
       }
     })
   }
@@ -48,7 +52,7 @@ export function BioSection({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconInfoCircle className="size-4 shrink-0" aria-hidden />
-          <span>Bio</span>
+          <span>{tp("bio")}</span>
         </div>
         {!editingBio && (
           <Button
@@ -58,7 +62,7 @@ export function BioSection({
             onClick={() => setEditingBio(true)}
           >
             <IconEdit className="size-4" />
-            Edit
+            {tp("edit")}
           </Button>
         )}
       </div>
@@ -67,10 +71,10 @@ export function BioSection({
           <Textarea
             value={bio}
             onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
-            placeholder="Tell us about yourself..."
+            placeholder={tp("tellAboutYourself")}
             className="min-h-[100px] w-full resize-y rounded-lg"
             maxLength={BIO_MAX_LENGTH}
-            aria-label="Bio"
+            aria-label={tp("bioAria")}
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground" aria-live="polite">
@@ -85,7 +89,7 @@ export function BioSection({
                   setEditingBio(false)
                 }}
               >
-                Cancel
+                {tc("cancel")}
               </Button>
               <Button
                 size="sm"
@@ -95,7 +99,7 @@ export function BioSection({
                 {isPending && (
                   <IconLoader2 className="mr-2 size-4 animate-spin" />
                 )}
-                Save
+                {tc("save")}
               </Button>
             </div>
           </div>
@@ -107,7 +111,7 @@ export function BioSection({
           onClick={() => setEditingBio(true)}
         >
           <p className="text-sm leading-relaxed text-muted-foreground">
-            {userDetails?.bio || 'Not provided'}
+            {userDetails?.bio || tp('notProvided')}
           </p>
         </button>
       )}

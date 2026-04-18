@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { useSocket } from "@/features/realtime/hooks/use-socket";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/providers/user/user-provider";
@@ -46,6 +47,7 @@ const STREAK_TOAST_DEBOUNCE_MS = 2000;
 const STREAK_EVENT_DEDUP_WINDOW_MS = 30000;
 
 export function ReactionEffectProvider({ children }: ReactionEffectProviderProps) {
+  const t = useTranslations("call");
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const { socket } = useSocket();
   const { store } = useUserContext();
@@ -131,9 +133,9 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
       if (now - lastStreakToastAtRef.current < STREAK_TOAST_DEBOUNCE_MS) return;
       lastStreakToastAtRef.current = now;
       if (data.freezeUsed) {
-        toast.success("Streak saved by freeze 🎉");
+        toast.success(t("streakSavedByFreeze"));
       } else {
-        toast.success(`Streak completed! ${data.streakCount} days 🎉`);
+        toast.success(t("streakCompleted", { count: data.streakCount }));
         play("reward");
       }
       triggerRemoteReactions(1, "party");
@@ -142,7 +144,7 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
     return () => {
       socket.off(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     };
-  }, [play, socket, triggerRemoteReactions]);
+  }, [play, socket, triggerRemoteReactions, t]);
 
   const value: ReactionEffectContextValue = {
     triggerLocalReaction,

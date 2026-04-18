@@ -16,6 +16,7 @@ import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "@/features/call/lib/webr
 import { useVideoChat } from "@/features/call/hooks/webrtc/use-video-chat";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types";
+import { useTranslations } from "next-intl";
 
 interface GlobalCallContextValue {
   isInActiveCall: boolean;
@@ -42,6 +43,8 @@ interface GlobalCallManagerProps {
 }
 
 export function GlobalCallManager({ children }: GlobalCallManagerProps) {
+  const t = useTranslations("call.globalError");
+  const tCommon = useTranslations("common");
   const videoChat = useVideoChat();
   const error = useVideoChatStore((s) => s.error);
   const isNoMicrophoneError = error === VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE;
@@ -91,23 +94,23 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {isNoMicrophoneError ? "No microphone found" : "Something went wrong"}
+              {isNoMicrophoneError ? t("noMicrophoneTitle") : t("genericTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>{error}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             {isNoMicrophoneError ? (
-              <AlertDialogAction onClick={videoChat.clearError}>OK</AlertDialogAction>
+              <AlertDialogAction onClick={videoChat.clearError}>{tCommon("ok")}</AlertDialogAction>
             ) : (
               <>
-                <AlertDialogCancel onClick={videoChat.clearError}>Dismiss</AlertDialogCancel>
+                <AlertDialogCancel onClick={videoChat.clearError}>{t("dismiss")}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
                     videoChat.clearError();
                     window.location.reload();
                   }}
                 >
-                  Refresh Page
+                  {t("refreshPage")}
                 </AlertDialogAction>
               </>
             )}

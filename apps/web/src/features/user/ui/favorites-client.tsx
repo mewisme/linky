@@ -9,6 +9,7 @@ import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/shared/types/resources.types'
 import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
+import { useTranslations } from 'next-intl'
 import { useQuery } from "@ws/ui/internal-lib/react-query"
 
 const FavoritesDataTable = dynamic(
@@ -20,6 +21,7 @@ interface FavoritesClientProps {
 }
 
 export function FavoritesClient({ initialData }: FavoritesClientProps) {
+  const t = useTranslations('user')
   const [data, setData] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>(initialData.data)
 
   const { data: favorites, isFetching, refetch } = useQuery({
@@ -37,7 +39,7 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
 
   const handleRemoveFavorite = async (favorite: ResourcesAPI.Favorites.FavoriteWithStats) => {
     if (!favorite.favorite_user_id) {
-      toast.error("Invalid favorite data")
+      toast.error(t('invalidFavoriteData'))
       return
     }
 
@@ -47,17 +49,17 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
       setData((prev) => prev.filter((f) => f.favorite_user_id !== favorite.favorite_user_id))
 
       if (result.refunded) {
-        toast.success("Removed from favorites (daily limit refunded)")
+        toast.success(t('removedFavoriteRefunded'))
       } else {
-        toast.success("Removed from favorites")
+        toast.success(t('removedFavorite'))
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to remove favorite")
+      toast.error(error instanceof Error ? error.message : t('removeFavoriteFailed'))
     }
   }
 
   return (
-    <AppLayout label="My Favorites" description="Manage your favorite users and view your match statistics">
+    <AppLayout label={t('favoritesTitle')} description={t('favoritesDescription')}>
       <FavoritesDataTable
         initialData={data}
         callbacks={{

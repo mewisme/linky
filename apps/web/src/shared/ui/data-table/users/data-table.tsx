@@ -1,9 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import type { AdminAPI } from '@/features/admin/types/admin.types'
-import { columns, type RowCallbacks } from './define-data'
+import { useUsersColumns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 import { cn } from '@ws/ui/lib/utils'
 
@@ -17,7 +15,7 @@ interface UsersDataTableProps {
 }
 
 export function UsersDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, bulkActionsContent, selectionResetKey }: UsersDataTableProps) {
-  const tableColumns = useMemo(() => columns(callbacks), [callbacks])
+  const tableColumns = useUsersColumns(callbacks)
 
   return (
     <div data-testid="admin-users-table">

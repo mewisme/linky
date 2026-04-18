@@ -5,6 +5,7 @@ import { getUserDetails, updateUserDetails } from "@/features/user/api/profile";
 import type { UserDetails, UserState } from "@/entities/user/model/user-store";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { useUserAuthContext } from "./user-auth-provider";
 
 type UserDetailsContextValue = {
@@ -16,6 +17,7 @@ const UserDetailsContext = createContext<UserDetailsContextValue | null>(null);
 
 export function UserDetailsProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
+  const t = useTranslations("errors");
 
   const fetchUserDetailsFn = useCallback(async () => {
     if (!auth.isLoaded || !auth.isSignedIn) return;
@@ -24,9 +26,9 @@ export function UserDetailsProvider({ children, store }: { children: ReactNode; 
       const details = await getUserDetails();
       store.setUserDetails(details);
     } catch (error) {
-      store.setError(error instanceof Error ? error.message : "Failed to fetch user details");
+      store.setError(error instanceof Error ? error.message : t("fetchUserDetails"));
     }
-  }, [auth.isLoaded, auth.isSignedIn, store]);
+  }, [auth.isLoaded, auth.isSignedIn, store, t]);
 
   const updateUserDetailsFn = useCallback(
     async (data: UsersAPI.UserDetails.PatchMe.Body): Promise<UserDetails> => {

@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
 import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CallTimer } from "./call-timer";
@@ -76,6 +77,7 @@ export function VideoContainer({
   initialProgress,
   initialFavorites,
 }: VideoContainerProps) {
+  const tp = useTranslations("user.profile");
   const containerRef = useRef<HTMLDivElement>(null);
   const remoteVideoContainerRef = useRef<HTMLDivElement>(null);
   const tapCaptureRef = useRef<HTMLDivElement>(null);
@@ -207,12 +209,12 @@ export function VideoContainer({
               >
                 {peerInfo ? (
                   <Avatar className="h-32 w-32 sm:h-40 sm:w-40">
-                    <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || "User"} className="object-cover" />
-                    <AvatarFallback className="text-4xl sm:text-5xl">{peerInfo.first_name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+                    <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || tp("displayNameFallback")} className="object-cover" />
+                    <AvatarFallback className="text-4xl sm:text-5xl">{peerInfo.first_name?.[0]?.toUpperCase() || tp("displayNameInitial")}</AvatarFallback>
                   </Avatar>
                 ) : (
                   <Avatar className="h-32 w-32 sm:h-40 sm:w-40">
-                    <AvatarFallback className="text-4xl sm:text-5xl">U</AvatarFallback>
+                    <AvatarFallback className="text-4xl sm:text-5xl">{tp("displayNameInitial")}</AvatarFallback>
                   </Avatar>
                 )}
               </div>

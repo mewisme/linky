@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { usePathname } from "@/i18n/navigation";
 
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { ChatSidebar } from "./chat-sidebar";
@@ -10,6 +11,7 @@ import { useGlobalCallContext } from "@/providers/call/global-call-manager";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 
 export function ChatPanelHost() {
+  const t = useTranslations("chat");
   const pathname = usePathname();
   const isMobile = useIsMobile();
 
@@ -26,7 +28,7 @@ export function ChatPanelHost() {
         avatarUrl: peerInfo.avatar_url,
         displayName:
           `${peerInfo.first_name ?? ""} ${peerInfo.last_name ?? ""}`.trim() ||
-          "Peer",
+          t("peerFallback"),
       }
     : null;
 

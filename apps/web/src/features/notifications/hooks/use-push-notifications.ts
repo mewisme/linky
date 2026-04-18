@@ -14,10 +14,12 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { usePushSubscriptionStore } from "@/features/notifications/model/push-subscription-store";
 import { useUserContext } from "@/providers/user/user-provider";
 
 export function usePushNotifications() {
+  const t = useTranslations("notifications");
   const { state: { getToken }, authReady } = useUserContext();
   const isSubscribed = usePushSubscriptionStore((s) => s.isSubscribed);
   const permissionState = usePushSubscriptionStore((s) => s.permissionState);
@@ -41,7 +43,7 @@ export function usePushNotifications() {
 
   const enablePush = useCallback(async () => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      toast.error("Push notifications are not supported in this browser");
+      toast.error(t("pushNotSupported"));
       return;
     }
 
@@ -50,14 +52,14 @@ export function usePushNotifications() {
       setPermissionState(permission);
 
       if (permission !== "granted") {
-        toast.error("Notification permission denied");
+        toast.error(t("permissionDenied"));
         return;
       }
 
       const registration = await registerServiceWorker();
       const token = await getToken();
       if (!token) {
-        toast.error("Please sign in again to enable push notifications");
+        toast.error(t("signInForPush"));
         return;
       }
       const { publicKey } = await getVapidPublicKeyAPI(token);
@@ -68,21 +70,21 @@ export function usePushNotifications() {
 
       await subscribeToPushAPI(subscription.toJSON(), token);
       setSubscribed(true);
-      toast.success("Push notifications enabled");
+      toast.success(t("pushEnabled"));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to enable push notifications";
+        error instanceof Error ? error.message : t("enableFailed");
       const isUnauthorized =
         typeof message === "string" &&
         (message.toLowerCase().includes("unauthorized") || message.includes("401"));
       toast.error(
         isUnauthorized
-          ? "Session expired or invalid. Please sign in again and try enabling push notifications."
+          ? t("sessionExpiredPush")
           : message
       );
 
     }
-  }, [getToken, setPermissionState, setSubscribed]);
+  }, [getToken, setPermissionState, setSubscribed, t]);
 
   const disablePush = useCallback(async () => {
     try {
@@ -101,15 +103,15 @@ export function usePushNotifications() {
       }
 
       setSubscribed(false);
-      toast.success("Push notifications disabled");
+      toast.success(t("pushDisabled"));
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to disable push notifications"
+          : t("disableFailed")
       );
     }
-  }, [getToken, setSubscribed]);
+  }, [getToken, setSubscribed, t]);
 
   return {
     isSubscribed,

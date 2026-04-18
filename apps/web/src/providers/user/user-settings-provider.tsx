@@ -4,6 +4,7 @@ import { getUserSettings, updateUserSettings } from "@/features/user/api/setting
 import type { UserSettings, UserState } from "@/entities/user/model/user-store";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { useUserAuthContext } from "./user-auth-provider";
 
 type UserSettingsContextValue = {
@@ -15,6 +16,7 @@ const UserSettingsContext = createContext<UserSettingsContextValue | null>(null)
 
 export function UserSettingsProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
+  const t = useTranslations("errors");
 
   const fetchUserSettingsFn = useCallback(async () => {
     if (!auth.isLoaded || !auth.isSignedIn) return;
@@ -23,9 +25,9 @@ export function UserSettingsProvider({ children, store }: { children: ReactNode;
       const settings = await getUserSettings();
       store.setUserSettings(settings);
     } catch (error) {
-      store.setError(error instanceof Error ? error.message : "Failed to fetch user settings");
+      store.setError(error instanceof Error ? error.message : t("fetchUserSettings"));
     }
-  }, [auth.isLoaded, auth.isSignedIn, store]);
+  }, [auth.isLoaded, auth.isSignedIn, store, t]);
 
   const updateUserSettingsFn = useCallback(
     async (data: UsersAPI.UserSettings.PatchMe.Body): Promise<UserSettings> => {

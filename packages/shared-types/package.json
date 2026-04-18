@@ -6,7 +6,8 @@
   "scripts": {
     "prebuild": "pnpm check-types",
     "build": "tsc",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "prepare": "pnpm build"
   },
   "files": [
     "dist",

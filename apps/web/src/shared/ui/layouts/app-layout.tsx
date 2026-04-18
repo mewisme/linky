@@ -1,36 +1,63 @@
 "use client";
 
+import { Button } from "@ws/ui/components/ui/button";
+import { ChevronLeft } from "@ws/ui/internal-lib/icons";
+import { cn } from "@ws/ui/lib/utils";
+import { useRouter } from "@/i18n/navigation";
+import type { MenuItemId } from "@/shared/ui/layouts/sidebar/menu-items";
+import { useTranslations } from "next-intl";
+import { useMemo } from "react";
+
 interface AppLayoutProps {
   label?: string;
-  children: React.ReactNode;
   description?: string;
+  /** Resolves title and description from `sidebar.items.<id>` in messages. */
+  sidebarItem?: MenuItemId;
+  children: React.ReactNode;
   backButton?: boolean;
   className?: string;
 }
 
-import { Button } from "@ws/ui/components/ui/button";
-import { ChevronLeft } from "@ws/ui/internal-lib/icons";
-import { cn } from "@ws/ui/lib/utils";
-import { useRouter } from "next/navigation";
-
-export function AppLayout({ children, label, description, backButton = false, className = "" }: AppLayoutProps) {
+export function AppLayout({
+  children,
+  label,
+  description,
+  sidebarItem,
+  backButton = false,
+  className = "",
+}: AppLayoutProps) {
   const router = useRouter();
+  const t = useTranslations();
+
+  const { resolvedLabel, resolvedDescription } = useMemo(() => {
+    if (sidebarItem) {
+      const tr = t as (key: string) => string;
+      return {
+        resolvedLabel: tr(`sidebar.items.${sidebarItem}.label`),
+        resolvedDescription: tr(`sidebar.items.${sidebarItem}.description`),
+      };
+    }
+    return { resolvedLabel: label, resolvedDescription: description };
+  }, [sidebarItem, label, description, t]);
+
   return (
-    <div className={cn('w-full h-full container mx-auto p-4', className)}>
+    <div className={cn("container mx-auto h-full w-full p-4", className)}>
       <div className="flex flex-row items-center gap-1">
         {backButton && (
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
         )}
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-medium">{label}</h1>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          {resolvedLabel != null && resolvedLabel !== "" && (
+            <h1 className="text-2xl font-medium">{resolvedLabel}</h1>
+          )}
+          {resolvedDescription != null && resolvedDescription !== "" && (
+            <p className="text-sm text-muted-foreground">{resolvedDescription}</p>
+          )}
         </div>
       </div>
-      <div className="w-full h-full">
-        {children}
-      </div>
+      <div className="h-full w-full">{children}</div>
     </div>
-  )
+  );
 }

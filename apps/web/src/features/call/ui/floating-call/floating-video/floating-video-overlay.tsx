@@ -2,6 +2,7 @@
 
 import { Button } from "@ws/ui/components/ui/button";
 import { IconMaximize } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 interface ExpandOverlayProps {
   onExpand: () => void;
@@ -18,13 +19,14 @@ export function FloatingVideoOverlay({
   isInteracting,
   isVisible,
 }: ExpandOverlayProps) {
+  const t = useTranslations("call.floating");
   const handleExpandClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
     onExpand();
   };
 
-  const expandLabel = "Open full call view";
+  const expandLabel = t("expandLabel");
 
   return (
     <div className="absolute inset-0 z-10 pointer-events-none">

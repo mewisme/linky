@@ -22,20 +22,7 @@ import { getUserProgress } from "@/features/user/api/profile";
 import { useSocket } from "@/features/realtime/hooks/use-socket";
 import { useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { useEffect, useState } from "react";
-
-function formatSeconds(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours}h ${minutes}m ${secs}s`;
-  }
-  if (minutes > 0) {
-    return `${minutes}m ${secs}s`;
-  }
-  return `${secs}s`;
-}
+import { useTranslations } from "next-intl";
 
 function formatExp(exp: number): string {
   if (exp >= 1000000) {
@@ -52,6 +39,19 @@ interface ProgressClientProps {
 }
 
 export function ProgressClient({ initialData }: ProgressClientProps) {
+  const t = useTranslations("user.progress");
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    if (hours > 0) {
+      return t("durationHms", { hours, minutes, seconds: secs });
+    }
+    if (minutes > 0) {
+      return t("durationMs", { minutes, seconds: secs });
+    }
+    return t("durationS", { seconds: secs });
+  };
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
   const { socket } = useSocket();
   const queryClient = useQueryClient();
@@ -78,7 +78,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   if (isLoading) {
     return (
-      <AppLayout label="Progress" description="Track your level, EXP, and streak progress" className="space-y-4">
+      <AppLayout sidebarItem="progress" className="space-y-4">
         <div className="flex items-center justify-center h-64">
           <Loader2 className="animate-spin h-8 w-8 text-muted-foreground" />
         </div>
@@ -88,10 +88,10 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   if (error || !data) {
     return (
-      <AppLayout label="Progress" description="Track your level, EXP, and streak progress" className="space-y-4">
+      <AppLayout sidebarItem="progress" className="space-y-4">
         <Card>
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">Failed to load progress data. Please try again later.</p>
+            <p className="text-muted-foreground">{t("loadFailed")}</p>
           </CardContent>
         </Card>
       </AppLayout>
@@ -102,7 +102,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     data.isTodayStreakComplete ? "active" : data.streakStatus === "frozen" ? "frozen" : "incomplete";
 
   return (
-    <AppLayout label="Progress" description="Track your level, EXP, and streak progress" className="space-y-4">
+    <AppLayout sidebarItem="progress" className="space-y-4">
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <Card data-testid="progress-level-card">
@@ -110,45 +110,52 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <IconStar className="w-5 h-5 text-yellow-500" />
-                  Current Level
+                  {t("currentLevelTitle")}
                 </CardTitle>
                 <Badge variant="secondary" className="text-sm px-3 py-1">
-                  Level {data.currentLevel}
+                  {t("levelBadge", { level: data.currentLevel })}
                 </Badge>
               </div>
-              <CardDescription>Your current progression level</CardDescription>
+              <CardDescription>{t("currentLevelDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">EXP to Next Level</span>
-                    <span className="font-medium" data-testid="progress-exp-remaining">{formatExp(data.expProgress.expToNextLevel)} EXP</span>
+                    <span className="text-muted-foreground">{t("expToNext")}</span>
+                    <span className="font-medium" data-testid="progress-exp-remaining">
+                      {t("expAmount", { amount: formatExp(data.expProgress.expToNextLevel) })}
+                    </span>
                   </div>
                   <Progress value={data.expProgress.progressPercentage} className="h-2" />
                   <p className="text-xs text-center text-muted-foreground">
-                    {data.expProgress.progressPercentage.toFixed(1)}% to Level {data.currentLevel + 1}
+                    {t("percentToLevel", {
+                      percent: data.expProgress.progressPercentage.toFixed(1),
+                      level: data.currentLevel + 1,
+                    })}
                   </p>
                 </div>
                 <div className="pt-3 border-t">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">EXP earned today</span>
-                    <span className="font-medium" data-testid="progress-exp-today">{formatExp(data.expEarnedToday ?? 0)} EXP</span>
+                    <span className="text-muted-foreground">{t("expEarnedToday")}</span>
+                    <span className="font-medium" data-testid="progress-exp-today">
+                      {t("expAmount", { amount: formatExp(data.expEarnedToday ?? 0) })}
+                    </span>
                   </div>
                 </div>
                 <div className="pt-3 border-t">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground">Next Level</span>
+                      <span className="text-xs font-medium text-muted-foreground">{t("nextLevelHeading")}</span>
                       <Badge variant="outline" className="text-xs">
-                        Level {data.currentLevel + 1}
+                        {t("nextLevelBadge", { level: data.currentLevel + 1 })}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Keep progressing to unlock future rewards
+                      {t("unlockHint")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Calling favorites gives bonus EXP. Mutual favorites give higher bonus.
+                      {t("favoritesBonusHint")}
                     </p>
                   </div>
                 </div>
@@ -165,7 +172,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   ) : (
                     <IconFlame className="w-5 h-5 text-orange-500" />
                   )}
-                  Streak
+                  {t("streakTitle")}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <Button
@@ -174,7 +181,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                     onClick={() => setIsCalendarDialogOpen(true)}
                     className="text-xs"
                   >
-                    View all
+                    {t("viewAll")}
                   </Button>
                   <Badge
                     variant={
@@ -187,67 +194,67 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                     className="text-sm px-3 py-1"
                   >
                     {streakDisplayStatus === "active"
-                      ? "Complete"
+                      ? t("statusComplete")
                       : streakDisplayStatus === "frozen"
-                        ? "Frozen"
-                        : "Incomplete"}
+                        ? t("statusFrozen")
+                        : t("statusIncomplete")}
                   </Badge>
                 </div>
               </div>
-              <CardDescription>Your daily call streak</CardDescription>
+              <CardDescription>{t("streakDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Current Streak</span>
+                    <span className="text-muted-foreground">{t("currentStreak")}</span>
                     <span className="font-medium" data-testid="progress-current-streak">
-                      {data.streak.currentStreak} days
+                      {t("days", { count: data.streak.currentStreak })}
                       {streakDisplayStatus === "frozen" && (
-                        <span className="ml-1.5 text-sky-600" title="Freeze used to continue">
+                        <span className="ml-1.5 text-sky-600" title={t("freezeTitle")}>
                           <IconSnowflake className="inline-block size-3.5" aria-hidden />
                         </span>
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Longest Streak</span>
-                    <span className="font-medium" data-testid="progress-longest-streak">{data.streak.longestStreak} days</span>
+                    <span className="text-muted-foreground">{t("longestStreak")}</span>
+                    <span className="font-medium" data-testid="progress-longest-streak">{t("days", { count: data.streak.longestStreak })}</span>
                   </div>
                   {data.freeze && data.freeze.availableCount != null && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Freeze available</span>
+                      <span className="text-muted-foreground">{t("freezeAvailable")}</span>
                       <span className="font-medium">{data.freeze.availableCount}</span>
                     </div>
                   )}
                   {streakDisplayStatus === "frozen" && (
-                    <p className="text-xs text-muted-foreground">Freeze used today</p>
+                    <p className="text-xs text-muted-foreground">{t("freezeUsedToday")}</p>
                   )}
                 </div>
                 <div className="pt-3 border-t">
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Today&apos;s Call Duration</span>
-                      <span className="font-medium">{formatSeconds(data.todayCallDurationSeconds)}</span>
+                      <span className="text-muted-foreground">{t("todayCallDuration")}</span>
+                      <span className="font-medium">{formatDuration(data.todayCallDurationSeconds)}</span>
                     </div>
                     {data.streakRemainingSeconds > 0 && (
                       <div className="flex items-center gap-2 text-sm">
                         <IconClock className="w-4 h-4 text-muted-foreground" />
                         <span className="text-muted-foreground">
-                          {formatSeconds(data.streakRemainingSeconds)} more needed today
+                          {t("moreNeededToday", { time: formatDuration(data.streakRemainingSeconds) })}
                         </span>
                       </div>
                     )}
                     {data.isTodayStreakComplete && (
                       <Badge variant="default" className="w-full justify-center">
-                        Streak completed today
+                        {t("streakCompletedToday")}
                       </Badge>
                     )}
                   </div>
                 </div>
                 <div className="pt-3 border-t">
                   <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">Current Streak</p>
+                    <p className="text-xs text-muted-foreground">{t("miniCalendarHeading")}</p>
                     <StreakMiniCalendar progressData={data} />
                   </div>
                 </div>
@@ -262,9 +269,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <IconFlame className="w-5 h-5 text-orange-500" />
-              Streak Calendar
+              {t("calendarDialogTitle")}
             </DialogTitle>
-            <DialogDescription>View your complete streak history</DialogDescription>
+            <DialogDescription>{t("calendarDialogDescription")}</DialogDescription>
           </DialogHeader>
           <div className="py-4 overflow-x-auto">
             <StreakCalendar />

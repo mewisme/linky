@@ -1,5 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
+import type { BackendUserMessage } from "@ws/shared-types";
+
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/features/chat/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
 
@@ -134,22 +136,27 @@ export function destroySockets(): void {
   managerBaseUrl = null;
 }
 
+export type UserFacingSocketPayload = {
+  message: string;
+  userMessage: BackendUserMessage;
+};
+
 export interface SocketEvents {
   join: () => void;
   skip: () => void;
   disconnect: () => void;
-  "joined-queue": (data: { message: string; queueSize: number }) => void;
+  "joined-queue": (data: UserFacingSocketPayload & { queueSize: number }) => void;
   matched: (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => void;
   signal: (data: SignalData) => void;
   "chat:message": (data: ChatMessagePayload) => void;
   "chat:typing": (data: ChatTypingPayload) => void;
   "chat:error": (data: ChatErrorPayload) => void;
-  "peer-left": (data: { message: string }) => void;
-  "peer-skipped": (data: { message: string; queueSize: number }) => void;
-  "end-call": (data: { message: string }) => void;
-  skipped: (data: { message: string; queueSize: number }) => void;
-  "video-chat:error": (data: { message: string }) => void;
-  "queue-timeout": (data: { message: string }) => void;
+  "peer-left": (data: UserFacingSocketPayload) => void;
+  "peer-skipped": (data: UserFacingSocketPayload & { queueSize: number }) => void;
+  "end-call": (data: UserFacingSocketPayload) => void;
+  skipped: (data: UserFacingSocketPayload & { queueSize: number }) => void;
+  "video-chat:error": (data: UserFacingSocketPayload) => void;
+  "queue-timeout": (data: UserFacingSocketPayload) => void;
   "user:progress:update": (data: UsersAPI.Progress.GetMe.Response) => void;
 }
 

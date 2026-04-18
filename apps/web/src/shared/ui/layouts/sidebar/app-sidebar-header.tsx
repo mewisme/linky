@@ -24,7 +24,7 @@ import {
 } from '@ws/ui/components/animate-ui/components/radix/sidebar';
 
 import { Kbd } from '@ws/ui/components/ui/kbd';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { SignOutButton } from '@clerk/nextjs';
 import { cn } from '@ws/ui/lib/utils';
 import { isAdmin } from '@/shared/utils/roles';
@@ -34,8 +34,10 @@ import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import { useUserContext } from '@/providers/user/user-provider';
 import { useUserStore } from '@/entities/user/model/user-store';
+import { useTranslations } from 'next-intl';
 
 export function AppSidebarHeader() {
+  const t = useTranslations();
   const { user: { user } } = useUserContext();
   const { user: userStore } = useUserStore();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -73,14 +75,14 @@ export function AppSidebarHeader() {
               side={isMobile ? 'bottom' : 'right'}
               sideOffset={4}
             >
-              <DropdownMenuLabel className='text-xs text-muted-foreground'>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel className='text-xs text-muted-foreground'>{t('sidebarHeader.myAccount')}</DropdownMenuLabel>
               <DropdownMenuGroup>
                 <Link href='/user/profile'>
                   <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
                     <div className="flex size-6 items-center justify-center rounded-sm border">
                       <IconUser className='size-4 shrink-0' />
                     </div>
-                    <span>Manage Account</span>
+                    <span>{t('sidebarHeader.manageAccount')}</span>
                   </DropdownMenuItem>
                 </Link>
                 {isAdmin(userStore?.role) && (
@@ -89,39 +91,39 @@ export function AppSidebarHeader() {
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconUserShield className='size-4 shrink-0' />
                       </div>
-                      <span>Admin Dashboard</span>
+                      <span>{t('sidebarHeader.adminDashboard')}</span>
                     </DropdownMenuItem>
                   </Link>
                 )}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className='text-xs text-muted-foreground'>Appearance</DropdownMenuLabel>
+              <DropdownMenuLabel className='text-xs text-muted-foreground'>{t('sidebarHeader.appearanceSection')}</DropdownMenuLabel>
               <DropdownMenuGroup>
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className='cursor-pointer gap-2 p-2'>
                     <div className="flex size-6 items-center justify-center rounded-sm border ">
                       <IconPalette className='size-4 shrink-0 text-muted-foreground' />
                     </div>
-                    <span>Theme</span>
+                    <span>{t('sidebarHeader.theme')}</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className={cn("w-[--radix-dropdown-menu-trigger-width] rounded-lg", isMobile && "z-150")}>
                     <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("light")} data-track='set_theme_light'>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconSun className='size-4 shrink-0' />
                       </div>
-                      <span>Light</span>
+                      <span>{t('sidebarHeader.themeLight')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("dark")} data-track='set_theme_dark'>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconMoon className='size-4 shrink-0' />
                       </div>
-                      <span>Dark</span>
+                      <span>{t('sidebarHeader.themeDark')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("system")} data-track='set_theme_system'>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconDeviceDesktop className='size-4 shrink-0' />
                       </div>
-                      <span>System</span>
+                      <span>{t('sidebarHeader.themeSystem')}</span>
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
@@ -136,7 +138,7 @@ export function AppSidebarHeader() {
                   <div className="flex size-6 items-center justify-center rounded-sm border">
                     <IconLogout className='size-4 shrink-0 dark:text-red-400 text-red-500' />
                   </div>
-                  <span className='dark:text-red-400'>Logout</span>
+                  <span className='dark:text-red-400'>{t('sidebarHeader.logout')}</span>
                   <DropdownMenuShortcut>
                     <Kbd>⇧⌘Q</Kbd>
                   </DropdownMenuShortcut>

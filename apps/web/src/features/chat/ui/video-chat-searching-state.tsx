@@ -1,40 +1,36 @@
 "use client";
 
 import { AnimatePresence, motion } from "@ws/ui/internal-lib/motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { getQueueStatus } from "@/actions/matchmaking";
 import { Button } from "@ws/ui/components/ui/button";
 import { IconPhoneOff } from "@tabler/icons-react";
-
-const BASE_HINTS = [
-  "You earn EXP by talking",
-  "Skipping helps find better matches",
-  "You can favorite people you like",
-  "Interest tags improve your match quality",
-  "Mutual favorites are matched first",
-  "Streaks give bonus EXP every day",
-  "Level up to unlock new features",
-  "Complete today's streak while you chat",
-  "Your longest-ever match might be next",
-  "Every call counts toward your progress",
-] as const;
+import { useTranslations } from "next-intl";
 
 const HINT_ROTATE_MS = 4500;
 const STILL_SEARCHING_THRESHOLD_MS = 10_000;
 const ALT_ACTION_THRESHOLD_MS = 30_000;
 
+const HINT_KEYS = [
+  "hint0",
+  "hint1",
+  "hint2",
+  "hint3",
+  "hint4",
+  "hint5",
+  "hint6",
+  "hint7",
+  "hint8",
+  "hint9",
+] as const;
+
 interface QueueStatus {
   queueSize: number;
   estimatedWaitSeconds: number | null;
-}
-
-function formatQueueLabel(queueSize: number): string {
-  if (!queueSize || queueSize <= 1) return "You're first in line";
-  return `~${queueSize} people waiting`;
 }
 
 interface VideoChatSearchingStateProps {
@@ -43,14 +39,17 @@ interface VideoChatSearchingStateProps {
 }
 
 export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearchingStateProps) {
+  const t = useTranslations("call.searching");
+  const tControls = useTranslations("call.controls");
+
+  const hints = useMemo(() => HINT_KEYS.map((key) => t(key)), [t]);
+
   const [hintIndex, setHintIndex] = useState(0);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [queueStatus, setQueueStatus] = useState<QueueStatus | null>(null);
   const [showEndSearch, setShowEndSearch] = useState(false);
   const startedAt = useRef(0);
   const hasFetchedQueue = useRef(false);
-
-  const hints = BASE_HINTS;
 
   useEffect(() => {
     const hintId = setInterval(() => {
@@ -90,17 +89,24 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
   const showStillSearching = elapsedMs >= STILL_SEARCHING_THRESHOLD_MS;
   const showAltAction = elapsedMs >= ALT_ACTION_THRESHOLD_MS;
 
-  const motivationalStat = (() => {
+  const queueOrMotivationLine = (() => {
+    if (queueStatus) {
+      if (!queueStatus.queueSize || queueStatus.queueSize <= 1) return t("firstInLine");
+      return t("peopleWaiting", { count: queueStatus.queueSize });
+    }
     if (!progress) return null;
     if (progress.expEarnedToday > 0) {
       const minutes = Math.floor(progress.expEarnedToday / 60);
-      if (minutes > 0) return `You've already earned ${minutes} min of EXP today`;
+      if (minutes > 0) return t("earnedMinToday", { minutes });
     }
     if (progress.streak.currentStreak > 1) {
-      return `Keep your ${progress.streak.currentStreak}-day streak going`;
+      return t("keepStreak", { days: progress.streak.currentStreak });
     }
     return null;
   })();
+
+  const motivationalStat =
+    queueOrMotivationLine ?? (showStillSearching ? t("hangTight") : null);
 
   return (
     <div
@@ -114,7 +120,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
       >
         <div className="flex flex-col items-center gap-5 text-center">
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">
-            {showStillSearching ? "Still searching…" : "Finding someone new…"}
+            {showStillSearching ? t("stillSearching") : t("findingNew")}
           </h2>
           <div className="flex items-center justify-center gap-1.5">
             {[0, 1, 2].map((i) => (
@@ -139,9 +145,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
               transition={{ duration: 0.3 }}
               className="text-xs text-muted-foreground"
             >
-              {queueStatus
-                ? formatQueueLabel(queueStatus.queueSize)
-                : motivationalStat ?? "Hang tight, finding your best match"}
+              {motivationalStat}
             </motion.p>
           )}
         </div>
@@ -171,7 +175,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
                 className="text-xs text-primary underline-offset-2 hover:underline"
                 onClick={() => trackEvent({ name: "matchmaking_alt_action_clicked", properties: { elapsed_ms: elapsedMs } })}
               >
-                Visit your progress page while you wait
+                {t("visitProgressLink")}
               </Link>
             </motion.div>
           )}
@@ -191,7 +195,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
                   data-testid="chat-cancel-search-button"
                 >
                   <IconPhoneOff className="size-4" />
-                  End Search
+                  {tControls("endSearch")}
                 </Button>
               </motion.div>
             )}

@@ -15,8 +15,10 @@ import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { syncAllEmbeddings, syncEmbeddings } from '@/features/admin/api/embeddings';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
+import { useTranslations } from 'next-intl';
 
 export function useUsersMutations() {
+  const t = useTranslations('admin');
   const queryClient = useQueryClient();
   const { play: playSound } = useSoundWithSettings();
 
@@ -30,10 +32,10 @@ export function useUsersMutations() {
       updateAdminUser(payload.id, { role: payload.role }),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success('User updated successfully');
+      toast.success(t('userUpdated'));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during update');
+      toast.error(error.message || t('errorDuringUpdate'));
     },
   });
 
@@ -41,10 +43,10 @@ export function useUsersMutations() {
     mutationFn: (id: string) => softDeleteAdminUser(id),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success('User soft deleted successfully');
+      toast.success(t('userSoftDeleted'));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during soft delete');
+      toast.error(error.message || t('errorDuringSoftDelete'));
     },
   });
 
@@ -56,11 +58,11 @@ export function useUsersMutations() {
     onSuccess: async (count) => {
       await invalidateAndRefetch();
       toast.success(
-        count === 1 ? 'User soft deleted successfully' : `${count} users soft deleted successfully`
+        count === 1 ? t('userSoftDeleted') : t('usersSoftDeletedCount', { count })
       );
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during bulk soft delete');
+      toast.error(error.message || t('errorDuringBulkSoftDelete'));
     },
   });
 
@@ -68,10 +70,10 @@ export function useUsersMutations() {
     mutationFn: (id: string) => hardDeleteAdminUser(id),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success('User permanently deleted');
+      toast.success(t('userPermDeleted'));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during hard delete');
+      toast.error(error.message || t('errorDuringHardDelete'));
     },
   });
 
@@ -79,10 +81,10 @@ export function useUsersMutations() {
     mutationFn: (id: string) => restoreAdminUser(id),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success('User restored successfully');
+      toast.success(t('userRestored'));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during restore');
+      toast.error(error.message || t('errorDuringRestore'));
     },
   });
 
@@ -94,11 +96,11 @@ export function useUsersMutations() {
     onSuccess: async (count) => {
       await invalidateAndRefetch();
       toast.success(
-        count === 1 ? 'User restored successfully' : `${count} users restored successfully`
+        count === 1 ? t('userRestored') : t('usersRestoredCount', { count })
       );
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during bulk restore');
+      toast.error(error.message || t('errorDuringBulkRestore'));
     },
   });
 
@@ -108,11 +110,11 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       const accepted = data.accepted_user_ids?.length ?? 0;
       const skipped = data.skipped_user_ids?.length ?? 0;
-      if (accepted > 0) toast.success(`Embedding sync scheduled for ${accepted} user(s)`);
-      if (skipped > 0) toast.info(`${skipped} user(s) skipped (already up to date)`);
+      if (accepted > 0) toast.success(t('embeddingSyncScheduled', { count: accepted }));
+      if (skipped > 0) toast.info(t('embeddingSkipped', { count: skipped }));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during embedding sync');
+      toast.error(error.message || t('errorDuringEmbeddingSync'));
     },
   });
 
@@ -120,10 +122,10 @@ export function useUsersMutations() {
     mutationFn: () => syncAllEmbeddings(),
     onSuccess: async (data: { message: string }) => {
       await invalidateAndRefetch();
-      toast.success(data.message || 'Embedding sync all accepted');
+      toast.success(data.message || t('embeddingSyncAllDefault'));
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'An error occurred during embedding sync all');
+      toast.error(error.message || t('errorDuringEmbeddingSyncAll'));
     },
   });
 

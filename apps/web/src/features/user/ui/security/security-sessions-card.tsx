@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from '@ws/ui/components/ui/card'
 import { IconDeviceDesktop } from '@tabler/icons-react'
+import { useTranslations } from 'next-intl'
 import { Skeleton } from '@ws/ui/components/ui/skeleton'
 import { ActiveSessionsList, type SessionWithActivity } from './active-sessions-list'
 
@@ -22,14 +23,15 @@ export function SecuritySessionsCard({
   sessionsLoading,
   currentSessionId,
 }: SecuritySessionsCardProps) {
+  const t = useTranslations('user.securitySessions')
   return (
     <Card>
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
           <IconDeviceDesktop className="size-5" />
-          <CardTitle>Active Sessions</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
         </div>
-        <CardDescription>Devices and browsers where you are signed in</CardDescription>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {sessionsLoading ? (
@@ -41,7 +43,7 @@ export function SecuritySessionsCard({
         ) : sessions && sessions.length > 0 ? (
           <ActiveSessionsList sessions={sessions} currentSessionId={currentSessionId} />
         ) : (
-          <p className="text-sm text-muted-foreground">No active sessions.</p>
+          <p className="text-sm text-muted-foreground">{t('empty')}</p>
         )}
       </CardContent>
     </Card>

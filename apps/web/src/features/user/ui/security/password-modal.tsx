@@ -24,6 +24,7 @@ import { Input } from '@ws/ui/components/ui/input'
 import { Label } from '@ws/ui/components/ui/label'
 import type { useUser } from '@clerk/nextjs'
 import { toast } from '@ws/ui/components/ui/sonner'
+import { useTranslations } from 'next-intl'
 import { useIsMobile } from '@ws/ui/hooks/use-mobile'
 import { useReverification } from '@clerk/nextjs'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
@@ -38,6 +39,9 @@ interface PasswordModalProps {
 }
 
 export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalProps) {
+  const t = useTranslations('user')
+  const tc = useTranslations('common')
+  const te = useTranslations('errors')
   const isMobile = useIsMobile()
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
@@ -72,9 +76,9 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
     e.preventDefault()
     setSubmitError(null)
     const next: typeof errors = {}
-    if (!newPassword.trim()) next.new = 'New password is required'
-    else if (newPassword.length < 8) next.new = 'Password must be at least 8 characters'
-    if (newPassword !== confirmPassword) next.confirm = 'Passwords do not match'
+    if (!newPassword.trim()) next.new = t('passwordNewRequired')
+    else if (newPassword.length < 8) next.new = t('passwordMinLength')
+    if (newPassword !== confirmPassword) next.confirm = t('passwordsMismatch')
     if (Object.keys(next).length > 0) {
       setErrors(next)
       return
@@ -85,11 +89,11 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
         if (mode === 'change') {
           await changeWithReverify(newPassword)
           playSound('success')
-          toast.success('Password updated successfully')
+          toast.success(t('passwordUpdated'))
         } else {
           const result = await setWithReverify(newPassword)
           playSound('success')
-          toast.success('Password set successfully')
+          toast.success(t('passwordSet'))
         }
         setNewPassword('')
         setConfirmPassword('')
@@ -97,10 +101,10 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
         onOpenChange(false)
       } catch (err) {
         if (isClerkRuntimeError(err) && isReverificationCancelledError(err)) {
-          toast.info('Verification was cancelled')
+          toast.info(t('verificationCancelled'))
           return
         }
-        const msg = getClerkErrorMessage(err)
+        const msg = getClerkErrorMessage(err, te('unexpected'))
         setSubmitError(msg)
         toast.error(msg)
       }
@@ -108,10 +112,10 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
   }
 
   const isChange = mode === 'change'
-  const title = isChange ? 'Change password' : 'Set password'
+  const title = isChange ? t('passwordChangeTitle') : t('passwordSetTitle')
   const description = isChange
-    ? 'Enter your current password and choose a new one.'
-    : 'Create a password for your account. You can use it to sign in with email and password.'
+    ? t('passwordChangeDescription')
+    : t('passwordSetDescription')
 
   const formBody = (
     <>
@@ -121,7 +125,7 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
         </p>
       )}
       <div className="space-y-2">
-        <Label>{isChange ? 'New password' : 'New password'}</Label>
+        <Label>{t('labelNewPassword')}</Label>
         <div className="relative">
           <Input
             type={show.new ? 'text' : 'password'}
@@ -141,13 +145,20 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
         </div>
         {strength && (
           <p className="text-xs text-muted-foreground">
-            Strength: <span className="font-medium">{strength}</span>
+            {t('passwordStrengthLabel')}{' '}
+            <span className="font-medium">
+              {strength === 'weak'
+                ? t('passwordStrengthWeak')
+                : strength === 'medium'
+                  ? t('passwordStrengthMedium')
+                  : t('passwordStrengthStrong')}
+            </span>
           </p>
         )}
         {errors.new && <p className="text-sm text-destructive">{errors.new}</p>}
       </div>
       <div className="space-y-2">
-        <Label>{isChange ? 'Confirm new password' : 'Confirm password'}</Label>
+        <Label>{isChange ? t('labelConfirmNewPassword') : t('labelConfirmPassword')}</Label>
         <div className="relative">
           <Input
             type={show.confirm ? 'text' : 'password'}
@@ -175,11 +186,11 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
       {formBody}
       <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="dialog-cancel-button">
-          Cancel
+          {tc('cancel')}
         </Button>
         <Button type="submit" disabled={isPending} data-testid="security-password-submit">
           {isPending && <IconLoader2 className="mr-2 size-4 animate-spin" />}
-          {isChange ? 'Update password' : 'Set password'}
+          {isChange ? t('updatePassword') : t('setPassword')}
         </Button>
       </div>
     </form>

@@ -2,6 +2,7 @@ import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { VideoChatMatchmaking, VideoChatRooms } from "../types.js";
 import { logger } from "../helpers/logger.helper.js";
 import { getDbUserId } from "../helpers/user.helper.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupJoinHandler(
   socket: AuthenticatedSocket,
@@ -10,9 +11,16 @@ export function setupJoinHandler(
 ): void {
   socket.on("join", async () => {
     if (rooms.isInRoom(socket.id)) {
-      socket.emit("video-chat:error", {
-        message: "Already in a room. Please disconnect first.",
-      });
+      socket.emit(
+        "video-chat:error",
+        userFacingPayload(
+          toUserMessage(
+            "JOIN_ALREADY_IN_ROOM",
+            { key: "call.join.alreadyInRoom" },
+            "Already in a room. Please disconnect first.",
+          ),
+        ),
+      );
       return;
     }
 
@@ -32,15 +40,20 @@ export function setupJoinHandler(
 
     const added = await matchmaking.enqueue(socket);
     if (!added) {
-      socket.emit("video-chat:error", {
-        message: "Already in queue.",
-      });
+      socket.emit(
+        "video-chat:error",
+        userFacingPayload(
+          toUserMessage("JOIN_ALREADY_IN_QUEUE", { key: "call.join.alreadyInQueue" }, "Already in queue."),
+        ),
+      );
       return;
     }
 
     const queueSize = await matchmaking.getQueueSize();
     socket.emit("joined-queue", {
-      message: "Waiting for a match...",
+      ...userFacingPayload(
+        toUserMessage("JOIN_WAITING", { key: "call.join.waitingForMatch" }, "Waiting for a match..."),
+      ),
       queueSize,
     });
   });

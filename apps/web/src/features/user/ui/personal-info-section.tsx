@@ -8,12 +8,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ws/ui/components/ui/select'
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
 import { DatePicker } from '@/shared/ui/common/date-picker'
 import type { UserDetails } from '@/entities/user/model/user-store'
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useLocale, useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
 interface PersonalInfoSectionProps {
@@ -24,22 +25,29 @@ interface PersonalInfoSectionProps {
   }) => Promise<UserDetails>
 }
 
-const genderOptions = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
-  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
-]
-
 export function PersonalInfoSection({
   userDetails,
   updateUserDetails,
 }: PersonalInfoSectionProps) {
+  const t = useTranslations("user");
+  const tp = useTranslations("user.profile");
+  const tc = useTranslations("common");
+  const locale = useLocale();
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [isEditing, setIsEditing] = useState(false)
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
   const [gender, setGender] = useState('')
+
+  const genderOptions = useMemo(
+    () => [
+      { value: 'male', label: tp('genderMale') },
+      { value: 'female', label: tp('genderFemale') },
+      { value: 'other', label: tp('genderOther') },
+      { value: 'prefer_not_to_say', label: tp('genderPreferNotToSay') },
+    ],
+    [tp],
+  )
 
   const parseDateString = (dateString: string): Date => {
     const [year, month, day] = dateString.split('-').map(Number)
@@ -91,10 +99,10 @@ export function PersonalInfoSection({
           gender: gender || null,
         })
         playSound('success')
-        toast.success('Personal information updated')
+        toast.success(t('personalInfoUpdated'))
         setIsEditing(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : 'Update failed')
+        toast.error(error instanceof Error ? error.message : t('updateFailed'))
       }
     })
   }
@@ -104,7 +112,7 @@ export function PersonalInfoSection({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconUser className="size-4 shrink-0" aria-hidden />
-          <span>Personal Information</span>
+          <span>{tp("personalInfo")}</span>
         </div>
         {!isEditing && (
           <Button
@@ -115,7 +123,7 @@ export function PersonalInfoSection({
             onClick={handleStartEdit}
           >
             <IconEdit className="size-4" />
-            Edit
+            {tp("edit")}
           </Button>
         )}
       </div>
@@ -127,7 +135,7 @@ export function PersonalInfoSection({
                 <IconCalendar className="size-4 text-muted-foreground" aria-hidden />
               </div>
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">Date of Birth</p>
+                <p className="text-xs font-medium text-muted-foreground">{tp("dateOfBirth")}</p>
                 {isEditing ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <DatePicker
@@ -138,12 +146,12 @@ export function PersonalInfoSection({
                 ) : (
                   <p className="text-sm text-foreground">
                     {userDetails?.date_of_birth
-                      ? new Date(userDetails.date_of_birth).toLocaleDateString('en-US', {
+                      ? new Date(userDetails.date_of_birth).toLocaleDateString(locale, {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
                       })
-                      : 'Not provided'}
+                      : tp('notProvided')}
                   </p>
                 )}
               </div>
@@ -156,7 +164,7 @@ export function PersonalInfoSection({
                 <IconUser className="size-4 text-muted-foreground" aria-hidden />
               </div>
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">Gender</p>
+                <p className="text-xs font-medium text-muted-foreground">{tp("genderLabel")}</p>
                 {isEditing ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <Select
@@ -164,7 +172,7 @@ export function PersonalInfoSection({
                       onValueChange={(value) => setGender(value || '')}
                     >
                       <SelectTrigger className="w-48 min-w-0">
-                        <SelectValue placeholder="Select gender" />
+                        <SelectValue placeholder={tp("selectGender")} />
                       </SelectTrigger>
                       <SelectContent>
                         {genderOptions.map((option) => (
@@ -180,7 +188,7 @@ export function PersonalInfoSection({
                     {userDetails?.gender
                       ? genderOptions.find((g) => g.value === userDetails.gender)?.label ||
                       userDetails.gender
-                      : 'Not provided'}
+                      : tp('notProvided')}
                   </p>
                 )}
               </div>
@@ -191,13 +199,13 @@ export function PersonalInfoSection({
       {isEditing && (
         <div className="flex justify-end gap-2">
           <Button size="sm" variant="ghost" onClick={handleCancel}>
-            Cancel
+            {tc("cancel")}
           </Button>
           <Button size="sm" onClick={handleSave} disabled={isPending}>
             {isPending && (
               <IconLoader2 className="mr-2 size-4 animate-spin" />
             )}
-            Save
+            {tc("save")}
           </Button>
         </div>
       )}

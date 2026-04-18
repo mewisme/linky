@@ -11,11 +11,12 @@ import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { Input } from "@ws/ui/components/ui/input";
 import { Label } from "@ws/ui/components/ui/label";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { Textarea } from "@ws/ui/components/ui/textarea";
 import dynamic from 'next/dynamic'
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 
 const LevelFeatureUnlocksDataTable = dynamic(
@@ -27,6 +28,10 @@ interface LevelFeatureUnlocksClientProps {
 }
 
 export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksClientProps) {
+  const t = useTranslations("admin");
+  const tm = useTranslations("admin.featureUnlockModal");
+  const tf = useTranslations("admin.levelForm");
+  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
 
@@ -59,7 +64,7 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
       try {
         requestPayload.feature_payload = JSON.parse(payloadText);
       } catch {
-        throw new Error("Invalid JSON in feature payload");
+        throw new Error(t("invalidJsonPayload"));
       }
 
       if (isUpdate) {
@@ -76,7 +81,7 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
 
       const isUpdate = !!variables.id || !!editingUnlock?.id;
       playSound('success');
-      toast.success(isUpdate ? "Updated successfully!" : "Created successfully!");
+      toast.success(isUpdate ? t("crudUpdated") : t("crudCreated"));
 
       if (isModalOpen) {
         setIsModalOpen(false);
@@ -86,7 +91,7 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message || "An error occurred");
+      toast.error(error.message || t("genericError"));
     }
   });
 
@@ -98,10 +103,10 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
         refetchType: 'active'
       });
       await refetch();
-      toast.success("Feature unlock deleted successfully");
+      toast.success(t("featureUnlockDeleted"));
     },
     onError: (error: Error) => {
-      toast.error(error.message || "An error occurred during deletion");
+      toast.error(error.message || t("deleteError"));
     },
   });
 
@@ -127,7 +132,7 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
   }
 
   return (
-    <AppLayout label="Level Feature Unlocks" description="Manage features unlocked at level thresholds">
+    <AppLayout sidebarItem="adminFeatureUnlocks">
       <LevelFeatureUnlocksDataTable
         initialData={data?.data || []}
         callbacks={rowCallbacks}
@@ -139,7 +144,7 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
         rightColumnVisibilityContent={
           <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
             <Link href="/admin/level-feature-unlocks/create">
-              <IconPlus className="w-4 h-4 mr-2" /> Add New Unlock
+              <IconPlus className="w-4 h-4 mr-2" /> {tm("addNew")}
             </Link>
           </Button>
         }
@@ -149,31 +154,31 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
           <form onSubmit={onFormSubmit}>
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">
-                {editingUnlock ? "Update Feature Unlock" : "Create Feature Unlock"}
+                {editingUnlock ? tm("updateTitle") : tm("createTitle")}
               </DialogTitle>
               <DialogDescription>
-                Define features that unlock when users reach specific levels.
+                {tm("description")}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="level_required">Level Required <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="level_required">{tf("levelRequired")} <span className="text-destructive">*</span></Label>
                   <Input
                     id="level_required"
                     type="number"
                     min="1"
-                    placeholder="e.g. 10"
+                    placeholder={tf("levelPlaceholder")}
                     value={formData.level_required || ""}
                     required
                     onChange={e => setFormData({ ...formData, level_required: parseInt(e.target.value) || 1 })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="feature_key">Feature Key <span className="text-destructive">*</span></Label>
+                  <Label htmlFor="feature_key">{tf("featureKey")} <span className="text-destructive">*</span></Label>
                   <Input
                     id="feature_key"
-                    placeholder="e.g. reaction_types, favorite_limit"
+                    placeholder={tf("featureKeyPlaceholder")}
                     value={formData.feature_key || ""}
                     required
                     onChange={e => setFormData({ ...formData, feature_key: e.target.value })}
@@ -181,7 +186,7 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="feature_payload">Feature Payload (JSON) <span className="text-destructive">*</span></Label>
+                <Label htmlFor="feature_payload">{tf("featurePayload")} <span className="text-destructive">*</span></Label>
                 <Textarea
                   id="feature_payload"
                   rows={6}
@@ -191,14 +196,14 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
                   className="font-mono text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
-                  JSON object containing feature-specific configuration. Must be valid JSON.
+                  {tm("payloadJsonHint")}
                 </p>
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>{tc("cancel")}</Button>
               <Button type="submit" disabled={upsertMutation.isPending} className="min-w-[100px]">
-                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Save Changes"}
+                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : tm("saveChanges")}
               </Button>
             </DialogFooter>
           </form>

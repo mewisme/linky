@@ -2,9 +2,12 @@
 
 import { ensureServiceWorkerRegistered } from "@/lib/push/service-worker";
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
 export function ServiceWorkerUpdateProvider() {
+  const t = useTranslations("serviceWorker");
+
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
       return;
@@ -17,10 +20,10 @@ export function ServiceWorkerUpdateProvider() {
         skipFirstControllerAssignment = false;
         return;
       }
-      toast.message("Got new update", {
+      toast.message(t("updateAvailable"), {
         duration: Number.POSITIVE_INFINITY,
         action: {
-          label: "Reload",
+          label: t("refresh"),
           onClick: () => {
             window.location.reload();
           },
@@ -35,7 +38,7 @@ export function ServiceWorkerUpdateProvider() {
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
     };
-  }, []);
+  }, [t]);
 
   return null;
 }

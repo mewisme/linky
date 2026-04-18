@@ -10,11 +10,13 @@ import {
 import { useCallback, useEffect, useRef } from "react";
 
 import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useBlockedUsersStore } from "@/features/user/model/blocked-users-store";
 import { useUserContext } from "@/providers/user/user-provider";
 
 export function useBlockUser() {
+  const t = useTranslations("user");
   const { authReady } = useUserContext();
   const blockedUserIds = useBlockedUsersStore((s) => s.blockedUserIds);
   const isLoading = useBlockedUsersStore((s) => s.isLoading);
@@ -55,16 +57,16 @@ export function useBlockUser() {
       await blockUserAction(userId);
       useBlockedUsersStore.getState().blockUser(userId);
       trackEvent({ name: "user_blocked" });
-      toast.success("User blocked");
+      toast.success(t("userBlocked"));
     } catch (error) {
       Sentry.metrics.count("block_user_failed", 1);
       Sentry.logger.error("Failed to block user", { error: error instanceof Error ? error.message : "Unknown error" });
       toast.error(
-        error instanceof Error ? error.message : "Failed to block user"
+        error instanceof Error ? error.message : t("blockFailed")
       );
       throw error;
     }
-  }, []);
+  }, [t]);
 
   const unblockUser = useCallback(async (userId: string) => {
     try {
@@ -72,16 +74,16 @@ export function useBlockUser() {
       await unblockUserAction(userId);
       useBlockedUsersStore.getState().unblockUser(userId);
       trackEvent({ name: "user_unblocked" });
-      toast.success("User unblocked");
+      toast.success(t("userUnblocked"));
     } catch (error) {
       Sentry.metrics.count("unblock_user_failed", 1);
       Sentry.logger.error("Failed to unblock user", { error: error instanceof Error ? error.message : "Unknown error" });
       toast.error(
-        error instanceof Error ? error.message : "Failed to unblock user"
+        error instanceof Error ? error.message : t("unblockFailed")
       );
       throw error;
     }
-  }, []);
+  }, [t]);
 
   return {
     blockUser,

@@ -23,6 +23,7 @@ import {
   attachmentRateState,
   checkRateLimit,
 } from "../helpers/rate-limit.helper.js";
+import { toUserMessage } from "@/types/user-message.js";
 
 export function setupChatMessageHandler(
   socket: AuthenticatedSocket,
@@ -34,14 +35,20 @@ export function setupChatMessageHandler(
     acknowledge?: (response: { ok: boolean; error?: string }) => void,
   ) => {
     if (!checkRateLimit(messageRateState, socket, messageRateLimit)) {
-      emitChatError(socket, "Message rate limit exceeded.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_RATE_LIMIT", { key: "chat.rateLimitExceeded" }, "Message rate limit exceeded."),
+      );
       acknowledge?.({ ok: false, error: "Message rate limit exceeded." });
       return;
     }
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      emitChatError(socket, "Not in a room. Cannot send chat message.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_NOT_IN_ROOM", { key: "chat.notInRoom" }, "Not in a room. Cannot send chat message."),
+      );
       acknowledge?.({ ok: false, error: "Not in a room." });
       return;
     }
@@ -59,13 +66,19 @@ export function setupChatMessageHandler(
     }
 
     if (!data || typeof data !== "object" || !isAllowedType(data.type)) {
-      emitChatError(socket, "Invalid chat message.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_INVALID", { key: "chat.invalidMessage" }, "Invalid chat message."),
+      );
       acknowledge?.({ ok: false, error: "Invalid chat message." });
       return;
     }
 
     if (typeof data.id !== "string" || data.id.length < 4) {
-      emitChatError(socket, "Invalid chat message id.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_INVALID_ID", { key: "chat.invalidMessageId" }, "Invalid chat message id."),
+      );
       acknowledge?.({ ok: false, error: "Invalid chat message id." });
       return;
     }
@@ -73,31 +86,46 @@ export function setupChatMessageHandler(
     const sanitizedMessage = sanitizeMessageText(data.message);
     const attachmentSize = estimateAttachmentSize(data.attachment);
     if (data.attachment && attachmentSize > maxAttachmentBytes) {
-      emitChatError(socket, "Attachment exceeds size limit.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_ATTACHMENT_TOO_LARGE", { key: "chat.attachmentTooLarge" }, "Attachment exceeds size limit."),
+      );
       acknowledge?.({ ok: false, error: "Attachment exceeds size limit." });
       return;
     }
 
     if (data.attachment && !checkRateLimit(attachmentRateState, socket, attachmentRateLimit)) {
-      emitChatError(socket, "Attachment rate limit exceeded.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_ATTACHMENT_RATE_LIMIT", { key: "chat.attachmentRateLimitExceeded" }, "Attachment rate limit exceeded."),
+      );
       acknowledge?.({ ok: false, error: "Attachment rate limit exceeded." });
       return;
     }
 
     if (data.type === "text" && !sanitizedMessage) {
-      emitChatError(socket, "Message cannot be empty.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_MESSAGE_EMPTY", { key: "chat.emptyMessage" }, "Message cannot be empty."),
+      );
       acknowledge?.({ ok: false, error: "Message cannot be empty." });
       return;
     }
 
     if (data.type === "image" && typeof data.attachment?.data !== "string") {
-      emitChatError(socket, "Attachment data missing.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_ATTACHMENT_MISSING", { key: "chat.attachmentMissing" }, "Attachment data missing."),
+      );
       acknowledge?.({ ok: false, error: "Attachment data missing." });
       return;
     }
 
     if ((data.type === "gif" || data.type === "sticker") && !data.metadata?.url) {
-      emitChatError(socket, "Media reference missing.");
+      emitChatError(
+        socket,
+        toUserMessage("CHAT_MEDIA_MISSING", { key: "chat.mediaMissing" }, "Media reference missing."),
+      );
       acknowledge?.({ ok: false, error: "Media reference missing." });
       return;
     }

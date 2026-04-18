@@ -1,11 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
-
 import type { BlockedUserWithDetails } from '@/entities/notification/types/notifications.types'
-import { columns, type RowCallbacks } from './define-data'
+import { useBlockedUsersColumns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 import { cn } from '@ws/ui/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface BlockedUsersDataTableProps {
   initialData: BlockedUserWithDetails[]
@@ -15,7 +14,8 @@ interface BlockedUsersDataTableProps {
 }
 
 export function BlockedUsersDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null }: BlockedUsersDataTableProps) {
-  const tableColumns = useMemo(() => columns(callbacks), [callbacks])
+  const t = useTranslations('dataTable')
+  const tableColumns = useBlockedUsersColumns(callbacks)
 
   return (
     <DataTable
@@ -25,7 +25,7 @@ export function BlockedUsersDataTable({ initialData, className, callbacks, leftC
       className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
       filterColumn="blocked_user"
-      filterPlaceholder="Search blocked users..."
+      filterPlaceholder={t('blockedUsers.searchPlaceholder')}
     />
   )
 }

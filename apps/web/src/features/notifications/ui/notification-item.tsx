@@ -4,48 +4,7 @@ import type { Notification, NotificationType } from "@/entities/notification/typ
 
 import { NotificationIcon } from "./notification-icon";
 import { trackEvent } from "@/lib/telemetry/events/client";
-
-const titleMap: Record<NotificationType, string> = {
-  favorite_added: "New Favorite",
-  level_up: "Level Up",
-  streak_milestone: "Streak Milestone",
-  streak_expiring: "Streak Expiring",
-  admin_broadcast: "Announcement",
-};
-
-function getNotificationDescription(notification: Notification): string {
-  const payload = notification.payload as Record<string, unknown>;
-
-  switch (notification.type) {
-    case "favorite_added":
-      return `${(payload.from_user_name as string) || "Someone"} added you to favorites`;
-    case "level_up":
-      return `You reached level ${(payload.level as number) || ""}`;
-    case "streak_milestone":
-      return `${(payload.days as number) || ""} day streak achieved`;
-    case "streak_expiring":
-      return "Your streak is about to expire";
-    case "admin_broadcast":
-      return (payload.message as string) || "New announcement";
-    default:
-      return "New notification";
-  }
-}
-
-function getRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (minutes > 0) return `${minutes}m ago`;
-  return "just now";
-}
+import { useTranslations } from "next-intl";
 
 interface NotificationItemProps {
   notification: Notification;
@@ -56,9 +15,66 @@ export function NotificationItem({
   notification,
   onMarkAsRead,
 }: NotificationItemProps) {
-  const title = titleMap[notification.type] || "Notification";
-  const description = getNotificationDescription(notification);
-  const timeAgo = getRelativeTime(notification.created_at);
+  const t = useTranslations("notifications");
+  const payload = notification.payload as Record<string, unknown>;
+
+  let title: string;
+  switch (notification.type) {
+    case "favorite_added":
+      title = t("titleFavoriteAdded");
+      break;
+    case "level_up":
+      title = t("titleLevelUp");
+      break;
+    case "streak_milestone":
+      title = t("titleStreakMilestone");
+      break;
+    case "streak_expiring":
+      title = t("titleStreakExpiring");
+      break;
+    case "admin_broadcast":
+      title = t("titleAnnouncement");
+      break;
+    default:
+      title = t("titleDefault");
+  }
+
+  let description: string;
+  switch (notification.type) {
+    case "favorite_added":
+      description = t("favoriteAddedBody", {
+        name: (payload.from_user_name as string) || t("someone"),
+      });
+      break;
+    case "level_up":
+      description = t("levelUpBody", { level: (payload.level as number) || "" });
+      break;
+    case "streak_milestone":
+      description = t("streakMilestoneBody", { days: (payload.days as number) || "" });
+      break;
+    case "streak_expiring":
+      description = t("streakExpiringSoon");
+      break;
+    case "admin_broadcast":
+      description = (payload.message as string) || t("newAnnouncement");
+      break;
+    default:
+      description = t("newNotification");
+  }
+
+  const date = new Date(notification.created_at);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  let timeAgo: string;
+  if (days > 0) timeAgo = t("relativeDaysAgo", { count: days });
+  else if (hours > 0) timeAgo = t("relativeHoursAgo", { count: hours });
+  else if (minutes > 0) timeAgo = t("relativeMinutesAgo", { count: minutes });
+  else timeAgo = t("relativeJustNow");
 
   return (
     <button

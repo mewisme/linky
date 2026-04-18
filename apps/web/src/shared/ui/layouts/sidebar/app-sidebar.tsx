@@ -16,14 +16,13 @@ import {
 } from '@ws/ui/components/animate-ui/components/radix/sidebar';
 import { useEffect, useMemo } from 'react';
 
-import Link from 'next/link';
+import { Link, usePathname } from '@/i18n/navigation';
 import { Separator } from '@ws/ui/components/ui/separator';
 import { cn } from '@ws/ui/lib/utils';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
-import { usePathname } from 'next/navigation'
 import { useSidebarStore } from '@/shared/model/sidebar-store';
 import { useUserStore } from '@/entities/user/model/user-store';
-import { menuItems, type MenuItem } from './menu-items';
+import { useMenuItems, type MenuItem } from './menu-items';
 import { isAdmin, isSuperAdmin } from '@/shared/utils/roles';
 import { AppSidebarHeader } from './app-sidebar-header';
 import { useDevelopmentStore } from '@/shared/model/development-store';
@@ -34,6 +33,7 @@ export function AppSidebar() {
   const { user: userStore } = useUserStore();
   const { variant, collapsible } = useSidebarStore();
   const isDevelopmentModeEnabled = useDevelopmentStore((state) => state.isDevelopmentModeEnabled);
+  const menuItems = useMenuItems();
   const pathname = usePathname()
   const { state, setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
@@ -66,7 +66,7 @@ export function AppSidebar() {
         });
         return { ...item, subItems };
       });
-  }, [isDevelopmentModeEnabled, userStore?.role]);
+  }, [isDevelopmentModeEnabled, menuItems, userStore?.role]);
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
@@ -79,7 +79,7 @@ export function AppSidebar() {
           {menuItemsFiltered.map((item) => {
             const isSubItemActive = item.subItems?.some(subItem => pathname === subItem.href);
             return (
-              <div key={item.label ?? item.href}>
+              <div key={item.id}>
                 {item.subItems ? (
                   <Collapsible defaultOpen={isMobile ? true : item.open ?? false} className="group/collapsible">
                     <SidebarMenuItem className={cn(
@@ -108,7 +108,7 @@ export function AppSidebar() {
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.subItems?.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.label ?? subItem.href} className={cn(
+                            <SidebarMenuSubItem key={subItem.id} className={cn(
                               state === 'collapsed' && 'cursor-pointer transition-colors duration-300'
                             )}>
                               <SidebarMenuSubButton className={cn(

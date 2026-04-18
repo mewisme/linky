@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { IconRefresh, IconRefreshDot, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { toast } from '@ws/ui/components/ui/sonner';
+import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
@@ -29,6 +30,7 @@ interface UsersPageContentProps {
 }
 
 export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
+  const t = useTranslations('admin');
   const { store: { user: currentUser } } = useUserContext();
   const [deletedFilter, setDeletedFilter] = useState<UsersDeletedFilter>('active');
   const { users, isFetching, refetch } = useUsersQuery({ initialData, deletedFilter });
@@ -76,7 +78,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
     onBulkDelete: (users: AdminAPI.User[]) => {
       const toDelete = users.filter((u) => !u.deleted && !isAdmin(u.role));
       if (toDelete.length === 0) {
-        toast.error('No eligible users to delete (admins and deleted users excluded)');
+        toast.error(t('noEligibleUsers'));
         return;
       }
       setPendingBulkDelete(toDelete);
@@ -85,7 +87,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
     onBulkRestore: (users: AdminAPI.User[]) => {
       const toRestore = users.filter((u) => u.deleted);
       if (toRestore.length === 0) {
-        toast.error('No deleted users selected');
+        toast.error(t('noDeletedSelected'));
         return;
       }
       restoreManyMutation.mutate(toRestore.map((u) => u.id), {
@@ -109,24 +111,24 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
 
   const bulkActions: BulkAction[] = [
     {
-      label: 'Delete',
+      label: t('bulkActionDelete'),
       icon: IconTrash,
       onClick: (selected) => tableCallbacks.onBulkDelete?.(selected),
     },
     {
-      label: 'Restore',
+      label: t('bulkActionRestore'),
       icon: IconUserPlus,
       onClick: (selected) => tableCallbacks.onBulkRestore?.(selected),
     },
     {
-      label: 'Sync embeddings',
+      label: t('bulkActionSyncEmbeddings'),
       icon: IconRefreshDot,
       onClick: (selected) => tableCallbacks.onBulkEmbeddingSync?.(selected),
     },
   ];
 
   return (
-    <AppLayout label="Users" description="Manage users">
+    <AppLayout sidebarItem="adminUsers">
       {isFetching && <div data-testid="admin-users-loading" />}
       {!isFetching && users.length === 0 && <div data-testid="admin-users-empty-state" />}
       <BulkDeleteDialog
@@ -169,8 +171,8 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
                 }
               }}
             >
-              <ToggleGroupItem value="active">Active</ToggleGroupItem>
-              <ToggleGroupItem value="deleted">Deleted</ToggleGroupItem>
+              <ToggleGroupItem value="active">{t('usersFilterActive')}</ToggleGroupItem>
+              <ToggleGroupItem value="deleted">{t('usersFilterDeleted')}</ToggleGroupItem>
             </ToggleGroup>
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
               <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
@@ -182,7 +184,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
               disabled={embeddingSyncAllMutation.isPending}
             >
               <IconRefreshDot className={`w-4 h-4 ${embeddingSyncAllMutation.isPending ? 'animate-spin' : ''}`} />
-              Sync all embeddings
+              {t('syncAllEmbeddings')}
             </Button>
           </>
         }

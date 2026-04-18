@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar
 
 import type { FloatingLayoutMode } from "./floating-video-state";
 import { IconMicrophoneOff } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { VideoPlayer } from "@/features/chat/ui/video-player";
 
 interface PeerInfo {
@@ -28,6 +29,7 @@ export function FloatingVideoLayout({
   isMobile,
   layoutMode,
 }: FloatingVideoLayoutProps) {
+  const tp = useTranslations("user.profile");
   const iconSize = isMobile ? "size-3" : "size-4";
   const padding = isMobile ? "p-1" : "p-1.5";
 
@@ -101,12 +103,12 @@ export function FloatingVideoLayout({
       <div className="relative flex h-full w-full items-center justify-center bg-muted pointer-events-none">
         {peerInfo ? (
           <Avatar className="h-full w-full rounded-none">
-            <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || "User"} className="object-cover" />
-            <AvatarFallback className="h-full w-full text-4xl">{peerInfo.first_name?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+            <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || tp("displayNameFallback")} className="object-cover" />
+            <AvatarFallback className="h-full w-full text-4xl">{peerInfo.first_name?.[0]?.toUpperCase() || tp("displayNameInitial")}</AvatarFallback>
           </Avatar>
         ) : (
           <Avatar className="h-full w-full rounded-none">
-            <AvatarFallback className="h-full w-full text-4xl">U</AvatarFallback>
+            <AvatarFallback className="h-full w-full text-4xl">{tp("displayNameInitial")}</AvatarFallback>
           </Avatar>
         )}
         {remoteMuted && (

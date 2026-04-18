@@ -5,6 +5,7 @@ import { IconBellOff } from "@tabler/icons-react";
 import type { Notification } from "@/entities/notification/types/notifications.types";
 import { NotificationItem } from "./notification-item";
 import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
+import { useTranslations } from "next-intl";
 
 interface NotificationsPanelProps {
   notifications: Notification[];
@@ -25,13 +26,14 @@ export function NotificationsPanel({
   onMarkAllAsRead,
   onLoadMore,
 }: NotificationsPanelProps) {
+  const t = useTranslations("notifications");
   return (
     <div
       className="flex flex-col w-full"
       data-testid="notifications-panel"
     >
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <h3 className="text-sm font-semibold">Notifications</h3>
+        <h3 className="text-sm font-semibold">{t("panelTitle")}</h3>
         {unreadCount > 0 && (
           <Button
             variant="ghost"
@@ -40,7 +42,7 @@ export function NotificationsPanel({
             className="text-xs h-7"
             data-testid="mark-all-read-button"
           >
-            Mark all as read
+            {t("markAllRead")}
           </Button>
         )}
       </div>
@@ -53,7 +55,7 @@ export function NotificationsPanel({
           >
             <IconBellOff className="size-8 text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">
-              No notifications yet
+              {t("emptyState")}
             </p>
           </div>
         )}
@@ -77,7 +79,7 @@ export function NotificationsPanel({
               disabled={isLoading}
               data-testid="load-more-notifications"
             >
-              {isLoading ? "Loading..." : "Load more"}
+              {isLoading ? t("panelLoading") : t("panelLoadMore")}
             </Button>
           </div>
         )}

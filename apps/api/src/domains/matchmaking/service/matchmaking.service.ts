@@ -11,6 +11,7 @@ import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUserEmbeddingsMap } from "@/infra/supabase/repositories/user-embeddings.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 const LOCK_KEY = "match:lock";
 const LOCK_TTL = 2;
@@ -429,7 +430,13 @@ export class MatchmakingService {
             const socket = io.sockets.get(socketId);
             if (socket && socket.connected) {
               socket.emit("queue-timeout", {
-                message: "Queue timeout. Please try again.",
+                ...userFacingPayload(
+                  toUserMessage(
+                    "QUEUE_TIMEOUT",
+                    { key: "call.queueTimeout" },
+                    "Queue timeout. Please try again.",
+                  ),
+                ),
               });
               this.emitDequeued(io, socketId, "queue-timeout");
             }

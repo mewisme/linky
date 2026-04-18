@@ -6,24 +6,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@ws/ui/components/ui/collapsible";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { Info } from "@ws/ui/internal-lib/icons";
+import { useTranslations } from "next-intl";
 
-type HintContent = {
-  title: string;
-  description: string;
-  example: string;
-  mediaNote: string;
-  resourceTypeNote: string;
-};
-
-const REWARD_HINTS: Record<string, HintContent> = {
-  avatar_frame: {
-    title: "avatar_frame reward",
-    description: "Unlocks an avatar frame at the given level. Users can equip it on their profile.",
-    example: `{
+const REWARD_EXAMPLES: Record<string, string> = {
+  avatar_frame: `{
   "frame_key": "gold_rim",
   "display_name": "Gold Frame",
   "media": {
@@ -32,13 +22,7 @@ const REWARD_HINTS: Record<string, HintContent> = {
     "content_type": "image/png"
   }
 }`,
-    mediaNote: "Upload an image above to automatically add a media object with resource_type \"s3\" and resource_key. Media is optional; you can also use resource_type \"static\" with a resource_path for app-bundled assets.",
-    resourceTypeNote: "resource_type: \"static\" = app-bundled asset (use resource_path). \"s3\" = file stored in S3 (use resource_key; populated when you upload).",
-  },
-  badge: {
-    title: "badge reward",
-    description: "Unlocks a badge displayed on the user profile or in activity.",
-    example: `{
+  badge: `{
   "badge_id": "early_adopter",
   "display_name": "Early Adopter",
   "media": {
@@ -47,23 +31,11 @@ const REWARD_HINTS: Record<string, HintContent> = {
     "content_type": "image/png"
   }
 }`,
-    mediaNote: "Upload an image to attach an S3-backed media descriptor. The payload will reference the file via resource_type and resource_key. Media is optional.",
-    resourceTypeNote: "resource_type: \"static\" = app-bundled path. \"s3\" = uploaded file (resource_key points to the S3 object).",
-  },
-  currency: {
-    title: "currency reward",
-    description: "Grants in-app currency when the user reaches this level.",
-    example: `{
+  currency: `{
   "amount": 100,
   "currency_key": "coins"
 }`,
-    mediaNote: "Currency rewards typically do not use media. If you need an icon, you can add an optional media descriptor with resource_type \"static\" or \"s3\".",
-    resourceTypeNote: "resource_type: \"static\" = app path. \"s3\" = uploaded file. Usually not used for currency.",
-  },
-  cosmetic_unlock: {
-    title: "cosmetic_unlock reward",
-    description: "Unlocks a cosmetic item (theme, border, effect) at the given level.",
-    example: `{
+  cosmetic_unlock: `{
   "item_key": "theme_dark",
   "display_name": "Dark Theme",
   "media": {
@@ -72,108 +44,191 @@ const REWARD_HINTS: Record<string, HintContent> = {
     "content_type": "image/png"
   }
 }`,
-    mediaNote: "Upload an image to add an S3-backed media descriptor. The payload references the file via resource_type and resource_key. Media is optional.",
-    resourceTypeNote: "resource_type: \"static\" = app-bundled. \"s3\" = uploaded file (resource_key set when you upload).",
-  },
 };
 
-const FEATURE_HINTS: Record<string, HintContent> = {
-  reaction_types: {
-    title: "reaction_types",
-    description: "Configures which reaction types are available. The payload is configuration, not a boolean toggle; the app reads these values at runtime.",
-    example: `{
+const FEATURE_EXAMPLES: Record<string, string> = {
+  reaction_types: `{
   "types": ["like", "love", "celebrate"],
   "max_per_user": 5
 }`,
-    mediaNote: "Reaction types usually do not use media. If a custom reaction needs an icon, add an optional media object with resource_type \"s3\" or \"static\".",
-    resourceTypeNote: "resource_type: \"static\" = app path. \"s3\" = uploaded file. Optional for this feature.",
-  },
-  favorite_limit: {
-    title: "favorite_limit",
-    description: "Configures how many favorites a user can have. The payload holds the numeric limit and any extra options.",
-    example: `{
+  favorite_limit: `{
   "limit": 20
 }`,
-    mediaNote: "favorite_limit does not use media. Media is optional and only needed if you add custom UI assets (resource_type \"static\" or \"s3\").",
-    resourceTypeNote: "resource_type: \"static\" or \"s3\" only if you attach a custom asset; otherwise omit media.",
-  },
-  streak_freeze: {
-    title: "streak_freeze",
-    description: "Configures streak freeze behavior: how many freezes, how to earn or spend them. The payload is configuration, not a simple on/off.",
-    example: `{
+  streak_freeze: `{
   "max_freezes": 2,
   "cost_in_coins": 100
 }`,
-    mediaNote: "Optional: add media with resource_type \"s3\" or \"static\" if you need an icon for the freeze in the UI.",
-    resourceTypeNote: "resource_type: \"static\" = app path. \"s3\" = uploaded file. Optional.",
-  },
-  ui_customization: {
-    title: "ui_customization",
-    description: "Configures UI customization options (themes, layout, compact mode). Different keys can require different payload shapes.",
-    example: `{
+  ui_customization: `{
   "themes": ["light", "dark", "system"],
   "show_compact_mode": true
 }`,
-    mediaNote: "Upload an image to attach an S3-backed asset (e.g. custom theme preview). The payload will reference it via resource_type and resource_key. Media is optional.",
-    resourceTypeNote: "resource_type: \"static\" = app-bundled. \"s3\" = uploaded file (resource_key set when you upload).",
-  },
 };
 
-const GENERIC_REWARD_HINT: HintContent = {
-  title: "Reward payload",
-  description: "Use a JSON object with keys relevant to your reward type. Structure depends on how the app consumes this reward.",
-  example: `{
+const GENERIC_REWARD_EXAMPLE = `{
   "key": "value"
-}`,
-  mediaNote: "Media is optional. Upload an image above to add a media descriptor (resource_type \"s3\", resource_key) automatically. For app-bundled assets use resource_type \"static\" and resource_path.",
-  resourceTypeNote: "resource_type: \"static\" = app-bundled path. \"s3\" = file stored in S3 (resource_key points to the object; set automatically when you upload).",
-};
+}`;
 
-const GENERIC_FEATURE_HINT: HintContent = {
-  title: "Feature payload",
-  description: "feature_payload is configuration the app reads for this feature, not a boolean. Use a JSON object; the shape depends on the feature.",
-  example: `{
+const GENERIC_FEATURE_EXAMPLE = `{
   "option": "value"
-}`,
-  mediaNote: "Media is optional. Upload an image to add an S3-backed descriptor (resource_type, resource_key). The payload will reference the file; you can also use resource_type \"static\" for app paths.",
-  resourceTypeNote: "resource_type: \"static\" = app path. \"s3\" = uploaded file (resource_key filled when you upload).",
+}`;
+
+function getRewardExample(type: string): string {
+  const k = type.trim().toLowerCase();
+  return REWARD_EXAMPLES[k] ?? GENERIC_REWARD_EXAMPLE;
+}
+
+function getFeatureExample(key: string): string {
+  const k = key.trim().toLowerCase();
+  return FEATURE_EXAMPLES[k] ?? GENERIC_FEATURE_EXAMPLE;
+}
+
+type HintFields = {
+  title: string;
+  description: string;
+  mediaNote: string;
+  resourceTypeNote: string;
+  example: string;
 };
 
-function getRewardHint(type: string): HintContent {
-  const key = type.trim().toLowerCase();
-  return key ? (REWARD_HINTS[key] ?? GENERIC_REWARD_HINT) : GENERIC_REWARD_HINT;
+function rewardHintFields(t: (key: string) => string, type: string): HintFields {
+  const k = type.trim().toLowerCase();
+  const example = getRewardExample(type);
+  switch (k) {
+    case "avatar_frame":
+      return {
+        title: t("rewards.avatar_frame.title"),
+        description: t("rewards.avatar_frame.description"),
+        mediaNote: t("rewards.avatar_frame.mediaNote"),
+        resourceTypeNote: t("rewards.avatar_frame.resourceTypeNote"),
+        example,
+      };
+    case "badge":
+      return {
+        title: t("rewards.badge.title"),
+        description: t("rewards.badge.description"),
+        mediaNote: t("rewards.badge.mediaNote"),
+        resourceTypeNote: t("rewards.badge.resourceTypeNote"),
+        example,
+      };
+    case "currency":
+      return {
+        title: t("rewards.currency.title"),
+        description: t("rewards.currency.description"),
+        mediaNote: t("rewards.currency.mediaNote"),
+        resourceTypeNote: t("rewards.currency.resourceTypeNote"),
+        example,
+      };
+    case "cosmetic_unlock":
+      return {
+        title: t("rewards.cosmetic_unlock.title"),
+        description: t("rewards.cosmetic_unlock.description"),
+        mediaNote: t("rewards.cosmetic_unlock.mediaNote"),
+        resourceTypeNote: t("rewards.cosmetic_unlock.resourceTypeNote"),
+        example,
+      };
+    default:
+      return {
+        title: t("genericReward.title"),
+        description: t("genericReward.description"),
+        mediaNote: t("genericReward.mediaNote"),
+        resourceTypeNote: t("genericReward.resourceTypeNote"),
+        example,
+      };
+  }
 }
 
-function getFeatureHint(key: string): HintContent {
+function featureHintFields(t: (key: string) => string, key: string): HintFields {
   const k = key.trim().toLowerCase();
-  return k ? (FEATURE_HINTS[k] ?? GENERIC_FEATURE_HINT) : GENERIC_FEATURE_HINT;
+  const example = getFeatureExample(key);
+  switch (k) {
+    case "reaction_types":
+      return {
+        title: t("features.reaction_types.title"),
+        description: t("features.reaction_types.description"),
+        mediaNote: t("features.reaction_types.mediaNote"),
+        resourceTypeNote: t("features.reaction_types.resourceTypeNote"),
+        example,
+      };
+    case "favorite_limit":
+      return {
+        title: t("features.favorite_limit.title"),
+        description: t("features.favorite_limit.description"),
+        mediaNote: t("features.favorite_limit.mediaNote"),
+        resourceTypeNote: t("features.favorite_limit.resourceTypeNote"),
+        example,
+      };
+    case "streak_freeze":
+      return {
+        title: t("features.streak_freeze.title"),
+        description: t("features.streak_freeze.description"),
+        mediaNote: t("features.streak_freeze.mediaNote"),
+        resourceTypeNote: t("features.streak_freeze.resourceTypeNote"),
+        example,
+      };
+    case "ui_customization":
+      return {
+        title: t("features.ui_customization.title"),
+        description: t("features.ui_customization.description"),
+        mediaNote: t("features.ui_customization.mediaNote"),
+        resourceTypeNote: t("features.ui_customization.resourceTypeNote"),
+        example,
+      };
+    default:
+      return {
+        title: t("genericFeature.title"),
+        description: t("genericFeature.description"),
+        mediaNote: t("genericFeature.mediaNote"),
+        resourceTypeNote: t("genericFeature.resourceTypeNote"),
+        example,
+      };
+  }
 }
 
-function HintBlock({ content }: { content: HintContent }) {
+function HintBlock({
+  title,
+  description,
+  example,
+  mediaNote,
+  resourceTypeNote,
+  exampleCopyable,
+  mediaHeading,
+  resourceTypeHeading,
+  exampleAria,
+}: {
+  title: string;
+  description: string;
+  example: string;
+  mediaNote: string;
+  resourceTypeNote: string;
+  exampleCopyable: string;
+  mediaHeading: string;
+  resourceTypeHeading: string;
+  exampleAria: string;
+}) {
   return (
     <div className="space-y-3">
       <Alert className="border-muted bg-muted/30">
         <Info className="h-4 w-4" />
-        <AlertTitle>{content.title}</AlertTitle>
+        <AlertTitle>{title}</AlertTitle>
         <AlertDescription>
           <div className="space-y-3 pt-1">
-            <p>{content.description}</p>
+            <p>{description}</p>
             <div>
-              <p className="mb-1.5 font-medium text-foreground text-xs">Example (copyable):</p>
+              <p className="mb-1.5 font-medium text-foreground text-xs">{exampleCopyable}</p>
               <pre
                 className="overflow-x-auto rounded-md border bg-muted/50 p-3 font-mono text-xs"
-                aria-label="Example JSON"
+                aria-label={exampleAria}
               >
-                {content.example}
+                {example}
               </pre>
             </div>
             <p className="text-xs">
-              <span className="font-medium text-foreground">Media: </span>
-              {content.mediaNote}
+              <span className="font-medium text-foreground">{mediaHeading} </span>
+              {mediaNote}
             </p>
             <p className="text-xs">
-              <span className="font-medium text-foreground">resource_type: </span>
-              {content.resourceTypeNote}
+              <span className="font-medium text-foreground">{resourceTypeHeading}</span>
+              {resourceTypeNote}
             </p>
           </div>
         </AlertDescription>
@@ -191,22 +246,37 @@ export interface PayloadHintGuideProps {
 
 export function PayloadHintGuide({ variant, typeOrKey }: PayloadHintGuideProps) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations("admin.payloadGuide");
 
-  const content =
-    variant === "reward"
-      ? getRewardHint(typeOrKey)
-      : getFeatureHint(typeOrKey);
+  const tf = t as unknown as (key: string) => string;
+
+  const hint = useMemo(() => {
+    if (variant === "reward") {
+      return rewardHintFields(tf, typeOrKey);
+    }
+    return featureHintFields(tf, typeOrKey);
+  }, [variant, typeOrKey, tf]);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
         <Button type="button" variant="ghost" size="sm" className="h-auto px-0 text-muted-foreground hover:text-foreground">
-          {open ? "Hide guide" : "Show guide"}
+          {open ? t("hideGuide") : t("showGuide")}
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="pt-2">
-          <HintBlock content={content} />
+          <HintBlock
+            title={hint.title}
+            description={hint.description}
+            example={hint.example}
+            mediaNote={hint.mediaNote}
+            resourceTypeNote={hint.resourceTypeNote}
+            exampleCopyable={t("exampleCopyable")}
+            mediaHeading={t("mediaHeading")}
+            resourceTypeHeading={t("resourceTypeHeading")}
+            exampleAria={t("exampleJsonAria")}
+          />
         </div>
       </CollapsibleContent>
     </Collapsible>

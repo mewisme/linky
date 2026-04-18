@@ -19,12 +19,14 @@ import { cn } from "@ws/ui/lib/utils";
 import { getStreakCalendar } from "@/features/user/api/streak";
 import { useMemo } from "react";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
+import { useTranslations } from "next-intl";
 
 interface StreakCalendarProps {
   className?: string;
 }
 
 export function StreakCalendar({ className }: StreakCalendarProps) {
+  const t = useTranslations("user.progress");
   const [month] = useCalendarMonth();
   const [year] = useCalendarYear();
 
@@ -165,7 +167,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
       <div className="grid grow grid-cols-7">
         {isLoading ? (
           <div className="col-span-7 p-8">
-            <Loading height={'full'} width={'full'} title="Loading streak calendar..." />
+            <Loading height={'full'} width={'full'} title={t("streakCalendarLoading")} />
           </div>
         ) : (
           days.map((day, index) => (

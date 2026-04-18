@@ -18,11 +18,15 @@ import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { Button } from '@ws/ui/components/ui/button';
 import { IconChevronDown } from '@tabler/icons-react';
 import { cn } from '@ws/ui/lib/utils';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-function formatUserLabel(user: AdminAPI.User): string {
-  const email = user.email ?? 'no-email';
-  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Unknown';
+function formatUserLabel(
+  user: AdminAPI.User,
+  labels: { noEmail: string; unknown: string },
+): string {
+  const email = user.email ?? labels.noEmail;
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || labels.unknown;
   return `${name} (${email})`;
 }
 
@@ -56,10 +60,13 @@ export function UserSearchSelect({
   value,
   onChange,
   excludeUserId,
-  placeholder = 'Select user',
+  placeholder,
   disabled,
   className,
 }: UserSearchSelectProps) {
+  const t = useTranslations('admin');
+  const resolvedPlaceholder = placeholder ?? t('userSearchSelectUser');
+  const labelFmt = { noEmail: t('userLabelNoEmail'), unknown: t('userLabelUnknown') };
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -78,19 +85,19 @@ export function UserSearchSelect({
           disabled={disabled}
           className={cn('w-full justify-between font-normal', className)}
         >
-          {value ? formatUserLabel(value) : placeholder}
+          {value ? formatUserLabel(value, labelFmt) : resolvedPlaceholder}
           <IconChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Search by email or name..."
+            placeholder={t('userSearchCommandPlaceholder')}
             value={search}
             onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>No user found.</CommandEmpty>
+            <CommandEmpty>{t('userSearchEmpty')}</CommandEmpty>
             <CommandGroup>
               {filtered.map((user) => (
                 <CommandItem
@@ -102,7 +109,7 @@ export function UserSearchSelect({
                     setSearch('');
                   }}
                 >
-                  {formatUserLabel(user)}
+                  {formatUserLabel(user, labelFmt)}
                 </CommandItem>
               ))}
             </CommandGroup>

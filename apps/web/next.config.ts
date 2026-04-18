@@ -39,6 +39,7 @@ export default withSentryConfig(nextConfig, {
   org: serverEnv.SENTRY_ORG,
   project: serverEnv.SENTRY_PROJECT,
   authToken: serverEnv.SENTRY_AUTH_TOKEN,
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
   silent: !process.env.CI,
   widenClientFileUpload: true,
   tunnelRoute: "/monitoring",

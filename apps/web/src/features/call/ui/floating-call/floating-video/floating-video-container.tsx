@@ -121,6 +121,7 @@ export function FloatingVideoContainer({
   const position = useVideoChatStore((s) => s.floatingPosition);
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
   const positionRef = useRef<OverlayPosition | null>(null);
+  // eslint-disable-next-line react-hooks/refs
   positionRef.current = position;
 
   const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled;

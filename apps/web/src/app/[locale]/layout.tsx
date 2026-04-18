@@ -34,15 +34,15 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider key={locale} locale={locale} messages={messages}>
-      <LocaleClerkProvider>
-      <LocaleSync />
-      <ServiceWorkerUpdateProvider />
-      <UserProvider>
-        <ClerkReadyIndicator />
-        <SocketProvider>
-          <ProgressBarProvider>{children}</ProgressBarProvider>
-        </SocketProvider>
-      </UserProvider>
+      <LocaleClerkProvider >
+        <LocaleSync />
+        <ServiceWorkerUpdateProvider />
+        <UserProvider>
+          <ClerkReadyIndicator />
+          <SocketProvider>
+            <ProgressBarProvider>{children}</ProgressBarProvider>
+          </SocketProvider>
+        </UserProvider>
       </LocaleClerkProvider>
     </NextIntlClientProvider>
   );

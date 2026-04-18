@@ -91,10 +91,12 @@ export function AppSidebar() {
                           state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
                           isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
                         )} isActive={state === 'expanded' && isSubItemActive}>
-                          <item.icon className={cn(
-                            'size-6 mx-2 transition-colors duration-300',
-                            isMobile && 'size-7'
-                          )} />
+                          <div className="flex size-6 items-center justify-center rounded-sm border">
+                            <item.icon className={cn(
+                              'size-4 shrink-0 transition-colors duration-300',
+                              isMobile && 'size-7'
+                            )} />
+                          </div>
                           <span className={cn(
                             'transition-colors duration-300',
                             isMobile && 'text-base'
@@ -119,10 +121,12 @@ export function AppSidebar() {
                                 asChild
                               >
                                 <Link href={subItem.href || '#'}>
-                                  <subItem.icon className={cn(
-                                    'size-6 mx-2 transition-colors duration-300',
-                                    isMobile && 'size-7'
-                                  )} />
+                                  <div className="flex size-6 items-center justify-center rounded-sm border">
+                                    <subItem.icon className={cn(
+                                      'size-4 shrink-0 transition-colors duration-300',
+                                      isMobile && 'size-7'
+                                    )} />
+                                  </div>
                                   <span className={cn(isMobile && 'text-base')}>{subItem.label}</span>
                                 </Link>
                               </SidebarMenuSubButton>
@@ -142,7 +146,9 @@ export function AppSidebar() {
                       asChild
                     >
                       <Link href={item.href || '#'}>
-                        <item.icon className={cn('size-6 mx-2', isMobile && 'size-7')} />
+                        <div className="flex size-6 items-center justify-center rounded-sm border">
+                          <item.icon className={cn('size-4 shrink-0', isMobile && 'size-7')} />
+                        </div>
                         <span className={cn(isMobile && 'text-base')}>{item.label}</span>
                       </Link>
                     </SidebarMenuButton>

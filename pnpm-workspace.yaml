@@ -20,7 +20,9 @@ injectWorkspacePackages: true
 
 onlyBuiltDependencies:
   - '@clerk/shared'
+  - '@parcel/watcher'
   - '@sentry/cli'
+  - '@swc/core'
   - esbuild
   - msw
   - protobufjs

@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
@@ -19,41 +21,51 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const reporterUserId = await getUserIdByClerkId(clerkUserId);
     if (!reporterUserId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const { reported_user_id, reason, call_id, room_id, behavior_flags } = req.body as CreateReportBody;
 
     if (!reported_user_id || !reason) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "reported_user_id and reason are required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("REPORT_ID_REASON_REQUIRED", "reportedUserIdAndReasonRequired", "reported_user_id and reason are required"),
+      );
     }
 
     if (typeof reason !== "string" || reason.trim().length === 0) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "reason must be a non-empty string",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("REPORT_REASON_NONEMPTY", "reasonNonEmpty", "reason must be a non-empty string"),
+      );
     }
 
     if (reported_user_id === reporterUserId) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Cannot report yourself",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("CANNOT_REPORT_SELF", "cannotReportYourself", "Cannot report yourself"),
+      );
     }
 
     const report = await createUserReport({
@@ -62,7 +74,6 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
       reason: reason.trim(),
     });
 
-    // Invalidate cache after successful database update
     await invalidateCacheKey(CACHE_KEYS.userReports(reporterUserId));
 
     try {
@@ -89,16 +100,20 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
     logger.error(toLoggableError(error), "Unexpected error in POST /reports");
 
     if (error instanceof Error && error.message.includes("violates check constraint")) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Cannot report yourself",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("CANNOT_REPORT_SELF", "cannotReportYourself", "Cannot report yourself"),
+      );
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to create report",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_CREATE_REPORT", "failedCreateReport", "Failed to create report"),
+    );
   }
 });
 
@@ -107,24 +122,27 @@ router.get("/me", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    // Only cache when using default pagination (most common case)
     const shouldCache = limit === 50 && offset === 0;
 
     let data, count;
@@ -147,12 +165,13 @@ router.get("/me", async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /reports/me");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch user reports",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_USER_REPORTS", "failedFetchUserReports", "Failed to fetch user reports"),
+    );
   }
 });
 
 export default router;
-

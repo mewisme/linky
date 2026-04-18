@@ -13,6 +13,7 @@ import { clerkMiddleware } from "@/middleware/clerk.js";
 import { adminMiddleware } from "@/middleware/admin.js";
 import { config } from "@/config/index.js";
 import queueStatusRouter from "@/domains/video-chat/http/queue-status.route.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupRoutes(app: Express): void {
   app.get("/", (_req: Request, res: Response) => {
@@ -34,7 +35,9 @@ export function setupRoutes(app: Express): void {
   });
 
   app.get("/api", (_req: Request, res: Response) => {
-    res.json({ message: "API is running" });
+    res.json({
+      ...userFacingPayload(toUserMessage("API_RUNNING", { key: "api.apiRunning" }, "API is running")),
+    });
   });
 
   app.use("/api/v1/interest-tags", interestTagsRouter);

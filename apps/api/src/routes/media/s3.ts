@@ -1,5 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "@/config/index.js";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError, sendJsonWithUserMessage } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import {
@@ -20,15 +22,20 @@ import {
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:media:s3");
 
+const umS3Bucket = () =>
+  um("S3_BUCKET_NOT_CONFIGURED", "s3BucketNotConfigured", "S3 bucket not configured");
+
 router.get("/presigned/upload", async (req: Request, res: Response) => {
   try {
     const { key, expires } = req.query;
 
     if (!key || typeof key !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required query parameter: key",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_MISSING_QUERY_KEY", "missingQueryKey", "Missing required query parameter: key"),
+      );
     }
 
     const expiresIn = expires ? Number(expires) : 300;
@@ -36,10 +43,7 @@ router.get("/presigned/upload", async (req: Request, res: Response) => {
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     const url = await getUploadUrl(bucket, key, expiresIn);
@@ -52,10 +56,12 @@ router.get("/presigned/upload", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error generating upload presigned URL");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to generate upload URL",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_UPLOAD_URL", "failedUploadUrl", "Failed to generate upload URL"),
+    );
   }
 });
 
@@ -64,10 +70,12 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
     const { key, expires } = req.query;
 
     if (!key || typeof key !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required query parameter: key",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_MISSING_QUERY_KEY_DL", "missingQueryKey", "Missing required query parameter: key"),
+      );
     }
 
     const expiresIn = expires ? Number(expires) : 300;
@@ -75,10 +83,7 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     const url = await getDownloadUrl(bucket, key, expiresIn);
@@ -91,10 +96,12 @@ router.get("/presigned/download", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error generating download presigned URL");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to generate download URL",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_DOWNLOAD_URL", "failedDownloadUrl", "Failed to generate download URL"),
+    );
   }
 });
 
@@ -105,10 +112,7 @@ router.get("/objects", async (req: Request, res: Response) => {
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     const result = await listObjects(bucket, prefix as string | undefined);
@@ -125,10 +129,12 @@ router.get("/objects", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error listing objects");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to list objects",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_LIST_OBJECTS", "failedListObjects", "Failed to list objects"),
+    );
   }
 });
 
@@ -137,37 +143,39 @@ router.delete("/objects/:key", async (req: Request, res: Response) => {
     const { key } = req.params as { key: string };
 
     if (!key) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required parameter: key",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_MISSING_PARAM_KEY", "missingFieldKey", "Missing required parameter: key"),
+      );
     }
 
     const bucket = config.s3Bucket;
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     const decodedKey = decodeURIComponent(key);
 
     await deleteObject(bucket, decodedKey);
 
-    return res.json({
-      success: true,
-      message: "Object deleted successfully",
-      key: decodedKey,
-    });
+    return sendJsonWithUserMessage(
+      res,
+      200,
+      { success: true as const, key: decodedKey },
+      um("OBJECT_DELETED", "objectDeleted", "Object deleted successfully"),
+    );
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error deleting object");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to delete object",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_DELETE_OBJECT", "failedDeleteObject", "Failed to delete object"),
+    );
   }
 });
 
@@ -176,20 +184,19 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
     const { key } = req.body;
 
     if (!key || typeof key !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required field: key",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_MISSING_FIELD_KEY", "missingFieldKey", "Missing required field: key"),
+      );
     }
 
     const bucket = config.s3Bucket;
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     const uploadId = await startMultipart(bucket, key);
@@ -200,10 +207,12 @@ router.post("/multipart/start", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error starting multipart upload");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to start multipart upload",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_START_MULTIPART", "failedStartMultipart", "Failed to start multipart upload"),
+    );
   }
 });
 
@@ -212,38 +221,41 @@ router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Re
     const { uploadId, partNumber } = req.params as { uploadId: string; partNumber: string };
 
     if (!uploadId || !partNumber) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required route parameters",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_MISSING_ROUTE_PARAMS", "missingRouteParams", "Missing required route parameters"),
+      );
     }
 
     const keyParam = req.query.key;
 
     if (!keyParam || typeof keyParam !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required query parameter: key",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_MISSING_QUERY_KEY_PART", "missingQueryKey", "Missing required query parameter: key"),
+      );
     }
 
     const key: string = keyParam;
     const partNum = Number(partNumber);
     if (isNaN(partNum) || partNum < 1) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid part number",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_INVALID_PART", "invalidPartNumber", "Invalid part number"),
+      );
     }
 
     const bucket = config.s3Bucket;
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     const url = await getPartUploadUrl(bucket, key, uploadId, partNum);
@@ -256,10 +268,12 @@ router.get("/multipart/:uploadId/part/:partNumber", async (req: Request, res: Re
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error getting part upload URL");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to get part upload URL",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_PART_UPLOAD_URL", "failedPartUploadUrl", "Failed to get part upload URL"),
+    );
   }
 });
 
@@ -268,34 +282,37 @@ router.post("/multipart/complete", async (req: Request, res: Response) => {
     const { key, uploadId, parts } = req.body;
 
     if (!key || typeof key !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required field: key",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_COMPLETE_MISSING_KEY", "missingFieldKey", "Missing required field: key"),
+      );
     }
 
     if (!uploadId || typeof uploadId !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required field: uploadId",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_COMPLETE_MISSING_UPLOAD", "missingFieldUploadId", "Missing required field: uploadId"),
+      );
     }
 
     if (!Array.isArray(parts) || parts.length === 0) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing or empty required field: parts",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_COMPLETE_MISSING_PARTS", "missingOrEmptyParts", "Missing or empty required field: parts"),
+      );
     }
 
     const bucket = config.s3Bucket;
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     await completeMultipart(
@@ -308,18 +325,20 @@ router.post("/multipart/complete", async (req: Request, res: Response) => {
       }))
     );
 
-    return res.json({
-      success: true,
-      message: "Multipart upload completed successfully",
-      key,
-      uploadId,
-    });
+    return sendJsonWithUserMessage(
+      res,
+      200,
+      { success: true as const, key, uploadId },
+      um("MULTIPART_COMPLETE_OK", "multipartCompleteSuccess", "Multipart upload completed successfully"),
+    );
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error completing multipart upload");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to complete multipart upload",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_COMPLETE_MULTIPART", "failedCompleteMultipart", "Failed to complete multipart upload"),
+    );
   }
 });
 
@@ -328,45 +347,47 @@ router.post("/multipart/abort", async (req: Request, res: Response) => {
     const { key, uploadId } = req.body;
 
     if (!key || typeof key !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required field: key",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_ABORT_MISSING_KEY", "missingFieldKey", "Missing required field: key"),
+      );
     }
 
     if (!uploadId || typeof uploadId !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Missing required field: uploadId",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("S3_ABORT_MISSING_UPLOAD", "missingFieldUploadId", "Missing required field: uploadId"),
+      );
     }
 
     const bucket = config.s3Bucket;
 
     if (!bucket) {
       logger.error("S3_BUCKET not configured");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "S3 bucket not configured",
-      });
+      return sendJsonError(res, 500, "Internal Server Error", umS3Bucket());
     }
 
     await abortMultipart(bucket, key as string, uploadId);
 
-    return res.json({
-      success: true,
-      message: "Multipart upload aborted successfully",
-      key,
-      uploadId,
-    });
+    return sendJsonWithUserMessage(
+      res,
+      200,
+      { success: true as const, key, uploadId },
+      um("MULTIPART_ABORT_OK", "multipartAbortedSuccess", "Multipart upload aborted successfully"),
+    );
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error aborting multipart upload");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to abort multipart upload",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_ABORT_MULTIPART", "failedAbortMultipart", "Failed to abort multipart upload"),
+    );
   }
 });
 
 export default router;
-

@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um, umDetail } from "@/lib/api-user-message.js";
+import { sendJsonError, sendJsonWithUserMessage } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { sendBroadcastToAllUsers } from "@/contexts/broadcast-context.js";
@@ -40,10 +42,12 @@ router.get("/", async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /admin/broadcasts");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to list broadcasts",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_LIST_BROADCASTS", "failedListBroadcasts", "Failed to list broadcasts"),
+    );
   }
 });
 
@@ -52,51 +56,63 @@ router.post("/", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const createdByUserId = await getUserIdByClerkId(clerkUserId);
     if (!createdByUserId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const { message, title, deliveryMode, url } = req.body as BroadcastBody;
 
     if (!message || typeof message !== "string" || !message.trim()) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "message is required and must be a non-empty string",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("BROADCAST_MSG_REQUIRED", "broadcastMessageRequired", "message is required and must be a non-empty string"),
+      );
     }
 
     if (deliveryMode && deliveryMode !== "push_only" && deliveryMode !== "push_and_save") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "deliveryMode must be push_only or push_and_save",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("BROADCAST_DELIVERY_INVALID", "broadcastDeliveryModeInvalid", "deliveryMode must be push_only or push_and_save"),
+      );
     }
 
     let trimmedUrl: string | undefined;
     if (url !== undefined) {
       if (typeof url !== "string") {
-        return res.status(400).json({
-          error: "Bad Request",
-          message: "url must be a string",
-        });
+        return sendJsonError(
+          res,
+          400,
+          "Bad Request",
+          um("BROADCAST_URL_STRING", "broadcastUrlString", "url must be a string"),
+        );
       }
       trimmedUrl = url.trim();
       if (trimmedUrl) {
         if (!trimmedUrl.startsWith("/")) {
-          return res.status(400).json({
-            error: "Bad Request",
-            message: "url must start with /",
-          });
+          return sendJsonError(
+            res,
+            400,
+            "Bad Request",
+            um("BROADCAST_URL_PATH", "broadcastUrlPath", "url must start with /"),
+          );
         }
       } else {
         trimmedUrl = undefined;
@@ -111,19 +127,20 @@ router.post("/", async (req: Request, res: Response) => {
       url: trimmedUrl,
     });
 
-    return res.status(201).json({
-      sent,
-      message:
-        deliveryMode === "push_only"
-          ? `Push sent to ${sent} user(s).`
-          : `Broadcast sent to ${sent} user(s).`,
-    });
+    const summary =
+      deliveryMode === "push_only"
+        ? `Push sent to ${sent} user(s).`
+        : `Broadcast sent to ${sent} user(s).`;
+
+    return sendJsonWithUserMessage(res, 201, { sent }, umDetail("BROADCAST_SENT", summary));
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in POST /admin/broadcasts");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to send broadcast",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_SEND_BROADCAST", "failedSendBroadcast", "Failed to send broadcast"),
+    );
   }
 });
 
@@ -135,34 +152,42 @@ router.post(
       const clerkUserId = req.auth?.sub;
 
       if (!clerkUserId) {
-        return res.status(401).json({
-          error: "Unauthorized",
-          message: "User ID not found in authentication token",
-        });
+        return sendJsonError(
+          res,
+          401,
+          "Unauthorized",
+          um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+        );
       }
 
       const createdByUserId = await getUserIdByClerkId(clerkUserId);
       if (!createdByUserId) {
-        return res.status(404).json({
-          error: "Not Found",
-          message: "User not found in database",
-        });
+        return sendJsonError(
+          res,
+          404,
+          "Not Found",
+          um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+        );
       }
 
       const { audience, key_points } = req.body as BroadcastAiGenerateBody;
 
       if (!audience || typeof audience !== "string" || !audience.trim()) {
-        return res.status(400).json({
-          error: "Bad Request",
-          message: "audience is required and must be a non-empty string",
-        });
+        return sendJsonError(
+          res,
+          400,
+          "Bad Request",
+          umDetail("BROADCAST_AI_AUDIENCE", "audience is required and must be a non-empty string"),
+        );
       }
 
       if (!key_points || typeof key_points !== "string" || !key_points.trim()) {
-        return res.status(400).json({
-          error: "Bad Request",
-          message: "key_points is required and must be a non-empty string",
-        });
+        return sendJsonError(
+          res,
+          400,
+          "Bad Request",
+          umDetail("BROADCAST_AI_KEYPOINTS", "key_points is required and must be a non-empty string"),
+        );
       }
 
       const draft = await generateBroadcastAiDraft({
@@ -174,17 +199,16 @@ router.post(
       return res.json({ draft });
     } catch (error) {
       if (error instanceof Error && error.message.includes("already in progress")) {
-        return res.status(429).json({
-          error: "Too Many Requests",
-          message: error.message,
-        });
+        return sendJsonError(res, 429, "Too Many Requests", umDetail("BROADCAST_AI_RATE", error.message));
       }
 
       logger.error(toLoggableError(error), "Unexpected error in POST /admin/broadcasts/ai-generate");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "Failed to generate broadcast draft",
-      });
+      return sendJsonError(
+        res,
+        500,
+        "Internal Server Error",
+        umDetail("BROADCAST_AI_FAIL", "Failed to generate broadcast draft"),
+      );
     }
   },
 );

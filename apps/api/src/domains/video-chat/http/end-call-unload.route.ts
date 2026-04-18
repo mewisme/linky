@@ -6,6 +6,8 @@ import { recordCallHistory, recordCallHistoryFromRoom } from "@/domains/video-ch
 import { type AuthenticatedSocket } from "@/socket/auth.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError, sendJsonWithUserMessage } from "@/lib/http-json-response.js";
 import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 const router: ExpressRouter = Router();
@@ -19,21 +21,27 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
 
     if (!socketId || typeof socketId !== "string") {
       logger.warn("Invalid request: missing or invalid socketId");
-      return res.status(400).json({ error: "socketId is required" });
+      return sendJsonError(res, 400, "Bad Request", um("SOCKET_ID_REQUIRED", "socketIdRequired", "socketId is required"));
     }
 
     if (!callerClerkId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "Missing authentication",
-        userMessage: toUserMessage("API_UNAUTHORIZED", { key: "api.missingAuth" }, "Missing authentication"),
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        toUserMessage("API_UNAUTHORIZED", { key: "api.missingAuth" }, "Missing authentication"),
+      );
     }
 
     const context = getVideoChatContext();
     if (!context) {
       logger.error("Video chat context not available");
-      return res.status(503).json({ error: "Service unavailable" });
+      return sendJsonError(
+        res,
+        503,
+        "Service unavailable",
+        um("VIDEO_CHAT_UNAVAILABLE", "serviceUnavailable", "Service unavailable"),
+      );
     }
 
     const { io, matchmaking, rooms } = context;
@@ -70,11 +78,12 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
         rooms.deleteRoom(room.id);
         logger.info("Room cleaned up for disconnected socket: %s", socketId);
       }
-      return res.status(200).json({
-        success: true,
-        message: "Cleanup completed",
-        userMessage: toUserMessage("API_CLEANUP_OK", { key: "api.cleanupCompleted" }, "Cleanup completed"),
-      });
+      return sendJsonWithUserMessage(
+        res,
+        200,
+        { success: true },
+        toUserMessage("API_CLEANUP_OK", { key: "api.cleanupCompleted" }, "Cleanup completed"),
+      );
     }
 
     const clerkUserId = socket.data.userId;
@@ -86,11 +95,12 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
         clerkUserId,
         socketId,
       );
-      return res.status(403).json({
-        error: "Forbidden",
-        message: "Socket does not belong to caller",
-        userMessage: toUserMessage("API_SOCKET_FORBIDDEN", { key: "api.socketForbidden" }, "Socket does not belong to caller"),
-      });
+      return sendJsonError(
+        res,
+        403,
+        "Forbidden",
+        toUserMessage("API_SOCKET_FORBIDDEN", { key: "api.socketForbidden" }, "Socket does not belong to caller"),
+      );
     }
     if (clerkUserId) {
       const dbUserId = await getUserIdByClerkId(clerkUserId);
@@ -142,14 +152,20 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
       logger.info("Socket not in room: %s", socketId);
     }
 
-    res.status(200).json({
-      success: true,
-      message: "End-call processed",
-      userMessage: toUserMessage("API_END_CALL_OK", { key: "api.endCallProcessed" }, "End-call processed"),
-    });
+    sendJsonWithUserMessage(
+      res,
+      200,
+      { success: true },
+      toUserMessage("API_END_CALL_OK", { key: "api.endCallProcessed" }, "End-call processed"),
+    );
   } catch (error) {
     logger.error(toLoggableError(error), "Error processing unload end-call");
-    res.status(500).json({ error: "Internal server error" });
+    sendJsonError(
+      res,
+      500,
+      "Internal server error",
+      um("END_CALL_INTERNAL", "internalServerError", "Internal server error"),
+    );
   }
 });
 

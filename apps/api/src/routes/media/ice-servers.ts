@@ -1,5 +1,7 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
 import { config } from "@/config/index.js";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { CloudflareTurnResponse } from "@/domains/video-chat/types/call.types.js";
@@ -12,13 +14,14 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
     const apiToken = config.cloudflareTurnApiToken;
     const keyId = config.cloudflareTurnKeyId;
 
-
     if (!apiToken || !keyId) {
       logger.error("Cloudflare TURN credentials not configured");
-      return res.status(500).json({
-        error: "ICE server configuration not available",
-        message: "Server configuration error",
-      });
+      return sendJsonError(
+        res,
+        500,
+        "ICE server configuration not available",
+        um("ICE_SERVER_CONFIG", "serverConfigError", "Server configuration error"),
+      );
     }
 
     const url = `https://rtc.live.cloudflare.com/v1/turn/keys/${keyId}/credentials/generate-ice-servers`;
@@ -42,10 +45,12 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
       if (!response.ok) {
         const errorText = await response.text();
         logger.error("Cloudflare TURN API error: %d, %s", response.status, errorText);
-        return res.status(response.status).json({
-          error: "Failed to fetch ICE servers",
-          message: "External API error",
-        });
+        return sendJsonError(
+          res,
+          response.status,
+          "Failed to fetch ICE servers",
+          um("EXTERNAL_API_ERROR", "externalApiError", "External API error"),
+        );
       }
 
       const data = (await response.json()) as CloudflareTurnResponse;
@@ -56,20 +61,24 @@ router.get("/ice-servers", async (_req: Request, res: Response) => {
 
       if (fetchError instanceof Error && fetchError.name === "AbortError") {
         logger.error(toLoggableError(fetchError), "ICE servers request timeout");
-        return res.status(504).json({
-          error: "Request timeout",
-          message: "ICE server request timed out",
-        });
+        return sendJsonError(
+          res,
+          504,
+          "Request timeout",
+          um("ICE_REQUEST_TIMEOUT", "iceRequestTimeout", "ICE server request timed out"),
+        );
       }
 
       throw fetchError;
     }
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Error fetching ICE servers");
-    res.status(500).json({
-      error: "Internal server error",
-      message: "Failed to fetch ICE servers",
-    });
+    sendJsonError(
+      res,
+      500,
+      "Internal server error",
+      um("FAILED_FETCH_ICE", "failedFetchIceServers", "Failed to fetch ICE servers"),
+    );
   }
 });
 

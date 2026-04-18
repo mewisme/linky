@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { UpdateUserCountryBody } from "@/domains/user/types/user.types.js";
@@ -19,10 +21,12 @@ router.get("/me", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const { user, error } = await fetchUserByClerkUserId(clerkUserId);
@@ -31,23 +35,29 @@ router.get("/me", async (req: Request, res: Response) => {
       logger.error(toLoggableError(error), "Error fetching user from database");
 
       if (error.code === "PGRST116") {
-        return res.status(404).json({
-          error: "Not Found",
-          message: "User not found in database",
-        });
+        return sendJsonError(
+          res,
+          404,
+          "Not Found",
+          um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+        );
       }
 
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "Failed to fetch user data",
-      });
+      return sendJsonError(
+        res,
+        500,
+        "Internal Server Error",
+        um("FAILED_FETCH_USER_DATA", "failedFetchUserData", "Failed to fetch user data"),
+      );
     }
 
     if (!user) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     if (!user.country) {
@@ -67,10 +77,12 @@ router.get("/me", async (req: Request, res: Response) => {
     return res.json(user);
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /users/me");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "An unexpected error occurred",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("UNEXPECTED_ERROR", "unexpectedError", "An unexpected error occurred"),
+    );
   }
 });
 
@@ -79,43 +91,53 @@ router.patch("/me/country", async (req: Request, res: Response) => {
     const { country, clerk_user_id } = req.body as UpdateUserCountryBody;
 
     if (!clerk_user_id) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     if (!country || typeof country !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Country is required and must be a string",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("COUNTRY_REQUIRED", "countryRequiredString", "Country is required and must be a string"),
+      );
     }
 
     const { user, error } = await updateUserCountryByClerkUserId(clerk_user_id, country);
 
     if (error) {
       logger.error(toLoggableError(error), "Error updating user country");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "Failed to update user country",
-      });
+      return sendJsonError(
+        res,
+        500,
+        "Internal Server Error",
+        um("FAILED_UPDATE_COUNTRY", "failedUpdateUserCountry", "Failed to update user country"),
+      );
     }
 
     if (!user) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     return res.json(user);
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in PATCH /users/me/country");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "An unexpected error occurred",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("UNEXPECTED_ERROR", "unexpectedError", "An unexpected error occurred"),
+    );
   }
 });
 
@@ -123,44 +145,54 @@ router.patch("/timezone", async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkUserId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const body = req.body as { timezone?: unknown };
     const tz = typeof body?.timezone === "string" ? body.timezone.trim() : "";
     if (!tz || !isValidTimezone(tz)) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "timezone must be a valid IANA timezone string",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("TIMEZONE_INVALID", "timezoneInvalidIana", "timezone must be a valid IANA timezone string"),
+      );
     }
 
     const result = await setTimezoneOnceForUser(userId, tz);
     if ("alreadySet" in result && result.alreadySet) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Timezone already set and cannot be changed",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("TIMEZONE_ALREADY_SET", "timezoneAlreadySet", "Timezone already set and cannot be changed"),
+      );
     }
 
     return res.status(200).json({ timezone: tz });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in PATCH /users/timezone");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "An unexpected error occurred",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("UNEXPECTED_ERROR", "unexpectedError", "An unexpected error occurred"),
+    );
   }
 });
 

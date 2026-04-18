@@ -1,6 +1,9 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um, umDetail } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 import {
   syncEmbeddingsForUsers,
   scheduleSyncAllEmbeddings,
@@ -17,19 +20,18 @@ router.post("/compare", async (req: Request, res: Response) => {
     const { user_id_a: userIdA, user_id_b: userIdB } = req.body;
 
     if (!userIdA || !userIdB) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "user_id_a and user_id_b are required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("EMB_USER_PAIR_REQUIRED", "userIdPairRequired", "user_id_a and user_id_b are required"),
+      );
     }
 
     const result = await compareUsers(String(userIdA).trim(), String(userIdB).trim());
 
     if (!result.ok) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: result.error,
-      });
+      return sendJsonError(res, 404, "Not Found", umDetail("EMB_COMPARE_NOT_FOUND", result.error));
     }
 
     return res.json({
@@ -40,10 +42,12 @@ router.post("/compare", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/compare");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to compare embeddings",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_COMPARE_EMB", "failedCompareEmbeddings", "Failed to compare embeddings"),
+    );
   }
 });
 
@@ -52,10 +56,12 @@ router.post("/similar", async (req: Request, res: Response) => {
     const { user_id: userId, limit: rawLimit, threshold: rawThreshold } = req.body;
 
     if (!userId) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "user_id is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("EMB_USER_ID_REQUIRED", "userIdRequired", "user_id is required"),
+      );
     }
 
     const limit = typeof rawLimit === "number" ? rawLimit : 10;
@@ -63,10 +69,7 @@ router.post("/similar", async (req: Request, res: Response) => {
     const result = await findSimilarUsers(String(userId).trim(), { limit, threshold });
 
     if (!result.ok) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: result.error,
-      });
+      return sendJsonError(res, 404, "Not Found", umDetail("EMB_SIMILAR_NOT_FOUND", result.error));
     }
 
     return res.json({
@@ -75,10 +78,12 @@ router.post("/similar", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/similar");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to find similar users",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FIND_SIMILAR", "failedFindSimilar", "Failed to find similar users"),
+    );
   }
 });
 
@@ -87,28 +92,34 @@ router.post("/sync", async (req: Request, res: Response) => {
     const { user_ids: rawUserIds } = req.body;
 
     if (!rawUserIds) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "user_ids is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("EMB_USER_IDS_REQUIRED", "userIdsRequired", "user_ids is required"),
+      );
     }
 
     const { valid, invalid } = validateUserIds(rawUserIds);
 
     if (valid.length === 0) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "user_ids must be a non-empty array of valid UUIDs",
-        invalid,
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("EMB_USER_IDS_INVALID", "userIdsNonEmptyUuids", "user_ids must be a non-empty array of valid UUIDs"),
+        { invalid },
+      );
     }
 
     if (invalid.length > 0) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid user_id format",
-        invalid,
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("EMB_INVALID_USER_ID", "invalidUserIdFormat", "Invalid user_id format"),
+        { invalid },
+      );
     }
 
     const result = await syncEmbeddingsForUsers(valid);
@@ -119,23 +130,31 @@ router.post("/sync", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/sync");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to sync embeddings",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_SYNC_EMB", "failedSyncEmbeddings", "Failed to sync embeddings"),
+    );
   }
 });
 
 router.post("/sync-all", async (req: Request, res: Response) => {
   try {
     scheduleSyncAllEmbeddings();
-    return res.json({ message: "Embedding sync job accepted" });
+    return res.json({
+      ...userFacingPayload(
+        toUserMessage("EMB_SYNC_ALL", { key: "api.embeddingSyncAccepted" }, "Embedding sync job accepted"),
+      ),
+    });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in POST /admin/embeddings/sync-all");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to schedule embedding sync",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_SCHEDULE_EMB", "failedScheduleEmbeddingSync", "Failed to schedule embedding sync"),
+    );
   }
 });
 

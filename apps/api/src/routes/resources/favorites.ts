@@ -10,6 +10,8 @@ import {
   getFavoritesWithStats,
 } from "@/infra/supabase/repositories/favorites.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError, sendJsonWithUserMessage } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
@@ -24,18 +26,22 @@ router.get("/", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const favorites = await getCachedData(
@@ -50,10 +56,12 @@ router.get("/", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in GET /favorites");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch favorites",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_FAVORITES", "failedFetchFavorites", "Failed to fetch favorites"),
+    );
   }
 });
 
@@ -63,50 +71,61 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
     const { favorite_user_id } = req.body;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     if (!favorite_user_id) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "favorite_user_id is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("FAVORITE_USER_ID_REQUIRED", "favoriteUserIdRequired", "favorite_user_id is required"),
+      );
     }
 
     if (userId === favorite_user_id) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Cannot favorite yourself",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("CANNOT_FAVORITE_SELF", "cannotFavoriteYourself", "Cannot favorite yourself"),
+      );
     }
 
     const limitCheck = await checkDailyLimitReached(userId);
     if (limitCheck.reached) {
-      return res.status(429).json({
-        error: "Too Many Requests",
-        message: "Daily favorite limit reached",
-        current: limitCheck.current,
-        limit: limitCheck.limit,
-      });
+      return sendJsonError(
+        res,
+        429,
+        "Too Many Requests",
+        um("DAILY_FAVORITE_LIMIT", "dailyFavoriteLimitReached", "Daily favorite limit reached"),
+        { current: limitCheck.current, limit: limitCheck.limit },
+      );
     }
 
     const exists = await checkFavoriteExists(userId, favorite_user_id);
     if (exists) {
-      return res.status(409).json({
-        error: "Conflict",
-        message: "User is already in favorites",
-      });
+      return sendJsonError(
+        res,
+        409,
+        "Conflict",
+        um("ALREADY_IN_FAVORITES", "alreadyInFavorites", "User is already in favorites"),
+      );
     }
 
     const favorite = await createFavorite(userId, favorite_user_id);
@@ -114,16 +133,20 @@ router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
 
     await invalidateCacheKey(CACHE_KEYS.userFavorites(userId));
 
-    return res.status(201).json({
-      data: favorite,
-      message: "User added to favorites",
-    });
+    return sendJsonWithUserMessage(
+      res,
+      201,
+      { data: favorite },
+      um("USER_ADDED_FAVORITES", "userAddedToFavorites", "User added to favorites"),
+    );
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in POST /favorites");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to add favorite",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_ADD_FAVORITE", "failedAddFavorite", "Failed to add favorite"),
+    );
   }
 });
 
@@ -133,33 +156,41 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
     const { favorite_user_id } = req.params as { favorite_user_id: string };
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     if (!favorite_user_id) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "favorite_user_id is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("FAVORITE_USER_ID_REQUIRED", "favoriteUserIdRequired", "favorite_user_id is required"),
+      );
     }
 
     const exists = await checkFavoriteExists(userId, favorite_user_id);
     if (!exists) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Favorite not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("FAVORITE_NOT_FOUND", "favoriteNotFound", "Favorite not found"),
+      );
     }
 
     const createdAt = await getFavoriteCreationDate(userId, favorite_user_id);
@@ -179,16 +210,20 @@ router.delete("/:favorite_user_id", rateLimitMiddleware, async (req: Request, re
 
     await invalidateCacheKey(CACHE_KEYS.userFavorites(userId));
 
-    return res.json({
-      message: "Favorite removed successfully",
-      refunded: isSameDay,
-    });
+    return sendJsonWithUserMessage(
+      res,
+      200,
+      { refunded: isSameDay },
+      um("FAVORITE_REMOVED", "favoriteRemovedSuccess", "Favorite removed successfully"),
+    );
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in DELETE /favorites/:favorite_user_id");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to remove favorite",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_REMOVE_FAVORITE", "failedRemoveFavorite", "Failed to remove favorite"),
+    );
   }
 });
 

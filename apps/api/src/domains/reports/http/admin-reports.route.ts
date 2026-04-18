@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um, umDetail } from "@/lib/api-user-message.js";
+import { sendJsonError, sendJsonWithUserMessage } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
@@ -43,10 +45,12 @@ router.get("/", async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /admin/reports");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch reports",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_REPORTS", "failedFetchReports", "Failed to fetch reports"),
+    );
   }
 });
 
@@ -55,29 +59,35 @@ router.get("/:id", async (req: Request, res: Response) => {
     const { id } = req.params as { id: string };
 
     if (!id) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Report ID is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("REPORT_ID_REQUIRED", "reportIdRequired", "Report ID is required"),
+      );
     }
 
     const reportWithContext = await fetchReportWithContext(id);
 
     if (!reportWithContext) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Report not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("REPORT_NOT_FOUND", "reportNotFound", "Report not found"),
+      );
     }
 
     const aiSummary = await getReportAiSummaryByReportId(id);
     return res.json({ ...reportWithContext, ai_summary: aiSummary });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /admin/reports/:id");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch report",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_ADMIN_REPORT", "failedFetchAdminReport", "Failed to fetch report"),
+    );
   }
 });
 
@@ -89,29 +99,44 @@ router.post(
       const { id } = req.params as { id: string };
 
       if (!id) {
-        return res.status(400).json({
-          error: "Bad Request",
-          message: "Report ID is required",
-        });
+        return sendJsonError(
+          res,
+          400,
+          "Bad Request",
+          um("REPORT_ID_REQUIRED", "reportIdRequired", "Report ID is required"),
+        );
       }
 
       const existing = await fetchReportById(id);
       if (!existing) {
-        return res.status(404).json({
-          error: "Not Found",
-          message: "Report not found",
-        });
+        return sendJsonError(
+          res,
+          404,
+          "Not Found",
+          um("REPORT_NOT_FOUND", "reportNotFound", "Report not found"),
+        );
       }
 
       enqueueReportAiSummaryJob({ reportId: id, force: true });
 
-      return res.status(202).json({ success: true });
+      return sendJsonWithUserMessage(
+        res,
+        202,
+        { success: true },
+        umDetail("REPORT_AI_SUMMARY_QUEUED", "Report AI summary generation queued"),
+      );
     } catch (error) {
       logger.error(toLoggableError(error), "Unexpected error in POST /admin/reports/:id/ai-summary:generate");
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "Failed to generate report AI summary",
-      });
+      return sendJsonError(
+        res,
+        500,
+        "Internal Server Error",
+        um(
+          "FAILED_GENERATE_REPORT_AI_SUMMARY",
+          "failedGenerateReportAiSummary",
+          "Failed to generate report AI summary",
+        ),
+      );
     }
   },
 );
@@ -121,37 +146,45 @@ router.patch("/:id", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const adminUserId = await getUserIdByClerkId(clerkUserId);
     if (!adminUserId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Admin user not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("ADMIN_USER_NOT_IN_DATABASE", "adminUserNotInDatabase", "Admin user not found in database"),
+      );
     }
 
     const { id } = req.params as { id: string };
 
     if (!id) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Report ID is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("REPORT_ID_REQUIRED", "reportIdRequired", "Report ID is required"),
+      );
     }
 
     const updateData: Partial<ReportUpdate> = req.body;
 
     const existing = await fetchReportById(id);
     if (!existing) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Report not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("REPORT_NOT_FOUND", "reportNotFound", "Report not found"),
+      );
     }
 
     const finalUpdateData: Partial<ReportUpdate> = {
@@ -171,16 +204,20 @@ router.patch("/:id", async (req: Request, res: Response) => {
     logger.error(toLoggableError(error), "Unexpected error in PATCH /admin/reports/:id");
 
     if (error instanceof Error && error.message.includes("violates check constraint")) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid status value",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("INVALID_REPORT_STATUS", "invalidReportStatus", "Invalid status value"),
+      );
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to update report",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_UPDATE_REPORT", "failedUpdateReport", "Failed to update report"),
+    );
   }
 });
 

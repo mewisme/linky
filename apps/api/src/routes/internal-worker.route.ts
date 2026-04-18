@@ -9,6 +9,8 @@ import {
   releaseGeneralJobIdempotency,
   tryReserveGeneralJobIdempotency,
 } from "@/infra/redis/worker-idempotency.js";
+import { um, umDetail } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 
@@ -28,10 +30,7 @@ export function createInternalWorkerRouter(): Router {
         { requestId, issues: parsed.error.issues },
         "internal ai-jobs validation failed",
       );
-      return res.status(400).json({
-        error: "Bad Request",
-        message: parsed.error.message,
-      });
+      return sendJsonError(res, 400, "Bad Request", umDetail("AI_JOBS_VALIDATION", parsed.error.message));
     }
 
     const idem = req.headers["idempotency-key"];
@@ -45,10 +44,12 @@ export function createInternalWorkerRouter(): Router {
       }
       if (outcome === "conflict") {
         logger.warn({ requestId, route: "ai-jobs" }, "internal ai-jobs idempotency conflict");
-        return res.status(409).json({
-          error: "Conflict",
-          message: "Idempotency-Key was used with a different body",
-        });
+        return sendJsonError(
+          res,
+          409,
+          "Conflict",
+          um("IDEMPOTENCY_CONFLICT", "idempotencyKeyBodyMismatch", "Idempotency-Key was used with a different body"),
+        );
       }
     }
 
@@ -77,10 +78,12 @@ export function createInternalWorkerRouter(): Router {
       if (idempotencyKey) {
         await releaseGeneralJobIdempotency(idempotencyKey);
       }
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "Job execution failed",
-      });
+      return sendJsonError(
+        res,
+        500,
+        "Internal Server Error",
+        um("JOB_EXECUTION_FAILED", "jobExecutionFailed", "Job execution failed"),
+      );
     }
   });
 
@@ -90,10 +93,12 @@ export function createInternalWorkerRouter(): Router {
     const idempotencyKey = typeof idem === "string" && idem.length > 0 ? idem : null;
     if (!idempotencyKey) {
       logger.warn({ requestId }, "internal general-jobs missing Idempotency-Key");
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Idempotency-Key header is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("IDEMPOTENCY_KEY_REQUIRED", "idempotencyKeyRequired", "Idempotency-Key header is required"),
+      );
     }
 
     const parsed = jobsJobEnvelopeSchema.safeParse(req.body);
@@ -102,10 +107,7 @@ export function createInternalWorkerRouter(): Router {
         { requestId, issues: parsed.error.issues },
         "internal general-jobs validation failed",
       );
-      return res.status(400).json({
-        error: "Bad Request",
-        message: parsed.error.message,
-      });
+      return sendJsonError(res, 400, "Bad Request", umDetail("GENERAL_JOBS_VALIDATION", parsed.error.message));
     }
 
     const bodyHash = sha256Hex(JSON.stringify(parsed.data));
@@ -116,10 +118,12 @@ export function createInternalWorkerRouter(): Router {
     }
     if (outcome === "conflict") {
       logger.warn({ requestId, route: "general-jobs" }, "internal general-jobs idempotency conflict");
-      return res.status(409).json({
-        error: "Conflict",
-        message: "Idempotency-Key was used with a different body",
-      });
+      return sendJsonError(
+        res,
+        409,
+        "Conflict",
+        um("IDEMPOTENCY_CONFLICT_G", "idempotencyKeyBodyMismatch", "Idempotency-Key was used with a different body"),
+      );
     }
 
     const envelope = parsed.data;
@@ -131,10 +135,12 @@ export function createInternalWorkerRouter(): Router {
     } catch (error: unknown) {
       logger.error(toLoggableError(error), "internal general-jobs execution failed");
       await releaseGeneralJobIdempotency(idempotencyKey);
-      return res.status(500).json({
-        error: "Internal Server Error",
-        message: "Job execution failed",
-      });
+      return sendJsonError(
+        res,
+        500,
+        "Internal Server Error",
+        um("JOB_EXECUTION_FAILED_G", "jobExecutionFailed", "Job execution failed"),
+      );
     }
   });
 

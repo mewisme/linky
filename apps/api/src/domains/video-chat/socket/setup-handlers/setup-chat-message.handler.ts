@@ -23,7 +23,20 @@ import {
   attachmentRateState,
   checkRateLimit,
 } from "../helpers/rate-limit.helper.js";
-import { toUserMessage } from "@/types/user-message.js";
+import type { BackendUserMessage } from "@ws/shared-types";
+import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
+
+function ackWithUserMessage(
+  acknowledge: ((response: {
+    ok: boolean;
+    error?: string;
+    userMessage?: BackendUserMessage;
+  }) => void) | undefined,
+  userMessage: BackendUserMessage,
+): void {
+  const { message, userMessage: umPayload } = userFacingPayload(userMessage);
+  acknowledge?.({ ok: false, error: message, userMessage: umPayload });
+}
 
 export function setupChatMessageHandler(
   socket: AuthenticatedSocket,
@@ -32,14 +45,21 @@ export function setupChatMessageHandler(
 ): void {
   const handleChatSend = async (
     data: ChatMessageInputPayload,
-    acknowledge?: (response: { ok: boolean; error?: string }) => void,
+    acknowledge?: (response: {
+      ok: boolean;
+      error?: string;
+      userMessage?: BackendUserMessage;
+    }) => void,
   ) => {
     if (!checkRateLimit(messageRateState, socket, messageRateLimit)) {
       emitChatError(
         socket,
         toUserMessage("CHAT_RATE_LIMIT", { key: "chat.rateLimitExceeded" }, "Message rate limit exceeded."),
       );
-      acknowledge?.({ ok: false, error: "Message rate limit exceeded." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_RATE_LIMIT", { key: "chat.rateLimitExceeded" }, "Message rate limit exceeded."),
+      );
       return;
     }
 
@@ -49,19 +69,28 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_NOT_IN_ROOM", { key: "chat.notInRoom" }, "Not in a room. Cannot send chat message."),
       );
-      acknowledge?.({ ok: false, error: "Not in a room." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_NOT_IN_ROOM", { key: "chat.notInRoom" }, "Not in a room. Cannot send chat message."),
+      );
       return;
     }
 
     const peerId = rooms.getPeer(socket.id);
     if (!peerId) {
-      acknowledge?.({ ok: false, error: "Peer not found." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_PEER_NOT_FOUND", { key: "chat.peerNotFound" }, "Peer not found."),
+      );
       return;
     }
 
     const peerSocket = io.sockets.get(peerId);
     if (!peerSocket || !peerSocket.connected) {
-      acknowledge?.({ ok: false, error: "Peer disconnected." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_PEER_DISCONNECTED", { key: "chat.peerDisconnected" }, "Peer disconnected."),
+      );
       return;
     }
 
@@ -70,7 +99,10 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_INVALID", { key: "chat.invalidMessage" }, "Invalid chat message."),
       );
-      acknowledge?.({ ok: false, error: "Invalid chat message." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_INVALID", { key: "chat.invalidMessage" }, "Invalid chat message."),
+      );
       return;
     }
 
@@ -79,7 +111,10 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_INVALID_ID", { key: "chat.invalidMessageId" }, "Invalid chat message id."),
       );
-      acknowledge?.({ ok: false, error: "Invalid chat message id." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_INVALID_ID", { key: "chat.invalidMessageId" }, "Invalid chat message id."),
+      );
       return;
     }
 
@@ -90,7 +125,10 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_ATTACHMENT_TOO_LARGE", { key: "chat.attachmentTooLarge" }, "Attachment exceeds size limit."),
       );
-      acknowledge?.({ ok: false, error: "Attachment exceeds size limit." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_ATTACHMENT_TOO_LARGE", { key: "chat.attachmentTooLarge" }, "Attachment exceeds size limit."),
+      );
       return;
     }
 
@@ -99,7 +137,14 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_ATTACHMENT_RATE_LIMIT", { key: "chat.attachmentRateLimitExceeded" }, "Attachment rate limit exceeded."),
       );
-      acknowledge?.({ ok: false, error: "Attachment rate limit exceeded." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage(
+          "CHAT_ATTACHMENT_RATE_LIMIT",
+          { key: "chat.attachmentRateLimitExceeded" },
+          "Attachment rate limit exceeded.",
+        ),
+      );
       return;
     }
 
@@ -108,7 +153,10 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_MESSAGE_EMPTY", { key: "chat.emptyMessage" }, "Message cannot be empty."),
       );
-      acknowledge?.({ ok: false, error: "Message cannot be empty." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_MESSAGE_EMPTY", { key: "chat.emptyMessage" }, "Message cannot be empty."),
+      );
       return;
     }
 
@@ -117,7 +165,10 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_ATTACHMENT_MISSING", { key: "chat.attachmentMissing" }, "Attachment data missing."),
       );
-      acknowledge?.({ ok: false, error: "Attachment data missing." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_ATTACHMENT_MISSING", { key: "chat.attachmentMissing" }, "Attachment data missing."),
+      );
       return;
     }
 
@@ -126,7 +177,10 @@ export function setupChatMessageHandler(
         socket,
         toUserMessage("CHAT_MEDIA_MISSING", { key: "chat.mediaMissing" }, "Media reference missing."),
       );
-      acknowledge?.({ ok: false, error: "Media reference missing." });
+      ackWithUserMessage(
+        acknowledge,
+        toUserMessage("CHAT_MEDIA_MISSING", { key: "chat.mediaMissing" }, "Media reference missing."),
+      );
       return;
     }
 

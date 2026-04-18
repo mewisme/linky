@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getInterestTags, getInterestTagById } from "@/infra/supabase/repositories/interest-tags.js";
@@ -52,10 +54,12 @@ router.get("/", async (req: Request, res: Response) => {
     });
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Unexpected error in GET /interest-tags");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch interest tags",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_INTEREST_TAGS", "failedFetchInterestTags", "Failed to fetch interest tags"),
+    );
   }
 });
 
@@ -64,10 +68,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     const { id } = req.params;
 
     if (!id || typeof id !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid tag ID",
-      });
+      return sendJsonError(res, 400, "Bad Request", um("INVALID_TAG_ID", "invalidTagId", "Invalid tag ID"));
     }
 
     const tag = await getCachedData(
@@ -85,17 +86,21 @@ router.get("/:id", async (req: Request, res: Response) => {
     return res.json(tag);
   } catch (error: unknown) {
     if (error instanceof Error && error.message === "Interest tag not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "Interest tag not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("INTEREST_TAG_NOT_FOUND", "interestTagNotFound", "Interest tag not found"),
+      );
     }
 
     logger.error(toLoggableError(error), "Unexpected error in GET /interest-tags/:id");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch interest tag",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_INTEREST_TAG", "failedFetchInterestTag", "Failed to fetch interest tag"),
+    );
   }
 });
 

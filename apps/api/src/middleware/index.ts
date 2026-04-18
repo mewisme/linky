@@ -8,6 +8,8 @@ import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { clientIpMiddleware } from "./client-ip.js";
 import { requestIdMiddleware } from "./request-id.js";
+import { um, umDetail } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { jsonBodySizeLimitMiddleware } from "./json-body-size-limit.js";
 
 const logger = createLogger("middleware");
@@ -69,7 +71,7 @@ export function setupMiddleware(app: Express): void {
 
 export function setupErrorHandlers(app: Express): void {
   app.use((_req: Request, res: Response) => {
-    res.status(404).json({ error: "Route not found" });
+    sendJsonError(res, 404, "Route not found", um("ROUTE_NOT_FOUND", "routeNotFound", "Route not found"));
   });
 
   setupExpressErrorHandler(app);
@@ -80,6 +82,6 @@ export function setupErrorHandlers(app: Express): void {
     if (logErr.stack) {
       logger.trace(logErr, "Stack trace");
     }
-    res.status(500).json({ error: "An unexpected error occurred", message: logErr.message });
+    sendJsonError(res, 500, "An unexpected error occurred", umDetail("UNEXPECTED_SERVER", logErr.message));
   });
 }

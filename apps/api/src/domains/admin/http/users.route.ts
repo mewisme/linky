@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um, umDetail } from "@/lib/api-user-message.js";
+import { sendJsonError, sendJsonWithUserMessage } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { AdminUserUpdate } from "@/domains/admin/types/admin.types.js";
@@ -68,10 +70,12 @@ router.get("/", async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /admin/users");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch users",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_USERS", "failedFetchUsers", "Failed to fetch users"),
+    );
   }
 });
 
@@ -80,19 +84,27 @@ router.patch("/batch", async (req: Request, res: Response) => {
     const body = req.body as { ids?: string[]; deleted?: boolean; deleted_at?: string | null };
     const ids = body?.ids;
     if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "ids must be a non-empty array",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("IDS_NON_EMPTY_ARRAY", "idsNonEmptyArray", "ids must be a non-empty array"),
+      );
     }
     const userData: Partial<AdminUserUpdate> = {};
     if (typeof body.deleted === "boolean") userData.deleted = body.deleted;
     if (body.deleted_at !== undefined) userData.deleted_at = body.deleted_at;
     if (Object.keys(userData).length === 0) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "At least one of deleted or deleted_at must be provided",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um(
+          "DELETED_OR_DELETED_AT_REQUIRED",
+          "deletedOrDeletedAtRequired",
+          "At least one of deleted or deleted_at must be provided",
+        ),
+      );
     }
 
     const users = await patchAdminUsers(ids, userData);
@@ -103,15 +115,14 @@ router.patch("/batch", async (req: Request, res: Response) => {
     if (
       err.message === "Cannot assign superadmin role via API"
     ) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: err.message,
-      });
+      return sendJsonError(res, 403, "Forbidden", umDetail("FORBIDDEN", err.message));
     }
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to batch update users",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_BATCH_UPDATE_USERS", "failedBatchUpdateUsers", "Failed to batch update users"),
+    );
   }
 });
 
@@ -120,39 +131,47 @@ router.delete("/batch", requireSuperAdmin, async (req: Request, res: Response) =
     const body = req.body as { ids?: string[] };
     const ids = body?.ids;
     if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "ids must be a non-empty array",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("IDS_NON_EMPTY_ARRAY", "idsNonEmptyArray", "ids must be a non-empty array"),
+      );
     }
 
     await hardDeleteUsers(ids);
-    return res.json({ success: true, message: "Users deleted successfully" });
+    return sendJsonWithUserMessage(
+      res,
+      200,
+      { success: true },
+      um("USERS_DELETED_SUCCESS", "usersDeletedSuccess", "Users deleted successfully"),
+    );
   } catch (error: unknown) {
     const err = toLoggableError(error);
     logger.error(err, "Unexpected error in DELETE /admin/users/batch");
 
     if (err.message === "User not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: err.message,
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
     if (
       err.message === "Superadmin users cannot be deleted" ||
       err.message === "Cannot hard delete yourself" ||
       err.message === "Admin users cannot be deleted"
     ) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: err.message,
-      });
+      return sendJsonError(res, 403, "Forbidden", umDetail("FORBIDDEN", err.message));
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to batch delete users",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_BATCH_DELETE_USERS", "failedBatchDeleteUsers", "Failed to batch delete users"),
+    );
   }
 });
 
@@ -160,19 +179,18 @@ router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!id || typeof id !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid user ID",
-      });
+      return sendJsonError(res, 400, "Bad Request", um("INVALID_USER_ID", "invalidUserId", "Invalid user ID"));
     }
 
     const user = await getUser(id);
 
     if (!user) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
 
     let presence = "offline";
@@ -191,16 +209,20 @@ router.get("/:id", async (req: Request, res: Response) => {
     logger.error(toLoggableError(error), "Unexpected error in GET /admin/users/:id");
 
     if (error.code === "PGRST116") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch user",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_ADMIN_USER", "failedFetchAdminUser", "Failed to fetch user"),
+    );
   }
 });
 
@@ -208,19 +230,18 @@ router.put("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!id || typeof id !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid user ID",
-      });
+      return sendJsonError(res, 400, "Bad Request", um("INVALID_USER_ID", "invalidUserId", "Invalid user ID"));
     }
     const userData: AdminUserUpdate = req.body;
 
     const target = await getUser(id);
     if (!target) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
     assertTargetNotSuperadmin((target as { role: string }).role);
     assertCannotAssignSuperadmin(userData.role);
@@ -233,28 +254,26 @@ router.put("/:id", async (req: Request, res: Response) => {
     logger.error(err, "Unexpected error in PUT /admin/users/:id");
 
     if (err.message === "User not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: err.message,
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
     if (err.message === "Superadmin users cannot be modified" || err.message === "Cannot assign superadmin role via API") {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: err.message,
-      });
+      return sendJsonError(res, 403, "Forbidden", umDetail("FORBIDDEN", err.message));
     }
     if (err.message === "User with this clerk_user_id already exists") {
-      return res.status(409).json({
-        error: "Conflict",
-        message: err.message,
-      });
+      return sendJsonError(res, 409, "Conflict", umDetail("CONFLICT", err.message));
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to update user",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_UPDATE_ADMIN_USER", "failedUpdateAdminUser", "Failed to update user"),
+    );
   }
 });
 
@@ -262,10 +281,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!id || typeof id !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid user ID",
-      });
+      return sendJsonError(res, 400, "Bad Request", um("INVALID_USER_ID", "invalidUserId", "Invalid user ID"));
     }
     const userData: Partial<AdminUserUpdate> = { ...req.body };
     if (userData.deleted === true && userData.deleted_at == null) {
@@ -274,10 +290,12 @@ router.patch("/:id", async (req: Request, res: Response) => {
 
     const target = await getUser(id);
     if (!target) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
     const targetRole = (target as { role: string }).role;
     assertTargetNotSuperadmin(targetRole);
@@ -294,32 +312,30 @@ router.patch("/:id", async (req: Request, res: Response) => {
     logger.error(err, "Unexpected error in PATCH /admin/users/:id");
 
     if (err.message === "User not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: err.message,
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
     if (
       err.message === "Superadmin users cannot be modified" ||
       err.message === "Cannot assign superadmin role via API" ||
       err.message === "Superadmin users cannot be soft deleted"
     ) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: err.message,
-      });
+      return sendJsonError(res, 403, "Forbidden", umDetail("FORBIDDEN", err.message));
     }
     if (err.message === "User with this clerk_user_id already exists") {
-      return res.status(409).json({
-        error: "Conflict",
-        message: err.message,
-      });
+      return sendJsonError(res, 409, "Conflict", umDetail("CONFLICT", err.message));
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to update user",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_UPDATE_ADMIN_USER", "failedUpdateAdminUser", "Failed to update user"),
+    );
   }
 });
 
@@ -327,29 +343,35 @@ router.delete("/:id", requireSuperAdmin, async (req: Request, res: Response) => 
   try {
     const { id } = req.params;
     if (!id || typeof id !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Invalid user ID",
-      });
+      return sendJsonError(res, 400, "Bad Request", um("INVALID_USER_ID", "invalidUserId", "Invalid user ID"));
     }
 
     const target = await getUser(id);
     if (!target) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
     const clerkUserId = req.auth?.sub;
     if (!clerkUserId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
     const actingUser = await getUserByClerkId(clerkUserId);
     if (!actingUser) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: "Acting user not found",
-      });
+      return sendJsonError(
+        res,
+        403,
+        "Forbidden",
+        um("ACTING_USER_NOT_FOUND", "actingUserNotFound", "Acting user not found"),
+      );
     }
     const targetRole = (target as { role: string }).role;
     const targetId = (target as { id: string }).id;
@@ -357,32 +379,38 @@ router.delete("/:id", requireSuperAdmin, async (req: Request, res: Response) => 
 
     await hardDeleteUser(id);
 
-    return res.json({ success: true, message: "User deleted successfully" });
+    return sendJsonWithUserMessage(
+      res,
+      200,
+      { success: true },
+      um("USER_DELETED_SUCCESS", "userDeletedSuccess", "User deleted successfully"),
+    );
   } catch (error: unknown) {
     const err = toLoggableError(error);
     logger.error(err, "Unexpected error in DELETE /admin/users/:id");
 
     if (err.message === "User not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: err.message,
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_FOUND_SHORT", "userNotFoundShort", "User not found"),
+      );
     }
     if (
       err.message === "Superadmin users cannot be deleted" ||
       err.message === "Cannot hard delete yourself" ||
       err.message === "Admin users cannot be deleted"
     ) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: err.message,
-      });
+      return sendJsonError(res, 403, "Forbidden", umDetail("FORBIDDEN", err.message));
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to delete user",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_DELETE_ADMIN_USER", "failedDeleteAdminUser", "Failed to delete user"),
+    );
   }
 })
 

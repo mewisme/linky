@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import {
@@ -17,18 +19,22 @@ router.get("/me", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const limit = parseInt(req.query.limit as string) || 20;
@@ -40,10 +46,12 @@ router.get("/me", async (req: Request, res: Response) => {
     return res.json({ notifications });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /notifications/me");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch notifications",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_NOTIFICATIONS", "failedFetchNotifications", "Failed to fetch notifications"),
+    );
   }
 });
 
@@ -52,18 +60,22 @@ router.get("/me/unread-count", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const count = await getUnreadCount(userId);
@@ -71,10 +83,12 @@ router.get("/me/unread-count", async (req: Request, res: Response) => {
     return res.json({ count });
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /notifications/me/unread-count");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch unread count",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_UNREAD", "failedFetchUnreadCount", "Failed to fetch unread count"),
+    );
   }
 });
 
@@ -83,27 +97,33 @@ router.patch("/:id/read", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const notificationId = req.params.id;
 
     if (!notificationId || typeof notificationId !== "string") {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Notification ID is required",
-      });
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("NOTIFICATION_ID_REQUIRED", "notificationIdRequired", "Notification ID is required"),
+      );
     }
 
     await markRead(notificationId, userId);
@@ -111,10 +131,12 @@ router.patch("/:id/read", async (req: Request, res: Response) => {
     return res.status(204).send();
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in PATCH /notifications/:id/read");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to mark notification as read",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_MARK_READ", "failedMarkNotificationRead", "Failed to mark notification as read"),
+    );
   }
 });
 
@@ -123,18 +145,22 @@ router.patch("/read-all", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     await markAllRead(userId);
@@ -142,10 +168,12 @@ router.patch("/read-all", async (req: Request, res: Response) => {
     return res.status(204).send();
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in PATCH /notifications/read-all");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to mark all notifications as read",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_MARK_ALL_READ", "failedMarkAllRead", "Failed to mark all notifications as read"),
+    );
   }
 });
 

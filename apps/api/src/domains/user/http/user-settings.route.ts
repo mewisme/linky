@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um, umDetail } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { UserSettingsUpdate } from "@/domains/user/types/user-settings.types.js";
@@ -19,18 +21,22 @@ router.get("/me", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkUserId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const userSettings = await getCachedData(
@@ -48,17 +54,21 @@ router.get("/me", async (req: Request, res: Response) => {
     return res.json(userSettings);
   } catch (error) {
     if (error instanceof Error && error.message === "User settings not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User settings not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_SETTINGS_NOT_FOUND", "userSettingsNotFound", "User settings not found"),
+      );
     }
 
     logger.error(toLoggableError(error), "Unexpected error in GET /user-settings/me");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch user settings",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_SETTINGS", "failedFetchUserSettings", "Failed to fetch user settings"),
+    );
   }
 });
 
@@ -67,18 +77,22 @@ router.put("/me", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkUserId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const userData: UserSettingsUpdate = req.body;
@@ -87,7 +101,6 @@ router.put("/me", async (req: Request, res: Response) => {
 
     const result = await putUserSettings(userId, updateData);
 
-    // Invalidate cache after successful database update
     await invalidateCacheKey(CACHE_KEYS.userSettings(userId));
 
     logger.info("User settings updated for user: %s", userId);
@@ -97,16 +110,16 @@ router.put("/me", async (req: Request, res: Response) => {
     logger.error(toLoggableError(error), "Unexpected error in PUT /user-settings/me");
 
     if (error instanceof Error && error.message === "User settings not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+      const msg = error instanceof Error ? error.message : "Unknown error";
+      return sendJsonError(res, 404, "Not Found", umDetail("SETTINGS_NOT_FOUND", msg));
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to update user settings",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_UPDATE_SETTINGS", "failedUpdateUserSettings", "Failed to update user settings"),
+    );
   }
 });
 
@@ -115,18 +128,22 @@ router.patch("/me", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkUserId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const userData: Partial<UserSettingsUpdate> = req.body;
@@ -135,7 +152,6 @@ router.patch("/me", async (req: Request, res: Response) => {
 
     await patchUserSettingsForUser(userId, updateData);
 
-    // Invalidate cache after successful database update
     await invalidateCacheKey(CACHE_KEYS.userSettings(userId));
 
     const userSettings = await fetchUserSettings(userId);
@@ -145,18 +161,17 @@ router.patch("/me", async (req: Request, res: Response) => {
     logger.error(toLoggableError(error), "Unexpected error in PATCH /user-settings/me");
 
     if (error instanceof Error && error.message === "User settings not found") {
-      return res.status(404).json({
-        error: "Not Found",
-        message: error instanceof Error ? error.message : "Unknown error",
-      });
+      const msg = error instanceof Error ? error.message : "Unknown error";
+      return sendJsonError(res, 404, "Not Found", umDetail("SETTINGS_NOT_FOUND_PATCH", msg));
     }
 
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to update user settings",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_UPDATE_SETTINGS_PATCH", "failedUpdateUserSettings", "Failed to update user settings"),
+    );
   }
 });
 
 export default router;
-

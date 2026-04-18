@@ -1,6 +1,8 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { redisClient } from "@/infra/redis/client.js";
 import { config } from "@/config/index.js";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
@@ -41,10 +43,12 @@ export function createRateLimitMiddleware(options?: {
 
       if (current > maxRequests) {
         logger.warn("Rate limit exceeded for identifier: %s (count: %d)", identifier, current);
-        res.status(429).json({
-          error: "Too Many Requests",
-          message: "Rate limit exceeded. Please try again later.",
-        });
+        sendJsonError(
+          res,
+          429,
+          "Too Many Requests",
+          um("RATE_LIMIT", "rateLimitExceeded", "Rate limit exceeded. Please try again later."),
+        );
         return;
       }
 

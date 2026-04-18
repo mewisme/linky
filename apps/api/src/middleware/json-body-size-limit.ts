@@ -1,5 +1,7 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { config } from "@/config/index.js";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 
 const logger = createLogger("middleware:json-body-size-limit");
@@ -23,10 +25,9 @@ export function jsonBodySizeLimitMiddleware(req: Request, res: Response, next: N
 
   if (requestSizeBytes > sizeLimitBytes) {
     logger.warn("Request body too large: %d bytes (limit: %d bytes)", requestSizeBytes, sizeLimitBytes);
-    res.status(413).json({
-      error: "Payload Too Large",
-      message: `Request body exceeds size limit of ${config.jsonBodySizeLimit}`,
-    });
+    const limit = config.jsonBodySizeLimit;
+    const fallback = `Request body exceeds size limit of ${limit}`;
+    sendJsonError(res, 413, "Payload Too Large", um("PAYLOAD_TOO_LARGE", "payloadTooLarge", fallback, { limit }));
     return;
   }
 

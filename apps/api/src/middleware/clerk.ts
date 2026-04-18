@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 
 import { config } from "@/config/index.js";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { verifyToken } from "@clerk/backend";
@@ -11,7 +13,7 @@ export async function clerkMiddleware(req: Request, res: Response, next: NextFun
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       logger.warn("No authorization header provided");
-      return res.status(401).json({ error: "Unauthorized" });
+      return sendJsonError(res, 401, "Unauthorized", um("UNAUTHORIZED", "unauthorized", "Unauthorized"));
     }
     const token = authHeader.replace("Bearer ", "");
     const payload = await verifyToken(token, {
@@ -23,6 +25,6 @@ export async function clerkMiddleware(req: Request, res: Response, next: NextFun
     next();
   } catch (error: unknown) {
     logger.error(toLoggableError(error), "Clerk token verification error");
-    return res.status(401).json({ error: "Unauthorized" });
+    return sendJsonError(res, 401, "Unauthorized", um("UNAUTHORIZED", "unauthorized", "Unauthorized"));
   }
 }

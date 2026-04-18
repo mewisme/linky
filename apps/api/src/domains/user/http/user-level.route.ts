@@ -1,4 +1,6 @@
 import { Router, type Request, type Response, type Router as ExpressRouter } from "express";
+import { um } from "@/lib/api-user-message.js";
+import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getUserLevelData } from "@/domains/user/service/user-level.service.js";
@@ -12,36 +14,44 @@ router.get("/me", async (req: Request, res: Response) => {
     const clerkUserId = req.auth?.sub;
 
     if (!clerkUserId) {
-      return res.status(401).json({
-        error: "Unauthorized",
-        message: "User ID not found in authentication token",
-      });
+      return sendJsonError(
+        res,
+        401,
+        "Unauthorized",
+        um("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"),
+      );
     }
 
     const userId = await getUserIdByClerkUserId(clerkUserId);
     if (!userId) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User not found in database",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"),
+      );
     }
 
     const userLevel = await getUserLevelData(userId);
 
     if (!userLevel) {
-      return res.status(404).json({
-        error: "Not Found",
-        message: "User level data not found",
-      });
+      return sendJsonError(
+        res,
+        404,
+        "Not Found",
+        um("USER_LEVEL_NOT_FOUND", "userLevelNotFound", "User level data not found"),
+      );
     }
 
     return res.json(userLevel);
   } catch (error) {
     logger.error(toLoggableError(error), "Unexpected error in GET /user-level/me");
-    return res.status(500).json({
-      error: "Internal Server Error",
-      message: "Failed to fetch user level",
-    });
+    return sendJsonError(
+      res,
+      500,
+      "Internal Server Error",
+      um("FAILED_FETCH_LEVEL", "failedFetchUserLevel", "Failed to fetch user level"),
+    );
   }
 });
 

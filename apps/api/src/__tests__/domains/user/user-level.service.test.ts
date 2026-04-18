@@ -11,10 +11,6 @@ const mockGetUserStreak = vi.fn();
 const mockGetStreakExpBonusForStreak = vi.fn();
 const mockGrantRewardsForLevel = vi.fn();
 const mockGrantFreezesForLevel = vi.fn();
-const mockInvalidate = vi.fn();
-const mockInvalidateByPrefix = vi.fn();
-const mockIncrExpToday = vi.fn();
-const mockIncrementUserExpDaily = vi.fn();
 const mockIncrementDailyExpWithMilestones = vi.fn();
 
 vi.mock("../../../infra/supabase/repositories/user-levels.js", () => ({
@@ -38,17 +34,7 @@ vi.mock("../../../domains/user/service/user-streak-freeze.service.js", () => ({
   grantFreezesForLevel: (...args: unknown[]) => mockGrantFreezesForLevel(...args),
 }));
 
-vi.mock("../../../infra/redis/cache/index.js", () => ({
-  invalidate: (...args: unknown[]) => mockInvalidate(...args),
-  invalidateByPrefix: (...args: unknown[]) => mockInvalidateByPrefix(...args),
-}));
-
-vi.mock("../../../infra/redis/cache/exp-today.js", () => ({
-  incrExpToday: (...args: unknown[]) => mockIncrExpToday(...args),
-}));
-
 vi.mock("../../../infra/supabase/repositories/user-exp-daily.js", () => ({
-  incrementUserExpDaily: (...args: unknown[]) => mockIncrementUserExpDaily(...args),
   incrementDailyExpWithMilestones: (...args: unknown[]) => mockIncrementDailyExpWithMilestones(...args),
 }));
 
@@ -59,22 +45,15 @@ beforeEach(() => {
     .mockResolvedValue({ total_exp_seconds: 100 });
   mockGetUserStreak.mockResolvedValue(null);
   mockGetStreakExpBonusForStreak.mockResolvedValue(null);
-  mockInvalidate.mockResolvedValue(undefined);
-  mockInvalidateByPrefix.mockResolvedValue(undefined);
-  mockIncrExpToday.mockResolvedValue(undefined);
-  mockIncrementUserExpDaily.mockResolvedValue(undefined);
   mockIncrementDailyExpWithMilestones.mockResolvedValue(undefined);
 });
 
 describe("addCallExp", () => {
-  it("returns early when durationSeconds <= 0: no incrementUserExp, incrExpToday, incrementDailyExpWithMilestones, invalidate", async () => {
+  it("returns early when durationSeconds <= 0: no incrementUserExp or incrementDailyExpWithMilestones", async () => {
     await addCallExp("u1", 0);
     await addCallExp("u1", -1);
     expect(mockIncrementUserExp).not.toHaveBeenCalled();
-    expect(mockIncrExpToday).not.toHaveBeenCalled();
     expect(mockIncrementDailyExpWithMilestones).not.toHaveBeenCalled();
-    expect(mockInvalidate).not.toHaveBeenCalled();
-    expect(mockInvalidateByPrefix).not.toHaveBeenCalled();
   });
 
   it("returns early when userId is invalid", async () => {
@@ -88,29 +67,16 @@ describe("addCallExp", () => {
     expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 120);
   });
 
-  it("when dateForExpToday provided, calls incrementUserExp, incrementDailyExpWithMilestones and incrExpToday", async () => {
+  it("when dateForExpToday provided, calls incrementUserExp and incrementDailyExpWithMilestones", async () => {
     await addCallExp("u1", 100, { dateForExpToday: "2024-06-15" });
     expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 100);
     expect(mockIncrementDailyExpWithMilestones).toHaveBeenCalledWith("u1", "2024-06-15", 100);
-    expect(mockIncrExpToday).toHaveBeenCalledWith("u1", "2024-06-15", 100);
   });
 
   it("when dateForExpToday not provided, calls only incrementUserExp", async () => {
     await addCallExp("u1", 100);
     expect(mockIncrementUserExp).toHaveBeenCalledWith("u1", 100);
     expect(mockIncrementDailyExpWithMilestones).not.toHaveBeenCalled();
-    expect(mockIncrExpToday).not.toHaveBeenCalled();
-  });
-
-  it("when timezone provided, calls invalidateByPrefix and invalidate with userProgress key", async () => {
-    await addCallExp("u1", 100, { timezone: "Europe/Paris" });
-    expect(mockInvalidateByPrefix).toHaveBeenCalledWith("user:progress:u1:");
-    expect(mockInvalidate).toHaveBeenCalledWith("user:progress:u1:Europe/Paris");
-  });
-
-  it("always calls invalidateByPrefix when adding exp", async () => {
-    await addCallExp("u1", 100);
-    expect(mockInvalidateByPrefix).toHaveBeenCalledWith("user:progress:u1:");
   });
 
   it("streak bonus: getStreakExpBonusForStreak returns bonus -> expToAdd = floor(duration * multiplier)", async () => {

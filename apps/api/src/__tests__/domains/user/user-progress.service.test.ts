@@ -5,7 +5,6 @@ import { getUserProgressInsights } from "../../../domains/user/service/user-prog
 const mockGetUserLevelData = vi.fn();
 const mockGetUserStreakData = vi.fn();
 const mockGetUserStreakHistory = vi.fn();
-const mockGetExpToday = vi.fn();
 const mockGetUserExpDaily = vi.fn();
 const mockGetCallDurationsForUserOnLocalDate = vi.fn();
 
@@ -16,10 +15,6 @@ vi.mock("../../../domains/user/service/user-level.service.js", () => ({
 vi.mock("../../../domains/user/service/user-streak.service.js", () => ({
   getUserStreakData: (...args: unknown[]) => mockGetUserStreakData(...args),
   getUserStreakHistory: (...args: unknown[]) => mockGetUserStreakHistory(...args),
-}));
-
-vi.mock("../../../infra/redis/cache/exp-today.js", () => ({
-  getExpToday: (...args: unknown[]) => mockGetExpToday(...args),
 }));
 
 vi.mock("../../../infra/supabase/repositories/user-exp-daily.js", () => ({
@@ -44,7 +39,6 @@ beforeEach(() => {
     lastContinuationUsedFreeze: false,
   });
   mockGetUserStreakHistory.mockResolvedValue({ data: [], count: 0 });
-  mockGetExpToday.mockResolvedValue(0);
   mockGetUserExpDaily.mockResolvedValue(0);
   mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(0);
 });
@@ -75,7 +69,7 @@ describe("getUserProgressInsights", () => {
       data: [{ date: "2024-06-15", isValid: true, totalCallSeconds: 400 }],
       count: 1,
     });
-    mockGetExpToday.mockResolvedValue(100);
+    mockGetUserExpDaily.mockResolvedValue(100);
 
     const r = await getUserProgressInsights("u1", "UTC");
 

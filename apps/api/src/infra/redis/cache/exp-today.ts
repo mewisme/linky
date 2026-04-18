@@ -17,6 +17,7 @@ export async function incrExpToday(
     await withRedisTimeout(() => redisClient.incrBy(key, Math.floor(amount)), `exp-today-incr:${key}`);
     await withRedisTimeout(() => redisClient.expire(key, EXP_TODAY_TTL_SECONDS), `exp-today-expire:${key}`);
   } catch {
+    void 0;
   }
 }
 

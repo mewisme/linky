@@ -8,7 +8,6 @@ vi.mock("@/jobs/worker-jobs/apply-call-exp.job.js", () => ({
 
 import { applyCallEndedProgress } from "@/contexts/call-ended-context.js";
 
-const mockInvalidate = vi.fn();
 const mockAddCallExp = vi.fn();
 const mockAddCallDurationToStreak = vi.fn();
 const mockComputeExpSecondsForCallDuration = vi.fn();
@@ -19,13 +18,8 @@ vi.mock("@/domains/user/index.js", () => ({
   computeExpSecondsForCallDuration: (...args: unknown[]) => mockComputeExpSecondsForCallDuration(...args),
 }));
 
-vi.mock("@/infra/redis/cache/index.js", () => ({
-  invalidate: (...args: unknown[]) => mockInvalidate(...args),
-}));
-
 beforeEach(() => {
   vi.clearAllMocks();
-  mockInvalidate.mockResolvedValue(undefined);
   mockAddCallExp.mockResolvedValue(undefined);
   mockAddCallDurationToStreak.mockResolvedValue(null);
   mockTryEnqueueApplyCallExpJob.mockResolvedValue(true);
@@ -43,20 +37,16 @@ describe("applyCallEndedProgress", () => {
     calleeTimezone: "Europe/Paris",
   };
 
-  it("when durationSeconds <= 0: no invalidate, addCallExp, or addCallDurationToStreak", async () => {
+  it("when durationSeconds <= 0: no addCallExp or addCallDurationToStreak", async () => {
     await applyCallEndedProgress({ ...baseParams, durationSeconds: 0 });
 
-    expect(mockInvalidate).not.toHaveBeenCalled();
     expect(mockComputeExpSecondsForCallDuration).not.toHaveBeenCalled();
     expect(mockAddCallExp).not.toHaveBeenCalled();
     expect(mockAddCallDurationToStreak).not.toHaveBeenCalled();
   });
 
-  it("when durationSeconds > 0: invalidate both, addCallExp for both with timezone/counterpart/dateForExpToday, addCallDurationToStreak", async () => {
+  it("when durationSeconds > 0: addCallExp for both with timezone/counterpart/dateForExpToday, addCallDurationToStreak", async () => {
     await applyCallEndedProgress({ ...baseParams, durationSeconds: 300 });
-
-    expect(mockInvalidate).toHaveBeenCalledWith("user:progress:c1:America/New_York");
-    expect(mockInvalidate).toHaveBeenCalledWith("user:progress:c2:Europe/Paris");
 
     expect(mockAddCallExp).toHaveBeenCalledWith("c1", 300, {
       timezone: "America/New_York",
@@ -89,16 +79,6 @@ describe("applyCallEndedProgress", () => {
 
     expect(callerStreakCalls.length).toBe(1);
     expect(calleeStreakCalls.length).toBe(1);
-
-    const callerInvalidateCalls = mockInvalidate.mock.calls.filter(
-      (call) => call[0] === "user:progress:c1:America/New_York",
-    );
-    const calleeInvalidateCalls = mockInvalidate.mock.calls.filter(
-      (call) => call[0] === "user:progress:c2:Europe/Paris",
-    );
-
-    expect(callerInvalidateCalls.length).toBeGreaterThanOrEqual(1);
-    expect(calleeInvalidateCalls.length).toBeGreaterThanOrEqual(1);
   });
 
   it("handles errors gracefully - if one user's update fails, the other still succeeds", async () => {

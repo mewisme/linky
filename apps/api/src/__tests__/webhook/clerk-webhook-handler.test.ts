@@ -259,9 +259,14 @@ describe("handleClerkWebhookEvent", () => {
 
     it("deletes user from Clerk when email includes configured auto-remove prefix and +clerk_test", async () => {
       mockGetUserByEmail.mockResolvedValue(null);
-      mockGetAdminConfigByKey.mockResolvedValue({
-        key: "clerk_auto_remove_email_prefix",
-        value: "automationtest",
+      mockGetAdminConfigByKey.mockImplementation(async (key: string) => {
+        if (key === "clerk_auto_remove_user_email_content") {
+          return { key, value: "automationtest" };
+        }
+        if (key === "clerk_auto_remove_user_email_content_position") {
+          return { key, value: "prefix" };
+        }
+        return null;
       });
 
       await handleClerkWebhookEvent(
@@ -273,7 +278,8 @@ describe("handleClerkWebhookEvent", () => {
         }),
       );
 
-      expect(mockGetAdminConfigByKey).toHaveBeenCalledWith("clerk_auto_remove_email_prefix");
+      expect(mockGetAdminConfigByKey).toHaveBeenCalledWith("clerk_auto_remove_user_email_content");
+      expect(mockGetAdminConfigByKey).toHaveBeenCalledWith("clerk_auto_remove_user_email_content_position");
       expect(mockClerkDeleteUser).toHaveBeenCalledWith("clerk_auto");
       expect(mockCreateUser).not.toHaveBeenCalled();
     });

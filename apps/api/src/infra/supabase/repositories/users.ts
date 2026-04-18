@@ -296,7 +296,7 @@ export async function getUsersIdsPaginated(
   const { page = 1, limit = 100, deleted = false } = options;
   const offset = (page - 1) * limit;
 
-  let query = supabase
+  const query = supabase
     .from("users")
     .select("id", { count: "exact" })
     .eq("deleted", deleted)

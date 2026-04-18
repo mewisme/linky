@@ -8,7 +8,6 @@ const mockGetOrSet = vi.fn();
 const mockGetUserLevelData = vi.fn();
 const mockGetUserStreakData = vi.fn();
 const mockGetUserStreakHistory = vi.fn();
-const mockGetExpToday = vi.fn();
 const mockGetUserExpDaily = vi.fn();
 const mockGetCallDurationsForUserOnLocalDate = vi.fn();
 
@@ -23,10 +22,6 @@ vi.mock("../../domains/user/service/user-level.service.js", () => ({
 vi.mock("../../domains/user/service/user-streak.service.js", () => ({
   getUserStreakData: (...args: unknown[]) => mockGetUserStreakData(...args),
   getUserStreakHistory: (...args: unknown[]) => mockGetUserStreakHistory(...args),
-}));
-
-vi.mock("../../infra/redis/cache/exp-today.js", () => ({
-  getExpToday: (...args: unknown[]) => mockGetExpToday(...args),
 }));
 
 vi.mock("../../infra/supabase/repositories/user-exp-daily.js", () => ({
@@ -52,7 +47,6 @@ beforeEach(() => {
     lastContinuationUsedFreeze: false,
   });
   mockGetUserStreakHistory.mockResolvedValue({ data: [], count: 0 });
-  mockGetExpToday.mockResolvedValue(0);
   mockGetUserExpDaily.mockResolvedValue(0);
   mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(0);
 });
@@ -165,8 +159,12 @@ describe("getUserProgressInsights derivation", () => {
   });
 
   describe("expEarnedToday derivation", () => {
-    it("when getExpToday returns 0, getUserExpDaily is called then getCallDurationsForUserOnLocalDate if 0", async () => {
-      mockGetExpToday.mockResolvedValue(0);
+    it("when getUserExpDaily returns 0, getCallDurationsForUserOnLocalDate is used", async () => {
+      mockGetUserLevelData.mockResolvedValue({
+        level: 1,
+        totalExpSeconds: 500,
+        expToNextLevel: 300,
+      });
       mockGetUserExpDaily.mockResolvedValue(0);
       mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(120);
 
@@ -177,8 +175,12 @@ describe("getUserProgressInsights derivation", () => {
       expect(r?.expEarnedToday).toBe(120);
     });
 
-    it("when getExpToday returns 0 and getUserExpDaily returns value, expEarnedToday equals that and getCallDurations not called", async () => {
-      mockGetExpToday.mockResolvedValue(0);
+    it("when getUserExpDaily returns value, getCallDurations is not called", async () => {
+      mockGetUserLevelData.mockResolvedValue({
+        level: 1,
+        totalExpSeconds: 500,
+        expToNextLevel: 300,
+      });
       mockGetUserExpDaily.mockResolvedValue(80);
       mockGetCallDurationsForUserOnLocalDate.mockClear();
 
@@ -189,15 +191,19 @@ describe("getUserProgressInsights derivation", () => {
       expect(r?.expEarnedToday).toBe(80);
     });
 
-    it("when getExpToday returns >0, getUserExpDaily and getCallDurations are not called", async () => {
-      mockGetExpToday.mockResolvedValue(50);
-      mockGetUserExpDaily.mockClear();
+    it("when getUserExpDaily returns > 0, getCallDurations is not called", async () => {
+      mockGetUserLevelData.mockResolvedValue({
+        level: 1,
+        totalExpSeconds: 200,
+        expToNextLevel: 300,
+      });
+      mockGetUserExpDaily.mockResolvedValue(50);
       mockGetCallDurationsForUserOnLocalDate.mockClear();
 
-      await getUserProgressInsights("u1", tz);
+      const r = await getUserProgressInsights("u1", tz);
 
-      expect(mockGetUserExpDaily).not.toHaveBeenCalled();
       expect(mockGetCallDurationsForUserOnLocalDate).not.toHaveBeenCalled();
+      expect(r?.expEarnedToday).toBe(50);
     });
 
     it("expEarnedToday is capped at totalExpSeconds", async () => {
@@ -206,7 +212,6 @@ describe("getUserProgressInsights derivation", () => {
         totalExpSeconds: 100,
         expToNextLevel: 200,
       });
-      mockGetExpToday.mockResolvedValue(0);
       mockGetUserExpDaily.mockResolvedValue(0);
       mockGetCallDurationsForUserOnLocalDate.mockResolvedValue(150);
 

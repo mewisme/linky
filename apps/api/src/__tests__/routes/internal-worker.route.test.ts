@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import express from "express";
 import { describe, expect, it, vi } from "vitest";
 
-import { INTERNAL_WORKER_GENERAL_JOBS_PATH } from "@ws/internal-worker-api";
+import { INTERNAL_WORKER_GENERAL_JOBS_PATH, INTERNAL_WORKER_V1_PREFIX } from "@ws/internal-worker-api";
 
 import { createInternalWorkerRouter } from "@/routes/internal-worker.route.js";
 
@@ -56,7 +56,7 @@ describe("internal worker routes", () => {
   it("returns 401 without bearer token for general-jobs", async () => {
     const app = express();
     app.use(express.json());
-    app.use(createInternalWorkerRouter());
+    app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
 
     await withServer(app, async (baseUrl) => {
       const res = await fetch(`${baseUrl}${INTERNAL_WORKER_GENERAL_JOBS_PATH}`, {
@@ -78,7 +78,7 @@ describe("internal worker routes", () => {
   it("returns 400 when Idempotency-Key is missing for general-jobs", async () => {
     const app = express();
     app.use(express.json());
-    app.use(createInternalWorkerRouter());
+    app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
 
     await withServer(app, async (baseUrl) => {
       const res = await fetch(`${baseUrl}${INTERNAL_WORKER_GENERAL_JOBS_PATH}`, {
@@ -104,7 +104,7 @@ describe("internal worker routes", () => {
     executeApplyCallExpJob.mockClear();
     const app = express();
     app.use(express.json());
-    app.use(createInternalWorkerRouter());
+    app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
 
     await withServer(app, async (baseUrl) => {
       const res = await fetch(`${baseUrl}${INTERNAL_WORKER_GENERAL_JOBS_PATH}`, {

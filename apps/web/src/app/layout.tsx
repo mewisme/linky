@@ -12,7 +12,6 @@ import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
 import { ThemeProvider } from "@/providers/ui/theme-provider";
 import { ToasterProvider } from "@/providers/ui/toaster-provider";
 import { publicEnv } from "@/shared/env/public-env";
-import { enUS, viVN } from "@clerk/localizations";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
@@ -85,7 +84,7 @@ export default async function RootLayout({
 
   return (
     <HideDevelopmentMode>
-      <ClerkProvider localization={locale === "vi" ? viVN : enUS}>
+      <ClerkProvider>
         <html lang={locale} suppressHydrationWarning>
           <body
             className={`${geistSans.className} antialiased`}

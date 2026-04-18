@@ -50,6 +50,12 @@
     "goBack": "Go back",
     "backToDashboard": "Back to Dashboard"
   },
+  "authPage": {
+    "layoutTitle": "Authentication",
+    "layoutDescription": "Connect with your account",
+    "redirecting": "Redirecting…",
+    "proceedToUrl": "Continue"
+  },
   "call": {
     "join": {
       "alreadyInRoom": "Already in a room. Please disconnect first.",

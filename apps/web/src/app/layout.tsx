@@ -14,13 +14,15 @@ import { publicEnv } from "@/shared/env/public-env";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
+  const tMarketing = await getTranslations("marketing");
   const locale = await getLocale();
   const ogLocale = locale === "vi" ? "vi_VN" : "en_US";
   const appUrl = publicEnv.APP_URL;
+  const keywords = tMarketing.raw("layout.keywords") as string[];
   return {
     title: t("common.appName"),
     description: t("common.tagline"),
-    keywords: ["linky", "chat", "video", "call", "connect", "world"],
+    keywords,
     authors: [{ name: "Mew", url: "https://mewis.me" }],
     metadataBase: new URL(appUrl),
     icons: [

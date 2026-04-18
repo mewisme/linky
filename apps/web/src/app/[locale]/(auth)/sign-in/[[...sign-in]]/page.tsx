@@ -4,12 +4,13 @@ import { SignIn, useAuth } from "@clerk/nextjs";
 import { useRouter } from "@/i18n/navigation";
 import { localePrefixedPath } from "@/i18n/locale-path";
 import { useSearchParams } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo } from "react";
 import { Button } from "@ws/ui/components/ui/button";
 
 function SignedInRedirect({ href }: { href: string }) {
   const router = useRouter();
+  const t = useTranslations("authPage");
 
   useEffect(() => {
     router.replace(href);
@@ -17,9 +18,9 @@ function SignedInRedirect({ href }: { href: string }) {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <p className="text-muted-foreground text-center text-sm">Redirecting…</p>
+      <p className="text-muted-foreground text-center text-sm">{t("redirecting")}</p>
       <Button onClick={() => router.push(href)}>
-        Proceed to URL
+        {t("proceedToUrl")}
       </Button>
     </div>
   );

@@ -50,6 +50,12 @@
     "goBack": "Quay lại",
     "backToDashboard": "Về bảng điều khiển"
   },
+  "authPage": {
+    "layoutTitle": "Xác thực",
+    "layoutDescription": "Kết nối với tài khoản của bạn",
+    "redirecting": "Đang chuyển hướng…",
+    "proceedToUrl": "Tiếp tục"
+  },
   "call": {
     "join": {
       "alreadyInRoom": "Bạn đang trong phòng. Vui lòng ngắt kết nối trước.",

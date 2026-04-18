@@ -39,12 +39,12 @@ export function setupSkipHandler(
             if (peerAdded) {
               const peerQueueSize = await matchmaking.getQueueSize();
               io.to(peerId).emit("peer-skipped", {
-                message: "Peer skipped. Re-entering queue for next match...",
+                message: "The other person skipped. You are looking for a new match.",
                 queueSize: peerQueueSize,
               });
             } else {
               io.to(peerId).emit("peer-left", {
-                message: "Peer skipped",
+                message: "The other person skipped. Try joining the queue again.",
               });
             }
           }
@@ -59,7 +59,7 @@ export function setupSkipHandler(
 
     const queueSize = await matchmaking.getQueueSize();
     socket.emit("skipped", {
-      message: "Skipped. Looking for new match...",
+      message: "You skipped. Looking for a new match…",
       queueSize,
     });
   });

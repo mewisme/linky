@@ -36,7 +36,7 @@ export function setupEndCallHandler(
         const peerSocket = io.sockets.get(peerId);
         if (peerSocket && peerSocket.connected) {
           io.to(peerId).emit("end-call", {
-            message: "Call ended by peer",
+            message: "The other person ended the call.",
           });
         }
       }

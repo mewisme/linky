@@ -52,7 +52,7 @@ export function setupDisconnectHandler(
 
       if (peerId && peerSocket && peerSocket.connected) {
         io.to(peerId).emit("end-call", {
-          message: "Call ended - peer disconnected",
+          message: "The other person lost connection. The call has ended.",
         });
 
         const peerDbUserId = await getDbUserId(peerSocket);

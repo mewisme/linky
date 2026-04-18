@@ -51,7 +51,7 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
           const peerSocket = io.sockets.get(peerId) as AuthenticatedSocket | undefined;
           if (peerSocket && peerSocket.connected) {
             io.to(peerId).emit("end-call", {
-              message: "Call ended by peer (unload)",
+              message: "The other person left the page. The call has ended.",
             });
             logger.info("Notified peer of end-call: %s", peerId);
           }
@@ -98,7 +98,7 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
         const peerSocketFinal = io.sockets.get(peerId);
         if (peerSocketFinal && peerSocketFinal.connected) {
           io.to(peerId).emit("end-call", {
-            message: "Call ended by peer (unload)",
+            message: "The other person left the page. The call has ended.",
           });
         } else {
           logger.warn("Peer socket not found or disconnected: %s", peerId);

@@ -46,7 +46,7 @@ export function setupResyncHandler(
     if (!peerSocket || !peerSocket.connected) {
       rooms.deleteRoom(roomWithUserId.id);
       socket.emit("peer-left", {
-        message: "Peer disconnected. Room cleaned up.",
+        message: "The other person is offline. The call has ended.",
       });
       return;
     }

@@ -719,9 +719,9 @@ export function useVideoChat(): UseVideoChatReturn {
 
         if (data.queueSize !== undefined) {
           actionsRef.current.setError(null);
-          toast(`Peer disconnected - ${data.message}`);
+          toast(data.message);
         } else {
-          toast.error(`Peer disconnected - ${data.message}`);
+          toast.error(data.message);
         }
       },
 
@@ -737,11 +737,11 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setError(null);
-        toast(`Peer skipped - ${data.message}`);
+        toast(data.message);
         syncUserProgressAfterCallEnd();
       },
 
-      onSkipped: (_data: { message: string; queueSize: number }) => {
+      onSkipped: (data: { message: string; queueSize: number }) => {
         monitoring.stopMonitoring();
         recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");
@@ -752,6 +752,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
+        toast(data.message);
         refreshUserProgress();
       },
 
@@ -767,7 +768,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
         monitoring.stopMonitoring();
         recoveryController.stop();
-        toast(`Call ended - ${data.message}`);
+        toast(data.message);
         play('leave_call')
         isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("ended");
@@ -966,7 +967,7 @@ export function useVideoChat(): UseVideoChatReturn {
     recoveryController.stop();
     socketSignaling.sendEndCall();
     trackEvent({ name: "call_ended" });
-    toast("Call ended - You have ended the call.");
+    toast("You ended the call.");
     actionsRef.current.setConnectionStatus("ended");
     actionsRef.current.setCallStartedAt(null);
     tabCoordination.releaseOwnership();

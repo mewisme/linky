@@ -2,7 +2,9 @@
 
 import { SignIn, useAuth } from "@clerk/nextjs";
 import { useRouter } from "@/i18n/navigation";
+import { localePrefixedPath } from "@/i18n/locale-path";
 import { useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useEffect, useMemo } from "react";
 import { Button } from "@ws/ui/components/ui/button";
 
@@ -25,7 +27,9 @@ function SignedInRedirect({ href }: { href: string }) {
 
 export default function SignInPage() {
   const { isLoaded, isSignedIn } = useAuth();
+  const locale = useLocale();
   const searchParams = useSearchParams();
+  const signInPath = useMemo(() => localePrefixedPath(locale, "/sign-in"), [locale]);
 
   const redirectUrl = useMemo(() => {
     const redirect = searchParams.get("redirect_url");
@@ -44,7 +48,7 @@ export default function SignInPage() {
       {!isLoaded ? null : !isSignedIn ? (
         <SignIn
           routing="path"
-          path="/sign-in"
+          path={signInPath}
           fallbackRedirectUrl={redirectUrl}
         />
       ) : (

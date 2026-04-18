@@ -1,7 +1,6 @@
 import "@/shared/styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
-import { ClerkProvider } from "@/providers/clerk/clerk-provider";
 import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -84,36 +83,34 @@ export default async function RootLayout({
 
   return (
     <HideDevelopmentMode>
-      <ClerkProvider>
-        <html lang={locale} suppressHydrationWarning>
-          <body
-            className={`${geistSans.className} antialiased`}
-          >
-            <RootNextIntlProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-              >
-                <ToasterProvider />
-                {children}
-              </ThemeProvider>
-              <Analytics />
-              <SpeedInsights />
-              <OpenPanelComponent
-                apiUrl="/api/op"
-                scriptUrl="/api/op/op1.js"
-                clientId={publicEnv.OPENPANEL_CLIENT_ID}
-                trackAttributes={true}
-                trackScreenViews={true}
-                trackOutgoingLinks={true}
-                trackHashChanges={true}
-              />
-            </RootNextIntlProvider>
-          </body>
-        </html>
-      </ClerkProvider>
+      <html lang={locale} suppressHydrationWarning>
+        <body
+          className={`${geistSans.className} antialiased`}
+        >
+          <RootNextIntlProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <ToasterProvider />
+              {children}
+            </ThemeProvider>
+            <Analytics />
+            <SpeedInsights />
+            <OpenPanelComponent
+              apiUrl="/api/op"
+              scriptUrl="/api/op/op1.js"
+              clientId={publicEnv.OPENPANEL_CLIENT_ID}
+              trackAttributes={true}
+              trackScreenViews={true}
+              trackOutgoingLinks={true}
+              trackHashChanges={true}
+            />
+          </RootNextIntlProvider>
+        </body>
+      </html>
     </HideDevelopmentMode>
   );
 }

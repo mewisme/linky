@@ -2,6 +2,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 
+import { LocaleClerkProvider } from "@/providers/clerk/clerk-provider";
 import { ClerkReadyIndicator } from "@/shared/ui/clerk/clerk-ready-indicator";
 import { LocaleSync } from "@/providers/i18n/locale-sync";
 import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
@@ -33,6 +34,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider key={locale} locale={locale} messages={messages}>
+      <LocaleClerkProvider>
       <LocaleSync />
       <ServiceWorkerUpdateProvider />
       <UserProvider>
@@ -41,6 +43,7 @@ export default async function LocaleLayout({
           <ProgressBarProvider>{children}</ProgressBarProvider>
         </SocketProvider>
       </UserProvider>
+      </LocaleClerkProvider>
     </NextIntlClientProvider>
   );
 }

@@ -139,8 +139,6 @@ Frontend requires these environment variables in `apps/web/.env.local`:
 # Clerk authentication (required)
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
 
 # Backend API URL (required)
 NEXT_PUBLIC_API_URL=http://localhost:3001

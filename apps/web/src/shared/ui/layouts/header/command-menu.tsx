@@ -222,9 +222,10 @@ export function CommandMenu() {
             label: t('commandMenu.commands.feedback'),
             icon: IconBug,
             onSelect: async () => {
-              const form = await feedback?.createForm();
-              form.appendToDom();
-              form.open();
+              const form = await feedback?.createForm?.()
+              if (!form) return
+              form.appendToDom()
+              form.open()
             },
             keywords: parseKeywords(t, 'feedback'),
           },

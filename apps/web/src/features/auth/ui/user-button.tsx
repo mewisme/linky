@@ -9,24 +9,49 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from "@ws/ui/components/animate-ui/components/radix/dropdown-menu";
-import { LogOutIcon, ShieldIcon, UserIcon } from "@ws/ui/internal-lib/icons";
+import { CountryFlag } from "@/shared/ui/common/country-flag";
+import { LogOutIcon, ShieldIcon, UserIcon, Sun, Moon } from "@ws/ui/internal-lib/icons";
 
 import { Kbd } from "@ws/ui/components/ui/kbd";
 import { Link } from "@/i18n/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { isAdmin } from "@/shared/utils/roles";
 import { trackEvent } from "@/lib/telemetry/events/client";
-import { useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useCallback, useEffect } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useUserStore } from "@/entities/user/model/user-store";
+import { useTheme } from "next-themes"
+import { IconDeviceDesktop } from "@tabler/icons-react";
+import { usePathname, useRouter } from "@/i18n/navigation";
+import { useLocalePreferenceStore } from "@/shared/model/locale-preference-store";
+import type { UiLocale } from "@ws/shared-types";
 
 export function UserButton() {
   const t = useTranslations("sidebarHeader");
+  const tCommon = useTranslations("common");
   const { user, auth: { signOut } } = useUserContext();
   const { user: userStore } = useUserStore();
+  const locale = useLocale() as UiLocale;
+  const router = useRouter();
+  const pathname = usePathname();
+  const setLocalePreference = useLocalePreferenceStore((s) => s.setLocale);
+  const { setTheme } = useTheme();
+
+  const switchLocale = useCallback(
+    (next: UiLocale) => {
+      if (next === locale) return;
+      setLocalePreference(next);
+      router.replace(pathname, { locale: next });
+    },
+    [locale, pathname, router, setLocalePreference],
+  );
+
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -78,6 +103,67 @@ export function UserButton() {
               </DropdownMenuItem>
             </Link>
           )}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className='text-xs text-muted-foreground'>{t("preferences")}</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className='cursor-pointer gap-2 p-2'>
+              <div className="flex size-6 items-center justify-center rounded-sm border">
+                <Sun className="size-4 shrink-0 dark:hidden text-muted-foreground" />
+                <Moon className="size-4 shrink-0 hidden dark:block text-muted-foreground" />
+              </div>
+              <span>{t("theme")}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("light")}>
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <Sun className="size-4 shrink-0" />
+                </div>
+                <span>{t("themeLight")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("dark")}>
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <Moon className="size-4 shrink-0 " />
+                </div>
+                <span>{t("themeDark")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("system")}>
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <IconDeviceDesktop className="size-4 shrink-0" />
+                </div>
+                <span>{t("themeSystem")}</span>
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className='cursor-pointer gap-2 p-2'>
+              <div className="flex size-6 items-center justify-center rounded-sm border">
+                <CountryFlag countryCode={locale === "en" ? "US" : "VN"} />
+              </div>
+              <span>{t("language")}</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem
+                className='cursor-pointer gap-2 p-2'
+                onClick={() => switchLocale("en")}
+              >
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <CountryFlag countryCode="US" />
+                </div>
+                <span>{tCommon("english")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className='cursor-pointer gap-2 p-2'
+                onClick={() => switchLocale("vi")}
+              >
+                <div className="flex size-6 items-center justify-center rounded-sm border">
+                  <CountryFlag countryCode="VN" />
+                </div>
+                <span>{tCommon("vietnamese")}</span>
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <SignOutButton>

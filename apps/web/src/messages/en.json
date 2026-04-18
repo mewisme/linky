@@ -465,6 +465,8 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeSystem": "System",
+    "language": "Language",
+    "preferences": "Preferences",
     "logout": "Logout"
   },
   "commandMenu": {
@@ -538,8 +540,300 @@
     "profile": "Profile"
   },
   "marketing": {
-    "heroTitle": "Meet new people, make friends, and have fun!",
-    "metaDescription": "Meet new people, make friends, and have fun!"
+    "layout": {
+      "title": "Linky - Random Video Chat with Purpose | Omegle Alternative",
+      "description": "Safe, account-based random video chat. Match by interests, add favorites, and earn rewards. Better than Omegle with real profiles, moderation, and progression.",
+      "ogImageAlt": "Linky - Random Video Chat with Purpose",
+      "siteName": "Linky",
+      "keywords": [
+        "random video chat",
+        "interest-based video chat",
+        "safe video chat",
+        "Omegle alternative",
+        "Chatroulette alternative",
+        "video chat with strangers",
+        "account-based chat",
+        "moderated video chat",
+        "video chat progression",
+        "match by interests"
+      ]
+    },
+    "heroTitle": "Meet new people, make friends, and have fun — random video chat with purpose.",
+    "metaDescription": "Safe, account-based random video chat. Match by interests, add favorites, and earn rewards.",
+    "hero": {
+      "badge": "Live · Global · Instant",
+      "title": "Meet the World. Live.",
+      "subtitle": "Secure, real-time video conversations — anywhere.",
+      "ctaSignedIn": "Start Chatting Now",
+      "ctaSignedOut": "Sign in to Start Chatting",
+      "joinLine": "Join <strong>1,000+</strong> people chatting right now",
+      "features": [
+        {
+          "title": "GLOBAL",
+          "desc": "Connect with people worldwide"
+        },
+        {
+          "title": "INSTANT",
+          "desc": "Start chatting in seconds"
+        },
+        {
+          "title": "SECURE",
+          "desc": "Your conversations are protected"
+        }
+      ]
+    },
+    "footer": {
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy"
+    },
+    "differentiation": {
+      "heading": "Not Just Another Random Chat",
+      "subheading": "Tired of Omegle clones? Linky brings structure, safety, and progression to random video chat.",
+      "items": [
+        {
+          "title": "Account-Based Identity",
+          "description": "Real profiles, not anonymous chaos. Every user has a verified account."
+        },
+        {
+          "title": "Favorites & Re-matching",
+          "description": "Found someone interesting? Add them to favorites and reconnect later."
+        },
+        {
+          "title": "Interest-Based Matching",
+          "description": "Match with people who share your interests, not just random strangers."
+        },
+        {
+          "title": "Progression System",
+          "description": "Earn XP, unlock features, and build streaks. A reason to keep coming back."
+        }
+      ]
+    },
+    "safety": {
+      "heading": "Trust & Safety First",
+      "subheading": "We take your safety seriously. Here's how we protect our community.",
+      "alert": "Linky is intended for users 18+. We verify accounts and enforce community guidelines.",
+      "items": [
+        {
+          "title": "Active Moderation",
+          "description": "Report inappropriate behavior instantly. Our team reviews reports and takes action."
+        },
+        {
+          "title": "Block & Skip Controls",
+          "description": "Not feeling the conversation? Skip instantly. Had a bad experience? Block permanently."
+        },
+        {
+          "title": "Private & Temporary",
+          "description": "No chat logs stored. All video is peer-to-peer. When the call ends, it's gone."
+        }
+      ],
+      "detailsTitle": "Safety Details",
+      "detailsDescription": "Click to learn more about our safety measures",
+      "whatWeDo": "What we do:",
+      "whatWeDont": "What we don't do:",
+      "whatWeDoList": [
+        "Review user reports within 24 hours",
+        "Enforce community guidelines consistently",
+        "Provide block and skip controls to all users",
+        "Use peer-to-peer video with no server recording"
+      ],
+      "whatWeDontList": [
+        "Store chat message history after sessions end",
+        "Record or archive video calls",
+        "Share personal information with other users",
+        "Allow anonymous accounts without verification"
+      ],
+      "detailsFooter": "If you feel unsafe, use the skip or block buttons immediately. Report serious violations to help keep the community safe."
+    },
+    "preview": {
+      "heading": "See How It Works",
+      "subheading": "Clean, intuitive interface designed for real conversations.",
+      "yourVideo": "Your Video",
+      "peerVideo": "Peer Video",
+      "badges": [
+        "WebRTC Peer-to-Peer",
+        "Real-time Messaging",
+        "Instant Reconnection"
+      ],
+      "footnote": "This is a representation of the actual video chat interface. All calls are peer-to-peer with end-to-end encryption via WebRTC."
+    },
+    "vision": {
+      "heading": "Where We're Going",
+      "subheading": "Random chat with purpose. We're building features that reward meaningful connections and encourage you to come back.",
+      "items": [
+        {
+          "title": "Smarter Matching",
+          "description": "AI-powered interest matching that learns from your interactions"
+        },
+        {
+          "title": "Meaningful Progression",
+          "description": "Level up, earn rewards, and unlock premium features as you engage"
+        },
+        {
+          "title": "Community Building",
+          "description": "Build a network of favorites and reconnect with people you enjoyed talking to"
+        }
+      ],
+      "disclaimer": "This isn't a roadmap promise. These are active features in development that will roll out as they're ready."
+    },
+    "legal": {
+      "lastUpdated": "January 2026",
+      "cookies": {
+        "metaTitle": "Cookies Policy",
+        "metaDescription": "This Cookies Policy explains how Linky uses cookies and similar technologies to keep the Service secure, remember your preferences, and understand how the Service is used.",
+        "title": "Cookies Policy",
+        "description": "This Cookies Policy explains how Linky uses cookies and similar technologies to keep the Service secure, remember your preferences, and understand how the Service is used.",
+        "s1Title": "1. What Are Cookies?",
+        "s1Body": "Cookies are small text files stored on your device when you visit a website. Similar technologies (like local storage) may also be used to store settings or identifiers that help the Service function properly.",
+        "s2Title": "2. How We Use Cookies",
+        "s2Intro": "We use cookies and similar technologies to:",
+        "s2List": [
+          "Keep you signed in and maintain your session",
+          "Protect the Service from abuse, fraud, and suspicious activity",
+          "Remember preferences (for example, theme or UI settings)",
+          "Measure performance and understand how features are used"
+        ],
+        "s3Title": "3. Types of Cookies We Use",
+        "s3aTitle": "a. Strictly Necessary Cookies",
+        "s3aBody": "These cookies are required for core functionality such as authentication, security, and maintaining sessions. Without them, parts of the Service may not work.",
+        "s3bTitle": "b. Preference Cookies",
+        "s3bBody": "These cookies help remember your choices (like interface preferences) so you don't need to reconfigure them each time you visit.",
+        "s3cTitle": "c. Analytics Cookies",
+        "s3cBody": "These cookies help us understand usage patterns and improve reliability and user experience. We aim to keep analytics data aggregated and minimize what is collected.",
+        "s4Title": "4. Third-Party Cookies",
+        "s4Body": "Some cookies may be set by third-party services we use to provide essential features (such as authentication, hosting, or security). These providers may process information according to their own policies.",
+        "s5Title": "5. How Long Cookies Last",
+        "s5L1": "<strong>Session cookies</strong> typically expire when you close your browser",
+        "s5L2": "<strong>Persistent cookies</strong> remain until they expire or you delete them",
+        "s5Body": "Expiration times vary depending on the purpose of the cookie and how the Service is configured.",
+        "s6Title": "6. Your Choices",
+        "s6Body": "You can control cookies through your browser settings. You may block or delete cookies, or configure your browser to alert you when cookies are being set. If you disable cookies, some features (like sign-in or saving preferences) may not function correctly.",
+        "s7Title": "7. Changes to This Cookie Policy",
+        "s7Body": "We may update this Cookie Policy from time to time. The latest version will be posted on this page with the updated date.",
+        "s8Title": "8. Contact Us",
+        "s8Body": "If you have questions about cookies or this Cookie Policy, contact us at <link>privacy@linkynow.site</link>."
+      },
+      "terms": {
+        "metaTitle": "Terms of Service",
+        "metaDescription": "Welcome to Linky. By accessing or using our website and services (\"Service\"), you agree to be bound by these Terms of Service (\"Terms\"). If you do not agree, please do not use the Service.",
+        "title": "Terms of Service",
+        "description": "Welcome to Linky. By accessing or using our website and services (\"Service\"), you agree to be bound by these Terms of Service (\"Terms\"). If you do not agree, please do not use the Service.",
+        "s1Title": "1. Eligibility",
+        "s1Body": "You must be at least <strong>18 years old</strong> to use Linky. By using the Service, you represent and warrant that you meet this requirement.",
+        "s2Title": "2. Account Registration",
+        "s2List": [
+          "You are responsible for maintaining the confidentiality of your account credentials.",
+          "You agree to provide accurate and complete information during registration.",
+          "You are solely responsible for all activities that occur under your account."
+        ],
+        "s3Title": "3. Acceptable Use",
+        "s3Intro": "You agree <strong>NOT</strong> to:",
+        "s3List": [
+          "Use the Service for any illegal or unauthorized purpose",
+          "Harass, abuse, threaten, or harm other users",
+          "Share nudity, sexually explicit, violent, or hateful content",
+          "Record, distribute, or capture video/audio without consent",
+          "Attempt to bypass security, moderation, or matching systems",
+          "Use bots, scripts, or automated systems to access the Service"
+        ],
+        "s3Footer": "Violation of these rules may result in <strong>suspension or permanent termination</strong> of your account.",
+        "s4Title": "4. Video & Real-Time Communication",
+        "s4Intro": "Linky provides real-time video and text communication between users. You acknowledge that:",
+        "s4List": [
+          "Interactions are conducted with strangers",
+          "Linky is not responsible for user behavior",
+          "You use the Service at your own risk"
+        ],
+        "s4Footer": "We reserve the right to monitor metadata and take action based on reports or abuse signals.",
+        "s5Title": "5. User Content",
+        "s5Item1": "You retain ownership of your content",
+        "s5Item2": "You grant Linky a limited license to process content solely to operate the Service",
+        "s5Item3": "We do <strong>not</strong> record video or audio calls by default",
+        "s6Title": "6. Termination",
+        "s6Body": "We may suspend or terminate your access at any time if you violate these Terms or if required by law.",
+        "s7Title": "7. Disclaimer of Warranties",
+        "s7Body": "The Service is provided <strong>\"AS IS\"</strong> and <strong>\"AS AVAILABLE\"</strong> without warranties of any kind.",
+        "s8Title": "8. Limitation of Liability",
+        "s8Body": "To the maximum extent permitted by law, Linky shall not be liable for any indirect, incidental, or consequential damages.",
+        "s9Title": "9. Changes to These Terms",
+        "s9Body": "We may update these Terms from time to time. Continued use of the Service means you accept the updated Terms.",
+        "s10Title": "10. Contact",
+        "s10Body": "If you have questions about these Terms, please contact us at <link>support@linkynow.site</link>"
+      },
+      "privacy": {
+        "metaTitle": "Privacy Policy",
+        "metaDescription": "Your privacy is important to us. This Privacy Policy explains how Linky collects, uses, and protects your information.",
+        "title": "Privacy Policy",
+        "description": "Your privacy is important to us. This Privacy Policy explains how Linky collects, uses, and protects your information.",
+        "s1Title": "1. Information We Collect",
+        "s1aTitle": "a. Information You Provide",
+        "s1aList": [
+          "Email address",
+          "Profile information (name, avatar)",
+          "Authentication data via third-party providers (e.g. Google, Apple)"
+        ],
+        "s1bTitle": "b. Automatically Collected Information",
+        "s1bList": [
+          "IP address (for security and abuse prevention)",
+          "Device and browser information",
+          "Session and usage data",
+          "Presence and connection status"
+        ],
+        "s2Title": "2. How We Use Your Information",
+        "s2Intro": "We use your information to:",
+        "s2List": [
+          "Provide and operate the Service",
+          "Authenticate users",
+          "Enable real-time communication",
+          "Improve performance and user experience",
+          "Detect fraud, abuse, and violations",
+          "Comply with legal obligations"
+        ],
+        "s3Title": "3. Video & Audio Data",
+        "s3Item1": "Linky does <strong>NOT</strong> record video or audio calls",
+        "s3Item2": "Media streams are peer-to-peer via WebRTC",
+        "s3Item3": "Temporary signaling data is used only to establish connections",
+        "s4Title": "4. Cookies & Tracking",
+        "s4Intro": "We use cookies and similar technologies to:",
+        "s4List": [
+          "Maintain sessions",
+          "Track anonymous usage analytics",
+          "Remember preferences (e.g. theme)"
+        ],
+        "s4Footer": "You can disable cookies in your browser, but some features may not work properly.",
+        "s5Title": "5. Data Sharing",
+        "s5P1": "We do <strong>NOT</strong> sell your personal data.",
+        "s5P2": "We may share data only with:",
+        "s5List": [
+          "Service providers (authentication, hosting, analytics)",
+          "Legal authorities if required by law"
+        ],
+        "s6Title": "6. Data Retention",
+        "s6Body": "We retain personal data only as long as necessary to provide the Service or comply with legal obligations.",
+        "s7Title": "7. Security",
+        "s7Intro": "We implement reasonable technical and organizational measures to protect your data, including:",
+        "s7List": [
+          "Encryption",
+          "Secure authentication",
+          "Access controls"
+        ],
+        "s7Footer": "However, no system is 100% secure.",
+        "s8Title": "8. Your Rights",
+        "s8Intro": "Depending on your location, you may have the right to:",
+        "s8List": [
+          "Access your data",
+          "Correct or delete your data",
+          "Withdraw consent"
+        ],
+        "s8Footer": "You can manage your information through your account or contact us.",
+        "s9Title": "9. Children's Privacy",
+        "s9Body": "Linky is <strong>not intended for users under 18</strong>. We do not knowingly collect data from children.",
+        "s10Title": "10. Changes to This Policy",
+        "s10Body": "We may update this Privacy Policy from time to time. Changes will be posted on this page.",
+        "s11Title": "11. Contact Us",
+        "s11Body": "If you have questions or concerns about this Privacy Policy, contact us at <link>privacy@linkynow.site</link>"
+      }
+    }
   },
   "user": {
     "interestTagsUpdated": "Interest tags updated",

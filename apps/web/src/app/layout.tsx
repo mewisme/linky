@@ -4,21 +4,19 @@ import { Analytics } from "@vercel/analytics/next"
 import { ClerkProvider } from "@/providers/clerk/clerk-provider";
 import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages, getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { OpenPanelComponent } from "@openpanel/nextjs";
-import { Outfit } from "next/font/google";
+import { geistSans } from "@/shared/fonts/geist-sans";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
 import { ThemeProvider } from "@/providers/ui/theme-provider";
 import { ToasterProvider } from "@/providers/ui/toaster-provider";
 import { publicEnv } from "@/shared/env/public-env";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-});
-
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
+  const locale = await getLocale();
+  const ogLocale = locale === "vi" ? "vi_VN" : "en_US";
   const appUrl = publicEnv.APP_URL;
   return {
     title: t("common.appName"),
@@ -49,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
     publisher: "Mew",
     openGraph: {
       title: t("common.appName"),
-      description: t("marketing.heroTitle"),
+      description: t("marketing.layout.description"),
       url: appUrl,
       images: [
         {
@@ -60,13 +58,13 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
       type: "website",
       siteName: t("common.appName"),
-      locale: "vi_VN",
+      locale: ogLocale,
       countryName: "Vietnam",
     },
     twitter: {
       card: "summary_large_image",
       title: t("common.appName"),
-      description: t("marketing.heroTitle"),
+      description: t("marketing.layout.description"),
       images: ["/og"],
     },
     appleWebApp: {
@@ -83,37 +81,36 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
-  const messages = await getMessages();
 
   return (
     <HideDevelopmentMode>
       <ClerkProvider>
         <html lang={locale} suppressHydrationWarning>
           <body
-            className={`${outfit.className} antialiased`}
+            className={`${geistSans.className} antialiased`}
           >
-            <NextIntlClientProvider key={locale} locale={locale} messages={messages}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <ToasterProvider />
-              {children}
-            </ThemeProvider>
-            </NextIntlClientProvider>
-            <Analytics />
-            <SpeedInsights />
-            <OpenPanelComponent
-              apiUrl="/api/op"
-              scriptUrl="/api/op/op1.js"
-              clientId={publicEnv.OPENPANEL_CLIENT_ID}
-              trackAttributes={true}
-              trackScreenViews={true}
-              trackOutgoingLinks={true}
-              trackHashChanges={true}
-            />
+            <RootNextIntlProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <ToasterProvider />
+                {children}
+              </ThemeProvider>
+              <Analytics />
+              <SpeedInsights />
+              <OpenPanelComponent
+                apiUrl="/api/op"
+                scriptUrl="/api/op/op1.js"
+                clientId={publicEnv.OPENPANEL_CLIENT_ID}
+                trackAttributes={true}
+                trackScreenViews={true}
+                trackOutgoingLinks={true}
+                trackHashChanges={true}
+              />
+            </RootNextIntlProvider>
           </body>
         </html>
       </ClerkProvider>

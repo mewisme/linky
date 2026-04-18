@@ -14,6 +14,10 @@ export async function ensureServiceWorkerRegistered(): Promise<ServiceWorkerRegi
     return null;
   }
 
+  if (process.env.NODE_ENV === "development") {
+    return null;
+  }
+
   try {
     const registration = await navigator.serviceWorker.register("/sw.js");
     await navigator.serviceWorker.ready;
@@ -64,6 +68,7 @@ export async function unsubscribeFromPushNotifications(
 
 export async function getExistingSubscription(): Promise<PushSubscription | null> {
   if (!("serviceWorker" in navigator)) return null;
+  if (process.env.NODE_ENV === "development") return null;
 
   const registration = await navigator.serviceWorker.ready;
   return await registration.pushManager.getSubscription();

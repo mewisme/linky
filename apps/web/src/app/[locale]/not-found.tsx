@@ -8,19 +8,15 @@ import {
 
 import { Button } from "@ws/ui/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { Outfit } from "next/font/google";
+import { geistSans } from "@/shared/fonts/geist-sans";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-
-const outfit = Outfit({
-  subsets: ["latin"],
-});
 
 export default function NotFound() {
   const router = useRouter();
   const t = useTranslations("notFoundPage");
   return (
-    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${outfit.className}`}>
+    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${geistSans.className}`}>
       <div className="absolute top-0 left-0 -z-10 h-full w-full">
         <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-primary/10 blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-primary/10 blur-[120px]" />

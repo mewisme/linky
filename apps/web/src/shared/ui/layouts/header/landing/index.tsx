@@ -1,18 +1,15 @@
 'use client'
 
-import dynamic from "next/dynamic";
-
 import { Logo } from "./logo";
 import { motion, type Variants } from "@ws/ui/internal-lib/motion"
+import { ButtonGroup } from "@ws/ui/components/ui/button-group";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { ModeToggle } from "../mode-toggle";
 import { useUserContext } from "@/providers/user/user-provider";
 import { CommandMenu } from '@/shared/ui/layouts/header/command-menu'
 import { Activity } from "react";
-
-const UserButton = dynamic(() => import("@/features/auth/ui/user-button").then(mod => ({ default: mod.UserButton })), {
-  ssr: false,
-});
+import { LocaleSwitcher } from "../locale-switcher";
+import { UserButton } from "@/features/auth/ui/user-button";
 
 const LOGO_WRAPPER_VARIANTS: Variants = {
   center: {
@@ -112,7 +109,12 @@ export const Header = ({ transition }: { transition: boolean }) => {
           transition={{ type: 'spring', stiffness: 200, damping: 30 }}
           className="absolute z-110 flex items-center gap-x-4"
         >
-          <ModeToggle />
+          <Activity mode={!isSignedIn ? 'visible' : 'hidden'}>
+            <ButtonGroup>
+              <ModeToggle />
+              <LocaleSwitcher />
+            </ButtonGroup>
+          </Activity>
           <Activity mode={isLoaded && isSignedIn ? 'visible' : 'hidden'}>
             <UserButton />
           </Activity>

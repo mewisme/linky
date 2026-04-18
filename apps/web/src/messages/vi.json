@@ -465,6 +465,8 @@
     "themeLight": "Sáng",
     "themeDark": "Tối",
     "themeSystem": "Hệ thống",
+    "language": "Ngôn ngữ",
+    "preferences": "Tùy chọn",
     "logout": "Đăng xuất"
   },
   "commandMenu": {
@@ -538,8 +540,300 @@
     "profile": "Hồ sơ"
   },
   "marketing": {
-    "heroTitle": "Gặp người mới, kết bạn và vui vẻ!",
-    "metaDescription": "Gặp người mới, kết bạn và vui vẻ!"
+    "layout": {
+      "title": "Linky - Trò chuyện video ngẫu nhiên có mục đích | Thay thế Omegle",
+      "description": "Trò chuyện video ngẫu nhiên an toàn, có tài khoản. Ghép theo sở thích, thêm yêu thích và nhận phần thưởng. Tốt hơn Omegle với hồ sơ thật, kiểm duyệt và tiến trình.",
+      "ogImageAlt": "Linky - Trò chuyện video ngẫu nhiên có mục đích",
+      "siteName": "Linky",
+      "keywords": [
+        "trò chuyện video ngẫu nhiên",
+        "trò chuyện video theo sở thích",
+        "trò chuyện video an toàn",
+        "thay thế Omegle",
+        "thay thế Chatroulette",
+        "trò chuyện video với người lạ",
+        "trò chuyện có tài khoản",
+        "trò chuyện video được kiểm duyệt",
+        "tiến trình trò chuyện video",
+        "ghép theo sở thích"
+      ]
+    },
+    "heroTitle": "Gặp người mới, kết bạn và vui vẻ — trò chuyện video ngẫu nhiên có mục đích.",
+    "metaDescription": "Trò chuyện video ngẫu nhiên an toàn, có tài khoản. Ghép theo sở thích, thêm yêu thích và nhận phần thưởng.",
+    "hero": {
+      "badge": "Trực tiếp · Toàn cầu · Tức thì",
+      "title": "Kết nối toàn cầu. Tức thì.",
+      "subtitle": "Trò chuyện video thời gian thực an toàn — mọi lúc, mọi nơi.",
+      "ctaSignedIn": "Bắt đầu trò chuyện",
+      "ctaSignedOut": "Đăng nhập để bắt đầu trò chuyện",
+      "joinLine": "Tham gia cùng hơn <strong>1.000</strong> người đang trò chuyện",
+      "features": [
+        {
+          "title": "TOÀN CẦU",
+          "desc": "Kết nối với mọi người trên khắp thế giới"
+        },
+        {
+          "title": "TỨC THÌ",
+          "desc": "Bắt đầu trò chuyện trong vài giây"
+        },
+        {
+          "title": "AN TOÀN",
+          "desc": "Cuộc trò chuyện của bạn được bảo vệ"
+        }
+      ]
+    },
+    "footer": {
+      "terms": "Điều khoản dịch vụ",
+      "privacy": "Chính sách bảo mật",
+      "cookies": "Chính sách cookie"
+    },
+    "differentiation": {
+      "heading": "Không chỉ là trò chuyện ngẫu nhiên",
+      "subheading": "Chán các bản sao Omegle? Linky mang cấu trúc, an toàn và tiến trình vào trò chuyện video ngẫu nhiên.",
+      "items": [
+        {
+          "title": "Danh tính qua tài khoản",
+          "description": "Hồ sơ thật, không hỗn loạn ẩn danh. Mỗi người dùng đều có tài khoản được xác minh."
+        },
+        {
+          "title": "Yêu thích & ghép lại",
+          "description": "Gặp người thú vị? Thêm vào yêu thích và kết nối lại sau."
+        },
+        {
+          "title": "Ghép theo sở thích",
+          "description": "Ghép với người cùng sở thích, không chỉ người lạ hoàn toàn ngẫu nhiên."
+        },
+        {
+          "title": "Hệ thống tiến trình",
+          "description": "Tích XP, mở khóa tính năng và giữ chuỗi ngày. Lý do để quay lại."
+        }
+      ]
+    },
+    "safety": {
+      "heading": "Tin cậy & an toàn là trên hết",
+      "subheading": "Chúng tôi coi trọng sự an toàn của bạn. Đây là cách chúng tôi bảo vệ cộng đồng.",
+      "alert": "Linky dành cho người từ 18 tuổi trở lên. Chúng tôi xác minh tài khoản và thực thi quy tắc cộng đồng.",
+      "items": [
+        {
+          "title": "Kiểm duyệt tích cực",
+          "description": "Báo cáo hành vi không phù hợp ngay lập tức. Đội ngũ xem xét báo cáo và xử lý."
+        },
+        {
+          "title": "Chặn & bỏ qua",
+          "description": "Không hợp cuộc trò chuyện? Bỏ qua ngay. Trải nghiệm xấu? Chặn vĩnh viễn."
+        },
+        {
+          "title": "Riêng tư & tạm thời",
+          "description": "Không lưu nhật ký chat. Video đều peer-to-peer. Khi cuộc gọi kết thúc, dữ liệu không còn."
+        }
+      ],
+      "detailsTitle": "Chi tiết an toàn",
+      "detailsDescription": "Nhấn để biết thêm về biện pháp an toàn",
+      "whatWeDo": "Chúng tôi làm gì:",
+      "whatWeDont": "Chúng tôi không làm gì:",
+      "whatWeDoList": [
+        "Xem xét báo cáo trong vòng 24 giờ",
+        "Thực thi quy tắc cộng đồng nhất quán",
+        "Cung cấp chặn và bỏ qua cho mọi người dùng",
+        "Dùng video peer-to-peer, không ghi âm trên máy chủ"
+      ],
+      "whatWeDontList": [
+        "Lưu lịch sử tin nhắn sau khi phiên kết thúc",
+        "Ghi hoặc lưu trữ cuộc gọi video",
+        "Chia sẻ thông tin cá nhân với người dùng khác",
+        "Cho phép tài khoản ẩn danh không xác minh"
+      ],
+      "detailsFooter": "Nếu bạn không an toàn, hãy dùng bỏ qua hoặc chặn ngay. Báo cáo vi phạm nghiêm trọng để giữ cộng đồng an toàn."
+    },
+    "preview": {
+      "heading": "Xem cách hoạt động",
+      "subheading": "Giao diện sạch, trực quan cho các cuộc trò chuyện thật.",
+      "yourVideo": "Video của bạn",
+      "peerVideo": "Video đối phương",
+      "badges": [
+        "WebRTC peer-to-peer",
+        "Tin nhắn thời gian thực",
+        "Kết nối lại tức thì"
+      ],
+      "footnote": "Đây là minh họa giao diện trò chuyện video. Mọi cuộc gọi đều peer-to-peer với mã hóa đầu cuối qua WebRTC."
+    },
+    "vision": {
+      "heading": "Hướng đi phía trước",
+      "subheading": "Trò chuyện ngẫu nhiên có mục đích. Chúng tôi đang xây tính năng thưởng cho kết nối ý nghĩa và khuyến khích bạn quay lại.",
+      "items": [
+        {
+          "title": "Ghép thông minh hơn",
+          "description": "Ghép theo sở thích hỗ trợ bởi AI, học từ tương tác của bạn"
+        },
+        {
+          "title": "Tiến trình ý nghĩa",
+          "description": "Lên cấp, nhận phần thưởng và mở khóa tính năng cao cấp khi tương tác"
+        },
+        {
+          "title": "Xây cộng đồng",
+          "description": "Tạo mạng yêu thích và kết nối lại với người bạn thích trò chuyện"
+        }
+      ],
+      "disclaimer": "Đây không phải lộ trình cam kết. Đây là tính năng đang phát triển và sẽ ra mắt khi sẵn sàng."
+    },
+    "legal": {
+      "lastUpdated": "Tháng 1 năm 2026",
+      "cookies": {
+        "metaTitle": "Chính sách cookie",
+        "metaDescription": "Chính sách Cookie giải thích cách Linky dùng cookie và công nghệ tương tự để giữ Dịch vụ an toàn, ghi nhớ tùy chọn và hiểu cách Dịch vụ được sử dụng.",
+        "title": "Chính sách cookie",
+        "description": "Chính sách Cookie giải thích cách Linky dùng cookie và công nghệ tương tự để giữ Dịch vụ an toàn, ghi nhớ tùy chọn và hiểu cách Dịch vụ được sử dụng.",
+        "s1Title": "1. Cookie là gì?",
+        "s1Body": "Cookie là tệp văn bản nhỏ lưu trên thiết bị khi bạn truy cập trang web. Công nghệ tương tự (như local storage) cũng có thể dùng để lưu cài đặt hoặc định danh giúp Dịch vụ hoạt động đúng.",
+        "s2Title": "2. Chúng tôi dùng cookie như thế nào",
+        "s2Intro": "Chúng tôi dùng cookie và công nghệ tương tự để:",
+        "s2List": [
+          "Giữ phiên đăng nhập và duy trì phiên của bạn",
+          "Bảo vệ Dịch vụ khỏi lạm dụng, gian lận và hoạt động đáng ngờ",
+          "Ghi nhớ tùy chọn (ví dụ giao diện hoặc cài đặt)",
+          "Đo hiệu năng và hiểu cách tính năng được dùng"
+        ],
+        "s3Title": "3. Các loại cookie chúng tôi dùng",
+        "s3aTitle": "a. Cookie thiết yếu",
+        "s3aBody": "Các cookie này cần cho chức năng cốt lõi như xác thực, bảo mật và duy trì phiên. Không có chúng, một phần Dịch vụ có thể không hoạt động.",
+        "s3bTitle": "b. Cookie tùy chọn",
+        "s3bBody": "Các cookie này giúp ghi nhớ lựa chọn (như giao diện) để bạn không phải cấu hình lại mỗi lần truy cập.",
+        "s3cTitle": "c. Cookie phân tích",
+        "s3cBody": "Các cookie này giúp hiểu mô hình sử dụng và cải thiện độ tin cậy và trải nghiệm. Chúng tôi cố gắng gộp dữ liệu phân tích và thu thập tối thiểu.",
+        "s4Title": "4. Cookie bên thứ ba",
+        "s4Body": "Một số cookie có thể do dịch vụ bên thứ ba đặt để cung cấp tính năng thiết yếu (xác thực, lưu trữ, bảo mật). Bên đó có thể xử lý thông tin theo chính sách riêng.",
+        "s5Title": "5. Cookie tồn tại bao lâu",
+        "s5L1": "<strong>Cookie phiên</strong> thường hết hạn khi bạn đóng trình duyệt",
+        "s5L2": "<strong>Cookie lâu dài</strong> tồn tại đến khi hết hạn hoặc bạn xóa",
+        "s5Body": "Thời gian hết hạn tùy mục đích cookie và cấu hình Dịch vụ.",
+        "s6Title": "6. Lựa chọn của bạn",
+        "s6Body": "Bạn có thể kiểm soát cookie trong cài đặt trình duyệt: chặn, xóa hoặc được cảnh báo khi cookie được đặt. Nếu tắt cookie, một số tính năng (đăng nhập hoặc lưu tùy chọn) có thể không hoạt động đúng.",
+        "s7Title": "7. Thay đổi chính sách cookie",
+        "s7Body": "Chúng tôi có thể cập nhật Chính sách Cookie theo thời gian. Phiên bản mới nhất được đăng tại trang này kèm ngày cập nhật.",
+        "s8Title": "8. Liên hệ",
+        "s8Body": "Nếu có câu hỏi về cookie hoặc Chính sách này, liên hệ tại <link>privacy@linkynow.site</link>."
+      },
+      "terms": {
+        "metaTitle": "Điều khoản dịch vụ",
+        "metaDescription": "Chào mừng đến với Linky. Khi truy cập hoặc sử dụng trang web và dịch vụ (\"Dịch vụ\"), bạn đồng ý bị ràng buộc bởi các Điều khoản dịch vụ (\"Điều khoản\"). Nếu không đồng ý, vui lòng không sử dụng Dịch vụ.",
+        "title": "Điều khoản dịch vụ",
+        "description": "Chào mừng đến với Linky. Khi truy cập hoặc sử dụng trang web và dịch vụ (\"Dịch vụ\"), bạn đồng ý bị ràng buộc bởi các Điều khoản dịch vụ (\"Điều khoản\"). Nếu không đồng ý, vui lòng không sử dụng Dịch vụ.",
+        "s1Title": "1. Điều kiện tham gia",
+        "s1Body": "Bạn phải đủ ít nhất <strong>18 tuổi</strong> để dùng Linky. Khi dùng Dịch vụ, bạn xác nhận đáp ứng yêu cầu này.",
+        "s2Title": "2. Đăng ký tài khoản",
+        "s2List": [
+          "Bạn chịu trách nhiệm bảo mật thông tin đăng nhập.",
+          "Bạn đồng ý cung cấp thông tin chính xác và đầy đủ khi đăng ký.",
+          "Bạn chịu trách nhiệm mọi hoạt động dưới tài khoản của mình."
+        ],
+        "s3Title": "3. Sử dụng chấp nhận được",
+        "s3Intro": "Bạn đồng ý <strong>KHÔNG</strong>:",
+        "s3List": [
+          "Dùng Dịch vụ cho mục đích bất hợp pháp hoặc trái phép",
+          "Quấy rối, lạm dụng, đe dọa hoặc gây hại người dùng khác",
+          "Chia sẻ nội dung khỏa thân, khiêu dâm, bạo lực hoặc thù hận",
+          "Ghi, phát tán hoặc thu thập video/âm thanh khi chưa được đồng ý",
+          "Cố vượt qua bảo mật, kiểm duyệt hoặc hệ thống ghép",
+          "Dùng bot, script hoặc hệ thống tự động để truy cập Dịch vụ"
+        ],
+        "s3Footer": "Vi phạm có thể dẫn đến <strong>đình chỉ hoặc chấm dứt vĩnh viễn</strong> tài khoản.",
+        "s4Title": "4. Video & giao tiếp thời gian thực",
+        "s4Intro": "Linky cung cấp trò chuyện video và văn bản thời gian thực giữa người dùng. Bạn xác nhận rằng:",
+        "s4List": [
+          "Tương tác diễn ra với người lạ",
+          "Linky không chịu trách nhiệm về hành vi người dùng",
+          "Bạn dùng Dịch vụ với rủi ro của chính mình"
+        ],
+        "s4Footer": "Chúng tôi có quyền giám sát siêu dữ liệu và hành động dựa trên báo cáo hoặc tín hiệu lạm dụng.",
+        "s5Title": "5. Nội dung người dùng",
+        "s5Item1": "Bạn giữ quyền sở hữu nội dung của mình",
+        "s5Item2": "Bạn cấp cho Linky giấy phép hạn chế để xử lý nội dung chỉ nhằm vận hành Dịch vụ",
+        "s5Item3": "Chúng tôi <strong>không</strong> ghi video hoặc âm thanh cuộc gọi theo mặc định",
+        "s6Title": "6. Chấm dứt",
+        "s6Body": "Chúng tôi có thể đình chỉ hoặc chấm dứt quyền truy cập nếu bạn vi phạm Điều khoản hoặc theo yêu cầu pháp luật.",
+        "s7Title": "7. Tuyên bố miễn trừ bảo đảm",
+        "s7Body": "Dịch vụ được cung cấp <strong>\"NGUYÊN TRẠNG\"</strong> và <strong>\"SẴN CÓ\"</strong> không kèm bảo đảm nào.",
+        "s8Title": "8. Giới hạn trách nhiệm",
+        "s8Body": "Trong phạm vi pháp luật cho phép, Linky không chịu trách nhiệm về thiệt hại gián tiếp, ngẫu nhiên hoặc hệ quả.",
+        "s9Title": "9. Thay đổi Điều khoản",
+        "s9Body": "Chúng tôi có thể cập nhật Điều khoản theo thời gian. Tiếp tục dùng Dịch vụ nghĩa là bạn chấp nhận Điều khoản mới.",
+        "s10Title": "10. Liên hệ",
+        "s10Body": "Nếu có câu hỏi về Điều khoản, liên hệ tại <link>support@linkynow.site</link>"
+      },
+      "privacy": {
+        "metaTitle": "Chính sách bảo mật",
+        "metaDescription": "Quyền riêng tư của bạn quan trọng với chúng tôi. Chính sách này giải thích cách Linky thu thập, sử dụng và bảo vệ thông tin.",
+        "title": "Chính sách bảo mật",
+        "description": "Quyền riêng tư của bạn quan trọng với chúng tôi. Chính sách này giải thích cách Linky thu thập, sử dụng và bảo vệ thông tin.",
+        "s1Title": "1. Thông tin chúng tôi thu thập",
+        "s1aTitle": "a. Thông tin bạn cung cấp",
+        "s1aList": [
+          "Địa chỉ email",
+          "Thông tin hồ sơ (tên, ảnh đại diện)",
+          "Dữ liệu xác thực qua nhà cung cấp bên thứ ba (ví dụ Google, Apple)"
+        ],
+        "s1bTitle": "b. Thông tin thu thập tự động",
+        "s1bList": [
+          "Địa chỉ IP (bảo mật và chống lạm dụng)",
+          "Thông tin thiết bị và trình duyệt",
+          "Dữ liệu phiên và sử dụng",
+          "Trạng thái hiện diện và kết nối"
+        ],
+        "s2Title": "2. Cách chúng tôi dùng thông tin",
+        "s2Intro": "Chúng tôi dùng thông tin để:",
+        "s2List": [
+          "Cung cấp và vận hành Dịch vụ",
+          "Xác thực người dùng",
+          "Cho phép giao tiếp thời gian thực",
+          "Cải thiện hiệu năng và trải nghiệm",
+          "Phát hiện gian lận, lạm dụng và vi phạm",
+          "Tuân thủ nghĩa vụ pháp lý"
+        ],
+        "s3Title": "3. Dữ liệu video & âm thanh",
+        "s3Item1": "Linky <strong>KHÔNG</strong> ghi cuộc gọi video hoặc âm thanh",
+        "s3Item2": "Luồng media là peer-to-peer qua WebRTC",
+        "s3Item3": "Dữ liệu báo hiệu tạm chỉ dùng để thiết lập kết nối",
+        "s4Title": "4. Cookie & theo dõi",
+        "s4Intro": "Chúng tôi dùng cookie và công nghệ tương tự để:",
+        "s4List": [
+          "Duy trì phiên",
+          "Theo dõi phân tích ẩn danh",
+          "Ghi nhớ tùy chọn (ví dụ giao diện)"
+        ],
+        "s4Footer": "Bạn có thể tắt cookie trong trình duyệt, nhưng một số tính năng có thể không hoạt động đúng.",
+        "s5Title": "5. Chia sẻ dữ liệu",
+        "s5P1": "Chúng tôi <strong>KHÔNG</strong> bán dữ liệu cá nhân của bạn.",
+        "s5P2": "Chúng tôi chỉ chia sẻ dữ liệu với:",
+        "s5List": [
+          "Nhà cung cấp dịch vụ (xác thực, lưu trữ, phân tích)",
+          "Cơ quan pháp lý khi luật yêu cầu"
+        ],
+        "s6Title": "6. Lưu trữ dữ liệu",
+        "s6Body": "Chúng tôi chỉ lưu dữ liệu cá nhân trong thời gian cần thiết để cung cấp Dịch vụ hoặc tuân thủ pháp luật.",
+        "s7Title": "7. Bảo mật",
+        "s7Intro": "Chúng tôi áp dụng biện pháp kỹ thuật và tổ chức hợp lý để bảo vệ dữ liệu, gồm:",
+        "s7List": [
+          "Mã hóa",
+          "Xác thực an toàn",
+          "Kiểm soát truy cập"
+        ],
+        "s7Footer": "Tuy nhiên, không hệ thống nào an toàn tuyệt đối 100%.",
+        "s8Title": "8. Quyền của bạn",
+        "s8Intro": "Tùy khu vực, bạn có thể có quyền:",
+        "s8List": [
+          "Truy cập dữ liệu của bạn",
+          "Sửa hoặc xóa dữ liệu",
+          "Rút lại sự đồng ý"
+        ],
+        "s8Footer": "Bạn có thể quản lý thông tin trong tài khoản hoặc liên hệ chúng tôi.",
+        "s9Title": "9. Quyền riêng tư trẻ em",
+        "s9Body": "Linky <strong>không dành cho người dưới 18 tuổi</strong>. Chúng tôi không cố ý thu thập dữ liệu trẻ em.",
+        "s10Title": "10. Thay đổi chính sách",
+        "s10Body": "Chúng tôi có thể cập nhật Chính sách bảo mật theo thời gian. Thay đổi được đăng tại trang này.",
+        "s11Title": "11. Liên hệ",
+        "s11Body": "Nếu có câu hỏi về Chính sách bảo mật, liên hệ tại <link>privacy@linkynow.site</link>"
+      }
+    }
   },
   "user": {
     "interestTagsUpdated": "Đã cập nhật thẻ sở thích",

@@ -8,18 +8,15 @@ import {
 
 import { Button } from "@ws/ui/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
-import { Outfit } from "next/font/google";
+import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
+import { geistSans } from "@/shared/fonts/geist-sans";
 import { useTranslations } from "next-intl";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-});
-
-export default function RootNotFoundFallback() {
+function RootNotFoundContent() {
   const router = useRouter();
   const t = useTranslations("notFoundPage");
   return (
-    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${outfit.className}`}>
+    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${geistSans.className}`}>
       <div className="absolute top-0 left-0 -z-10 h-full w-full">
         <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-primary/10 blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-primary/10 blur-[120px]" />
@@ -65,5 +62,13 @@ export default function RootNotFoundFallback() {
 
       <div className="absolute inset-0 -z-20 h-full w-full bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[14px_24px] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
     </div>
+  );
+}
+
+export default function RootNotFoundFallback() {
+  return (
+    <RootNextIntlProvider>
+      <RootNotFoundContent />
+    </RootNextIntlProvider>
   );
 }

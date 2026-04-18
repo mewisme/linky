@@ -8,14 +8,10 @@ import {
 
 import { Button } from "@ws/ui/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { Outfit } from "next/font/google";
+import { geistSans } from "@/shared/fonts/geist-sans";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
-
-const outfit = Outfit({
-  subsets: ["latin"],
-});
 
 export default function Error({
   error,
@@ -30,7 +26,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${outfit.className}`}>
+    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${geistSans.className}`}>
       <div className="absolute inset-0 -z-10 flex items-center justify-center">
         <div className="h-[400px] w-[400px] rounded-full bg-destructive/5 blur-[120px]" />
       </div>

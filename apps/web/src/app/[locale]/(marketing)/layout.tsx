@@ -1,46 +1,50 @@
 import { MarketingProviders } from "@/features/marketing/ui/marketing-providers";
+import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { publicEnv } from "@/shared/env/public-env";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const appUrl = publicEnv.APP_URL;
+type AppLocale = (typeof routing.locales)[number];
 
-  const title = "Linky - Random Video Chat with Purpose | Omegle Alternative";
-  const description = "Safe, account-based random video chat. Match by interests, add favorites, and earn rewards. Better than Omegle with real profiles, moderation, and progression.";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: localeParam } = await params;
+  const locale = localeParam as AppLocale;
+  setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "marketing" });
+  const appUrl = publicEnv.APP_URL;
+  const title = t("layout.title");
+  const description = t("layout.description");
+  const ogImageAlt = t("layout.ogImageAlt");
+  const siteName = t("layout.siteName");
+  const keywords = t.raw("layout.keywords") as string[];
+  const ogLocale = locale === "vi" ? "vi_VN" : "en_US";
 
   return {
     title: {
       default: title,
-      template: "%s | Linky",
+      template: `%s | ${siteName}`,
     },
     description,
-    keywords: [
-      "random video chat",
-      "interest-based video chat",
-      "safe video chat",
-      "Omegle alternative",
-      "Chatroulette alternative",
-      "video chat with strangers",
-      "account-based chat",
-      "moderated video chat",
-      "video chat progression",
-      "match by interests",
-    ],
+    keywords,
     metadataBase: new URL(appUrl),
     openGraph: {
       title,
       description,
       url: appUrl,
-      siteName: "Linky",
+      siteName,
       images: [
         {
           url: `${appUrl}/og`,
           width: 1200,
           height: 630,
-          alt: "Linky - Random Video Chat with Purpose",
+          alt: ogImageAlt,
         },
       ],
-      locale: "en_US",
+      locale: ogLocale,
       type: "website",
     },
     twitter: {
@@ -56,9 +60,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <MarketingProviders>
-      {children}
-    </MarketingProviders>
-  )
+  return <MarketingProviders>{children}</MarketingProviders>;
 }

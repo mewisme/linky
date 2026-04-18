@@ -5,12 +5,13 @@ import { IconBolt, IconShieldCheck, IconWorld } from "@tabler/icons-react";
 import { BorderBeamSimple } from "@ws/ui/components/ui/border-beam-simple";
 import { Link } from "@/i18n/navigation";
 import { MotionEffect } from "@/shared/ui/effects/motion-effect";
-import { Outfit } from "next/font/google";
+import { geistSans } from "@/shared/fonts/geist-sans";
 import { RainbowButton } from "@ws/ui/components/ui/rainbow-button";
 import { SocialProof } from "./social-proof";
 import { SplittingText } from "@ws/ui/components/animate-ui/primitives/texts/splitting";
 import { cn } from "@ws/ui/lib/utils";
 import { motion } from "@ws/ui/internal-lib/motion";
+import { useTranslations } from "next-intl";
 
 interface HeroProps {
   startChatHref: string;
@@ -18,12 +19,15 @@ interface HeroProps {
   isLoaded: boolean;
 }
 
-const outfit = Outfit({ subsets: ["latin"] });
-const TITLE = "Meet the World. Live.";
+const ICONS = [IconWorld, IconBolt, IconShieldCheck] as const;
 
 export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
+  const t = useTranslations("marketing");
+  const title = t("hero.title");
+  const features = t.raw("hero.features") as { title: string; desc: string }[];
+
   return (
-    <div className={cn(outfit.className, 'min-h-dvh')}>
+    <div className={cn(geistSans.className, 'min-h-dvh flex justify-center items-center')}>
       <div className="h-[calc(100dvh-16rem)]">
 
         {/* Header */}
@@ -53,7 +57,9 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
                 colorTo="transparent"
                 className="hidden dark:block"
               />
-              <span className="tracking-widest uppercase text-zinc-500 dark:text-zinc-400 z-10 pointer-events-none">Live · Global · Instant</span>
+              <span className="tracking-widest uppercase text-zinc-500 dark:text-zinc-400 z-10 pointer-events-none">
+                {t("hero.badge")}
+              </span>
             </motion.div>
           </MotionEffect>
 
@@ -61,7 +67,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
             <div className="relative z-10 pointer-events-none">
               <h1 className="mx-auto pointer-events-none">
                 <SplittingText
-                  text={TITLE}
+                  text={title}
                   aria-hidden="true"
                   className="block xl:text-7xl lg:text-6xl md:text-5xl text-4xl font-medium text-center text-neutral-200 dark:text-neutral-800"
                   disableAnimation
@@ -70,7 +76,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
 
               <div className="absolute inset-0 mx-auto flex items-center justify-center">
                 <SplittingText
-                  text={TITLE}
+                  text={title}
                   className="block xl:text-7xl lg:text-6xl md:text-5xl text-4xl font-medium text-center"
                   type="chars"
                   delay={400}
@@ -84,7 +90,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
 
           <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.3}>
             <p className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-xl text-muted-foreground">
-              Secure, real-time video conversations — anywhere.
+              {t("hero.subtitle")}
             </p>
           </MotionEffect>
         </div>
@@ -99,41 +105,29 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
               className="mx-auto font-semibold text-sm sm:text-base md:text-md"
             >
               <Link href={startChatHref} prefetch data-testid="start-chat-button">
-                {isSignedIn && isLoaded ? "Start Chatting Now" : "Sign in to Start Chatting"}
+                {isSignedIn && isLoaded ? t("hero.ctaSignedIn") : t("hero.ctaSignedOut")}
               </Link>
             </RainbowButton>
           </MotionEffect>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 md:gap-6">
-            {[
-              {
-                icon: IconWorld,
-                title: "GLOBAL",
-                desc: "Connect with people worldwide",
-              },
-              {
-                icon: IconBolt,
-                title: "INSTANT",
-                desc: "Start chatting in seconds",
-              },
-              {
-                icon: IconShieldCheck,
-                title: "SECURE",
-                desc: "Your conversations are protected",
-              },
-            ].map(({ icon: Icon, title, desc }) => (
-              <MotionEffect key={title} slide={{ direction: "down" }} fade zoom delay={0.75}>
-                <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
-                  <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
-                    <Icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+            {features.map((item, index) => {
+              const Icon = ICONS[index];
+              if (!Icon) return null;
+              return (
+                <MotionEffect key={item.title} slide={{ direction: "down" }} fade zoom delay={0.75}>
+                  <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
+                    <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
+                      <Icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold sm:text-base text-foreground opacity-70">{item.title}</span>
+                      <p className="text-xs text-muted-foreground sm:text-sm opacity-80">{item.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-sm font-semibold sm:text-base text-foreground opacity-70">{title}</span>
-                    <p className="text-xs text-muted-foreground sm:text-sm opacity-80">{desc}</p>
-                  </div>
-                </div>
-              </MotionEffect>
-            ))}
+                </MotionEffect>
+              );
+            })}
           </div>
 
           <div className="flex flex-col items-center gap-3 pt-2 sm:gap-4 sm:pt-4">
@@ -142,7 +136,11 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
             </MotionEffect>
             <MotionEffect slide={{ direction: "down" }} fade zoom delay={0.9}>
               <p className="text-xs text-muted-foreground sm:text-sm">
-                Join <span className="font-semibold text-foreground">1,000+</span> people chatting right now
+                {t.rich("hero.joinLine", {
+                  strong: (chunks) => (
+                    <span className="font-semibold text-foreground">{chunks}</span>
+                  ),
+                })}
               </p>
             </MotionEffect>
           </div>

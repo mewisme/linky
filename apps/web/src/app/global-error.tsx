@@ -12,12 +12,8 @@ import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
 import en from "@/messages/en.json";
 import vi from "@/messages/vi.json";
-import { Outfit } from "next/font/google";
+import { geistSans } from "@/shared/fonts/geist-sans";
 import { useEffect, useState } from "react";
-
-const outfit = Outfit({
-  subsets: ["latin"],
-});
 
 export default function GlobalError({
   error,
@@ -45,16 +41,6 @@ export default function GlobalError({
     <html lang={lang}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -97,7 +83,7 @@ export default function GlobalError({
         />
       </head>
       <body
-        className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${outfit.className}`}
+        className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${geistSans.className}`}
       >
         <div className="absolute inset-0 -z-10 flex items-center justify-center">
           <div className="h-[400px] w-[400px] rounded-full bg-destructive/5 blur-[120px]" />

@@ -1,30 +1,4 @@
-const CACHE_VERSION = "linky-pwa-v1";
-
-function staleWhileRevalidate(request, cacheName) {
-  return (async () => {
-    const cache = await caches.open(cacheName);
-    const cached = await cache.match(request);
-    const networkPromise = fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          void cache.put(request, response.clone());
-        }
-        return response;
-      })
-      .catch(() => undefined);
-
-    if (cached) {
-      void networkPromise;
-      return cached;
-    }
-
-    const network = await networkPromise;
-    if (network) {
-      return network;
-    }
-    return Response.error();
-  })();
-}
+const CACHE_VERSION = "linky-pwa-v2";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -64,11 +38,6 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.origin !== self.location.origin) {
-    return;
-  }
-
-  if (url.pathname.startsWith("/_next/static/")) {
-    event.respondWith(staleWhileRevalidate(request, CACHE_VERSION));
     return;
   }
 

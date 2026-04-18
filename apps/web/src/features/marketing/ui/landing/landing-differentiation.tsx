@@ -4,31 +4,14 @@ import { IconHeart, IconSparkles, IconTrophy, IconUserCheck } from "@tabler/icon
 
 import { Card } from "@ws/ui/components/ui/card";
 import { MotionEffect } from "@/shared/ui/effects/motion-effect";
+import { useTranslations } from "next-intl";
 
-const FEATURES = [
-  {
-    icon: IconUserCheck,
-    title: "Account-Based Identity",
-    description: "Real profiles, not anonymous chaos. Every user has a verified account.",
-  },
-  {
-    icon: IconHeart,
-    title: "Favorites & Re-matching",
-    description: "Found someone interesting? Add them to favorites and reconnect later.",
-  },
-  {
-    icon: IconSparkles,
-    title: "Interest-Based Matching",
-    description: "Match with people who share your interests, not just random strangers.",
-  },
-  {
-    icon: IconTrophy,
-    title: "Progression System",
-    description: "Earn XP, unlock features, and build streaks. A reason to keep coming back.",
-  },
-];
+const ICONS = [IconUserCheck, IconHeart, IconSparkles, IconTrophy] as const;
 
 export function LandingDifferentiation() {
+  const t = useTranslations("marketing.differentiation");
+  const items = t.raw("items") as { title: string; description: string }[];
+
   return (
     <section className="w-full py-12 sm:py-16 md:py-20">
       <div className="space-y-8 sm:space-y-10 md:space-y-12">
@@ -39,16 +22,17 @@ export function LandingDifferentiation() {
           className="text-center space-y-3 sm:space-y-4"
         >
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold">
-            Not Just Another Random Chat
+            {t("heading")}
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
-            Tired of Omegle clones? Linky brings structure, safety, and progression to random video chat.
+            {t("subheading")}
           </p>
         </MotionEffect>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
-          {FEATURES.map((feature, index) => {
-            const Icon = feature.icon;
+          {items.map((feature, index) => {
+            const Icon = ICONS[index];
+            if (!Icon) return null;
             return (
               <MotionEffect
                 key={feature.title}

@@ -8,16 +8,13 @@ import {
 
 import { Button } from "@ws/ui/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { Outfit } from "next/font/google";
+import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
+import { geistSans } from "@/shared/fonts/geist-sans";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
-const outfit = Outfit({
-  subsets: ["latin"],
-});
-
-export default function RootErrorFallback({
+function RootErrorContent({
   error,
   reset,
 }: {
@@ -30,7 +27,7 @@ export default function RootErrorFallback({
   }, [error]);
 
   return (
-    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${outfit.className}`}>
+    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${geistSans.className}`}>
       <div className="absolute inset-0 -z-10 flex items-center justify-center">
         <div className="h-[400px] w-[400px] rounded-full bg-destructive/5 blur-[120px]" />
       </div>
@@ -85,5 +82,16 @@ export default function RootErrorFallback({
 
       <div className="absolute inset-0 -z-20 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[24px_24px] mask-[radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20" />
     </div>
+  );
+}
+
+export default function RootErrorFallback(props: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  return (
+    <RootNextIntlProvider>
+      <RootErrorContent {...props} />
+    </RootNextIntlProvider>
   );
 }

@@ -4,26 +4,14 @@ import { Card, CardContent } from "@ws/ui/components/ui/card";
 import { IconBrain, IconTrendingUp, IconUsers } from "@tabler/icons-react";
 
 import { MotionEffect } from "@/shared/ui/effects/motion-effect";
+import { useTranslations } from "next-intl";
 
-const VISION_POINTS = [
-  {
-    icon: IconBrain,
-    title: "Smarter Matching",
-    description: "AI-powered interest matching that learns from your interactions",
-  },
-  {
-    icon: IconTrendingUp,
-    title: "Meaningful Progression",
-    description: "Level up, earn rewards, and unlock premium features as you engage",
-  },
-  {
-    icon: IconUsers,
-    title: "Community Building",
-    description: "Build a network of favorites and reconnect with people you enjoyed talking to",
-  },
-];
+const VISION_ICONS = [IconBrain, IconTrendingUp, IconUsers] as const;
 
 export function LandingVision() {
+  const t = useTranslations("marketing.vision");
+  const points = t.raw("items") as { title: string; description: string }[];
+
   return (
     <section className="w-full py-12 sm:py-16 md:py-20">
       <MotionEffect slide={{ direction: 'up' }} fade inView>
@@ -31,16 +19,17 @@ export function LandingVision() {
           <CardContent className="p-6 sm:p-8 md:p-10 space-y-8 sm:space-y-10">
             <div className="text-center space-y-3 sm:space-y-4">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold">
-                Where We're Going
+                {t("heading")}
               </h2>
               <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
-                Random chat with purpose. We're building features that reward meaningful connections and encourage you to come back.
+                {t("subheading")}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-              {VISION_POINTS.map((point, index) => {
-                const Icon = point.icon;
+              {points.map((point, index) => {
+                const Icon = VISION_ICONS[index];
+                if (!Icon) return null;
                 return (
                   <MotionEffect
                     key={point.title}
@@ -69,7 +58,7 @@ export function LandingVision() {
 
             <div className="pt-4 sm:pt-6 border-t border-border/50">
               <p className="text-center text-xs sm:text-sm text-muted-foreground">
-                This isn't a roadmap promise. These are active features in development that will roll out as they're ready.
+                {t("disclaimer")}
               </p>
             </div>
           </CardContent>

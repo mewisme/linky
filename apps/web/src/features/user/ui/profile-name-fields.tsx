@@ -3,7 +3,7 @@
 import {
   CountryFlag
 } from '@/shared/ui/common/country-flag'
-import * as lookup from 'country-code-lookup'
+import { countryByIso } from '@/shared/lib/country-by-iso'
 import { IconLoader2 } from '@tabler/icons-react'
 import React, { useTransition } from 'react'
 
@@ -141,7 +141,7 @@ export function ProfileNameFields({
           <div className="mt-1 flex items-center justify-center gap-2 sm:justify-start">
             <CountryFlag countryCode={country} className="size-5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              {lookup.byIso(country)?.country ?? tp('notProvided')}
+              {countryByIso(country)?.country ?? tp('notProvided')}
             </p>
           </div>
         </div>

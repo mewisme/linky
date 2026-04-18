@@ -1,6 +1,6 @@
 'use client'
 
-import * as lookup from 'country-code-lookup'
+import { countryByIso } from '@/shared/lib/country-by-iso'
 
 import { countries, CountryFlag } from './country-flag'
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from '@ws/ui/components/kibo-ui/combobox'
@@ -20,7 +20,7 @@ export function ComboboxCountry({
   const t = useTranslations('common')
   const countriesData = countries
     .filter((c) => c.length === 2)
-    .map((c) => ({ label: lookup.byIso(c)?.country ?? c, value: c }))
+    .map((c) => ({ label: countryByIso(c)?.country ?? c, value: c }))
 
   return (
     <Combobox
@@ -34,7 +34,7 @@ export function ComboboxCountry({
       >
         <CountryFlag countryCode={country} className="size-4 shrink-0" />
         <span className="truncate text-sm font-medium">
-          {lookup.byIso(country)?.country ?? t('selectCountry')}
+          {countryByIso(country)?.country ?? t('selectCountry')}
         </span>
         <IconChevronDown className="size-4 shrink-0" />
       </ComboboxTrigger>

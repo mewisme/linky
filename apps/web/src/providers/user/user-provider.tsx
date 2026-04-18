@@ -1,7 +1,7 @@
 "use client";
 
 import { UserDetails, UserSettings, UserState, useUserStore } from "@/entities/user/model/user-store";
-import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { updateUserCountry } from "@/features/user/api/profile";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { UserAuthProvider, useUserAuthContext } from "./user-auth-provider";
@@ -48,10 +48,19 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
     return !auth.isLoaded;
   }, [auth.isLoaded]);
 
+  const updateUserCountryAndSyncStore = useCallback(
+    async (country: string) => {
+      const result = await updateUserCountry(country);
+      store.setUser(result);
+      return result;
+    },
+    [store],
+  );
+
   const state = useMemo<State>(() => {
     return {
       getToken,
-      updateUserCountry,
+      updateUserCountry: updateUserCountryAndSyncStore,
       updateUserDetails,
       updateUserSettings,
       fetchUserDetails,
@@ -63,6 +72,7 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
     fetchUserDetails,
     fetchUserSettings,
     getToken,
+    updateUserCountryAndSyncStore,
     updateUserDetails,
     updateUserSettings,
   ]);

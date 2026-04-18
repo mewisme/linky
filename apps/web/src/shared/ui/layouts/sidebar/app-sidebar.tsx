@@ -91,7 +91,7 @@ export function AppSidebar() {
                           state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
                           isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
                         )} isActive={state === 'expanded' && isSubItemActive}>
-                          <div className="flex size-6 items-center justify-center rounded-sm border">
+                          <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
                             <item.icon className={cn(
                               'size-4 shrink-0 transition-colors duration-300',
                               isMobile && 'size-7'
@@ -121,7 +121,7 @@ export function AppSidebar() {
                                 asChild
                               >
                                 <Link href={subItem.href || '#'}>
-                                  <div className="flex size-6 items-center justify-center rounded-sm border">
+                                  <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
                                     <subItem.icon className={cn(
                                       'size-4 shrink-0 transition-colors duration-300',
                                       isMobile && 'size-7'
@@ -146,7 +146,7 @@ export function AppSidebar() {
                       asChild
                     >
                       <Link href={item.href || '#'}>
-                        <div className="flex size-6 items-center justify-center rounded-sm border">
+                        <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
                           <item.icon className={cn('size-4 shrink-0', isMobile && 'size-7')} />
                         </div>
                         <span className={cn(isMobile && 'text-base')}>{item.label}</span>

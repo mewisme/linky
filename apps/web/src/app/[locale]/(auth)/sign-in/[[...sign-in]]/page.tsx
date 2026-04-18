@@ -1,10 +1,10 @@
 "use client";
 
 import { SignIn, useAuth } from "@clerk/nextjs";
-
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
+import { Button } from "@ws/ui/components/ui/button";
 
 function SignedInRedirect({ href }: { href: string }) {
   const router = useRouter();
@@ -14,7 +14,12 @@ function SignedInRedirect({ href }: { href: string }) {
   }, [router, href]);
 
   return (
-    <p className="text-muted-foreground text-center text-sm">Redirecting…</p>
+    <div className="flex flex-col items-center justify-center">
+      <p className="text-muted-foreground text-center text-sm">Redirecting…</p>
+      <Button onClick={() => router.push(href)}>
+        Proceed to URL
+      </Button>
+    </div>
   );
 }
 

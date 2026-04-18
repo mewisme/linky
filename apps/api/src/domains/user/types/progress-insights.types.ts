@@ -18,6 +18,8 @@ export interface ProgressInsights {
   streakRequiredSeconds: number;
   streakRemainingSeconds: number;
   isTodayStreakComplete: boolean;
+  /** Streak day count if today counts as completed (used for realtime projection before DB catches up). */
+  streakIfTodayCompleted: number;
   streak: {
     currentStreak: number;
     longestStreak: number;

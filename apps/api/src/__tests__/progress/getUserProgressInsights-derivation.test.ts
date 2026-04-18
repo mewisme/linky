@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getUserProgressInsights } from "../../domains/user/service/user-progress.service.js";
 
-const RECENT_STREAK_DAYS = 10;
+const RECENT_STREAK_DAYS = 7;
 
 const mockGetOrSet = vi.fn();
 const mockGetUserLevelData = vi.fn();

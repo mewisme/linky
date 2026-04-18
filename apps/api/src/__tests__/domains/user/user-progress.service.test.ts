@@ -85,7 +85,22 @@ describe("getUserProgressInsights", () => {
     expect(r?.expEarnedToday).toBe(100);
     expect(r?.streakStatus).toBeDefined();
     expect(r?.todayDate).toBe("2024-06-15");
-    expect(r?.recentStreakDays).toHaveLength(10);
+    expect(r?.recentStreakDays).toHaveLength(7);
     expect(r?.streakRequiredSeconds).toBe(300);
+  });
+
+  it("streakIfTodayCompleted matches currentStreak when today is already valid", async () => {
+    mockGetUserLevelData.mockResolvedValue({
+      level: 1,
+      totalExpSeconds: 200,
+      expToNextLevel: 0,
+    });
+    mockGetUserStreakHistory.mockResolvedValue({
+      data: [{ date: "2024-06-15", isValid: true, totalCallSeconds: 400 }],
+      count: 1,
+    });
+
+    const r = await getUserProgressInsights("u1", "UTC");
+    expect(r?.streakIfTodayCompleted).toBe(r?.streak.currentStreak);
   });
 });

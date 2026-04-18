@@ -18,19 +18,7 @@ interface StreakMiniCalendarProps {
 }
 
 function getTotalDaysToShow(): number {
-  if (typeof window === "undefined") {
-    return 7;
-  }
-
-  const width = window.innerWidth;
-
-  if (width < 640) {
-    return 7;
-  } else if (width < 1024) {
-    return 9;
-  } else {
-    return 10;
-  }
+  return 7;
 }
 
 export function StreakMiniCalendar({
@@ -63,7 +51,9 @@ export function StreakMiniCalendar({
     const isTodayDate = dateStr === todayStr;
     const recent = progressData.recentStreakDays ?? [];
     const d = recent.find((x) => x.date === dateStr);
-    const isValid = d?.isValid ?? false;
+    const fromRecent = d?.isValid ?? false;
+    const isValid =
+      fromRecent || (isTodayDate && (progressData.isTodayStreakComplete ?? false));
     return { isValid, isToday: isTodayDate };
   };
 

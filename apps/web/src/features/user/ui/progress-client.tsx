@@ -98,6 +98,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     );
   }
 
+  const streakDisplayStatus =
+    data.isTodayStreakComplete ? "active" : data.streakStatus === "frozen" ? "frozen" : "incomplete";
+
   return (
     <AppLayout label="Progress" description="Track your level, EXP, and streak progress" className="space-y-4">
       <div className="space-y-4">
@@ -157,7 +160,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  {data.streakStatus === "frozen" ? (
+                  {streakDisplayStatus === "frozen" ? (
                     <IconSnowflake className="w-5 h-5 text-sky-500" aria-hidden />
                   ) : (
                     <IconFlame className="w-5 h-5 text-orange-500" />
@@ -175,17 +178,17 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   </Button>
                   <Badge
                     variant={
-                      data.streakStatus === "active"
+                      streakDisplayStatus === "active"
                         ? "default"
-                        : data.streakStatus === "frozen"
+                        : streakDisplayStatus === "frozen"
                           ? "secondary"
                           : "outline"
                     }
                     className="text-sm px-3 py-1"
                   >
-                    {data.streakStatus === "active"
+                    {streakDisplayStatus === "active"
                       ? "Complete"
-                      : data.streakStatus === "frozen"
+                      : streakDisplayStatus === "frozen"
                         ? "Frozen"
                         : "Incomplete"}
                   </Badge>
@@ -200,7 +203,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                     <span className="text-muted-foreground">Current Streak</span>
                     <span className="font-medium" data-testid="progress-current-streak">
                       {data.streak.currentStreak} days
-                      {data.streakStatus === "frozen" && (
+                      {streakDisplayStatus === "frozen" && (
                         <span className="ml-1.5 text-sky-600" title="Freeze used to continue">
                           <IconSnowflake className="inline-block size-3.5" aria-hidden />
                         </span>
@@ -217,7 +220,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                       <span className="font-medium">{data.freeze.availableCount}</span>
                     </div>
                   )}
-                  {data.streakStatus === "frozen" && (
+                  {streakDisplayStatus === "frozen" && (
                     <p className="text-xs text-muted-foreground">Freeze used today</p>
                   )}
                 </div>

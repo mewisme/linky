@@ -178,6 +178,8 @@ export namespace UsersAPI {
         streakRequiredSeconds: number;
         streakRemainingSeconds: number;
         isTodayStreakComplete: boolean;
+        /** Server: streak count if today counts as done; used with realtime projection. */
+        streakIfTodayCompleted?: number;
         streak: {
           currentStreak: number;
           longestStreak: number;

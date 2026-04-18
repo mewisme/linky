@@ -11,7 +11,7 @@ import { toUserLocalDateString } from "@/utils/timezone.js";
 const logger = createLogger("api:user:progress:service");
 
 const STREAK_REQUIRED_SECONDS = 300;
-const RECENT_STREAK_DAYS = 10;
+const RECENT_STREAK_DAYS = 7;
 const MAX_STREAK_DAYS_TO_FETCH = 400;
 
 export async function getUserProgressInsights(
@@ -64,6 +64,24 @@ export async function getUserProgressInsights(
       }
     }
 
+    let streakIfTodayCompleted: number;
+    if (todayIsValid) {
+      streakIfTodayCompleted = currentStreak;
+    } else {
+      const yesterdayStr = toUserLocalDateString(new Date(ref.getTime() - 86400000), timezone);
+      if (historySet.get(yesterdayStr) !== true) {
+        streakIfTodayCompleted = 1;
+      } else {
+        let count = 2;
+        for (let i = 2; i < MAX_STREAK_DAYS_TO_FETCH; i++) {
+          const prevDate = toUserLocalDateString(new Date(ref.getTime() - i * 86400000), timezone);
+          if (historySet.get(prevDate) !== true) break;
+          count++;
+        }
+        streakIfTodayCompleted = count;
+      }
+    }
+
     const recentStreakDays: { date: string; isValid: boolean }[] = [];
     for (let i = 0; i < RECENT_STREAK_DAYS; i++) {
       const d = toUserLocalDateString(new Date(ref.getTime() - i * 86400000), timezone);
@@ -110,6 +128,7 @@ export async function getUserProgressInsights(
       streakRequiredSeconds: STREAK_REQUIRED_SECONDS,
       streakRemainingSeconds,
       isTodayStreakComplete,
+      streakIfTodayCompleted,
       streak: {
         currentStreak,
         longestStreak: streakData?.longestStreak || 0,

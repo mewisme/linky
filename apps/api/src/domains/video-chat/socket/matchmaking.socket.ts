@@ -12,6 +12,7 @@ import {
   computeExpSecondsForCallDuration,
   getTimezoneForUser,
 } from "@/domains/user/index.js";
+import type { StreakStatus } from "@/domains/user/types/progress-insights.types.js";
 import { getUserProgressInsights } from "@/domains/user/service/user-progress.service.js";
 import { persistRoomCallHistory, recordCallHistoryFromRoom } from "@/domains/video-chat/socket/call-history.socket.js";
 
@@ -176,8 +177,25 @@ function applyRealtimeCallProjection(
       ? Math.min(100, Math.max(0, (projectedTotalExpSeconds / progressDenominator) * 100))
       : 100;
 
+  const projectedTodaySeconds = progress.todayCallDurationSeconds + unpersistedElapsedSeconds;
+  const projectedIsTodayComplete = projectedTodaySeconds >= progress.streakRequiredSeconds;
+  const streakStatus: StreakStatus = projectedIsTodayComplete ? "active" : progress.streakStatus;
+
+  const projectedCurrentStreak = projectedIsTodayComplete
+    ? progress.isTodayStreakComplete
+      ? progress.streak.currentStreak
+      : progress.streakIfTodayCompleted
+    : progress.streak.currentStreak;
+
+  const recentStreakDays = progress.recentStreakDays.map((entry, i) => ({
+    date: entry.date,
+    isValid: projectedCurrentStreak > 0 && i < projectedCurrentStreak,
+  }));
+
   return {
     ...progress,
+    streakStatus,
+    recentStreakDays,
     currentLevel: nextLevel.level,
     expProgress: {
       ...progress.expProgress,
@@ -191,12 +209,13 @@ function applyRealtimeCallProjection(
     todayCallDuration: {
       ...progress.todayCallDuration,
       totalSeconds: progress.todayCallDuration.totalSeconds + unpersistedElapsedSeconds,
-      isValid: progress.todayCallDuration.totalSeconds + unpersistedElapsedSeconds >= progress.streakRequiredSeconds,
+      isValid: projectedIsTodayComplete,
     },
     streakRemainingSeconds: Math.max(0, progress.streakRequiredSeconds - (progress.todayCallDurationSeconds + unpersistedElapsedSeconds)),
-    isTodayStreakComplete: progress.todayCallDurationSeconds + unpersistedElapsedSeconds >= progress.streakRequiredSeconds,
+    isTodayStreakComplete: projectedIsTodayComplete,
     streak: {
       ...progress.streak,
+      currentStreak: projectedCurrentStreak,
       remainingSecondsToKeepStreak: Math.max(0, progress.streakRequiredSeconds - (progress.todayCallDurationSeconds + unpersistedElapsedSeconds)),
     },
   };

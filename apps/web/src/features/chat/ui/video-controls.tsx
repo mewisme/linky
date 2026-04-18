@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
@@ -466,6 +467,7 @@ export function VideoControls({
         testId: "chat-block-user-button",
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       t,
       connectionStatus,

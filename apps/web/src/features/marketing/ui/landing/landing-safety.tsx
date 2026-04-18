@@ -56,7 +56,7 @@ export function LandingSafety() {
                 inView
                 delay={0.15 + 0.1 * index}
               >
-                <Card className="p-5 sm:p-6 h-full border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+                <Card className="p-5 sm:p-6 h-full border-border/50 bg-linear-to-br from-primary/5 to-transparent">
                   <div className="space-y-3 sm:space-y-4 text-center">
                     <div className="mx-auto rounded-full bg-primary/10 p-3 w-fit">
                       <Icon className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
@@ -78,7 +78,7 @@ export function LandingSafety() {
 
         <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.45}>
           <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-            <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+            <Card className="border-border/50 bg-linear-to-br from-primary/5 to-transparent">
               <CardHeader>
                 <CollapsibleTrigger className="flex items-center justify-between w-full hover:opacity-80 transition-opacity">
                   <div className="text-left">

@@ -1,13 +1,12 @@
 {
   "name": "@ws/shared-types",
-  "version": "0.79.3",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "prebuild": "pnpm check-types",
     "build": "tsc",
-    "check-types": "tsc --noEmit",
-    "prepare": "pnpm build"
+    "check-types": "tsc --noEmit"
   },
   "files": [
     "dist",

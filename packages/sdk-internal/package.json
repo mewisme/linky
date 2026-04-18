@@ -1,6 +1,6 @@
 {
   "name": "@ws/sdk-internal",
-  "version": "0.79.3",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {

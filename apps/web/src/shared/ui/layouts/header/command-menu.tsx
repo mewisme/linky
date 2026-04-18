@@ -117,7 +117,7 @@ export function CommandMenu() {
   const { auth: { signOut, isSignedIn } } = useUserContext()
   const { user: userStore } = useUserStore()
   const { setCollapsible, setVariant, variant, collapsible } = useSidebarStore()
-  const [feedback, setFeedback] = useState<any>(null);
+  const [feedback, setFeedback] = useState<unknown>(null);
   const locale = useLocale()
   const t = useTranslations()
 
@@ -222,7 +222,8 @@ export function CommandMenu() {
             label: t('commandMenu.commands.feedback'),
             icon: IconBug,
             onSelect: async () => {
-              const form = await feedback?.createForm?.()
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const form = await (feedback as any)?.createForm?.()
               if (!form) return
               form.appendToDom()
               form.open()

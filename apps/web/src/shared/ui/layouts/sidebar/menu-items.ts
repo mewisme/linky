@@ -112,6 +112,7 @@ export function useMenuItems(): MenuItem[] {
   const t = useTranslations();
   return useMemo(
     () => buildMenuItems(t as (key: string) => string),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [locale, t],
   );
 }

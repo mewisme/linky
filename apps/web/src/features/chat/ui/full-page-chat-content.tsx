@@ -32,7 +32,7 @@ export function FullPageChatContent({
       '[data-slot="scroll-area-viewport"]'
     );
     if (viewport) viewport.scrollTop = viewport.scrollHeight;
-  }, [chatMessages]);
+  }, [chatMessages, isPeerTyping]);
 
   return (
     <div className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-hidden text-base">

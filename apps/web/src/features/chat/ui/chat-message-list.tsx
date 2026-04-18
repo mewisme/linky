@@ -55,7 +55,10 @@ export function ChatMessageList({
 }) {
   const t = useTranslations("chat");
   return (
-    <div className="flex flex-col" data-testid="chat-messages-container">
+    <div
+      className="flex flex-col pb-6"
+      data-testid="chat-messages-container"
+    >
       {chatMessages.map((msg, index) => {
         const prev = chatMessages[index - 1];
         const next = chatMessages[index + 1];

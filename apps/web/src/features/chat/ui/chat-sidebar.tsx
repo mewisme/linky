@@ -40,7 +40,7 @@ export function ChatContent({
       '[data-slot="scroll-area-viewport"]'
     );
     if (viewport) viewport.scrollTop = viewport.scrollHeight;
-  }, [chatMessages, scrollAreaRef]);
+  }, [chatMessages, isPeerTyping, scrollAreaRef]);
 
   return (
     <div className="flex h-full min-h-0 flex-col text-base" data-testid="chat-sidebar">

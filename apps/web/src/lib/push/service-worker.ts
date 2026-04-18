@@ -9,13 +9,29 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+export async function ensureServiceWorkerRegistered(): Promise<ServiceWorkerRegistration | null> {
+  if (!("serviceWorker" in navigator)) {
+    return null;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    return registration;
+  } catch {
+    return null;
+  }
+}
+
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration> {
   if (!("serviceWorker" in navigator)) {
     throw new Error("Service workers are not supported in this browser");
   }
 
-  const registration = await navigator.serviceWorker.register("/sw.js");
-  await navigator.serviceWorker.ready;
+  const registration = await ensureServiceWorkerRegistered();
+  if (!registration) {
+    throw new Error("Failed to register service worker");
+  }
   return registration;
 }
 

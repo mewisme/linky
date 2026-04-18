@@ -11,6 +11,7 @@ import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
 import { SocketProvider } from "@/providers/realtime/socket-provider";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@/providers/ui/theme-provider";
+import { ServiceWorkerUpdateProvider } from "@/providers/ui/service-worker-update-provider";
 import { ToasterProvider } from "@/providers/ui/toaster-provider";
 import { UserProvider } from "@/providers/user/user-provider";
 import { publicEnv } from "@/shared/env/public-env";
@@ -70,7 +71,12 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "Meet new people, make friends, and have fun!",
       images: ["/og"],
     },
-  }
+    appleWebApp: {
+      capable: true,
+      title: "Linky",
+      statusBarStyle: "black-translucent",
+    },
+  };
 }
 
 export default function RootLayout({
@@ -91,6 +97,8 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              <ServiceWorkerUpdateProvider />
+              <ToasterProvider />
               <UserProvider>
                 <ClerkReadyIndicator />
                 <SocketProvider>
@@ -99,7 +107,6 @@ export default function RootLayout({
                   </ProgressBarProvider>
                 </SocketProvider>
               </UserProvider>
-              <ToasterProvider />
             </ThemeProvider>
             <Analytics />
             <SpeedInsights />

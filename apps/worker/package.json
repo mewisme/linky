@@ -1,6 +1,6 @@
 {
   "name": "@ws/worker",
-  "version": "0.79.1",
+  "version": "0.79.2",
   "private": true,
   "type": "module",
   "main": "dist/index.js",

@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
     ],
   },
   logging: {
-    browserToTerminal: true,
+    browserToTerminal: false,
   }
 };
 

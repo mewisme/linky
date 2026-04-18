@@ -22,6 +22,13 @@ export function deriveFloatingLayoutMode(
   return "avatar";
 }
 
+export function deriveGlobalFloatingLayoutMode(isRemoteCameraOn: boolean): FloatingLayoutMode {
+  if (isRemoteCameraOn) {
+    return "single-remote";
+  }
+  return "avatar";
+}
+
 export function getFloatingVideoState(
   isRemoteCameraOn: boolean,
   isLocalCameraOn: boolean

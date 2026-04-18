@@ -115,13 +115,16 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
       freezeUsed?: boolean;
     }) => {
       if (useVideoChatStore.getState().connectionStatus !== "in_call") return;
+      const actorUserId = data.completedUserId ?? data.userId;
+      const current = currentUserIdRef.current;
+      if (!current || actorUserId !== current) return;
+
       const now = Date.now();
       for (const [key, timestamp] of seenStreakEventKeysRef.current.entries()) {
         if (now - timestamp > STREAK_EVENT_DEDUP_WINDOW_MS) {
           seenStreakEventKeysRef.current.delete(key);
         }
       }
-      const actorUserId = data.completedUserId ?? data.userId;
       const dedupeKey = data.eventKey ?? `${actorUserId}:${data.date}:${data.streakCount}:${data.freezeUsed ? "freeze" : "normal"}`;
       if (seenStreakEventKeysRef.current.has(dedupeKey)) return;
       seenStreakEventKeysRef.current.set(dedupeKey, now);

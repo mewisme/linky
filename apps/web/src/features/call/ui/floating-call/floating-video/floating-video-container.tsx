@@ -1,15 +1,14 @@
 "use client";
 
 import { motion } from "@ws/ui/internal-lib/motion";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { FloatingVideoLayout } from "./floating-video-layout";
-import { FloatingVideoControls } from "./floating-video-controls";
+import { FloatingVideoOverlay } from "./floating-video-overlay";
 import { getFloatingVideoMetrics } from "./floating-video-metrics";
-import { deriveFloatingLayoutMode } from "./floating-video-state";
+import { deriveGlobalFloatingLayoutMode } from "./floating-video-state";
 import { useVideoChatStore, type OverlayCorner, type OverlayPosition } from "@/features/call/model/video-chat-store";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
-import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 
 const PADDING = 16;
@@ -89,44 +88,18 @@ const springTransition = {
 interface FloatingVideoContainerProps {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
-  isVideoOff: boolean;
   remoteMuted: boolean;
   peerInfo: UsersAPI.PublicUserInfo | null;
   hasAudioActivity?: boolean;
-  connectionStatus: ConnectionStatus;
-  isInActiveCall: boolean;
-  isMuted: boolean;
-  isChatOpen: boolean;
-  hasUnreadMessages: boolean;
-  onStart: () => void;
-  onSkip: () => void;
-  onEndCall: () => void;
-  onToggleMute: () => void;
-  onToggleVideo: () => void;
-  onToggleChat: () => void;
-  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   onNavigateToChat: () => void;
 }
 
 export function FloatingVideoContainer({
   localStream,
   remoteStream,
-  isVideoOff,
   remoteMuted,
   peerInfo,
   hasAudioActivity = false,
-  connectionStatus,
-  isInActiveCall,
-  isMuted,
-  isChatOpen,
-  hasUnreadMessages,
-  onStart,
-  onSkip,
-  onEndCall,
-  onToggleMute,
-  onToggleVideo,
-  onToggleChat,
-  sendFavoriteNotification,
   onNavigateToChat,
 }: FloatingVideoContainerProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -138,7 +111,8 @@ export function FloatingVideoContainer({
   const dragStartTimeRef = useRef<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isInteracting, setIsInteracting] = useState(false);
-  const [isControlsVisible, setIsControlsVisible] = useState(false);
+  const [expandOverlayOpen, setExpandOverlayOpen] = useState(false);
+  const [hoverReveal, setHoverReveal] = useState(false);
   const [dragPosition, setDragPosition] = useState<OverlayPosition | null>(null);
   const dragPositionRef = useRef<OverlayPosition | null>(null);
   const rafIdRef = useRef<number | null>(null);
@@ -150,11 +124,10 @@ export function FloatingVideoContainer({
   positionRef.current = position;
 
   const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled;
-  const isLocalCameraOn = !isVideoOff;
 
   const layoutMode = useMemo(
-    () => deriveFloatingLayoutMode(isRemoteCameraOn, isLocalCameraOn),
-    [isRemoteCameraOn, isLocalCameraOn]
+    () => deriveGlobalFloatingLayoutMode(isRemoteCameraOn),
+    [isRemoteCameraOn]
   );
 
   const metrics = useMemo(
@@ -164,31 +137,21 @@ export function FloatingVideoContainer({
 
   const { width, maxHeightVh } = metrics;
 
-  const hideTimerRef = useRef<number | null>(null);
-
-  const clearHideTimer = () => {
-    if (hideTimerRef.current === null) return;
-    window.clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = null;
-  };
-
   const handleTap = () => {
-    if (isMobile) {
-      onNavigateToChat();
-    }
+    setExpandOverlayOpen((open) => !open);
   };
 
   const handleMouseEnter = () => {
-    if (isMobile || isDragging) return;
-    clearHideTimer();
-    setIsControlsVisible(true);
+    if (isMobile) return;
+    setHoverReveal(true);
   };
 
   const handleMouseLeave = () => {
     if (isMobile) return;
-    clearHideTimer();
-    setIsControlsVisible(false);
+    setHoverReveal(false);
   };
+
+  const expandOverlayVisible = expandOverlayOpen || hoverReveal;
 
   useLayoutEffect(() => {
     if (hasInitializedPositionRef.current) return;
@@ -326,6 +289,8 @@ export function FloatingVideoContainer({
       if (shouldStartDrag && !dragStartedRef.current) {
         dragStartedRef.current = true;
         setIsDragging(true);
+        setExpandOverlayOpen(false);
+        setHoverReveal(false);
       }
 
       if (dragStartedRef.current) {
@@ -398,19 +363,6 @@ export function FloatingVideoContainer({
 
   const transition = isDragging ? { duration: 0 } : springTransition;
 
-  useEffect(() => {
-    if (!isDragging && !isInteracting) return;
-    if (isMobile) return;
-    clearHideTimer();
-    setIsControlsVisible(false);
-  }, [isDragging, isInteracting, isMobile]);
-
-  useEffect(() => {
-    return () => {
-      clearHideTimer();
-    };
-  }, []);
-
   const aspectRatioClass = getAspectRatioClass(layoutMode);
 
   return (
@@ -446,6 +398,13 @@ export function FloatingVideoContainer({
         peerInfo={peerInfo}
         isMobile={isMobile}
         layoutMode={layoutMode}
+      />
+      <FloatingVideoOverlay
+        onExpand={onNavigateToChat}
+        isMobile={isMobile}
+        isDragging={isDragging}
+        isInteracting={isInteracting}
+        isVisible={expandOverlayVisible}
       />
     </motion.div>
   );

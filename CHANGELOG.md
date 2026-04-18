@@ -1,12 +1,16 @@
 ## What's Changed
 
+✨ Features
+
+- Add development settings and user profile enhancements ([1a8516d](../../commit/1a8516d))
+
 ⚡️ Performance
 
-- Limit chat message length and implement message splitting ([b5c882c](../../commit/b5c882c))
+- Enhance user progress insights and streak tracking ([7e9f765](../../commit/7e9f765))
 
 🔨 Other Changes
 
-- Update package versions to 0.78.1 and refresh version lock ([3e93a27](../../commit/3e93a27))
+- Update package versions to 0.78.2 and refresh version lock ([a746aa5](../../commit/a746aa5))
 
 
-📋 Full Changelog: [3e93a27...b5c882c](../../compare/3e93a27...b5c882c)
+📋 Full Changelog: [a746aa5...7e9f765](../../compare/a746aa5...7e9f765)

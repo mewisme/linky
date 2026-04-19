@@ -48,7 +48,7 @@ export function BioSection({
   }
 
   return (
-    <div className="group/bio space-y-2 rounded-xl transition-colors hover:bg-muted/10">
+    <div className="group/bio min-w-0 space-y-2 rounded-xl transition-colors hover:bg-muted/10">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconInfoCircle className="size-4 shrink-0" aria-hidden />
@@ -107,10 +107,10 @@ export function BioSection({
       ) : (
         <button
           type="button"
-          className="w-full rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-left transition-colors hover:border-border sm:px-5 sm:py-4"
+          className="w-full min-w-0 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-left transition-colors hover:border-border sm:px-5 sm:py-4"
           onClick={() => setEditingBio(true)}
         >
-          <p className="text-sm leading-relaxed text-muted-foreground">
+          <p className="whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-muted-foreground">
             {userDetails?.bio || tp('notProvided')}
           </p>
         </button>

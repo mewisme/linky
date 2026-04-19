@@ -2,7 +2,7 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 interface VideoPlayerProps {
   stream: MediaStream | null;
   muted?: boolean;
@@ -12,7 +12,45 @@ interface VideoPlayerProps {
   objectFit?: "contain" | "cover";
   objectPosition?: string;
   isMobile?: boolean;
+  mirrored?: boolean;
   onError?: (error: Error) => void;
+}
+
+export function shouldMirrorLocalPreview(
+  localStream: MediaStream | null,
+  isSharingScreen: boolean
+): boolean {
+  if (isSharingScreen) return false;
+  const facing = (
+    localStream?.getVideoTracks()[0]?.getSettings() as { facingMode?: string } | undefined
+  )?.facingMode;
+  if (facing === "environment") return false;
+  return true;
+}
+
+export function useMirrorLocalPreview(
+  localStream: MediaStream | null,
+  isSharingScreen: boolean
+): boolean {
+  const [mirror, setMirror] = useState(() =>
+    shouldMirrorLocalPreview(localStream, isSharingScreen)
+  );
+
+  useEffect(() => {
+    const sync = () => {
+      setMirror(shouldMirrorLocalPreview(localStream, isSharingScreen));
+    };
+    sync();
+    if (!localStream) return;
+    localStream.addEventListener("addtrack", sync);
+    localStream.addEventListener("removetrack", sync);
+    return () => {
+      localStream.removeEventListener("addtrack", sync);
+      localStream.removeEventListener("removetrack", sync);
+    };
+  }, [localStream, isSharingScreen]);
+
+  return mirror;
 }
 
 export function VideoPlayer({
@@ -24,6 +62,7 @@ export function VideoPlayer({
   objectFit = "contain",
   objectPosition,
   isMobile = false,
+  mirrored = false,
   onError,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -82,6 +121,10 @@ export function VideoPlayer({
         width: '100%',
         height: '100%',
         display: 'block',
+        ...(mirrored && {
+          transform: 'scaleX(-1)',
+          transformOrigin: 'center center',
+        }),
       }}
     />
   );

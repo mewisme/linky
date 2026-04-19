@@ -15,7 +15,7 @@ import type { UsersAPI } from "@/entities/user/types/users.types";
 import { VideoChatIdleState } from "./video-chat-idle-state";
 import { VideoChatSearchingState } from "./video-chat-searching-state";
 import { VideoControls } from "./video-controls";
-import { VideoPlayer } from "./video-player";
+import { useMirrorLocalPreview, VideoPlayer } from "./video-player";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useMousePosition } from "@/shared/hooks/ui/use-mouse-move";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
@@ -91,6 +91,7 @@ export function VideoContainer({
   const networkQuality = useVideoChatStore((s) => s.networkQuality);
   const isVideoStalled = useVideoChatStore((s) => s.isVideoStalled);
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
+  const mirrorLocalPreview = useMirrorLocalPreview(localStream, !!isSharingScreen);
 
   const queryClient = useQueryClient();
   const [isMounted, setIsMounted] = useState(false);
@@ -238,6 +239,7 @@ export function VideoContainer({
               isVideoOff={isVideoOff}
               containerRef={containerRef as React.RefObject<HTMLDivElement>}
               isMobile={isMobile}
+              mirrored={mirrorLocalPreview}
             />
           )}
         </>
@@ -255,6 +257,7 @@ export function VideoContainer({
                 className="max-h-full max-w-full"
                 objectFit="contain"
                 isMobile={isMobile}
+                mirrored={mirrorLocalPreview}
               />
               {isVideoOff && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted" data-testid="chat-camera-off-indicator">

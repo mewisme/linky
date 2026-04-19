@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar
 import type { FloatingLayoutMode } from "./floating-video-state";
 import { IconMicrophoneOff } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
-import { VideoPlayer } from "@/features/chat/ui/video-player";
+import { useMirrorLocalPreview, VideoPlayer } from "@/features/chat/ui/video-player";
+import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 
 interface PeerInfo {
   first_name?: string | null;
@@ -30,6 +31,8 @@ export function FloatingVideoLayout({
   layoutMode,
 }: FloatingVideoLayoutProps) {
   const tp = useTranslations("user.profile");
+  const isSharingScreen = useVideoChatStore((s) => s.isSharingScreen);
+  const mirrorLocalPreview = useMirrorLocalPreview(localStream, isSharingScreen);
   const iconSize = isMobile ? "size-3" : "size-4";
   const padding = isMobile ? "p-1" : "p-1.5";
 
@@ -58,6 +61,7 @@ export function FloatingVideoLayout({
             className="h-full w-full"
             objectFit="cover"
             objectPosition="center center"
+            mirrored={mirrorLocalPreview}
           />
         </div>
       </div>
@@ -93,6 +97,7 @@ export function FloatingVideoLayout({
           className="h-full w-full"
           objectFit="cover"
           objectPosition="center center"
+          mirrored={mirrorLocalPreview}
         />
       </div>
     );

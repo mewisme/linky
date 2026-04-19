@@ -16,6 +16,7 @@ interface DraggableVideoOverlayProps {
   isVideoOff: boolean;
   containerRef: React.RefObject<HTMLDivElement>;
   isMobile?: boolean;
+  mirrored?: boolean;
 }
 
 function getDefaultCorner(isMobile: boolean): OverlayCorner {
@@ -95,6 +96,7 @@ export function DraggableVideoOverlay({
   isVideoOff,
   containerRef,
   isMobile = false,
+  mirrored = false,
 }: DraggableVideoOverlayProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const latestPositionRef = useRef<OverlayPosition | null>(null);
@@ -279,6 +281,7 @@ export function DraggableVideoOverlay({
         objectFit="cover"
         objectPosition="center"
         isMobile={isMobile}
+        mirrored={mirrored}
       />
       {isVideoOff && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted">

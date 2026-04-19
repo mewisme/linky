@@ -493,7 +493,7 @@
       "account": "Tài khoản"
     },
     "ui": {
-      "searchPlaceholder": "Tìm...",
+      "searchPlaceholder": "Tìm kiếm...",
       "commandInputPlaceholder": "Tìm lệnh và trang...",
       "noResults": "Không có kết quả.",
       "enterToOpen": "Enter để mở",

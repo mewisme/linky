@@ -856,6 +856,7 @@
     "verificationCancelled": "Xác minh đã bị hủy",
     "avatarUpdated": "Đã cập nhật ảnh đại diện",
     "uploadFailed": "Tải lên thất bại",
+    "invalidImageFile": "Tệp không phải ảnh hợp lệ. Hãy chọn tệp ảnh thật.",
     "bioUpdated": "Đã cập nhật tiểu sử",
     "personalInfoUpdated": "Đã cập nhật thông tin cá nhân",
     "profileUpdated": "Đã cập nhật hồ sơ",

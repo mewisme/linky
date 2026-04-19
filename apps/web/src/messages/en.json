@@ -856,6 +856,7 @@
     "verificationCancelled": "Verification was cancelled",
     "avatarUpdated": "Avatar updated",
     "uploadFailed": "Upload failed",
+    "invalidImageFile": "That file is not a valid image. Choose a real image file.",
     "bioUpdated": "Bio updated",
     "personalInfoUpdated": "Personal information updated",
     "profileUpdated": "Profile updated",

@@ -11,7 +11,28 @@ import type { useUser } from '@clerk/nextjs'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
+import { fileTypeFromBlob } from 'file-type'
 import { useRef, useState } from 'react'
+
+async function hasImageMimeFromMagic(file: File): Promise<boolean> {
+  const result = await fileTypeFromBlob(file)
+  return result?.mime.startsWith('image/') ?? false
+}
+
+async function canDecodeAsImage(file: File): Promise<boolean> {
+  try {
+    const bitmap = await createImageBitmap(file)
+    bitmap.close()
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function isActualImageFile(file: File): Promise<boolean> {
+  if (await hasImageMimeFromMagic(file)) return true
+  return canDecodeAsImage(file)
+}
 
 async function toSquareAvatarFile(file: File): Promise<File> {
   const bitmap = await createImageBitmap(file)
@@ -67,6 +88,12 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
   ) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (!(await isActualImageFile(file))) {
+      toast.error(t('invalidImageFile'))
+      e.target.value = ''
+      return
+    }
 
     setIsPending(true)
     revealAfterLoadRef.current = false

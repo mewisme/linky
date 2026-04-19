@@ -37,6 +37,7 @@
     "country-code-lookup": "^0.1.5",
     "country-flag-icons": "^1.6.16",
     "date-fns": "^4.1.0",
+    "file-type": "^22.0.1",
     "lucide-react": "^0.562.0",
     "motion": "^12.38.0",
     "next": "16.2.4",

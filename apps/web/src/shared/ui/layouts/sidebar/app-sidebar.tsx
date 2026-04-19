@@ -93,8 +93,7 @@ export function AppSidebar() {
                         )} isActive={state === 'expanded' && isSubItemActive}>
                           <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
                             <item.icon className={cn(
-                              'size-4 shrink-0 transition-colors duration-300',
-                              isMobile && 'size-7'
+                              'size-4 shrink-0 transition-colors duration-300'
                             )} />
                           </div>
                           <span className={cn(
@@ -123,8 +122,7 @@ export function AppSidebar() {
                                 <Link href={subItem.href || '#'}>
                                   <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
                                     <subItem.icon className={cn(
-                                      'size-4 shrink-0 transition-colors duration-300',
-                                      isMobile && 'size-7'
+                                      'size-4 shrink-0 transition-colors duration-300'
                                     )} />
                                   </div>
                                   <span className={cn(isMobile && 'text-base')}>{subItem.label}</span>
@@ -147,7 +145,7 @@ export function AppSidebar() {
                     >
                       <Link href={item.href || '#'}>
                         <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
-                          <item.icon className={cn('size-4 shrink-0', isMobile && 'size-7')} />
+                          <item.icon className={cn('size-4 shrink-0')} />
                         </div>
                         <span className={cn(isMobile && 'text-base')}>{item.label}</span>
                       </Link>

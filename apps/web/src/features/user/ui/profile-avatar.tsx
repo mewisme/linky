@@ -13,6 +13,42 @@ import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { useRef, useState } from 'react'
 
+async function toSquareAvatarFile(file: File): Promise<File> {
+  const bitmap = await createImageBitmap(file)
+  try {
+    const w = bitmap.width
+    const h = bitmap.height
+    if (w === h) return file
+
+    const side = h >= w ? w : h
+    const canvas = document.createElement('canvas')
+    canvas.width = side
+    canvas.height = side
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas not available.')
+
+    ctx.drawImage(bitmap, 0, 0, side, side, 0, 0, side, side)
+
+    const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => {
+          if (result) resolve(result)
+          else reject(new Error('Failed to encode image.'))
+        },
+        mimeType,
+        mimeType === 'image/png' ? undefined : 0.92,
+      )
+    })
+
+    const ext = mimeType === 'image/png' ? '.png' : '.jpg'
+    const base = file.name.replace(/\.[^.]+$/, '') || 'avatar'
+    return new File([blob], `${base}${ext}`, { type: mimeType })
+  } finally {
+    bitmap.close()
+  }
+}
+
 type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
 
 interface ProfileAvatarProps {
@@ -35,7 +71,8 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
     setIsPending(true)
     revealAfterLoadRef.current = false
     try {
-      await user.setProfileImage({ file })
+      const prepared = await toSquareAvatarFile(file)
+      await user.setProfileImage({ file: prepared })
       revealAfterLoadRef.current = true
       playSound('success')
       toast.success(t('avatarUpdated'))

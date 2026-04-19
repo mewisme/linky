@@ -11,7 +11,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import { Input } from '@ws/ui/components/ui/input'
 import type { useUser } from '@clerk/nextjs'
 import { toast } from "@ws/ui/components/ui/sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { ComboboxCountry } from '@/shared/ui/common/combobox-country'
@@ -36,6 +36,7 @@ export function ProfileNameFields({
   const t = useTranslations("user");
   const tp = useTranslations("user.profile");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
   const [isEditing, setIsEditing] = React.useState(false)
@@ -141,7 +142,7 @@ export function ProfileNameFields({
           <div className="mt-1 flex items-center justify-center gap-2 sm:justify-start">
             <CountryFlag countryCode={country} className="size-5 shrink-0" />
             <p className="text-sm text-muted-foreground">
-              {countryByIso(country)?.country ?? tp('notProvided')}
+              {countryByIso(country, locale)?.country ?? tp('notProvided')}
             </p>
           </div>
         </div>

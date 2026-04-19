@@ -1,6 +1,5 @@
-import 'country-flag-icons/3x2/flags.css'
-
-import * as Flags from 'country-flag-icons/react/3x2'
+import { hasFlag } from 'country-flag-icons'
+import getCountryFlag from 'country-flag-icons/unicode'
 
 import { cn } from '@ws/ui/lib/utils'
 
@@ -17,11 +16,16 @@ export function CountryFlag({ countryCode, className }: CountryFlagProps) {
   }
 
   const normalizedCode = countryCode.toUpperCase()
-  const Flag = Flags[normalizedCode as keyof typeof Flags]
-
-  if (!Flag) {
+  if (!hasFlag(normalizedCode)) {
     return null
   }
 
-  return <Flag className={cn('size-4', className)} />
+  return (
+    <span
+      className={cn('inline-flex items-center justify-center text-base leading-none', className)}
+      aria-hidden
+    >
+      {getCountryFlag(normalizedCode)}
+    </span>
+  )
 }

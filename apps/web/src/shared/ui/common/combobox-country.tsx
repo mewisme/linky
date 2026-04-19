@@ -6,7 +6,8 @@ import { countries, CountryFlag } from './country-flag'
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxGroup, ComboboxInput, ComboboxItem, ComboboxList, ComboboxTrigger } from '@ws/ui/components/kibo-ui/combobox'
 import { IconChevronDown } from '@tabler/icons-react'
 import { cn } from '@ws/ui/lib/utils'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
+import { useMemo } from 'react'
 
 export function ComboboxCountry({
   country,
@@ -18,9 +19,14 @@ export function ComboboxCountry({
   triggerClassName?: string
 }) {
   const t = useTranslations('common')
-  const countriesData = countries
-    .filter((c) => c.length === 2)
-    .map((c) => ({ label: countryByIso(c)?.country ?? c, value: c }))
+  const locale = useLocale()
+  const countriesData = useMemo(
+    () =>
+      countries
+        .filter((c) => c.length === 2)
+        .map((c) => ({ label: countryByIso(c, locale)?.country ?? c, value: c })),
+    [locale],
+  )
 
   return (
     <Combobox
@@ -34,7 +40,7 @@ export function ComboboxCountry({
       >
         <CountryFlag countryCode={country} className="size-4 shrink-0" />
         <span className="truncate text-sm font-medium">
-          {countryByIso(country)?.country ?? t('selectCountry')}
+          {countryByIso(country, locale)?.country ?? t('selectCountry')}
         </span>
         <IconChevronDown className="size-4 shrink-0" />
       </ComboboxTrigger>

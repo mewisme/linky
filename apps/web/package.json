@@ -34,7 +34,6 @@
     "@vercel/speed-insights": "^2.0.0",
     "@ws/shared-types": "workspace:*",
     "@ws/ui": "workspace:*",
-    "country-code-lookup": "^0.1.5",
     "country-flag-icons": "^1.6.16",
     "date-fns": "^4.1.0",
     "file-type": "^22.0.1",

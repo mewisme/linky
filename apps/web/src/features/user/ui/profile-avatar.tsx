@@ -11,7 +11,7 @@ import type { useUser } from '@clerk/nextjs'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
-import { useTransition } from 'react'
+import { useRef, useState } from 'react'
 
 type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
 
@@ -23,7 +23,8 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
   const t = useTranslations("user");
   const tp = useTranslations("user.profile");
   const { play: playSound } = useSoundWithSettings()
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
+  const revealAfterLoadRef = useRef(false)
 
   const handleImageChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -31,15 +32,30 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    startTransition(async () => {
-      try {
-        await user.setProfileImage({ file })
-        playSound('success')
-        toast.success(t('avatarUpdated'))
-      } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : t('uploadFailed'))
-      }
-    })
+    setIsPending(true)
+    revealAfterLoadRef.current = false
+    try {
+      await user.setProfileImage({ file })
+      revealAfterLoadRef.current = true
+      playSound('success')
+      toast.success(t('avatarUpdated'))
+    } catch (error: unknown) {
+      revealAfterLoadRef.current = false
+      setIsPending(false)
+      toast.error(error instanceof Error ? error.message : t('uploadFailed'))
+    }
+  }
+
+  const handleAvatarImageLoad = () => {
+    if (!revealAfterLoadRef.current) return
+    revealAfterLoadRef.current = false
+    setIsPending(false)
+  }
+
+  const handleAvatarImageError = () => {
+    if (!revealAfterLoadRef.current) return
+    revealAfterLoadRef.current = false
+    setIsPending(false)
   }
 
   return (
@@ -48,6 +64,8 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
         <AvatarImage
           src={user.imageUrl}
           alt={[user.firstName, user.lastName].filter(Boolean).join(' ') || tp('profilePhotoAlt')}
+          onLoad={handleAvatarImageLoad}
+          onError={handleAvatarImageError}
         />
         <AvatarFallback className="text-xl font-semibold sm:text-2xl">
           {user.firstName?.charAt(0) ?? user.emailAddresses?.[0]?.emailAddress?.charAt(0) ?? '?'}

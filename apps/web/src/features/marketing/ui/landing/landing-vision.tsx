@@ -15,7 +15,7 @@ export function LandingVision() {
   return (
     <section className="w-full py-12 sm:py-16 md:py-20">
       <MotionEffect slide={{ direction: 'up' }} fade inView>
-        <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+        <Card className="border-border/50 bg-linear-to-br from-primary/5 to-transparent">
           <CardContent className="p-6 sm:p-8 md:p-10 space-y-8 sm:space-y-10">
             <div className="text-center space-y-3 sm:space-y-4">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold">

@@ -19,7 +19,9 @@ export async function getInterestTags(options: GetInterestTagsOptions = {}) {
 
   let query = supabase
     .from("interest_tags")
-    .select("*", { count: "exact" });
+    .select("id, name, description, icon, category, is_active, created_at, updated_at", {
+      count: "exact",
+    });
 
   if (isActive !== undefined) {
     query = query.eq("is_active", isActive);

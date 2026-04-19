@@ -59,6 +59,7 @@ import { useSidebarStore } from '@/shared/model/sidebar-store'
 import { useTheme } from 'next-themes'
 import { useUserContext } from '@/providers/user/user-provider'
 import { useUserStore } from '@/entities/user/model/user-store'
+import { useIsMobile } from '@ws/ui/hooks/use-mobile'
 
 interface CommandAction {
   id: string
@@ -120,6 +121,7 @@ export function CommandMenu() {
   const [feedback, setFeedback] = useState<unknown>(null);
   const locale = useLocale()
   const t = useTranslations()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const feedbackIntegration = Sentry.getFeedback();
@@ -464,7 +466,7 @@ export function CommandMenu() {
         <InputGroupAddon>
           <Search />
         </InputGroupAddon>
-        <InputGroupAddon align="inline-end" >
+        <InputGroupAddon align="inline-end" hidden={isMobile} >
           <KbdGroup>
             <Kbd>⌘</Kbd>
             <Kbd>K</Kbd>

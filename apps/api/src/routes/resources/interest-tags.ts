@@ -17,7 +17,7 @@ router.get("/", async (req: Request, res: Response) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    const shouldCache = !category && !search && limit <= 100 && offset === 0;
+    const shouldCache = !category && !search && limit <= 200 && offset === 0;
 
     let data, count;
 

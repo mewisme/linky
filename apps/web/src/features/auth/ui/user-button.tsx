@@ -22,7 +22,7 @@ import { Link } from "@/i18n/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { isAdmin } from "@/shared/utils/roles";
 import { trackEvent } from "@/lib/telemetry/events/client";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useUserStore } from "@/entities/user/model/user-store";
@@ -30,6 +30,7 @@ import { useTheme } from "next-themes"
 import { IconDeviceDesktop } from "@tabler/icons-react";
 import { useLocaleSwitch } from "@/shared/hooks/i18n/use-locale-switch";
 import type { UiLocale } from "@ws/shared-types";
+import { absoluteLocalePrefixedUrl } from "@/i18n/locale-path";
 
 export function UserButton() {
   const t = useTranslations("sidebarHeader");
@@ -39,19 +40,22 @@ export function UserButton() {
   const locale = useLocale() as UiLocale;
   const { switchLocale } = useLocaleSwitch();
   const { setTheme } = useTheme();
-
+  const signOutRedirectUrl = useMemo(
+    () => absoluteLocalePrefixedUrl(locale, "/sign-in"),
+    [locale],
+  );
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "q" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
         trackEvent({ name: "sign_out" });
-        signOut();
+        void signOut({ redirectUrl: signOutRedirectUrl });
       }
     }
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [signOut])
+  }, [signOut, signOutRedirectUrl])
 
   return (
     <DropdownMenu>
@@ -154,7 +158,7 @@ export function UserButton() {
           </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <SignOutButton>
+        <SignOutButton redirectUrl={signOutRedirectUrl}>
           <DropdownMenuItem
             variant="destructive"
             className='cursor-pointer gap-2 p-2'

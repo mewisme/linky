@@ -131,6 +131,11 @@ High-level view for admin users:
 - Profile page allows bio, location, interests, photo upload
 - Changes persist to Supabase via backend API
 
+**Clerk dashboard and URLs (locale + sign-out):**
+- In Clerk, allow redirect and sign-in paths that match the app: `/sign-in` and `/vi/sign-in` (and sign-up / reset-password as applicable). Default English uses no `/en` prefix (`localePrefix: as-needed`); do not require `/en/sign-in` unless the app is changed to always prefix English.
+- Set `NEXT_PUBLIC_APP_URL` to the site origin only (for example `https://www.example.com`), with no locale path such as `/en`.
+- Production traffic on a custom domain should use **live** Clerk keys (`pk_live_…` / `sk_live_…`). Development keys show the hosted sign-in domain (`*.accounts.dev`).
+
 ## Environment Variables
 
 Frontend requires these environment variables in `apps/web/.env.local`:

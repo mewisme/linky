@@ -19,6 +19,7 @@ export function LocaleSync() {
   const [hydrated, setHydrated] = useState(false);
   const isFirstLocaleSync = useRef(true);
   const deferredRedirectLocale = useRef<UiLocale | null>(null);
+  const preferenceRedirectPending = useRef(false);
 
   useEffect(() => {
     const p = useLocalePreferenceStore.persist;
@@ -47,6 +48,7 @@ export function LocaleSync() {
       deferredRedirectLocale.current = stored;
       return;
     }
+    preferenceRedirectPending.current = true;
     router.replace(pathname, { locale: stored });
   }, [hydrated, locale, pathname, router]);
 
@@ -60,12 +62,23 @@ export function LocaleSync() {
       return;
     }
     deferredRedirectLocale.current = null;
+    preferenceRedirectPending.current = true;
     router.replace(pathname, { locale: def });
   }, [hydrated, connectionStatus, locale, pathname, router]);
 
   useEffect(() => {
     if (!hydrated) return;
+    if (!preferenceRedirectPending.current) return;
+    const stored = useLocalePreferenceStore.getState().locale;
+    if (isUiLocale(stored) && stored === locale) {
+      preferenceRedirectPending.current = false;
+    }
+  }, [hydrated, locale]);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (deferredRedirectLocale.current) return;
+    if (preferenceRedirectPending.current) return;
     setLocalePreference(locale as UiLocale);
   }, [hydrated, locale, setLocalePreference]);
 

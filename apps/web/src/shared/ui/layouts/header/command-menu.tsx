@@ -59,6 +59,7 @@ import { useTheme } from 'next-themes'
 import { useUserContext } from '@/providers/user/user-provider'
 import { useUserStore } from '@/entities/user/model/user-store'
 import { useIsMobile } from '@ws/ui/hooks/use-mobile'
+import { absoluteLocalePrefixedUrl } from '@/i18n/locale-path'
 
 interface CommandAction {
   id: string
@@ -118,6 +119,10 @@ export function CommandMenu() {
   const { setCollapsible, setVariant, variant, collapsible } = useSidebarStore()
   const [feedback, setFeedback] = useState<unknown>(null);
   const locale = useLocale()
+  const signOutRedirectUrl = useMemo(
+    () => absoluteLocalePrefixedUrl(locale, '/sign-in'),
+    [locale],
+  )
   const t = useTranslations()
   const isMobile = useIsMobile()
 
@@ -415,7 +420,7 @@ export function CommandMenu() {
               icon: IconLogout,
               onSelect: async () => {
                 trackEvent({ name: "sign_out" });
-                signOut();
+                await signOut({ redirectUrl: signOutRedirectUrl });
               },
               keywords: parseKeywords(t, 'logout'),
             },
@@ -423,7 +428,7 @@ export function CommandMenu() {
         },
       ] : []),
     ]
-  }, [collapsible, feedback, isAdminUser, isSignedIn, isSuperAdminUser, locale, resolvedTheme, setCollapsible, setTheme, setVariant, signOut, switchLocale, t, variant])
+  }, [collapsible, feedback, isAdminUser, isSignedIn, isSuperAdminUser, locale, resolvedTheme, setCollapsible, setTheme, setVariant, signOut, signOutRedirectUrl, switchLocale, t, variant])
 
   const filteredGroups = useMemo(() => {
     return commandGroups

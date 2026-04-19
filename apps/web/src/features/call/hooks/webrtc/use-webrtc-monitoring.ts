@@ -4,7 +4,10 @@ import * as Sentry from "@sentry/nextjs";
 
 import { useCallback, useRef } from "react";
 import { NetworkMonitor, type NetworkQuality } from "@/features/call/lib/webrtc/network-monitor";
-import { VideoHealthTracker } from "@/features/call/lib/webrtc/video-health-tracker";
+import {
+  VideoHealthTracker,
+  type VideoHealthTrackerOptions,
+} from "@/features/call/lib/webrtc/video-health-tracker";
 import { QualityController } from "@/features/call/lib/webrtc/quality-controller";
 import { applyInitialEncoding, type QualityTier } from "@/features/call/lib/webrtc/adaptive-encoding";
 
@@ -15,7 +18,12 @@ export interface MonitoringCallbacks {
 }
 
 export interface UseWebRTCMonitoringReturn {
-  initializeMonitoring: (pc: RTCPeerConnection, isMobile: boolean, callbacks: MonitoringCallbacks) => Promise<void>;
+  initializeMonitoring: (
+    pc: RTCPeerConnection,
+    isMobile: boolean,
+    callbacks: MonitoringCallbacks,
+    options?: VideoHealthTrackerOptions
+  ) => Promise<void>;
   stopMonitoring: () => void;
   getCurrentQuality: () => NetworkQuality;
   getCurrentTier: () => QualityTier;
@@ -28,7 +36,12 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
   const qualityControllerRef = useRef<QualityController | null>(null);
 
   const initializeMonitoring = useCallback(
-    async (pc: RTCPeerConnection, isMobile: boolean, callbacks: MonitoringCallbacks): Promise<void> => {
+    async (
+      pc: RTCPeerConnection,
+      isMobile: boolean,
+      callbacks: MonitoringCallbacks,
+      options?: VideoHealthTrackerOptions
+    ): Promise<void> => {
       stopMonitoring();
 
       await applyInitialEncoding(pc, isMobile);
@@ -50,19 +63,23 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
         },
       });
 
-      videoHealthTracker.startTracking(pc, {
-        onVideoStalled: () => {
-          callbacks.onVideoStalled(true);
-          qualityController.onVideoStalled();
+      videoHealthTracker.startTracking(
+        pc,
+        {
+          onVideoStalled: () => {
+            callbacks.onVideoStalled(true);
+            qualityController.onVideoStalled();
+          },
+          onVideoRecovered: () => {
+            callbacks.onVideoStalled(false);
+            qualityController.onVideoRecovered();
+          },
+          onFrameRateChange: (fps: number) => {
+            Sentry.logger.info("Frame rate", { fps });
+          },
         },
-        onVideoRecovered: () => {
-          callbacks.onVideoStalled(false);
-          qualityController.onVideoRecovered();
-        },
-        onFrameRateChange: (fps: number) => {
-          Sentry.logger.info("Frame rate", { fps });
-        },
-      });
+        options
+      );
 
       qualityController.initialize(pc, networkMonitor, videoHealthTracker, {
         onQualityTierChange: callbacks.onQualityTierChange,

@@ -562,17 +562,24 @@ export function useVideoChat(): UseVideoChatReturn {
 
         const pc = peerConnection.getPeerConnection();
         if (pc) {
-          monitoring.initializeMonitoring(pc, isMobile, {
-            onNetworkQualityChange: (quality) => {
-              actionsRef.current.setNetworkQuality(quality);
+          monitoring.initializeMonitoring(
+            pc,
+            isMobile,
+            {
+              onNetworkQualityChange: (quality) => {
+                actionsRef.current.setNetworkQuality(quality);
+              },
+              onVideoStalled: (stalled) => {
+                actionsRef.current.setVideoStalled(stalled);
+              },
+              onQualityTierChange: (tier) => {
+                actionsRef.current.setQualityTier(tier);
+              },
             },
-            onVideoStalled: (stalled) => {
-              actionsRef.current.setVideoStalled(stalled);
-            },
-            onQualityTierChange: (tier) => {
-              actionsRef.current.setQualityTier(tier);
-            },
-          });
+            {
+              isRemoteVideoExpected: () => useVideoChatStore.getState().remoteCameraEnabled,
+            }
+          );
 
           recoveryController.start({
             pc,

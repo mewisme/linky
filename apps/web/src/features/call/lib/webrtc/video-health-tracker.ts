@@ -5,6 +5,7 @@ export interface VideoHealthMetrics {
   framesDropped: number;
   frameRate: number;
   timestamp: number;
+  hasVideoInbound: boolean;
 }
 
 export interface VideoHealthCallbacks {
@@ -17,6 +18,10 @@ const POLL_INTERVAL_MS = 2000;
 const STALL_THRESHOLD_POLLS = 3;
 const FRAME_RATE_WINDOW_MS = 2000;
 
+export interface VideoHealthTrackerOptions {
+  isRemoteVideoExpected?: () => boolean;
+}
+
 export class VideoHealthTracker {
   private pc: RTCPeerConnection | null = null;
   private callbacks: VideoHealthCallbacks | null = null;
@@ -28,8 +33,13 @@ export class VideoHealthTracker {
   private stallCount = 0;
   private currentFrameRate = 0;
   private lastMetrics: VideoHealthMetrics | null = null;
+  private isRemoteVideoExpected: () => boolean = () => true;
 
-  startTracking(pc: RTCPeerConnection, callbacks: VideoHealthCallbacks): void {
+  startTracking(
+    pc: RTCPeerConnection,
+    callbacks: VideoHealthCallbacks,
+    options?: VideoHealthTrackerOptions
+  ): void {
     if (this.isRunning) {
       Sentry.logger.warn("[VideoHealthTracker] Already tracking");
       return;
@@ -37,6 +47,7 @@ export class VideoHealthTracker {
 
     this.pc = pc;
     this.callbacks = callbacks;
+    this.isRemoteVideoExpected = options?.isRemoteVideoExpected ?? (() => true);
     this.isRunning = true;
     this.isStalled = false;
     this.lastFramesReceived = 0;
@@ -70,6 +81,7 @@ export class VideoHealthTracker {
     this.stallCount = 0;
     this.currentFrameRate = 0;
     this.lastMetrics = null;
+    this.isRemoteVideoExpected = () => true;
 
     Sentry.logger.info("[VideoHealthTracker] Stopped tracking");
   }
@@ -109,14 +121,16 @@ export class VideoHealthTracker {
       const stats = await pc.getStats();
       let framesReceived = 0;
       let framesDropped = 0;
+      let hasVideoInbound = false;
 
       for (const report of stats.values()) {
         if (report.type === "inbound-rtp" && report.kind === "video") {
+          hasVideoInbound = true;
           if (typeof report.framesReceived === "number") {
-            framesReceived = report.framesReceived;
+            framesReceived = Math.max(framesReceived, report.framesReceived);
           }
           if (typeof report.framesDropped === "number") {
-            framesDropped = report.framesDropped;
+            framesDropped = Math.max(framesDropped, report.framesDropped);
           }
         }
       }
@@ -126,6 +140,7 @@ export class VideoHealthTracker {
         framesDropped,
         frameRate: this.currentFrameRate,
         timestamp: Date.now(),
+        hasVideoInbound,
       };
     } catch (err) {
       Sentry.logger.warn("[VideoHealthTracker] Failed to collect video metrics", { error: err });
@@ -135,6 +150,19 @@ export class VideoHealthTracker {
 
   private detectStall(metrics: VideoHealthMetrics): void {
     if (!this.callbacks) {
+      return;
+    }
+
+    const shouldMonitorStall =
+      metrics.hasVideoInbound && this.isRemoteVideoExpected();
+
+    if (!shouldMonitorStall) {
+      this.stallCount = 0;
+      if (this.isStalled) {
+        this.isStalled = false;
+        this.callbacks.onVideoRecovered();
+      }
+      this.lastFramesReceived = metrics.framesReceived;
       return;
     }
 

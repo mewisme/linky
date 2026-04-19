@@ -18,6 +18,7 @@ export interface NetworkMonitorCallbacks {
 const POLL_INTERVAL_MS = 2000;
 const RTT_THRESHOLD_MS = 150;
 const PACKET_LOSS_THRESHOLD = 0.03;
+const MIN_PACKETS_FOR_LOSS_RATIO = 80;
 const DEGRADATION_WINDOW_MS = 5000;
 const RECOVERY_WINDOW_MS = 10000;
 
@@ -139,7 +140,10 @@ export class NetworkMonitor {
       const avgRtt = rttCount > 0 ? rtt / rttCount : 0;
       const avgJitter = jitterCount > 0 ? jitter / jitterCount : 0;
       const totalPackets = packetsLost + packetsReceived;
-      const packetLoss = totalPackets > 0 ? packetsLost / totalPackets : 0;
+      const packetLoss =
+        packetsReceived >= MIN_PACKETS_FOR_LOSS_RATIO && totalPackets > 0
+          ? packetsLost / totalPackets
+          : 0;
 
       return {
         rtt: avgRtt,

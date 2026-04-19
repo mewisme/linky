@@ -20,9 +20,10 @@ import { isClerkRuntimeError, isReverificationCancelledError } from '@clerk/next
 import { useEffect, useState, useTransition } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
+import { Checkbox } from '@ws/ui/components/ui/checkbox'
 import { Input } from '@ws/ui/components/ui/input'
 import { Label } from '@ws/ui/components/ui/label'
-import type { useUser } from '@clerk/nextjs'
+import { useSession, type useUser } from '@clerk/nextjs'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useTranslations } from 'next-intl'
 import { useIsMobile } from '@ws/ui/hooks/use-mobile'
@@ -42,6 +43,7 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
   const t = useTranslations('user')
   const tc = useTranslations('common')
   const te = useTranslations('errors')
+  const { session } = useSession()
   const isMobile = useIsMobile()
   const { play: playSound } = useSoundWithSettings()
   const [isPending, startTransition] = useTransition()
@@ -50,10 +52,11 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
   const [show, setShow] = useState({ new: false, confirm: false })
   const [errors, setErrors] = useState<{ new?: string; confirm?: string }>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [signOutOtherDevices, setSignOutOtherDevices] = useState(false)
 
   const changeWithReverify = useReverification(
     (newPwd: string) =>
-      user.updatePassword({ newPassword: newPwd }),
+      user.updatePassword({ newPassword: newPwd })
   )
 
   const setWithReverify = useReverification(
@@ -67,6 +70,7 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
       setConfirmPassword('')
       setErrors({})
       setSubmitError(null)
+      setSignOutOtherDevices(false)
     }
   }, [open])
 
@@ -91,9 +95,21 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
           playSound('success')
           toast.success(t('passwordUpdated'))
         } else {
-          const result = await setWithReverify(newPassword)
+          await setWithReverify(newPassword)
           playSound('success')
           toast.success(t('passwordSet'))
+        }
+        if (signOutOtherDevices && session?.id) {
+          try {
+            const sessions = await user.getSessions()
+            await Promise.all(
+              sessions
+                .filter((s) => s.id !== session.id)
+                .map((s) => s.revoke()),
+            )
+          } catch {
+            toast.error(t('passwordOtherSessionsRevokeFailed'))
+          }
         }
         setNewPassword('')
         setConfirmPassword('')
@@ -177,6 +193,20 @@ export function PasswordModal({ open, onOpenChange, user, mode }: PasswordModalP
           </button>
         </div>
         {errors.confirm && <p className="text-sm text-destructive">{errors.confirm}</p>}
+      </div>
+      <div className="flex items-start gap-2 rounded-lg border p-3">
+        <Checkbox
+          id="password-sign-out-others"
+          checked={signOutOtherDevices}
+          onCheckedChange={(v) => setSignOutOtherDevices(v === true)}
+          data-testid="security-password-sign-out-others"
+        />
+        <Label
+          htmlFor="password-sign-out-others"
+          className="cursor-pointer text-sm font-normal leading-snug text-muted-foreground"
+        >
+          {t('passwordLogoutOtherDevices')}
+        </Label>
       </div>
     </>
   )

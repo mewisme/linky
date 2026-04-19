@@ -882,6 +882,8 @@
     "passwordStrengthStrong": "Mạnh",
     "updatePassword": "Cập nhật mật khẩu",
     "setPassword": "Đặt mật khẩu",
+    "passwordLogoutOtherDevices": "Đăng xuất tất cả thiết bị khác sau khi đổi mật khẩu",
+    "passwordOtherSessionsRevokeFailed": "Đã cập nhật mật khẩu nhưng không thể đăng xuất các thiết bị khác. Hãy thử lại tại trang này.",
     "blockedUsersTitle": "Người dùng bị chặn",
     "blockedUsersDescription": "Quản lý người bạn đã chặn",
     "favoritesTitle": "Yêu thích của tôi",

@@ -882,6 +882,8 @@
     "passwordStrengthStrong": "Strong",
     "updatePassword": "Update password",
     "setPassword": "Set password",
+    "passwordLogoutOtherDevices": "Sign out of all other devices after this change",
+    "passwordOtherSessionsRevokeFailed": "Password was updated, but other devices could not be signed out. Try again from this page.",
     "blockedUsersTitle": "Blocked Users",
     "blockedUsersDescription": "Manage users you have blocked",
     "favoritesTitle": "My Favorites",

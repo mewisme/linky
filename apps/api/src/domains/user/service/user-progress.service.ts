@@ -6,6 +6,7 @@ import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { getCallDurationsForUserOnLocalDate } from "@/infra/supabase/repositories/call-history.js";
 import { getUserExpDaily } from "@/infra/supabase/repositories/user-exp-daily.js";
 import { getUserLevelData } from "./user-level.service.js";
+import { addDays } from "@/utils/date-helpers.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
 
 const logger = createLogger("api:user:progress:service");
@@ -13,6 +14,24 @@ const logger = createLogger("api:user:progress:service");
 const STREAK_REQUIRED_SECONDS = 300;
 const RECENT_STREAK_DAYS = 7;
 const MAX_STREAK_DAYS_TO_FETCH = 400;
+
+function longestConsecutiveValidDays(validDateStrs: string[]): number {
+  const dates = [...new Set(validDateStrs)].sort();
+  if (dates.length === 0) return 0;
+  let maxRun = 1;
+  let run = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = dates[i - 1]!;
+    const curr = dates[i]!;
+    if (addDays(prev, 1) === curr) {
+      run++;
+      if (run > maxRun) maxRun = run;
+    } else {
+      run = 1;
+    }
+  }
+  return maxRun;
+}
 
 export async function getUserProgressInsights(
   userId: string,
@@ -88,6 +107,14 @@ export async function getUserProgressInsights(
       recentStreakDays.push({ date: d, isValid: currentStreak > 0 && i < currentStreak });
     }
 
+    const validHistoryDates = streakHistory.data.filter((d) => d.isValid).map((d) => d.date);
+    const longestFromHistory = longestConsecutiveValidDays(validHistoryDates);
+    const longestStreak = Math.max(
+      streakData?.longestStreak ?? 0,
+      longestFromHistory,
+      currentStreak,
+    );
+
     const expInCurrentLevel = levelData.totalExpSeconds;
     const expToNextLevel = levelData.expToNextLevel;
     const expForCurrentLevel = levelData.totalExpSeconds;
@@ -131,7 +158,7 @@ export async function getUserProgressInsights(
       streakIfTodayCompleted,
       streak: {
         currentStreak,
-        longestStreak: streakData?.longestStreak || 0,
+        longestStreak,
         remainingSecondsToKeepStreak: streakRemainingSeconds,
         lastValidDate: streakData?.lastValidDate || null,
       },

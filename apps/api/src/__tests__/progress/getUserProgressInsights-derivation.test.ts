@@ -86,6 +86,29 @@ describe("getUserProgressInsights derivation", () => {
     });
   });
 
+  describe("longestStreak", () => {
+    it("is >= currentStreak when user_streaks.longest_streak lags behind consecutive valid days", async () => {
+      mockGetUserStreakData.mockResolvedValue({
+        currentStreak: 2,
+        longestStreak: 2,
+        lastValidDate: todayStr,
+        lastContinuationUsedFreeze: false,
+      });
+      mockGetUserStreakHistory.mockResolvedValue({
+        data: [
+          { date: todayStr, isValid: true },
+          { date: "2024-06-14", isValid: true },
+          { date: "2024-06-13", isValid: true },
+        ],
+        count: 3,
+      });
+
+      const r = await getUserProgressInsights("u1", tz);
+      expect(r?.streak.currentStreak).toBe(3);
+      expect(r?.streak.longestStreak).toBe(3);
+    });
+  });
+
   describe("streakStatus", () => {
     it("currentStreak>0 and isTodayStreakComplete -> active", async () => {
       mockGetUserStreakHistory.mockResolvedValue({

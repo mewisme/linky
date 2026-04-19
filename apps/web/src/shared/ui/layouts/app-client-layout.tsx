@@ -1,6 +1,5 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@ws/ui/internal-lib/react-query";
 import { SidebarInset, SidebarProvider } from "@ws/ui/components/animate-ui/components/radix/sidebar";
 
 import { AppHeader } from "@/shared/ui/layouts/header/app/app-header";
@@ -11,10 +10,8 @@ import { ReactionOverlay } from "@/features/chat/ui/overlays/reaction-overlay";
 import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import { useCommandMenuStore } from "@/shared/model/command-menu-store";
 import { useHotkeys } from 'react-hotkeys-hook';
-import { useState } from 'react';
 
 export function AppClientLayout({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
   const { open } = useCommandMenuStore();
 
   useHotkeys("mod+k, slash", (e) => {
@@ -23,27 +20,25 @@ export function AppClientLayout({ children }: { children: React.ReactNode }) {
   })
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ReactionEffectProvider>
-        <FloatingCallProvider>
-          <SidebarProvider
-            style={{
-              "--sidebar-width": "20rem",
-            } as React.CSSProperties}
-            defaultOpen={false}
-          >
-            <AppSidebar />
-            <div className="w-full flex flex-col h-full">
-              <SidebarInset className="container mx-auto">
-                <AppHeader />
-                {children}
-              </SidebarInset>
-            </div>
-          </SidebarProvider>
-          <ChatPanelHost />
-        </FloatingCallProvider>
-        <ReactionOverlay />
-      </ReactionEffectProvider>
-    </QueryClientProvider>
+    <ReactionEffectProvider>
+      <FloatingCallProvider>
+        <SidebarProvider
+          style={{
+            "--sidebar-width": "20rem",
+          } as React.CSSProperties}
+          defaultOpen={false}
+        >
+          <AppSidebar />
+          <div className="w-full flex flex-col h-full">
+            <SidebarInset className="container mx-auto">
+              <AppHeader />
+              {children}
+            </SidebarInset>
+          </div>
+        </SidebarProvider>
+        <ChatPanelHost />
+      </FloatingCallProvider>
+      <ReactionOverlay />
+    </ReactionEffectProvider>
   );
 }

@@ -27,7 +27,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
   const features = t.raw("hero.features") as { title: string; desc: string }[];
 
   return (
-    <div className={cn(geistSans.className, 'min-h-[100dvh-8rem] flex justify-center items-center')}>
+    <div className={cn(geistSans.className, 'min-h-dvh')}>
       <div className="h-[calc(100dvh-8rem)]">
 
         {/* Header */}

@@ -37,6 +37,22 @@ export function AppSidebar() {
   const pathname = usePathname()
   const { state, setOpenMobile } = useSidebar()
   const isMobile = useIsMobile()
+  const isIconRail = state === 'collapsed' && collapsible === 'icon'
+
+  const menuIconFrameClassName = cn(
+    'flex aspect-square size-6 shrink-0 grow-0 items-center justify-center rounded-sm border border-sidebar-border',
+    isIconRail && 'rounded-md border-2 border-sidebar-border/80',
+  )
+
+  const menuIconGlyphClassName = 'size-4 shrink-0 transition-colors duration-300 text-inherit'
+
+  const menuEntryToneClassName =
+    'text-muted-foreground data-[active=true]:text-primary'
+
+  const menuButtonIconRailClassName = cn(
+    isIconRail &&
+      'mx-auto !size-10 !min-h-10 !min-w-10 justify-center !p-2 text-center',
+  )
 
   useEffect(() => {
     useSidebarStore.persist.rehydrate();
@@ -77,32 +93,40 @@ export function AppSidebar() {
       <SidebarContent className={cn(state === 'expanded' && 'p-2')}>
         <SidebarMenu>
           {menuItemsFiltered.map((item) => {
-            const isSubItemActive = item.subItems?.some(subItem => pathname === subItem.href);
+            const isHrefActive = (href?: string) =>
+              Boolean(
+                href &&
+                  (pathname === href ||
+                    pathname.startsWith(`${href}/`)),
+              )
+            const isSubItemActive = item.subItems?.some((subItem) =>
+              isHrefActive(subItem.href),
+            )
             return (
               <div key={item.id}>
                 {item.subItems ? (
                   <Collapsible defaultOpen={isMobile ? true : item.open ?? false} className="group/collapsible">
                     <SidebarMenuItem className={cn(
                       state === 'collapsed' && 'cursor-pointer transition-colors duration-300',
-                      isMobile && 'py-1'
                     )}>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton className={cn(
+                          menuButtonIconRailClassName,
+                          isSubItemActive
+                            ? 'text-primary'
+                            : 'text-muted-foreground',
                           state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
-                          isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
-                        )} isActive={state === 'expanded' && isSubItemActive}>
-                          <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
-                            <item.icon className={cn(
-                              'size-4 shrink-0 transition-colors duration-300'
-                            )} />
+                        )} isActive={isSubItemActive}>
+                          <div className={menuIconFrameClassName}>
+                            <item.icon className={menuIconGlyphClassName} />
                           </div>
                           <span className={cn(
                             'transition-colors duration-300',
-                            isMobile && 'text-base'
+                            isIconRail && 'hidden',
                           )}>{item.label}</span>
                           <ChevronRight className={cn(
-                            "ml-auto transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90",
-                            isMobile && 'size-5'
+                            'ml-auto transition-transform duration-300 group-data-[state=open]/collapsible:rotate-90',
+                            isIconRail && 'hidden',
                           )} />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
@@ -113,19 +137,17 @@ export function AppSidebar() {
                               state === 'collapsed' && 'cursor-pointer transition-colors duration-300'
                             )}>
                               <SidebarMenuSubButton className={cn(
+                                menuEntryToneClassName,
                                 state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
-                                isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
                               )}
-                                isActive={state === 'expanded' && pathname === subItem.href}
+                                isActive={isHrefActive(subItem.href)}
                                 asChild
                               >
                                 <Link href={subItem.href || '#'}>
-                                  <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
-                                    <subItem.icon className={cn(
-                                      'size-4 shrink-0 transition-colors duration-300'
-                                    )} />
+                                  <div className={menuIconFrameClassName}>
+                                    <subItem.icon className={menuIconGlyphClassName} />
                                   </div>
-                                  <span className={cn(isMobile && 'text-base')}>{subItem.label}</span>
+                                  <span className={cn('transition-colors duration-300')}>{subItem.label}</span>
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
@@ -135,19 +157,22 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                   </Collapsible>
                 ) : (
-                  <SidebarMenuItem className={cn(state === 'collapsed' && 'cursor-pointer transition-colors duration-300', state === 'collapsed' && pathname === item.href ? 'bg-sidebar-accent text-primary' : '', state === 'collapsed' && pathname !== item.href ? 'text-muted-foreground' : '')}>
+                  <SidebarMenuItem className={cn(
+                    state === 'collapsed' && 'cursor-pointer transition-colors duration-300',
+                  )}>
                     <SidebarMenuButton className={cn(
+                      menuButtonIconRailClassName,
+                      menuEntryToneClassName,
                       state === 'expanded' && 'py-1 [&:hover_*]:text-primary cursor-pointer transition-colors duration-300',
-                      isMobile && state === 'expanded' && 'py-3 min-h-[44px]'
                     )}
-                      isActive={state === 'expanded' && pathname === item.href}
+                      isActive={isHrefActive(item.href)}
                       asChild
                     >
                       <Link href={item.href || '#'}>
-                        <div className={cn("", state === "expanded" && "flex size-6 items-center justify-center rounded-sm border")}>
-                          <item.icon className={cn('size-4 shrink-0')} />
+                        <div className={menuIconFrameClassName}>
+                          <item.icon className={menuIconGlyphClassName} />
                         </div>
-                        <span className={cn(isMobile && 'text-base')}>{item.label}</span>
+                        <span className={cn('transition-colors duration-300', isIconRail && 'hidden')}>{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

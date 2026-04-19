@@ -26,7 +26,13 @@
     "actionsMenu": "Actions",
     "confirmAction": "Confirm",
     "selectCountry": "Select country",
-    "selectDate": "Select date"
+    "selectDate": "Select date",
+    "localeChangeGuard": {
+      "title": "End call to change language",
+      "description": "Changing language reloads the page. End the current call first, then your language will update.",
+      "cancel": "Cancel",
+      "endCallConfirm": "End call and change language"
+    }
   },
   "errors": {
     "unexpected": "Something went wrong. Please try again.",

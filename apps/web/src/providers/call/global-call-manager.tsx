@@ -17,6 +17,7 @@ import { useVideoChat } from "@/features/call/hooks/webrtc/use-video-chat";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types";
 import { useTranslations } from "next-intl";
+import { useLocaleChangeGuardStore } from "@/shared/model/locale-change-guard-store";
 
 interface GlobalCallContextValue {
   isInActiveCall: boolean;
@@ -40,6 +41,43 @@ const GlobalCallContext = createContext<GlobalCallContextValue | null>(null);
 
 interface GlobalCallManagerProps {
   children: ReactNode;
+}
+
+function LocaleChangeGuardDialog({ endCall }: { endCall: () => void }) {
+  const t = useTranslations("common.localeChangeGuard");
+  const dialogOpen = useLocaleChangeGuardStore((s) => s.dialogOpen);
+  const closeDialog = useLocaleChangeGuardStore((s) => s.closeDialog);
+  const takePendingRun = useLocaleChangeGuardStore((s) => s.takePendingRun);
+
+  return (
+    <AlertDialog
+      open={dialogOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          closeDialog();
+        }
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("title")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("description")}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              const run = takePendingRun();
+              endCall();
+              void Promise.resolve(run?.());
+            }}
+          >
+            {t("endCallConfirm")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 }
 
 export function GlobalCallManager({ children }: GlobalCallManagerProps) {
@@ -83,6 +121,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
 
   return (
     <GlobalCallContext.Provider value={contextValue}>
+      <LocaleChangeGuardDialog endCall={videoChat.endCall} />
       <AlertDialog
         open={!!error}
         onOpenChange={(open) => {

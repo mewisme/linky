@@ -46,7 +46,6 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@ws/ui/components/
 import { Kbd, KbdGroup } from '@ws/ui/components/ui/kbd'
 import { isAdmin, isSuperAdmin } from '@/shared/utils/roles'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter as useNextRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 
 import { Logo } from '@/shared/ui/layouts/header/landing/logo'
@@ -54,7 +53,7 @@ import { Separator } from '@ws/ui/components/ui/separator'
 import { trackEvent } from '@/lib/telemetry/events/client'
 import { useCommandMenuStore } from '@/shared/model/command-menu-store'
 import { usePathname, useRouter } from '@/i18n/navigation'
-import { useLocalePreferenceStore } from '@/shared/model/locale-preference-store'
+import { useLocaleSwitch } from '@/shared/hooks/i18n/use-locale-switch'
 import { useSidebarStore } from '@/shared/model/sidebar-store'
 import { useTheme } from 'next-themes'
 import { useUserContext } from '@/providers/user/user-provider'
@@ -112,8 +111,7 @@ export function CommandMenu() {
   const { isOpen, open, setOpen } = useCommandMenuStore()
   const router = useRouter()
   const pathname = usePathname()
-  const nextRouter = useNextRouter()
-  const setPersistedLocale = useLocalePreferenceStore((s) => s.setLocale)
+  const { switchLocale } = useLocaleSwitch()
   const { setTheme, resolvedTheme } = useTheme()
   const { auth: { signOut, isSignedIn } } = useUserContext()
   const { user: userStore } = useUserStore()
@@ -132,16 +130,6 @@ export function CommandMenu() {
 
   const isAdminUser = isAdmin(userStore?.role)
   const isSuperAdminUser = isSuperAdmin(userStore?.role)
-
-  const switchLocale = useCallback(
-    (next: 'en' | 'vi') => {
-      if (next === locale) return
-      setPersistedLocale(next)
-      router.replace(pathname, { locale: next })
-      nextRouter.refresh()
-    },
-    [locale, pathname, router, nextRouter, setPersistedLocale],
-  )
 
   const commandGroups = useMemo<CommandGroupDef[]>(() => {
     return [

@@ -50,7 +50,10 @@ export function ReactionOverlay() {
         const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1280;
         const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
         const instances: ReactionInstance[] = [];
-        const burstCount = randomIntInRange(BURST_COUNT_MIN, BURST_COUNT_MAX);
+        const burstCount =
+          reaction.type === "party"
+            ? randomIntInRange(BURST_COUNT_MIN, BURST_COUNT_MAX)
+            : 1;
 
         if (reaction.isLocal && reaction.tapPosition) {
           for (let i = 0; i < burstCount; i++) {

@@ -22,14 +22,13 @@ import { Link } from "@/i18n/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { isAdmin } from "@/shared/utils/roles";
 import { trackEvent } from "@/lib/telemetry/events/client";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useUserStore } from "@/entities/user/model/user-store";
 import { useTheme } from "next-themes"
 import { IconDeviceDesktop } from "@tabler/icons-react";
-import { usePathname, useRouter } from "@/i18n/navigation";
-import { useLocalePreferenceStore } from "@/shared/model/locale-preference-store";
+import { useLocaleSwitch } from "@/shared/hooks/i18n/use-locale-switch";
 import type { UiLocale } from "@ws/shared-types";
 
 export function UserButton() {
@@ -38,19 +37,8 @@ export function UserButton() {
   const { user, auth: { signOut } } = useUserContext();
   const { user: userStore } = useUserStore();
   const locale = useLocale() as UiLocale;
-  const router = useRouter();
-  const pathname = usePathname();
-  const setLocalePreference = useLocalePreferenceStore((s) => s.setLocale);
+  const { switchLocale } = useLocaleSwitch();
   const { setTheme } = useTheme();
-
-  const switchLocale = useCallback(
-    (next: UiLocale) => {
-      if (next === locale) return;
-      setLocalePreference(next);
-      router.replace(pathname, { locale: next });
-    },
-    [locale, pathname, router, setLocalePreference],
-  );
 
 
   useEffect(() => {

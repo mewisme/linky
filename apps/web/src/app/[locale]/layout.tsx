@@ -8,6 +8,7 @@ import { LocaleSync } from "@/providers/i18n/locale-sync";
 import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
 import { SocketProvider } from "@/providers/realtime/socket-provider";
 import { ServiceWorkerUpdateProvider } from "@/providers/ui/service-worker-update-provider";
+import { LocaleTreeCallManager } from "@/providers/call/locale-tree-call-manager";
 import { UserProvider } from "@/providers/user/user-provider";
 import { routing } from "@/i18n/routing";
 
@@ -40,7 +41,9 @@ export default async function LocaleLayout({
         <UserProvider>
           <ClerkReadyIndicator />
           <SocketProvider>
-            <ProgressBarProvider>{children}</ProgressBarProvider>
+            <LocaleTreeCallManager>
+              <ProgressBarProvider>{children}</ProgressBarProvider>
+            </LocaleTreeCallManager>
           </SocketProvider>
         </UserProvider>
       </LocaleClerkProvider>

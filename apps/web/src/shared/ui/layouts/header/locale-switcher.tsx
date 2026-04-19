@@ -9,24 +9,15 @@ import {
 import { CountryFlag } from "@/shared/ui/common/country-flag"
 
 import { Button } from "@ws/ui/components/ui/button"
-import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
-import { useLocalePreferenceStore } from "@/shared/model/locale-preference-store"
+import { useLocaleSwitch } from "@/shared/hooks/i18n/use-locale-switch"
 import type { UiLocale } from "@ws/shared-types"
 import { useLocale, useTranslations } from "next-intl"
 
 export function LocaleSwitcher() {
   const t = useTranslations("common")
   const locale = useLocale() as UiLocale
-  const router = useRouter()
-  const pathname = usePathname()
-  const setLocalePreference = useLocalePreferenceStore((s) => s.setLocale)
-
-  function switchLocale(next: UiLocale) {
-    if (next === locale) return
-    setLocalePreference(next)
-    router.replace(pathname, { locale: next })
-  }
+  const { switchLocale } = useLocaleSwitch()
 
   return (
     <DropdownMenu>

@@ -32,7 +32,10 @@ import { updateUserSettings } from "@/features/user/api/settings";
 import { useSidebarStore, type SidebarCollapsible, type SidebarVariant } from '@/shared/model/sidebar-store'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { useUserStore } from '@/entities/user/model/user-store'
+import { isVideoChatBlockingLocaleChange } from '@/features/call/lib/video-chat-locale-block'
+import { useVideoChatStore } from '@/features/call/model/video-chat-store'
 import { useLocalePreferenceStore } from '@/shared/model/locale-preference-store'
+import { useLocaleChangeGuardStore } from '@/shared/model/locale-change-guard-store'
 import type { UsersAPI } from '@/entities/user/types/users.types'
 
 function SidebarSettings() {
@@ -150,16 +153,30 @@ export function AppearanceSettingsClient({ initialSettings }: Props) {
           setDefaultDisableCamera(updated.default_disable_camera ?? false)
         }
 
+        const finish = () => {
+          trackEvent({ name: 'settings_updated', properties: { section: 'appearance' } })
+          playSound('success')
+          toast.success(t('appearancePage.updated'))
+        }
+
         if (localeChanged) {
+          if (isVideoChatBlockingLocaleChange(useVideoChatStore.getState().connectionStatus)) {
+            useLocaleChangeGuardStore.getState().openDialog(uiLocaleDraft, () => {
+              setPersistedLocale(uiLocaleDraft)
+              router.replace(pathname, { locale: uiLocaleDraft })
+              nextRouter.refresh()
+              setBaseline((prev) => ({ ...prev, locale: uiLocaleDraft }))
+              finish()
+            })
+            return
+          }
           setPersistedLocale(uiLocaleDraft)
           router.replace(pathname, { locale: uiLocaleDraft })
           nextRouter.refresh()
           setBaseline((prev) => ({ ...prev, locale: uiLocaleDraft }))
         }
 
-        trackEvent({ name: 'settings_updated', properties: { section: 'appearance' } })
-        playSound('success')
-        toast.success(t('appearancePage.updated'))
+        finish()
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : t('appearancePage.updateFailed'))
       }

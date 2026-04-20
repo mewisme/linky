@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import Image from "next/image";
 import { useReactionEffectContext } from "@/providers/realtime/reaction-effect-provider";
+import { normalizeReactionDisplayType, PARTY_REACTION_EMOJI } from "@/shared/lib/reaction-display-type";
 
 interface ReactionInstance {
   id: string;
@@ -30,6 +31,11 @@ function randomIntInRange(min: number, max: number): number {
   return Math.floor(randomInRange(min, max + 1));
 }
 
+function reactionTypeRendersAsEmojiGlyph(type: string): boolean {
+  if (type === "heart") return false;
+  return /\p{Extended_Pictographic}/u.test(type);
+}
+
 export function ReactionOverlay() {
   const { reactions, removeReaction } = useReactionEffectContext();
   const [reactionInstancesById, setReactionInstancesById] = useState<Record<string, ReactionInstance[]>>({});
@@ -50,8 +56,9 @@ export function ReactionOverlay() {
         const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1280;
         const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
         const instances: ReactionInstance[] = [];
+        const displayType = normalizeReactionDisplayType(reaction.type);
         const burstCount =
-          reaction.type === "party"
+          displayType === PARTY_REACTION_EMOJI
             ? randomIntInRange(BURST_COUNT_MIN, BURST_COUNT_MAX)
             : 1;
 
@@ -149,7 +156,12 @@ export function ReactionOverlay() {
     if (!reaction) return;
     instanceCountByReaction[reactionId] = instances.length;
     instances.forEach((instance) => {
-      allInstances.push({ reactionId, instance, isLocal: reaction.isLocal, type: reaction.type });
+      allInstances.push({
+        reactionId,
+        instance,
+        isLocal: reaction.isLocal,
+        type: normalizeReactionDisplayType(reaction.type),
+      });
     });
   });
 
@@ -162,8 +174,14 @@ export function ReactionOverlay() {
       <AnimatePresence>
         {allInstances.map(({ reactionId, instance, isLocal, type }) => {
           const remoteDistance = -(viewportHeight * 2 / 3);
-          const imagePath = type === "heart" ? "/images/heart.png" : `/images/reactions/${type}.png`;
-          const isPartyReaction = type === "party";
+          const displayType = normalizeReactionDisplayType(type);
+          const isEmojiGlyph = reactionTypeRendersAsEmojiGlyph(displayType);
+          const imagePath =
+            isEmojiGlyph
+              ? null
+              : displayType === "heart"
+                ? "/images/heart.png"
+                : `/images/reactions/${displayType}.png`;
           return (
             <motion.div
               key={instance.id}
@@ -215,7 +233,7 @@ export function ReactionOverlay() {
                 }}
                 className="pointer-events-none"
               >
-                {isPartyReaction ? (
+                {isEmojiGlyph ? (
                   <span
                     className="pointer-events-none select-none leading-none"
                     style={{
@@ -224,9 +242,9 @@ export function ReactionOverlay() {
                     }}
                     aria-hidden
                   >
-                    🎉
+                    {displayType}
                   </span>
-                ) : (
+                ) : imagePath ? (
                   <Image
                     src={imagePath}
                     alt=""
@@ -239,7 +257,7 @@ export function ReactionOverlay() {
                       pointerEvents: "none",
                     }}
                   />
-                )}
+                ) : null}
               </motion.div>
             </motion.div>
           );

@@ -10,6 +10,7 @@ import { useUserContext } from "@/providers/user/user-provider";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
+import { normalizeReactionDisplayType } from "@/shared/lib/reaction-display-type";
 
 interface FloatingReaction {
   id: string;
@@ -61,20 +62,22 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
 
   const triggerLocalReaction = useCallback((tapPosition: { x: number; y: number }, type: string = "heart") => {
     const id = `local-${Date.now()}-${Math.random()}`;
-    setReactions((prev) => [...prev, { id, type, tapPosition, isLocal: true }]);
+    setReactions((prev) => [...prev, { id, type: normalizeReactionDisplayType(type), tapPosition, isLocal: true }]);
   }, []);
 
   const emitReaction = useCallback((count: number, type: string = "heart") => {
     if (count <= 0) return;
     if (!socket?.connected) return;
-    socket.emit("reaction:triggered", { count, type, timestamp: Date.now() });
+    const normalized = normalizeReactionDisplayType(type);
+    socket.emit("reaction:triggered", { count, type: normalized, timestamp: Date.now() });
   }, [socket]);
 
   const triggerRemoteReactions = useCallback((count: number, type: string = "heart") => {
     const baseTime = Date.now();
+    const normalized = normalizeReactionDisplayType(type);
     const newReactions: FloatingReaction[] = Array.from({ length: count }, (_, i) => ({
       id: `remote-${baseTime}-${i}-${Math.random()}`,
-      type,
+      type: normalized,
       isLocal: false,
     }));
     setReactions((prev) => [...prev, ...newReactions]);
@@ -138,7 +141,7 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
         toast.success(t("streakCompleted", { count: data.streakCount }));
         play("reward");
       }
-      triggerRemoteReactions(1, "party");
+      triggerRemoteReactions(1, "🎉");
     };
     socket.on(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     return () => {

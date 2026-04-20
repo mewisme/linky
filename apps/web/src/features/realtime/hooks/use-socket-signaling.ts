@@ -10,6 +10,7 @@ import type { Socket } from "socket.io-client";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import type { UserFacingSocketPayload } from "@/lib/realtime/socket";
 
+import { normalizeReactionDisplayType } from "@/shared/lib/reaction-display-type";
 import { useSocket } from "./use-socket";
 
 export interface SocketCallbacks {
@@ -365,7 +366,11 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   const sendReaction = useCallback((count: number, type: string = "heart") => {
     if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit("reaction:triggered", { count, type, timestamp: Date.now() });
+      socketRef.current.emit("reaction:triggered", {
+        count,
+        type: normalizeReactionDisplayType(type),
+        timestamp: Date.now(),
+      });
     }
   }, []);
 

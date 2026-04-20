@@ -29,7 +29,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1032.0",
     "@clerk/backend": "^3.2.13",
     "@sentry/node": "^10.49.0",
-    "@supabase/supabase-js": "^2.103.3",
+    "@supabase/supabase-js": "^2.104.0",
     "@ws/internal-worker-api": "workspace:*",
     "@ws/logger": "workspace:*",
     "@ws/sdk-internal": "workspace:*",

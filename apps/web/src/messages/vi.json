@@ -1023,6 +1023,7 @@
       "title": "Lớp phủ phát triển",
       "positionLabel": "Vị trí: X {x}, Y {y}",
       "triggerStreakBurst": "Kích hoạt phản ứng streak burst",
+      "triggerLevelUpBurst": "Kích hoạt phản ứng burst lên cấp",
       "triggerDoubleTap": "Kích hoạt phản ứng double tap",
       "openDialog": "Mở dialog thử nghiệm",
       "resetPosition": "Đặt lại vị trí lớp phủ",

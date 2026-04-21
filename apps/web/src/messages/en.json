@@ -1023,6 +1023,7 @@
       "title": "Development Overlay",
       "positionLabel": "Position: X {x}, Y {y}",
       "triggerStreakBurst": "Trigger streak burst reaction",
+      "triggerLevelUpBurst": "Trigger level up burst reaction",
       "triggerDoubleTap": "Trigger double tap reaction",
       "openDialog": "Open test dialog",
       "resetPosition": "Reset overlay position",

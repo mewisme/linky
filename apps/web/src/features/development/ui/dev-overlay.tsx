@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { IconCode, IconConfetti, IconHandClick, IconMessageCircleCode } from "@tabler/icons-react";
+import { IconCode, IconConfetti, IconHandClick, IconMessageCircleCode, IconTrophy } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 
-import { STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
+import { LEVEL_UP_BURST_REACTIONS, STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
 import { useDevelopmentStore } from "@/shared/model/development-store";
 import { useReactionEffectContext } from "@/providers/realtime/reaction-effect-provider";
 import { Button } from "@ws/ui/components/ui/button";
@@ -177,6 +177,10 @@ export function DevOverlay() {
     triggerRemoteReactions(1, STREAK_BURST_REACTION, "burst");
   };
 
+  const triggerLevelUpBurst = () => {
+    triggerRemoteReactions(1, LEVEL_UP_BURST_REACTIONS, "burst");
+  };
+
   const triggerDoubleTapReaction = () => {
     const position = dragPositionRef.current ?? overlayPosition;
     const centerX = position.x + OVERLAY_SIZE / 2;
@@ -233,6 +237,10 @@ export function DevOverlay() {
                 <Button type="button" variant="outline" className="justify-start gap-2" onClick={triggerStreakBurst}>
                   <IconConfetti className="size-4" />
                   {t("triggerStreakBurst")}
+                </Button>
+                <Button type="button" variant="outline" className="justify-start gap-2" onClick={triggerLevelUpBurst}>
+                  <IconTrophy className="size-4" />
+                  {t("triggerLevelUpBurst")}
                 </Button>
                 <Button type="button" variant="outline" className="justify-start gap-2" onClick={triggerDoubleTapReaction}>
                   <IconHandClick className="size-4" />

@@ -11,6 +11,7 @@ import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
+import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 
 type ReactionInputType = string | string[];
 type ReactionMode = "single" | "burst";
@@ -131,7 +132,10 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   useEffect(() => {
     if (!socket) return;
     const handleProgressUpdate = (data: UsersAPI.Progress.GetMe.Response) => {
-      queryClient.setQueryData(["user-progress"], data);
+      const normalizedLevel = data.expProgress?.totalExpSeconds != null
+        ? calculateLevelFromExp(data.expProgress.totalExpSeconds).level
+        : data.currentLevel;
+      queryClient.setQueryData(["user-progress"], { ...data, currentLevel: normalizedLevel });
     };
     socket.on(USER_PROGRESS_UPDATE_EVENT, handleProgressUpdate);
     return () => {

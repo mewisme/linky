@@ -19,9 +19,9 @@ import { StreakCalendar } from "./streak-calendar";
 import { StreakMiniCalendar } from "./streak-mini-calendar";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { getUserProgress } from "@/features/user/api/profile";
-import { useSocket } from "@/features/realtime/hooks/use-socket";
-import { useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
-import { useEffect, useState } from "react";
+import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
+import { useQuery } from "@ws/ui/internal-lib/react-query";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 function formatExp(exp: number): string {
@@ -53,8 +53,6 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     return t("durationS", { seconds: secs });
   };
   const [isCalendarDialogOpen, setIsCalendarDialogOpen] = useState(false);
-  const { socket } = useSocket();
-  const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
@@ -63,18 +61,6 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     staleTime: Infinity,
     gcTime: 10 * 60 * 1000,
   });
-
-  useEffect(() => {
-    if (!socket) return;
-    const handleProgressUpdate = (nextProgress: UsersAPI.Progress.GetMe.Response) => {
-      queryClient.setQueryData(["user-progress"], nextProgress);
-    };
-
-    socket.on("user:progress:update", handleProgressUpdate);
-    return () => {
-      socket.off("user:progress:update", handleProgressUpdate);
-    };
-  }, [queryClient, socket]);
 
   if (isLoading) {
     return (
@@ -100,6 +86,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   const streakDisplayStatus =
     data.isTodayStreakComplete ? "active" : data.streakStatus === "frozen" ? "frozen" : "incomplete";
+  const displayLevel = data.expProgress?.totalExpSeconds != null
+    ? calculateLevelFromExp(data.expProgress.totalExpSeconds).level
+    : data.currentLevel;
 
   return (
     <AppLayout sidebarItem="progress" className="space-y-4">
@@ -113,7 +102,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   {t("currentLevelTitle")}
                 </CardTitle>
                 <Badge variant="secondary" className="text-sm px-3 py-1">
-                  {t("levelBadge", { level: data.currentLevel })}
+                  {t("levelBadge", { level: displayLevel })}
                 </Badge>
               </div>
               <CardDescription>{t("currentLevelDescription")}</CardDescription>
@@ -131,7 +120,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   <p className="text-xs text-center text-muted-foreground">
                     {t("percentToLevel", {
                       percent: data.expProgress.progressPercentage.toFixed(1),
-                      level: data.currentLevel + 1,
+                      level: displayLevel + 1,
                     })}
                   </p>
                 </div>
@@ -148,7 +137,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-muted-foreground">{t("nextLevelHeading")}</span>
                       <Badge variant="outline" className="text-xs">
-                        {t("nextLevelBadge", { level: data.currentLevel + 1 })}
+                        {t("nextLevelBadge", { level: displayLevel + 1 })}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">

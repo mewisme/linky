@@ -166,16 +166,35 @@ function applyRealtimeCallProjection(
     return null;
   }
 
+  const baselineTotalExpSeconds = progress.expProgress.totalExpSeconds;
   const projectedTotalExpSeconds = Math.max(
     minTotalExpSeconds,
-    progress.expProgress.totalExpSeconds + projectedExpGain,
+    baselineTotalExpSeconds + projectedExpGain,
   );
-  const nextLevel = calculateLevelFromExp(projectedTotalExpSeconds);
-  const progressDenominator = projectedTotalExpSeconds + nextLevel.expToNextLevel;
+  const calculatedLevel = calculateLevelFromExp(projectedTotalExpSeconds);
+  const progressDenominator = projectedTotalExpSeconds + calculatedLevel.expToNextLevel;
   const projectedPercentage =
     progressDenominator > 0
       ? Math.min(100, Math.max(0, (projectedTotalExpSeconds / progressDenominator) * 100))
       : 100;
+
+  if (projectedTotalExpSeconds < baselineTotalExpSeconds) {
+    logger.warn(
+      "Realtime projection regressed exp total: baseline=%d projected=%d minTotal=%d",
+      baselineTotalExpSeconds,
+      projectedTotalExpSeconds,
+      minTotalExpSeconds,
+    );
+  }
+  if (calculatedLevel.level < progress.currentLevel) {
+    logger.warn(
+      "Realtime projection regressed level: baselineLevel=%d projectedLevel=%d baselineExp=%d projectedExp=%d",
+      progress.currentLevel,
+      calculatedLevel.level,
+      baselineTotalExpSeconds,
+      projectedTotalExpSeconds,
+    );
+  }
 
   const projectedTodaySeconds = progress.todayCallDurationSeconds + unpersistedElapsedSeconds;
   const projectedIsTodayComplete = projectedTodaySeconds >= progress.streakRequiredSeconds;
@@ -197,15 +216,15 @@ function applyRealtimeCallProjection(
     ...progress,
     streakStatus,
     recentStreakDays,
-    currentLevel: nextLevel.level,
+    currentLevel: calculatedLevel.level,
     expProgress: {
       ...progress.expProgress,
       totalExpSeconds: projectedTotalExpSeconds,
-      expToNextLevel: nextLevel.expToNextLevel,
+      expToNextLevel: calculatedLevel.expToNextLevel,
       progressPercentage: projectedPercentage,
     },
     expEarnedToday: (progress.expEarnedToday ?? 0) + projectedExpGain,
-    remainingSecondsToNextLevel: nextLevel.expToNextLevel,
+    remainingSecondsToNextLevel: calculatedLevel.expToNextLevel,
     todayCallDurationSeconds: progress.todayCallDurationSeconds + unpersistedElapsedSeconds,
     todayCallDuration: {
       ...progress.todayCallDuration,

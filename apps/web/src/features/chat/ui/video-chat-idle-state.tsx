@@ -14,6 +14,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { getUserProgress } from "@/features/user/api/profile";
+import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useTranslations } from "next-intl";
@@ -72,8 +73,11 @@ export function VideoChatIdleState({
 
   const displayName =
     user.user?.firstName || user.user?.username || t("you");
+  const displayLevel = progress?.expProgress?.totalExpSeconds != null
+    ? calculateLevelFromExp(progress.expProgress.totalExpSeconds).level
+    : progress?.currentLevel;
 
-  const prestigeProximity = progress ? getPrestigeProximity(progress.currentLevel) : null;
+  const prestigeProximity = displayLevel ? getPrestigeProximity(displayLevel) : null;
   const showLevelProximity = progress && progress.expProgress.progressPercentage >= 85;
   const showStreakReminder =
     progress &&
@@ -139,7 +143,7 @@ export function VideoChatIdleState({
                 <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <IconStar className="size-3.5 shrink-0" />
-                    {t("levelLabel", { level: progress.currentLevel })}
+                    {t("levelLabel", { level: displayLevel ?? progress.currentLevel })}
                   </span>
                   <span className="tabular-nums">
                     {t("percentToNext", {
@@ -169,7 +173,7 @@ export function VideoChatIdleState({
                     {showLevelProximity && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">
                         <IconStar className="size-3 shrink-0" />
-                        {t("almostLevel", { level: progress.currentLevel + 1 })}
+                        {t("almostLevel", { level: (displayLevel ?? progress.currentLevel) + 1 })}
                       </span>
                     )}
                     {showStreakReminder && (

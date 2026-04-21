@@ -2,10 +2,9 @@
 
 🔨 Other Changes
 
-- Add development overlay for testing reactions and UI adjustments ([f3c76db](../../commit/f3c76db6))
-- Normalize reaction display types and enhance rendering logic ([b1cfd08](../../commit/b1cfd088))
-- Add option to sign out of other devices after password change ([8fe73c4](../../commit/8fe73c42))
-- Update package versions to 1.1.0 and refresh version lock ([b66a5af](../../commit/b66a5af4))
+- Implement level-up notifications and experience tracking ([197b4ca](../../commit/197b4cae))
+- Enhance DevOverlay with live positioning and drag suppression ([e19c179](../../commit/e19c1790))
+- Update package versions to 1.2.0 and refresh version lock ([2e31d40](../../commit/2e31d402))
 
 
-📋 Full Changelog: [b66a5af...f3c76db](../../compare/b66a5af4...f3c76db6)
+📋 Full Changelog: [2e31d40...197b4ca](../../compare/2e31d402...197b4cae)

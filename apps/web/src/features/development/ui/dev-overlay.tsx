@@ -48,8 +48,11 @@ export function DevOverlay() {
   const t = useTranslations("development.devOverlay");
   const overlayRef = useRef<HTMLButtonElement>(null);
   const draggingRef = useRef(false);
+  const dragPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressClickRef = useRef(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [livePosition, setLivePosition] = useState<{ x: number; y: number } | null>(null);
 
   const isDevelopmentModeEnabled = useDevelopmentStore((state) => state.isDevelopmentModeEnabled);
   const overlayPosition = useDevelopmentStore((state) => state.overlayPosition);
@@ -80,6 +83,15 @@ export function DevOverlay() {
     return () => window.removeEventListener("resize", handleResize);
   }, [isDevelopmentModeEnabled, overlayPosition, setOverlayPosition]);
 
+  useEffect(() => {
+    if (!overlayPosition) {
+      return;
+    }
+    if (!draggingRef.current) {
+      setLivePosition(overlayPosition);
+    }
+  }, [overlayPosition]);
+
   if (!isDevelopmentModeEnabled || !overlayPosition) {
     return null;
   }
@@ -92,24 +104,35 @@ export function DevOverlay() {
 
     event.preventDefault();
     const pointerId = event.pointerId;
-    const offsetX = event.clientX - overlayPosition.x;
-    const offsetY = event.clientY - overlayPosition.y;
+    const start = livePosition ?? overlayPosition;
+    const offsetX = event.clientX - start.x;
+    const offsetY = event.clientY - start.y;
+    let hasMoved = false;
 
     node.setPointerCapture(pointerId);
     draggingRef.current = true;
     setIsDragging(true);
+    dragPositionRef.current = start;
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       if (!draggingRef.current) {
         return;
       }
       const next = clampPosition(moveEvent.clientX - offsetX, moveEvent.clientY - offsetY);
-      setOverlayPosition(next);
+      if (!hasMoved && (Math.abs(next.x - start.x) > 1 || Math.abs(next.y - start.y) > 1)) {
+        hasMoved = true;
+      }
+      dragPositionRef.current = next;
+      setLivePosition(next);
     };
 
     const cleanup = () => {
       draggingRef.current = false;
       setIsDragging(false);
+      if (hasMoved && dragPositionRef.current) {
+        suppressClickRef.current = true;
+        setOverlayPosition(dragPositionRef.current);
+      }
       node.releasePointerCapture(pointerId);
       node.removeEventListener("pointermove", handlePointerMove);
       node.removeEventListener("pointerup", cleanup);
@@ -126,8 +149,9 @@ export function DevOverlay() {
   };
 
   const triggerDoubleTapReaction = () => {
-    const centerX = overlayPosition.x + OVERLAY_SIZE / 2;
-    const centerY = overlayPosition.y + OVERLAY_SIZE / 2;
+    const position = livePosition ?? overlayPosition;
+    const centerX = position.x + OVERLAY_SIZE / 2;
+    const centerY = position.y + OVERLAY_SIZE / 2;
     triggerLocalReaction({ x: centerX, y: centerY }, "heart", "single");
     emitReaction(1, "heart", "single");
   };
@@ -147,11 +171,18 @@ export function DevOverlay() {
               style={{
                 width: OVERLAY_SIZE,
                 height: OVERLAY_SIZE,
-                left: overlayPosition.x,
-                top: overlayPosition.y,
+                left: livePosition?.x ?? overlayPosition.x,
+                top: livePosition?.y ?? overlayPosition.y,
                 cursor: isDragging ? "grabbing" : "grab",
               }}
               onPointerDown={handlePointerDown}
+              onClick={(event) => {
+                if (suppressClickRef.current) {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  suppressClickRef.current = false;
+                }
+              }}
             >
               <IconCode className="size-5" />
             </Button>
@@ -161,7 +192,10 @@ export function DevOverlay() {
               <div className="space-y-1">
                 <p className="text-sm font-medium">{t("title")}</p>
                 <p className="text-xs text-muted-foreground">
-                  {t("positionLabel", { x: Math.round(overlayPosition.x), y: Math.round(overlayPosition.y) })}
+                  {t("positionLabel", {
+                    x: Math.round((livePosition ?? overlayPosition).x),
+                    y: Math.round((livePosition ?? overlayPosition).y),
+                  })}
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-2">

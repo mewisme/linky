@@ -18,6 +18,7 @@ import { persistRoomCallHistory, recordCallHistoryFromRoom } from "@/domains/vid
 
 const logger = createLogger("api:video-chat:matchmaking:socket");
 const STREAK_COMPLETED_EVENT = "streak:completed";
+const LEVEL_UP_EVENT = "level:up";
 
 const activeIntervals: ReturnType<typeof setInterval>[] = [];
 
@@ -329,6 +330,25 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
               }
               room.hasEmittedStreakCompletedUser1 = true;
             }
+            if (user1Progress) {
+              const user1LevelFloor = room.lastAnnouncedLevelUser1 ?? user1Progress.currentLevel;
+              if (user1Projected.currentLevel > user1LevelFloor) {
+                const levelPayload = {
+                  eventKey: `${room.id}:${room.user1DbId}:${user1Projected.currentLevel}:heartbeat`,
+                  leveledUserId: room.user1DbId,
+                  userId: room.user1DbId,
+                  previousLevel: user1LevelFloor,
+                  newLevel: user1Projected.currentLevel,
+                };
+                if (user1Connected) {
+                  user1Socket!.emit(LEVEL_UP_EVENT, levelPayload);
+                }
+                if (user2Connected) {
+                  user2Socket!.emit(LEVEL_UP_EVENT, levelPayload);
+                }
+                room.lastAnnouncedLevelUser1 = user1Projected.currentLevel;
+              }
+            }
             room.lastProjectedTotalExpUser1 = user1Projected.expProgress.totalExpSeconds;
             user1Socket!.emit("user:progress:update", user1Projected);
           }
@@ -353,6 +373,25 @@ export function setupRoomHeartbeat(io: Namespace, rooms: VideoChatRooms): void {
                 user1Socket!.emit(STREAK_COMPLETED_EVENT, payload);
               }
               room.hasEmittedStreakCompletedUser2 = true;
+            }
+            if (user2Progress) {
+              const user2LevelFloor = room.lastAnnouncedLevelUser2 ?? user2Progress.currentLevel;
+              if (user2Projected.currentLevel > user2LevelFloor) {
+                const levelPayload = {
+                  eventKey: `${room.id}:${room.user2DbId}:${user2Projected.currentLevel}:heartbeat`,
+                  leveledUserId: room.user2DbId,
+                  userId: room.user2DbId,
+                  previousLevel: user2LevelFloor,
+                  newLevel: user2Projected.currentLevel,
+                };
+                if (user1Connected) {
+                  user1Socket!.emit(LEVEL_UP_EVENT, levelPayload);
+                }
+                if (user2Connected) {
+                  user2Socket!.emit(LEVEL_UP_EVENT, levelPayload);
+                }
+                room.lastAnnouncedLevelUser2 = user2Projected.currentLevel;
+              }
             }
             room.lastProjectedTotalExpUser2 = user2Projected.expProgress.totalExpSeconds;
             user2Socket!.emit("user:progress:update", user2Projected);

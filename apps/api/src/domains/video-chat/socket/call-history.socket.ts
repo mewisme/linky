@@ -14,6 +14,7 @@ import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 const logger = createLogger("api:video-chat:call-history:socket");
 
 const STREAK_COMPLETED_EVENT = "streak:completed";
+const LEVEL_UP_EVENT = "level:up";
 const IDEMPOTENCY_KEY_TTL_SECONDS = 300;
 
 function getCallIdempotencyKey(userId1: string, userId2: string, startedAt: Date): string {
@@ -149,6 +150,38 @@ export async function recordCallHistory(
           }
           if (calleeSocket?.connected) {
             calleeSocket.emit(STREAK_COMPLETED_EVENT, eventPayload);
+          }
+        },
+        onLevelUp(userId, { previousLevel, newLevel }) {
+          const isUser1 = userId === room.user1DbId;
+          const isUser2 = userId === room.user2DbId;
+          if (!isUser1 && !isUser2) {
+            return;
+          }
+          const lastAnnounced = isUser1 ? room.lastAnnouncedLevelUser1 : room.lastAnnouncedLevelUser2;
+          if (lastAnnounced != null && newLevel <= lastAnnounced) {
+            return;
+          }
+          if (!callerSocket.connected && !calleeSocket?.connected) {
+            return;
+          }
+          if (isUser1) {
+            room.lastAnnouncedLevelUser1 = newLevel;
+          } else {
+            room.lastAnnouncedLevelUser2 = newLevel;
+          }
+          const levelPayload = {
+            eventKey: `${room.id}:${userId}:${newLevel}:final`,
+            leveledUserId: userId,
+            userId,
+            previousLevel,
+            newLevel,
+          };
+          if (callerSocket.connected) {
+            callerSocket.emit(LEVEL_UP_EVENT, levelPayload);
+          }
+          if (calleeSocket?.connected) {
+            calleeSocket.emit(LEVEL_UP_EVENT, levelPayload);
           }
         },
       });

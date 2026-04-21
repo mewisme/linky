@@ -10,7 +10,7 @@ import { useUserContext } from "@/providers/user/user-provider";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
-import { STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
+import { LEVEL_UP_BURST_REACTIONS, STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
 import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 
 type ReactionInputType = string | string[];
@@ -47,10 +47,13 @@ interface ReactionEffectProviderProps {
 }
 
 const STREAK_COMPLETED_EVENT = "streak:completed";
+const LEVEL_UP_EVENT = "level:up";
 const USER_PROGRESS_UPDATE_EVENT = "user:progress:update";
 
 const STREAK_TOAST_DEBOUNCE_MS = 2000;
 const STREAK_EVENT_DEDUP_WINDOW_MS = 30000;
+const LEVEL_TOAST_DEBOUNCE_MS = 2000;
+const LEVEL_EVENT_DEDUP_WINDOW_MS = 30000;
 
 function normalizeReactionDisplayTypes(input: ReactionInputType | undefined): string[] {
   const rawTypes = Array.isArray(input) ? input : [input ?? "heart"];
@@ -73,6 +76,8 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   const currentUserIdRef = useRef<string | null>(null);
   const lastStreakToastAtRef = useRef(0);
   const seenStreakEventKeysRef = useRef<Map<string, number>>(new Map());
+  const lastLevelToastAtRef = useRef(0);
+  const seenLevelEventKeysRef = useRef<Map<string, number>>(new Map());
   // eslint-disable-next-line react-hooks/refs
   currentUserIdRef.current = store.user?.id ?? null;
 
@@ -180,6 +185,41 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
     socket.on(STREAK_COMPLETED_EVENT, handleStreakCompleted);
     return () => {
       socket.off(STREAK_COMPLETED_EVENT, handleStreakCompleted);
+    };
+  }, [play, socket, triggerRemoteReactions, t]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleLevelUp = (data: {
+      eventKey?: string;
+      leveledUserId?: string;
+      userId: string;
+      previousLevel: number;
+      newLevel: number;
+    }) => {
+      if (useVideoChatStore.getState().connectionStatus !== "in_call") return;
+      const actorUserId = data.leveledUserId ?? data.userId;
+      const current = currentUserIdRef.current;
+      if (!current || actorUserId !== current) return;
+
+      const now = Date.now();
+      for (const [key, timestamp] of seenLevelEventKeysRef.current.entries()) {
+        if (now - timestamp > LEVEL_EVENT_DEDUP_WINDOW_MS) {
+          seenLevelEventKeysRef.current.delete(key);
+        }
+      }
+      const dedupeKey = data.eventKey ?? `${actorUserId}:${data.previousLevel}:${data.newLevel}`;
+      if (seenLevelEventKeysRef.current.has(dedupeKey)) return;
+      seenLevelEventKeysRef.current.set(dedupeKey, now);
+      if (now - lastLevelToastAtRef.current < LEVEL_TOAST_DEBOUNCE_MS) return;
+      lastLevelToastAtRef.current = now;
+      toast.success(t("levelUp", { level: data.newLevel }));
+      play("reward");
+      triggerRemoteReactions(1, LEVEL_UP_BURST_REACTIONS, "burst");
+    };
+    socket.on(LEVEL_UP_EVENT, handleLevelUp);
+    return () => {
+      socket.off(LEVEL_UP_EVENT, handleLevelUp);
     };
   }, [play, socket, triggerRemoteReactions, t]);
 

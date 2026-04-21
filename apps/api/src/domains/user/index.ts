@@ -29,6 +29,7 @@ export {
 } from "./service/embedding-job.service.js";
 
 export type { UserLevel, LevelCalculationParams } from "./types/user-level.types.js";
+export type { AddCallExpResult } from "./service/user-level.service.js";
 export type { UserStreak, UserStreakDay } from "./types/user-streak.types.js";
 
 export {

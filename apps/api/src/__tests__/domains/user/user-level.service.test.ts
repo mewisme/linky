@@ -50,15 +50,15 @@ beforeEach(() => {
 
 describe("addCallExp", () => {
   it("returns early when durationSeconds <= 0: no incrementUserExp or incrementDailyExpWithMilestones", async () => {
-    await addCallExp("u1", 0);
-    await addCallExp("u1", -1);
+    expect(await addCallExp("u1", 0)).toEqual({ didLevelUp: false, previousLevel: 1, newLevel: 1 });
+    expect(await addCallExp("u1", -1)).toEqual({ didLevelUp: false, previousLevel: 1, newLevel: 1 });
     expect(mockIncrementUserExp).not.toHaveBeenCalled();
     expect(mockIncrementDailyExpWithMilestones).not.toHaveBeenCalled();
   });
 
   it("returns early when userId is invalid", async () => {
-    await addCallExp("", 60);
-    await addCallExp("   ", 60);
+    expect(await addCallExp("", 60)).toEqual({ didLevelUp: false, previousLevel: 1, newLevel: 1 });
+    expect(await addCallExp("   ", 60)).toEqual({ didLevelUp: false, previousLevel: 1, newLevel: 1 });
     expect(mockIncrementUserExp).not.toHaveBeenCalled();
   });
 
@@ -107,16 +107,19 @@ describe("addCallExp", () => {
       .mockReset()
       .mockResolvedValueOnce({ total_exp_seconds: 0 })
       .mockResolvedValue({ total_exp_seconds: 300 });
-    await addCallExp("u1", 300);
+    const r = await addCallExp("u1", 300);
     expect(mockGrantRewardsForLevel).toHaveBeenCalledWith("u1", 3);
     expect(mockGrantFreezesForLevel).toHaveBeenCalledWith("u1", 3);
+    expect(r).toEqual({ didLevelUp: true, previousLevel: 1, newLevel: 3 });
   });
 
   it("level-up: when level unchanged (same level bucket), does not call grantRewardsForLevel or grantFreezesForLevel", async () => {
     mockGetUserLevel.mockReset().mockResolvedValueOnce({ total_exp_seconds: 1000 }).mockResolvedValue({ total_exp_seconds: 1050 });
-    await addCallExp("u1", 50);
+    const r = await addCallExp("u1", 50);
     expect(mockGrantRewardsForLevel).not.toHaveBeenCalled();
     expect(mockGrantFreezesForLevel).not.toHaveBeenCalled();
+    expect(r.didLevelUp).toBe(false);
+    expect(r.previousLevel).toBe(r.newLevel);
   });
 
   it("repo throw propagates", async () => {

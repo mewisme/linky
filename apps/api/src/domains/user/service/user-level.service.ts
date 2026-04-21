@@ -30,6 +30,18 @@ export interface AddCallExpOptions {
   expSecondsToAdd?: number;
 }
 
+export interface AddCallExpResult {
+  didLevelUp: boolean;
+  previousLevel: number;
+  newLevel: number;
+}
+
+const NOOP_ADD_CALL_EXP_RESULT: AddCallExpResult = {
+  didLevelUp: false,
+  previousLevel: 1,
+  newLevel: 1,
+};
+
 export async function computeExpSecondsForCallDuration(
   userId: string,
   durationSeconds: number,
@@ -52,9 +64,13 @@ export async function addCallExp(
   userId: string,
   durationSeconds: number,
   options?: AddCallExpOptions,
-): Promise<void> {
-  if (durationSeconds <= 0) return;
-  if (!userId || typeof userId !== "string" || userId.trim() === "") return;
+): Promise<AddCallExpResult> {
+  if (durationSeconds <= 0) {
+    return NOOP_ADD_CALL_EXP_RESULT;
+  }
+  if (!userId || typeof userId !== "string" || userId.trim() === "") {
+    return NOOP_ADD_CALL_EXP_RESULT;
+  }
 
   try {
     const levelBefore = await getUserLevel(userId);
@@ -102,6 +118,12 @@ export async function addCallExp(
       await grantFreezesForLevel(userId, levelAfterValue);
       logger.info("User leveled up: user=%s from=%d to=%d", userId, levelBeforeValue, levelAfterValue);
     }
+
+    return {
+      didLevelUp: levelAfterValue > levelBeforeValue,
+      previousLevel: levelBeforeValue,
+      newLevel: levelAfterValue,
+    };
   } catch (error) {
     logger.error(toLoggableError(error), "Error adding call exp");
     throw error;

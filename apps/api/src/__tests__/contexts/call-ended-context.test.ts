@@ -18,9 +18,11 @@ vi.mock("@/domains/user/index.js", () => ({
   computeExpSecondsForCallDuration: (...args: unknown[]) => mockComputeExpSecondsForCallDuration(...args),
 }));
 
+const noopExp = { didLevelUp: false, previousLevel: 1, newLevel: 1 };
+
 beforeEach(() => {
   vi.clearAllMocks();
-  mockAddCallExp.mockResolvedValue(undefined);
+  mockAddCallExp.mockResolvedValue(noopExp);
   mockAddCallDurationToStreak.mockResolvedValue(null);
   mockTryEnqueueApplyCallExpJob.mockResolvedValue(true);
   mockComputeExpSecondsForCallDuration.mockImplementation((_userId: string, duration: number) =>
@@ -82,7 +84,7 @@ describe("applyCallEndedProgress", () => {
   });
 
   it("handles errors gracefully - if one user's update fails, the other still succeeds", async () => {
-    mockAddCallExp.mockRejectedValueOnce(new Error("Caller EXP update failed")).mockResolvedValueOnce(undefined);
+    mockAddCallExp.mockRejectedValueOnce(new Error("Caller EXP update failed")).mockResolvedValueOnce(noopExp);
 
     await applyCallEndedProgress({ ...baseParams, durationSeconds: 300 });
 
@@ -132,5 +134,27 @@ describe("applyCallEndedProgress", () => {
     await applyCallEndedProgress({ ...baseParams, durationSeconds: 300, onStreakCompleted });
 
     expect(onStreakCompleted).toHaveBeenCalledWith("c2", { streakCount: 1, date: "2024-06-15" });
+  });
+
+  it("onLevelUp: called for both users when both expResult didLevelUp", async () => {
+    mockAddCallExp
+      .mockResolvedValueOnce({ didLevelUp: true, previousLevel: 2, newLevel: 3 })
+      .mockResolvedValueOnce({ didLevelUp: true, previousLevel: 1, newLevel: 2 });
+
+    const onLevelUp = vi.fn();
+    await applyCallEndedProgress({ ...baseParams, durationSeconds: 300, onLevelUp });
+
+    expect(onLevelUp).toHaveBeenCalledWith("c1", { previousLevel: 2, newLevel: 3 });
+    expect(onLevelUp).toHaveBeenCalledWith("c2", { previousLevel: 1, newLevel: 2 });
+    expect(onLevelUp).toHaveBeenCalledTimes(2);
+  });
+
+  it("onLevelUp: not called when addCallExp fails (no expResult)", async () => {
+    mockAddCallExp.mockRejectedValue(new Error("fail"));
+
+    const onLevelUp = vi.fn();
+    await applyCallEndedProgress({ ...baseParams, durationSeconds: 300, onLevelUp });
+
+    expect(onLevelUp).not.toHaveBeenCalled();
   });
 });

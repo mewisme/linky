@@ -496,7 +496,14 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onConnectError: () => {
         actionsRef.current.setError(t("call.failedConnectServer"));
-        toast.error(t("call.connectErrorToast"));
+        toast.error(t("call.connectErrorToast"), {
+          action: {
+            label: t("call.globalError.reload"),
+            onClick: () => {
+              window.location.reload();
+            },
+          },
+        });
       },
       onResyncRequired: () => {
         const currentStatus = connectionStatusRef.current;

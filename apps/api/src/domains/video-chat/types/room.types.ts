@@ -18,5 +18,7 @@ export interface VideoChatRoomRecord extends VideoChatRoom {
   lastProjectedTotalExpUser2?: number;
   hasEmittedStreakCompletedUser1?: boolean;
   hasEmittedStreakCompletedUser2?: boolean;
+  lastAnnouncedLevelUser1?: number;
+  lastAnnouncedLevelUser2?: number;
 }
 

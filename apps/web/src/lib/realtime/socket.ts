@@ -158,6 +158,13 @@ export interface SocketEvents {
   "video-chat:error": (data: UserFacingSocketPayload) => void;
   "queue-timeout": (data: UserFacingSocketPayload) => void;
   "user:progress:update": (data: UsersAPI.Progress.GetMe.Response) => void;
+  "level:up": (data: {
+    eventKey?: string;
+    leveledUserId?: string;
+    userId: string;
+    previousLevel: number;
+    newLevel: number;
+  }) => void;
 }
 
 export interface SignalData {

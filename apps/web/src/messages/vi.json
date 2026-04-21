@@ -99,6 +99,7 @@
     "removedFromFavorites": "{name} đã xóa bạn khỏi yêu thích",
     "streakSavedByFreeze": "Chuỗi đã được giữ nhờ đóng băng 🎉",
     "streakCompleted": "Hoàn thành chuỗi! {count} ngày 🎉",
+    "levelUp": "Lên cấp {level}! 🎉",
     "reportReasonRequired": "Vui lòng nhập lý do báo cáo",
     "reportSubmitted": "Đã gửi báo cáo",
     "reportFailed": "Gửi báo cáo thất bại",
@@ -166,7 +167,8 @@
       "genericTitle": "Đã xảy ra lỗi",
       "ok": "OK",
       "dismiss": "Đóng",
-      "refreshPage": "Tải lại trang"
+      "refreshPage": "Tải lại trang",
+      "reload": "Tải lại"
     },
     "floating": {
       "expandLabel": "Mở toàn màn hình cuộc gọi"

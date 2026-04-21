@@ -2,6 +2,7 @@ import {
   addCallExp,
   addCallDurationToStreak,
   computeExpSecondsForCallDuration,
+  type AddCallExpResult,
 } from "@/domains/user/index.js";
 import { tryEnqueueApplyCallExpJob } from "@/jobs/worker-jobs/apply-call-exp.job.js";
 import { toUserLocalDateString } from "@/utils/timezone.js";
@@ -11,6 +12,8 @@ import { toLoggableError } from "@/utils/to-loggable-error.js";
 const logger = createLogger("context:call-ended");
 
 export type OnStreakCompleted = (userId: string, payload: { streakCount: number; date: string }) => void;
+
+export type OnLevelUp = (userId: string, payload: { previousLevel: number; newLevel: number }) => void;
 
 interface ApplyCallProgressParams {
   userId: string;
@@ -22,6 +25,7 @@ interface ApplyCallProgressParams {
 
 interface ApplyCallProgressResult {
   streakResult: Awaited<ReturnType<typeof addCallDurationToStreak>>;
+  expResult: AddCallExpResult | null;
 }
 
 async function applyCallProgressForUser(params: ApplyCallProgressParams): Promise<ApplyCallProgressResult> {
@@ -30,8 +34,9 @@ async function applyCallProgressForUser(params: ApplyCallProgressParams): Promis
   const dateStr = toUserLocalDateString(new Date(callEndDate), timezone);
   const expSecondsToAdd = await computeExpSecondsForCallDuration(userId, durationSeconds);
 
+  let expResult: AddCallExpResult | null = null;
   try {
-    await addCallExp(userId, durationSeconds, {
+    expResult = await addCallExp(userId, durationSeconds, {
       timezone,
       counterpartUserId,
       dateForExpToday: dateStr,
@@ -54,7 +59,7 @@ async function applyCallProgressForUser(params: ApplyCallProgressParams): Promis
 
   const streakResult = await addCallDurationToStreak(userId, durationSeconds, callEndDate, timezone);
 
-  return { streakResult };
+  return { streakResult, expResult };
 }
 
 export async function applyCallEndedProgress(params: {
@@ -65,6 +70,7 @@ export async function applyCallEndedProgress(params: {
   callerTimezone: string;
   calleeTimezone: string;
   onStreakCompleted?: OnStreakCompleted;
+  onLevelUp?: OnLevelUp;
 }): Promise<void> {
   const {
     callerId,
@@ -74,6 +80,7 @@ export async function applyCallEndedProgress(params: {
     callerTimezone,
     calleeTimezone,
     onStreakCompleted,
+    onLevelUp,
   } = params;
 
   if (durationSeconds <= 0) {
@@ -142,6 +149,17 @@ export async function applyCallEndedProgress(params: {
         streakCount: calleeProgressResult.value.streakResult.streakCount,
         date: calleeProgressResult.value.streakResult.date,
       });
+    }
+  }
+
+  if (onLevelUp) {
+    if (callerProgressResult.status === "fulfilled" && callerProgressResult.value.expResult?.didLevelUp) {
+      const exp = callerProgressResult.value.expResult;
+      onLevelUp(callerId, { previousLevel: exp.previousLevel, newLevel: exp.newLevel });
+    }
+    if (calleeProgressResult.status === "fulfilled" && calleeProgressResult.value.expResult?.didLevelUp) {
+      const exp = calleeProgressResult.value.expResult;
+      onLevelUp(calleeId, { previousLevel: exp.previousLevel, newLevel: exp.newLevel });
     }
   }
 }

@@ -50,15 +50,23 @@ export function DevOverlay() {
   const draggingRef = useRef(false);
   const dragPositionRef = useRef<{ x: number; y: number } | null>(null);
   const suppressClickRef = useRef(false);
+  const frameRef = useRef<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [livePosition, setLivePosition] = useState<{ x: number; y: number } | null>(null);
 
   const isDevelopmentModeEnabled = useDevelopmentStore((state) => state.isDevelopmentModeEnabled);
   const overlayPosition = useDevelopmentStore((state) => state.overlayPosition);
   const setOverlayPosition = useDevelopmentStore((state) => state.setOverlayPosition);
   const resetOverlayPosition = useDevelopmentStore((state) => state.resetOverlayPosition);
   const { triggerLocalReaction, emitReaction, triggerRemoteReactions } = useReactionEffectContext();
+
+  const setVisualPosition = (position: { x: number; y: number }) => {
+    const node = overlayRef.current;
+    if (!node) {
+      return;
+    }
+    node.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
+  };
 
   useLayoutEffect(() => {
     if (!isDevelopmentModeEnabled || overlayPosition) {
@@ -84,17 +92,26 @@ export function DevOverlay() {
   }, [isDevelopmentModeEnabled, overlayPosition, setOverlayPosition]);
 
   useEffect(() => {
-    if (!overlayPosition) {
+    if (!overlayPosition || draggingRef.current) {
       return;
     }
-    if (!draggingRef.current) {
-      setLivePosition(overlayPosition);
-    }
+    dragPositionRef.current = overlayPosition;
+    setVisualPosition(overlayPosition);
   }, [overlayPosition]);
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
 
   if (!isDevelopmentModeEnabled || !overlayPosition) {
     return null;
   }
+
+  const displayPosition = overlayPosition;
 
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     const node = overlayRef.current;
@@ -104,7 +121,7 @@ export function DevOverlay() {
 
     event.preventDefault();
     const pointerId = event.pointerId;
-    const start = livePosition ?? overlayPosition;
+    const start = dragPositionRef.current ?? overlayPosition;
     const offsetX = event.clientX - start.x;
     const offsetY = event.clientY - start.y;
     let hasMoved = false;
@@ -123,7 +140,15 @@ export function DevOverlay() {
         hasMoved = true;
       }
       dragPositionRef.current = next;
-      setLivePosition(next);
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+      frameRef.current = requestAnimationFrame(() => {
+        frameRef.current = null;
+        if (dragPositionRef.current) {
+          setVisualPosition(dragPositionRef.current);
+        }
+      });
     };
 
     const cleanup = () => {
@@ -132,6 +157,10 @@ export function DevOverlay() {
       if (hasMoved && dragPositionRef.current) {
         suppressClickRef.current = true;
         setOverlayPosition(dragPositionRef.current);
+      }
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
       }
       node.releasePointerCapture(pointerId);
       node.removeEventListener("pointermove", handlePointerMove);
@@ -149,7 +178,7 @@ export function DevOverlay() {
   };
 
   const triggerDoubleTapReaction = () => {
-    const position = livePosition ?? overlayPosition;
+    const position = dragPositionRef.current ?? overlayPosition;
     const centerX = position.x + OVERLAY_SIZE / 2;
     const centerY = position.y + OVERLAY_SIZE / 2;
     triggerLocalReaction({ x: centerX, y: centerY }, "heart", "single");
@@ -171,8 +200,10 @@ export function DevOverlay() {
               style={{
                 width: OVERLAY_SIZE,
                 height: OVERLAY_SIZE,
-                left: livePosition?.x ?? overlayPosition.x,
-                top: livePosition?.y ?? overlayPosition.y,
+                left: 0,
+                top: 0,
+                transform: `translate3d(${overlayPosition.x}px, ${overlayPosition.y}px, 0)`,
+                willChange: "transform",
                 cursor: isDragging ? "grabbing" : "grab",
               }}
               onPointerDown={handlePointerDown}
@@ -193,8 +224,8 @@ export function DevOverlay() {
                 <p className="text-sm font-medium">{t("title")}</p>
                 <p className="text-xs text-muted-foreground">
                   {t("positionLabel", {
-                    x: Math.round((livePosition ?? overlayPosition).x),
-                    y: Math.round((livePosition ?? overlayPosition).y),
+                    x: Math.round(displayPosition.x),
+                    y: Math.round(displayPosition.y),
                   })}
                 </p>
               </div>

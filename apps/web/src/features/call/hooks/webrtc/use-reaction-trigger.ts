@@ -8,7 +8,7 @@ import { useReactionEffectContext } from "@/providers/realtime/reaction-effect-p
 
 interface UseReactionTriggerOptions {
   isActive: boolean;
-  reactionType?: string;
+  reactionType?: string | string[];
 }
 
 const MAX_TAP_COUNT = 8;
@@ -29,14 +29,14 @@ export function useReactionTrigger({ isActive, reactionType = "heart" }: UseReac
 
       if (tapCountRef.current >= 2) {
         Sentry.metrics.count("reaction_trigger_double_tap", 1);
-        triggerLocalReaction({ x, y }, reactionType);
+        triggerLocalReaction({ x, y }, reactionType, "single");
 
         if (tapCountRef.current >= MAX_TAP_COUNT) {
           if (tapWindowTimerRef.current) {
             clearTimeout(tapWindowTimerRef.current);
           }
           const reactionCount = tapCountRef.current - 1;
-          emitReaction(reactionCount, reactionType);
+          emitReaction(reactionCount, reactionType, "single");
           tapCountRef.current = 0;
           tapWindowTimerRef.current = null;
           return;
@@ -52,7 +52,7 @@ export function useReactionTrigger({ isActive, reactionType = "heart" }: UseReac
 
         if (count >= 2) {
           const reactionCount = count - 1;
-          emitReaction(reactionCount, reactionType);
+          emitReaction(reactionCount, reactionType, "single");
         }
 
         tapCountRef.current = 0;

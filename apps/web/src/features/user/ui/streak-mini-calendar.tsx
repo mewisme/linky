@@ -26,6 +26,34 @@ export function StreakMiniCalendar({
   className,
 }: StreakMiniCalendarProps) {
   const [totalDaysToShow, setTotalDaysToShow] = useState(() => getTotalDaysToShow());
+  const todayDate = useMemo(() => {
+    if (progressData.todayDate) {
+      return getLocalDate(new Date(`${progressData.todayDate}T00:00:00`));
+    }
+
+    return getLocalDate(new Date());
+  }, [progressData.todayDate]);
+  const todayStr = format(todayDate, "yyyy-MM-dd");
+  const currentStreak = Math.max(0, progressData.streak.currentStreak ?? 0);
+  const isTodayStreakComplete = progressData.isTodayStreakComplete ?? false;
+  const validStreakDateSet = useMemo(() => {
+    const next = new Set<string>();
+
+    if (currentStreak <= 0) {
+      return next;
+    }
+
+    const historicalStreakLength = isTodayStreakComplete ? currentStreak - 1 : currentStreak;
+    for (let i = 1; i <= historicalStreakLength; i++) {
+      next.add(format(subDays(todayDate, i), "yyyy-MM-dd"));
+    }
+
+    if (isTodayStreakComplete) {
+      next.add(todayStr);
+    }
+
+    return next;
+  }, [currentStreak, isTodayStreakComplete, todayDate, todayStr]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -37,23 +65,16 @@ export function StreakMiniCalendar({
   }, []);
 
   const startDate = useMemo(() => {
-    const today = getLocalDate(new Date());
     const daysBefore = Math.floor(totalDaysToShow / 2);
-    const startDate = subDays(today, daysBefore);
+    const startDate = subDays(todayDate, daysBefore);
     return getLocalDate(startDate);
-  }, [totalDaysToShow]);
+  }, [todayDate, totalDaysToShow]);
 
   const getDayStatus = (date: Date) => {
     const dateToCheck = getLocalDate(date);
     const dateStr = format(dateToCheck, "yyyy-MM-dd");
-    const todayStr =
-      progressData.todayDate ?? format(getLocalDate(new Date()), "yyyy-MM-dd");
     const isTodayDate = dateStr === todayStr;
-    const recent = progressData.recentStreakDays ?? [];
-    const d = recent.find((x) => x.date === dateStr);
-    const fromRecent = d?.isValid ?? false;
-    const isValid =
-      fromRecent || (isTodayDate && (progressData.isTodayStreakComplete ?? false));
+    const isValid = isTodayDate ? isTodayStreakComplete : validStreakDateSet.has(dateStr);
     return { isValid, isToday: isTodayDate };
   };
 

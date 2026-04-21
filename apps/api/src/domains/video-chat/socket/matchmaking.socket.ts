@@ -186,6 +186,7 @@ function applyRealtimeCallProjection(
       ? progress.streak.currentStreak
       : progress.streakIfTodayCompleted
     : progress.streak.currentStreak;
+  const projectedLongestStreak = Math.max(progress.streak.longestStreak, projectedCurrentStreak);
 
   const recentStreakDays = progress.recentStreakDays.map((entry, i) => ({
     date: entry.date,
@@ -216,6 +217,7 @@ function applyRealtimeCallProjection(
     streak: {
       ...progress.streak,
       currentStreak: projectedCurrentStreak,
+      longestStreak: projectedLongestStreak,
       remainingSecondsToKeepStreak: Math.max(0, progress.streakRequiredSeconds - (progress.todayCallDurationSeconds + unpersistedElapsedSeconds)),
     },
   };

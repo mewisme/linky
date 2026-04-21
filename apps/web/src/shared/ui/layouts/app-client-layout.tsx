@@ -7,6 +7,7 @@ import { AppSidebar } from "@/shared/ui/layouts/sidebar/app-sidebar";
 import { ChatPanelHost } from "@/features/chat/ui/chat-panel-host";
 import { FloatingCallProvider } from "@/features/call/ui/floating-call/floating-call-provider";
 import { ReactionOverlay } from "@/features/chat/ui/overlays/reaction-overlay";
+import { DevOverlay } from "@/features/development/ui/dev-overlay";
 import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import { useCommandMenuStore } from "@/shared/model/command-menu-store";
 import { useHotkeys } from 'react-hotkeys-hook';
@@ -39,6 +40,7 @@ export function AppClientLayout({ children }: { children: React.ReactNode }) {
         <ChatPanelHost />
       </FloatingCallProvider>
       <ReactionOverlay />
+      <DevOverlay />
     </ReactionEffectProvider>
   );
 }

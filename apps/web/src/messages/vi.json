@@ -1015,7 +1015,19 @@
     "securityConfirmLine1": "Bạn có chắc muốn lấy token Clerk?",
     "securityConfirmLine2": "Nếu token bị lộ, người khác có thể mạo danh phiên của bạn và truy cập tài nguyên được bảo vệ.",
     "activateIn": "Kích hoạt sau {seconds}s",
-    "understandDoIt": "Tôi hiểu, thực hiện"
+    "understandDoIt": "Tôi hiểu, thực hiện",
+    "devOverlay": {
+      "triggerAriaLabel": "Mở lớp phủ phát triển",
+      "title": "Lớp phủ phát triển",
+      "positionLabel": "Vị trí: X {x}, Y {y}",
+      "triggerStreakBurst": "Kích hoạt phản ứng streak burst",
+      "triggerDoubleTap": "Kích hoạt phản ứng double tap",
+      "openDialog": "Mở dialog thử nghiệm",
+      "resetPosition": "Đặt lại vị trí lớp phủ",
+      "dialogTitle": "Dialog phát triển",
+      "dialogDescription": "Dialog này vẫn mở ngay cả khi popover đóng. Bạn có thể thay thế phần này bằng công cụ phát triển trong tương lai.",
+      "dialogClose": "Đóng"
+    }
   },
   "admin": {
     "hubLabel": "Bảng quản trị",

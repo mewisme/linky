@@ -244,6 +244,7 @@ export const menuItemDefinitions: MenuItemDef[] = [
         id: "settingsDevelopment",
         icon: IconCode,
         href: "/settings/development",
+        isAdmin: true,
       },
     ],
   },

@@ -1015,7 +1015,19 @@
     "securityConfirmLine1": "Are you sure you want to retrieve your Clerk token?",
     "securityConfirmLine2": "If this token is leaked, others can impersonate your current session and access protected resources.",
     "activateIn": "Activate in {seconds}s",
-    "understandDoIt": "I Understand, Do It"
+    "understandDoIt": "I Understand, Do It",
+    "devOverlay": {
+      "triggerAriaLabel": "Open development overlay",
+      "title": "Development Overlay",
+      "positionLabel": "Position: X {x}, Y {y}",
+      "triggerStreakBurst": "Trigger streak burst reaction",
+      "triggerDoubleTap": "Trigger double tap reaction",
+      "openDialog": "Open test dialog",
+      "resetPosition": "Reset overlay position",
+      "dialogTitle": "Development Dialog",
+      "dialogDescription": "This dialog stays open even when the popover is closed. You can replace this with future development tools.",
+      "dialogClose": "Close"
+    }
   },
   "admin": {
     "hubLabel": "Admin Dashboard",

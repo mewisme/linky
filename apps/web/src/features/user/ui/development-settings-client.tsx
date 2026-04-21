@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { IconCode } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { useDevelopmentStore } from "@/shared/model/development-store";
+import { useUserStore } from "@/entities/user/model/user-store";
+import { isAdmin } from "@/shared/utils/roles";
 import {
   Card,
   CardContent,
@@ -29,6 +32,8 @@ import {
 export function DevelopmentSettingsClient() {
   const t = useTranslations("settings.developmentPage");
   const tc = useTranslations("common");
+  const router = useRouter();
+  const { user: userStore } = useUserStore();
   const isDevelopmentModeEnabled = useDevelopmentStore(
     (state) => state.isDevelopmentModeEnabled
   );
@@ -44,6 +49,12 @@ export function DevelopmentSettingsClient() {
     });
   }, []);
 
+  useEffect(() => {
+    if (isHydrated && userStore && !isAdmin(userStore.role)) {
+      router.push("/settings");
+    }
+  }, [isHydrated, router, userStore]);
+
   const handleDevelopmentModeChange = (checked: boolean) => {
     if (checked && !isDevelopmentModeEnabled) {
       setIsEnableDialogOpen(true);
@@ -57,6 +68,10 @@ export function DevelopmentSettingsClient() {
     setDevelopmentModeEnabled(true);
     setIsEnableDialogOpen(false);
   };
+
+  if (isHydrated && userStore && !isAdmin(userStore.role)) {
+    return null;
+  }
 
   return (
     <AppLayout

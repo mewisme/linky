@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 
 import Image from "next/image";
 import { useReactionEffectContext } from "@/providers/realtime/reaction-effect-provider";
-import { normalizeReactionDisplayType, PARTY_REACTION_EMOJI } from "@/shared/lib/reaction-display-type";
+
+type ReactionMode = "single" | "burst";
 
 interface ReactionInstance {
   id: string;
@@ -36,6 +37,40 @@ function reactionTypeRendersAsEmojiGlyph(type: string): boolean {
   return /\p{Extended_Pictographic}/u.test(type);
 }
 
+function toNormalizedReactionTypes(type: string | string[]): string[] {
+  const types = Array.isArray(type) ? type : [type];
+  const normalizedTypes = types.filter((value): value is string => typeof value === "string" && value.length > 0);
+  return normalizedTypes.length > 0 ? normalizedTypes : ["heart"];
+}
+
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const current = result[i]!;
+    result[i] = result[j]!;
+    result[j] = current;
+  }
+  return result;
+}
+
+function buildDisplayTypesForInstances(types: string[], instanceCount: number): string[] {
+  if (instanceCount <= 0) {
+    return [];
+  }
+
+  const uniqueTypes = Array.from(new Set(types));
+  const resolvedTypes = uniqueTypes.length > 0 ? uniqueTypes : ["heart"];
+  const selected = shuffle(resolvedTypes).slice(0, Math.min(instanceCount, resolvedTypes.length));
+
+  while (selected.length < instanceCount) {
+    const randomIndex = Math.floor(Math.random() * resolvedTypes.length);
+    selected.push(resolvedTypes[randomIndex]!);
+  }
+
+  return shuffle(selected);
+}
+
 export function ReactionOverlay() {
   const { reactions, removeReaction } = useReactionEffectContext();
   const [reactionInstancesById, setReactionInstancesById] = useState<Record<string, ReactionInstance[]>>({});
@@ -56,11 +91,8 @@ export function ReactionOverlay() {
         const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1280;
         const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 800;
         const instances: ReactionInstance[] = [];
-        const displayType = normalizeReactionDisplayType(reaction.type);
-        const burstCount =
-          displayType === PARTY_REACTION_EMOJI
-            ? randomIntInRange(BURST_COUNT_MIN, BURST_COUNT_MAX)
-            : 1;
+        const displayTypes = toNormalizedReactionTypes(reaction.type);
+        const burstCount = reaction.mode === "burst" ? randomIntInRange(BURST_COUNT_MIN, BURST_COUNT_MAX) : 1;
 
         if (reaction.isLocal && reaction.tapPosition) {
           for (let i = 0; i < burstCount; i++) {
@@ -149,18 +181,23 @@ export function ReactionOverlay() {
     });
   };
 
-  const allInstances: Array<{ reactionId: string; instance: ReactionInstance; isLocal: boolean; type: string }> = [];
+  const allInstances: Array<{ reactionId: string; instance: ReactionInstance; isLocal: boolean; displayType: string; mode: ReactionMode }> = [];
   const instanceCountByReaction: Record<string, number> = {};
   Object.entries(reactionInstancesById).forEach(([reactionId, instances]) => {
     const reaction = reactions.find((r) => r.id === reactionId);
     if (!reaction) return;
     instanceCountByReaction[reactionId] = instances.length;
+    const displayTypes = buildDisplayTypesForInstances(
+      toNormalizedReactionTypes(reaction.type),
+      instances.length
+    );
     instances.forEach((instance) => {
       allInstances.push({
         reactionId,
         instance,
         isLocal: reaction.isLocal,
-        type: normalizeReactionDisplayType(reaction.type),
+        displayType: displayTypes.shift() ?? "heart",
+        mode: reaction.mode,
       });
     });
   });
@@ -172,9 +209,8 @@ export function ReactionOverlay() {
   return (
     <div className="fixed inset-0 pointer-events-none">
       <AnimatePresence>
-        {allInstances.map(({ reactionId, instance, isLocal, type }) => {
+        {allInstances.map(({ reactionId, instance, isLocal, displayType, mode }) => {
           const remoteDistance = -(viewportHeight * 2 / 3);
-          const displayType = normalizeReactionDisplayType(type);
           const isEmojiGlyph = reactionTypeRendersAsEmojiGlyph(displayType);
           const imagePath =
             isEmojiGlyph
@@ -225,7 +261,7 @@ export function ReactionOverlay() {
             >
               <motion.div
                 initial={{ y: 0 }}
-                animate={{ y: isLocal ? -120 : remoteDistance }}
+                animate={{ y: isLocal ? (mode === "burst" ? -140 : -120) : remoteDistance }}
                 transition={{
                   duration: instance.duration,
                   delay: instance.delay,

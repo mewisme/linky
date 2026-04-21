@@ -5,9 +5,14 @@ import { useEffect, useState } from "react";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 
 function formatTime(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  if (hours > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+  const totalMinutes = Math.floor(seconds / 60);
+  return `${String(totalMinutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
 interface CallTimerProps {

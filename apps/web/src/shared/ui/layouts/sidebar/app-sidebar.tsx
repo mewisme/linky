@@ -76,6 +76,7 @@ export function AppSidebar() {
       .map((item) => {
         if (!item.subItems) return item;
         const subItems = item.subItems.filter((sub) => {
+          if (sub.isAdmin && !isAdmin(userStore?.role)) return false;
           if (sub.isSuperAdminOnly && !isSuperAdmin(userStore?.role)) return false;
           if (sub.requiresDevelopmentMode && !isDevelopmentModeEnabled) return false;
           return true;

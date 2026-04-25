@@ -171,15 +171,25 @@ export function ReactionOverlay() {
   const handleReactionComplete = (reactionId: string, totalInstances: number) => {
     setCompletedCountByReaction((prev) => {
       const nextCount = (prev[reactionId] ?? 0) + 1;
-      if (nextCount >= totalInstances) {
-        removeReaction(reactionId);
-      }
       return {
         ...prev,
         [reactionId]: nextCount,
       };
     });
   };
+
+  useEffect(() => {
+    for (const reaction of reactions) {
+      const totalInstances = reactionInstancesById[reaction.id]?.length ?? 0;
+      if (totalInstances === 0) {
+        continue;
+      }
+      const completedCount = completedCountByReaction[reaction.id] ?? 0;
+      if (completedCount >= totalInstances) {
+        removeReaction(reaction.id);
+      }
+    }
+  }, [completedCountByReaction, reactionInstancesById, reactions, removeReaction]);
 
   const allInstances: Array<{ reactionId: string; instance: ReactionInstance; isLocal: boolean; displayType: string; mode: ReactionMode }> = [];
   const instanceCountByReaction: Record<string, number> = {};

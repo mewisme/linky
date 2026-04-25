@@ -29,7 +29,7 @@ export function FloatingVideoOverlay({
   const expandLabel = t("expandLabel");
 
   return (
-    <div className="absolute inset-0 z-10 pointer-events-none">
+    <div className="absolute inset-0 z-30 pointer-events-none">
       {isVisible && !isDragging && !isInteracting && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/25 transition-opacity animate-in fade-in duration-200">
           <Button

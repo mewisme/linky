@@ -158,7 +158,6 @@ export function CompareEmbeddingsModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="sm:max-w-md"
-        onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>{te('compareTitle')}</DialogTitle>

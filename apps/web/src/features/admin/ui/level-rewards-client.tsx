@@ -142,11 +142,11 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
+          <Button render={
             <Link href="/admin/level-rewards/create">
               <IconPlus className="w-4 h-4 mr-2" /> {tm("addNew")}
             </Link>
-          </Button>
+          } nativeButton={false} className="bg-primary hover:opacity-90 shadow-md" size="sm" />
         }
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

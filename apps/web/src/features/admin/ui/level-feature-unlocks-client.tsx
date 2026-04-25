@@ -142,11 +142,11 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
+          <Button render={
             <Link href="/admin/level-feature-unlocks/create">
               <IconPlus className="w-4 h-4 mr-2" /> {tm("addNew")}
             </Link>
-          </Button>
+          } className="bg-primary hover:opacity-90 shadow-md" size="sm" />
         }
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

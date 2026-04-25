@@ -187,9 +187,9 @@ export default function CreateLevelRewardPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" asChild>
+            <Button type="button" variant="outline" render={
               <Link href="/admin/level-rewards">{tc("cancel")}</Link>
-            </Button>
+            } />
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : tp("submit")}
             </Button>

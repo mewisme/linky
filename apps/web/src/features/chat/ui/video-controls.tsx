@@ -151,7 +151,7 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
+      <TooltipTrigger render={
         <Button
           onClick={handleClick}
           disabled={isDisabled}
@@ -163,7 +163,7 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
           <Icon className="size-5" />
           {config.badge}
         </Button>
-      </TooltipTrigger>
+      } />
       <TooltipContent>
         <p>{label}</p>
       </TooltipContent>

@@ -77,7 +77,7 @@ export function UserSearchSelect({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger render={
         <Button
           variant="outline"
           role="combobox"
@@ -87,8 +87,8 @@ export function UserSearchSelect({
         >
           {value ? formatUserLabel(value, labelFmt) : resolvedPlaceholder}
           <IconChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+        </Button>}
+      />
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput

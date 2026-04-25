@@ -55,7 +55,7 @@ export function MoreOptionsDrawer({
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger render={
           <DrawerTrigger asChild>
             <Button
               variant="outline"
@@ -72,7 +72,7 @@ export function MoreOptionsDrawer({
               )}
             </Button>
           </DrawerTrigger>
-        </TooltipTrigger>
+        } />
         <TooltipContent>
           <p>{t("moreOptions")}</p>
         </TooltipContent>

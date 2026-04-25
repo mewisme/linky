@@ -365,11 +365,10 @@ export function FloatingVideoContainer({
   const transition = isDragging ? { duration: 0 } : springTransition;
 
   const aspectRatioClass = getAspectRatioClass(layoutMode);
-
   return (
     <motion.div
       ref={overlayRef}
-      className={`fixed left-0 top-0 overflow-hidden rounded-lg border-2 bg-black shadow-2xl touch-none select-none ${hasAudioActivity ? "border-green-500 shadow-green-500/50 shadow-lg" : "border-border"
+      className={`fixed left-0 top-0 overflow-hidden rounded-lg border-2 bg-transparent shadow-2xl touch-none select-none ${hasAudioActivity ? "border-green-500 shadow-green-500/50 shadow-lg" : "border-border"
         } ${position === null ? "invisible" : ""} ${aspectRatioClass}`}
       style={{
         zIndex: 40,
@@ -392,21 +391,23 @@ export function FloatingVideoContainer({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <FloatingVideoLayout
-        localStream={localStream}
-        remoteStream={remoteStream}
-        remoteMuted={remoteMuted}
-        peerInfo={peerInfo}
-        isMobile={isMobile}
-        layoutMode={layoutMode}
-      />
-      <FloatingVideoOverlay
-        onExpand={onNavigateToChat}
-        isMobile={isMobile}
-        isDragging={isDragging}
-        isInteracting={isInteracting}
-        isVisible={expandOverlayVisible}
-      />
+      <div className="relative z-20 h-full w-full">
+        <FloatingVideoLayout
+          localStream={localStream}
+          remoteStream={remoteStream}
+          remoteMuted={remoteMuted}
+          peerInfo={peerInfo}
+          isMobile={isMobile}
+          layoutMode={layoutMode}
+        />
+        <FloatingVideoOverlay
+          onExpand={onNavigateToChat}
+          isMobile={isMobile}
+          isDragging={isDragging}
+          isInteracting={isInteracting}
+          isVisible={expandOverlayVisible}
+        />
+      </div>
     </motion.div>
   );
 }

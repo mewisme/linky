@@ -22,7 +22,8 @@ pnpm build                # All packages
 pnpm build:api            # API only
 pnpm build:web            # Web only
 pnpm start:api            # Production API (after build)
-pnpm start:worker
+pnpm start:web # Production web (after build)
+pnpm start:worker # Production worker (after build)
 
 # Lint & Type Check
 pnpm lint                 # ESLint all
@@ -193,6 +194,20 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 - `@/*` maps to `src/*` (both apps)
 - `@ws/ui/*` maps to shared UI components
 - Workspace packages use `@ws/<package>` imports
+
+### Frontend Environment Variables
+
+**Never access process.env directly in apps/web.** Use the validated env modules:
+
+| Module | Import | Use In |
+|--------|--------|--------|
+| @/env/public-env | publicEnv | Client components, hooks, shared lib |
+| @/env/server-env | serverEnv | Server Components, Route Handlers, Server Actions |
+
+- NEXT_PUBLIC_* vars go in public-env.ts (strip NEXT_PUBLIC_ prefix in export)
+- Server-only secrets go in server-env.ts
+- Both use Zod .strict() validation at startup
+
 
 ### Internationalization (next-intl)
 

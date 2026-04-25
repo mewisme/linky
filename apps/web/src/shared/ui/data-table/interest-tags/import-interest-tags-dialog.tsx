@@ -33,7 +33,7 @@ export function ImportInterestTagsDialog({
 }: ImportInterestTagsDialogProps) {
   const t = useTranslations("dataTable");
   const tc = useTranslations("common");
-  const exampleJson = t("importInterestTags.exampleJsonBlock");
+  const exampleJson = t.raw("importInterestTags.exampleJsonBlock") as string;
   const { play: playSound } = useSoundWithSettings();
   const [file, setFile] = useState<File | null>(null);
   const [paste, setPaste] = useState("");
@@ -137,7 +137,7 @@ export function ImportInterestTagsDialog({
               <textarea
                 id="import-paste"
                 rows={6}
-                placeholder={t("importInterestTags.placeholderJson")}
+                placeholder={t.raw("importInterestTags.placeholderJson") as string}
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 value={paste}
                 onChange={(e) => setPaste(e.target.value)}

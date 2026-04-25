@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
+import { ShaderAvatar, AvatarFallback, AvatarImage } from "@ws/ui/components/mew-ui/shader";
 import {
   IconBolt,
   IconFlame,
@@ -18,6 +18,11 @@ import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useTranslations } from "next-intl";
+import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
+import {
+  CardContent,
+  ShaderCard,
+} from '@ws/ui/components/mew-ui/shader/shader-card';
 
 const PRESTIGE_MILESTONES = [
   { level: 50, tier: "I" },
@@ -62,6 +67,7 @@ export function VideoChatIdleState({
 }: VideoChatIdleStateProps) {
   const t = useTranslations("call.idle");
   const { user } = useUserContext();
+  const shader = useShaderPreference();
   const { data: progress, isPending } = useQuery({
     queryKey: ["user-progress"],
     queryFn: () => getUserProgress(),
@@ -94,141 +100,129 @@ export function VideoChatIdleState({
       data-reaction-exclude
       data-testid="chat-idle-container"
     >
-      <div
-        className="animate-in fade-in-0 zoom-in-95 flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-border bg-card px-6 py-6 shadow-lg duration-500 sm:px-8 sm:py-7 dark:border-white/10 dark:bg-black/40 dark:shadow-xl dark:backdrop-blur-md"
-        style={{ animationFillMode: "backwards" }}
-        aria-busy={showFullCardSkeleton}
-      >
-        {showFullCardSkeleton ? (
-          <div
-            className="flex w-full flex-col items-center gap-5"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="flex flex-col items-center gap-3 text-center">
-              <Skeleton className="size-14 shrink-0 rounded-full sm:size-16" />
-              <Skeleton className="h-7 w-52 max-w-full rounded-md sm:h-8 sm:w-60" />
-            </div>
-            <div className="flex w-full flex-col items-center gap-2">
-              <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                <Skeleton className="h-4 w-22 rounded-md sm:w-24" />
-                <Skeleton className="h-4 w-30 rounded-md sm:w-32" />
-                <Skeleton className="h-4 w-33 rounded-md sm:w-36" />
+      <ShaderCard shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }} className="bg-card">
+        <CardContent
+          className="flex w-full max-w-sm flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
+          style={{ animationFillMode: "backwards" }}
+          aria-busy={showFullCardSkeleton}
+        >
+          {showFullCardSkeleton ? (
+            <div
+              className="flex w-full flex-col items-center gap-5"
+              role="status"
+              aria-live="polite"
+            >
+              <div className="flex flex-col items-center gap-3 text-center">
+                <Skeleton className="size-14 shrink-0 rounded-full sm:size-16" />
+                <Skeleton className="h-7 w-52 max-w-full rounded-md sm:h-8 sm:w-60" />
               </div>
-              <div className="flex w-full flex-wrap items-center justify-center gap-1.5 pt-0.5">
-                <Skeleton className="h-6 w-28 rounded-full sm:w-32" />
-                <Skeleton className="h-6 w-24 rounded-full sm:w-28" />
-              </div>
-            </div>
-            <Skeleton className="h-12 w-full rounded-xl sm:h-14" />
-            <Skeleton className="h-3 w-44 rounded-md" />
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col items-center gap-3 text-center">
-              <Avatar className="h-14 w-14 rounded-full border-2 border-border/60 ring-2 ring-border/30 sm:h-16 sm:w-16 dark:border-white/15 dark:ring-white/5">
-                <AvatarImage
-                  src={user.user?.imageUrl ?? undefined}
-                  alt={displayName}
-                />
-                <AvatarFallback className="bg-muted text-base font-medium text-muted-foreground">
-                  {displayName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <h2 className="text-lg font-semibold text-foreground sm:text-xl">{t("readyTitle")}</h2>
-            </div>
-
-            {progress && (
               <div className="flex w-full flex-col items-center gap-2">
-                <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <IconStar className="size-3.5 shrink-0" />
-                    {t("levelLabel", { level: displayLevel ?? progress.currentLevel })}
-                  </span>
-                  <span className="tabular-nums">
-                    {t("percentToNext", {
-                      percent: progress.expProgress.progressPercentage.toFixed(0),
-                    })}
-                  </span>
-                  {progress.streak.currentStreak > 0 && (
-                    <span className="inline-flex items-center gap-1">
-                      <IconFlame className="size-3.5 shrink-0 text-orange-500" />
-                      {progress.streak.currentStreak === 1
-                        ? t("dayStreak", { count: progress.streak.currentStreak })
-                        : t("daysStreak", { count: progress.streak.currentStreak })}
-                    </span>
-                  )}
+                <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                  <Skeleton className="h-4 w-22 rounded-md sm:w-24" />
+                  <Skeleton className="h-4 w-30 rounded-md sm:w-32" />
+                  <Skeleton className="h-4 w-33 rounded-md sm:w-36" />
                 </div>
+                <div className="flex w-full flex-wrap items-center justify-center gap-1.5 pt-0.5">
+                  <Skeleton className="h-6 w-28 rounded-full sm:w-32" />
+                  <Skeleton className="h-6 w-24 rounded-full sm:w-28" />
+                </div>
+              </div>
+              <Skeleton className="h-12 w-full rounded-xl sm:h-14" />
+              <Skeleton className="h-3 w-44 rounded-md" />
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col items-center gap-3 text-center">
+                <ShaderAvatar shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }} className="h-14 w-14 rounded-full border-2 border-border/60 ring-2 ring-border/30 sm:h-16 sm:w-16 dark:border-white/15 dark:ring-white/5">
+                  <AvatarImage
+                    src={user.user?.imageUrl ?? undefined}
+                    alt={displayName}
+                  />
+                  <AvatarFallback className="bg-muted text-base font-medium text-muted-foreground">
+                    {displayName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </ShaderAvatar>
+                <h2 className="text-lg font-semibold text-foreground sm:text-xl">{t("readyTitle")}</h2>
+              </div>
 
-                {(showExpToday || showLevelProximity || showStreakReminder || prestigeProximity) && (
-                  <div className="flex w-full flex-wrap items-center justify-center gap-1.5 pt-0.5">
-                    {showExpToday && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                        <IconBolt className="size-3 shrink-0" />
-                        {t("todayEarned", {
-                          amount: formatExpEarned(progress.expEarnedToday, expUnit, minUnit),
-                        })}
-                      </span>
-                    )}
-                    {showLevelProximity && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">
-                        <IconStar className="size-3 shrink-0" />
-                        {t("almostLevel", { level: (displayLevel ?? progress.currentLevel) + 1 })}
-                      </span>
-                    )}
-                    {showStreakReminder && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
-                        <IconFlame className="size-3 shrink-0" />
-                        {t("completeStreakToday")}
-                      </span>
-                    )}
-                    {prestigeProximity && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2.5 py-0.5 text-xs font-medium text-purple-600 dark:text-purple-400">
-                        <IconTrophy className="size-3 shrink-0" />
-                        {prestigeProximity.levelsAway === 1
-                          ? t("prestigeProximity", {
-                            levels: prestigeProximity.levelsAway,
-                            tier: prestigeProximity.tier,
-                          })
-                          : t("prestigeProximityPlural", {
-                            levels: prestigeProximity.levelsAway,
-                            tier: prestigeProximity.tier,
-                          })}
+              {progress && (
+                <div className="flex w-full flex-col items-center gap-2">
+                  <div className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <IconStar className="size-3.5 shrink-0" />
+                      {t("levelLabel", { level: displayLevel ?? progress.currentLevel })}
+                    </span>
+                    <span className="tabular-nums">
+                      {t("percentToNext", {
+                        percent: progress.expProgress.progressPercentage.toFixed(0),
+                      })}
+                    </span>
+                    {progress.streak.currentStreak > 0 && (
+                      <span className="inline-flex items-center gap-1">
+                        <IconFlame className="size-3.5 shrink-0 text-orange-500" />
+                        {progress.streak.currentStreak === 1
+                          ? t("dayStreak", { count: progress.streak.currentStreak })
+                          : t("daysStreak", { count: progress.streak.currentStreak })}
                       </span>
                     )}
                   </div>
-                )}
-              </div>
-            )}
 
-            <Button
-              size="lg"
-              onClick={onStart}
-              className="h-12 w-full gap-2 rounded-xl px-6 text-base font-semibold shadow-lg sm:h-14 sm:px-8"
-              data-testid="chat-start-button"
-            >
-              <IconPlayerPlay className="size-5" />
-              {t("startChat")}
-            </Button>
-            {connectionStatus === "searching" && onEndCall && (
+                  {(showExpToday || showLevelProximity || showStreakReminder || prestigeProximity) && (
+                    <div className="flex w-full flex-wrap items-center justify-center gap-1.5 pt-0.5">
+                      {showExpToday && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                          <IconBolt className="size-3 shrink-0" />
+                          {t("todayEarned", {
+                            amount: formatExpEarned(progress.expEarnedToday, expUnit, minUnit),
+                          })}
+                        </span>
+                      )}
+                      {showLevelProximity && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">
+                          <IconStar className="size-3 shrink-0" />
+                          {t("almostLevel", { level: (displayLevel ?? progress.currentLevel) + 1 })}
+                        </span>
+                      )}
+                      {showStreakReminder && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400">
+                          <IconFlame className="size-3 shrink-0" />
+                          {t("completeStreakToday")}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Button
                 size="lg"
-                variant="destructive"
-                onClick={onEndCall}
-                className="h-12 w-full gap-2 rounded-xl px-6 text-base font-semibold sm:h-14 sm:px-8"
-                data-testid="chat-cancel-search-button"
+                onClick={onStart}
+                className="h-12 w-full gap-2 rounded-xl px-6 text-base font-semibold shadow-lg sm:h-14 sm:px-8"
+                data-testid="chat-start-button"
               >
-                <IconPhoneOff className="size-5" />
-                {t("endSearch")}
+                <IconPlayerPlay className="size-5" />
+                {t("startChat")}
               </Button>
-            )}
+              {connectionStatus === "searching" && onEndCall && (
+                <Button
+                  size="lg"
+                  variant="destructive"
+                  onClick={onEndCall}
+                  className="h-12 w-full gap-2 rounded-xl px-6 text-base font-semibold sm:h-14 sm:px-8"
+                  data-testid="chat-cancel-search-button"
+                >
+                  <IconPhoneOff className="size-5" />
+                  {t("endSearch")}
+                </Button>
+              )}
 
-            <p className="text-xs text-muted-foreground">
-              {t("footerHint")}
-            </p>
-          </>
-        )}
-      </div>
+              <p className="text-xs text-muted-foreground">
+                {t("footerHint")}
+              </p>
+            </>
+          )}
+        </CardContent>
+      </ShaderCard>
     </div>
   );
 }

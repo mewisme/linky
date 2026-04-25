@@ -2,6 +2,8 @@
 
 import { AnimatePresence, motion } from "@ws/ui/internal-lib/motion";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
+import { CardContent, ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
 
 import { Link } from "@/i18n/navigation";
 import type { UsersAPI } from "@/entities/user/types/users.types";
@@ -41,7 +43,7 @@ interface VideoChatSearchingStateProps {
 export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearchingStateProps) {
   const t = useTranslations("call.searching");
   const tControls = useTranslations("call.controls");
-
+  const shader = useShaderPreference();
   const hints = useMemo(() => HINT_KEYS.map((key) => t(key)), [t]);
 
   const [hintIndex, setHintIndex] = useState(0);
@@ -113,95 +115,103 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
       className="flex h-full w-full flex-col items-center justify-center pb-24 pt-8"
       data-reaction-exclude
     >
-      <div
-        className="animate-in fade-in-0 zoom-in-95 flex w-full max-w-sm flex-col items-center gap-6 rounded-2xl border border-border bg-card px-6 py-8 shadow-lg duration-300 sm:px-8 sm:py-10 dark:border-white/10 dark:bg-black/40 dark:shadow-xl dark:backdrop-blur-md"
-        style={{ animationFillMode: "backwards" }}
-        data-testid="chat-searching-indicator"
+      <ShaderCard
+        shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }}
+        className="w-full max-w-sm bg-card"
       >
-        <div className="flex flex-col items-center gap-5 text-center">
-          <h2 className="text-lg font-semibold text-foreground sm:text-xl">
-            {showStillSearching ? t("stillSearching") : t("findingNew")}
-          </h2>
-          <div className="flex items-center justify-center gap-1.5">
-            {[0, 1, 2].map((i) => (
-              <motion.span
-                key={i}
-                animate={{ opacity: [0.35, 1, 0.35] }}
-                transition={{
-                  duration: 1.4,
-                  repeat: Infinity,
-                  delay: i * 0.35,
-                }}
-                className="size-2 rounded-full bg-muted-foreground"
-                aria-hidden
-              />
-            ))}
+        <CardContent
+          className="flex w-full flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
+          style={{ animationFillMode: "backwards" }}
+        >
+          <div className="flex min-h-34 flex-col items-center gap-5 text-center">
+            <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+              {showStillSearching ? t("stillSearching") : t("findingNew")}
+            </h2>
+            <div className="flex items-center justify-center gap-1.5">
+              {[0, 1, 2].map((i) => (
+                <motion.span
+                  key={i}
+                  animate={{ opacity: [0.35, 1, 0.35] }}
+                  transition={{
+                    duration: 1.4,
+                    repeat: Infinity,
+                    delay: i * 0.35,
+                  }}
+                  className="size-2 rounded-full bg-muted-foreground"
+                  aria-hidden
+                />
+              ))}
+            </div>
+
+            <div className="min-h-4">
+              {showStillSearching && (
+                <motion.p
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-xs text-muted-foreground"
+                >
+                  {motivationalStat}
+                </motion.p>
+              )}
+            </div>
           </div>
 
-          {showStillSearching && (
-            <motion.p
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="text-xs text-muted-foreground"
-            >
-              {motivationalStat}
-            </motion.p>
-          )}
-        </div>
-
-        <div className="flex min-h-8 w-full flex-col items-center gap-3">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={hintIndex}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3 }}
-              className="text-center text-xs text-muted-foreground"
-            >
-              {hints[hintIndex]}
-            </motion.p>
-          </AnimatePresence>
-
-          {showAltAction && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Link
-                href="/user/progress"
-                className="text-xs text-primary underline-offset-2 hover:underline"
-                onClick={() => trackEvent({ name: "matchmaking_alt_action_clicked", properties: { elapsed_ms: elapsedMs } })}
-              >
-                {t("visitProgressLink")}
-              </Link>
-            </motion.div>
-          )}
-          <AnimatePresence>
-            {onEndCall && showEndSearch && (
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 6 }}
-                transition={{ duration: 0.25 }}
-                className="w-full max-w-xs"
-              >
-                <Button
-                  variant="destructive"
-                  onClick={onEndCall}
-                  className="mt-1 h-10 w-full gap-2"
-                  data-testid="chat-cancel-search-button"
+          <div className="flex min-h-32 w-full flex-col items-center gap-3">
+            <div className="flex min-h-10 w-full items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={hintIndex}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full text-center text-xs leading-5 text-muted-foreground"
                 >
-                  <IconPhoneOff className="size-4" />
-                  {tControls("endSearch")}
-                </Button>
+                  {hints[hintIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+
+            {showAltAction && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <Link
+                  href="/user/progress"
+                  className="text-xs text-primary underline-offset-2 hover:underline"
+                  onClick={() => trackEvent({ name: "matchmaking_alt_action_clicked", properties: { elapsed_ms: elapsedMs } })}
+                >
+                  {t("visitProgressLink")}
+                </Link>
               </motion.div>
             )}
-          </AnimatePresence>
-        </div>
-      </div>
+            <AnimatePresence>
+              {onEndCall && showEndSearch && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.25 }}
+                  className="w-full max-w-xs"
+                >
+                  <Button
+                    variant="destructive"
+                    onClick={onEndCall}
+                    className="mt-1 h-10 w-full gap-2"
+                    data-testid="chat-cancel-search-button"
+                  >
+                    <IconPhoneOff className="size-4" />
+                    {tControls("endSearch")}
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </CardContent>
+      </ShaderCard>
     </div>
   );
 }

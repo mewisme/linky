@@ -1,5 +1,4 @@
 @import "@ws/ui/globals.css";
-@source "../node_modules/@blocknote/shadcn";
 
 /* ── Sentry Feedback Widget ─────────────────────────────────────────────────
  * Maps Sentry's CSS variables to the shadcn neutral theme.

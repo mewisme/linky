@@ -305,7 +305,7 @@ export function InterestTagsSection({
                       : displayTags.slice(0, INITIAL_TAGS_VISIBLE)
                     ).map((tag) => (
                       <Tooltip key={tag.id}>
-                        <TooltipTrigger asChild>
+                        <TooltipTrigger render={
                           <Badge
                             variant="secondary"
                             className="cursor-default px-2.5 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm"
@@ -320,7 +320,8 @@ export function InterestTagsSection({
                               </span>
                             )}
                           </Badge>
-                        </TooltipTrigger>
+                        } />
+
                         {tag.description && (
                           <TooltipContent>
                             <p className="max-w-xs">{tag.description}</p>

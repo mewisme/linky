@@ -69,10 +69,7 @@ export function useStreakExpBonusColumns(callbacks?: RowCallbacks): ColumnDef<St
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
+          checked={table.getIsAllPageRowsSelected()}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label={t('common.selectAllAria')}
           className='justify-center flex'

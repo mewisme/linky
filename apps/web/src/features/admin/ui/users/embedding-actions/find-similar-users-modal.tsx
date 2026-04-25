@@ -188,7 +188,6 @@ export function FindSimilarUsersModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="flex max-h-[90vh] flex-col sm:max-w-md"
-        onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader className="shrink-0">
           <DialogTitle>{te('findSimilarTitle')}</DialogTitle>

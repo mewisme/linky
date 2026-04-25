@@ -9,7 +9,7 @@ import {
 import { Button } from "@ws/ui/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
-import { geistSans } from "@/shared/fonts/geist-sans";
+import { beVietnamPro } from "@/shared/fonts/be-vietnam-pro";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
@@ -27,7 +27,7 @@ function RootErrorContent({
   }, [error]);
 
   return (
-    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${geistSans.className}`}>
+    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${beVietnamPro.className}`}>
       <div className="absolute inset-0 -z-10 flex items-center justify-center">
         <div className="h-[400px] w-[400px] rounded-full bg-destructive/5 blur-[120px]" />
       </div>
@@ -60,13 +60,13 @@ function RootErrorContent({
             variant="default"
             size="lg"
             className="px-8 font-medium shadow-lg shadow-primary/20"
-            asChild
-          >
-            <Link href="/">
-              <IconHome size={18} className="mr-2" />
-              {t("goHome")}
-            </Link>
-          </Button>
+            render={
+              <Link href="/">
+                <IconHome size={18} className="mr-2" />
+                {t("goHome")}
+              </Link>
+            }
+          />
         </div>
 
         <div className="mt-12 w-full rounded-xl border border-border/50 bg-muted/30 p-4 text-left">

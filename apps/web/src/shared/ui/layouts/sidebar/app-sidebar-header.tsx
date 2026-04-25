@@ -1,7 +1,7 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar';
-import { ChevronDown, ChevronRight } from '@ws/ui/internal-lib/icons';
+import { ShaderAvatar, AvatarFallback, AvatarImage } from '@ws/ui/components/mew-ui/shader';
+import { ChevronDown } from '@ws/ui/internal-lib/icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,11 +35,13 @@ import { useTheme } from 'next-themes';
 import { useUserContext } from '@/providers/user/user-provider';
 import { useUserStore } from '@/entities/user/model/user-store';
 import { useTranslations } from 'next-intl';
+import { useShaderPreference } from '@/shared/hooks/use-shader-preference';
 
 export function AppSidebarHeader() {
   const t = useTranslations();
   const { user: { user } } = useUserContext();
   const { user: userStore } = useUserStore();
+  const shader = useShaderPreference();
   const [dialogOpen, setDialogOpen] = useState(false);
   const isMobile = useIsMobile();
   const { setTheme } = useTheme();
@@ -52,14 +54,14 @@ export function AppSidebarHeader() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton size="lg">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Avatar className="rounded-lg size-8">
+                  <ShaderAvatar shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }} className="rounded-lg size-8">
                     <AvatarImage src={user?.imageUrl} alt={`${user?.firstName} ${user?.lastName}`} />
                     <AvatarFallback>
                       {user?.firstName?.charAt(0) ||
                         user?.lastName?.charAt(0) ||
                         '?'}
                     </AvatarFallback>
-                  </Avatar>
+                  </ShaderAvatar>
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">

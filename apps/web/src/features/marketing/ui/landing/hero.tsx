@@ -3,15 +3,16 @@
 import { IconBolt, IconShieldCheck, IconWorld } from "@tabler/icons-react";
 
 import { BorderBeamSimple } from "@ws/ui/components/ui/border-beam-simple";
-import { Link } from "@/i18n/navigation";
 import { MotionEffect } from "@/shared/ui/effects/motion-effect";
-import { geistSans } from "@/shared/fonts/geist-sans";
-import { RainbowButton } from "@ws/ui/components/ui/rainbow-button";
+import { beVietnamPro } from "@/shared/fonts/be-vietnam-pro";
 import { SocialProof } from "./social-proof";
 import { SplittingText } from "@ws/ui/components/animate-ui/primitives/texts/splitting";
 import { cn } from "@ws/ui/lib/utils";
 import { motion } from "@ws/ui/internal-lib/motion";
 import { useTranslations } from "next-intl";
+import { ShaderButton } from "@ws/ui/components/mew-ui/shader";
+import { Link } from "@/i18n/navigation";
+import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 
 interface HeroProps {
   startChatHref: string;
@@ -23,11 +24,11 @@ const ICONS = [IconWorld, IconBolt, IconShieldCheck] as const;
 
 export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
   const t = useTranslations("marketing");
+  const shader = useShaderPreference();
   const title = t("hero.title");
   const features = t.raw("hero.features") as { title: string; desc: string }[];
-
   return (
-    <div className={cn(geistSans.className, 'min-h-dvh')}>
+    <div className={cn(beVietnamPro.className, 'min-h-dvh')}>
       <div className="h-[calc(100dvh-8rem)]">
 
         {/* Header */}
@@ -97,17 +98,12 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
 
         {/* Content */}
         <div className="flex flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 md:px-8">
-          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.45} className="w-full flex">
-            <RainbowButton
-              asChild
-              size="lg"
-              variant="outline"
-              className="mx-auto font-semibold text-sm sm:text-base md:text-md"
-            >
-              <Link href={startChatHref} prefetch data-testid="start-chat-button">
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.45}>
+            <div className="w-full flex justify-center">
+              <ShaderButton shader={{ type: shader.type, preset: shader.preset, disableAnimation: false }} nativeButton={false} render={<Link href={startChatHref} prefetch data-testid="start-chat-button" />}>
                 {isSignedIn && isLoaded ? t("hero.ctaSignedIn") : t("hero.ctaSignedOut")}
-              </Link>
-            </RainbowButton>
+              </ShaderButton>
+            </div>
           </MotionEffect>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 md:gap-6">

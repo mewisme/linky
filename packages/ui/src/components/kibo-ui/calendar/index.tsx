@@ -126,7 +126,7 @@ const Combobox = ({
 
   return (
     <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger render={
         <Button
           aria-expanded={open}
           className={cn("w-40 justify-between capitalize", className)}
@@ -137,7 +137,7 @@ const Combobox = ({
             : labels.button}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
-      </PopoverTrigger>
+      } />
       <PopoverContent className="w-40 p-0">
         <Command
           filter={(value, search) => {

@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
+import type { ShaderType } from "@ws/ui/components/mew-ui/shader";
+
 export type UserRole = "admin" | "member" | "superadmin";
 
 export namespace UsersAPI {
@@ -120,6 +122,17 @@ export namespace UsersAPI {
   }
 
   export namespace UserSettings {
+    export interface Shader {
+      type: ShaderType;
+      preset?: string;
+      disableAnimation?: boolean;
+    }
+
+    export interface Sidebar {
+      variant?: "sidebar" | "floating";
+      collapsible?: "offcanvas" | "icon";
+    }
+
     export namespace GetMe {
       export interface Response {
         id: string;
@@ -128,6 +141,9 @@ export namespace UsersAPI {
         default_disable_camera: boolean;
         notification_sound_enabled: boolean;
         notification_preferences: Record<string, unknown> | null;
+        language: "en" | "vi" | null;
+        shader: Shader | null;
+        sidebar: Sidebar | null;
         created_at: string;
         updated_at: string;
       }
@@ -139,6 +155,9 @@ export namespace UsersAPI {
         default_disable_camera?: boolean;
         notification_sound_enabled?: boolean;
         notification_preferences?: Record<string, unknown> | null;
+        language?: "en" | "vi" | null;
+        shader?: Shader | null;
+        sidebar?: Sidebar | null;
       }
 
       export type Response = GetMe.Response;
@@ -150,6 +169,9 @@ export namespace UsersAPI {
         default_disable_camera?: boolean;
         notification_sound_enabled?: boolean;
         notification_preferences?: Record<string, unknown> | null;
+        language?: "en" | "vi" | null;
+        shader?: Shader | null;
+        sidebar?: Sidebar | null;
       }
 
       export type Response = GetMe.Response;

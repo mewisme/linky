@@ -259,11 +259,11 @@ export function PayloadHintGuide({ variant, typeOrKey }: PayloadHintGuideProps) 
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger asChild>
+      <CollapsibleTrigger render={
         <Button type="button" variant="ghost" size="sm" className="h-auto px-0 text-muted-foreground hover:text-foreground">
           {open ? t("hideGuide") : t("showGuide")}
         </Button>
-      </CollapsibleTrigger>
+      } />
       <CollapsibleContent>
         <div className="pt-2">
           <HintBlock

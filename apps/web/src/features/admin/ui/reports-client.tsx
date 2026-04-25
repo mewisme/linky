@@ -62,7 +62,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
         <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg bg-card">
           <div className="flex-1 space-y-2">
             <Label htmlFor="status-filter">{t('statusFilter')}</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as AdminAPI.Reports.ReportStatus)}>
               <SelectTrigger id="status-filter">
                 <SelectValue />
               </SelectTrigger>

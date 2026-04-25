@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type ComponentProps } from "react";
 import { motion } from "@ws/ui/internal-lib/motion";
 
 import { IconVideoOff } from "@tabler/icons-react";
@@ -10,6 +10,8 @@ import {
   type OverlayPosition,
 } from "@/features/call/model/video-chat-store";
 import { VideoPlayer } from "./video-player";
+import { Shader } from "@ws/ui/components/mew-ui/shader";
+import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 
 interface DraggableVideoOverlayProps {
   localStream: MediaStream | null;
@@ -98,6 +100,7 @@ export function DraggableVideoOverlay({
   isMobile = false,
   mirrored = false,
 }: DraggableVideoOverlayProps) {
+  const shader = useShaderPreference();
   const overlayRef = useRef<HTMLDivElement>(null);
   const latestPositionRef = useRef<OverlayPosition | null>(null);
   const hasInitializedPositionRef = useRef(false);
@@ -106,7 +109,10 @@ export function DraggableVideoOverlay({
   const [isDragging, setIsDragging] = useState(false);
   const position = useVideoChatStore((s) => s.overlayPosition);
   const positionRef = useRef<OverlayPosition | null>(null);
-  positionRef.current = position;
+
+  useLayoutEffect(() => {
+    positionRef.current = position;
+  }, [position]);
 
   useLayoutEffect(() => {
     if (hasInitializedPositionRef.current) return;
@@ -248,6 +254,12 @@ export function DraggableVideoOverlay({
   if (!localStream) return null;
 
   const transition = isDragging ? { duration: 0 } : springTransition;
+  const overlayShaderProps = {
+    type: shader.type,
+    preset: shader.preset,
+    disableAnimation: shader.disableAnimation,
+    className: "pointer-events-none absolute inset-0 z-10",
+  } as ComponentProps<typeof Shader>;
 
   return (
     <motion.div
@@ -273,21 +285,24 @@ export function DraggableVideoOverlay({
       initial={false}
       onPointerDown={handlePointerDown}
     >
-      <VideoPlayer
-        stream={localStream}
-        muted
-        playsInline
-        className="h-full w-full"
-        objectFit="cover"
-        objectPosition="center"
-        isMobile={isMobile}
-        mirrored={mirrored}
-      />
-      {isVideoOff && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-          <IconVideoOff className="size-8 text-muted-foreground" />
-        </div>
-      )}
+      <Shader {...overlayShaderProps} />
+      <div className="absolute inset-[3px] z-20 overflow-hidden rounded-[6px] bg-black">
+        <VideoPlayer
+          stream={localStream}
+          muted
+          playsInline
+          className="h-full w-full"
+          objectFit="cover"
+          objectPosition="center"
+          isMobile={isMobile}
+          mirrored={mirrored}
+        />
+        {isVideoOff && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+            <IconVideoOff className="size-8 text-muted-foreground" />
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }

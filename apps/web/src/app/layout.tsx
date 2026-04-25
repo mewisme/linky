@@ -5,7 +5,7 @@ import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { OpenPanelComponent } from "@openpanel/nextjs";
-import { geistSans } from "@/shared/fonts/geist-sans";
+import { beVietnamPro } from "@/shared/fonts/be-vietnam-pro";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
 import { ThemeProvider } from "@/providers/ui/theme-provider";
@@ -87,7 +87,7 @@ export default async function RootLayout({
     <HideDevelopmentMode>
       <html lang={locale} suppressHydrationWarning>
         <body
-          className={`${geistSans.className} antialiased`}
+          className={`${beVietnamPro.className} antialiased`}
         >
           <RootNextIntlProvider>
             <ThemeProvider

@@ -144,7 +144,7 @@ export const ComboboxTrigger = ({
   }, [setWidth]);
 
   return (
-    <PopoverTrigger asChild>
+    <PopoverTrigger render={
       <Button variant="outline" {...props} ref={ref}>
         {children ?? (
           <span className="flex w-full items-center justify-between gap-2">
@@ -158,7 +158,7 @@ export const ComboboxTrigger = ({
           </span>
         )}
       </Button>
-    </PopoverTrigger>
+    } />
   );
 };
 

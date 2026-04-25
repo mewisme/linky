@@ -12,7 +12,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
 import en from "@/messages/en.json";
 import vi from "@/messages/vi.json";
-import { geistSans } from "@/shared/fonts/geist-sans";
+import { beVietnamPro } from "@/shared/fonts/be-vietnam-pro";
 import { useEffect, useState } from "react";
 
 export default function GlobalError({
@@ -83,7 +83,7 @@ export default function GlobalError({
         />
       </head>
       <body
-        className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${geistSans.className}`}
+        className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${beVietnamPro.className}`}
       >
         <div className="absolute inset-0 -z-10 flex items-center justify-center">
           <div className="h-[400px] w-[400px] rounded-full bg-destructive/5 blur-[120px]" />
@@ -123,13 +123,13 @@ export default function GlobalError({
               variant="default"
               size="lg"
               className="px-8 font-medium shadow-lg shadow-primary/20"
-              asChild
-            >
-              <Link href="/">
-                <IconHome size={18} className="mr-2" />
-                {m.goHome}
-              </Link>
-            </Button>
+              render={
+                <Link href="/">
+                  <IconHome size={18} className="mr-2" />
+                  {m.goHome}
+                </Link>
+              }
+            />
           </div>
 
           <div className="mt-12 w-full rounded-xl border border-border/50 bg-muted/30 p-4 text-left">

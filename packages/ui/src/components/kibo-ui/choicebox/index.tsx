@@ -55,11 +55,11 @@ export const ChoiceboxItem = ({
   id,
 }: ChoiceboxItemProps) => (
   <ChoiceboxItemContext.Provider value={{ value, id }}>
-    <FieldLabel htmlFor={id}>
-      <Field className={className} orientation="horizontal">
+    <Field orientation="horizontal">
+      <FieldLabel htmlFor={id}>
         {children}
-      </Field>
-    </FieldLabel>
+      </FieldLabel>
+    </Field>
   </ChoiceboxItemContext.Provider>
 );
 

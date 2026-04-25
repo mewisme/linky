@@ -161,11 +161,10 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
           <>
             <ToggleGroup
               variant="outline"
-              type="single"
-              value={deletedFilter}
+              value={[deletedFilter]}
               onValueChange={(value) => {
-                if (value === 'active' || value === 'deleted') {
-                  setDeletedFilter(value);
+                if (value.length === 1 && (value[0] === 'active' || value[0] === 'deleted')) {
+                  setDeletedFilter(value[0] as unknown as UsersDeletedFilter);
                 } else {
                   setDeletedFilter((prev) => (prev === 'active' ? 'deleted' : 'active'));
                 }

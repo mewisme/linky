@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -1232,8 +1232,11 @@ export type Database = {
           default_disable_camera: boolean
           default_mute_mic: boolean
           id: string
+          language: string | null
           notification_preferences: Json | null
           notification_sound_enabled: boolean
+          shader: Json | null
+          sidebar: Json | null
           updated_at: string
           user_id: string
         }
@@ -1242,8 +1245,11 @@ export type Database = {
           default_disable_camera?: boolean
           default_mute_mic?: boolean
           id?: string
+          language?: string | null
           notification_preferences?: Json | null
           notification_sound_enabled?: boolean
+          shader?: Json | null
+          sidebar?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -1252,8 +1258,11 @@ export type Database = {
           default_disable_camera?: boolean
           default_mute_mic?: boolean
           id?: string
+          language?: string | null
           notification_preferences?: Json | null
           notification_sound_enabled?: boolean
+          shader?: Json | null
+          sidebar?: Json | null
           updated_at?: string
           user_id?: string
         }
@@ -1801,8 +1810,11 @@ export type Database = {
           default_disable_camera: boolean | null
           default_mute_mic: boolean | null
           id: string | null
+          language: string | null
           notification_preferences: Json | null
           notification_sound_enabled: boolean | null
+          shader: Json | null
+          sidebar: Json | null
           updated_at: string | null
           user_id: string | null
         }

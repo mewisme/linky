@@ -2,9 +2,9 @@
 
 🔨 Other Changes
 
-- Implement level-up notifications and experience tracking ([197b4ca](../../commit/197b4cae))
-- Enhance DevOverlay with live positioning and drag suppression ([e19c179](../../commit/e19c1790))
-- Update package versions to 1.2.0 and refresh version lock ([2e31d40](../../commit/2e31d402))
+- Add language and shader preferences to user settings ([c3c5ae2](../../commit/c3c5ae24))
+- Add level-up burst reaction to DevOverlay ([7f724e3](../../commit/7f724e38))
+- Update package versions to 1.3.0 and refresh version lock ([324fe22](../../commit/324fe228))
 
 
-📋 Full Changelog: [2e31d40...197b4ca](../../compare/2e31d402...197b4cae)
+📋 Full Changelog: [324fe22...c3c5ae2](../../compare/324fe228...c3c5ae24)

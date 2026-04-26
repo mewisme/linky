@@ -78,7 +78,7 @@ export function NotificationsBell() {
 
   return (
     <Popover>
-      <PopoverTrigger render={trigger} />
+      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         className="w-[380px] p-0 z-150!"
         align="end"

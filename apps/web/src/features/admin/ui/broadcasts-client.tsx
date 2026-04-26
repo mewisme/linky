@@ -14,7 +14,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import { FormCreateBroadcast } from "./broadcasts/form-create";
 import { IconRefresh } from "@tabler/icons-react";
 import dynamic from "next/dynamic";
-import { getBroadcasts } from "@/features/admin/api/broadcasts";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useTranslations } from "next-intl";
 
@@ -33,7 +33,10 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
   const t = useTranslations("admin");
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["admin", "broadcasts"],
-    queryFn: () => getBroadcasts({ limit: '50', offset: '0' }),
+    queryFn: () =>
+      fetchFromActionRoute<AdminAPI.Broadcasts.Get.Response>(
+        "/api/admin/broadcasts?limit=50&offset=0",
+      ),
     initialData,
     staleTime: Infinity,
   });

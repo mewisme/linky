@@ -4,7 +4,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from '@ws/ui/components/ui/avatar';
+} from '@ws/ui/components/base-ui/avatar';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Shader } from './shader';
 

@@ -3,7 +3,6 @@
 import type { ResourcesAPI } from '@/shared/types/resources.types';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryQuery } from '@/lib/monitoring/with-action';
 
 function buildQuery(params?: ResourcesAPI.CallHistory.Get.QueryParams): URLSearchParams | undefined {

@@ -11,7 +11,8 @@ import { Link } from "@/i18n/navigation";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { PayloadHintGuide } from "@/features/admin/ui/payload-hint-guide";
 import { Textarea } from "@ws/ui/components/ui/textarea";
-import { createLevelFeatureUnlock } from "@/features/admin/api/level-feature-unlocks";
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { getAdminPresignedUpload } from "@/lib/http/adapters/admin-media";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { uploadToS3 } from "@/lib/http/adapters/s3";
@@ -79,11 +80,18 @@ export default function CreateLevelFeatureUnlockPage() {
         };
       }
 
-      await createLevelFeatureUnlock({
-        level_required: levelRequired,
-        feature_key: featureKey,
-        feature_payload: featurePayload,
-      });
+      await fetchFromActionRoute<AdminAPI.LevelFeatureUnlocks.Create.Response>(
+        "/api/admin/level-feature-unlocks",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            level_required: levelRequired,
+            feature_key: featureKey,
+            feature_payload: featurePayload,
+          }),
+        },
+      );
 
       playSound("success");
       toast.success(t("featureUnlockCreated"));
@@ -187,9 +195,9 @@ export default function CreateLevelFeatureUnlockPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" render={
+            <Button type="button" variant="outline" asChild>
               <Link href="/admin/level-feature-unlocks">{tc("cancel")}</Link>
-            } />
+            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : tp("submit")}
             </Button>

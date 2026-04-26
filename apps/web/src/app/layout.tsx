@@ -2,7 +2,7 @@ import "@/shared/styles/globals.css";
 
 import { Analytics } from "@vercel/analytics/next"
 import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import { beVietnamPro } from "@/shared/fonts/be-vietnam-pro";
@@ -11,6 +11,12 @@ import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
 import { ThemeProvider } from "@/providers/ui/theme-provider";
 import { ToasterProvider } from "@/providers/ui/toaster-provider";
 import { publicEnv } from "@/shared/env/public-env";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();

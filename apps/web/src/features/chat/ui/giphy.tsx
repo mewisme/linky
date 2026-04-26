@@ -159,7 +159,7 @@ function GiphyPicker({
 }: GiphyPickerProps) {
   return (
     <Popover open={open} onOpenChange={onOpenChange} modal={true}>
-      <PopoverTrigger render={children as React.ReactElement} />
+      <PopoverTrigger asChild>{children}</PopoverTrigger>
 
       <PopoverContent
         side="top"

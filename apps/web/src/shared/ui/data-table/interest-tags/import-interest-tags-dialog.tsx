@@ -17,7 +17,7 @@ import { Label } from "@ws/ui/components/ui/label";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
-import { importInterestTags } from "@/features/admin/api/interest-tags";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useTranslations } from "next-intl";
 
 export interface ImportInterestTagsDialogProps {
@@ -80,7 +80,14 @@ export function ImportInterestTagsDialog({
 
     setImporting(true);
     try {
-      const data = await importInterestTags({ items });
+      const data = await fetchFromActionRoute<AdminAPI.InterestTags.Import.Response>(
+        "/api/admin/interest-tags/import",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items }),
+        },
+      );
 
       playSound("success");
       toast.success(

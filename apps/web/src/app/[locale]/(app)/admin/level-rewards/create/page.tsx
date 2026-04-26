@@ -11,7 +11,8 @@ import { Link } from "@/i18n/navigation";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { PayloadHintGuide } from "@/features/admin/ui/payload-hint-guide";
 import { Textarea } from "@ws/ui/components/ui/textarea";
-import { createLevelReward } from "@/features/admin/api/level-rewards";
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { getAdminPresignedUpload } from "@/lib/http/adapters/admin-media";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { uploadToS3 } from "@/lib/http/adapters/s3";
@@ -79,10 +80,14 @@ export default function CreateLevelRewardPage() {
         };
       }
 
-      await createLevelReward({
-        level_required: levelRequired,
-        reward_type: rewardType,
-        reward_payload: rewardPayload,
+      await fetchFromActionRoute<AdminAPI.LevelRewards.Create.Response>("/api/admin/level-rewards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          level_required: levelRequired,
+          reward_type: rewardType,
+          reward_payload: rewardPayload,
+        }),
       });
 
       playSound("success");
@@ -187,9 +192,9 @@ export default function CreateLevelRewardPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" render={
+            <Button type="button" variant="outline" asChild>
               <Link href="/admin/level-rewards">{tc("cancel")}</Link>
-            } />
+            </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : tp("submit")}
             </Button>

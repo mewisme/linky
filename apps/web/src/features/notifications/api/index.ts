@@ -1,10 +1,8 @@
 'use server'
 
 import type { NotificationsResponse, UnreadCountResponse } from '@/entities/notification/types/notifications.types';
-import { revalidateTag } from 'next/cache';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
 import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
@@ -31,7 +29,6 @@ export async function markNotificationRead(id: string): Promise<void> {
       backendUrl.notifications.readById(id),
       { method: 'PATCH' }
     );
-    revalidateTag(cacheTags.notifications, 'max');
   });
 }
 
@@ -41,6 +38,5 @@ export async function markAllNotificationsRead(): Promise<void> {
       backendUrl.notifications.readAll(),
       { method: 'PATCH' }
     );
-    revalidateTag(cacheTags.notifications, 'max');
   });
 }

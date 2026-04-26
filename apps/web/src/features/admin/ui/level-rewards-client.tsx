@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import React, { useState } from "react";
-import { createLevelReward, deleteLevelReward, getAdminLevelRewards, updateLevelReward } from '@/features/admin/api/level-rewards';
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
 import { AdminAPI } from "@/features/admin/types/admin.types";
@@ -46,7 +46,7 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["level-rewards"],
-    queryFn: () => getAdminLevelRewards(),
+    queryFn: () => fetchFromActionRoute<AdminAPI.LevelRewards.Get.Response>('/api/admin/level-rewards'),
     initialData,
     staleTime: Infinity,
   });
@@ -68,9 +68,20 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
       }
 
       if (isUpdate) {
-        return updateLevelReward(rewardId, requestPayload as AdminAPI.LevelRewards.Update.Body);
+        return fetchFromActionRoute<AdminAPI.LevelRewards.Update.Response>(
+          `/api/admin/level-rewards/${encodeURIComponent(rewardId)}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestPayload as AdminAPI.LevelRewards.Update.Body),
+          },
+        );
       }
-      return createLevelReward(requestPayload as AdminAPI.LevelRewards.Create.Body);
+      return fetchFromActionRoute<AdminAPI.LevelRewards.Create.Response>('/api/admin/level-rewards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestPayload as AdminAPI.LevelRewards.Create.Body),
+      });
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -96,7 +107,11 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteLevelReward(id),
+    mutationFn: (id: string) =>
+      fetchFromActionRoute<AdminAPI.LevelRewards.Delete.Response>(
+        `/api/admin/level-rewards/${encodeURIComponent(id)}`,
+        { method: 'DELETE' },
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["level-rewards"],
@@ -142,11 +157,11 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button render={
+          <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
             <Link href="/admin/level-rewards/create">
               <IconPlus className="w-4 h-4 mr-2" /> {tm("addNew")}
             </Link>
-          } nativeButton={false} className="bg-primary hover:opacity-90 shadow-md" size="sm" />
+          </Button>
         }
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

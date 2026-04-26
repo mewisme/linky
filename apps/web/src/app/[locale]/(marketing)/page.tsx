@@ -55,13 +55,7 @@ export default function Home() {
             <ShapeBackground transition={transition} className="hidden sm:block" />
             <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 mt-8">
               <Hero startChatHref={startChatHref} isSignedIn={isSignedIn} isLoaded={isLoaded} key={String(transition)} />
-              <div className="space-y-12">
-                <LandingDifferentiation />
-                <LandingSafety />
-                <LandingPreview />
-                <LandingVision />
-                <LandingFooter />
-              </div>
+              <LandingFooter />
             </div>
           </motion.div>
         </div>

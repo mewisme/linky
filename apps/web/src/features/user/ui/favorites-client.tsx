@@ -1,6 +1,6 @@
 'use client'
 
-import { getFavorites, removeFavorite } from '@/actions/resources/favorites'
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
@@ -26,7 +26,7 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
 
   const { data: favorites, isFetching, refetch } = useQuery({
     queryKey: ['user-favorites'],
-    queryFn: () => getFavorites(),
+    queryFn: () => fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>('/api/resources/favorites'),
     initialData,
     staleTime: Infinity,
   })
@@ -44,7 +44,10 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
     }
 
     try {
-      const result = await removeFavorite(favorite.favorite_user_id)
+      const result = await fetchFromActionRoute<ResourcesAPI.Favorites.Delete.Response>(
+        `/api/resources/favorites/${encodeURIComponent(favorite.favorite_user_id)}`,
+        { method: 'DELETE' },
+      )
 
       setData((prev) => prev.filter((f) => f.favorite_user_id !== favorite.favorite_user_id))
 

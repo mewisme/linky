@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import React, { useState } from "react";
-import { createLevelFeatureUnlock, deleteLevelFeatureUnlock, getAdminLevelFeatureUnlocks, updateLevelFeatureUnlock } from '@/features/admin/api/level-feature-unlocks';
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
 import { AdminAPI } from "@/features/admin/types/admin.types";
@@ -46,7 +46,8 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["level-feature-unlocks"],
-    queryFn: () => getAdminLevelFeatureUnlocks(),
+    queryFn: () =>
+      fetchFromActionRoute<AdminAPI.LevelFeatureUnlocks.Get.Response>('/api/admin/level-feature-unlocks'),
     initialData,
     staleTime: Infinity,
   });
@@ -68,9 +69,23 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
       }
 
       if (isUpdate) {
-        return updateLevelFeatureUnlock(unlockId, requestPayload as AdminAPI.LevelFeatureUnlocks.Update.Body);
+        return fetchFromActionRoute<AdminAPI.LevelFeatureUnlocks.Update.Response>(
+          `/api/admin/level-feature-unlocks/${encodeURIComponent(unlockId)}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestPayload as AdminAPI.LevelFeatureUnlocks.Update.Body),
+          },
+        );
       }
-      return createLevelFeatureUnlock(requestPayload as AdminAPI.LevelFeatureUnlocks.Create.Body);
+      return fetchFromActionRoute<AdminAPI.LevelFeatureUnlocks.Create.Response>(
+        '/api/admin/level-feature-unlocks',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestPayload as AdminAPI.LevelFeatureUnlocks.Create.Body),
+        },
+      );
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -96,7 +111,11 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteLevelFeatureUnlock(id),
+    mutationFn: (id: string) =>
+      fetchFromActionRoute<AdminAPI.LevelFeatureUnlocks.Delete.Response>(
+        `/api/admin/level-feature-unlocks/${encodeURIComponent(id)}`,
+        { method: 'DELETE' },
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["level-feature-unlocks"],
@@ -142,11 +161,11 @@ export function LevelFeatureUnlocksClient({ initialData }: LevelFeatureUnlocksCl
           </Button>
         }
         rightColumnVisibilityContent={
-          <Button render={
+          <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
             <Link href="/admin/level-feature-unlocks/create">
               <IconPlus className="w-4 h-4 mr-2" /> {tm("addNew")}
             </Link>
-          } className="bg-primary hover:opacity-90 shadow-md" size="sm" />
+          </Button>
         }
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

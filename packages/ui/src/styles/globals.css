@@ -225,8 +225,6 @@
       background-position: calc(100% + var(--shiny-width)) 0;
     }
   }
-
-  --inset-shadow-lg: inset 0 10px 8px color-mix(in oklch, var(--background) 7%, transparent)
 }
 
 @keyframes border-beam-simple {

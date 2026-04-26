@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import React, { useState } from "react";
-import { createStreakExpBonus, deleteStreakExpBonus, getAdminStreakExpBonuses, updateStreakExpBonus } from '@/features/admin/api/streak-exp-bonuses';
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
 import { AdminAPI } from "@/features/admin/types/admin.types";
@@ -43,7 +43,8 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["streak-exp-bonuses"],
-    queryFn: () => getAdminStreakExpBonuses(),
+    queryFn: () =>
+      fetchFromActionRoute<AdminAPI.StreakExpBonuses.Get.Response>('/api/admin/streak-exp-bonuses'),
     initialData,
     staleTime: Infinity,
   });
@@ -59,9 +60,23 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
       }
 
       if (isUpdate) {
-        return updateStreakExpBonus(bonusId, requestPayload as AdminAPI.StreakExpBonuses.Update.Body);
+        return fetchFromActionRoute<AdminAPI.StreakExpBonuses.Update.Response>(
+          `/api/admin/streak-exp-bonuses/${encodeURIComponent(bonusId)}`,
+          {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestPayload as AdminAPI.StreakExpBonuses.Update.Body),
+          },
+        );
       }
-      return createStreakExpBonus(requestPayload as AdminAPI.StreakExpBonuses.Create.Body);
+      return fetchFromActionRoute<AdminAPI.StreakExpBonuses.Create.Response>(
+        '/api/admin/streak-exp-bonuses',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestPayload as AdminAPI.StreakExpBonuses.Create.Body),
+        },
+      );
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -86,7 +101,11 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteStreakExpBonus(id),
+    mutationFn: (id: string) =>
+      fetchFromActionRoute<AdminAPI.StreakExpBonuses.Delete.Response>(
+        `/api/admin/streak-exp-bonuses/${encodeURIComponent(id)}`,
+        { method: 'DELETE' },
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["streak-exp-bonuses"],

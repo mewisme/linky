@@ -7,7 +7,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/shared/types/resources.types'
 import dynamic from 'next/dynamic'
-import { getMyReports } from '@/actions/resources/reports'
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useQuery } from "@ws/ui/internal-lib/react-query"
 
 const ReportsDataTable = dynamic(
@@ -24,7 +24,10 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
 
   const { data: reports, isFetching, refetch } = useQuery({
     queryKey: ['user-reports'],
-    queryFn: () => getMyReports({ limit: 50, offset: 0 }),
+    queryFn: () =>
+      fetchFromActionRoute<ResourcesAPI.Reports.GetMe.Response>(
+        '/api/resources/reports/me?limit=50&offset=0',
+      ),
     initialData,
     staleTime: Infinity,
   })

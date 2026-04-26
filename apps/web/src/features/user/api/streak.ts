@@ -1,5 +1,7 @@
 'use server'
 
+import 'server-only';
+
 import type { UsersAPI } from '@/entities/user/types/users.types';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';

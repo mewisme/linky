@@ -1130,7 +1130,7 @@ export const GanttMarker: FC<
       }}
     >
       <ContextMenu>
-        <ContextMenuTrigger render={
+        <ContextMenuTrigger asChild>
           <div
             className={cn(
               "group pointer-events-auto sticky top-0 flex select-auto flex-col flex-nowrap items-center justify-center whitespace-nowrap rounded-b-md bg-card px-2 py-1 text-foreground text-xs",
@@ -1142,7 +1142,7 @@ export const GanttMarker: FC<
               {formatDate(date, "MMM dd, yyyy")}
             </span>
           </div>
-        } />
+        </ContextMenuTrigger>
         <ContextMenuContent>
           {onRemove ? (
             <ContextMenuItem

@@ -116,7 +116,7 @@ export function ContextMenu({ children, items, ...props }: ContextMenuProps) {
       : <span className="contents">{children}</span>
   return (
     <ContextMenuPrimitive {...props}>
-      <ContextMenuTrigger render={triggerChild} />
+      <ContextMenuTrigger asChild>{triggerChild}</ContextMenuTrigger>
       <ContextMenuContent>
         {groups.map((group, groupIndex) => (
           <Fragment key={groupIndex}>

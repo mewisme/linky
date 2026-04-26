@@ -1,10 +1,13 @@
 'use client'
 
-import { getBlockedUsers, unblockUser } from "@/features/user/api/blocks";
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useState, useTransition } from 'react'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
-import type { BlockedUserWithDetails } from '@/entities/notification/types/notifications.types'
+import type {
+  BlockedUserWithDetails,
+  BlockedUsersResponse,
+} from '@/entities/notification/types/notifications.types'
 import { Button } from '@ws/ui/components/ui/button'
 import { IconRefresh } from '@tabler/icons-react'
 import dynamic from 'next/dynamic'
@@ -30,7 +33,7 @@ export function BlockedUsersClient({ initialData }: Props) {
   const handleRefresh = () => {
     startFetching(async () => {
       try {
-        const res = await getBlockedUsers()
+        const res = await fetchFromActionRoute<BlockedUsersResponse>('/api/users/blocks/me')
         setData(res.blocked_users)
       } catch {
         toast.error(t('blockedLoadFailed'))
@@ -40,7 +43,10 @@ export function BlockedUsersClient({ initialData }: Props) {
 
   const handleUnblock = async (user: BlockedUserWithDetails) => {
     try {
-      await unblockUser(user.blocked_user_id)
+      await fetchFromActionRoute<void>(
+        `/api/users/blocks/${encodeURIComponent(user.blocked_user_id)}`,
+        { method: 'DELETE' },
+      )
       useBlockedUsersStore.getState().unblockUser(user.blocked_user_id)
       setData((prev) => prev.filter((u) => u.id !== user.id))
       trackEvent({ name: 'user_unblocked' })

@@ -16,15 +16,21 @@ import {
 } from '@ws/ui/components/ui/drawer';
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
-import type { EmbeddingCompareResponse } from '@/features/admin/api/embeddings';
 import { Button } from '@ws/ui/components/ui/button';
 import { IconLoader2 } from '@tabler/icons-react';
 import { Label } from '@ws/ui/components/ui/label';
 import { UserSearchSelect } from './user-search-select';
-import { compareEmbeddings } from '@/features/admin/api/embeddings';
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+
+interface EmbeddingCompareResponse {
+  similarity_score: number;
+  model_name: string;
+  user_a_updated_at: string;
+  user_b_updated_at: string;
+}
 
 interface CompareEmbeddingsModalProps {
   open: boolean;
@@ -68,7 +74,11 @@ export function CompareEmbeddingsModal({
     setError(null);
     setResult(null);
     try {
-      const data = await compareEmbeddings(user.id, secondUser.id);
+      const data = await fetchFromActionRoute<EmbeddingCompareResponse>('/api/admin/embeddings/compare', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id_a: user.id, user_id_b: secondUser.id }),
+      });
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : te('compareFailed'));

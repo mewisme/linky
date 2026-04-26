@@ -19,6 +19,7 @@ import { useMirrorLocalPreview, VideoPlayer } from "./video-player";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useMousePosition } from "@/shared/hooks/ui/use-mouse-move";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
+import { toast } from "@ws/ui/components/ui/sonner";
 import { useReactionTrigger } from "@/features/call/hooks/webrtc/use-reaction-trigger";
 import { useStreamAspectRatio } from "@/features/call/hooks/webrtc/use-stream-aspect-ratio";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
@@ -51,6 +52,40 @@ interface VideoContainerProps {
   initialFavorites?: ResourcesAPI.Favorites.Get.Response;
 }
 
+interface WebkitPictureInPictureVideo extends HTMLVideoElement {
+  webkitPresentationMode?: "inline" | "picture-in-picture" | "fullscreen";
+  webkitSupportsPresentationMode?: (mode: "inline" | "picture-in-picture" | "fullscreen") => boolean;
+  webkitSetPresentationMode?: (mode: "inline" | "picture-in-picture" | "fullscreen") => void;
+}
+
+function hasRemoteScreenShareTrack(stream: MediaStream | null): boolean {
+  if (!stream) {
+    return false;
+  }
+
+  return stream.getVideoTracks().some((track) => {
+    const displaySurface = track.getSettings().displaySurface;
+    return (
+      displaySurface === "monitor" ||
+      displaySurface === "window" ||
+      displaySurface === "browser"
+    );
+  });
+}
+
+function supportsStandardPictureInPicture(video: HTMLVideoElement): boolean {
+  return !!document.pictureInPictureEnabled && typeof video.requestPictureInPicture === "function";
+}
+
+function supportsWebkitPictureInPicture(video: HTMLVideoElement): boolean {
+  const webkitVideo = video as WebkitPictureInPictureVideo;
+  return (
+    typeof webkitVideo.webkitSupportsPresentationMode === "function" &&
+    webkitVideo.webkitSupportsPresentationMode("picture-in-picture") &&
+    typeof webkitVideo.webkitSetPresentationMode === "function"
+  );
+}
+
 export function VideoContainer({
   localStream,
   remoteStream,
@@ -77,10 +112,12 @@ export function VideoContainer({
   initialProgress,
   initialFavorites,
 }: VideoContainerProps) {
+  const tCall = useTranslations("call");
   const tp = useTranslations("user.profile");
   const containerRef = useRef<HTMLDivElement>(null);
   const remoteVideoContainerRef = useRef<HTMLDivElement>(null);
   const tapCaptureRef = useRef<HTMLDivElement>(null);
+  const remoteVideoElementRef = useRef<HTMLVideoElement | null>(null);
   const [mousePosition, mousePositionRef] = useMousePosition<HTMLDivElement>();
   const isMobile = useIsMobile();
   const hasPeer = isInActiveCall;
@@ -95,6 +132,7 @@ export function VideoContainer({
 
   const queryClient = useQueryClient();
   const [isMounted, setIsMounted] = useState(false);
+  const [isPictureInPictureActive, setIsPictureInPictureActive] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -106,6 +144,68 @@ export function VideoContainer({
 
   const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled && !isVideoStalled;
   const isLocalCameraOn = !isVideoOff;
+  const canTogglePictureInPicture = isRemoteCameraOn || hasRemoteScreenShareTrack(remoteStream);
+
+  const syncPictureInPictureState = useCallback(() => {
+    const video = remoteVideoElementRef.current;
+    if (!video) {
+      setIsPictureInPictureActive(false);
+      return;
+    }
+
+    const isStandardPiP = document.pictureInPictureElement === video;
+    const webkitVideo = video as WebkitPictureInPictureVideo;
+    const isWebkitPiP = webkitVideo.webkitPresentationMode === "picture-in-picture";
+    setIsPictureInPictureActive(isStandardPiP || isWebkitPiP);
+  }, []);
+
+  const handleTogglePictureInPicture = useCallback(async () => {
+    const video = remoteVideoElementRef.current;
+    if (!video || !canTogglePictureInPicture) {
+      return;
+    }
+
+    const standardPiPEnabled = supportsStandardPictureInPicture(video);
+
+    if (standardPiPEnabled) {
+      try {
+        if (document.pictureInPictureElement === video) {
+          await document.exitPictureInPicture();
+        } else {
+          await video.requestPictureInPicture();
+        }
+      } catch {
+        toast.error(tCall("pictureInPictureFailed"));
+      }
+      return;
+    }
+
+    const canUseWebkitPiP = supportsWebkitPictureInPicture(video);
+
+    if (!canUseWebkitPiP) {
+      toast.error(tCall("pictureInPictureNotSupported"));
+      return;
+    }
+
+    const webkitVideo = video as WebkitPictureInPictureVideo;
+    const nextMode =
+      webkitVideo.webkitPresentationMode === "picture-in-picture"
+        ? "inline"
+        : "picture-in-picture";
+    try {
+      webkitVideo.webkitSetPresentationMode?.(nextMode);
+    } catch {
+      toast.error(tCall("pictureInPictureFailed"));
+    }
+  }, [canTogglePictureInPicture, tCall]);
+
+  const handleRemoteVideoElementChange = useCallback(
+    (videoElement: HTMLVideoElement | null) => {
+      remoteVideoElementRef.current = videoElement;
+      syncPictureInPictureState();
+    },
+    [syncPictureInPictureState]
+  );
 
   const isActive = isInActiveCall;
 
@@ -152,6 +252,50 @@ export function VideoContainer({
 
   const displayAspectRatio =
     remoteStream && hasPeer ? remoteAspectRatio : localAspectRatio;
+
+  useEffect(() => {
+    document.addEventListener("enterpictureinpicture", syncPictureInPictureState);
+    document.addEventListener("leavepictureinpicture", syncPictureInPictureState);
+    return () => {
+      document.removeEventListener("enterpictureinpicture", syncPictureInPictureState);
+      document.removeEventListener("leavepictureinpicture", syncPictureInPictureState);
+    };
+  }, [syncPictureInPictureState]);
+
+  useEffect(() => {
+    const video = remoteVideoElementRef.current as (WebkitPictureInPictureVideo | null);
+    if (!video) {
+      return;
+    }
+
+    const handleWebkitPresentationModeChange = () => syncPictureInPictureState();
+    video.addEventListener("webkitpresentationmodechanged", handleWebkitPresentationModeChange as EventListener);
+    return () => {
+      video.removeEventListener("webkitpresentationmodechanged", handleWebkitPresentationModeChange as EventListener);
+    };
+  }, [remoteStream, syncPictureInPictureState]);
+
+  useEffect(() => {
+    if (canTogglePictureInPicture) {
+      return;
+    }
+
+    const video = remoteVideoElementRef.current;
+    if (!video) {
+      return;
+    }
+
+    const isStandardPiP = document.pictureInPictureElement === video;
+    if (isStandardPiP) {
+      void document.exitPictureInPicture().catch(() => { });
+      return;
+    }
+
+    const webkitVideo = video as WebkitPictureInPictureVideo;
+    if (webkitVideo.webkitPresentationMode === "picture-in-picture") {
+      webkitVideo.webkitSetPresentationMode?.("inline");
+    }
+  }, [canTogglePictureInPicture]);
 
   const showPassiveBanner = isPassive && connectionStatus !== "idle";
   if (showPassiveBanner) {
@@ -200,6 +344,7 @@ export function VideoContainer({
                 className="h-full w-full"
                 objectFit="contain"
                 isMobile={isMobile}
+                onVideoElementChange={handleRemoteVideoElementChange}
               />
             ) : (
               <div
@@ -301,6 +446,9 @@ export function VideoContainer({
               onToggleChat={onToggleChat}
               onToggleScreenShare={onToggleScreenShare}
               isSharingScreen={isSharingScreen}
+              canTogglePictureInPicture={canTogglePictureInPicture}
+              isPictureInPictureActive={isPictureInPictureActive}
+              onTogglePictureInPicture={handleTogglePictureInPicture}
               onBlockUser={onBlockUser}
               sendFavoriteNotification={sendFavoriteNotification}
               initialFavorites={initialFavorites}

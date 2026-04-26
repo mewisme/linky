@@ -1,50 +1,17 @@
-import * as Sentry from "@sentry/nextjs";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-import { publicEnv } from "@/shared/env/public-env";
+import { markNotificationRead } from "@/features/notifications/api";
+import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(
-      `${publicEnv.API_URL}/api/v1/notifications/${id}/read`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (response.status === 204) {
-      return new NextResponse(null, { status: 204 });
-    }
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
+    await markNotificationRead(id);
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
-    Sentry.logger.error("Error in PATCH /api/notifications/[id]/read", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to mark notification as read" },
-      { status: 500 }
-    );
+    return nextResponseFromActionError(error, "PATCH /api/notifications/[id]/read");
   }
 }

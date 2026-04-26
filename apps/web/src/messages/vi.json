@@ -123,6 +123,8 @@
     "youEndedCall": "Bạn đã kết thúc cuộc gọi.",
     "failedToStart": "Không thể bắt đầu cuộc gọi video",
     "screenShareFailed": "Không thể bắt đầu chia sẻ màn hình. Vui lòng thử lại.",
+    "pictureInPictureFailed": "Không thể bật hình trong hình. Vui lòng thử lại.",
+    "pictureInPictureNotSupported": "Trình duyệt hoặc thiết bị này không hỗ trợ hình trong hình.",
     "someoneFallback": "Ai đó",
     "controls": {
       "start": "Bắt đầu",
@@ -388,6 +390,10 @@
       "settings": "Cài đặt"
     },
     "items": {
+      "home": {
+        "label": "Trang chủ",
+        "description": "Quay về trang giới thiệu"
+      },
       "videoChat": {
         "label": "Trò chuyện video",
         "description": "Bắt đầu trò chuyện video"
@@ -596,7 +602,7 @@
     "metaDescription": "Trò chuyện video ngẫu nhiên an toàn, có tài khoản. Ghép theo sở thích, thêm yêu thích và nhận phần thưởng.",
     "hero": {
       "badge": "Trực tiếp · Toàn cầu · Tức thì",
-      "title": "Kết nối toàn cầu. Tức thì.",
+      "title": "Kết nối toàn cầu.",
       "subtitle": "Trò chuyện video thời gian thực an toàn — mọi lúc, mọi nơi.",
       "ctaSignedIn": "Bắt đầu trò chuyện",
       "ctaSignedOut": "Đăng nhập để bắt đầu trò chuyện",

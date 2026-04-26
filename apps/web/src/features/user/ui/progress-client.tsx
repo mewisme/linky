@@ -18,7 +18,7 @@ import { Progress } from "@ws/ui/components/ui/progress";
 import { StreakCalendar } from "./streak-calendar";
 import { StreakMiniCalendar } from "./streak-mini-calendar";
 import { UsersAPI } from "@/entities/user/types/users.types";
-import { getUserProgress } from "@/features/user/api/profile";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useState } from "react";
@@ -56,7 +56,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
-    queryFn: () => getUserProgress(),
+    queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
     initialData,
     staleTime: Infinity,
     gcTime: 10 * 60 * 1000,

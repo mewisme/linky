@@ -2,13 +2,10 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-import {
-  blockUser as blockUserAction,
-  getBlockedUsers as getBlockedUsersAction,
-  unblockUser as unblockUserAction,
-} from "@/features/user/api/blocks";
 import { useCallback, useEffect, useRef } from "react";
 
+import type { BlockRecord, BlockedUsersResponse } from "@/entities/notification/types/notifications.types";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
@@ -27,7 +24,7 @@ export function useBlockUser() {
     Sentry.metrics.count("fetch_blocked_users", 1);
     useBlockedUsersStore.getState().setLoading(true);
     try {
-      const data = await getBlockedUsersAction();
+      const data = await fetchFromActionRoute<BlockedUsersResponse>("/api/users/blocks/me");
       useBlockedUsersStore.getState().setBlockedUsers(
         data.blocked_users.map((u) => u.blocked_user_id)
       );
@@ -54,7 +51,11 @@ export function useBlockUser() {
   const blockUser = useCallback(async (userId: string) => {
     try {
       Sentry.metrics.count("block_user", 1);
-      await blockUserAction(userId);
+      await fetchFromActionRoute<BlockRecord>("/api/users/blocks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocked_user_id: userId }),
+      });
       useBlockedUsersStore.getState().blockUser(userId);
       trackEvent({ name: "user_blocked" });
       toast.success(t("userBlocked"));
@@ -71,7 +72,9 @@ export function useBlockUser() {
   const unblockUser = useCallback(async (userId: string) => {
     try {
       Sentry.metrics.count("unblock_user", 1);
-      await unblockUserAction(userId);
+      await fetchFromActionRoute<void>(`/api/users/blocks/${encodeURIComponent(userId)}`, {
+        method: "DELETE",
+      });
       useBlockedUsersStore.getState().unblockUser(userId);
       trackEvent({ name: "user_unblocked" });
       toast.success(t("userUnblocked"));

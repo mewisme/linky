@@ -1,23 +1,18 @@
 'use server'
 
 import type { ResourcesAPI } from '@/shared/types/resources.types';
-import { revalidateTag } from 'next/cache';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
 
 export async function createReport(
   data: ResourcesAPI.Reports.Create.Body
 ): Promise<ResourcesAPI.Reports.Create.Response> {
-  return withSentryAction("createReport", async () => {
-    const result = await serverFetch<ResourcesAPI.Reports.Create.Response>(
+  return withSentryAction("createReport", async () =>
+    serverFetch<ResourcesAPI.Reports.Create.Response>(
       backendUrl.resources.reports(),
       { method: 'POST', body: JSON.stringify(data) }
-    );
-    revalidateTag(cacheTags.reportsMe, 'max');
-    return result;
-  });
+    ));
 }
 
 export async function getMyReports(

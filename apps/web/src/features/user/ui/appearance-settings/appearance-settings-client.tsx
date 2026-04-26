@@ -24,7 +24,7 @@ import { AppLayout } from '@/shared/ui/layouts/app-layout'
 import { Label } from '@ws/ui/components/ui/label'
 import { Separator } from '@ws/ui/components/ui/separator'
 import { toast } from '@ws/ui/components/ui/sonner'
-import { updateUserSettings } from '@/features/user/api/settings'
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useSidebarStore } from '@/shared/model/sidebar-store'
 import { useUserStore } from '@/entities/user/model/user-store'
 import { isVideoChatBlockingLocaleChange } from '@/features/call/lib/video-chat-locale-block'
@@ -171,7 +171,11 @@ export function AppearanceSettingsClient({ initialSettings }: Props) {
         return
       }
       inFlightPayloadKeyRef.current = payloadKey
-      void updateUserSettings(nextPayload)
+      void fetchFromActionRoute<UsersAPI.UserSettings.PatchMe.Response>('/api/users/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nextPayload),
+      })
         .then(() => {
           lastSavedKeyRef.current = payloadKey
           toast.success(t('appearancePage.updated'))

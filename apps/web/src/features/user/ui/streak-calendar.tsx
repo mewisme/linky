@@ -16,7 +16,7 @@ import { IconFlameFilled } from "@tabler/icons-react";
 import { Loading } from "@/shared/ui/common/loading";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { cn } from "@ws/ui/lib/utils";
-import { getStreakCalendar } from "@/features/user/api/streak";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useMemo } from "react";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useTranslations } from "next-intl";
@@ -34,7 +34,10 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
 
   const { data: calendarData, isLoading } = useQuery({
     queryKey: ["streak-calendar", year, monthNumber],
-    queryFn: () => getStreakCalendar(year, monthNumber),
+    queryFn: () =>
+      fetchFromActionRoute<UsersAPI.Streak.Calendar.Response>(
+        `/api/users/streak/calendar?year=${year}&month=${monthNumber}`,
+      ),
     staleTime: 5 * 60 * 1000,
   });
 

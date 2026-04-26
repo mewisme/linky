@@ -1,7 +1,7 @@
 "use client";
 
 import { trackEvent } from "@/lib/telemetry/events/client";
-import { getUserDetails, updateUserDetails } from "@/features/user/api/profile";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import type { UserDetails, UserState } from "@/entities/user/model/user-store";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
@@ -23,7 +23,7 @@ export function UserDetailsProvider({ children, store }: { children: ReactNode; 
     if (!auth.isLoaded || !auth.isSignedIn) return;
     store.setError(null);
     try {
-      const details = await getUserDetails();
+      const details = await fetchFromActionRoute<UsersAPI.UserDetails.GetMe.Response>("/api/users/details");
       store.setUserDetails(details);
     } catch (error) {
       store.setError(error instanceof Error ? error.message : t("fetchUserDetails"));
@@ -32,7 +32,11 @@ export function UserDetailsProvider({ children, store }: { children: ReactNode; 
 
   const updateUserDetailsFn = useCallback(
     async (data: UsersAPI.UserDetails.PatchMe.Body): Promise<UserDetails> => {
-      const updated = await updateUserDetails(data);
+      const updated = await fetchFromActionRoute<UserDetails>("/api/users/details", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       store.setUserDetails(updated);
       trackEvent({
         name: "profile_updated",

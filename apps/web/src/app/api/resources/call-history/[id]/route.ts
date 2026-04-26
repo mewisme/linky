@@ -1,52 +1,23 @@
-import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import type { ApiError } from "@/shared/types/api.types";
-import type { ResourcesAPI } from "@/shared/types/resources.types";
-import { publicEnv } from "@/shared/env/public-env";
+import { getCallHistoryById } from "@/actions/resources/call-history";
+import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
-      );
-    }
-
-    if (!id) {
+    if (!id?.trim()) {
       return NextResponse.json(
         { error: "Bad Request", message: "Call history ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/call-history/${id}`, {
-      method: "GET",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json",
-      },
-    });
-
-    const data = await response.json() as ResourcesAPI.CallHistory.GetById.Response | ApiError;
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
+    const data = await getCallHistoryById(id.trim());
     return NextResponse.json(data);
   } catch (error) {
-    Sentry.logger.error("Error in /api/resources/call-history/[id]", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to fetch call history" },
-      { status: 500 }
-    );
+    return nextResponseFromActionError(error, "GET /api/resources/call-history/[id]");
   }
 }

@@ -34,7 +34,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import type { ResourcesAPI } from '@/shared/types/resources.types'
 import type { UserDetails } from '@/entities/user/model/user-store'
 import type { UsersAPI } from '@/entities/user/types/users.types'
-import { getInterestTags } from "@/actions/resources/interest-tags";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
@@ -72,7 +72,9 @@ export function InterestTagsSection({
     setCatalogLoading(true)
     const run = async () => {
       try {
-        const json = await getInterestTags({ limit: '200' })
+        const json = await fetchFromActionRoute<ResourcesAPI.InterestTags.Get.Response>(
+          "/api/resources/interest-tags?limit=200",
+        )
         if (!cancelled) {
           setAvailableTags(json.data)
         }
@@ -305,7 +307,7 @@ export function InterestTagsSection({
                       : displayTags.slice(0, INITIAL_TAGS_VISIBLE)
                     ).map((tag) => (
                       <Tooltip key={tag.id}>
-                        <TooltipTrigger render={
+                        <TooltipTrigger asChild>
                           <Badge
                             variant="secondary"
                             className="cursor-default px-2.5 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm"
@@ -320,7 +322,7 @@ export function InterestTagsSection({
                               </span>
                             )}
                           </Badge>
-                        } />
+                        </TooltipTrigger>
 
                         {tag.description && (
                           <TooltipContent>

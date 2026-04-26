@@ -8,13 +8,7 @@ import {
   PopoverTrigger,
 } from "@ws/ui/components/animate-ui/components/radix/popover";
 import React, { useState } from "react";
-import {
-  createInterestTag,
-  deleteInterestTag,
-  getAdminInterestTags,
-  hardDeleteInterestTag,
-  updateInterestTag,
-} from "@/features/admin/api/interest-tags";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
 import { AdminAPI } from "@/features/admin/types/admin.types";
@@ -75,7 +69,7 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ["interest-tags"],
-    queryFn: () => getAdminInterestTags(),
+    queryFn: () => fetchFromActionRoute<AdminAPI.InterestTags.Get.Response>("/api/admin/interest-tags"),
     initialData,
     staleTime: Infinity,
   });
@@ -91,9 +85,20 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
       }
 
       if (isUpdate) {
-        return updateInterestTag(tagId, requestPayload as AdminAPI.InterestTags.Update.Body);
+        return fetchFromActionRoute<AdminAPI.InterestTags.Update.Response>(
+          `/api/admin/interest-tags/${encodeURIComponent(tagId)}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestPayload as AdminAPI.InterestTags.Update.Body),
+          },
+        );
       }
-      return createInterestTag(requestPayload as AdminAPI.InterestTags.Create.Body);
+      return fetchFromActionRoute<AdminAPI.InterestTags.Create.Response>("/api/admin/interest-tags", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestPayload as AdminAPI.InterestTags.Create.Body),
+      });
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
@@ -119,8 +124,16 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async ({ id, hard }: { id: string, hard: boolean }) => {
-      if (hard) return hardDeleteInterestTag(id);
-      return deleteInterestTag(id);
+      if (hard) {
+        return fetchFromActionRoute<AdminAPI.InterestTags.HardDelete.Response>(
+          `/api/admin/interest-tags/${encodeURIComponent(id)}/hard`,
+          { method: "DELETE" },
+        );
+      }
+      return fetchFromActionRoute<AdminAPI.InterestTags.Delete.Response>(
+        `/api/admin/interest-tags/${encodeURIComponent(id)}`,
+        { method: "DELETE" },
+      );
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({

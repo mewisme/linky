@@ -1,10 +1,8 @@
 'use server'
 
 import type { ResourcesAPI } from '@/shared/types/resources.types';
-import { revalidateTag } from 'next/cache';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
-import { cacheTags } from '@/lib/cache/tags';
 import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action';
 
 export async function getFavorites(): Promise<ResourcesAPI.Favorites.Get.Response> {
@@ -17,25 +15,19 @@ export async function getFavorites(): Promise<ResourcesAPI.Favorites.Get.Respons
 export async function addFavorite(
   favoriteUserId: string
 ): Promise<ResourcesAPI.Favorites.Create.Response> {
-  return withSentryAction("addFavorite", async () => {
-    const result = await serverFetch<ResourcesAPI.Favorites.Create.Response>(
+  return withSentryAction("addFavorite", async () =>
+    serverFetch<ResourcesAPI.Favorites.Create.Response>(
       backendUrl.resources.favorites(),
       { method: 'POST', body: JSON.stringify({ favorite_user_id: favoriteUserId }) }
-    );
-    revalidateTag(cacheTags.favorites, 'max');
-    return result;
-  });
+    ));
 }
 
 export async function removeFavorite(
   favoriteUserId: string
 ): Promise<ResourcesAPI.Favorites.Delete.Response> {
-  return withSentryAction("removeFavorite", async () => {
-    const result = await serverFetch<ResourcesAPI.Favorites.Delete.Response>(
+  return withSentryAction("removeFavorite", async () =>
+    serverFetch<ResourcesAPI.Favorites.Delete.Response>(
       backendUrl.resources.favoriteByUserId(favoriteUserId),
       { method: 'DELETE' }
-    );
-    revalidateTag(cacheTags.favorites, 'max');
-    return result;
-  });
+    ));
 }

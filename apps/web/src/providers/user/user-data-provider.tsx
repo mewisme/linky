@@ -1,7 +1,7 @@
 "use client";
 
-import { getMe } from "@/features/user/api/profile";
-import type { UserState } from "@/entities/user/model/user-store";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import type { User, UserState } from "@/entities/user/model/user-store";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useUserAuthContext } from "./user-auth-provider";
@@ -24,7 +24,7 @@ export function UserDataProvider({ children, store }: { children: ReactNode; sto
     }
     store.setError(null);
     try {
-      const userData = await getMe();
+      const userData = await fetchFromActionRoute<User>("/api/users/me");
       store.setUser(userData);
     } catch (error) {
       store.setError(error instanceof Error ? error.message : t("fetchUserData"));

@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@ws/ui/components/ui/card';
+} from '@ws/ui/components/base-ui/card';
 import { Shader } from './shader';
 
 import { cn } from '@ws/ui/lib/utils';

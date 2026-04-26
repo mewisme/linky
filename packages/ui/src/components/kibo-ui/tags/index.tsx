@@ -116,7 +116,7 @@ export const TagsTrigger = ({
   children,
   ...props
 }: TagsTriggerProps) => (
-  <PopoverTrigger render={
+  <PopoverTrigger asChild>
     <Button
       className={cn("h-auto w-full justify-between p-2", className)}
       // biome-ignore lint/a11y/useSemanticElements: "Required"
@@ -131,7 +131,7 @@ export const TagsTrigger = ({
         </span>
       </div>
     </Button>
-  } />
+  </PopoverTrigger>
 );
 
 export type TagsValueProps = ComponentProps<typeof Badge>;

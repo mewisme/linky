@@ -193,7 +193,7 @@ export function DevOverlay() {
     <>
       <div className="fixed inset-0 pointer-events-none z-160">
         <Popover>
-          <PopoverTrigger render={
+          <PopoverTrigger asChild>
             <Button
               ref={overlayRef}
               type="button"
@@ -221,7 +221,7 @@ export function DevOverlay() {
             >
               <IconCode className="size-5" />
             </Button>
-          } />
+          </PopoverTrigger>
           <PopoverContent className="z-170 w-80 p-3" align="start" sideOffset={12}>
             <div className="space-y-3">
               <div className="space-y-1">

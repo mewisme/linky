@@ -50,13 +50,12 @@ function RootNotFoundContent() {
             variant="default"
             size="lg"
             className="px-6 font-medium shadow-lg shadow-primary/20"
-            render={
-              <Link href="/">
-                <IconHomeLink size={18} className="mr-2" />
-                {t("backToDashboard")}
-              </Link>
-            }
-          />
+            asChild>
+            <Link href="/">
+              <IconHomeLink size={18} className="mr-2" />
+              {t("backToDashboard")}
+            </Link>
+          </Button>
         </div>
       </div>
 

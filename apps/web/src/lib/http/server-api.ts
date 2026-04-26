@@ -1,5 +1,7 @@
 'use server'
 
+import 'server-only';
+
 import { getToken } from '@/lib/auth/token';
 import { ApiError, parseApiErrorBody } from '@/lib/http/api-error';
 

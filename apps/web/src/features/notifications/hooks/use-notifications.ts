@@ -2,15 +2,14 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-import {
-  getNotifications as getNotificationsAction,
-  getUnreadCount as getUnreadCountAction,
-  markAllNotificationsRead as markAllNotificationsReadAction,
-  markNotificationRead as markNotificationReadAction,
-} from "@/features/notifications/api";
 import { useCallback, useEffect } from "react";
 
-import type { Notification } from "@/entities/notification/types/notifications.types";
+import type {
+  Notification,
+  NotificationsResponse,
+  UnreadCountResponse,
+} from "@/entities/notification/types/notifications.types";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useNotificationsStore } from "@/features/notifications/model/notifications-store";
 import { useSocket } from "@/features/realtime/hooks/use-socket";
@@ -37,9 +36,10 @@ export function useNotifications() {
         offset: '0',
         unread_only: 'false',
       };
+      const meQuery = new URLSearchParams(params).toString();
       const [notifData, countData] = await Promise.all([
-        getNotificationsAction(params),
-        getUnreadCountAction(),
+        fetchFromActionRoute<NotificationsResponse>(`/api/notifications/me?${meQuery}`),
+        fetchFromActionRoute<UnreadCountResponse>("/api/notifications/me/unread-count"),
       ]);
 
       useNotificationsStore.getState().setNotifications(notifData.notifications);
@@ -65,7 +65,10 @@ export function useNotifications() {
         offset: String(state.notifications.length),
         unread_only: 'false',
       };
-      const data = await getNotificationsAction(params);
+      const meQuery = new URLSearchParams(params).toString();
+      const data = await fetchFromActionRoute<NotificationsResponse>(
+        `/api/notifications/me?${meQuery}`,
+      );
 
       useNotificationsStore.getState().appendNotifications(data.notifications);
       useNotificationsStore.getState().setHasMore(data.notifications.length >= PAGE_SIZE);
@@ -82,7 +85,9 @@ export function useNotifications() {
   const markAsRead = useCallback(async (id: string) => {
     useNotificationsStore.getState().markAsRead(id);
     try {
-      await markNotificationReadAction(id);
+      await fetchFromActionRoute<void>(`/api/notifications/${encodeURIComponent(id)}/read`, {
+        method: "PATCH",
+      });
     } catch (error) {
       Sentry.metrics.count("mark_notification_read_failed", 1);
       Sentry.logger.error("Failed to mark notification read", { error: error instanceof Error ? error.message : "Unknown error" });
@@ -93,7 +98,7 @@ export function useNotifications() {
   const markAllAsRead = useCallback(async () => {
     useNotificationsStore.getState().markAllAsRead();
     try {
-      await markAllNotificationsReadAction();
+      await fetchFromActionRoute<void>("/api/notifications/read-all", { method: "PATCH" });
     } catch (error) {
       Sentry.metrics.count("mark_all_notifications_read_failed", 1);
       Sentry.logger.error("Failed to mark all notifications read", { error: error instanceof Error ? error.message : "Unknown error" });

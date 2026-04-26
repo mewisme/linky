@@ -134,7 +134,7 @@ export function ShaderSettings({
         {t('appearancePage.shaderSection')}
       </h3>
       <div className="grid gap-4">
-        <Accordion className="w-full">
+        <Accordion className="w-full" type='single'>
           <AccordionItem value="shader-preview" className="border-b-0">
             <AccordionTrigger className="py-0 text-sm font-medium hover:no-underline">
               {t('appearancePage.shaderPreview')}

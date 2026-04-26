@@ -1,42 +1,13 @@
-import * as Sentry from "@sentry/nextjs";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-import { publicEnv } from "@/shared/env/public-env";
+import { getUnreadCount } from "@/features/notifications/api";
+import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
-      );
-    }
-
-    const response = await fetch(
-      `${publicEnv.API_URL}/api/v1/notifications/me/unread-count`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
+    const data = await getUnreadCount();
     return NextResponse.json(data);
   } catch (error) {
-    Sentry.logger.error("Error in GET /api/notifications/me/unread-count", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to fetch unread count" },
-      { status: 500 }
-    );
+    return nextResponseFromActionError(error, "GET /api/notifications/me/unread-count");
   }
 }

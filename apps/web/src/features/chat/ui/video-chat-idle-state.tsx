@@ -13,7 +13,7 @@ import {
 import { Button } from "@ws/ui/components/ui/button";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import type { UsersAPI } from "@/entities/user/types/users.types";
-import { getUserProgress } from "@/features/user/api/profile";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useUserContext } from "@/providers/user/user-provider";
@@ -70,7 +70,7 @@ export function VideoChatIdleState({
   const shader = useShaderPreference();
   const { data: progress, isPending } = useQuery({
     queryKey: ["user-progress"],
-    queryFn: () => getUserProgress(),
+    queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
     initialData: initialProgress ?? undefined,
     gcTime: 5 * 60 * 1000,
   });
@@ -100,9 +100,12 @@ export function VideoChatIdleState({
       data-reaction-exclude
       data-testid="chat-idle-container"
     >
-      <ShaderCard shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }} className="bg-card">
+      <ShaderCard
+        shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }}
+        className="w-full max-w-sm bg-card"
+      >
         <CardContent
-          className="flex w-full max-w-sm flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
+          className="flex w-full flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
           style={{ animationFillMode: "backwards" }}
           aria-busy={showFullCardSkeleton}
         >

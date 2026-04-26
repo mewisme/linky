@@ -1,54 +1,25 @@
-import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import { publicEnv } from "@/shared/env/public-env";
+import {
+  getNotifications,
+} from "@/features/notifications/api";
+import { nextResponseFromActionError } from "@/lib/http/action-route-response";
+import type { ServerActionQueryParams } from "@/lib/http/query-params";
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
+    const sp = request.nextUrl.searchParams;
+    const params: ServerActionQueryParams = {};
+    const limit = sp.get("limit");
+    const offset = sp.get("offset");
+    const unreadOnly = sp.get("unread_only");
+    if (limit !== null) params.limit = limit;
+    if (offset !== null) params.offset = offset;
+    if (unreadOnly !== null) params.unread_only = unreadOnly;
 
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
-      );
-    }
-
-    const searchParams = request.nextUrl.searchParams;
-    const queryParams = new URLSearchParams();
-
-    const limit = searchParams.get("limit");
-    const offset = searchParams.get("offset");
-    const unreadOnly = searchParams.get("unread_only");
-
-    if (limit) queryParams.set("limit", limit);
-    if (offset) queryParams.set("offset", offset);
-    if (unreadOnly) queryParams.set("unread_only", unreadOnly);
-
-    const qs = queryParams.toString();
-    const response = await fetch(
-      `${publicEnv.API_URL}/api/v1/notifications/me${qs ? `?${qs}` : ""}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: authHeader,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
+    const data = await getNotifications(params);
     return NextResponse.json(data);
   } catch (error) {
-    Sentry.logger.error("Error in GET /api/notifications/me", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to fetch notifications" },
-      { status: 500 }
-    );
+    return nextResponseFromActionError(error, "GET /api/notifications/me");
   }
 }

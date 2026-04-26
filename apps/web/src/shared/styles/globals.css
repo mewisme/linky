@@ -50,17 +50,21 @@
 .profile-section-edit-reveal {
   transition: opacity 0.15s ease;
 }
+
 @media (hover: hover) {
   .profile-section-edit-reveal {
     opacity: 0;
   }
+
   .group:hover .profile-section-edit-reveal {
     opacity: 1;
   }
+
   .profile-section-edit-reveal:focus-visible {
     opacity: 1;
   }
 }
+
 @media (hover: none) {
   .profile-section-edit-reveal {
     opacity: 1;

@@ -36,8 +36,8 @@ export function MoreOptionsMenu({
   return (
     <DropdownMenu>
       <Tooltip>
-        <TooltipTrigger render={
-          <DropdownMenuTrigger render={
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               size="icon"
@@ -52,8 +52,8 @@ export function MoreOptionsMenu({
                 </span>
               )}
             </Button>
-          } />
-        } />
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
         <TooltipContent>
           <p>{t("moreOptions")}</p>
         </TooltipContent>

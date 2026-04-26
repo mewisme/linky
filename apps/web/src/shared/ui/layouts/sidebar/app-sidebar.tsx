@@ -52,7 +52,7 @@ export function AppSidebar() {
 
   const menuButtonIconRailClassName = cn(
     isIconRail &&
-      'mx-auto !size-10 !min-h-10 !min-w-10 justify-center !p-2 text-center',
+    'mx-auto !size-10 !min-h-10 !min-w-10 justify-center !p-2 text-center',
   )
 
   useEffect(() => {
@@ -99,8 +99,8 @@ export function AppSidebar() {
             const isHrefActive = (href?: string) =>
               Boolean(
                 href &&
-                  (pathname === href ||
-                    pathname.startsWith(`${href}/`)),
+                (pathname === href ||
+                  pathname.startsWith(`${href}/`)),
               )
             const isSubItemActive = item.subItems?.some((subItem) =>
               isHrefActive(subItem.href),

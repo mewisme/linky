@@ -4,8 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import type { ResourcesAPI } from "@/shared/types/resources.types";
 import type { UsersAPI } from "@/entities/user/types/users.types";
-import { getFavorites } from "@/actions/resources/favorites";
-import { getUserProgress } from "@/features/user/api/profile";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 
 interface CallPageHydrateProps {
@@ -26,14 +25,15 @@ export function CallPageHydrate({
 
   const { data: progress, refetch: refetchProgress } = useQuery({
     queryKey: ["user-progress"],
-    queryFn: () => getUserProgress(),
+    queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
     initialData: initialProgress ?? undefined,
     staleTime: Infinity,
   });
 
   const { data: favorites, refetch: refetchFavorites } = useQuery({
     queryKey: ["user-favorites"],
-    queryFn: () => getFavorites(),
+    queryFn: () =>
+      fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>("/api/resources/favorites"),
     initialData: initialFavorites ?? undefined,
     staleTime: Infinity,
   });

@@ -12,7 +12,7 @@ import {
   setPresencePublisher,
 } from "@/lib/realtime/presence";
 import { getUserTimezone } from "@/shared/utils/timezone";
-import { syncUserTimezone } from "@/features/user/api/profile";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 
 import { useUserContext } from "@/providers/user/user-provider";
 import { useSocketStore } from "@/features/realtime/model/socket-store";
@@ -125,7 +125,11 @@ export function SocketProvider({ children }: SocketProviderProps) {
           if (!timezoneSyncedRef.current || lastSyncedTimezone !== timezone) {
             timezoneSyncedRef.current = true;
             lastSyncedTimezone = timezone;
-            syncUserTimezone(timezone).catch(() => { });
+            fetchFromActionRoute<void>("/api/users/timezone", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ timezone }),
+            }).catch(() => { });
           }
 
           const visibility = document.visibilityState === "visible" ? "foreground" : "background";

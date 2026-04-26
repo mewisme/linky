@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@ws/ui/components/ui/button';
+import { Button } from '@ws/ui/components/base-ui/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Shader } from './shader';
 

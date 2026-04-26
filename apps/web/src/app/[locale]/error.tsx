@@ -59,13 +59,12 @@ export default function Error({
             variant="default"
             size="lg"
             className="px-8 font-medium shadow-lg shadow-primary/20"
-            render={
-              <Link href="/">
-                <IconHome size={18} className="mr-2" />
-                {t("goHome")}
-              </Link>
-            }
-          />
+            asChild>
+            <Link href="/">
+              <IconHome size={18} className="mr-2" />
+              {t("goHome")}
+            </Link>
+          </Button>
         </div>
 
         <div className="mt-12 w-full rounded-xl border border-border/50 bg-muted/30 p-4 text-left">

@@ -21,7 +21,9 @@ export function AppHeader() {
       <div className="grid grid-cols-3 items-center h-full mx-4">
 
         <div className="flex items-center space-x-4">
-          <Button variant="outline" size="icon" nativeButton render={<SidebarTrigger />} />
+          <Button variant="outline" size="icon" asChild>
+            <SidebarTrigger />
+          </Button>
 
           {!isMobile && (
             <Link href="/">

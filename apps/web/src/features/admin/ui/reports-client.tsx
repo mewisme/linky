@@ -10,7 +10,7 @@ import { IconRefresh } from '@tabler/icons-react'
 import { Input } from '@ws/ui/components/ui/input'
 import { Label } from '@ws/ui/components/ui/label'
 import dynamic from 'next/dynamic'
-import { getAdminReports } from '@/features/admin/api/reports'
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useQuery } from '@ws/ui/internal-lib/react-query'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
@@ -41,7 +41,10 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
 
   const { data: reports, isFetching, refetch } = useQuery({
     queryKey: ['admin-reports', statusFilter, reporterUserIdFilter, reportedUserIdFilter],
-    queryFn: () => getAdminReports(buildQueryParams()),
+    queryFn: () => {
+      const qs = new URLSearchParams(buildQueryParams()).toString()
+      return fetchFromActionRoute<AdminAPI.Reports.Get.Response>(`/api/admin/reports?${qs}`)
+    },
     initialData,
     staleTime: Infinity,
   })

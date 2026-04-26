@@ -14,6 +14,7 @@ interface VideoPlayerProps {
   isMobile?: boolean;
   mirrored?: boolean;
   onError?: (error: Error) => void;
+  onVideoElementChange?: (videoElement: HTMLVideoElement | null) => void;
 }
 
 export function shouldMirrorLocalPreview(
@@ -64,8 +65,14 @@ export function VideoPlayer({
   isMobile = false,
   mirrored = false,
   onError,
+  onVideoElementChange,
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    onVideoElementChange?.(videoRef.current);
+    return () => onVideoElementChange?.(null);
+  }, [onVideoElementChange]);
 
   useEffect(() => {
     if (videoRef.current && stream) {

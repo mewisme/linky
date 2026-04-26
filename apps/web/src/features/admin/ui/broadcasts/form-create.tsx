@@ -28,7 +28,7 @@ import { RadioGroup, RadioGroupItem } from "@ws/ui/components/ui/radio-group";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { IconSend, IconLoader2, IconSparkles } from "@tabler/icons-react";
 import { cn } from "@ws/ui/lib/utils";
-import { createBroadcast, generateBroadcastAiDraft } from "@/features/admin/api/broadcasts";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { useTranslations } from "next-intl";
@@ -86,12 +86,16 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
   async function onSubmit(values: FormValues) {
     try {
-      const res = await createBroadcast({
-        message: values.message.trim(),
-        title: values.title?.trim() || undefined,
-        deliveryMode: values.deliveryMode,
-        url: values.pushUrl?.trim() || undefined,
-      } satisfies AdminAPI.Broadcasts.Post.Body);
+      const res = await fetchFromActionRoute<AdminAPI.Broadcasts.Post.Response>("/api/admin/broadcasts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: values.message.trim(),
+          title: values.title?.trim() || undefined,
+          deliveryMode: values.deliveryMode,
+          url: values.pushUrl?.trim() || undefined,
+        } satisfies AdminAPI.Broadcasts.Post.Body),
+      });
 
       playSound("success");
       toast.success(res.message ?? t("broadcastSent", { count: res.sent }));
@@ -127,10 +131,17 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
     try {
       setIsGenerating(true);
-      const res = await generateBroadcastAiDraft({
-        audience,
-        key_points: keyPoints,
-      });
+      const res = await fetchFromActionRoute<AdminAPI.Broadcasts.AiGenerate.Response>(
+        "/api/admin/broadcasts/ai-draft",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            audience,
+            key_points: keyPoints,
+          }),
+        },
+      );
       setAiDraft(res.draft);
       setSelectedTone("primary");
       toast.success(t("aiDraftGenerated"));

@@ -123,6 +123,8 @@
     "youEndedCall": "You ended the call.",
     "failedToStart": "Failed to start video chat",
     "screenShareFailed": "Failed to start screen sharing. Please try again.",
+    "pictureInPictureFailed": "Failed to enter Picture in Picture. Please try again.",
+    "pictureInPictureNotSupported": "Picture in Picture is not supported on this browser or device.",
     "someoneFallback": "Someone",
     "controls": {
       "start": "Start",
@@ -388,6 +390,10 @@
       "settings": "Settings"
     },
     "items": {
+      "home": {
+        "label": "Home",
+        "description": "Back to the landing page"
+      },
       "videoChat": {
         "label": "Video Chat",
         "description": "Start a video chat"

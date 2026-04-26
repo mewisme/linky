@@ -7,6 +7,7 @@ import {
   IconFlag,
   IconGift,
   IconHeart,
+  IconHome,
   IconHistory,
   IconId,
   IconLock,
@@ -29,6 +30,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 export type MenuItemId =
+  | "home"
   | "videoChat"
   | "chat"
   | "callHistory"
@@ -118,6 +120,11 @@ export function useMenuItems(): MenuItem[] {
 }
 
 export const menuItemDefinitions: MenuItemDef[] = [
+  {
+    id: "home",
+    icon: IconHome,
+    href: "/",
+  },
   {
     id: "videoChat",
     icon: IconVideo,

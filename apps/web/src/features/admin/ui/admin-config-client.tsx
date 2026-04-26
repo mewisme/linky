@@ -19,11 +19,7 @@ import {
   DialogTitle,
 } from '@ws/ui/components/ui/dialog';
 import { IconPlus, IconRefresh } from '@tabler/icons-react';
-import {
-  getAdminConfig,
-  setAdminConfig,
-  unsetAdminConfig,
-} from '@/features/admin/api/admin-config';
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
@@ -97,14 +93,19 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['admin-config'],
-    queryFn: () => getAdminConfig(),
+    queryFn: () => fetchFromActionRoute<AdminAPI.Config.Get.Response>('/api/admin/config'),
     initialData: initialData ?? undefined,
     staleTime: 30_000,
     enabled: isSuperAdmin(userStore?.role ?? null),
   });
 
   const setMutation = useMutation({
-    mutationFn: (body: AdminAPI.Config.Set.Body) => setAdminConfig(body),
+    mutationFn: (body: AdminAPI.Config.Set.Body) =>
+      fetchFromActionRoute<AdminAPI.Config.Set.Response>('/api/admin/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-config'], refetchType: 'active' });
       await refetch();
@@ -121,7 +122,8 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
   });
 
   const unsetMutation = useMutation({
-    mutationFn: (key: string) => unsetAdminConfig(key),
+    mutationFn: (key: string) =>
+      fetchFromActionRoute<void>(`/api/admin/config/${encodeURIComponent(key)}`, { method: 'DELETE' }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-config'], refetchType: 'active' });
       await refetch();

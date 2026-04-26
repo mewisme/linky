@@ -8,7 +8,7 @@ import { CardContent, ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-
 import { Link } from "@/i18n/navigation";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { trackEvent } from "@/lib/telemetry/events/client";
-import { getQueueStatus } from "@/actions/matchmaking";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { Button } from "@ws/ui/components/ui/button";
 import { IconPhoneOff } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
@@ -82,7 +82,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
     if (elapsedMs >= STILL_SEARCHING_THRESHOLD_MS && !hasFetchedQueue.current) {
       hasFetchedQueue.current = true;
       trackEvent({ name: "matchmaking_still_searching", properties: { elapsed_ms: elapsedMs } });
-      getQueueStatus()
+      fetchFromActionRoute<QueueStatus>("/api/matchmaking/queue-status")
         .then(setQueueStatus)
         .catch(() => { });
     }

@@ -1,18 +1,9 @@
 'use client';
 
-import {
-  hardDeleteAdminUser,
-  hardDeleteAdminUsers,
-  restoreAdminUser,
-  restoreAdminUsers,
-  softDeleteAdminUser,
-  softDeleteAdminUsers,
-  updateAdminUser,
-} from '@/features/admin/api/users';
+import type { AdminAPI } from '@/features/admin/types/admin.types';
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { syncAllEmbeddings, syncEmbeddings } from '@/features/admin/api/embeddings';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 import { useTranslations } from 'next-intl';
@@ -29,7 +20,11 @@ export function useUsersMutations() {
 
   const updateMutation = useMutation({
     mutationFn: (payload: Pick<AdminAPI.User, 'id' | 'role'>) =>
-      updateAdminUser(payload.id, { role: payload.role }),
+      fetchFromActionRoute<AdminAPI.UpdateUser.Response>(`/api/admin/users/${encodeURIComponent(payload.id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: payload.role }),
+      }),
     onSuccess: async () => {
       await invalidateAndRefetch();
       toast.success(t('userUpdated'));
@@ -40,7 +35,11 @@ export function useUsersMutations() {
   });
 
   const softDeleteMutation = useMutation({
-    mutationFn: (id: string) => softDeleteAdminUser(id),
+    mutationFn: (id: string) =>
+      fetchFromActionRoute<AdminAPI.PatchUser.Response>(
+        `/api/admin/users/${encodeURIComponent(id)}/soft-delete`,
+        { method: 'POST' },
+      ),
     onSuccess: async () => {
       await invalidateAndRefetch();
       toast.success(t('userSoftDeleted'));
@@ -52,7 +51,11 @@ export function useUsersMutations() {
 
   const softDeleteManyMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      await softDeleteAdminUsers(ids);
+      await fetchFromActionRoute<AdminAPI.PatchUsersBatch.Response>('/api/admin/users/batch/soft-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
       return ids.length;
     },
     onSuccess: async (count) => {
@@ -67,7 +70,11 @@ export function useUsersMutations() {
   });
 
   const hardDeleteMutation = useMutation({
-    mutationFn: (id: string) => hardDeleteAdminUser(id),
+    mutationFn: (id: string) =>
+      fetchFromActionRoute<AdminAPI.DeleteUser.Response>(
+        `/api/admin/users/${encodeURIComponent(id)}`,
+        { method: 'DELETE' },
+      ),
     onSuccess: async () => {
       await invalidateAndRefetch();
       toast.success(t('userPermDeleted'));
@@ -78,7 +85,11 @@ export function useUsersMutations() {
   });
 
   const restoreMutation = useMutation({
-    mutationFn: (id: string) => restoreAdminUser(id),
+    mutationFn: (id: string) =>
+      fetchFromActionRoute<AdminAPI.PatchUser.Response>(
+        `/api/admin/users/${encodeURIComponent(id)}/restore`,
+        { method: 'POST' },
+      ),
     onSuccess: async () => {
       await invalidateAndRefetch();
       toast.success(t('userRestored'));
@@ -90,7 +101,11 @@ export function useUsersMutations() {
 
   const restoreManyMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      await restoreAdminUsers(ids);
+      await fetchFromActionRoute<AdminAPI.PatchUsersBatch.Response>('/api/admin/users/batch/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
       return ids.length;
     },
     onSuccess: async (count) => {
@@ -105,7 +120,15 @@ export function useUsersMutations() {
   });
 
   const embeddingSyncMutation = useMutation({
-    mutationFn: (userIds: string[]) => syncEmbeddings(userIds),
+    mutationFn: (userIds: string[]) =>
+      fetchFromActionRoute<{ accepted_user_ids: string[]; skipped_user_ids: string[] }>(
+        '/api/admin/embeddings/sync',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_ids: userIds }),
+        },
+      ),
     onSuccess: async (data: { accepted_user_ids: string[]; skipped_user_ids: string[] }) => {
       await invalidateAndRefetch();
       const accepted = data.accepted_user_ids?.length ?? 0;
@@ -119,7 +142,8 @@ export function useUsersMutations() {
   });
 
   const embeddingSyncAllMutation = useMutation({
-    mutationFn: () => syncAllEmbeddings(),
+    mutationFn: () =>
+      fetchFromActionRoute<{ message: string }>('/api/admin/embeddings/sync-all', { method: 'POST' }),
     onSuccess: async (data: { message: string }) => {
       await invalidateAndRefetch();
       toast.success(data.message || t('embeddingSyncAllDefault'));

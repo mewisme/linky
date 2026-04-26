@@ -1,42 +1,20 @@
-import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import { publicEnv } from "@/shared/env/public-env";
+import { blockUser } from "@/features/user/api/blocks";
+import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-
-    if (!authHeader) {
+    const body = (await request.json()) as { blocked_user_id?: string };
+    if (!body.blocked_user_id?.trim()) {
       return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
+        { error: "Bad Request", message: "blocked_user_id is required" },
+        { status: 400 },
       );
     }
-
-    const body = await request.json();
-
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/users/blocks`, {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
+    const data = await blockUser(body.blocked_user_id.trim());
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    Sentry.logger.error("Error in POST /api/users/blocks", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to block user" },
-      { status: 500 }
-    );
+    return nextResponseFromActionError(error, "POST /api/users/blocks");
   }
 }

@@ -2,7 +2,7 @@
 
 import { UserDetails, UserSettings, UserState, useUserStore } from "@/entities/user/model/user-store";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
-import { updateUserCountry } from "@/features/user/api/profile";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { UserAuthProvider, useUserAuthContext } from "./user-auth-provider";
 import { UserTokenProvider, useUserTokenContext } from "./user-token-provider";
@@ -50,7 +50,11 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
 
   const updateUserCountryAndSyncStore = useCallback(
     async (country: string) => {
-      const result = await updateUserCountry(country);
+      const result = await fetchFromActionRoute<UsersAPI.UpdateCountry.Response>("/api/users/me/country", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ country }),
+      });
       store.setUser(result);
       return result;
     },

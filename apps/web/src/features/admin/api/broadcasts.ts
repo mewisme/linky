@@ -4,8 +4,6 @@ import { withSentryAction, withSentryQuery } from '@/lib/monitoring/with-action'
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { backendUrl } from '@/lib/http/backend-url';
-import { cacheTags } from '@/lib/cache/tags';
-import { revalidateTag } from 'next/cache';
 import { serverFetch } from '@/lib/http/server-api';
 import { toURLSearchParams, type ServerActionQueryParams } from '@/lib/http/query-params';
 
@@ -22,14 +20,11 @@ export async function getBroadcasts(
 export async function createBroadcast(
   data: AdminAPI.Broadcasts.Post.Body
 ): Promise<AdminAPI.Broadcasts.Post.Response> {
-  return withSentryAction("createBroadcast", async () => {
-    const result = await serverFetch<AdminAPI.Broadcasts.Post.Response>(
+  return withSentryAction("createBroadcast", async () =>
+    serverFetch<AdminAPI.Broadcasts.Post.Response>(
       backendUrl.admin.broadcasts(),
       { method: 'POST', body: JSON.stringify(data) }
-    );
-    revalidateTag(cacheTags.adminBroadcasts, 'max');
-    return result;
-  });
+    ));
 }
 
 export async function generateBroadcastAiDraft(

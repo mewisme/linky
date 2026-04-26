@@ -305,9 +305,17 @@ export function useVideoChat(): UseVideoChatReturn {
     }
   }, []);
 
+  const stopActiveScreenShare = useCallback(() => {
+    removeScreenTrackEndedListener();
+    screenShare.stopScreenShare();
+    actionsRef.current.setSharingScreen(false);
+    actionsRef.current.setScreenStream(null);
+    socketSignaling.sendScreenShareToggle(false);
+  }, [removeScreenTrackEndedListener, screenShare, socketSignaling]);
+
   const resetPeerState = useCallback(() => {
     iceRestartCancelRef.current = true;
-    removeScreenTrackEndedListener();
+    stopActiveScreenShare();
     recoveryController.stop();
     iceServerCache.resetSession();
     mediaStream.releaseMedia();
@@ -316,15 +324,16 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setLocalStream(null);
     actionsRef.current.setMuted(false);
     actionsRef.current.setVideoOff(false);
-  }, [mediaStream, peerConnection, removeScreenTrackEndedListener]);
+  }, [mediaStream, peerConnection, stopActiveScreenShare]);
 
   const resetRuntimeState = useCallback(() => {
+    stopActiveScreenShare();
     recoveryController.stop();
     iceServerCache.resetSession();
     mediaStream.releaseMedia();
     peerConnection.closePeer();
     actionsRef.current.resetRuntimeState();
-  }, [mediaStream, peerConnection]);
+  }, [mediaStream, peerConnection, stopActiveScreenShare]);
 
   const cleanup = useCallback(() => {
     resetPeerState();

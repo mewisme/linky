@@ -1,6 +1,6 @@
 "use client";
 
-import { getUserSettings, updateUserSettings } from "@/features/user/api/settings";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import type { UserSettings, UserState } from "@/entities/user/model/user-store";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
@@ -33,7 +33,7 @@ export function UserSettingsProvider({ children, store }: { children: ReactNode;
     if (!auth.isLoaded || !auth.isSignedIn) return;
     store.setError(null);
     try {
-      const settings = await getUserSettings();
+      const settings = await fetchFromActionRoute<UsersAPI.UserSettings.GetMe.Response>("/api/users/settings");
       store.setUserSettings(settings);
       applyClientPreferences(settings);
     } catch (error) {
@@ -43,7 +43,11 @@ export function UserSettingsProvider({ children, store }: { children: ReactNode;
 
   const updateUserSettingsFn = useCallback(
     async (data: UsersAPI.UserSettings.PatchMe.Body): Promise<UserSettings> => {
-      const updated = await updateUserSettings(data);
+      const updated = await fetchFromActionRoute<UserSettings>("/api/users/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       store.setUserSettings(updated);
       applyClientPreferences(updated);
       return updated;

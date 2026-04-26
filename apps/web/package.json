@@ -48,6 +48,7 @@
     "react-markdown": "^10.1.0",
     "recharts": "3.6.0",
     "remark-gfm": "^4.0.1",
+    "server-only": "^0.0.1",
     "socket.io-client": "catalog:",
     "styled-jsx": "^5.1.7",
     "zod": "catalog:",

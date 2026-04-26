@@ -20,7 +20,7 @@ import { Button } from '@ws/ui/components/ui/button';
 import { IconLoader2 } from '@tabler/icons-react';
 import { Input } from '@ws/ui/components/ui/input';
 import { Label } from '@ws/ui/components/ui/label';
-import { findSimilarUsers } from '@/features/admin/api/embeddings';
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -77,7 +77,11 @@ export function FindSimilarUsersModal({
     setError(null);
     setResult(null);
     try {
-      const data = await findSimilarUsers(user.id, effectiveLimit);
+      const data = await fetchFromActionRoute<FindSimilarResponse>('/api/admin/embeddings/similar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: user.id, limit: effectiveLimit }),
+      });
       setResult(data as unknown as FindSimilarResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : te('findSimilarFailed'));

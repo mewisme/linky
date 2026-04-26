@@ -21,11 +21,11 @@ export function LocaleSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={
+      <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon" aria-label={t("language")}>
           <CountryFlag countryCode={locale === "en" ? "US" : "VN"} />
         </Button>
-      } />
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">
         {routing.locales.map((loc) => (
           <DropdownMenuItem

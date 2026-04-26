@@ -5,7 +5,7 @@ import { Button } from '@ws/ui/components/ui/button'
 import type { CallHistoryResponse } from '@/entities/call-history/types/call-history.types'
 import { IconRefresh } from '@tabler/icons-react'
 import dynamic from 'next/dynamic'
-import { getCallHistory } from '@/actions/resources/call-history'
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useQuery } from '@ws/ui/internal-lib/react-query'
 
 const CallHistoryDataTable = dynamic(
@@ -20,7 +20,8 @@ interface Props {
 export function CallHistoryClient({ initialData }: Props) {
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['call-history'],
-    queryFn: () => getCallHistory(),
+    queryFn: () =>
+      fetchFromActionRoute<CallHistoryResponse>('/api/resources/call-history?limit=50&offset=0'),
     initialData,
     staleTime: Infinity,
   })

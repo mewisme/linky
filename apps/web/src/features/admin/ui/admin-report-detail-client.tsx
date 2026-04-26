@@ -16,7 +16,7 @@ import { Textarea } from '@ws/ui/components/ui/textarea'
 import { formatDuration } from '@/entities/call-history/utils/call-history'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useLocale, useTranslations } from 'next-intl'
-import { generateAdminReportAiSummary, updateAdminReport } from '@/features/admin/api/reports'
+import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
 const DATE_FMT: Intl.DateTimeFormatOptions = {
@@ -81,7 +81,15 @@ export function AdminReportDetailClient({ report }: Props) {
   }, [report])
 
   const updateMutation = useMutation({
-    mutationFn: (body: AdminAPI.Reports.Update.Body) => updateAdminReport(report.id, body),
+    mutationFn: (body: AdminAPI.Reports.Update.Body) =>
+      fetchFromActionRoute<AdminAPI.Reports.Update.Response>(
+        `/api/admin/reports/${encodeURIComponent(report.id)}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        },
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-report', report.id] })
       await queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
@@ -94,7 +102,11 @@ export function AdminReportDetailClient({ report }: Props) {
   })
 
   const generateAiMutation = useMutation({
-    mutationFn: () => generateAdminReportAiSummary(report.id),
+    mutationFn: () =>
+      fetchFromActionRoute<{ success: true }>(
+        `/api/admin/reports/${encodeURIComponent(report.id)}/ai-summary`,
+        { method: 'POST' },
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-report', report.id] })
       await queryClient.invalidateQueries({ queryKey: ['admin-reports'] })

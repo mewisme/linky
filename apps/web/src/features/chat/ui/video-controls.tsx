@@ -52,9 +52,7 @@ import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "r
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useLocale, useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
-import { useVideoChatStore } from "@/features/call/model/video-chat-store";
-import { getFavorites, addFavorite, removeFavorite } from "@/actions/resources/favorites";
-import { createReport } from "@/actions/resources/reports";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
@@ -103,6 +101,9 @@ interface VideoControlsProps {
   onToggleChat: () => void;
   onToggleScreenShare?: () => void;
   isSharingScreen?: boolean;
+  canTogglePictureInPicture?: boolean;
+  isPictureInPictureActive?: boolean;
+  onTogglePictureInPicture?: () => void;
   onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   initialFavorites?: ResourcesAPI.Favorites.Get.Response | null;
@@ -151,7 +152,7 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
 
   return (
     <Tooltip>
-      <TooltipTrigger render={
+      <TooltipTrigger asChild>
         <Button
           onClick={handleClick}
           disabled={isDisabled}
@@ -163,7 +164,7 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
           <Icon className="size-5" />
           {config.badge}
         </Button>
-      } />
+      </TooltipTrigger>
       <TooltipContent>
         <p>{label}</p>
       </TooltipContent>
@@ -189,6 +190,9 @@ export function VideoControls({
   onToggleChat,
   onToggleScreenShare,
   isSharingScreen = false,
+  canTogglePictureInPicture = false,
+  isPictureInPictureActive = false,
+  onTogglePictureInPicture,
   onBlockUser,
   sendFavoriteNotification,
   initialFavorites,
@@ -205,7 +209,6 @@ export function VideoControls({
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
-  const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
 
   useEffect(() => {
     if (!peerInfo?.id) {
@@ -227,7 +230,9 @@ export function VideoControls({
       if (!mounted) return;
 
       try {
-        const data = await getFavorites();
+        const data = await fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>(
+          "/api/resources/favorites",
+        );
 
         if (!mounted) return;
 
@@ -262,7 +267,11 @@ export function VideoControls({
 
     try {
       if (isAdding) {
-        await addFavorite(peerInfo.id);
+        await fetchFromActionRoute<ResourcesAPI.Favorites.Create.Response>("/api/resources/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ favorite_user_id: peerInfo.id }),
+        });
 
         setIsFavorite(true);
         trackEvent({ name: "favorite_added" });
@@ -271,7 +280,10 @@ export function VideoControls({
         const userName = user.user?.fullName || user.user?.firstName || t("someoneFallback");
         sendFavoriteNotification("added", peerInfo.id, userName || t("someoneFallback"));
       } else {
-        await removeFavorite(peerInfo.id);
+        await fetchFromActionRoute<ResourcesAPI.Favorites.Delete.Response>(
+          `/api/resources/favorites/${encodeURIComponent(peerInfo.id)}`,
+          { method: "DELETE" },
+        );
 
         setIsFavorite(false);
         trackEvent({ name: "favorite_removed" });
@@ -444,12 +456,11 @@ export function VideoControls({
         icon: IconPictureInPicture,
         label: t("controls.pictureInPicture"),
         variant: "outline",
-        onClick: () => {
-          useVideoChatStore.getState().setFloatingMode(!isFloatingMode);
-        },
-        visible: isInActiveCall && isMobile,
+        onClick: () => onTogglePictureInPicture?.(),
+        visible: isInActiveCall,
+        disabled: !canTogglePictureInPicture || !onTogglePictureInPicture,
         dynamicLabel: () =>
-          isFloatingMode ? t("controls.exitPictureInPicture") : t("controls.pictureInPicture"),
+          isPictureInPictureActive ? t("controls.exitPictureInPicture") : t("controls.pictureInPicture"),
         testId: "chat-pip-toggle-button",
       },
       {
@@ -486,8 +497,10 @@ export function VideoControls({
       handleToggleFavorite,
       isFavorite,
       isFavoriteLoading,
-      isFloatingMode,
       isMobile,
+      canTogglePictureInPicture,
+      isPictureInPictureActive,
+      onTogglePictureInPicture,
       hideChatToggle,
     ]
   );
@@ -668,10 +681,17 @@ export function VideoControls({
 
                   setIsSubmittingReport(true);
                   try {
-                    await createReport({
-                      reported_user_id: peerInfo.id,
-                      reason: reportReason.trim(),
-                    });
+                    await fetchFromActionRoute<ResourcesAPI.Reports.Create.Response>(
+                      "/api/resources/reports",
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          reported_user_id: peerInfo.id,
+                          reason: reportReason.trim(),
+                        }),
+                      },
+                    );
 
                     trackEvent({ name: "report_submitted" });
                     toast.success(t("reportSubmitted"));

@@ -58,7 +58,11 @@ export function MoreOptionsMenu({
           <p>{t("moreOptions")}</p>
         </TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="end" side="top" className="mb-2">
+      <DropdownMenuContent
+        align="end"
+        side="top"
+        className="mb-2 w-max min-w-max"
+      >
         {controls.map((control) => {
           const Icon = control.dynamicIcon?.(context) ?? control.icon;
           const label = control.dynamicLabel?.(context) ?? control.label;
@@ -85,6 +89,7 @@ export function MoreOptionsMenu({
               }}
               disabled={isDisabled}
               data-testid={testId}
+              className="whitespace-nowrap"
             >
               <Icon className="size-4" />
               <span>{label}</span>

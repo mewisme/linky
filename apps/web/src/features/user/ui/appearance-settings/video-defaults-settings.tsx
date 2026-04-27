@@ -23,9 +23,6 @@ export function VideoDefaultsSettings({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        {t('appearancePage.videoDefaults')}
-      </h3>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
@@ -44,7 +41,6 @@ export function VideoDefaultsSettings({
             disabled={false}
           />
         </div>
-        <Separator />
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="disable-camera" className="flex items-center gap-2">

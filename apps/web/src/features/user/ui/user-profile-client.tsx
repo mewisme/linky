@@ -36,59 +36,57 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
   }, [storeUserDetails, initialUserDetails])
 
   return (
-    <Card className="overflow-hidden border-0 bg-card shadow-sm ring-1 ring-border/50 sm:rounded-2xl">
-      <CardContent className="p-0">
-        <div className="flex flex-col">
-          <section
-            aria-label={tp('profileIdentityAria')}
-            className="group/profile-header relative flex flex-col items-center gap-6 border-b border-border/50 bg-muted/20 px-4 py-8 sm:flex-row sm:items-start sm:gap-8 sm:px-6 sm:py-10"
-          >
-            <ProfileAvatar user={user!} />
-            <ProfileNameFields
-              user={user!}
-              userStore={userStore}
-              updateUserCountry={updateUserCountry}
-              startEditingSignal={headerEditSignal}
-              onEditingChange={setIsHeaderEditing}
-            />
-            {!isHeaderEditing && (
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="absolute right-4 top-4 gap-1 text-muted-foreground sm:right-6 sm:top-6 sm:opacity-0 sm:transition-opacity sm:group-hover/profile-header:opacity-100"
-                onClick={() => setHeaderEditSignal((current) => current + 1)}
-              >
-                <IconEdit className="size-4" />
-                {tp('edit')}
-              </Button>
-            )}
-          </section>
+    <CardContent className="p-0">
+      <div className="flex flex-col">
+        <section
+          aria-label={tp('profileIdentityAria')}
+          className="group/profile-header relative flex flex-col items-center gap-6 border-b border-border/50 bg-muted/20 px-4 py-8 sm:flex-row sm:items-start sm:gap-8 sm:px-6 sm:py-10"
+        >
+          <ProfileAvatar user={user!} />
+          <ProfileNameFields
+            user={user!}
+            userStore={userStore}
+            updateUserCountry={updateUserCountry}
+            startEditingSignal={headerEditSignal}
+            onEditingChange={setIsHeaderEditing}
+          />
+          {!isHeaderEditing && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="absolute right-4 top-4 gap-1 text-muted-foreground sm:right-6 sm:top-6 sm:opacity-0 sm:transition-opacity sm:group-hover/profile-header:opacity-100"
+              onClick={() => setHeaderEditSignal((current) => current + 1)}
+            >
+              <IconEdit className="size-4" />
+              {tp('edit')}
+            </Button>
+          )}
+        </section>
 
-          <section
-            aria-label={tp('additionalInfoAria')}
-            className="flex flex-col gap-4 px-4 py-6 sm:gap-5 sm:px-6 sm:py-8"
-          >
-            <h2 className="sr-only">{tp('additionalInfoHeading')}</h2>
+        <section
+          aria-label={tp('additionalInfoAria')}
+          className="flex flex-col gap-4 px-4 py-6 sm:gap-5 sm:px-6 sm:py-8"
+        >
+          <h2 className="sr-only">{tp('additionalInfoHeading')}</h2>
 
-            <BioSection
-              userDetails={userDetails}
-              updateUserDetails={updateUserDetails}
-            />
+          <BioSection
+            userDetails={userDetails}
+            updateUserDetails={updateUserDetails}
+          />
 
-            <PersonalInfoSection
-              userDetails={userDetails}
-              updateUserDetails={updateUserDetails}
-            />
+          <PersonalInfoSection
+            userDetails={userDetails}
+            updateUserDetails={updateUserDetails}
+          />
 
-            <InterestTagsSection
-              userDetails={userDetails}
-              updateUserDetails={updateUserDetails}
-            />
-          </section>
-        </div>
-      </CardContent>
-    </Card>
+          <InterestTagsSection
+            userDetails={userDetails}
+            updateUserDetails={updateUserDetails}
+          />
+        </section>
+      </div>
+    </CardContent>
   )
 }
 
@@ -104,7 +102,7 @@ export function UserProfileClient({ initialUserDetails }: Props) {
   if (!isLoaded || !user) return null
 
   return (
-    <AppLayout sidebarItem="profile" className="space-y-4">
+    <AppLayout sidebarItem="profile" className="space-y-4" shaderCard>
       <ProfilePageContent initialUserDetails={initialUserDetails} />
     </AppLayout>
   )

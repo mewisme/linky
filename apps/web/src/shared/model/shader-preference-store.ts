@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ShaderPresetType, ShaderType } from "@ws/ui/components/mew-ui/shader";
+import type {
+  ShaderPresetType,
+  ShaderRenderMap,
+  ShaderType,
+} from "@ws/ui/components/mew-ui/shader";
 import {
   getDefaultShaderPreferences,
   normalizeUserShaderPreferences,
@@ -9,8 +13,14 @@ import {
 interface ShaderPreferenceState {
   type: ShaderType;
   preset: ShaderPresetType;
-  disableAnimation: boolean;
-  setShader: (shader: { type: ShaderType; preset: ShaderPresetType; disableAnimation: boolean }) => void;
+  disabled: boolean;
+  props?: ShaderRenderMap[ShaderType];
+  setShader: (shader: {
+    type: ShaderType;
+    preset: ShaderPresetType;
+    disabled: boolean;
+    props?: ShaderRenderMap[ShaderType];
+  }) => void;
   setFromUnknown: (value: unknown) => void;
 }
 
@@ -21,18 +31,21 @@ export const useShaderPreferenceStore = create<ShaderPreferenceState>()(
     (set) => ({
       type: defaults.type,
       preset: defaults.preset,
-      disableAnimation: defaults.disableAnimation,
+      disabled: defaults.disabled,
+      props: defaults.props,
       setShader: (shader) => set({
         type: shader.type,
         preset: shader.preset,
-        disableAnimation: shader.disableAnimation,
+        disabled: shader.disabled,
+        props: shader.props,
       }),
       setFromUnknown: (value) => {
         const normalized = normalizeUserShaderPreferences(value);
         set({
           type: normalized.type,
           preset: normalized.preset,
-          disableAnimation: normalized.disableAnimation,
+          disabled: normalized.disabled,
+          props: normalized.props,
         });
       },
     }),

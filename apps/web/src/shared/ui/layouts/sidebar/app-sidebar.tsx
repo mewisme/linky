@@ -26,7 +26,6 @@ import { useMenuItems, type MenuItem } from './menu-items';
 import { isAdmin, isSuperAdmin } from '@/shared/utils/roles';
 import { AppSidebarHeader } from './app-sidebar-header';
 import { useDevelopmentStore } from '@/shared/model/development-store';
-import { useShaderPreferenceStore } from '@/shared/model/shader-preference-store';
 
 export type { MenuItem };
 
@@ -58,7 +57,6 @@ export function AppSidebar() {
   useEffect(() => {
     useSidebarStore.persist.rehydrate();
     useDevelopmentStore.persist.rehydrate();
-    useShaderPreferenceStore.persist.rehydrate();
   }, []);
 
   useEffect(() => {

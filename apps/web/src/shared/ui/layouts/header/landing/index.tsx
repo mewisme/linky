@@ -110,7 +110,7 @@ export const Header = ({ transition }: { transition: boolean }) => {
           className="absolute z-110 flex items-center gap-x-4"
         >
           <Activity mode={!isSignedIn ? 'visible' : 'hidden'}>
-            <ButtonGroup className="space-x-2" orientation="horizontal">
+            <ButtonGroup orientation="horizontal">
               <ModeToggle />
               <LocaleSwitcher />
             </ButtonGroup>

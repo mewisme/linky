@@ -6,7 +6,10 @@ export default function TestPage() {
   return (
     <div className="w-full h-full">
       <Shader
-        type='heatmap' preset='sepia' className="w-96 h-96" fit="contain"
+        type='heatmap'
+        preset='sepia'
+        className="w-96 h-96"
+        props={{ fit: 'contain' }}
       />
     </div>
   );

@@ -47,7 +47,7 @@ export function NotificationsPanel({
         )}
       </div>
 
-      <ScrollArea className="max-h-[350px]">
+      <ScrollArea className="h-[350px]">
         {notifications.length === 0 && !isLoading && (
           <div
             className="flex flex-col items-center justify-center py-12 text-center px-4"

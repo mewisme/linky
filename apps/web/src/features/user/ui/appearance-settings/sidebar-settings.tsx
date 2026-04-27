@@ -29,9 +29,6 @@ export function SidebarSettings({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        {t('appearancePage.sidebarSection')}
-      </h3>
       <div className="grid gap-4">
         <div className="flex justify-between">
           <div className="space-y-2">

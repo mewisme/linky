@@ -12,7 +12,6 @@ import { motion } from "@ws/ui/internal-lib/motion";
 import { useTranslations } from "next-intl";
 import { ShaderButton } from "@ws/ui/components/mew-ui/shader";
 import { Link } from "@/i18n/navigation";
-import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 
 interface HeroProps {
   startChatHref: string;
@@ -24,7 +23,6 @@ const ICONS = [IconWorld, IconBolt, IconShieldCheck] as const;
 
 export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
   const t = useTranslations("marketing");
-  const shader = useShaderPreference();
   const title = t("hero.title");
   const features = t.raw("hero.features") as { title: string; desc: string }[];
   return (
@@ -100,7 +98,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
         <div className="flex flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 md:px-8">
           <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.45}>
             <div className="w-full flex justify-center">
-              <ShaderButton shader={{ type: shader.type, preset: shader.preset, disableAnimation: false }} nativeButton={false} render={<Link href={startChatHref} prefetch data-testid="start-chat-button" />}>
+              <ShaderButton nativeButton={false} render={<Link href={startChatHref} prefetch data-testid="start-chat-button" />}>
                 {isSignedIn && isLoaded ? t("hero.ctaSignedIn") : t("hero.ctaSignedOut")}
               </ShaderButton>
             </div>

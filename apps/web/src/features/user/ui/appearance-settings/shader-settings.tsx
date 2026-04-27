@@ -1,21 +1,24 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import type {
-  GemSmokePresetType,
-  GodRaysPresetType,
-  HeatmapPresetType,
-  LiquidMetalPresetType,
-  MeshGradientPresetType,
-  NeuroNoisePresetType,
-  PerlinNoisePresetType,
-  SpiralPresetType,
-  ShaderPresetType,
-  ShaderType,
-  SwirlPresetType,
-  WarpPresetType,
+import {
+  type GemSmokePresetType,
+  type GodRaysPresetType,
+  type HeatmapPresetType,
+  type LiquidMetalPresetType,
+  type MeshGradientPresetType,
+  type NeuroNoisePresetType,
+  type PerlinNoisePresetType,
+  type SpiralPresetType,
+  type ShaderPresetType,
+  type ShaderRenderMap,
+  type ShaderType,
+  type SwirlPresetType,
+  type WarpPresetType,
+  getShaderSliderFields,
+  getShaderSliderValue,
+  Shader,
 } from '@ws/ui/components/mew-ui/shader'
-import { Shader } from '@ws/ui/components/mew-ui/shader'
 import {
   Select,
   SelectContent,
@@ -23,10 +26,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ws/ui/components/ui/select'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@ws/ui/components/ui/accordion'
 import { Label } from '@ws/ui/components/ui/label'
+import { Slider } from '@ws/ui/components/ui/slider'
 import { Switch } from '@ws/ui/components/ui/switch'
+import { Button } from '@ws/ui/components/ui/button'
 import { getShaderPresets } from '@/entities/user/lib'
+
+function formatShaderPropLabel(key: string) {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+    .toLowerCase()
+}
+
+function formatPresetLabel(value: string) {
+  return value
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}
 
 type Props = {
   shaderType: ShaderType
@@ -35,6 +52,11 @@ type Props = {
   setShaderType: (value: ShaderType) => void
   setShaderPreset: (value: ShaderPresetType) => void
   setShaderAnimationEnabled: (value: boolean) => void
+  shaderProps?: ShaderRenderMap[ShaderType]
+  setShaderProp: (key: string, value: number) => void
+  onSaveDetails: () => Promise<void>
+  isSavingDetails: boolean
+  hasUnsavedDetails: boolean
   disabled: boolean
 }
 
@@ -45,6 +67,11 @@ export function ShaderSettings({
   setShaderType,
   setShaderPreset,
   setShaderAnimationEnabled,
+  shaderProps,
+  setShaderProp,
+  onSaveDetails,
+  isSavingDetails,
+  hasUnsavedDetails,
   disabled,
 }: Props) {
   const t = useTranslations('settings')
@@ -127,39 +154,84 @@ export function ShaderSettings({
         }
     }
   })() as React.ComponentProps<typeof Shader>
+  const sliderFields = getShaderSliderFields(shaderType)
+  const shaderPropLabels: Record<string, string> = {
+    repetition: t('appearancePage.shaderPropLabels.repetition'),
+    softness: t('appearancePage.shaderPropLabels.softness'),
+    shiftRed: t('appearancePage.shaderPropLabels.shiftRed'),
+    shiftBlue: t('appearancePage.shaderPropLabels.shiftBlue'),
+    distortion: t('appearancePage.shaderPropLabels.distortion'),
+    contour: t('appearancePage.shaderPropLabels.contour'),
+    angle: t('appearancePage.shaderPropLabels.angle'),
+    speed: t('appearancePage.shaderPropLabels.speed'),
+    scale: t('appearancePage.shaderPropLabels.scale'),
+    offsetX: t('appearancePage.shaderPropLabels.offsetX'),
+    offsetY: t('appearancePage.shaderPropLabels.offsetY'),
+    swirl: t('appearancePage.shaderPropLabels.swirl'),
+    grainMixer: t('appearancePage.shaderPropLabels.grainMixer'),
+    grainOverlay: t('appearancePage.shaderPropLabels.grainOverlay'),
+    rotation: t('appearancePage.shaderPropLabels.rotation'),
+    originX: t('appearancePage.shaderPropLabels.originX'),
+    originY: t('appearancePage.shaderPropLabels.originY'),
+    proportion: t('appearancePage.shaderPropLabels.proportion'),
+    swirlIterations: t('appearancePage.shaderPropLabels.swirlIterations'),
+    shapeScale: t('appearancePage.shaderPropLabels.shapeScale'),
+    density: t('appearancePage.shaderPropLabels.density'),
+    strokeWidth: t('appearancePage.shaderPropLabels.strokeWidth'),
+    strokeTaper: t('appearancePage.shaderPropLabels.strokeTaper'),
+    strokeCap: t('appearancePage.shaderPropLabels.strokeCap'),
+    noise: t('appearancePage.shaderPropLabels.noise'),
+    noiseFrequency: t('appearancePage.shaderPropLabels.noiseFrequency'),
+    bandCount: t('appearancePage.shaderPropLabels.bandCount'),
+    center: t('appearancePage.shaderPropLabels.center'),
+    brightness: t('appearancePage.shaderPropLabels.brightness'),
+    contrast: t('appearancePage.shaderPropLabels.contrast'),
+    octaveCount: t('appearancePage.shaderPropLabels.octaveCount'),
+    persistence: t('appearancePage.shaderPropLabels.persistence'),
+    lacunarity: t('appearancePage.shaderPropLabels.lacunarity'),
+    bloom: t('appearancePage.shaderPropLabels.bloom'),
+    intensity: t('appearancePage.shaderPropLabels.intensity'),
+    spotty: t('appearancePage.shaderPropLabels.spotty'),
+    midSize: t('appearancePage.shaderPropLabels.midSize'),
+    midIntensity: t('appearancePage.shaderPropLabels.midIntensity'),
+  }
+
+  const getSliderValue = (field: (typeof sliderFields)[number]) => {
+    return getShaderSliderValue(
+      shaderType,
+      shaderPreset,
+      field.key,
+      shaderProps as Record<string, unknown> | undefined
+    )
+  }
+
+  const getSliderLabel = (key: string) => {
+    return shaderPropLabels[key] ?? formatShaderPropLabel(key)
+  }
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        {t('appearancePage.shaderSection')}
-      </h3>
       <div className="grid gap-4">
-        <Accordion className="w-full" type='single'>
-          <AccordionItem value="shader-preview" className="border-b-0">
-            <AccordionTrigger className="py-0 text-sm font-medium hover:no-underline">
-              {t('appearancePage.shaderPreview')}
-            </AccordionTrigger>
-            <AccordionContent className="pt-2">
-              <div className="relative h-28 overflow-hidden rounded-xl border border-border/60 bg-card">
-                <Shader
-                  width="100%"
-                  className='h-96'
-                  disableAnimation={!shaderAnimationEnabled}
-                  {...previewShaderProps}
-                />
-                <div className="absolute inset-[2px] rounded-[10px] border border-white/10 bg-black/20" />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-        <div className="flex justify-between">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="shader-animation">{t('appearancePage.shaderAnimation')}</Label>
+            <p className="text-sm text-muted-foreground">{t('appearancePage.shaderAnimationHint')}</p>
+          </div>
+          <Switch
+            id="shader-animation"
+            checked={shaderAnimationEnabled}
+            onCheckedChange={setShaderAnimationEnabled}
+            disabled={disabled}
+          />
+        </div>
+        <div className="flex items-center  justify-between">
           <div className="space-y-2">
             <Label htmlFor="shader-type">{t('appearancePage.shaderType')}</Label>
             <p className="text-sm text-muted-foreground">{t('appearancePage.shaderTypeHint')}</p>
           </div>
           <Select value={shaderType} onValueChange={(value) => setShaderType((value as ShaderType) ?? 'gem-smoke')} disabled={disabled}>
             <SelectTrigger id="shader-type">
-              <SelectValue>{shaderTypeLabel}</SelectValue>
+              <SelectValue className="capitalize">{shaderTypeLabel}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="gem-smoke">{t('appearancePage.shaderTypeGemSmoke')}</SelectItem>
@@ -175,7 +247,7 @@ export function ShaderSettings({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex justify-between">
+        <div className="flex  items-center justify-between">
           <div className="space-y-2">
             <Label htmlFor="shader-preset">{t('appearancePage.shaderPreset')}</Label>
             <p className="text-sm text-muted-foreground">{t('appearancePage.shaderPresetHint')}</p>
@@ -190,25 +262,77 @@ export function ShaderSettings({
             disabled={disabled}
           >
             <SelectTrigger id="shader-preset">
-              <SelectValue className="capitalize">{shaderPreset}</SelectValue>
+              <SelectValue>{formatPresetLabel(shaderPreset)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {presets.map((preset) => (
-                <SelectItem key={preset} value={preset} className="capitalize">{preset}</SelectItem>
+                <SelectItem key={preset} value={preset}>{formatPresetLabel(preset)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="shader-animation">{t('appearancePage.shaderAnimation')}</Label>
-            <p className="text-sm text-muted-foreground">{t('appearancePage.shaderAnimationHint')}</p>
+        <div className='space-y-4'>
+          <div className="space-y-1">
+            <Label>{t('appearancePage.shaderDetailsTitle')}</Label>
+            <p className="text-sm text-muted-foreground">
+              {t('appearancePage.shaderDetailsHint')}
+            </p>
           </div>
-          <Switch
-            id="shader-animation"
-            checked={shaderAnimationEnabled}
-            onCheckedChange={setShaderAnimationEnabled}
-            disabled={disabled}
+          {sliderFields.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t('appearancePage.shaderDetailsEmpty')}
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                {sliderFields.map((field) => {
+                  const currentValue = getSliderValue(field)
+                  return (
+                    <div key={field.key} className="space-y-2 rounded-lg border border-border/50 p-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="capitalize">{getSliderLabel(field.key)}</Label>
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {Number(currentValue.toFixed(3))}
+                        </span>
+                      </div>
+                      <Slider
+                        value={[currentValue]}
+                        min={field.min}
+                        max={field.max}
+                        step={field.step}
+                        onValueChange={(value) => {
+                          const nextValue = value[0]
+                          if (typeof nextValue === 'number') {
+                            setShaderProp(field.key, nextValue)
+                          }
+                        }}
+                        disabled={disabled}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+              {hasUnsavedDetails ? (
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={() => void onSaveDetails()}
+                    disabled={disabled || isSavingDetails}
+                  >
+                    {t('appearancePage.save')}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+        <div className='h-56 w-full rounded-lg border border-border/50 p-1'>
+          <Shader
+            {...previewShaderProps}
+            props={shaderProps}
+            disabled={!shaderAnimationEnabled}
+            preview
+            className="h-full w-full rounded-lg"
           />
         </div>
       </div>

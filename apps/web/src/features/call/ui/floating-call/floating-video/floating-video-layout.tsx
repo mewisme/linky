@@ -1,7 +1,6 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
-import type { ComponentProps } from "react";
 
 import type { FloatingLayoutMode } from "./floating-video-state";
 import { IconMicrophoneOff } from "@tabler/icons-react";
@@ -9,7 +8,6 @@ import { useTranslations } from "next-intl";
 import { useMirrorLocalPreview, VideoPlayer } from "@/features/chat/ui/video-player";
 import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import { Shader } from "@ws/ui/components/mew-ui/shader";
-import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 
 interface PeerInfo {
   first_name?: string | null;
@@ -34,7 +32,6 @@ export function FloatingVideoLayout({
   layoutMode,
 }: FloatingVideoLayoutProps) {
   const tp = useTranslations("user.profile");
-  const shader = useShaderPreference();
   const isSharingScreen = useVideoChatStore((s) => s.isSharingScreen);
   const mirrorLocalPreview = useMirrorLocalPreview(localStream, isSharingScreen);
   const iconSize = isMobile ? "size-3" : "size-4";
@@ -133,16 +130,9 @@ export function FloatingVideoLayout({
   if (!content) {
     return null;
   }
-  const floatingShaderProps = {
-    type: shader.type,
-    preset: shader.preset,
-    disableAnimation: shader.disableAnimation,
-    className: "pointer-events-none absolute inset-0 z-10",
-  } as ComponentProps<typeof Shader>;
-
   return (
     <div className="relative h-full w-full overflow-hidden rounded-[4px]">
-      <Shader {...floatingShaderProps} />
+      <Shader className="pointer-events-none absolute inset-0 z-10" />
       <div className="absolute inset-[2px] z-20 overflow-hidden rounded-[4px] bg-black">
         {content}
       </div>

@@ -7,6 +7,7 @@ import { useRouter } from "@/i18n/navigation";
 import type { MenuItemId } from "@/shared/ui/layouts/sidebar/menu-items";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
+import { ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
 
 interface AppLayoutProps {
   label?: string;
@@ -16,6 +17,7 @@ interface AppLayoutProps {
   children: React.ReactNode;
   backButton?: boolean;
   className?: string;
+  shaderCard?: boolean;
 }
 
 export function AppLayout({
@@ -25,6 +27,7 @@ export function AppLayout({
   sidebarItem,
   backButton = false,
   className = "",
+  shaderCard = false,
 }: AppLayoutProps) {
   const router = useRouter();
   const t = useTranslations();
@@ -57,7 +60,15 @@ export function AppLayout({
           )}
         </div>
       </div>
-      <div className="h-full w-full">{children}</div>
+      <div className="h-full w-full">
+        {shaderCard ? (
+          <ShaderCard>
+            {children}
+          </ShaderCard>
+        ) : (
+          children
+        )}
+      </div>
     </div>
   );
 }

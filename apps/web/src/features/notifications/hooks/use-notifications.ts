@@ -15,7 +15,7 @@ import { useNotificationsStore } from "@/features/notifications/model/notificati
 import { useSocket } from "@/features/realtime/hooks/use-socket";
 import { useUserContext } from "@/providers/user/user-provider";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 let notificationsBootstrappedForUserId: string | null = null;
 let notificationsInFlight: Promise<void> | null = null;
 

@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@ws/ui/components/base-ui/card';
 import { Shader } from './shader';
+import { useShaderConfig } from './shader-config-provider';
 
 import { cn } from '@ws/ui/lib/utils';
 
@@ -28,8 +29,9 @@ function ShaderCard({
   shader,
   ...props
 }: ShaderCardProps) {
-  const shaderType = shader?.type ?? 'liquid-metal';
-  const shaderPreset = shader?.preset ?? 'default';
+  const shaderConfig = useShaderConfig();
+  const shaderType = shader?.type ?? shaderConfig.type;
+  const shaderPreset = shader?.preset ?? shaderConfig.preset;
   const shaderLayerClassName = cn('absolute inset-0 rounded-2xl', shader?.className);
   const shaderLayerProps = {
     ...shader,

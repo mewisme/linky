@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import type { ShaderType } from "@ws/ui/components/mew-ui/shader";
+import type { ShaderRenderMap, ShaderType } from "@ws/ui/components/mew-ui/shader";
 
 export type UserRole = "admin" | "member" | "superadmin";
 
@@ -125,7 +125,8 @@ export namespace UsersAPI {
     export interface Shader {
       type: ShaderType;
       preset?: string;
-      disableAnimation?: boolean;
+      disabled?: boolean;
+      props?: ShaderRenderMap[ShaderType];
     }
 
     export interface Sidebar {

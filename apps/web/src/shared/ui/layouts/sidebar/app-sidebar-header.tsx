@@ -35,13 +35,11 @@ import { useTheme } from 'next-themes';
 import { useUserContext } from '@/providers/user/user-provider';
 import { useUserStore } from '@/entities/user/model/user-store';
 import { useTranslations } from 'next-intl';
-import { useShaderPreference } from '@/shared/hooks/use-shader-preference';
 
 export function AppSidebarHeader() {
   const t = useTranslations();
   const { user: { user } } = useUserContext();
   const { user: userStore } = useUserStore();
-  const shader = useShaderPreference();
   const [dialogOpen, setDialogOpen] = useState(false);
   const isMobile = useIsMobile();
   const { setTheme } = useTheme();
@@ -54,7 +52,7 @@ export function AppSidebarHeader() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton size="lg">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <ShaderAvatar shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }} className="rounded-lg size-8">
+                  <ShaderAvatar className="rounded-lg size-8">
                     <AvatarImage src={user?.imageUrl} alt={`${user?.firstName} ${user?.lastName}`} />
                     <AvatarFallback>
                       {user?.firstName?.charAt(0) ||

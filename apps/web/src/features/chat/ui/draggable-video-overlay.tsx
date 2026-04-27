@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type ComponentProps } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { motion } from "@ws/ui/internal-lib/motion";
 
 import { IconVideoOff } from "@tabler/icons-react";
@@ -11,7 +11,6 @@ import {
 } from "@/features/call/model/video-chat-store";
 import { VideoPlayer } from "./video-player";
 import { Shader } from "@ws/ui/components/mew-ui/shader";
-import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 
 interface DraggableVideoOverlayProps {
   localStream: MediaStream | null;
@@ -100,7 +99,6 @@ export function DraggableVideoOverlay({
   isMobile = false,
   mirrored = false,
 }: DraggableVideoOverlayProps) {
-  const shader = useShaderPreference();
   const overlayRef = useRef<HTMLDivElement>(null);
   const latestPositionRef = useRef<OverlayPosition | null>(null);
   const hasInitializedPositionRef = useRef(false);
@@ -254,13 +252,6 @@ export function DraggableVideoOverlay({
   if (!localStream) return null;
 
   const transition = isDragging ? { duration: 0 } : springTransition;
-  const overlayShaderProps = {
-    type: shader.type,
-    preset: shader.preset,
-    disableAnimation: shader.disableAnimation,
-    className: "pointer-events-none absolute inset-0 z-10",
-  } as ComponentProps<typeof Shader>;
-
   return (
     <motion.div
       ref={overlayRef}
@@ -285,7 +276,7 @@ export function DraggableVideoOverlay({
       initial={false}
       onPointerDown={handlePointerDown}
     >
-      <Shader {...overlayShaderProps} />
+      <Shader className="pointer-events-none absolute inset-0 z-10" />
       <div className="absolute inset-[3px] z-20 overflow-hidden rounded-[6px] bg-black">
         <VideoPlayer
           stream={localStream}

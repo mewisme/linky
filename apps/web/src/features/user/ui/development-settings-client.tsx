@@ -28,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@ws/ui/components/animate-ui/components/radix/alert-dialog";
+import { ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
 
 export function DevelopmentSettingsClient() {
   const t = useTranslations("settings.developmentPage");
@@ -79,7 +80,7 @@ export function DevelopmentSettingsClient() {
       description={t("description")}
       className="space-y-4"
     >
-      <Card>
+      <ShaderCard>
         <CardHeader>
           <CardTitle>{t("cardTitle")}</CardTitle>
           <CardDescription>
@@ -105,7 +106,7 @@ export function DevelopmentSettingsClient() {
             />
           </div>
         </CardContent>
-      </Card>
+      </ShaderCard>
       <AlertDialog open={isEnableDialogOpen} onOpenChange={setIsEnableDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

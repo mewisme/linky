@@ -1,11 +1,6 @@
 'use client'
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@ws/ui/components/ui/avatar'
-
+import { ShaderAvatar, AvatarFallback, AvatarImage } from '@ws/ui/components/mew-ui/shader'
 import { IconCamera } from '@tabler/icons-react'
 import type { useUser } from '@clerk/nextjs'
 import { toast } from "@ws/ui/components/ui/sonner";
@@ -82,7 +77,6 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
   const { play: playSound } = useSoundWithSettings()
   const [isPending, setIsPending] = useState(false)
   const revealAfterLoadRef = useRef(false)
-
   const handleImageChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -124,7 +118,7 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
 
   return (
     <div className="relative group shrink-0">
-      <Avatar className="size-24 ring-2 ring-border/60 shadow-md sm:size-32 sm:ring-[3px] sm:ring-border/40">
+      <ShaderAvatar className="size-24 ring-2 ring-border/60 shadow-md sm:size-32 sm:ring-[3px] sm:ring-border/40">
         <AvatarImage
           src={user.imageUrl}
           alt={[user.firstName, user.lastName].filter(Boolean).join(' ') || tp('profilePhotoAlt')}
@@ -134,7 +128,7 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
         <AvatarFallback className="text-xl font-semibold sm:text-2xl">
           {user.firstName?.charAt(0) ?? user.emailAddresses?.[0]?.emailAddress?.charAt(0) ?? '?'}
         </AvatarFallback>
-      </Avatar>
+      </ShaderAvatar>
 
       <label
         htmlFor="avatar-upload"

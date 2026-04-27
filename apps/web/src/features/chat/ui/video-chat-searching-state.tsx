@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "@ws/ui/internal-lib/motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 import { CardContent, ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
 
 import { Link } from "@/i18n/navigation";
@@ -43,7 +42,6 @@ interface VideoChatSearchingStateProps {
 export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearchingStateProps) {
   const t = useTranslations("call.searching");
   const tControls = useTranslations("call.controls");
-  const shader = useShaderPreference();
   const hints = useMemo(() => HINT_KEYS.map((key) => t(key)), [t]);
 
   const [hintIndex, setHintIndex] = useState(0);
@@ -115,10 +113,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
       className="flex h-full w-full flex-col items-center justify-center pb-24 pt-8"
       data-reaction-exclude
     >
-      <ShaderCard
-        shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }}
-        className="w-full max-w-sm bg-card"
-      >
+      <ShaderCard className="w-full max-w-sm bg-card">
         <CardContent
           className="flex w-full flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
           style={{ animationFillMode: "backwards" }}

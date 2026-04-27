@@ -3,6 +3,7 @@
 import { Button } from '@ws/ui/components/base-ui/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Shader } from './shader';
+import { useShaderConfig } from './shader-config-provider';
 
 import { cn } from '@ws/ui/lib/utils';
 
@@ -41,8 +42,9 @@ export function ShaderButton({
   shader,
   ...props
 }: ShaderButtonProps) {
-  const shaderType = shader?.type ?? 'liquid-metal';
-  const shaderPreset = shader?.preset ?? 'default';
+  const shaderConfig = useShaderConfig();
+  const shaderType = shader?.type ?? shaderConfig.type;
+  const shaderPreset = shader?.preset ?? shaderConfig.preset;
   const shaderLayerClassName = cn('absolute inset-0 rounded-full', shader?.className);
   const shaderLayerProps = {
     ...shader,

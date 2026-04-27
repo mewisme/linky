@@ -31,7 +31,6 @@ import { useLocaleSwitch } from "@/shared/hooks/i18n/use-locale-switch";
 import type { UiLocale } from "@ws/shared-types";
 import { absoluteLocalePrefixedUrl } from "@/i18n/locale-path";
 import { ShaderAvatar, AvatarFallback, AvatarImage } from "@ws/ui/components/mew-ui/shader";
-import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 
 export function UserButton() {
   const t = useTranslations("sidebarHeader");
@@ -41,7 +40,6 @@ export function UserButton() {
   const locale = useLocale() as UiLocale;
   const { switchLocale } = useLocaleSwitch();
   const { setTheme } = useTheme();
-  const shader = useShaderPreference();
   const signOutRedirectUrl = useMemo(
     () => absoluteLocalePrefixedUrl(locale, "/sign-in"),
     [locale],
@@ -62,7 +60,7 @@ export function UserButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <ShaderAvatar shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }} className="size-8 cursor-pointer">
+        <ShaderAvatar className="size-8 cursor-pointer">
           <AvatarImage src={user.user?.imageUrl} alt={`${user.user?.firstName} ${user.user?.lastName}`} />
           <AvatarFallback>
             {user.user?.firstName?.charAt(0) ||

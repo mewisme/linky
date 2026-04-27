@@ -23,7 +23,8 @@ import {
   GodRays,
   type GodRaysProps,
 } from '@paper-design/shaders-react';
-import type { ShaderPropsMap, ShaderType } from './types';
+import type { ShaderPresetMap, ShaderRenderMap, ShaderType } from './types';
+import { useShaderConfig } from './shader-config-provider';
 import {
   liquidMetalPresets,
   gemSmokePresets,
@@ -38,49 +39,102 @@ import {
 } from './presets';
 
 export type ShaderProps<T extends ShaderType> = {
-  type: T;
+  type?: T;
+  preset?: keyof ShaderPresetMap[T];
+  props?: ShaderRenderMap[T];
   className?: string;
-  disableAnimation?: boolean;
-} & ShaderPropsMap[T];
+  disabled?: boolean;
+  preview?: boolean;
+};
 
 type AnyShaderProps = {
   [K in ShaderType]: ShaderProps<K>;
 }[ShaderType];
 
+function resolvePreset(type: ShaderType, preset: string | undefined) {
+  if (!preset) {
+    return 'default';
+  }
+
+  if (type === 'liquid-metal') {
+    return preset in liquidMetalPresets ? preset : 'default';
+  }
+
+  if (type === 'gem-smoke') {
+    return preset in gemSmokePresets ? preset : 'default';
+  }
+
+  if (type === 'heatmap') {
+    return preset in heatmapPresets ? preset : 'default';
+  }
+
+  if (type === 'mesh-gradient') {
+    return preset in meshGradientPresets ? preset : 'default';
+  }
+
+  if (type === 'warp') {
+    return preset in warpPresets ? preset : 'default';
+  }
+
+  if (type === 'spiral') {
+    return preset in spiralPresets ? preset : 'default';
+  }
+
+  if (type === 'swirl') {
+    return preset in swirlPresets ? preset : 'default';
+  }
+
+  if (type === 'neuro-noise') {
+    return preset in neuroNoisePresets ? preset : 'default';
+  }
+
+  if (type === 'perlin-noise') {
+    return preset in perlinNoisePresets ? preset : 'default';
+  }
+
+  return preset in godRaysPresets ? preset : 'default';
+}
+
 
 export function Shader(props: AnyShaderProps) {
-  if (props.disableAnimation) {
+  const shaderConfig = useShaderConfig();
+  const shaderType = props.type ?? shaderConfig.type;
+  const shaderPreset = resolvePreset(shaderType, (props.preset ?? shaderConfig.preset) as string);
+  const shaderDisabled = props.disabled ?? shaderConfig.disabled;
+  const shaderRenderProps = props.props ?? shaderConfig.props;
+  const previewSuffix = props.preview ? `:${JSON.stringify(props.props ?? shaderRenderProps ?? {})}` : '';
+
+  if (shaderDisabled) {
     return null;
   }
 
-  if (props.type === 'liquid-metal') {
+  if (shaderType === 'liquid-metal') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        speed: 0.6,
+        repetition: 4,
+        softness: 0.5,
+        shiftRed: 0.3,
+        shiftBlue: 0.3,
+        distortion: 0,
+        contour: 0,
+        angle: 45,
+        scale: 8,
+        offsetX: 0.1,
+        offsetY: -0.1,
+        ...(shaderRenderProps as ShaderRenderMap['liquid-metal'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = liquidMetalPresets[preset];
+    const presetValues = liquidMetalPresets[shaderPreset as keyof typeof liquidMetalPresets];
     const mergedValues: Partial<Omit<LiquidMetalProps, 'className' | 'style' | 'shape'>> = {
-      speed: 0.6,
-      repetition: 4,
-      softness: 0.5,
-      shiftRed: 0.3,
-      shiftBlue: 0.3,
-      distortion: 0,
-      contour: 0,
-      angle: 45,
-      scale: 8,
-      offsetX: 0.1,
-      offsetY: -0.1,
       ...presetValues,
       ...propValues,
     };
 
     return (
       <LiquidMetal
-        key={`liquid-metal:${preset}`}
+        key={`liquid-metal:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         shape="none"
@@ -89,15 +143,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'gem-smoke') {
+  if (shaderType === 'gem-smoke') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['gem-smoke'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = gemSmokePresets[preset];
+    const presetValues = gemSmokePresets[shaderPreset as keyof typeof gemSmokePresets];
     const mergedValues: Partial<Omit<GemSmokeProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -106,7 +159,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <GemSmoke
-        key={`gem-smoke:${preset}`}
+        key={`gem-smoke:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         shape="none"
@@ -115,15 +168,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'heatmap') {
+  if (shaderType === 'heatmap') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['heatmap'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = heatmapPresets[preset];
+    const presetValues = heatmapPresets[shaderPreset as keyof typeof heatmapPresets];
     const mergedValues: Partial<Omit<HeatmapProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -131,7 +183,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <Heatmap
-        key={`heatmap:${preset}`}
+        key={`heatmap:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         image={"/images/rectangle.svg"}
@@ -140,15 +192,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'mesh-gradient') {
+  if (shaderType === 'mesh-gradient') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['mesh-gradient'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = meshGradientPresets[preset];
+    const presetValues = meshGradientPresets[shaderPreset as keyof typeof meshGradientPresets];
     const mergedValues: Partial<Omit<MeshGradientProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -156,7 +207,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <MeshGradient
-        key={`mesh-gradient:${preset}`}
+        key={`mesh-gradient:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         {...mergedValues}
@@ -164,15 +215,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'warp') {
+  if (shaderType === 'warp') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['warp'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = warpPresets[preset];
+    const presetValues = warpPresets[shaderPreset as keyof typeof warpPresets];
     const mergedValues: Partial<Omit<WarpProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -180,7 +230,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <Warp
-        key={`warp:${preset}`}
+        key={`warp:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         {...mergedValues}
@@ -188,15 +238,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'spiral') {
+  if (shaderType === 'spiral') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['spiral'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = spiralPresets[preset];
+    const presetValues = spiralPresets[shaderPreset as keyof typeof spiralPresets];
     const mergedValues: Partial<Omit<SpiralProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -204,7 +253,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <Spiral
-        key={`spiral:${preset}`}
+        key={`spiral:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         {...mergedValues}
@@ -212,15 +261,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'swirl') {
+  if (shaderType === 'swirl') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['swirl'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = swirlPresets[preset];
+    const presetValues = swirlPresets[shaderPreset as keyof typeof swirlPresets];
     const mergedValues: Partial<Omit<SwirlProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -228,7 +276,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <Swirl
-        key={`swirl:${preset}`}
+        key={`swirl:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         {...mergedValues}
@@ -236,15 +284,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'neuro-noise') {
+  if (shaderType === 'neuro-noise') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['neuro-noise'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = neuroNoisePresets[preset];
+    const presetValues = neuroNoisePresets[shaderPreset as keyof typeof neuroNoisePresets];
     const mergedValues: Partial<Omit<NeuroNoiseProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -252,7 +299,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <NeuroNoise
-        key={`neuro-noise:${preset}`}
+        key={`neuro-noise:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         {...mergedValues}
@@ -260,15 +307,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'perlin-noise') {
+  if (shaderType === 'perlin-noise') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['perlin-noise'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = perlinNoisePresets[preset];
+    const presetValues = perlinNoisePresets[shaderPreset as keyof typeof perlinNoisePresets];
     const mergedValues: Partial<Omit<PerlinNoiseProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -276,7 +322,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <PerlinNoise
-        key={`perlin-noise:${preset}`}
+        key={`perlin-noise:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         {...mergedValues}
@@ -284,15 +330,14 @@ export function Shader(props: AnyShaderProps) {
     );
   }
 
-  if (props.type === 'god-rays') {
+  if (shaderType === 'god-rays') {
     const {
       className,
-      preset = 'default',
-      disableAnimation,
-      ...propValues
+      props: propValues = {
+        ...(shaderRenderProps as ShaderRenderMap['god-rays'])
+      },
     } = props;
-    void disableAnimation;
-    const presetValues = godRaysPresets[preset];
+    const presetValues = godRaysPresets[shaderPreset as keyof typeof godRaysPresets];
     const mergedValues: Partial<Omit<GodRaysProps, 'className' | 'style'>> = {
       ...presetValues,
       ...propValues,
@@ -300,7 +345,7 @@ export function Shader(props: AnyShaderProps) {
 
     return (
       <GodRays
-        key={`god-rays:${preset}`}
+        key={`god-rays:${shaderPreset}${previewSuffix}`}
         data-slot="shader"
         className={cn(className)}
         {...mergedValues}

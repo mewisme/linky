@@ -8,6 +8,7 @@ import { LocaleSync } from "@/providers/i18n/locale-sync";
 import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
 import { SocketProvider } from "@/providers/realtime/socket-provider";
 import { ServiceWorkerUpdateProvider } from "@/providers/ui/service-worker-update-provider";
+import { AppShaderConfigProvider } from "@/providers/ui/shader-config-provider";
 import { LocaleQueryCallShell } from "@/providers/call/locale-query-call-shell";
 import { UserProvider } from "@/providers/user/user-provider";
 import { routing } from "@/i18n/routing";
@@ -38,14 +39,16 @@ export default async function LocaleLayout({
       <LocaleClerkProvider >
         <LocaleSync />
         <ServiceWorkerUpdateProvider />
-        <UserProvider>
-          <ClerkReadyIndicator />
-          <SocketProvider>
-            <LocaleQueryCallShell>
-              <ProgressBarProvider>{children}</ProgressBarProvider>
-            </LocaleQueryCallShell>
-          </SocketProvider>
-        </UserProvider>
+        <AppShaderConfigProvider>
+          <UserProvider>
+            <ClerkReadyIndicator />
+            <SocketProvider>
+              <LocaleQueryCallShell>
+                <ProgressBarProvider>{children}</ProgressBarProvider>
+              </LocaleQueryCallShell>
+            </SocketProvider>
+          </UserProvider>
+        </AppShaderConfigProvider>
       </LocaleClerkProvider>
     </NextIntlClientProvider>
   );

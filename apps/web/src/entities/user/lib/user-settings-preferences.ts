@@ -4,6 +4,7 @@ import type {
   HeatmapPresetType,
   ShaderType,
   ShaderPresetType,
+  ShaderRenderMap,
   MeshGradientPresetType,
   WarpPresetType,
   SpiralPresetType,
@@ -19,7 +20,8 @@ import type { SidebarCollapsible, SidebarVariant } from "@/shared/model/sidebar-
 export type UserShaderPreferences = {
   type: ShaderType;
   preset: ShaderPresetType;
-  disableAnimation: boolean;
+  disabled: boolean;
+  props?: ShaderRenderMap[ShaderType];
 };
 
 export type UserSidebarPreferences = {
@@ -30,7 +32,8 @@ export type UserSidebarPreferences = {
 const defaultShaderPreferences: UserShaderPreferences = {
   type: "liquid-metal",
   preset: "default",
-  disableAnimation: false,
+  disabled: false,
+  props: undefined,
 };
 
 const defaultSidebarPreferences: UserSidebarPreferences = {
@@ -105,9 +108,13 @@ export function normalizeUserShaderPreferences(value: unknown): UserShaderPrefer
     ? candidate.preset as ShaderPresetType
     : defaultShaderPreferences.preset;
   const preset = shaderPresetsByType[type].has(presetCandidate) ? presetCandidate : defaultShaderPreferences.preset;
-  const disableAnimation = candidate.disableAnimation === true;
+  const disabled = candidate.disabled === true;
+  const shaderProps =
+    candidate.props && typeof candidate.props === "object"
+      ? (candidate.props as ShaderRenderMap[ShaderType])
+      : undefined;
 
-  return { type, preset, disableAnimation };
+  return { type, preset, disabled, props: shaderProps };
 }
 
 export function normalizeUserSidebarPreferences(value: unknown): UserSidebarPreferences {

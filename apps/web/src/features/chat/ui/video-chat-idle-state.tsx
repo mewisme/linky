@@ -18,7 +18,6 @@ import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useTranslations } from "next-intl";
-import { useShaderPreference } from "@/shared/hooks/use-shader-preference";
 import {
   CardContent,
   ShaderCard,
@@ -67,7 +66,6 @@ export function VideoChatIdleState({
 }: VideoChatIdleStateProps) {
   const t = useTranslations("call.idle");
   const { user } = useUserContext();
-  const shader = useShaderPreference();
   const { data: progress, isPending } = useQuery({
     queryKey: ["user-progress"],
     queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
@@ -100,10 +98,7 @@ export function VideoChatIdleState({
       data-reaction-exclude
       data-testid="chat-idle-container"
     >
-      <ShaderCard
-        shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }}
-        className="w-full max-w-sm bg-card"
-      >
+      <ShaderCard className="w-full max-w-sm bg-card">
         <CardContent
           className="flex w-full flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
           style={{ animationFillMode: "backwards" }}
@@ -136,7 +131,7 @@ export function VideoChatIdleState({
           ) : (
             <>
               <div className="flex flex-col items-center gap-3 text-center">
-                <ShaderAvatar shader={{ type: shader.type, preset: shader.preset, disableAnimation: shader.disableAnimation }} className="h-14 w-14 rounded-full border-2 border-border/60 ring-2 ring-border/30 sm:h-16 sm:w-16 dark:border-white/15 dark:ring-white/5">
+                <ShaderAvatar className="h-14 w-14 rounded-full border-2 border-border/60 ring-2 ring-border/30 sm:h-16 sm:w-16 dark:border-white/15 dark:ring-white/5">
                   <AvatarImage
                     src={user.user?.imageUrl ?? undefined}
                     alt={displayName}

@@ -15,7 +15,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@sentry/node": "^10.49.0",
+    "@sentry/node": "^10.50.0",
     "@ws/config": "workspace:*",
     "@ws/internal-worker-api": "workspace:*",
     "@ws/logger": "workspace:*",

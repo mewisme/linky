@@ -299,114 +299,111 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
   }, [savedShaderProps, shaderAnimationEnabled, shaderPreset, shaderType])
 
   return (
-    <AppLayout label={t('appearancePage.label')} description={t('appearancePage.description')} className="space-y-4" shaderCard>
-      <CardContent>
-        <Tabs
-          value={activeTab}
-          onValueChange={(value) => {
-            const nextTab = value as 'language' | 'shader' | 'video' | 'sidebar'
-            if (activeTab === 'shader' && nextTab !== 'shader') {
-              revertShaderDetailsDraft()
-            }
-            setActiveTab(nextTab)
-          }}
-          className="space-y-6"
-        >
-          <TabsList variant={'line'} className="w-full justify-start overflow-x-auto whitespace-nowrap overflow-y-hidden">
-            <TabsTrigger value="language" className="shrink-0">{t('appearancePage.language')}</TabsTrigger>
-            <TabsTrigger value="shader" className="shrink-0">{t('appearancePage.shaderSection')}</TabsTrigger>
-            <TabsTrigger value="video" className="shrink-0">{t('appearancePage.videoDefaults')}</TabsTrigger>
-            <TabsTrigger value="sidebar" className="shrink-0">{t('appearancePage.sidebarSection')}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="language">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <Label htmlFor="ui-locale">{t('appearancePage.language')}</Label>
-                <p className="text-sm text-muted-foreground">{t('appearancePage.languageHint')}</p>
-              </div>
-              <Select
-                value={uiLocaleDraft}
-                onValueChange={(value) => {
-                  if (value === 'en' || value === 'vi') handleLocaleChange(value)
-                }}
-                disabled={false}
-              >
-                <SelectTrigger id="ui-locale" className="w-[200px]">
-                  <SelectValue>
-                    {uiLocaleDraft === 'vi' ? tc('vietnamese') : tc('english')}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">{tc('english')}</SelectItem>
-                  <SelectItem value="vi">{tc('vietnamese')}</SelectItem>
-                </SelectContent>
-              </Select>
+    <AppLayout label={t('appearancePage.label')} description={t('appearancePage.description')}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          const nextTab = value as 'language' | 'shader' | 'video' | 'sidebar'
+          if (activeTab === 'shader' && nextTab !== 'shader') {
+            revertShaderDetailsDraft()
+          }
+          setActiveTab(nextTab)
+        }}
+      >
+        <TabsList variant={'line'} className="w-full justify-start overflow-x-auto whitespace-nowrap overflow-y-hidden">
+          <TabsTrigger value="language" className="shrink-0">{t('appearancePage.language')}</TabsTrigger>
+          <TabsTrigger value="shader" className="shrink-0">{t('appearancePage.shaderSection')}</TabsTrigger>
+          <TabsTrigger value="video" className="shrink-0">{t('appearancePage.videoDefaults')}</TabsTrigger>
+          <TabsTrigger value="sidebar" className="shrink-0">{t('appearancePage.sidebarSection')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="language">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <Label htmlFor="ui-locale">{t('appearancePage.language')}</Label>
+              <p className="text-sm text-muted-foreground">{t('appearancePage.languageHint')}</p>
             </div>
-          </TabsContent>
-          <TabsContent value="shader">
-            <ShaderSettings
-              shaderType={shaderType}
-              shaderPreset={shaderPreset}
-              shaderAnimationEnabled={shaderAnimationEnabled}
-              setShaderType={(value) => {
-                markUserInteracted()
-                setShaderType(value)
-                setShaderPreset('default')
-                setShaderProps(undefined)
-                setSavedShaderProps(undefined)
+            <Select
+              value={uiLocaleDraft}
+              onValueChange={(value) => {
+                if (value === 'en' || value === 'vi') handleLocaleChange(value)
               }}
-              setShaderPreset={(value) => {
-                markUserInteracted()
-                setShaderPreset(value)
-              }}
-              setShaderAnimationEnabled={(value) => {
-                markUserInteracted()
-                setShaderAnimationEnabled(value)
-              }}
-              shaderProps={shaderProps}
-              setShaderProp={(key, value) => {
-                setShaderProps((prev) => ({
-                  ...(prev ?? {}),
-                  [key]: value,
-                }))
-              }}
-              onSaveDetails={saveShaderDetails}
-              isSavingDetails={isSavingShaderDetails}
-              hasUnsavedDetails={hasUnsavedShaderDetails}
               disabled={false}
-            />
-          </TabsContent>
-          <TabsContent value="video">
-            <VideoDefaultsSettings
-              defaultMuteMic={defaultMuteMic}
-              defaultDisableCamera={defaultDisableCamera}
-              onDefaultMuteMicChange={(value) => {
-                markUserInteracted()
-                setDefaultMuteMic(value)
-              }}
-              onDefaultDisableCameraChange={(value) => {
-                markUserInteracted()
-                setDefaultDisableCamera(value)
-              }}
-            />
-          </TabsContent>
-          <TabsContent value="sidebar" className='pb-4'>
-            <SidebarSettings
-              disabled={false}
-              variant={sidebarVariant}
-              collapsible={sidebarCollapsible}
-              onVariantChange={(value) => {
-                markUserInteracted()
-                setSidebarVariant(value)
-              }}
-              onCollapsibleChange={(value) => {
-                markUserInteracted()
-                setSidebarCollapsible(value)
-              }}
-            />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
+            >
+              <SelectTrigger id="ui-locale" className="w-[200px]">
+                <SelectValue>
+                  {uiLocaleDraft === 'vi' ? tc('vietnamese') : tc('english')}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">{tc('english')}</SelectItem>
+                <SelectItem value="vi">{tc('vietnamese')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </TabsContent>
+        <TabsContent value="shader">
+          <ShaderSettings
+            shaderType={shaderType}
+            shaderPreset={shaderPreset}
+            shaderAnimationEnabled={shaderAnimationEnabled}
+            setShaderType={(value) => {
+              markUserInteracted()
+              setShaderType(value)
+              setShaderPreset('default')
+              setShaderProps(undefined)
+              setSavedShaderProps(undefined)
+            }}
+            setShaderPreset={(value) => {
+              markUserInteracted()
+              setShaderPreset(value)
+            }}
+            setShaderAnimationEnabled={(value) => {
+              markUserInteracted()
+              setShaderAnimationEnabled(value)
+            }}
+            shaderProps={shaderProps}
+            setShaderProp={(key, value) => {
+              setShaderProps((prev) => ({
+                ...(prev ?? {}),
+                [key]: value,
+              }))
+            }}
+            onSaveDetails={saveShaderDetails}
+            isSavingDetails={isSavingShaderDetails}
+            hasUnsavedDetails={hasUnsavedShaderDetails}
+            disabled={false}
+          />
+        </TabsContent>
+        <TabsContent value="video">
+          <VideoDefaultsSettings
+            defaultMuteMic={defaultMuteMic}
+            defaultDisableCamera={defaultDisableCamera}
+            onDefaultMuteMicChange={(value) => {
+              markUserInteracted()
+              setDefaultMuteMic(value)
+            }}
+            onDefaultDisableCameraChange={(value) => {
+              markUserInteracted()
+              setDefaultDisableCamera(value)
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="sidebar">
+          <SidebarSettings
+            disabled={false}
+            variant={sidebarVariant}
+            collapsible={sidebarCollapsible}
+            onVariantChange={(value) => {
+              markUserInteracted()
+              setSidebarVariant(value)
+            }}
+            onCollapsibleChange={(value) => {
+              markUserInteracted()
+              setSidebarCollapsible(value)
+            }}
+          />
+        </TabsContent>
+      </Tabs>
     </AppLayout>
   )
 }

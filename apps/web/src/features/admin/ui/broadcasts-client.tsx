@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useTranslations } from "next-intl";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ws/ui/components/ui/tabs";
 
 const BroadcastsDataTable = dynamic(
   () =>
@@ -48,35 +49,42 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
       sidebarItem="adminBroadcasts"
       className="space-y-4"
     >
-      <div className="space-y-6">
-        <FormCreateBroadcast onSuccess={() => void refetch()} />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("broadcastHistoryTitle")}</CardTitle>
-            <CardDescription>
-              {t("broadcastHistoryDescription")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BroadcastsDataTable
-              initialData={history}
-              leftColumnVisibilityContent={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void refetch()}
-                  disabled={isFetching}
-                >
-                  <IconRefresh
-                    className={`size-4 ${isFetching ? "animate-spin" : ""}`}
-                  />
-                </Button>
-              }
-            />
-          </CardContent>
-        </Card>
-      </div>
-    </AppLayout>
+      <Tabs defaultValue="history" >
+        <TabsList variant={'line'} className="w-full">
+          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="create">Create</TabsTrigger>
+        </TabsList>
+        <TabsContent value="history">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("broadcastHistoryTitle")}</CardTitle>
+              <CardDescription>
+                {t("broadcastHistoryDescription")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BroadcastsDataTable
+                initialData={history}
+                leftColumnVisibilityContent={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void refetch()}
+                    disabled={isFetching}
+                  >
+                    <IconRefresh
+                      className={`size-4 ${isFetching ? "animate-spin" : ""}`}
+                    />
+                  </Button>
+                }
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="create">
+          <FormCreateBroadcast onSuccess={() => void refetch()} />
+        </TabsContent>
+      </Tabs>
+    </AppLayout >
   );
 }

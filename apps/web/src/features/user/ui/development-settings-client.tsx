@@ -78,51 +78,43 @@ export function DevelopmentSettingsClient() {
     <AppLayout
       label={t("label")}
       description={t("description")}
-      className="space-y-4"
+      render={
+        <AlertDialog open={isEnableDialogOpen} onOpenChange={setIsEnableDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("dialogTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("dialogDescription")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmEnable}>
+                {t("dialogConfirm")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      }
     >
-      <ShaderCard>
-        <CardHeader>
-          <CardTitle>{t("cardTitle")}</CardTitle>
-          <CardDescription>
-            {t("cardDescription")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="development-mode" className="flex items-center gap-2">
-                <IconCode className="size-4" />
-                {t("enableLabel")}
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                {t("enableHint")}
-              </p>
-            </div>
-            <Switch
-              id="development-mode"
-              checked={isDevelopmentModeEnabled}
-              onCheckedChange={handleDevelopmentModeChange}
-              disabled={!isHydrated}
-            />
-          </div>
-        </CardContent>
-      </ShaderCard>
-      <AlertDialog open={isEnableDialogOpen} onOpenChange={setIsEnableDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("dialogTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("dialogDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmEnable}>
-              {t("dialogConfirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label htmlFor="development-mode" className="flex items-center gap-2">
+            <IconCode className="size-4" />
+            {t("enableLabel")}
+          </Label>
+          <p className="text-sm text-muted-foreground">
+            {t("enableHint")}
+          </p>
+        </div>
+        <Switch
+          id="development-mode"
+          checked={isDevelopmentModeEnabled}
+          onCheckedChange={handleDevelopmentModeChange}
+          disabled={!isHydrated}
+        />
+      </div>
+
     </AppLayout>
   );
 }

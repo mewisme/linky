@@ -52,7 +52,7 @@ function ShaderCard({
     >
       <Shader key={shaderKey} {...shaderLayerProps} />
       <div className='absolute inset-0.75 rounded-[calc(1rem-1px)] bg-card inset-shadow-lg' />
-      <div className='relative flex flex-col gap-6 group-data-[size=sm]/card:gap-4'>
+      <div className='relative flex flex-col gap-6 group-data-[size=sm]/card:gap-4 p-2'>
         {children}
       </div>
     </Card>

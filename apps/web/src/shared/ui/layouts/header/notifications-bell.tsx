@@ -3,6 +3,8 @@
 import {
   Drawer,
   DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
   DrawerTrigger,
 } from "@ws/ui/components/ui/drawer";
 import {
@@ -70,6 +72,9 @@ export function NotificationsBell() {
       <Drawer >
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="z-150!">
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>{t("panelTitle")}</DrawerTitle>
+          </DrawerHeader>
           <div className="max-h-[70vh] overflow-hidden">{panelContent}</div>
         </DrawerContent>
       </Drawer>

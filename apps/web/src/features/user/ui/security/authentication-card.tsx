@@ -22,7 +22,6 @@ import { Button } from '@ws/ui/components/ui/button'
 import { PasswordModal } from './password-modal'
 import { ProviderList } from './provider-list'
 import { useTranslations } from 'next-intl'
-import { ShaderCard } from '@ws/ui/components/mew-ui/shader/shader-card'
 
 type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
 
@@ -48,7 +47,7 @@ export function AuthenticationCard({ user }: AuthenticationCardProps) {
   }
 
   return (
-    <ShaderCard data-testid="security-authentication-card">
+    <Card data-testid="security-authentication-card">
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
           <IconShield className="size-5" />
@@ -105,6 +104,6 @@ export function AuthenticationCard({ user }: AuthenticationCardProps) {
         user={user}
         mode={passwordModalMode}
       />
-    </ShaderCard>
+    </Card>
   )
 }

@@ -1,14 +1,7 @@
 "use client";
 
 import * as z from "@ws/ui/internal-lib/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@ws/ui/components/ui/form";
+import { Form } from "@ws/ui/components/ui/form";
 import { toast } from "@ws/ui/internal-lib/toast";
 import { useForm } from "@ws/ui/internal-lib/react-hook-form";
 import { zodResolver } from "@ws/ui/internal-lib/hookform";
@@ -20,27 +13,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@ws/ui/components/ui/card";
-import { Button } from "@ws/ui/components/ui/button";
-import { Input } from "@ws/ui/components/ui/input";
-import { Label } from "@ws/ui/components/ui/label";
-import { Textarea } from "@ws/ui/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@ws/ui/components/ui/radio-group";
 import { Separator } from "@ws/ui/components/ui/separator";
-import { IconSend, IconLoader2, IconSparkles } from "@tabler/icons-react";
-import { cn } from "@ws/ui/lib/utils";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { useTranslations } from "next-intl";
-
-type FormValues = {
-  title?: string;
-  message: string;
-  pushUrl?: string;
-  deliveryMode: "push_only" | "push_and_save";
-  audience?: string;
-  key_points?: string;
-};
+import { AiWriterSection } from "./ai-writer-section";
+import { BroadcastContentFields } from "./broadcast-content-fields";
+import { DeliveryModeField } from "./delivery-mode-field";
+import type { BroadcastFormValues, SelectedAiDraft } from "./form-create.types";
+import { SubmitBroadcastButton } from "./submit-broadcast-button";
 
 interface FormCreateBroadcastProps {
   onSuccess?: () => void;
@@ -53,6 +35,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
   const [aiDraft, setAiDraft] = useState<AdminAPI.Broadcasts.AiBroadcastDraft | null>(null);
   const [selectedTone, setSelectedTone] = useState<"primary" | AdminAPI.Broadcasts.AiBroadcastTone>("primary");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
 
   const formSchema = useMemo(
     () =>
@@ -70,7 +53,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
     [tbf],
   );
 
-  const form = useForm<FormValues>({
+  const form = useForm<BroadcastFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
@@ -84,7 +67,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
   const isSubmitting = form.formState.isSubmitting;
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: BroadcastFormValues) {
     try {
       const res = await fetchFromActionRoute<AdminAPI.Broadcasts.Post.Response>("/api/admin/broadcasts", {
         method: "POST",
@@ -108,7 +91,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
     }
   }
 
-  const selectedDraft = useMemo((): AdminAPI.Broadcasts.AiBroadcastDraftPrimary & { tone?: AdminAPI.Broadcasts.AiBroadcastTone } | null => {
+  const selectedDraft = useMemo((): SelectedAiDraft => {
     if (!aiDraft) return null
     if (selectedTone === "primary") return aiDraft.primary
     const toneVariant = aiDraft.tone_variants.find((v) => v.tone === selectedTone)
@@ -156,6 +139,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
     if (!selectedDraft) return;
     form.setValue("title", selectedDraft.title);
     form.setValue("message", `${selectedDraft.body}\n\n${selectedDraft.cta}`);
+    setIsAiDialogOpen(false);
     toast.success(t("draftApplied"));
   }
 
@@ -173,256 +157,27 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col gap-4 sm:gap-6"
           >
-            <div className="space-y-3 rounded-lg border bg-background p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-medium">{tbf("aiWriterTitle")}</div>
-                  <div className="text-xs text-muted-foreground">{tbf("aiWriterDescription")}</div>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isGenerating}
-                  onClick={onGenerateAiDraft}
-                >
-                  {isGenerating ? (
-                    <>
-                      <IconLoader2 className="mr-2 size-4 animate-spin" />
-                      {tbf("generating")}
-                    </>
-                  ) : (
-                    <>
-                      <IconSparkles className="mr-2 size-4" />
-                      {tbf("generate")}
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="audience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="broadcast-audience">{tbf("targetAudience")}</FormLabel>
-                      <FormControl>
-                        <Input id="broadcast-audience" placeholder={tbf("audiencePlaceholder")} className="bg-background" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="sm:hidden" />
-
-                <FormField
-                  control={form.control}
-                  name="key_points"
-                  render={({ field }) => (
-                    <FormItem className="sm:col-span-2">
-                      <FormLabel htmlFor="broadcast-key-points">{tbf("keyPoints")}</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          id="broadcast-key-points"
-                          placeholder={tbf("keyPointsPlaceholder")}
-                          rows={4}
-                          className="bg-background min-h-[120px] resize-y sm:min-h-[140px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {aiDraft && selectedDraft && (
-                <div className="space-y-3">
-                  <Separator />
-
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">{tbf("preview")}</div>
-                    <RadioGroup
-                      value={selectedTone}
-                      onValueChange={(v) => setSelectedTone(v as typeof selectedTone)}
-                      className="flex flex-col gap-2 sm:flex-row"
-                    >
-                      <FormItem className="flex items-center space-x-2">
-                        <RadioGroupItem value="primary" id="tone-primary" />
-                        <FormLabel htmlFor="tone-primary" className="font-normal">{tbf("recommended")}</FormLabel>
-                      </FormItem>
-                      {(["friendly", "professional", "direct"] as AdminAPI.Broadcasts.AiBroadcastTone[]).map((tone) => (
-                        <FormItem key={tone} className="flex items-center space-x-2">
-                          <RadioGroupItem value={tone} id={`tone-${tone}`} />
-                          <FormLabel htmlFor={`tone-${tone}`} className="font-normal">{tone}</FormLabel>
-                        </FormItem>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground">{tbf("titleLabel")}</div>
-                      <div className="mt-1 rounded-md bg-muted p-3 text-sm">{selectedDraft.title}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground">{tbf("messageLabel")}</div>
-                      <div className="mt-1 rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">{`${selectedDraft.body}\n\n${selectedDraft.cta}`}</div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button type="button" variant="outline" onClick={onUseAiDraft}>
-                      {tbf("useDraft")}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="broadcast-title">{tbf("titleOptional")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="broadcast-title"
-                        placeholder={tbf("titlePlaceholder")}
-                        className="bg-background"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="pushUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="broadcast-url">{tbf("pushUrlOptional")}</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="broadcast-url"
-                        placeholder={tbf("pushUrlPlaceholder")}
-                        className="bg-background font-mono text-sm"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="broadcast-message">{tbf("message")}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      id="broadcast-message"
-                      placeholder={tbf("messagePlaceholder")}
-                      rows={5}
-                      className="bg-background min-h-[120px] resize-y sm:min-h-[140px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <AiWriterSection
+              tbf={tbf}
+              form={form}
+              aiDraft={aiDraft}
+              selectedDraft={selectedDraft}
+              selectedTone={selectedTone}
+              isGenerating={isGenerating}
+              isAiDialogOpen={isAiDialogOpen}
+              setSelectedTone={setSelectedTone}
+              setIsAiDialogOpen={setIsAiDialogOpen}
+              onGenerateAiDraft={onGenerateAiDraft}
+              onUseAiDraft={onUseAiDraft}
             />
+
+            <BroadcastContentFields tbf={tbf} form={form} />
 
             <Separator />
 
-            <FormField
-              control={form.control}
-              name="deliveryMode"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>{tbf("delivery")}</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="grid grid-cols-1 gap-3 sm:grid-cols-2"
-                    >
-                      <Label
-                        htmlFor="delivery-push-and-save"
-                        className={cn(
-                          "flex cursor-pointer flex-col gap-1.5 rounded-lg border-2 px-3 py-2.5 transition-colors hover:bg-muted/50 sm:px-4 sm:py-3",
-                          field.value === "push_and_save"
-                            ? "border-primary bg-primary/5"
-                            : "border-border"
-                        )}
-                      >
-                        <span className="flex items-center gap-2 text-sm font-medium sm:text-base">
-                          <RadioGroupItem
-                            value="push_and_save"
-                            id="delivery-push-and-save"
-                            className="size-4 shrink-0"
-                          />
-                          {tbf("deliveryPushAndSaveTitle")}
-                        </span>
-                        <span className="text-muted-foreground pl-6 text-xs sm:text-sm">
-                          {tbf("deliveryPushAndSaveHint")}
-                        </span>
-                      </Label>
-                      <Label
-                        htmlFor="delivery-push-only"
-                        className={cn(
-                          "flex cursor-pointer flex-col gap-1.5 rounded-lg border-2 px-3 py-2.5 transition-colors hover:bg-muted/50 sm:px-4 sm:py-3",
-                          field.value === "push_only"
-                            ? "border-primary bg-primary/5"
-                            : "border-border"
-                        )}
-                      >
-                        <span className="flex items-center gap-2 text-sm font-medium sm:text-base">
-                          <RadioGroupItem
-                            value="push_only"
-                            id="delivery-push-only"
-                            className="size-4 shrink-0"
-                          />
-                          {tbf("deliveryPushOnlyTitle")}
-                        </span>
-                        <span className="text-muted-foreground pl-6 text-xs sm:text-sm">
-                          {tbf("deliveryPushOnlyHint")}
-                        </span>
-                      </Label>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <DeliveryModeField tbf={tbf} form={form} />
 
-            <div className="flex flex-col border-t pt-4 sm:flex-row sm:justify-end">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                size="lg"
-                className="w-full sm:w-auto"
-              >
-                {isSubmitting ? (
-                  <>
-                    <IconLoader2 className="mr-2 size-4 animate-spin" />
-                    {tbf("sending")}
-                  </>
-                ) : (
-                  <>
-                    <IconSend className="mr-2 size-4" />
-                    {tbf("sendBroadcast")}
-                  </>
-                )}
-              </Button>
-            </div>
+            <SubmitBroadcastButton tbf={tbf} isSubmitting={isSubmitting} />
           </form>
         </Form>
       </CardContent>

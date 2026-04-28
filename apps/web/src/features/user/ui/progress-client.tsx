@@ -23,7 +23,6 @@ import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
 
 function formatExp(exp: number): string {
   if (exp >= 1000000) {
@@ -95,7 +94,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     <AppLayout sidebarItem="progress" className="space-y-4">
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
-          <ShaderCard data-testid="progress-level-card">
+          <Card data-testid="progress-level-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -151,9 +150,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                 </div>
               </div>
             </CardContent>
-          </ShaderCard>
+          </Card>
 
-          <ShaderCard data-testid="progress-streak-card">
+          <Card data-testid="progress-streak-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -250,7 +249,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                 </div>
               </div>
             </CardContent>
-          </ShaderCard>
+          </Card>
         </div>
       </div>
 

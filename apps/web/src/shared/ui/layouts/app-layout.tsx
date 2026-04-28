@@ -8,16 +8,16 @@ import type { MenuItemId } from "@/shared/ui/layouts/sidebar/menu-items";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
+import { CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
 
 interface AppLayoutProps {
   label?: string;
   description?: string;
-  /** Resolves title and description from `sidebar.items.<id>` in messages. */
   sidebarItem?: MenuItemId;
   children: React.ReactNode;
+  render?: React.ReactNode;
   backButton?: boolean;
   className?: string;
-  shaderCard?: boolean;
 }
 
 export function AppLayout({
@@ -25,9 +25,9 @@ export function AppLayout({
   label,
   description,
   sidebarItem,
+  render,
   backButton = false,
   className = "",
-  shaderCard = false,
 }: AppLayoutProps) {
   const router = useRouter();
   const t = useTranslations();
@@ -45,30 +45,21 @@ export function AppLayout({
 
   return (
     <div className={cn("container mx-auto h-full w-full p-4", className)}>
-      <div className="flex flex-row items-center gap-1">
-        {backButton && (
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-        )}
-        <div className="flex flex-col gap-1">
-          {resolvedLabel != null && resolvedLabel !== "" && (
-            <h1 className="text-2xl font-medium">{resolvedLabel}</h1>
-          )}
-          {resolvedDescription != null && resolvedDescription !== "" && (
-            <p className="text-sm text-muted-foreground">{resolvedDescription}</p>
-          )}
-        </div>
-      </div>
-      <div className="h-full w-full">
-        {shaderCard ? (
-          <ShaderCard>
-            {children}
-          </ShaderCard>
-        ) : (
-          children
-        )}
-      </div>
+      <ShaderCard>
+        <CardHeader>
+          {backButton ? (
+            <Button variant="ghost" size="icon" className="mb-2 -ml-2" onClick={() => router.back()} aria-label={t("notFoundPage.goBack")}>
+              <ChevronLeft />
+            </Button>
+          ) : null}
+          {resolvedLabel ? <CardTitle className="text-xl">{resolvedLabel}</CardTitle> : null}
+          {resolvedDescription ? <CardDescription>{resolvedDescription}</CardDescription> : null}
+        </CardHeader>
+        <CardContent className="px-4">
+          {children}
+        </CardContent>
+      </ShaderCard>
+      {render}
     </div>
   );
 }

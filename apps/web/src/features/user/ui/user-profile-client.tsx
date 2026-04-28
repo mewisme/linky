@@ -102,7 +102,7 @@ export function UserProfileClient({ initialUserDetails }: Props) {
   if (!isLoaded || !user) return null
 
   return (
-    <AppLayout sidebarItem="profile" className="space-y-4" shaderCard>
+    <AppLayout sidebarItem="profile" className="space-y-4">
       <ProfilePageContent initialUserDetails={initialUserDetails} />
     </AppLayout>
   )

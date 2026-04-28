@@ -11,7 +11,6 @@ import { IconDeviceDesktop } from '@tabler/icons-react'
 import { useTranslations } from 'next-intl'
 import { Skeleton } from '@ws/ui/components/ui/skeleton'
 import { ActiveSessionsList, type SessionWithActivity } from './active-sessions-list'
-import { ShaderCard } from '@ws/ui/components/mew-ui/shader/shader-card'
 
 interface SecuritySessionsCardProps {
   sessions: SessionWithActivity[] | null
@@ -26,7 +25,7 @@ export function SecuritySessionsCard({
 }: SecuritySessionsCardProps) {
   const t = useTranslations('user.securitySessions')
   return (
-    <ShaderCard>
+    <Card>
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
           <IconDeviceDesktop className="size-5" />
@@ -47,6 +46,6 @@ export function SecuritySessionsCard({
           <p className="text-sm text-muted-foreground">{t('empty')}</p>
         )}
       </CardContent>
-    </ShaderCard>
+    </Card>
   )
 }

@@ -44,7 +44,7 @@
     "@types/node": "25.6.0",
     "dotenv": "catalog:",
     "prettier": "^3.8.3",
-    "turbo": "^2.9.6",
+    "turbo": "^2.9.7",
     "typescript": "catalog:",
     "xlsx": "^0.18.5"
   }

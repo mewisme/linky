@@ -1,6 +1,6 @@
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { useTranslations } from "next-intl";
-import type { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "@ws/ui/internal-lib/react-hook-form";
 
 export type BroadcastFormValues = {
   title?: string;
@@ -17,6 +17,6 @@ export type BroadcastFormInstance = UseFormReturn<BroadcastFormValues>;
 
 export type SelectedAiDraft =
   | (AdminAPI.Broadcasts.AiBroadcastDraftPrimary & {
-      tone?: AdminAPI.Broadcasts.AiBroadcastTone;
-    })
+    tone?: AdminAPI.Broadcasts.AiBroadcastTone;
+  })
   | null;

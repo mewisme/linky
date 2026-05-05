@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 
+import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { backendUrl } from "@/lib/http/backend-url";
 
 export async function POST(request: NextRequest) {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       headers["Authorization"] = `Bearer ${authToken}`;
     }
 
-    const response = await fetch(backendUrl.videoChat.endCallUnload(), {
+    const response = await fetchWithApiFallback(backendUrl.videoChat.endCallUnload(), {
       method: "POST",
       headers,
       body: JSON.stringify({ socketId }),

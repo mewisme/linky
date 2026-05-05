@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/shared/types/api.types";
 import type { MediaAPI } from "@/shared/types/media.types";
+import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
 export async function POST(request: NextRequest) {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json() as MediaAPI.S3.AbortMultipart.Body;
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/s3/multipart/abort`, {
+    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/s3/multipart/abort`, {
       method: "POST",
       headers: {
         Authorization: authHeader,

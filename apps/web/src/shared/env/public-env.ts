@@ -3,6 +3,7 @@ import { z } from "zod";
 const publicEnvSchema = z
   .object({
     NEXT_PUBLIC_API_URL: z.string().min(1, "NEXT_PUBLIC_API_URL is required"),
+    NEXT_PUBLIC_API_URL_DEV: z.string().optional(),
     NEXT_PUBLIC_APP_URL: z.string().min(1, "NEXT_PUBLIC_APP_URL is required"),
     NEXT_PUBLIC_OPENPANEL_CLIENT_ID: z
       .string()
@@ -18,6 +19,7 @@ const publicEnvSchema = z
 
 const raw = {
   NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  NEXT_PUBLIC_API_URL_DEV: process.env.NEXT_PUBLIC_API_URL_DEV,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_OPENPANEL_CLIENT_ID: process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID,
   NEXT_PUBLIC_GIPHY_API_KEY: process.env.NEXT_PUBLIC_GIPHY_API_KEY,
@@ -28,8 +30,19 @@ const raw = {
 
 const parsed = publicEnvSchema.parse(raw);
 
+const apiUrlDev =
+  parsed.NEXT_PUBLIC_API_URL_DEV !== undefined &&
+  parsed.NEXT_PUBLIC_API_URL_DEV.length > 0
+    ? stripTrailingSlash(parsed.NEXT_PUBLIC_API_URL_DEV)
+    : undefined;
+
+function stripTrailingSlash(url: string): string {
+  return url.replace(/\/$/, "");
+}
+
 export const publicEnv = {
   API_URL: parsed.NEXT_PUBLIC_API_URL,
+  API_URL_DEV: apiUrlDev,
   APP_URL: parsed.NEXT_PUBLIC_APP_URL,
   OPENPANEL_CLIENT_ID: parsed.NEXT_PUBLIC_OPENPANEL_CLIENT_ID,
   GIPHY_API_KEY: parsed.NEXT_PUBLIC_GIPHY_API_KEY,

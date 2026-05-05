@@ -4,6 +4,7 @@ import 'server-only';
 
 import { getToken } from '@/lib/auth/token';
 import { ApiError, parseApiErrorBody } from '@/lib/http/api-error';
+import { fetchWithApiFallback } from '@/lib/http/fetch-with-api-fallback';
 
 export async function serverFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const token = await getToken();
@@ -14,7 +15,7 @@ export async function serverFetch<T>(url: string, options: RequestInit = {}): Pr
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetchWithApiFallback(url, { ...options, headers });
   if (!response.ok) {
     const text = await response.text().catch(() => response.statusText);
     const parsed = parseApiErrorBody(text || "");

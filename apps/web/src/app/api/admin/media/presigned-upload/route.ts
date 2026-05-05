@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
+import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
 export async function POST(request: NextRequest) {
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = (await request.json()) as { intent?: string; content_type?: string };
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/admin/media/presigned-upload`, {
+    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/admin/media/presigned-upload`, {
       method: "POST",
       headers: {
         Authorization: authHeader,

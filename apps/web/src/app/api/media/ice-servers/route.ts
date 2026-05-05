@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
+import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
 export async function GET(request: NextRequest) {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${publicEnv.API_URL}/api/ice-servers`, {
+    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/ice-servers`, {
       method: "GET",
       headers: {
         Authorization: authHeader,

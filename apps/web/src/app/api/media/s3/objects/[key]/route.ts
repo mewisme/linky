@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/shared/types/api.types";
 import type { MediaAPI } from "@/shared/types/media.types";
+import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
 export async function DELETE(
@@ -28,7 +29,7 @@ export async function DELETE(
     }
 
     const encodedKey = encodeURIComponent(key);
-    const response = await fetch(`${publicEnv.API_URL}/api/v1/s3/objects/${encodedKey}`, {
+    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/s3/objects/${encodedKey}`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

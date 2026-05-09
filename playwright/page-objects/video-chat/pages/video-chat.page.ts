@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 import { waitForClerkReady } from '../../../helpers/clerk-helpers';
 
 export class VideoChatPage {
-  constructor(private readonly page: Page) { }
+  constructor(public readonly page: Page) { }
 
   async goto() {
     await this.page.goto('/call');
@@ -100,5 +100,51 @@ export class VideoChatPage {
 
   chatMessage(messageId: string) {
     return this.page.locator(`[data-testid="chat-message-${messageId}"]`);
+  }
+
+  sendMessage(text: string) {
+    const input = this.chatInput();
+    return input.fill(text);
+  }
+
+  async sendChatMessage(text: string) {
+    await this.sendMessage(text);
+    await this.chatSendButton().click();
+  }
+
+  screenShareButton() {
+    return this.page.locator('[data-testid="chat-screen-share-button"]');
+  }
+
+  pipToggleButton() {
+    return this.page.locator('[data-testid="chat-pip-toggle-button"]');
+  }
+
+  swapCameraButton() {
+    return this.page.locator('[data-testid="chat-swap-camera-button"]');
+  }
+
+  blockUserButton() {
+    return this.page.locator('[data-testid="chat-block-user-button"]');
+  }
+
+  cancelSearchButton() {
+    return this.page.locator('[data-testid="chat-cancel-search-button"]');
+  }
+
+  passiveVideoContainer() {
+    return this.page.locator('[data-testid="chat-video-container-passive"]');
+  }
+
+  connectionQualityIndicator() {
+    return this.page.locator('.connection-quality-indicator');
+  }
+
+  async getCallTimerText(): Promise<string> {
+    return (await this.callTimer().textContent()) || '';
+  }
+
+  async isElementVisible(selector: string): Promise<boolean> {
+    return this.page.locator(selector).isVisible({ timeout: 5_000 }).catch(() => false);
   }
 }

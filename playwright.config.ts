@@ -1,16 +1,10 @@
-import { config as loadDotenv } from "dotenv";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import "dotenv/config";
 
 import path from 'node:path';
 
 import { defineConfig, devices } from '@playwright/test';
 
 import { playwrightReportSlug } from './playwright/helpers/report-slug';
-
-const currentDir = dirname(fileURLToPath(import.meta.url));
-const rootEnvPath = resolve(currentDir, ".env");
-loadDotenv({ path: rootEnvPath, quiet: true });
 
 const ignoreHttpsErrors =
   process.env.PLAYWRIGHT_IGNORE_HTTPS_ERRORS === 'true' ||
@@ -20,6 +14,7 @@ const reportSlug = playwrightReportSlug();
 const reportDir = path.join('playwright-report', reportSlug);
 
 export default defineConfig({
+  globalSetup: './playwright/global-setup.ts',
   testDir: './playwright/tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -29,7 +24,6 @@ export default defineConfig({
     ['html', { outputFolder: reportDir }],
     ['json', { outputFile: path.join(reportDir, 'results.json') }],
   ],
-  globalSetup: './playwright/tests/auth/global-setup.ts',
   use: {
     baseURL: process.env.BASE_TEST_URL,
     trace: 'on-first-retry',

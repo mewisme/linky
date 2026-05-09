@@ -112,6 +112,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
     <div
       className="flex h-full w-full flex-col items-center justify-center pb-24 pt-8"
       data-reaction-exclude
+      data-testid="chat-searching-indicator"
     >
       <ShaderCard className="w-full max-w-sm bg-card">
         <CardContent

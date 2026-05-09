@@ -2,9 +2,15 @@
 
 🔨 Other Changes
 
-- Add language and shader preferences to user settings ([c3c5ae2](../../commit/c3c5ae24))
-- Add level-up burst reaction to DevOverlay ([7f724e3](../../commit/7f724e38))
-- Update package versions to 1.3.0 and refresh version lock ([324fe22](../../commit/324fe228))
+- Enhance test setup and configuration for improved reliability ([ea659e3](../../commit/ea659e37))
+- Implement fetchWithApiFallback utility and update API routes ([60bb7bb](../../commit/60bb7bbc))
+- Update turbo package to version 2.9.8 and adjust schema URL ([30bd814](../../commit/30bd8143))
+- Introduce comprehensive design specifications for Linky ([79c708e](../../commit/79c708e8))
+- Enhance broadcast creation and management UI ([1bfbcfc](../../commit/1bfbcfcd))
+- Integrate shader configuration into user settings and UI components ([c83e0b8](../../commit/c83e0b88))
+- Enhance MoreOptionsMenu with improved dropdown styling ([28972a1](../../commit/28972a1e))
+- Add new admin endpoints for broadcasts, interest tags, level feature unlocks, level rewards, streak experience bonuses, and user management ([1789f57](../../commit/1789f57c))
+- Update package versions to 1.4.0 and refresh version lock ([f9e4431](../../commit/f9e44314))
 
 
-📋 Full Changelog: [324fe22...c3c5ae2](../../compare/324fe228...c3c5ae24)
+📋 Full Changelog: [f9e4431...ea659e3](../../compare/f9e44314...ea659e37)

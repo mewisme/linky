@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Update build context for Docker images ([0a530aa](../../commit/0a530aaf))
-- Update package versions to 1.7.0 and refresh version lock ([c5c164d](../../commit/c5c164d6))
+- Update environment variables in docker-compose.yml ([ec6c309](../../commit/ec6c309e))
+- Update package versions to 1.7.1 and refresh version lock ([412fd35](../../commit/412fd35d))
 
 
-📋 Full Changelog: [c5c164d...0a530aa](../../compare/c5c164d6...0a530aaf)
+📋 Full Changelog: [412fd35...ec6c309](../../compare/412fd35d...ec6c309e)

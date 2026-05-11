@@ -3,23 +3,26 @@
 ARG TURBO_VERSION=2.9.8
 
 FROM node:24-bookworm-slim AS base
+RUN apt-get update && apt-get install -y curl
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10 --activate
 WORKDIR /app
 
 FROM base AS pruner
 RUN npm install -g turbo@${TURBO_VERSION}
 COPY . .
-RUN turbo prune @ws/api --docker
+RUN turbo prune @ws/api @ws/worker --docker
 
 FROM base AS builder
 WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/full/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+
 RUN pnpm install --frozen-lockfile
-RUN pnpm exec turbo run build --filter=@ws/api
+RUN pnpm exec turbo run build --filter=@ws/api --filter=@ws/worker
 
 FROM base AS runner
 WORKDIR /app
@@ -32,6 +35,9 @@ COPY --from=builder /app/.npmrc ./.npmrc
 
 COPY --from=builder /app/packages/logger/package.json ./packages/logger/
 COPY --from=builder /app/packages/logger/dist ./packages/logger/dist
+
+COPY --from=builder /app/packages/config/package.json ./packages/config/
+COPY --from=builder /app/packages/config/dist ./packages/config/dist
 
 COPY --from=builder /app/packages/shared-types/package.json ./packages/shared-types/
 COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
@@ -48,8 +54,13 @@ COPY --from=builder /app/packages/sdk-internal/dist ./packages/sdk-internal/dist
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
+COPY --from=builder /app/apps/worker/package.json ./apps/worker/
+COPY --from=builder /app/apps/worker/dist ./apps/worker/dist
+
 RUN pnpm install --prod --frozen-lockfile
 
-WORKDIR /app/apps/api
-ENTRYPOINT ["node"]
-CMD ["--import=./dist/instrument.js", "./dist/index.js"]
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["api"]

@@ -1,8 +1,7 @@
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { generateReportAiSummary } from "@/domains/reports/service/report-ai-summary.service.js";
-
-import { tryEnqueueAiJob } from "./job-queue.js";
+import { tryEnqueueJob } from "@/jobs/job-queue.js";
 
 const logger = createLogger("jobs:worker-ai:report-ai-summary");
 
@@ -13,7 +12,7 @@ export interface ReportAiSummaryJobPayload {
 
 export function enqueueReportAiSummaryJob(payload: ReportAiSummaryJobPayload): void {
   void (async () => {
-    const enqueued = await tryEnqueueAiJob({
+    const enqueued = await tryEnqueueJob({
       v: 1,
       type: "report_ai_summary",
       payload: {

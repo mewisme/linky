@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+export function safeParseEnvelope<T>(raw: string, schema: z.ZodType<T>): { ok: true; data: T } | { ok: false; error: string } {
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    const data = schema.parse(parsed);
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 export const reportAiSummaryEnvelopeSchema = z.object({
   v: z.literal(1),
   type: z.literal("report_ai_summary"),
@@ -17,23 +27,6 @@ export const userEmbeddingRegenerateEnvelopeSchema = z.object({
   }),
 });
 
-export const aiJobEnvelopeSchema = z.discriminatedUnion("type", [
-  reportAiSummaryEnvelopeSchema,
-  userEmbeddingRegenerateEnvelopeSchema,
-]);
-
-export type AiJobEnvelope = z.infer<typeof aiJobEnvelopeSchema>;
-
-export function safeParseAiJobEnvelope(raw: string): { ok: true; data: AiJobEnvelope } | { ok: false; error: string } {
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    const data = aiJobEnvelopeSchema.parse(parsed);
-    return { ok: true, data };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : String(error) };
-  }
-}
-
 export const applyCallExpEnvelopeSchema = z.object({
   v: z.literal(1),
   type: z.literal("apply_call_exp"),
@@ -50,16 +43,14 @@ export const applyCallExpEnvelopeSchema = z.object({
   }),
 });
 
-export const jobsJobEnvelopeSchema = z.discriminatedUnion("type", [applyCallExpEnvelopeSchema]);
+export const jobEnvelopeSchema = z.discriminatedUnion("type", [
+  reportAiSummaryEnvelopeSchema,
+  userEmbeddingRegenerateEnvelopeSchema,
+  applyCallExpEnvelopeSchema,
+]);
 
-export type JobsJobEnvelope = z.infer<typeof jobsJobEnvelopeSchema>;
+export type JobEnvelope = z.infer<typeof jobEnvelopeSchema>;
 
-export function safeParseJobsJobEnvelope(raw: string): { ok: true; data: JobsJobEnvelope } | { ok: false; error: string } {
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    const data = jobsJobEnvelopeSchema.parse(parsed);
-    return { ok: true, data };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : String(error) };
-  }
+export function safeParseJobEnvelope(raw: string): { ok: true; data: JobEnvelope } | { ok: false; error: string } {
+  return safeParseEnvelope(raw, jobEnvelopeSchema);
 }

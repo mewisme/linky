@@ -11,8 +11,7 @@ pipeline {
 
   environment {
     LINKY_API_URL = 'https://api.linkynow.site'
-    DOCKER_IMAGE_API_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-api'
-    DOCKER_IMAGE_WORKER_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-worker'
+    DOCKER_LINKY_IMAGE_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky'
   }
 
   stages {
@@ -45,6 +44,7 @@ pipeline {
           if (compareResult <= 0) {
             doPull = true
           }
+
           echo "✔ Local & Remote versions compared"
         }
       }
@@ -58,52 +58,38 @@ pipeline {
 
             echo '- Checking Docker Hub & Remote versions'
 
-            def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_API_URL/tags"
+            def tagsDockerHubResponse = httpRequest url: "$DOCKER_LINKY_IMAGE_URL/tags"
             def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
-            def tagsDockerHubWorkerResponse = httpRequest url: "$DOCKER_IMAGE_WORKER_URL/tags"
-            def tagsDockerHubWorkerJson = readJSON text: tagsDockerHubWorkerResponse.content
+            def latestDigestMain = tagsDockerHubJson.results.find { tag ->
+              tag.name == "latest"
+            }?.images[0]?.digest
 
-            def latestDigestMain = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
             def matchedTagMain = latestDigestMain
               ? tagsDockerHubJson.results.find { tag ->
-                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestMain }
-                }
-              : null
-
-            def latestDigestWorker = tagsDockerHubWorkerJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
-            def matchedTagWorker = latestDigestWorker
-              ? tagsDockerHubWorkerJson.results.find { tag ->
-                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestWorker }
+                  tag.name != "latest" && tag.images.any { img ->
+                    img.digest == latestDigestMain
+                  }
                 }
               : null
 
             def dockerMainVersion = matchedTagMain?.name
-            def dockerWorkerVersion = matchedTagWorker?.name
 
-            echo "Docker Hub main version: ${dockerMainVersion}"
-            echo "Docker Hub worker version: ${dockerWorkerVersion}"
+            echo "Docker Hub api version: ${dockerMainVersion}"
             echo "Remote version: ${remoteVersion}"
             echo "Local version: ${localVersion}"
 
-            def allDockerVersionsSame =
+            def dockerMatchRemote =
               dockerMainVersion &&
-              dockerWorkerVersion &&
-              compareVersions(v1: dockerMainVersion, v2: dockerWorkerVersion) == 0
-
-            def allDockerMatchRemote =
-              allDockerVersionsSame &&
               compareVersions(v1: remoteVersion, v2: dockerMainVersion) == 0
 
-            if (allDockerMatchRemote) {
-              echo '✔ Docker Hub api and worker versions match'
-              echo '✔ Docker Hub & Remote versions are the same'
+            if (dockerMatchRemote) {
+              echo '✔ Docker Hub api version matches Remote version'
 
-              def allDockerMatchLocal =
-                compareVersions(v1: localVersion, v2: dockerMainVersion) == 0 &&
-                compareVersions(v1: localVersion, v2: dockerWorkerVersion) == 0
+              def dockerMatchLocal =
+                compareVersions(v1: localVersion, v2: dockerMainVersion) == 0
 
-              if (allDockerMatchLocal) {
+              if (dockerMatchLocal) {
                 echo '✔ Docker Hub & Local versions are the same'
                 echo '✔ No need to deploy'
                 doPull = false
@@ -112,7 +98,7 @@ pipeline {
               return true
             }
 
-            echo '△ Docker Hub versions are not fully synced with Remote yet'
+            echo '△ Docker Hub api version is not synced with Remote yet'
             echo '△ Waiting for Github Actions to complete'
             return false
           }

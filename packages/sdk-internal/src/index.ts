@@ -1,29 +1,15 @@
-import {
-  AI_JOB_QUEUE_KEY,
-  JOBS_QUEUE_KEY,
-  type AiJobEnvelope,
-  type JobsJobEnvelope,
-} from "@ws/shared-types";
+import { JOB_QUEUE_KEY, type JobEnvelope } from "@ws/shared-types";
 
-type RedisListClient = {
+export type RedisListClient = {
   lPush: (key: string, element: string) => Promise<unknown>;
   brPop: (key: string, timeoutSeconds: number) => Promise<{ element: string } | null>;
 };
 
-export async function enqueueAiJob(client: RedisListClient, envelope: AiJobEnvelope): Promise<void> {
-  await client.lPush(AI_JOB_QUEUE_KEY, JSON.stringify(envelope));
+export async function enqueueJob(client: RedisListClient, envelope: JobEnvelope): Promise<void> {
+  await client.lPush(JOB_QUEUE_KEY, JSON.stringify(envelope));
 }
 
-export async function enqueueGeneralJob(client: RedisListClient, envelope: JobsJobEnvelope): Promise<void> {
-  await client.lPush(JOBS_QUEUE_KEY, JSON.stringify(envelope));
-}
-
-export async function dequeueAiJob(client: RedisListClient, timeoutSeconds: number): Promise<string | null> {
-  const res = await client.brPop(AI_JOB_QUEUE_KEY, timeoutSeconds);
-  return res?.element ?? null;
-}
-
-export async function dequeueGeneralJob(client: RedisListClient, timeoutSeconds: number): Promise<string | null> {
-  const res = await client.brPop(JOBS_QUEUE_KEY, timeoutSeconds);
+export async function dequeueJob(client: RedisListClient, timeoutSeconds: number): Promise<string | null> {
+  const res = await client.brPop(JOB_QUEUE_KEY, timeoutSeconds);
   return res?.element ?? null;
 }

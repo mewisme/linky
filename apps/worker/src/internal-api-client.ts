@@ -5,7 +5,6 @@ import {
   internalWorkerJobUrl,
   parseInternalWorkerErrorBody,
   sha256Hex,
-  type InternalWorkerJobRoute,
   type InternalWorkerRuntimeEnv,
 } from "@ws/internal-worker-api";
 
@@ -17,22 +16,18 @@ function sleep(ms: number): Promise<void> {
 
 export async function postEnvelopeToInternalApi(
   env: InternalWorkerRuntimeEnv,
-  route: InternalWorkerJobRoute,
   envelope: unknown,
   rawRedisPayload: string,
   logger: Logger,
-  queueLabel: string,
 ): Promise<{ ok: true } | { ok: false; dropped: boolean }> {
-  const url = internalWorkerJobUrl(env.internalApiBaseUrl, route);
+  const url = internalWorkerJobUrl(env.internalApiBaseUrl);
   const body = JSON.stringify(envelope);
   const idempotencyKey = sha256Hex(rawRedisPayload);
-  const timeoutMs =
-    route === "ai-jobs" ? env.internalApiTimeoutMsAi : env.internalApiTimeoutMsGeneral;
   const requestId = randomUUID();
 
   for (let attempt = 0; attempt <= env.internalApiMaxRetries; attempt++) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), env.internalApiTimeoutMs);
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -54,8 +49,7 @@ export async function postEnvelopeToInternalApi(
 
       if (response.status === 400 || response.status === 401 || response.status === 409) {
         logger.error(
-          "internal API rejected job queue=%s status=%d requestId=%s body=%s",
-          queueLabel,
+          "internal API rejected job status=%d requestId=%s body=%s",
           response.status,
           requestId,
           parsedErr ? `${parsedErr.error}: ${parsedErr.message}` : text,
@@ -64,8 +58,7 @@ export async function postEnvelopeToInternalApi(
       }
 
       logger.warn(
-        "internal API transient failure queue=%s status=%d attempt=%d requestId=%s",
-        queueLabel,
+        "internal API transient failure status=%d attempt=%d requestId=%s",
         response.status,
         attempt,
         requestId,
@@ -73,8 +66,7 @@ export async function postEnvelopeToInternalApi(
 
       if (attempt >= env.internalApiMaxRetries) {
         logger.error(
-          "internal API gave up queue=%s status=%d requestId=%s",
-          queueLabel,
+          "internal API gave up status=%d requestId=%s",
           response.status,
           requestId,
         );
@@ -85,19 +77,17 @@ export async function postEnvelopeToInternalApi(
       const err = error instanceof Error ? error : new Error(String(error));
       logger.warn(
         err,
-        "internal API transport error queue=%s attempt=%d requestId=%s",
-        queueLabel,
+        "internal API transport error attempt=%d requestId=%s",
         attempt,
         requestId,
       );
       if (attempt >= env.internalApiMaxRetries) {
-        logger.error(err, "internal API transport gave up queue=%s requestId=%s", queueLabel, requestId);
+        logger.error(err, "internal API transport gave up requestId=%s", requestId);
         return { ok: false, dropped: false };
       }
     }
 
-    const delay =
-      env.internalApiRetryBaseDelayMs * Math.pow(2, attempt);
+    const delay = env.internalApiRetryBaseDelayMs * Math.pow(2, attempt);
     await sleep(delay);
   }
 

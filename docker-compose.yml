@@ -2,11 +2,12 @@ services:
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
-    image: mewthedev/linky-api:latest
+      dockerfile: Dockerfile
+    image: mewthedev/linky:latest
+    command: api
     container_name: linky-api
     ports:
-      - "7270:7270"
+      - "${PORT:-7270}:${PORT:-7270}"
     environment:
       NODE_ENV: production
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
@@ -17,11 +18,11 @@ services:
       OLLAMA_EMBEDDING_TIMEOUT: ${OLLAMA_EMBEDDING_TIMEOUT:-60000}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "node dist/healthcheck.js"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+      test: ["CMD-SHELL", "curl -f http://localhost:${PORT:-7270}/healthz"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     depends_on:
       redis:
         condition: service_healthy
@@ -35,24 +36,18 @@ services:
   worker:
     build:
       context: .
-      dockerfile: apps/worker/Dockerfile
-    image: mewthedev/linky-worker:latest
+      dockerfile: Dockerfile
+    image: mewthedev/linky:latest
+    command: worker
     container_name: linky-worker
     environment:
       NODE_ENV: production
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://api:7270}
-      INTERNAL_API_TIMEOUT_MS_AI: 120000
-      INTERNAL_API_TIMEOUT_MS_GENERAL: 30000
+      INTERNAL_API_BASE_URL: ${INTERNAL_API_BASE_URL:-http://api:${PORT:-7270}}
+      INTERNAL_API_TIMEOUT_MS: 120000
       INTERNAL_API_MAX_RETRIES: 3
       INTERNAL_API_RETRY_BASE_DELAY_MS: 500
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "node ./dist/healthcheck.js"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
     depends_on:
       redis:
         condition: service_healthy
@@ -68,9 +63,10 @@ services:
     container_name: linky-redis
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     volumes:
       - redis-data:/data
     restart: unless-stopped
@@ -84,7 +80,7 @@ services:
     environment:
       OLLAMA_VULKAN: "1"
     healthcheck:
-      test: "ollama --version && ollama ps || exit 1"
+      test: "ollama ps || exit 1"
       interval: 1m30s
       timeout: 30s
       retries: 5

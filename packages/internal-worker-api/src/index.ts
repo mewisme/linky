@@ -1,9 +1,7 @@
 export {
   INTERNAL_WORKER_V1_PREFIX,
-  INTERNAL_WORKER_AI_JOBS_PATH,
-  INTERNAL_WORKER_GENERAL_JOBS_PATH,
+  INTERNAL_WORKER_JOBS_PATH,
   internalWorkerJobUrl,
-  type InternalWorkerJobRoute,
 } from "./paths.js";
 export {
   INTERNAL_WORKER_AUTH_HEADER,

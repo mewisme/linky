@@ -1,5 +1,4 @@
-export const AI_JOB_QUEUE_KEY = "linky:queue:ai:v1" as const;
-export const JOBS_QUEUE_KEY = "linky:queue:jobs:v1" as const;
+export const JOB_QUEUE_KEY = "linky:queue:jobs:v2" as const;
 
 export type ReportAiSummaryJobEnvelope = {
   v: 1;
@@ -18,8 +17,6 @@ export type UserEmbeddingRegenerateJobEnvelope = {
   };
 };
 
-export type AiJobEnvelope = ReportAiSummaryJobEnvelope | UserEmbeddingRegenerateJobEnvelope;
-
 export type ApplyCallExpJobEnvelope = {
   v: 1;
   type: "apply_call_exp";
@@ -33,9 +30,10 @@ export type ApplyCallExpJobEnvelope = {
   };
 };
 
-export type JobsJobEnvelope = ApplyCallExpJobEnvelope;
-
-export type AnyJobEnvelope = AiJobEnvelope | JobsJobEnvelope;
+export type JobEnvelope =
+  | ReportAiSummaryJobEnvelope
+  | UserEmbeddingRegenerateJobEnvelope
+  | ApplyCallExpJobEnvelope;
 
 export type {
   BackendI18nPayload,

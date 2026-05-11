@@ -1,6 +1,6 @@
 import type { ApplyCallExpJobEnvelope } from "@ws/shared-types";
 
-import { tryEnqueueGeneralJob } from "./job-queue.js";
+import { tryEnqueueJob } from "@/jobs/job-queue.js";
 
 export async function tryEnqueueApplyCallExpJob(
   payload: ApplyCallExpJobEnvelope["payload"],
@@ -10,5 +10,5 @@ export async function tryEnqueueApplyCallExpJob(
     type: "apply_call_exp",
     payload,
   };
-  return tryEnqueueGeneralJob(envelope);
+  return tryEnqueueJob(envelope);
 }

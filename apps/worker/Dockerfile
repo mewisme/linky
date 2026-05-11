@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG TURBO_VERSION=2.9.6
+ARG TURBO_VERSION=2.9.8
 
 FROM node:24-alpine AS base
 RUN apk add --no-cache \

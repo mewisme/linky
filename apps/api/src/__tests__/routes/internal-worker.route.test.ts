@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import express from "express";
 import { describe, expect, it, vi } from "vitest";
 
-import { INTERNAL_WORKER_GENERAL_JOBS_PATH, INTERNAL_WORKER_V1_PREFIX } from "@ws/internal-worker-api";
+import { INTERNAL_WORKER_JOBS_PATH, INTERNAL_WORKER_V1_PREFIX } from "@ws/internal-worker-api";
 
 import { createInternalWorkerRouter } from "@/routes/internal-worker.route.js";
 
@@ -53,13 +53,13 @@ async function withServer(
 }
 
 describe("internal worker routes", () => {
-  it("returns 401 without bearer token for general-jobs", async () => {
+  it("returns 401 without bearer token", async () => {
     const app = express();
     app.use(express.json());
     app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
 
     await withServer(app, async (baseUrl) => {
-      const res = await fetch(`${baseUrl}${INTERNAL_WORKER_GENERAL_JOBS_PATH}`, {
+      const res = await fetch(`${baseUrl}${INTERNAL_WORKER_JOBS_PATH}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -75,13 +75,13 @@ describe("internal worker routes", () => {
     });
   });
 
-  it("returns 400 when Idempotency-Key is missing for general-jobs", async () => {
+  it("returns 400 when Idempotency-Key is missing", async () => {
     const app = express();
     app.use(express.json());
     app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
 
     await withServer(app, async (baseUrl) => {
-      const res = await fetch(`${baseUrl}${INTERNAL_WORKER_GENERAL_JOBS_PATH}`, {
+      const res = await fetch(`${baseUrl}${INTERNAL_WORKER_JOBS_PATH}`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -107,7 +107,7 @@ describe("internal worker routes", () => {
     app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
 
     await withServer(app, async (baseUrl) => {
-      const res = await fetch(`${baseUrl}${INTERNAL_WORKER_GENERAL_JOBS_PATH}`, {
+      const res = await fetch(`${baseUrl}${INTERNAL_WORKER_JOBS_PATH}`, {
         method: "POST",
         headers: {
           "content-type": "application/json",

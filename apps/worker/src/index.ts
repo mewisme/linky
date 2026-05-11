@@ -8,9 +8,9 @@ import { config as loadDotenv } from "dotenv";
 
 import { initLogger } from "@ws/logger";
 import { parseInternalWorkerRuntimeEnv } from "@ws/internal-worker-api";
+import { safeParseJobEnvelope } from "@ws/validation";
 
-import { runAiJobLoop } from "./queues/ai-job-loop.js";
-import { runGeneralJobLoop } from "./queues/general-job-loop.js";
+import { runJobLoop } from "./queues/run-job-loop.js";
 import { getWorkerRedisOptions } from "./redis-options.js";
 
 const { createLogger } = initLogger();
@@ -30,46 +30,38 @@ try {
 }
 
 const logger = createLogger("worker");
-const aiLogger = createLogger("worker:ai");
-const generalLogger = createLogger("worker:general");
 
-const redisOptions = getWorkerRedisOptions();
-const aiRedis = createClient(redisOptions);
-const generalRedis = createClient(redisOptions);
+const redis = createClient(getWorkerRedisOptions());
 
 let stopping = false;
 
 async function main(): Promise<void> {
-  logger.info("worker starting (queues: ai, general)");
+  logger.info("worker starting");
 
-  const onRedisError = (error: unknown) => {
+  redis.on("error", (error: unknown) => {
     logger.error(error instanceof Error ? error : new Error(inspect(error)), "worker redis error");
-  };
-  aiRedis.on("error", onRedisError);
-  generalRedis.on("error", onRedisError);
+  });
 
-  await Promise.all([aiRedis.connect(), generalRedis.connect()]);
+  await redis.connect();
 
   const shutdown = async (signal: string) => {
     if (stopping) return;
     stopping = true;
     logger.info("worker shutdown (%s)", signal);
-    await Promise.all([
-      aiRedis.quit().catch(() => aiRedis.disconnect()),
-      generalRedis.quit().catch(() => generalRedis.disconnect()),
-    ]);
+    await redis.quit().catch(() => redis.disconnect());
     process.exit(0);
   };
 
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
   process.on("SIGINT", () => void shutdown("SIGINT"));
 
-  const isStopping = () => stopping;
-
-  await Promise.all([
-    runAiJobLoop({ client: aiRedis, env: runtimeEnv, logger: aiLogger, isStopping }),
-    runGeneralJobLoop({ client: generalRedis, env: runtimeEnv, logger: generalLogger, isStopping }),
-  ]);
+  await runJobLoop({
+    client: redis,
+    env: runtimeEnv,
+    logger,
+    isStopping: () => stopping,
+    parse: safeParseJobEnvelope,
+  });
 }
 
 void main().catch((error) => {

@@ -2,8 +2,8 @@
 
 🔨 Other Changes
 
-- Introduce new worker-go service with Docker support ([427ae42](../../commit/427ae420))
-- Update package versions to 1.6.0 and refresh version lock ([1351994](../../commit/1351994c))
+- Update build context for Docker images ([0a530aa](../../commit/0a530aaf))
+- Update package versions to 1.7.0 and refresh version lock ([c5c164d](../../commit/c5c164d6))
 
 
-📋 Full Changelog: [1351994...427ae42](../../compare/1351994c...427ae420)
+📋 Full Changelog: [c5c164d...0a530aa](../../compare/c5c164d6...0a530aaf)

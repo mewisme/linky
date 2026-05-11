@@ -101,7 +101,8 @@ services:
     container_name: linky-ollama
     restart: unless-stopped
     environment:
-      OLLAMA_VULKAN: "1"
+      OLLAMA_VULKAN: 1
+      OLLAMA_KEEP_ALIVE: 1m
     healthcheck:
       test: "ollama ps || exit 1"
       interval: 1m30s

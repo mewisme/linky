@@ -25,7 +25,7 @@ class AsyncConcurrencyLimiter {
   private active = 0;
   private readonly waiters: Array<() => void> = [];
 
-  constructor(private readonly maxConcurrent: number) {}
+  constructor(private readonly maxConcurrent: number) { }
 
   async run<T>(fn: () => Promise<T>): Promise<T> {
     if (this.active >= this.maxConcurrent) {
@@ -143,6 +143,7 @@ async function callOllamaEmbedBatch(inputs: string[]): Promise<EmbedBatchOk | nu
           model: config.ollamaEmbeddingModel,
           input: inputs,
           truncate: true,
+          keep_alive: 60
         }),
         timeoutPromise,
       ]);

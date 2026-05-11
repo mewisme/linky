@@ -347,9 +347,6 @@ importers:
 
   apps/worker:
     dependencies:
-      '@sentry/node':
-        specifier: ^10.49.0
-        version: 10.49.0
       '@ws/config':
         specifier: workspace:*
         version: link:../../packages/config

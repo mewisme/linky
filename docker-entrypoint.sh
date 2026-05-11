@@ -9,7 +9,7 @@ case "$1" in
 
   worker)
     cd /app/apps/worker
-    exec node --import=./dist/instrument.js ./dist/index.js
+    exec node ./dist/index.js
     ;;
 
   *)

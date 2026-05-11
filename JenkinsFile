@@ -11,7 +11,8 @@ pipeline {
 
   environment {
     LINKY_API_URL = 'https://api.linkynow.site'
-    DOCKER_LINKY_IMAGE_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky'
+    DOCKER_IMAGE_API_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky'
+    DOCKER_IMAGE_WORKER_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-worker'
   }
 
   stages {
@@ -44,7 +45,6 @@ pipeline {
           if (compareResult <= 0) {
             doPull = true
           }
-
           echo "✔ Local & Remote versions compared"
         }
       }
@@ -58,38 +58,52 @@ pipeline {
 
             echo '- Checking Docker Hub & Remote versions'
 
-            def tagsDockerHubResponse = httpRequest url: "$DOCKER_LINKY_IMAGE_URL/tags"
+            def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_API_URL/tags"
             def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
-            def latestDigestMain = tagsDockerHubJson.results.find { tag ->
-              tag.name == "latest"
-            }?.images[0]?.digest
+            def tagsDockerHubWorkerResponse = httpRequest url: "$DOCKER_IMAGE_WORKER_URL/tags"
+            def tagsDockerHubWorkerJson = readJSON text: tagsDockerHubWorkerResponse.content
 
+            def latestDigestMain = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
             def matchedTagMain = latestDigestMain
               ? tagsDockerHubJson.results.find { tag ->
-                  tag.name != "latest" && tag.images.any { img ->
-                    img.digest == latestDigestMain
-                  }
+                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestMain }
+                }
+              : null
+
+            def latestDigestWorker = tagsDockerHubWorkerJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+            def matchedTagWorker = latestDigestWorker
+              ? tagsDockerHubWorkerJson.results.find { tag ->
+                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestWorker }
                 }
               : null
 
             def dockerMainVersion = matchedTagMain?.name
+            def dockerWorkerVersion = matchedTagWorker?.name
 
-            echo "Docker Hub api version: ${dockerMainVersion}"
+            echo "Docker Hub main version: ${dockerMainVersion}"
+            echo "Docker Hub worker version: ${dockerWorkerVersion}"
             echo "Remote version: ${remoteVersion}"
             echo "Local version: ${localVersion}"
 
-            def dockerMatchRemote =
+            def allDockerVersionsSame =
               dockerMainVersion &&
+              dockerWorkerVersion &&
+              compareVersions(v1: dockerMainVersion, v2: dockerWorkerVersion) == 0
+
+            def allDockerMatchRemote =
+              allDockerVersionsSame &&
               compareVersions(v1: remoteVersion, v2: dockerMainVersion) == 0
 
-            if (dockerMatchRemote) {
-              echo '✔ Docker Hub api version matches Remote version'
+            if (allDockerMatchRemote) {
+              echo '✔ Docker Hub api and worker versions match'
+              echo '✔ Docker Hub & Remote versions are the same'
 
-              def dockerMatchLocal =
-                compareVersions(v1: localVersion, v2: dockerMainVersion) == 0
+              def allDockerMatchLocal =
+                compareVersions(v1: localVersion, v2: dockerMainVersion) == 0 &&
+                compareVersions(v1: localVersion, v2: dockerWorkerVersion) == 0
 
-              if (dockerMatchLocal) {
+              if (allDockerMatchLocal) {
                 echo '✔ Docker Hub & Local versions are the same'
                 echo '✔ No need to deploy'
                 doPull = false
@@ -98,7 +112,7 @@ pipeline {
               return true
             }
 
-            echo '△ Docker Hub api version is not synced with Remote yet'
+            echo '△ Docker Hub versions are not fully synced with Remote yet'
             echo '△ Waiting for Github Actions to complete'
             return false
           }

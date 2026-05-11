@@ -50,9 +50,8 @@ export const config = {
   // Ollama
   ollamaEmbeddingUrl: process.env.OLLAMA_EMBEDDING_URL as string,
   ollamaEmbeddingModel: process.env.OLLAMA_EMBEDDING_MODEL as string || "bge-m3",
-  ollamaCloudUrl: process.env.OLLAMA_CLOUD_URL as string || "https://ollama.com",
   ollamaCloudModel: process.env.OLLAMA_CLOUD_MODEL as string || "ministral-3:14b",
-  ollamaCloudApiKey: process.env.OLLAMA_CLOUD_API_KEY as string,
+  ollamaApiKey: process.env.OLLAMA_API_KEY as string,
   ollamaEmbeddingTimeout: Number(process.env.OLLAMA_EMBEDDING_TIMEOUT) || 60000,
   embedMaxChunkChars: Math.min(
     1800,

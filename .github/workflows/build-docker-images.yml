@@ -18,6 +18,8 @@ jobs:
         include:
           - image: linky
             dockerfile: Dockerfile
+          - image: linky-worker
+            dockerfile: apps/worker-go/Dockerfile
 
     env:
       IMAGE_NAME: ${{ matrix.image }}

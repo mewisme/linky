@@ -63,6 +63,21 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "build:worker-go": {
+      "dependsOn": [],
+      "inputs": [
+        "apps/worker-go/**/*.go",
+        "apps/worker-go/go.mod",
+        "apps/worker-go/go.sum"
+      ],
+      "outputs": [
+        "apps/worker-go/dist/**"
+      ]
+    },
+    "dev:worker-go": {
+      "cache": false,
+      "persistent": true
     }
   }
 }

@@ -1,5 +1,3 @@
-import "./instrument.js";
-
 import { inspect } from "node:util";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";

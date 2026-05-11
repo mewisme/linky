@@ -6,9 +6,9 @@ import { toLoggableError } from "@/utils/to-loggable-error.js";
 const logger = createLogger("infra:ollama:cloud:service");
 
 const ollama = new Ollama({
-  host: config.ollamaCloudUrl,
+  host: "https://ollama.com",
   headers: {
-    Authorization: `Bearer ${config.ollamaCloudApiKey}`,
+    Authorization: `Bearer ${config.ollamaApiKey}`,
   }
 });
 

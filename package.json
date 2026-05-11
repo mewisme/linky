@@ -1,6 +1,6 @@
 {
   "name": "linky",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "@types/node": "25.6.0",
     "dotenv": "catalog:",
     "prettier": "^3.8.3",
-    "turbo": "^2.9.8",
+    "turbo": "^2.9.12",
     "typescript": "catalog:",
     "xlsx": "^0.18.5"
   }

@@ -12,7 +12,7 @@ pipeline {
   environment {
     LINKY_API_URL = 'https://api.linkynow.site'
     DOCKER_IMAGE_API_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky'
-    DOCKER_IMAGE_WORKER_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-worker'
+    DOCKER_IMAGE_WORKER_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-go'
   }
 
   stages {

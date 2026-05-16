@@ -68,6 +68,7 @@ services:
       dockerfile: Dockerfile.go
     image: mewthedev/linky-worker:latest
     container_name: linky-worker
+    command: worker
     environment:
       NODE_ENV: production
       REDIS_URL: redis://redis:6379

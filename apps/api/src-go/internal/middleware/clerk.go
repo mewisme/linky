@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"strings"
+	"context"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -12,16 +13,23 @@ import (
 
 var clerkLog = logger.New("middleware:clerk")
 
+const clerkVerifyTimeout = 10 * time.Second
+
 func Clerk() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			authHeader := c.Request().Header.Get("Authorization")
-			if authHeader == "" {
+			token, ok := clerkx.ExtractBearerToken(c.Request().Header.Get("Authorization"))
+			if !ok {
 				clerkLog.Warn().Msg("No authorization header provided")
 				return httpx.Unauthorized(c)
 			}
-			token := strings.TrimPrefix(authHeader, "Bearer ")
-			payload, err := clerkx.VerifyToken(c.Request().Context(), token)
+
+			// Detach from the request context so an early client disconnect or
+			// handler cancellation cannot abort the JWKS fetch inside jwt.Verify.
+			verifyCtx, cancel := context.WithTimeout(context.Background(), clerkVerifyTimeout)
+			defer cancel()
+
+			payload, err := clerkx.VerifyToken(verifyCtx, token)
 			if err != nil {
 				clerkLog.Error().Err(err).Msg("Clerk token verification error")
 				return httpx.Unauthorized(c)

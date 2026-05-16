@@ -3,7 +3,9 @@ package clerkx
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	"github.com/clerk/clerk-sdk-go/v2/jwt"
@@ -12,6 +14,12 @@ import (
 	"linky-api/src-go/internal/config"
 	"linky-api/src-go/internal/logger"
 )
+
+// verifyLeeway is the clock-skew tolerance applied when validating Clerk
+// session JWTs. Matches @clerk/backend's default leeway (30s) so that
+// minor drift between the API host and Clerk does not surface as
+// "token is expired (exp)" or "token issued in the future (iat)" errors.
+const verifyLeeway = 30 * time.Second
 
 var (
 	cfg     *config.Config
@@ -39,9 +47,16 @@ func VerifyToken(ctx context.Context, token string) (*VerifiedToken, error) {
 	if cfg == nil || cfg.ClerkSecretKey == "" {
 		return nil, errors.New("clerkx: not initialized")
 	}
-	claims, err := jwt.Verify(ctx, &jwt.VerifyParams{Token: token})
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return nil, errors.New("clerkx: empty token")
+	}
+	claims, err := jwt.Verify(ctx, &jwt.VerifyParams{Token: token, Leeway: verifyLeeway})
 	if err != nil {
 		return nil, err
+	}
+	if claims.Subject == "" {
+		return nil, errors.New("clerkx: missing sub claim")
 	}
 	raw := map[string]interface{}{
 		"sub": claims.Subject,

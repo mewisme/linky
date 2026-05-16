@@ -6,6 +6,7 @@ export const op = new OpenPanel({
   apiUrl: serverEnv.OPENPANEL_API_URL,
   clientId: publicEnv.OPENPANEL_CLIENT_ID,
   clientSecret: serverEnv.OPENPANEL_CLIENT_SECRET,
+  disabled: serverEnv.isDev,
 });
 
 op.setGlobalProperties({

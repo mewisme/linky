@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"linky-api/src-go/internal/domains/user/progress"
 	"linky-api/src-go/internal/domains/user/userservice"
 	"linky-api/src-go/internal/domains/videochat/callservice"
 	"linky-api/src-go/internal/httpx"
@@ -170,12 +171,21 @@ func handleUserProgressMe(c echo.Context) error {
 		return httpx.SendError(c, 404, "Not Found",
 			httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
 	}
-	level, _ := userservice.GetUserLevelData(c.Request().Context(), uid)
-	streak, _ := userservice.GetUserStreakData(c.Request().Context(), uid)
-	return c.JSON(http.StatusOK, map[string]any{
-		"level":  level,
-		"streak": streak,
-	})
+	tz, _ := supax.GetUserTimezone(c.Request().Context(), uid)
+	if tz == "" {
+		tz = "UTC"
+	}
+	insights, err := progress.GetInsights(c.Request().Context(), uid, tz)
+	if err != nil {
+		domainLog.Error().Err(err).Msg("user progress insights failed")
+		return httpx.SendError(c, 500, "Internal Server Error",
+			httpx.UM("FAILED_FETCH_PROGRESS", "failedFetchUserProgress", "Failed to fetch user progress"))
+	}
+	if insights == nil {
+		return httpx.SendError(c, 404, "Not Found",
+			httpx.UM("USER_PROGRESS_NOT_FOUND", "userProgressNotFound", "User progress data not found"))
+	}
+	return c.JSON(http.StatusOK, insights)
 }
 
 func handleBlocksMe(c echo.Context) error {

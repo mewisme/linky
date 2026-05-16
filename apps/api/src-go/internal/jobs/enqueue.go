@@ -18,16 +18,23 @@ func EnqueueApplyCallExp(ctx context.Context, userID string, durationSeconds int
 	if c == nil {
 		return errors.New("redis not connected")
 	}
+	payload := map[string]any{
+		"userId":          userID,
+		"durationSeconds": durationSeconds,
+	}
+	if counterpartUserID != "" {
+		payload["counterpartUserId"] = counterpartUserID
+	}
+	if timezone != "" {
+		payload["timezone"] = timezone
+	}
+	if dateForExpToday != "" {
+		payload["dateForExpToday"] = dateForExpToday
+	}
 	envelope := map[string]any{
-		"v":    1,
-		"type": sharedtypes.JobTypeApplyCallExp,
-		"payload": map[string]any{
-			"userId":            userID,
-			"durationSeconds":   durationSeconds,
-			"counterpartUserId": optString(counterpartUserID),
-			"timezone":          optString(timezone),
-			"dateForExpToday":   optString(dateForExpToday),
-		},
+		"v":       1,
+		"type":    sharedtypes.JobTypeApplyCallExp,
+		"payload": payload,
 	}
 	body, err := json.Marshal(envelope)
 	if err != nil {
@@ -85,11 +92,4 @@ func EnqueueUserEmbeddingRegenerate(ctx context.Context, userID string) error {
 	ctx2, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return c.LPush(ctx2, sharedtypes.JobQueueKey, body).Err()
-}
-
-func optString(s string) any {
-	if s == "" {
-		return nil
-	}
-	return s
 }

@@ -2,7 +2,6 @@ package socketio
 
 import (
 	"context"
-	"encoding/json"
 	"sync"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"linky-api/src-go/internal/contexts"
 	"linky-api/src-go/internal/domains/matchmaking"
 	"linky-api/src-go/internal/domains/rooms"
+	"linky-api/src-go/internal/domains/user/progress"
 	"linky-api/src-go/internal/infra/supax"
 	"linky-api/src-go/internal/jobs"
 	"linky-api/src-go/internal/logger"
@@ -65,11 +65,8 @@ func (r *chatRuntime) attach(s *socket.Socket) {
 	s.On("join", func(args ...any) { r.onJoin(s, dbUserID, uname, uimg) })
 	s.On("skip", func(args ...any) { r.onSkip(s, dbUserID) })
 	s.On("signal", func(args ...any) { r.forwardToPeer(s, "signal", args) })
-	s.On("chat:send", func(args ...any) {
-		r.forwardToPeer(s, "chat:message", args)
-		r.notifyPeer(s, "chat", uname)
-	})
-	s.On("chat:attachment:send", func(args ...any) { r.forwardToPeer(s, "chat:attachment", args) })
+	s.On("chat:send", func(args ...any) { r.onChatSend(s, args, uname) })
+	s.On("chat:attachment:send", func(args ...any) { r.onChatSend(s, args, uname) })
 	s.On("chat:typing", func(args ...any) { r.forwardToPeer(s, "chat:typing", args) })
 	s.On("mute-toggle", func(args ...any) { r.forwardToPeer(s, "peer:mute-toggle", args) })
 	s.On("video-toggle", func(args ...any) { r.forwardToPeer(s, "peer:video-toggle", args) })
@@ -186,6 +183,26 @@ func isForeground(s *socket.Socket) bool {
 	}
 	v, _ := d["visibility"].(string)
 	return v == "foreground"
+}
+
+func (r *chatRuntime) onChatSend(s *socket.Socket, args []any, senderName string) {
+	peer, room := r.rooms.PeerOf(string(s.Id()))
+	if room == nil || peer == nil {
+		return
+	}
+	data := parseChatInput(args)
+	if !isValidChatInput(data) {
+		return
+	}
+	payload := buildChatMessagePayload(s, data)
+	target := r.chat.Sockets()
+	if target == nil {
+		return
+	}
+	if peerSock, ok := target.Load(socket.SocketId(peer.SocketID)); ok {
+		_ = peerSock.Emit("chat:message", payload)
+	}
+	r.notifyPeer(s, "chat", senderName)
 }
 
 func (r *chatRuntime) forwardToPeer(s *socket.Socket, event string, args []any) {
@@ -438,9 +455,8 @@ func (r *chatRuntime) heartbeatRooms() {
 					"durationSeconds": dur,
 				})
 				if p.UserID != "" {
-					projection := computeRealtimeProjection(p.UserID, dur)
-					if projection != nil {
-						_ = sock.Emit("user:progress:update", projection)
+					if projected := computeRealtimeProgressInsights(p.UserID, dur); projected != nil {
+						_ = sock.Emit("user:progress:update", projected)
 					}
 				}
 			}
@@ -448,17 +464,21 @@ func (r *chatRuntime) heartbeatRooms() {
 	}
 }
 
-func computeRealtimeProjection(userID string, durationSeconds int) map[string]any {
+func computeRealtimeProgressInsights(userID string, durationSeconds int) *progress.Insights {
 	if userID == "" || durationSeconds <= 0 {
 		return nil
 	}
-	ctx, cancel := contextTimeout(2 * time.Second)
+	ctx, cancel := contextTimeout(3 * time.Second)
 	defer cancel()
-	level, _ := userserviceProjection(ctx, userID, durationSeconds)
-	if level == nil {
+	tz, _ := supax.GetUserTimezone(ctx, userID)
+	if tz == "" {
+		tz = "UTC"
+	}
+	insights, err := progress.GetInsights(ctx, userID, tz)
+	if err != nil || insights == nil {
 		return nil
 	}
-	return level
+	return progress.ApplyRealtimeCallProjection(insights, durationSeconds, durationSeconds)
 }
 
 func contextTimeout(d time.Duration) (context.Context, context.CancelFunc) {
@@ -502,5 +522,3 @@ func userInfoFromSocket(s *socket.Socket) (string, string) {
 	}
 	return uname, uimg
 }
-
-var _ = json.Marshal

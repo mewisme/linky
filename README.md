@@ -45,7 +45,7 @@ Queue payload shapes live in `@ws/shared-types` and `@ws/validation`. The API en
 
 - **Node.js** 20+ (see `engines` in root `package.json`)
 - **pnpm** 10.33+ (`corepack enable` or install globally; version pinned in `packageManager`)
-- **Go** 1.24+ (to build/run the production worker locally; see `apps/worker/go.mod`)
+- **Go** 1.26+ (API and worker Go modules: `apps/api/go.mod`, `apps/worker/go.mod`)
 - **Docker** (optional — Redis, API, Go worker, Ollama via Compose)
 
 ## Quick start
@@ -118,7 +118,7 @@ pnpm docker:build:worker
 | Dev web / api / worker | `pnpm dev:web`, `pnpm dev:api`, `pnpm dev:worker`, `pnpm dev:worker-go` |
 | Build (all) | `pnpm build` |
 | Build web / api | `pnpm build:web`, `pnpm build:api` |
-| Build Go worker | `pnpm build:worker-go` |
+| Build Go API / worker | `pnpm build:api-go`, `pnpm build:worker-go` |
 | Production start | `pnpm start:api`, `pnpm start:web`, `pnpm start:worker` |
 | Lint | `pnpm lint`, `pnpm lint:web`, `pnpm lint:api` |
 | Types | `pnpm check-types`, `pnpm check-types:web`, `pnpm check-types:api` |
@@ -126,7 +126,7 @@ pnpm docker:build:worker
 | API unit tests | `cd apps/api && pnpm vitest run` |
 | E2E | `pnpm test`, `pnpm test:ui`, `pnpm test:debug` |
 
-CI (on PRs and `main`): lint, typecheck, monorepo build, and Go worker build — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+CI (on PRs and `main`): lint, typecheck, monorepo build, and Go API/worker build + tests — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## Architecture
 

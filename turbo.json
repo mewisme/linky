@@ -64,10 +64,20 @@
         "^build"
       ]
     },
+    "build:api-go": {
+      "dependsOn": [],
+      "inputs": [
+        "apps/api/src-go/**/*.go",
+        "apps/api/go.mod"
+      ],
+      "outputs": [
+        "apps/api/bin/api"
+      ]
+    },
     "build:worker-go": {
       "dependsOn": [],
       "inputs": [
-        "apps/worker/src/**/*.go",
+        "apps/worker/src-go/**/*.go",
         "apps/worker/go.mod",
         "apps/worker/go.sum"
       ],

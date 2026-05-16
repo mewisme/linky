@@ -25,6 +25,7 @@ pnpm build:web            # Web only
 pnpm start:api            # Production API (after build)
 pnpm start:web            # Production web (after build)
 pnpm start:worker         # Production Node.js worker (after build)
+pnpm build:api-go         # Build Go API binary scaffold (apps/api/bin/api)
 pnpm build:worker-go      # Build Go worker binary (apps/worker/bin/worker)
 
 # Lint & Type Check
@@ -60,9 +61,9 @@ pnpm exec playwright test -g "should update avatar"
 
 ```
 apps/
-  api/           Express backend (DDD); enqueues work to Redis queues
+  api/           Express backend (DDD, `src/`) + Go scaffold (`src-go/`); enqueues work to Redis queues
   web/           Next.js 16 frontend (App Router)
-  worker/        Node + Go workers (all source under src/); Redis queues + internal API. Go is production in docker-compose (Dockerfile.go); Node via root Dockerfile entrypoint worker.
+  worker/        Node worker (`src/`) and Go worker (`src-go/`); Redis queues + internal API. Go is production in docker-compose (Dockerfile.go); Node via root Dockerfile entrypoint worker.
 packages/
   config/             Shared env parsing (Zod); @ws/config
   database-types/     Supabase-oriented DB types; @ws/database-types

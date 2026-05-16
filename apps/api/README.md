@@ -4,6 +4,14 @@ Express 5 backend for Linky: REST (`/api/v1`), WebRTC signaling over Socket.IO, 
 
 Monorepo overview: [../../README.md](../../README.md).
 
+## Go (`src-go/`)
+
+Go **1.26** (`go.mod`, module `linky-api`). Production HTTP is still the Node/Express app under `src/`; `src-go/` is a scaffold for future Go code.
+
+```bash
+pnpm build:api-go   # apps/api/bin/api
+```
+
 ## Quick start
 
 From the repo root:

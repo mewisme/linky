@@ -19,7 +19,7 @@ jobs:
           - image: linky
             dockerfile: Dockerfile
             context: .
-          - image: linky-worker
+          - image: linky-go
             dockerfile: Dockerfile.go
             context: .
 

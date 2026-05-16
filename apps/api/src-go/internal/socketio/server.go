@@ -1,8 +1,10 @@
 package socketio
 
 import (
+	"context"
 	"net/http"
 	"sync"
+	"time"
 
 	socket "github.com/zishang520/socket.io/servers/socket/v3"
 	"github.com/zishang520/socket.io/v3/pkg/types"
@@ -116,24 +118,33 @@ func authMiddleware(requireAdmin bool) socket.NamespaceMiddleware {
 			return
 		}
 
-		ctx := sock.Request().Context()
-		payload, err := clerkx.VerifyToken(ctx, token)
+		// Use a fresh context for Clerk verification: the WS upgrade request's
+		// context is cancelled once net/http hijacks the connection, which would
+		// cause the JWKS HTTP fetch inside jwt.Verify to fail with
+		// "context canceled" and surface as "Authentication failed".
+		verifyCtx, verifyCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer verifyCancel()
+		payload, err := clerkx.VerifyToken(verifyCtx, token)
 		if err != nil {
-			log.Error().Err(err).Msg("Socket authentication failed")
+			log.Error().Err(err).Str("socketId", string(sock.Id())).Msg("Socket authentication failed")
 			next(socket.NewExtendedError("Authentication failed", nil))
 			return
 		}
 
 		userName := "Anonymous"
 		var userImage string
-		if u, err := clerkx.GetUser(ctx, payload.Sub); err == nil && u != nil {
+		profileCtx, profileCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		if u, err := clerkx.GetUser(profileCtx, payload.Sub); err == nil && u != nil {
 			if u.FirstName != "" {
 				userName = u.FirstName
 			} else if u.Username != "" {
 				userName = u.Username
 			}
 			userImage = u.ImageURL
+		} else if err != nil {
+			log.Warn().Err(err).Str("userId", payload.Sub).Msg("Failed to fetch user profile from Clerk")
 		}
+		profileCancel()
 
 		data := map[string]any{
 			dataKeyUserID:       payload.Sub,
@@ -144,7 +155,9 @@ func authMiddleware(requireAdmin bool) socket.NamespaceMiddleware {
 		sock.SetData(data)
 
 		if requireAdmin {
-			ok, err := admincache.IsAdmin(ctx, payload.Sub)
+			adminCtx, adminCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ok, err := admincache.IsAdmin(adminCtx, payload.Sub)
+			adminCancel()
 			if err != nil {
 				log.Error().Err(err).Msg("Admin namespace auth failed")
 				next(socket.NewExtendedError("Authorization failed", nil))

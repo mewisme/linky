@@ -14,6 +14,7 @@ import {
   updateAdminInterestTag,
 } from "@/domains/admin/service/admin-interest-tags.service.js";
 import type { InterestTagsImportRequestBody } from "@/domains/admin/types/admin.types.js";
+import { isSafePostgrestSearchTerm } from "@/lib/postgrest/search-filter.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:interest-tags:route");
@@ -22,6 +23,15 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const category = req.query.category as string | undefined;
     const search = req.query.search as string | undefined;
+
+    if (search && !isSafePostgrestSearchTerm(search)) {
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("INVALID_SEARCH_QUERY", "invalidSearchQuery", "Search query contains invalid characters"),
+      );
+    }
 
     let isActive: boolean | undefined;
     if (req.query.isActive !== undefined) {

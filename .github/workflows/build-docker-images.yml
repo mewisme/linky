@@ -20,8 +20,8 @@ jobs:
             dockerfile: Dockerfile
             context: .
           - image: linky-worker
-            dockerfile: apps/worker-go/Dockerfile
-            context: ./apps/worker-go
+            dockerfile: Dockerfile.go
+            context: ./apps/worker
 
     env:
       IMAGE_NAME: ${{ matrix.image }}

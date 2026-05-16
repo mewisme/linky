@@ -1,5 +1,6 @@
 import { type Server as HTTPServer } from "http";
 import { type Server as SocketIOServer } from "socket.io";
+import { rmSync } from "node:fs";
 import * as Sentry from "@sentry/node";
 import { redisClient } from "@/infra/redis/client.js";
 import { config } from "@/config/index.js";
@@ -12,10 +13,16 @@ const logger = createLogger("middleware:graceful-shutdown");
 
 let isShuttingDown = false;
 let httpServer: HTTPServer | null = null;
+let internalServer: HTTPServer | null = null;
 let io: SocketIOServer | null = null;
 
-export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServer): void {
+export function setupGracefulShutdown(
+  server: HTTPServer,
+  internal: HTTPServer | null,
+  socketIO: SocketIOServer,
+): void {
   httpServer = server;
+  internalServer = internal;
   io = socketIO;
 
   const shutdown = async (signal: string): Promise<void> => {
@@ -39,14 +46,24 @@ export function setupGracefulShutdown(server: HTTPServer, socketIO: SocketIOServ
         await persistActiveRoomCallHistories(videoChatContext.io, videoChatContext.rooms);
       }
 
-      await new Promise<void>((resolve) => {
-        if (!httpServer) {
-          resolve();
-          return;
-        }
+      const closeServer = (server: HTTPServer | null): Promise<void> =>
+        new Promise<void>((resolve) => {
+          if (!server) {
+            resolve();
+            return;
+          }
+          server.close(() => resolve());
+        });
 
-        httpServer.close(() => resolve());
-      });
+      await Promise.all([closeServer(httpServer), closeServer(internalServer)]);
+
+      if (config.internalApiSocketPath) {
+        try {
+          rmSync(config.internalApiSocketPath, { force: true });
+        } catch (error) {
+          logger.warn(toLoggableError(error), "Failed to remove internal API socket file");
+        }
+      }
 
       if (io) {
         io.close(() => { });

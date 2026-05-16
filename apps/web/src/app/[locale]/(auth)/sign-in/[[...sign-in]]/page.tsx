@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo } from "react";
 import { Button } from "@ws/ui/components/ui/button";
+import { safeRedirectPath } from "@/shared/utils/safe-redirect-path";
 
 function SignedInRedirect({ href }: { href: string }) {
   const router = useRouter();
@@ -32,17 +33,10 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const signInPath = useMemo(() => localePrefixedPath(locale, "/sign-in"), [locale]);
 
-  const redirectUrl = useMemo(() => {
-    const redirect = searchParams.get("redirect_url");
-    if (!redirect) return "/";
-
-    try {
-      const url = new URL(redirect);
-      return url.pathname + url.search;
-    } catch {
-      return redirect.startsWith("/") ? redirect : "/";
-    }
-  }, [searchParams]);
+  const redirectUrl = useMemo(
+    () => safeRedirectPath(searchParams.get("redirect_url")),
+    [searchParams],
+  );
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">

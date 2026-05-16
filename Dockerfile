@@ -45,8 +45,8 @@ COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=builder /app/packages/validation/package.json ./packages/validation/
 COPY --from=builder /app/packages/validation/dist ./packages/validation/dist
 
-COPY --from=builder /app/packages/internal-worker-api/package.json ./packages/internal-worker-api/
-COPY --from=builder /app/packages/internal-worker-api/dist ./packages/internal-worker-api/dist
+COPY --from=builder /app/packages/worker-api/package.json ./packages/worker-api/
+COPY --from=builder /app/packages/worker-api/dist ./packages/worker-api/dist
 
 COPY --from=builder /app/packages/sdk-internal/package.json ./packages/sdk-internal/
 COPY --from=builder /app/packages/sdk-internal/dist ./packages/sdk-internal/dist
@@ -59,8 +59,9 @@ COPY --from=builder /app/apps/worker/dist ./apps/worker/dist
 
 RUN pnpm install --prod --frozen-lockfile
 
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY sh/docker-entrypoint.node.sh /usr/local/bin/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
+  && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["api"]

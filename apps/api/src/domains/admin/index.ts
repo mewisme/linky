@@ -5,6 +5,7 @@ import levelRewardsRouter from "./http/level-rewards.route.js";
 import levelFeatureUnlocksRouter from "./http/level-feature-unlocks.route.js";
 import streakExpBonusesRouter from "./http/streak-exp-bonuses.route.js";
 import adminMediaRouter from "./http/admin-media.route.js";
+import adminS3Router from "./http/admin-s3.route.js";
 import embeddingsRouter from "./http/embeddings.route.js";
 import broadcastsRouter from "./http/broadcasts.route.js";
 import { createAdminReportsRouter } from "./http/reports.route.js";
@@ -25,6 +26,7 @@ export function createAdminRouter(deps: { reportsRouter: ExpressRouter }): Expre
   router.use("/level-feature-unlocks", levelFeatureUnlocksRouter);
   router.use("/streak-exp-bonuses", streakExpBonusesRouter);
   router.use("/media", adminMediaRouter);
+  router.use("/s3", adminS3Router);
   router.use("/reports", createAdminReportsRouter({ reportsRouter: deps.reportsRouter }));
 
   return router;

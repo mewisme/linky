@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@ws/config": "workspace:*",
-    "@ws/internal-worker-api": "workspace:*",
+    "@ws/worker-api": "workspace:*",
     "@ws/logger": "workspace:*",
     "@ws/sdk-internal": "workspace:*",
     "@ws/shared-types": "workspace:*",

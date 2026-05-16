@@ -13,6 +13,7 @@ import userBlocksRouter from "@/domains/user/http/user-blocks.route.js";
 import videoChatRouter from "@/domains/video-chat/http/end-call-unload.route.js";
 import notificationsRouter from "@/domains/notification/http/notifications.route.js";
 import pushRouter from "@/domains/notification/http/push.route.js";
+import s3MeRouter from "./media/s3-me.js";
 
 const router: ExpressRouter = Router();
 
@@ -30,6 +31,7 @@ router.use("/favorites", favoritesRouter);
 router.use("/video-chat", videoChatRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/push", pushRouter);
+router.use("/me/s3", s3MeRouter);
 
 export default router;
 

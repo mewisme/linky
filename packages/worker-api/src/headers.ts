@@ -1,13 +1,9 @@
-export const INTERNAL_WORKER_AUTH_HEADER = "authorization" as const;
-
 export const INTERNAL_WORKER_IDEMPOTENCY_HEADER = "idempotency-key" as const;
 
-export function buildInternalWorkerAuthHeaders(
-  secret: string,
+export function buildInternalWorkerHeaders(
   extra?: { idempotencyKey?: string; requestId?: string },
 ): Record<string, string> {
   const headers: Record<string, string> = {
-    [INTERNAL_WORKER_AUTH_HEADER]: `Bearer ${secret}`,
     "content-type": "application/json",
   };
   if (extra?.idempotencyKey) {

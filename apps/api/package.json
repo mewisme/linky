@@ -30,7 +30,7 @@
     "@clerk/backend": "^3.2.13",
     "@sentry/node": "^10.49.0",
     "@supabase/supabase-js": "^2.103.3",
-    "@ws/internal-worker-api": "workspace:*",
+    "@ws/worker-api": "workspace:*",
     "@ws/logger": "workspace:*",
     "@ws/sdk-internal": "workspace:*",
     "@ws/shared-types": "workspace:*",

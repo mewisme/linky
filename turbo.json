@@ -1,5 +1,5 @@
 {
-  "$schema": "https://v2-9-12.turborepo.dev/schema.json",
+  "$schema": "https://v2-9-14.turborepo.dev/schema.json",
   "ui": "tui",
   "tasks": {
     "build": {
@@ -67,12 +67,12 @@
     "build:worker-go": {
       "dependsOn": [],
       "inputs": [
-        "apps/worker-go/**/*.go",
-        "apps/worker-go/go.mod",
-        "apps/worker-go/go.sum"
+        "apps/worker/src/**/*.go",
+        "apps/worker/go.mod",
+        "apps/worker/go.sum"
       ],
       "outputs": [
-        "apps/worker-go/dist/**"
+        "apps/worker/bin/worker"
       ]
     },
     "dev:worker-go": {

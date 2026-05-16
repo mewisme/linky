@@ -23,6 +23,7 @@ import {
 } from "@/lib/auth/superadmin-invariants.js";
 import { getUserByClerkId } from "@/infra/supabase/repositories/index.js";
 import { getPresenceState } from "@/infra/presence/presence-handler.js";
+import { isSafePostgrestSearchTerm } from "@/lib/postgrest/search-filter.js";
 import { parseGetUsersQuery } from "../helper/users-query.js";
 
 const router: ExpressRouter = Router();
@@ -31,6 +32,15 @@ const logger = createLogger("api:admin:users:route");
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { getAll, page, limit, role, deleted, search } = parseGetUsersQuery(req.query);
+
+    if (search && !isSafePostgrestSearchTerm(search)) {
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("INVALID_SEARCH_QUERY", "invalidSearchQuery", "Search query contains invalid characters"),
+      );
+    }
 
     const { data: users, count } = await listUsers({
       getAll,

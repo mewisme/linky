@@ -8,18 +8,20 @@ import (
 	"io"
 	"log/slog"
 	"math"
+	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type EnvConfig struct {
-	InternalAPIBaseURL        string
-	InternalWorkerSecret      string
-	InternalAPITimeoutMs      int
-	InternalAPIMaxRetries     int
+	InternalAPIBaseURL          string
+	InternalAPISocketPath       string
+	InternalAPITimeoutMs        int
+	InternalAPIMaxRetries       int
 	InternalAPIRetryBaseDelayMs int
 }
 
@@ -28,8 +30,55 @@ type Result struct {
 	Dropped bool
 }
 
+const internalWorkerJobsPath = "/internal/worker/v1/jobs"
+
+var (
+	clientOnce sync.Once
+	httpClient *http.Client
+	clientCfg  EnvConfig
+)
+
+func internalAPIClient(cfg EnvConfig) *http.Client {
+	clientOnce.Do(func() {
+		clientCfg = cfg
+		httpClient = newInternalAPIClient(cfg)
+	})
+	return httpClient
+}
+
+func newInternalAPIClient(cfg EnvConfig) *http.Client {
+	transport := &http.Transport{
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	if cfg.InternalAPISocketPath != "" {
+		socketPath := cfg.InternalAPISocketPath
+		dialer := &net.Dialer{}
+		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
+			return dialer.DialContext(ctx, "unix", socketPath)
+		}
+	} else {
+		transport.DialContext = (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext
+	}
+
+	return &http.Client{Transport: transport}
+}
+
+func internalAPIURL(cfg EnvConfig) string {
+	if cfg.InternalAPISocketPath != "" {
+		return "http://unix" + internalWorkerJobsPath
+	}
+	return strings.TrimRight(cfg.InternalAPIBaseURL, "/") + internalWorkerJobsPath
+}
+
 func PostEnvelope(ctx context.Context, cfg EnvConfig, envelope interface{}, rawRedisPayload string, logger *slog.Logger) Result {
-	url := strings.TrimRight(cfg.InternalAPIBaseURL, "/") + "/internal/worker/v1/jobs"
+	url := internalAPIURL(cfg)
 	body, err := json.Marshal(envelope)
 	if err != nil {
 		logger.Error("failed to marshal envelope", "error", err)
@@ -72,11 +121,11 @@ func tryPost(ctx context.Context, url string, body []byte, cfg EnvConfig, idempo
 		return Result{OK: false, Dropped: false}
 	}
 
-	for k, v := range BuildAuthHeaders(cfg.InternalWorkerSecret, idempotencyKey, requestID) {
+	for k, v := range BuildHeaders(idempotencyKey, requestID) {
 		req.Header.Set(k, v)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := internalAPIClient(cfg).Do(req)
 	if err != nil {
 		logger.Warn("internal API transport error", "attempt", attempt, "requestId", requestID, "error", err)
 		if attempt >= cfg.InternalAPIMaxRetries {

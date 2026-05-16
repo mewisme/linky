@@ -1,4 +1,5 @@
 import { config } from "@/config/index.js";
+import { isAllowedPushEndpoint } from "@/lib/push/push-endpoint.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import webpush from "web-push";
@@ -32,6 +33,11 @@ export async function sendPushNotification(
   subscription: WebPushSubscription,
   payload: unknown
 ): Promise<void> {
+  if (!isAllowedPushEndpoint(subscription.endpoint)) {
+    logger.warn("Skipping push to disallowed endpoint: %s", subscription.endpoint);
+    return;
+  }
+
   try {
     await webpush.sendNotification(
       {

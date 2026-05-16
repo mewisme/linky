@@ -9,7 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"linky-worker/internal/job"
+	"linky-worker/src/internal/job"
 )
 
 type Client struct {

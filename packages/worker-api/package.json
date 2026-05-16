@@ -1,5 +1,5 @@
 {
-  "name": "@ws/internal-worker-api",
+  "name": "@ws/worker-api",
   "version": "1.7.2",
   "private": true,
   "type": "module",

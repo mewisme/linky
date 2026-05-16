@@ -27,9 +27,9 @@
     "check-types:api": "turbo run check-types --filter=@ws/api",
     "check-types:web": "turbo run check-types --filter=@ws/web",
     "docker:build:api": "docker build -f apps/api/Dockerfile -t linky-api:local .",
-    "docker:build:worker": "docker build -f apps/worker/Dockerfile -t linky-worker:local .",
-    "build:worker-go": "cd apps/worker-go && go build -ldflags=\"-s -w\" -o dist/worker ./cmd/worker",
-    "dev:worker-go": "cd apps/worker-go && go run ./cmd/worker",
+    "docker:build:worker": "docker build -f apps/worker/Dockerfile.go -t linky-worker:local apps/worker",
+    "build:worker-go": "cd apps/worker && go build -ldflags=\"-s -w\" -o bin/worker ./src/cmd/worker",
+    "dev:worker-go": "cd apps/worker && go run ./src/cmd/worker",
     "test": "pnpm exec playwright test",
     "test:ui": "pnpm exec playwright test --ui",
     "test:debug": "pnpm exec playwright test --debug",
@@ -46,7 +46,7 @@
     "@types/node": "25.6.0",
     "dotenv": "catalog:",
     "prettier": "^3.8.3",
-    "turbo": "^2.9.12",
+    "turbo": "^2.9.14",
     "typescript": "catalog:",
     "xlsx": "^0.18.5"
   }

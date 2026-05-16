@@ -1,11 +1,8 @@
 package api
 
-import "fmt"
-
-func BuildAuthHeaders(secret, idempotencyKey, requestID string) map[string]string {
+func BuildHeaders(idempotencyKey, requestID string) map[string]string {
 	headers := map[string]string{
-		"authorization": fmt.Sprintf("Bearer %s", secret),
-		"content-type":  "application/json",
+		"content-type": "application/json",
 	}
 	if idempotencyKey != "" {
 		headers["idempotency-key"] = idempotencyKey

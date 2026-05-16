@@ -4,9 +4,8 @@ export {
   internalWorkerJobUrl,
 } from "./paths.js";
 export {
-  INTERNAL_WORKER_AUTH_HEADER,
   INTERNAL_WORKER_IDEMPOTENCY_HEADER,
-  buildInternalWorkerAuthHeaders,
+  buildInternalWorkerHeaders,
 } from "./headers.js";
 export { sha256Hex } from "./hash.js";
 export {

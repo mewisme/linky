@@ -15,7 +15,8 @@ Linky is a real-time video chat platform. Turborepo monorepo with pnpm 10.33.0 (
 pnpm dev                  # All apps (turbo)
 pnpm dev:api              # API only (Express; default PORT 7270, override via env)
 pnpm dev:web              # Frontend only (Next.js, port 3000)
-pnpm dev:worker           # Background worker (AI + general Redis queues; calls internal HTTP API)
+pnpm dev:worker           # Node.js worker (AI + general Redis queues; calls internal HTTP API)
+pnpm dev:worker-go        # Go worker (production worker; same queues + internal API contract)
 
 # Build
 pnpm build                # All packages
@@ -23,7 +24,8 @@ pnpm build:api            # API only
 pnpm build:web            # Web only
 pnpm start:api            # Production API (after build)
 pnpm start:web            # Production web (after build)
-pnpm start:worker         # Production worker (after build)
+pnpm start:worker         # Production Node.js worker (after build)
+pnpm build:worker-go      # Build Go worker binary (apps/worker/bin/worker)
 
 # Lint & Type Check
 pnpm lint                 # ESLint all
@@ -60,7 +62,7 @@ pnpm exec playwright test -g "should update avatar"
 apps/
   api/           Express backend (DDD); enqueues work to Redis queues
   web/           Next.js 16 frontend (App Router)
-  worker/        Dequeues AI and general jobs; invokes private HTTP routes on the API
+  worker/        Node + Go workers (all source under src/); Redis queues + internal API. Go is production in docker-compose (Dockerfile.go); Node via root Dockerfile entrypoint worker.
 packages/
   config/             Shared env parsing (Zod); @ws/config
   database-types/     Supabase-oriented DB types; @ws/database-types
@@ -71,7 +73,7 @@ packages/
   typescript-config/  Shared TS configs
   ui/                 Shared React library (Radix + shadcn); @ws/ui
   validation/         Shared Zod schemas for job envelopes; @ws/validation
-  internal-worker-api/ Internal worker HTTP paths, env parsing, auth header helpers; @ws/internal-worker-api
+  worker-api/           Worker internal HTTP paths, env parsing, idempotency headers; @ws/worker-api
 ```
 
 **Queue contracts:** payload shapes and keys live in `@ws/shared-types` and `@ws/validation`. The API enqueues via `apps/api/src/jobs/` and Redis; the worker uses `@ws/sdk-internal` to dequeue and calls authenticated internal routes under `/internal/worker/v1` on `apps/api` to execute jobs (no direct imports from `@ws/api` in the worker runtime).
@@ -109,9 +111,9 @@ For all levels: `logger.<level>([mergingObject], [message], [...interpolationVal
 
 All route handlers return `{ error: "ErrorType", message: "description" }` on failure with standard HTTP status codes (400, 401, 403, 404, 500). Errors are logged with `logger.error()` before responding.
 
-### Internal Worker Authentication
+### Internal Worker Transport
 
-The worker calls API endpoints under `/internal/worker/v1` using a shared secret. Set `INTERNAL_WORKER_SECRET` (same value on API and worker) and `INTERNAL_API_BASE_URL` on the worker. The API validates the `Authorization: Bearer <secret>` header via middleware.
+The worker calls API endpoints under `/internal/worker/v1`. The API exposes these routes on a separate, internal-only listener (Unix socket in Docker via `INTERNAL_API_SOCKET_PATH`, or `127.0.0.1:INTERNAL_API_PORT` for native dev) — they are not reachable on the public listener (port 7270). Set `INTERNAL_API_SOCKET_PATH` on both api and worker for Docker, or `INTERNAL_API_BASE_URL=http://127.0.0.1:7271` on the worker for native dev. No Bearer secret — segmentation is enforced at the transport layer.
 
 ## Frontend Architecture (apps/web)
 
@@ -271,7 +273,7 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 
 ## Docker
 
-Root build context (`.`) with per-app Dockerfiles: `apps/api/Dockerfile`, `apps/worker/Dockerfile`. See [docker-compose.yml](docker-compose.yml): services `api` (maps host port 7270), `worker`, `redis`, `ollama`. API container health: `node dist/healthcheck.js`. Local `.env` is loaded via Compose `env_file` where configured. Workers require `INTERNAL_API_BASE_URL` and `INTERNAL_WORKER_SECRET` (same value as on the API) for internal HTTP calls.
+Root build context (`.`) for the API image (`Dockerfile`); the Go worker uses `apps/worker/Dockerfile.go` with context `./apps/worker`. See [docker-compose.yml](docker-compose.yml): services `api` (host port 7270), `worker` (container name `linky-worker`), `redis`, `ollama`. A separate Node worker Compose service remains commented out; production worker is Go. API container health: `node dist/healthcheck.js`. Local `.env` is loaded via Compose `env_file` where configured. Workers reach the API over a shared Unix socket at `INTERNAL_API_SOCKET_PATH=/var/run/linky/api.sock` (volume `backend-data` on api and worker).
 
 HTTP health: `GET /healthz` on the API.
 

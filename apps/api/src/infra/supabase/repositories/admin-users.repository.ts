@@ -1,4 +1,5 @@
 import type { Database } from "@/types/database/supabase.types.js";
+import { buildPostgrestOrIlikeFilters } from "@/lib/postgrest/search-filter.js";
 import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";
 
@@ -39,7 +40,7 @@ export async function getAdminUsersUnified(
 
   if (search) {
     query = query.or(
-      `email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`
+      buildPostgrestOrIlikeFilters(["email", "first_name", "last_name"], search),
     );
   }
 

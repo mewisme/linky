@@ -1,4 +1,4 @@
-import { sha256Hex } from "@ws/internal-worker-api";
+import { sha256Hex } from "@ws/worker-api";
 import { Router, type Request, type Response } from "express";
 import { jobEnvelopeSchema } from "@ws/validation";
 
@@ -14,13 +14,10 @@ import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 
-import { internalWorkerAuthMiddleware } from "@/middleware/internal-worker-auth.js";
-
 const logger = createLogger("api:internal:worker");
 
 export function createInternalWorkerRouter(): Router {
   const router = Router();
-  router.use(internalWorkerAuthMiddleware);
 
   router.post("/jobs", async (req: Request, res: Response) => {
     const requestId = typeof req.headers["x-request-id"] === "string" ? req.headers["x-request-id"] : undefined;

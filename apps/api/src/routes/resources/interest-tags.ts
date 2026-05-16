@@ -3,6 +3,7 @@ import { um } from "@/lib/api-user-message.js";
 import { sendJsonError } from "@/lib/http-json-response.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
+import { isSafePostgrestSearchTerm } from "@/lib/postgrest/search-filter.js";
 import { getInterestTags, getInterestTagById } from "@/infra/supabase/repositories/interest-tags.js";
 import { getCachedData } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
@@ -14,6 +15,16 @@ router.get("/", async (req: Request, res: Response) => {
   try {
     const category = req.query.category as string | undefined;
     const search = req.query.search as string | undefined;
+
+    if (search && !isSafePostgrestSearchTerm(search)) {
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("INVALID_SEARCH_QUERY", "invalidSearchQuery", "Search query contains invalid characters"),
+      );
+    }
+
     const limit = Math.min(parseInt(req.query.limit as string) || 100, 200);
     const offset = parseInt(req.query.offset as string) || 0;
 

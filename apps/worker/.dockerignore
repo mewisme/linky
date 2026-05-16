@@ -1,0 +1,7 @@
+node_modules
+dist
+bin
+package.json
+tsconfig.json
+tsup.config.ts
+src/**/*.ts

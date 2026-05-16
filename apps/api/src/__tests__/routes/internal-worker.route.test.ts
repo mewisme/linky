@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import express from "express";
 import { describe, expect, it, vi } from "vitest";
 
-import { INTERNAL_WORKER_JOBS_PATH, INTERNAL_WORKER_V1_PREFIX } from "@ws/internal-worker-api";
+import { INTERNAL_WORKER_JOBS_PATH, INTERNAL_WORKER_V1_PREFIX } from "@ws/worker-api";
 
 import { createInternalWorkerRouter } from "@/routes/internal-worker.route.js";
 
@@ -25,8 +25,6 @@ vi.mock("@/infra/redis/worker-idempotency.js", () => ({
   tryReserveGeneralJobIdempotency: vi.fn().mockResolvedValue("new"),
   releaseGeneralJobIdempotency: vi.fn().mockResolvedValue(undefined),
 }));
-
-const secret = "test-internal-worker-secret-key-min-32-chars";
 
 async function withServer(
   app: express.Application,
@@ -53,7 +51,7 @@ async function withServer(
 }
 
 describe("internal worker routes", () => {
-  it("returns 401 without bearer token", async () => {
+  it("returns 400 when Idempotency-Key is missing", async () => {
     const app = express();
     app.use(express.json());
     app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
@@ -71,36 +69,11 @@ describe("internal worker routes", () => {
           },
         }),
       });
-      expect(res.status).toBe(401);
-    });
-  });
-
-  it("returns 400 when Idempotency-Key is missing", async () => {
-    const app = express();
-    app.use(express.json());
-    app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
-
-    await withServer(app, async (baseUrl) => {
-      const res = await fetch(`${baseUrl}${INTERNAL_WORKER_JOBS_PATH}`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${secret}`,
-        },
-        body: JSON.stringify({
-          v: 1,
-          type: "apply_call_exp",
-          payload: {
-            userId: "550e8400-e29b-41d4-a716-446655440000",
-            durationSeconds: 60,
-          },
-        }),
-      });
       expect(res.status).toBe(400);
     });
   });
 
-  it("runs apply_call_exp when authorized with idempotency key", async () => {
+  it("runs apply_call_exp with idempotency key (no auth required)", async () => {
     executeApplyCallExpJob.mockClear();
     const app = express();
     app.use(express.json());
@@ -111,7 +84,6 @@ describe("internal worker routes", () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          authorization: `Bearer ${secret}`,
           "idempotency-key": "a".repeat(64),
         },
         body: JSON.stringify({

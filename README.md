@@ -6,7 +6,7 @@ Linky is a real-time video chat platform built as a Turborepo monorepo. It inclu
 
 - `apps/web` - Next.js 16 + React 19 frontend
 - `apps/api` - Express + TypeScript backend (domain-driven architecture)
-- `apps/worker` - background worker (Redis queues; calls internal API to execute jobs)
+- `apps/worker` - background workers (Node + Go; all source under `src/`; Redis queues; internal API)
 - `packages/*` - shared libraries (`@ws/ui`, `@ws/logger`, `@ws/config`, types, validation)
 
 ## Tech Stack

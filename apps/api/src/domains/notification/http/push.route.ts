@@ -6,6 +6,7 @@ import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { subscribe, unsubscribe } from "@/domains/notification/service/push.service.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { config } from "@/config/index.js";
+import { isAllowedPushEndpoint } from "@/lib/push/push-endpoint.js";
 import type { SubscribeBody, UnsubscribeBody } from "@/domains/notification/types/push.types.js";
 
 const router: ExpressRouter = Router();
@@ -32,6 +33,15 @@ router.post("/subscribe", async (req: Request, res: Response) => {
         400,
         "Bad Request",
         um("VALID_SUBSCRIPTION_REQUIRED", "validSubscriptionRequired", "Valid subscription object is required"),
+      );
+    }
+
+    if (!isAllowedPushEndpoint(subscription.endpoint)) {
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("INVALID_PUSH_ENDPOINT", "invalidPushEndpoint", "Push subscription endpoint is not from an allowed push service"),
       );
     }
 
@@ -80,6 +90,15 @@ router.delete("/unsubscribe", async (req: Request, res: Response) => {
         400,
         "Bad Request",
         um("ENDPOINT_REQUIRED", "endpointRequired", "endpoint is required"),
+      );
+    }
+
+    if (!isAllowedPushEndpoint(endpoint)) {
+      return sendJsonError(
+        res,
+        400,
+        "Bad Request",
+        um("INVALID_PUSH_ENDPOINT", "invalidPushEndpoint", "Push subscription endpoint is not from an allowed push service"),
       );
     }
 

@@ -1,9 +1,9 @@
 import { dequeueJob, type RedisListClient } from "@ws/sdk-internal";
-import type { InternalWorkerRuntimeEnv } from "@ws/internal-worker-api";
+import type { InternalWorkerRuntimeEnv } from "@ws/worker-api";
 import type { JobEnvelope } from "@ws/shared-types";
 import type { Logger } from "@ws/logger";
 
-import { postEnvelopeToInternalApi } from "../internal-api-client.js";
+import { postEnvelopeToInternalApi } from "../api/internal-client.js";
 
 function formatJobLabel(envelope: JobEnvelope): string {
   switch (envelope.type) {

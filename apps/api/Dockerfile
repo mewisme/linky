@@ -39,8 +39,8 @@ COPY --from=builder /app/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=builder /app/packages/validation/package.json ./packages/validation/
 COPY --from=builder /app/packages/validation/dist ./packages/validation/dist
 
-COPY --from=builder /app/packages/internal-worker-api/package.json ./packages/internal-worker-api/
-COPY --from=builder /app/packages/internal-worker-api/dist ./packages/internal-worker-api/dist
+COPY --from=builder /app/packages/worker-api/package.json ./packages/worker-api/
+COPY --from=builder /app/packages/worker-api/dist ./packages/worker-api/dist
 
 COPY --from=builder /app/packages/sdk-internal/package.json ./packages/sdk-internal/
 COPY --from=builder /app/packages/sdk-internal/dist ./packages/sdk-internal/dist

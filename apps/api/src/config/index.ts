@@ -27,7 +27,8 @@ export const config = {
   // Supabase
   supabaseUrl: process.env.SUPABASE_URL as string,
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
-  internalWorkerSecret: process.env.INTERNAL_WORKER_SECRET ?? "",
+  internalApiSocketPath: process.env.INTERNAL_API_SOCKET_PATH ?? "",
+  internalApiPort: Number(process.env.INTERNAL_API_PORT) || 7271,
   // Redis
   redisUrl: process.env.REDIS_URL as string,
   redisPort: process.env.REDIS_PORT as string,

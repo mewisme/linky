@@ -15,6 +15,7 @@ services:
       OLLAMA_EMBEDDING_MODEL: bge-m3
       OLLAMA_CLOUD_MODEL: ministral-3:14b
       OLLAMA_EMBEDDING_TIMEOUT: 60000
+      INTERNAL_API_SOCKET_PATH: /var/run/linky/api.sock
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${PORT:-7270}/healthz"]
@@ -29,6 +30,8 @@ services:
         condition: service_healthy
     networks:
       - linky-network
+    volumes:
+      - backend-data:/var/run/linky
     env_file:
       - .env
 
@@ -42,7 +45,7 @@ services:
   #   environment:
   #     NODE_ENV: production
   #     REDIS_URL: redis://redis:6379
-  #     INTERNAL_API_BASE_URL: http://api:${PORT:-7270}
+  #     INTERNAL_API_SOCKET_PATH: /var/run/linky/api.sock
   #     INTERNAL_API_TIMEOUT_MS: 120000
   #     INTERNAL_API_MAX_RETRIES: 3
   #     INTERNAL_API_RETRY_BASE_DELAY_MS: 500
@@ -54,19 +57,21 @@ services:
   #       condition: service_healthy
   #   networks:
   #     - linky-network
+  #   volumes:
+  #     - backend-data:/var/run/linky
   #   env_file:
   #     - .env
 
-  worker-go:
+  worker:
     build:
-      context: ./apps/worker-go
-      dockerfile: Dockerfile
+      context: ./apps/worker
+      dockerfile: Dockerfile.go
     image: mewthedev/linky-worker:latest
     container_name: linky-worker
     environment:
       NODE_ENV: production
       REDIS_URL: redis://redis:6379
-      INTERNAL_API_BASE_URL: http://api:${PORT:-7270}
+      INTERNAL_API_SOCKET_PATH: /var/run/linky/api.sock
       INTERNAL_API_TIMEOUT_MS: 120000
       INTERNAL_API_MAX_RETRIES: 3
       INTERNAL_API_RETRY_BASE_DELAY_MS: 500
@@ -78,6 +83,8 @@ services:
         condition: service_healthy
     networks:
       - linky-network
+    volumes:
+      - backend-data:/var/run/linky
     env_file:
       - .env
 
@@ -119,6 +126,7 @@ services:
 volumes:
   redis-data:
   ollama-data:
+  backend-data:
 
 networks:
   linky-network:

@@ -14,6 +14,7 @@ import { startJobs } from "@/jobs/index.js";
 import { initializeWebPush } from "@/infra/push/web-push.client.js";
 import { pullEmbeddingModelAtStartup } from "@/infra/ollama/embedding.service.js";
 import { initializeAdminCache } from "@/infra/admin-cache/index.js";
+import { startInternalServer } from "@/internal-server.js";
 
 const logger = createLogger("api:server");
 
@@ -27,7 +28,12 @@ export function createApp(): Express {
   return app;
 }
 
-export async function startServer(): Promise<{ app: Express; httpServer: HTTPServer; io: ReturnType<typeof createSocketServer> }> {
+export async function startServer(): Promise<{
+  app: Express;
+  httpServer: HTTPServer;
+  internalServer: HTTPServer;
+  io: ReturnType<typeof createSocketServer>;
+}> {
   const app = createApp();
   const httpServer = createServer(app);
   const io = createSocketServer(httpServer);
@@ -51,6 +57,8 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
 
   startJobs();
 
+  const internalServer = await startInternalServer();
+
   httpServer.listen(config.port, () => {
     logger.info("Server started: port=%d env=%s", config.port, config.nodeEnv);
   });
@@ -59,7 +67,7 @@ export async function startServer(): Promise<{ app: Express; httpServer: HTTPSer
     logger.fatal(toLoggableError(error), "HTTP server error");
   });
 
-  setupGracefulShutdown(httpServer, io);
+  setupGracefulShutdown(httpServer, internalServer, io);
 
-  return { app, httpServer, io };
+  return { app, httpServer, internalServer, io };
 }

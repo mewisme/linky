@@ -20,7 +20,7 @@ import {
 } from "@/infra/s3/multipart.js";
 
 const router: ExpressRouter = Router();
-const logger = createLogger("routes:media:s3");
+const logger = createLogger("admin:s3");
 
 const umS3Bucket = () =>
   um("S3_BUCKET_NOT_CONFIGURED", "s3BucketNotConfigured", "S3 bucket not configured");

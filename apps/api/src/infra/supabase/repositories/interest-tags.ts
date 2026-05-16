@@ -1,5 +1,6 @@
 import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
 
+import { buildPostgrestOrIlikeFilters } from "@/lib/postgrest/search-filter.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";
@@ -32,7 +33,7 @@ export async function getInterestTags(options: GetInterestTagsOptions = {}) {
   }
 
   if (search) {
-    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+    query = query.or(buildPostgrestOrIlikeFilters(["name", "description"], search));
   }
 
   query = query.order("name", { ascending: true });

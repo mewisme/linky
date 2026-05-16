@@ -5,11 +5,11 @@ import { createClient } from "redis";
 import { config as loadDotenv } from "dotenv";
 
 import { initLogger } from "@ws/logger";
-import { parseInternalWorkerRuntimeEnv } from "@ws/internal-worker-api";
+import { parseInternalWorkerRuntimeEnv } from "@ws/worker-api";
 import { safeParseJobEnvelope } from "@ws/validation";
 
 import { runJobLoop } from "./queues/run-job-loop.js";
-import { getWorkerRedisOptions } from "./redis-options.js";
+import { getWorkerRedisOptions } from "./infra/redis.js";
 
 const { createLogger } = initLogger();
 
@@ -23,7 +23,7 @@ try {
 } catch (error: unknown) {
   const err = error instanceof Error ? error : new Error(inspect(error));
   const root = createLogger("worker");
-  root.fatal(err, "invalid worker environment (INTERNAL_API_BASE_URL, INTERNAL_WORKER_SECRET, ...)");
+  root.fatal(err, "invalid worker environment (INTERNAL_API_BASE_URL or INTERNAL_API_SOCKET_PATH, ...)");
   process.exit(1);
 }
 

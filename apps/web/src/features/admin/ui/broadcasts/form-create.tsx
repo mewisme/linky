@@ -1,10 +1,10 @@
 "use client";
 
-import * as z from "@ws/ui/internal-lib/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@ws/ui/components/ui/form";
 import { toast } from "@ws/ui/internal-lib/toast";
 import { useForm } from "@ws/ui/internal-lib/react-hook-form";
-import { zodResolver } from "@ws/ui/internal-lib/hookform";
+import { z } from "zod";
 import { useMemo, useState } from "react";
 import {
   Card,

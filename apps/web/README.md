@@ -1,334 +1,202 @@
-# Linky Frontend
+# Linky Web (`@ws/web`)
 
-Next.js 16 application providing the user interface for Linky's real-time video chat platform. Handles WebRTC peer connections, real-time messaging, matchmaking UI, user profiles, and admin dashboard.
+Next.js 16 (App Router) frontend for Linky: matchmaking UI, WebRTC calls, in-call chat, user profile and progress, settings, notifications, and admin dashboards. Auth via Clerk; data via the Express API and Socket.IO.
 
-## Purpose
+Monorepo overview: [../../README.md](../../README.md).
 
-This application serves as the client-side interface for users to:
-- Join random 1-to-1 video chat sessions
-- Manage video/audio controls during calls
-- Send real-time text messages and attachments
-- Track progress (streaks, levels, favorites)
-- Manage profile and preferences
-- Monitor system health (admin users only)
+## Quick start
 
-## Core Features
-
-### Video Chat
-
-**Matching lifecycle:**
-1. User clicks "Start" to join matchmaking queue
-2. Browser requests camera and microphone permissions
-3. Frontend connects to Socket.IO `/chat` namespace with auth token
-4. Backend pairs user with another from queue
-5. WebRTC establishes peer-to-peer connection using STUN/TURN servers
-6. Video streams render in UI with controls for mute, video toggle, skip, end call
-
-**Floating video behavior:**
-- Users can navigate away from `/chat` while in active call
-- Video minimizes to draggable picture-in-picture overlay
-- Call persists until user explicitly ends or peer disconnects
-- Navigation back to `/chat` restores full video UI
-
-**Reconnection handling:**
-- Socket.IO auto-reconnects on transient disconnects
-- Frontend updates socketId in matchmaking queue on reconnection
-- Users remain queued during brief network interruptions
-- Active calls end on transport-level disconnect (real network failure)
-
-### Chat Messaging
-
-Real-time text chat runs alongside video calls:
-- Message input with typing indicators
-- File attachments (images, documents) via S3 upload
-- Message history persisted to database
-- Reactions and message snapshots
-- Chat panel toggles open/closed without affecting video
-
-### User Progress
-
-**Streaks**: Days of consecutive usage, displayed on profile. Resets if user misses a day.
-
-**Levels**: Calculated from total call time and other metrics. Unlocks badges and UI customizations.
-
-**Favorites**: Users can favorite peers during or after calls. Favorites increase chance of future matches.
-
-### Admin Dashboard
-
-High-level view for admin users:
-- User table with pagination, search, and filtering
-- Real-time presence monitoring via Socket.IO `/admin` namespace
-- Role management (admin/member)
-- User allow/deny status updates
-- Visit statistics and call history
-
-## State Management
-
-**Zustand stores** (client-side state):
-- `user-store.ts`: Current user profile, preferences
-- `video-chat-store.ts`: Call state, peer info, room ID
-- `socket-store.ts`: Socket connection status
-- `notifications-store.ts`: Toast notifications queue
-- `chat-panel-store.ts`: Chat sidebar open/closed state
-
-**TanStack React Query** (server state):
-- Fetches user data, favorites, progress from REST API
-- Caches responses with stale-while-revalidate
-- Automatic refetch on window focus or network reconnection
-- Mutation hooks for updates (add favorite, update profile)
-
-**Custom hooks**:
-- `use-socket-signaling.ts`: Socket.IO event handling
-- `use-peer-connection.ts`: WebRTC RTCPeerConnection lifecycle
-- `use-media-stream.ts`: Camera/microphone access and track management
-- `use-video-chat.ts`: Orchestrates signaling, peer connection, media stream
-
-## Socket Usage
-
-**Connection initialization:**
-- `SocketProvider` establishes Socket.IO connection on app load
-- Auth token from Clerk passed in connection handshake
-- Single shared socket instance stored in module-level singleton
-- Listeners registered once per component mount with idempotency guards
-
-**Event flow (client to server):**
-- `join`: Enter matchmaking queue
-- `skip`: Leave current peer, re-enter queue
-- `end-call`: End call gracefully, do NOT re-enter queue
-- `signal`: Send WebRTC signaling data (offer, answer, ICE candidate)
-- `chat:send`: Send text message
-- `chat:attachment:send`: Send file attachment
-- `mute-toggle`, `video-toggle`, `screen-share:toggle`: Notify peer of control changes
-- `favorite:notify-peer`: Notify peer they've been favorited
-
-**Event flow (server to client):**
-- `joined-queue`: Confirmation of queue entry
-- `matched`: Paired with peer (includes `roomId`, `peerId`, `isOfferer`, peer info)
-- `signal`: Receive WebRTC signaling data from peer
-- `peer-left`: Peer disconnected
-- `peer-skipped`: Peer clicked skip
-- `end-call`: Peer ended call
-- `chat:message`: Incoming text message
-- `chat:typing`: Peer typing indicator
-- `mute-toggle`, `video-toggle`, `screen-share:toggle`: Peer control changes
-- `favorite:added`, `favorite:removed`: Peer favorited/unfavorited you
-
-## Clerk Authentication
-
-**Integration:**
-- `@clerk/nextjs` provides middleware, components, hooks
-- `<SignIn />` and `<SignUp />` components render auth UI
-- `clerkMiddleware` redirects unauthenticated users to sign-in
-- Custom JWT template includes user metadata for backend validation
-
-**Token refresh:**
-- Tokens auto-refresh every 5 minutes
-- Frontend re-initializes Socket.IO connection on token expiry
-- Backend validates tokens via Clerk SDK on protected routes
-
-**User profile:**
-- `<UserButton />` component provides profile dropdown
-- Profile page allows bio, location, interests, photo upload
-- Changes persist to Supabase via backend API
-
-**Clerk dashboard and URLs (locale + sign-out):**
-- In Clerk, allow redirect and sign-in paths that match the app: `/sign-in` and `/vi/sign-in` (and sign-up / reset-password as applicable). Default English uses no `/en` prefix (`localePrefix: as-needed`); do not require `/en/sign-in` unless the app is changed to always prefix English.
-- Set `NEXT_PUBLIC_APP_URL` to the site origin only (for example `https://www.example.com`), with no locale path such as `/en`.
-- Production traffic on a custom domain should use **live** Clerk keys (`pk_live_…` / `sk_live_…`). Development keys show the hosted sign-in domain (`*.accounts.dev`).
-
-## Environment Variables
-
-Frontend requires these environment variables in `apps/web/.env.local`:
-
-```env
-# Clerk authentication (required)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-
-# Backend API URL (required)
-NEXT_PUBLIC_API_URL=http://localhost:3001
-
-# MQTT presence (optional)
-NEXT_PUBLIC_MQTT_CLIENT_URL=mqtt://localhost
-NEXT_PUBLIC_MQTT_CLIENT_PORT=1883
-NEXT_PUBLIC_MQTT_CLIENT_USERNAME=
-NEXT_PUBLIC_MQTT_CLIENT_PASSWORD=
-
-# App URL (optional, defaults to localhost:3000)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-Obtain Clerk keys from [clerk.com](https://clerk.com) dashboard. Create application and enable email, password, and passkey authentication methods.
-
-## Development
-
-**Run frontend only:**
+From the repo root (API should be running on `NEXT_PUBLIC_API_URL`, default `http://localhost:7270`):
 
 ```bash
-cd apps/web
-pnpm dev
+pnpm dev:web
+# or
+cd apps/web && pnpm dev
 ```
 
-App runs on `http://localhost:3000`.
-
-**Prerequisites:**
-- Backend API must be running on port 3001 (or `NEXT_PUBLIC_API_URL`)
-- Clerk account configured with correct redirect URLs
-- Valid Clerk publishable and secret keys
-
-**Hot reload:**
-- Next.js watches file changes and hot-reloads
-- React components update without full page refresh
-- Shared `@ws/ui` components also hot-reload via Turborepo
-
-**Type checking:**
+App: `http://localhost:3000`.
 
 ```bash
 pnpm check-types
-```
-
-**Linting:**
-
-```bash
 pnpm lint
+pnpm build && pnpm start
 ```
 
-**Building:**
+E2E tests run from the **repo root** with Playwright: `pnpm test`, `pnpm test:ui`, `pnpm test:debug`.
 
-```bash
-pnpm build
-pnpm start
+## Architecture
+
+Dependency direction is **inward**:
+
+```text
+app → features → entities → shared → lib
 ```
 
-## Development Constraints
+| Layer | Role | Must not import |
+| --- | --- | --- |
+| `app/` | Routes, layouts, RSC pages, Next.js route handlers under `app/api/` | — |
+| `features/` | Use-case UI, hooks, API clients per feature | Other features (except allowed e.g. `realtime`) |
+| `entities/` | Core models/types shared across features | `features/` |
+| `shared/` | Generic UI, hooks, utils, env wrappers | `features/`, `entities/` |
+| `lib/` | HTTP, auth token, realtime, telemetry, push | `entities/`, `features/` |
 
-**Network layer:**
-- Use native `fetch` for API requests
-- Do NOT install or use `axios`
-- API client in `lib/client.ts` wraps fetch with auth headers
+**Server vs client pages:** `page.tsx` fetches on the server (`serverFetch`, `withSentryQuery`); interactive UI lives in a sibling `*-client.tsx`. Server actions use `withSentryAction` from `lib/monitoring/with-action.ts`.
 
-**Shared components:**
-- Import UI primitives from `@ws/ui/components/*`
-- Import date utilities from `@ws/ui/internal-lib/date-fns`
-- Do NOT install dependencies already in `@ws/ui/package.json`
+## Internationalization
 
-**Icons:**
-- Use `@tabler/icons-react` for new icons
-- Avoid `lucide-react` (legacy usage exists but should not be extended)
+- Locales: `en` (default), `vi` — configured in `src/i18n/routing.ts` with `localePrefix: "as-needed"` (English has no `/en` prefix; Vietnamese uses `/vi/...`).
+- Use `Link`, `useRouter`, `usePathname` from `src/i18n/navigation.ts` (pathname without locale prefix).
+- Messages: `src/messages/en.json` and `vi.json` (keep key parity).
+- UI copy: `useTranslations('namespace')` in client components; data-table columns via `useXxxColumns()` hooks in `shared/ui/data-table/`.
 
-**Redis:**
-- Frontend has NO access to Redis
-- All cache reads/writes happen via backend API
-- Do NOT install `redis` or `ioredis` in frontend
+## Data access
 
-**File naming:**
-- Use kebab-case for all files: `user-profile.tsx`, `use-socket-signaling.ts`
+| Concern | Location |
+| --- | --- |
+| API base URLs | `lib/http/backend-url.ts` — never hardcode backend paths |
+| Server fetch | `lib/http/server-api.ts` + `{ token: true }` or `preloadedToken` |
+| Client fetch | `lib/http/client-api.ts` (native `fetch`, `ApiError`) |
+| BFF proxies | `app/api/**/route.ts` forward to backend where needed |
+| Auth token | `lib/auth/token.ts` (Clerk) |
 
-## Navigation During Calls
+Example server page:
 
-**Supported routes while in call:**
-- `/chat`: Full video chat UI
-- `/`: Landing page (video minimizes to PiP)
-- `/profile`: User profile (video minimizes to PiP)
-- Any other route (video minimizes to PiP)
+```tsx
+// app/.../page.tsx
+import { serverFetch } from "@/lib/http/server-api";
+import { backendUrl } from "@/lib/http/backend-url";
 
-**Unsupported routes (end call automatically):**
-- `/sign-in`, `/sign-up`: Auth pages
-- `/admin`: Admin dashboard (different Socket.IO namespace)
-
-**Implementation:**
-- `DraggableVideoOverlay` component tracks call state in `video-chat-store`
-- Component conditionally renders based on route and call status
-- User can click PiP overlay to navigate back to `/chat`
-- Clicking "End Call" in PiP destroys overlay and tears down peer connection
-
-## WebRTC Connection Flow
-
-1. **ICE servers fetch**: `GET /api/ice-servers` returns Cloudflare TURN credentials
-2. **Peer connection setup**: Create `RTCPeerConnection` with ICE servers
-3. **Media tracks**: Add local video and audio tracks from `getUserMedia`
-4. **Offer/Answer (if offerer)**: Create SDP offer, send via `signal` event
-5. **Offer/Answer (if answerer)**: Receive SDP offer, create answer, send via `signal` event
-6. **ICE candidates**: Both peers exchange ICE candidates via `signal` event
-7. **Connection established**: `ontrack` fires with remote media stream
-8. **Render remote video**: Attach remote stream to `<video>` element
-
-**Cleanup on disconnect:**
-- Stop all local media tracks
-- Close `RTCPeerConnection`
-- Remove Socket.IO event listeners
-- Disconnect MQTT client
-- Clear peer info from state
-
-## Project Structure
-
+export default async function Page() {
+  const user = await serverFetch(backendUrl.users.me(), { token: true });
+  return <ProfileClient initialUser={user} />;
+}
 ```
+
+## Environment variables
+
+Validated modules — **do not read `process.env` directly in app code.**
+
+| Module | Import | Use in |
+| --- | --- | --- |
+| `@/shared/env/public-env` | `publicEnv` | Client, shared code |
+| `@/shared/env/server-env` | `serverEnv` | Server Components, route handlers, actions |
+
+**Public (required):** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_OPENPANEL_CLIENT_ID`, `NEXT_PUBLIC_GIPHY_API_KEY` (optional: Sentry, dev origins).
+
+**Server:** `OPENPANEL_API_URL`, `OPENPANEL_CLIENT_SECRET`, optional Sentry build vars.
+
+**Clerk** (standard `@clerk/nextjs`): `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — typically in `apps/web/.env.local` or the repo root env file used by Next.
+
+Clerk dashboard tips:
+
+- Allow redirect URLs `/sign-in` and `/vi/sign-in` (and sign-up / reset-password as needed).
+- `NEXT_PUBLIC_APP_URL` = site origin only (no locale path).
+- Production custom domains use **live** keys (`pk_live_…` / `sk_live_…`).
+
+## Features (high level)
+
+| Feature | Path / notes |
+| --- | --- |
+| `call` | WebRTC (`features/call/hooks/webrtc/`), floating PiP (`features/call/ui/floating-call/`) |
+| `chat` | In-call UI, controls, message list |
+| `realtime` | Socket store, `use-socket`, signaling integration |
+| `user` | Profile, settings, progress, security, appearance |
+| `admin` | Dashboard, users, reports, broadcasts, interest tags, rewards |
+| `auth` | Clerk flows |
+| `marketing` | Landing, legal pages |
+| `notifications` | Toasts, push-related UI |
+
+## Video chat and realtime
+
+**Flow**
+
+1. User starts matchmaking → `getUserMedia` → Socket.IO `/chat` with Clerk token.
+2. `matched` → `RTCPeerConnection` with ICE from `GET /api/ice-servers` (Cloudflare TURN).
+3. SDP/ICE exchanged via `signal` events; remote stream attached in UI.
+4. Optional PiP when navigating away from `/call` (call state in feature stores).
+
+**Socket events** (representative)
+
+| Client → server | Server → client |
+| --- | --- |
+| `join`, `skip`, `end-call`, `signal` | `joined-queue`, `matched`, `signal` |
+| `chat:send`, `chat:attachment:send` | `chat:message`, `peer-left`, `peer-skipped` |
+| `mute-toggle`, `video-toggle`, … | Control sync, favorites notifications |
+
+Socket client: `lib/realtime/socket.ts`; providers under `providers/` and `features/realtime/`.
+
+**During a call:** most app routes keep the call alive in floating video; auth routes and `/admin` tear down or conflict with the admin namespace.
+
+## State management
+
+| Kind | Where |
+| --- | --- |
+| Client UI / call | Zustand in `features/*/model/`, `shared/model/` (e.g. `socket-store`, sidebar, locale preference) |
+| Server data | TanStack React Query in feature hooks |
+| Locale preference | `shared/model/locale-preference-store.ts` (`localStorage`) + `providers/i18n/locale-sync.tsx` |
+
+## Conventions
+
+- **HTTP:** native `fetch` only (no axios).
+- **UI primitives:** `@ws/ui/components/*`.
+- **Icons:** `@tabler/icons-react` for new code (avoid extending `lucide-react`).
+- **Files:** kebab-case.
+- **No Redis** in the frontend — caching is server-side only.
+- **Admin roles:** `shared/utils/roles.ts` — `isAdmin`, `isSuperAdmin`.
+
+## App routes (representative)
+
+Routes live under `src/app/[locale]/`:
+
+| Group | Examples |
+| --- | --- |
+| `(marketing)/` | `/`, `/privacy`, `/terms` |
+| `(auth)/` | `/sign-in`, `/sign-up`, `/reset-password` |
+| `(app)/call/` | `/call`, `/call/chat`, `/call/history` |
+| `(app)/user/` | `/user`, `/user/profile`, `/user/progress`, `/user/reports` |
+| `(app)/settings/` | `/settings`, appearance, notifications |
+| `(app)/connections/` | favorites, blocked users |
+| `(app)/admin/` | users, reports, broadcasts, interest tags, config, rewards |
+
+Vietnamese URLs prefix with `/vi` (e.g. `/vi/call`).
+
+## Project structure
+
+```text
 apps/web/src/
-├── app/                       Next.js App Router
-│   ├── (app)/                 Authenticated pages
-│   │   ├── chat/              Video chat UI
-│   │   ├── profile/           User profile
-│   │   ├── favorites/         Favorites list
-│   │   ├── history/           Call history
-│   │   └── admin/             Admin dashboard
-│   ├── (auth)/                Auth pages
-│   │   ├── sign-in/           Clerk sign-in
-│   │   └── sign-up/           Clerk sign-up
-│   ├── (marketing)/           Public pages
-│   │   └── page.tsx           Landing page
-│   └── api/                   Next.js API routes (proxies to backend)
-│
-├── components/                React components
-│   ├── header/                App header, logo, theme toggle
-│   ├── landing/               Landing page sections
-│   └── layouts/               Layout wrappers
-│
-├── hooks/                     Custom React hooks
-│   ├── socket/                Socket.IO hooks
-│   ├── webrtc/                WebRTC hooks
-│   ├── chat/                  Chat message hooks
-│   ├── user/                  User data hooks
-│   └── notifications/         Notification hooks
-│
-├── lib/                       Client libraries
-│   ├── api/                   Backend API client
-│   ├── socket/                Socket.IO client setup
-│   ├── webrtc/                WebRTC utilities
-│   ├── mqtt/                  MQTT client
-│   └── client.ts              Fetch wrapper with auth
-│
-├── stores/                    Zustand stores
-│   ├── user-store.ts
-│   ├── video-chat-store.ts
-│   ├── socket-store.ts
-│   ├── notifications-store.ts
-│   └── chat-panel-store.ts
-│
-├── types/                     TypeScript types
-│   ├── api.types.ts           API response types
-│   ├── chat-message.types.ts  Chat message types
-│   └── users.types.ts         User types
-│
-└── utils/                     Utility functions
-    ├── logger.ts              Console logging wrapper
-    └── roles.ts               Role checking helpers
+├── app/
+│   ├── [locale]/          # Localized App Router pages
+│   │   ├── (app)/         # Authenticated shell
+│   │   ├── (auth)/
+│   │   └── (marketing)/
+│   └── api/               # Next.js route handlers (BFF)
+├── features/              # Feature modules (call, chat, user, admin, …)
+├── entities/              # Shared domain types/API (user, call-history, …)
+├── shared/                # Generic UI, hooks, env, utils, data-table
+├── lib/                   # http, auth, realtime, messaging, monitoring, telemetry
+├── providers/             # React context (Clerk, i18n, user token, …)
+├── actions/               # Server actions
+├── i18n/                  # next-intl routing and navigation helpers
+├── messages/              # en.json, vi.json
+└── proxy.ts               # Clerk + intl middleware composition
 ```
 
 ## Testing
 
-E2E tests run via Playwright from repository root:
+Playwright from repository root (`playwright.config.ts`):
 
 ```bash
-pnpm test          # All tests
-pnpm test:ui       # UI mode
-pnpm test:debug    # Debug mode
+pnpm test
+pnpm test:ui
+pnpm test:debug
+pnpm test:trace
+pnpm test:report
 ```
 
-Tests cover:
-- Authentication flow (sign-in, sign-up, sign-out)
-- Video chat matching
-- Chat messaging
-- User profile updates
-- Admin dashboard (for admin users)
+Covers auth, matching, chat, profile updates, and admin flows (global setup uses Clerk test users).
 
-Test configuration in `playwright.config.ts`. Global setup authenticates test users via Clerk.
+## Related docs
+
+- [Root README](../../README.md)
+- [API README](../api/README.md) — sockets, matchmaking, REST prefixes
+- [`CLAUDE.md`](../../CLAUDE.md) — monorepo commands and cross-app rules

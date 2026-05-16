@@ -1,13 +1,12 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.26-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
-# build worker
 WORKDIR /src
 COPY apps/worker/go.mod apps/worker/go.sum ./apps/worker/
-RUN go mod download
+RUN cd apps/worker && go mod download
 COPY apps/worker ./apps/worker
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/worker ./cmd/worker
+RUN cd apps/worker && CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/worker ./src/cmd/worker
 
 FROM alpine:3.20
 

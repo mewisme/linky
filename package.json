@@ -27,7 +27,7 @@
     "check-types:api": "turbo run check-types --filter=@ws/api",
     "check-types:web": "turbo run check-types --filter=@ws/web",
     "docker:build:api": "docker build -f apps/api/Dockerfile -t linky-api:local .",
-    "docker:build:worker": "docker build -f apps/worker/Dockerfile.go -t linky-worker:local apps/worker",
+    "docker:build:worker": "docker build -f Dockerfile.go -t linky-worker:local .",
     "build:worker-go": "cd apps/worker && go build -ldflags=\"-s -w\" -o bin/worker ./src/cmd/worker",
     "dev:worker-go": "cd apps/worker && go run ./src/cmd/worker",
     "test": "pnpm exec playwright test",

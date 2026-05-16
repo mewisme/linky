@@ -49,12 +49,6 @@ export function setupSignalHandler(
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      socket.emit(
-        "video-chat:error",
-        userFacingPayload(
-          toUserMessage("SIGNAL_NOT_IN_ROOM", { key: "call.signal.notInRoom" }, "Not in a room. Cannot send signal."),
-        ),
-      );
       return;
     }
 

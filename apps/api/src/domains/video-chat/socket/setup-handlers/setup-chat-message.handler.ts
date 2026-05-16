@@ -65,14 +65,7 @@ export function setupChatMessageHandler(
 
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      emitChatError(
-        socket,
-        toUserMessage("CHAT_NOT_IN_ROOM", { key: "chat.notInRoom" }, "Not in a room. Cannot send chat message."),
-      );
-      ackWithUserMessage(
-        acknowledge,
-        toUserMessage("CHAT_NOT_IN_ROOM", { key: "chat.notInRoom" }, "Not in a room. Cannot send chat message."),
-      );
+      acknowledge?.({ ok: false });
       return;
     }
 

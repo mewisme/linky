@@ -4,18 +4,11 @@ import type { Namespace } from "socket.io";
 import type { VideoChatRooms } from "../types.js";
 import { sendPeerActionPush } from "@/contexts/peer-action-notification-context.js";
 import { getDbUserId } from "../helpers/user.helper.js";
-import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupScreenShareHandler(socket: AuthenticatedSocket, io: Namespace, rooms: VideoChatRooms): void {
   socket.on("screen-share:toggle", async (data: ScreenShareTogglePayload) => {
     const room = rooms.getRoomByUser(socket.id);
     if (!room) {
-      socket.emit(
-        "video-chat:error",
-        userFacingPayload(
-          toUserMessage("SCREEN_NOT_IN_ROOM", { key: "call.screenShare.notInRoom" }, "Not in a room."),
-        ),
-      );
       return;
     }
 

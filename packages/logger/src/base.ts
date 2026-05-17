@@ -19,10 +19,12 @@ export const createBaseLogger = (sentry?: SentryLike) => {
   const options: LoggerOptions = {
     level: isDev ? "debug" : "info",
     base: null,
-  };
-
-  if (isDev) {
-    options.transport = {
+    formatters: {
+      level(label) {
+        return { level: label };
+      },
+    },
+    transport: {
       target: "pino-pretty",
       options: {
         colorize: true,
@@ -30,8 +32,8 @@ export const createBaseLogger = (sentry?: SentryLike) => {
         ignore: "scope",
         messageFormat: "{scope} {msg}",
       },
-    };
-  }
+    },
+  };
 
   if (sentry) {
     options.hooks = {

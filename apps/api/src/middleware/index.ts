@@ -36,20 +36,19 @@ export function setupMiddleware(app: Express): void {
   }));
 
   app.use(compression({
-    filter: (req: Request, res: Response) => {
-      const contentType = res.get('Content-Type');
-      const isJsonResponse = contentType?.startsWith('application/json') || contentType?.startsWith('application/vnd.api+json');
-      if (!isJsonResponse) {
-        return false;
-      }
-      const contentLength = res.get('Content-Length');
-      if (contentLength && parseInt(contentLength, 10) <= 1024) {
-        return false;
-      }
-      return compression.filter(req, res);
+    level: 3,
+    threshold: 32 * 1024,
+    filter: (req, res) => {
+      const type = res.getHeader('Content-Type');
+  
+      if (typeof type !== 'string') return false;
+  
+      const isJson =
+        type.startsWith('application/json') ||
+        type.startsWith('application/vnd.api+json');
+  
+      return isJson && compression.filter(req, res);
     },
-    level: 5,
-    threshold: 1024,
   }));
 
   app.use(jsonBodySizeLimitMiddleware);

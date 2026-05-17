@@ -6,6 +6,7 @@ import { Checkbox } from '@ws/ui/components/ui/checkbox'
 import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar'
 import { IconCopy, IconEye, IconCheck, IconAlertCircle } from '@tabler/icons-react'
 import { ActionsButton, type ActionItem } from '@/shared/ui/common/actions-button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@ws/ui/components/base-ui/tooltip'
 import { toast } from "@ws/ui/components/ui/sonner"
 import {
   Pill,
@@ -26,18 +27,20 @@ interface UserCellProps {
 function UserCell({ firstName, lastName, avatarUrl, userId, fallback }: UserCellProps) {
   const name = `${firstName || ''} ${lastName || ''}`.trim() || fallback;
   return (
-    <div className="flex items-center gap-3 min-w-0">
-      <Avatar className="h-9 w-9 shrink-0">
-        <AvatarImage src={avatarUrl || ''} alt={name} />
-        <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
-      </Avatar>
-      <div className="flex flex-col min-w-0">
-        <span className="font-medium truncate">{name}</span>
-        {userId ? (
-          <span className="text-xs text-muted-foreground font-mono truncate">{userId}</span>
-        ) : null}
-      </div>
-    </div>
+    <Tooltip>
+      <TooltipTrigger>
+        <div className="flex items-center gap-3 min-w-0">
+          <Avatar className="h-9 w-9 shrink-0">
+            <AvatarImage src={avatarUrl || ''} alt={name} />
+            <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <span className="font-medium truncate">{name}</span>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>{userId}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

@@ -12,6 +12,7 @@ import { AppShaderConfigProvider } from "@/providers/ui/shader-config-provider";
 import { LocaleQueryCallShell } from "@/providers/call/locale-query-call-shell";
 import { UserProvider } from "@/providers/user/user-provider";
 import { routing } from "@/i18n/routing";
+import { TooltipProvider } from '@ws/ui/components/base-ui/tooltip'
 
 type AppLocale = (typeof routing.locales)[number];
 
@@ -36,20 +37,22 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider key={locale} locale={locale} messages={messages}>
-      <LocaleClerkProvider >
-        <LocaleSync />
-        <ServiceWorkerUpdateProvider />
-        <AppShaderConfigProvider>
-          <UserProvider>
-            <ClerkReadyIndicator />
-            <SocketProvider>
-              <LocaleQueryCallShell>
-                <ProgressBarProvider>{children}</ProgressBarProvider>
-              </LocaleQueryCallShell>
-            </SocketProvider>
-          </UserProvider>
-        </AppShaderConfigProvider>
-      </LocaleClerkProvider>
+      <TooltipProvider>
+        <LocaleClerkProvider >
+          <LocaleSync />
+          <ServiceWorkerUpdateProvider />
+          <AppShaderConfigProvider>
+            <UserProvider>
+              <ClerkReadyIndicator />
+              <SocketProvider>
+                <LocaleQueryCallShell>
+                  <ProgressBarProvider>{children}</ProgressBarProvider>
+                </LocaleQueryCallShell>
+              </SocketProvider>
+            </UserProvider>
+          </AppShaderConfigProvider>
+        </LocaleClerkProvider>
+      </TooltipProvider>
     </NextIntlClientProvider>
   );
 }

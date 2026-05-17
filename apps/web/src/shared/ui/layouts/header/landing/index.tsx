@@ -50,7 +50,7 @@ export const Header = ({ transition }: { transition: boolean }) => {
               top: 24,
             }}
           >
-            <Logo size="sm" />
+            <Logo size="sm" draw />
           </motion.div>
         ) : (
           <motion.div

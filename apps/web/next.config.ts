@@ -35,6 +35,9 @@ const nextConfig: NextConfig = {
   },
   logging: {
     browserToTerminal: false,
+    fetches: {
+      fullUrl: true,
+    },
   }
 };
 

@@ -26,14 +26,14 @@ const CONTENT_VARIANTS: Variants = {
 
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
-  const [transition, setTransition] = useState(false);
+  const [transition, setTransition] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setTransition(true), 1250);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, []);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => setTransition(true), 1250);
+  //   return () => {
+  //     clearTimeout(timer);
+  //   };
+  // }, []);
 
   const startChatHref = isSignedIn && isLoaded ? "/call" : "/sign-in";
 

@@ -2,6 +2,10 @@ import { apiUrl } from "@/lib/http/api-url";
 import { fetchData } from "@/lib/http/client-api";
 
 import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "./video-chat-media-errors";
+import {
+  getCaptureConstraintsForQuality,
+} from "./stream-video-quality";
+import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
 
 export interface IceServersResponse {
   iceServers: RTCIceServer[];
@@ -87,11 +91,13 @@ function getMediaErrorMessage(error: unknown): string {
 
 export async function getUserMedia(
   video: boolean = true,
-  audio: boolean = true
+  audio: boolean = true,
+  quality: StreamVideoQuality = "auto"
 ): Promise<MediaStream> {
+  const videoConstraints = video ? getCaptureConstraintsForQuality(quality) : false;
   try {
     return await navigator.mediaDevices.getUserMedia({
-      video: video ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false,
+      video: videoConstraints,
       audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
     });
   } catch (error) {

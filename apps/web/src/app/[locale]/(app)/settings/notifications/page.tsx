@@ -19,6 +19,7 @@ import { trackEvent } from "@/lib/telemetry/events/client";
 import { usePushNotifications } from "@/features/notifications/hooks/use-push-notifications";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/providers/user/user-provider";
+import { normalizeUserNotificationPreferences } from "@/entities/user/lib";
 
 export default function NotificationSettingsPage() {
   const ts = useTranslations("settings.notificationsPage");
@@ -42,7 +43,8 @@ export default function NotificationSettingsPage() {
 
   useEffect(() => {
     if (userSettings) {
-      setNotificationSoundEnabled(userSettings.notification_sound_enabled ?? false);
+      const prefs = normalizeUserNotificationPreferences(userSettings.notification);
+      setNotificationSoundEnabled(prefs.sound_enabled);
     }
   }, [userSettings]);
 
@@ -56,8 +58,12 @@ export default function NotificationSettingsPage() {
   const handleSave = () => {
     startTransition(async () => {
       try {
+        const current = normalizeUserNotificationPreferences(userSettings?.notification);
         await updateUserSettings({
-          notification_sound_enabled: notificationSoundEnabled,
+          notification: {
+            ...current,
+            sound_enabled: notificationSoundEnabled,
+          },
         });
         trackEvent({ name: "settings_updated", properties: { section: "notifications" } });
         playSound("success");
@@ -72,7 +78,8 @@ export default function NotificationSettingsPage() {
 
   const hasChanges =
     userSettings &&
-    notificationSoundEnabled !== userSettings.notification_sound_enabled;
+    notificationSoundEnabled !==
+      normalizeUserNotificationPreferences(userSettings.notification).sound_enabled;
 
   return (
     <AppLayout

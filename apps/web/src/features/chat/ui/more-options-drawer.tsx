@@ -26,6 +26,7 @@ export interface MoreOptionsDrawerProps {
   hasUnreadIndicator: boolean;
   onPeerInfoOpen: () => void;
   onReportOpen: () => void;
+  onStreamQualityOpen: () => void;
 }
 
 export function MoreOptionsDrawer({
@@ -34,6 +35,7 @@ export function MoreOptionsDrawer({
   hasUnreadIndicator,
   onPeerInfoOpen,
   onReportOpen,
+  onStreamQualityOpen,
 }: MoreOptionsDrawerProps) {
   const t = useTranslations("call.controls");
   const [isOpen, setIsOpen] = useState(false);
@@ -104,6 +106,8 @@ export function MoreOptionsDrawer({
                       onPeerInfoOpen();
                     } else if (control.id === "report") {
                       onReportOpen();
+                    } else if (control.id === "stream-quality") {
+                      onStreamQualityOpen();
                     } else {
                       control.onClick();
                     }

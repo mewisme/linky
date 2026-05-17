@@ -3,10 +3,12 @@ import * as Sentry from "@sentry/nextjs";
 import {
   applyEncodingToSender,
   degradeQuality,
+  getEncodingParamsForManualQuality,
   getEncodingParamsForTier,
   restoreQuality,
   type QualityTier,
 } from "./adaptive-encoding";
+import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
 import { NetworkMonitor, type NetworkQuality } from "./network-monitor";
 import { VideoHealthTracker } from "./video-health-tracker";
 
@@ -28,6 +30,7 @@ export class QualityController {
   private isMobile = false;
   private isInitialized = false;
   private isBackgrounded = false;
+  private streamQuality: StreamVideoQuality = "auto";
 
   private currentTier: QualityTier = "high";
   private degradationSteps = 0;
@@ -40,7 +43,8 @@ export class QualityController {
     networkMonitor: NetworkMonitor,
     videoHealthTracker: VideoHealthTracker,
     callbacks: QualityControllerCallbacks,
-    isMobile: boolean
+    isMobile: boolean,
+    streamQuality: StreamVideoQuality = "auto"
   ): void {
     if (this.isInitialized) {
       Sentry.logger.warn("[QualityController] Already initialized");
@@ -55,10 +59,46 @@ export class QualityController {
     this.isInitialized = true;
     this.currentTier = "high";
     this.degradationSteps = 0;
+    this.streamQuality = streamQuality;
 
     this.setupVisibilityListener();
 
-    Sentry.logger.info("[QualityController] Initialized with mobile", { isMobile });
+    Sentry.logger.info("[QualityController] Initialized", {
+      isMobile,
+      streamQuality,
+    });
+  }
+
+  private isAuto(): boolean {
+    return this.streamQuality === "auto";
+  }
+
+  async setStreamQuality(quality: StreamVideoQuality): Promise<void> {
+    if (this.streamQuality === quality) {
+      return;
+    }
+
+    this.streamQuality = quality;
+    this.clearDegradationTimeout();
+    this.clearRecoveryTimeout();
+    this.degradationSteps = 0;
+
+    if (!this.pc) {
+      return;
+    }
+
+    if (quality === "auto") {
+      this.currentTier = "high";
+      await this.applyEncoding(getEncodingParamsForTier("high", this.isMobile));
+      this.callbacks?.onQualityTierChange("high");
+      return;
+    }
+
+    await this.applyEncoding(getEncodingParamsForManualQuality(quality));
+  }
+
+  getStreamQuality(): StreamVideoQuality {
+    return this.streamQuality;
   }
 
   destroy(): void {
@@ -82,7 +122,7 @@ export class QualityController {
   }
 
   onNetworkDegraded(): void {
-    if (!this.isInitialized || this.isBackgrounded) {
+    if (!this.isInitialized || this.isBackgrounded || !this.isAuto()) {
       return;
     }
 
@@ -101,7 +141,7 @@ export class QualityController {
   }
 
   onNetworkRecovered(): void {
-    if (!this.isInitialized || this.isBackgrounded) {
+    if (!this.isInitialized || this.isBackgrounded || !this.isAuto()) {
       return;
     }
 
@@ -148,7 +188,7 @@ export class QualityController {
   }
 
   async forceMinimalQuality(): Promise<void> {
-    if (!this.isInitialized || !this.pc) {
+    if (!this.isInitialized || !this.pc || !this.isAuto()) {
       return;
     }
 
@@ -162,7 +202,7 @@ export class QualityController {
   }
 
   private async degradeVideoQuality(): Promise<void> {
-    if (!this.isInitialized || !this.pc) {
+    if (!this.isInitialized || !this.pc || !this.isAuto()) {
       return;
     }
 
@@ -183,7 +223,7 @@ export class QualityController {
   }
 
   private async restoreVideoQuality(): Promise<void> {
-    if (!this.isInitialized || !this.pc) {
+    if (!this.isInitialized || !this.pc || !this.isAuto()) {
       return;
     }
 
@@ -200,6 +240,18 @@ export class QualityController {
     this.degradationSteps = Math.max(0, this.degradationSteps - 1);
 
     Sentry.logger.info("[QualityController] Restored video quality", { tier: newTier, steps: this.degradationSteps });
+  }
+
+  private async applyEncoding(params: { maxBitrate: number; maxFramerate: number; scaleResolutionDownBy: number }): Promise<void> {
+    if (!this.pc) {
+      return;
+    }
+    const senders = this.pc.getSenders();
+    for (const sender of senders) {
+      if (sender.track?.kind === "video") {
+        await applyEncodingToSender(sender, params);
+      }
+    }
   }
 
   private async applyQualityTier(tier: QualityTier): Promise<void> {
@@ -258,7 +310,7 @@ export class QualityController {
     this.clearDegradationTimeout();
     this.clearRecoveryTimeout();
 
-    if (this.isMobile && this.currentTier !== "minimal") {
+    if (this.isAuto() && this.isMobile && this.currentTier !== "minimal") {
       this.forceMinimalQuality();
     }
   }

@@ -28,6 +28,7 @@ import {
   IconScreenShareOff,
   IconSwitchHorizontal,
   IconBan,
+  IconAdjustmentsHorizontal,
 } from "@tabler/icons-react";
 import {
   Tooltip,
@@ -37,6 +38,7 @@ import {
 } from "@ws/ui/components/ui/tooltip";
 import { MoreOptionsMenu } from "./more-options-menu";
 import { MoreOptionsDrawer } from "./more-options-drawer";
+import { StreamVideoQualityDialog } from "./stream-video-quality-dialog";
 
 import { Badge } from "@ws/ui/components/ui/badge";
 import { Button } from "@ws/ui/components/ui/button";
@@ -108,6 +110,7 @@ interface VideoControlsProps {
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   initialFavorites?: ResourcesAPI.Favorites.Get.Response | null;
   hideChatToggle?: boolean;
+  onApplyStreamQuality?: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void> | void;
 }
 
 interface ControlButtonProps {
@@ -115,9 +118,10 @@ interface ControlButtonProps {
   context: ControlContext;
   onPeerInfoOpen: () => void;
   onReportOpen: () => void;
+  onStreamQualityOpen: () => void;
 }
 
-function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: ControlButtonProps) {
+function ControlButton({ config, context, onPeerInfoOpen, onReportOpen, onStreamQualityOpen }: ControlButtonProps) {
   const isVisible =
     config.visible === undefined
       ? true
@@ -145,6 +149,8 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen }: Contro
       onPeerInfoOpen();
     } else if (config.id === "report") {
       onReportOpen();
+    } else if (config.id === "stream-quality") {
+      onStreamQualityOpen();
     } else {
       config.onClick();
     }
@@ -197,6 +203,7 @@ export function VideoControls({
   sendFavoriteNotification,
   initialFavorites,
   hideChatToggle = false,
+  onApplyStreamQuality,
 }: VideoControlsProps) {
   const t = useTranslations("call");
   const tCommon = useTranslations("common");
@@ -205,6 +212,7 @@ export function VideoControls({
   const { user } = useUserContext();
   const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isStreamQualityOpen, setIsStreamQualityOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -477,6 +485,16 @@ export function VideoControls({
         visible: isInActiveCall && !!peerInfo && !!onBlockUser,
         testId: "chat-block-user-button",
       },
+      {
+        id: "stream-quality",
+        priority: "overflow",
+        icon: IconAdjustmentsHorizontal,
+        label: t("controls.streamQuality"),
+        variant: "outline",
+        onClick: () => { },
+        visible: hasLocalStream,
+        testId: "chat-stream-quality-button",
+      },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -543,6 +561,7 @@ export function VideoControls({
             context={context}
             onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
             onReportOpen={() => setIsReportOpen(true)}
+            onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
           />
         ))}
 
@@ -553,9 +572,20 @@ export function VideoControls({
             hasUnreadIndicator={hasUnreadMessagesIndicator}
             onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
             onReportOpen={() => setIsReportOpen(true)}
+            onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
           />
         )}
       </TooltipProvider>
+
+      <StreamVideoQualityDialog
+        open={isStreamQualityOpen}
+        onOpenChange={setIsStreamQualityOpen}
+        onApply={async (quality) => {
+          if (onApplyStreamQuality) {
+            await onApplyStreamQuality(quality);
+          }
+        }}
+      />
 
       <Dialog open={isPeerInfoOpen} onOpenChange={setIsPeerInfoOpen}>
         <DialogContent className="max-w-md">

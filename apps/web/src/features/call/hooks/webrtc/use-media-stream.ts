@@ -1,10 +1,16 @@
 "use client";
 
 import { getUserMedia, stopMediaStream } from "@/features/call/lib/webrtc/webrtc";
+import { getCaptureConstraintsForQuality } from "@/features/call/lib/webrtc/stream-video-quality";
+import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export interface UseMediaStreamReturn {
-  acquireMedia: (initialMuted?: boolean, initialVideoOff?: boolean) => Promise<MediaStream>;
+  acquireMedia: (
+    initialMuted?: boolean,
+    initialVideoOff?: boolean,
+    quality?: StreamVideoQuality,
+  ) => Promise<MediaStream>;
   toggleMute: () => boolean;
   toggleVideo: () => boolean;
   getStream: () => MediaStream | null;
@@ -13,6 +19,7 @@ export interface UseMediaStreamReturn {
   cameraDeviceCount: number;
   canSwapCamera: () => boolean;
   swapCamera: () => Promise<MediaStreamTrack | null>;
+  setQuality: (quality: StreamVideoQuality) => Promise<void>;
 }
 
 export function useMediaStream(): UseMediaStreamReturn {
@@ -25,6 +32,7 @@ export function useMediaStream(): UseMediaStreamReturn {
   const lastCameraDeviceIdRef = useRef<string | null>(null);
   const lastCameraLabelRef = useRef<string | null>(null);
   const swapInProgressRef = useRef(false);
+  const qualityRef = useRef<StreamVideoQuality>("auto");
   const [cameraDeviceCount, setCameraDeviceCount] = useState(0);
 
   const refreshCameraDevices = useCallback(async () => {
@@ -57,7 +65,8 @@ export function useMediaStream(): UseMediaStreamReturn {
 
   const acquireMedia = useCallback(async (
     initialMuted?: boolean,
-    initialVideoOff?: boolean
+    initialVideoOff?: boolean,
+    quality?: StreamVideoQuality,
   ): Promise<MediaStream> => {
     if (streamRef.current) {
       stopMediaStream(streamRef.current);
@@ -69,8 +78,11 @@ export function useMediaStream(): UseMediaStreamReturn {
     if (initialVideoOff !== undefined) {
       isVideoOffRef.current = initialVideoOff;
     }
+    if (quality !== undefined) {
+      qualityRef.current = quality;
+    }
 
-    const stream = await getUserMedia(true, true);
+    const stream = await getUserMedia(true, true, qualityRef.current);
     streamRef.current = stream;
 
     const videoTracks = stream.getVideoTracks();
@@ -175,11 +187,11 @@ export function useMediaStream(): UseMediaStreamReturn {
       if (currentFacingMode === "user" || currentFacingMode === "environment") {
         const targetFacingMode = currentFacingMode === "user" ? "environment" : "user";
 
+        const captureConstraints = getCaptureConstraintsForQuality(qualityRef.current);
         const nextStream = await navigator.mediaDevices.getUserMedia({
           video: {
+            ...captureConstraints,
             facingMode: { ideal: targetFacingMode },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
           },
           audio: false,
         });
@@ -236,7 +248,10 @@ export function useMediaStream(): UseMediaStreamReturn {
         }
 
         const nextStream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: { exact: nextDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: {
+            ...getCaptureConstraintsForQuality(qualityRef.current),
+            deviceId: { exact: nextDeviceId },
+          },
           audio: false,
         });
 
@@ -290,6 +305,28 @@ export function useMediaStream(): UseMediaStreamReturn {
     }
   }, [refreshCameraDevices]);
 
+  const setQuality = useCallback(async (quality: StreamVideoQuality): Promise<void> => {
+    qualityRef.current = quality;
+    const stream = streamRef.current;
+    if (!stream) {
+      return;
+    }
+    const tracks = stream.getVideoTracks();
+    if (tracks.length === 0) {
+      return;
+    }
+    const constraints = getCaptureConstraintsForQuality(quality);
+    await Promise.all(
+      tracks.map(async (track) => {
+        try {
+          await track.applyConstraints(constraints);
+        } catch {
+          // Ignore - device may not support exact dimensions; encoder cap still applies.
+        }
+      }),
+    );
+  }, []);
+
   return useMemo(
     () => ({
       acquireMedia,
@@ -301,6 +338,7 @@ export function useMediaStream(): UseMediaStreamReturn {
       cameraDeviceCount,
       canSwapCamera,
       swapCamera,
+      setQuality,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [cameraDeviceCount]

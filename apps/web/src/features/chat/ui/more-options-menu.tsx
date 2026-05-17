@@ -23,6 +23,7 @@ export interface MoreOptionsMenuProps {
   hasUnreadIndicator: boolean;
   onPeerInfoOpen: () => void;
   onReportOpen: () => void;
+  onStreamQualityOpen: () => void;
 }
 
 export function MoreOptionsMenu({
@@ -31,6 +32,7 @@ export function MoreOptionsMenu({
   hasUnreadIndicator,
   onPeerInfoOpen,
   onReportOpen,
+  onStreamQualityOpen,
 }: MoreOptionsMenuProps) {
   const t = useTranslations("call.controls");
   return (
@@ -83,6 +85,8 @@ export function MoreOptionsMenu({
                   onPeerInfoOpen();
                 } else if (control.id === "report") {
                   onReportOpen();
+                } else if (control.id === "stream-quality") {
+                  onStreamQualityOpen();
                 } else {
                   control.onClick();
                 }

@@ -33,6 +33,7 @@ interface GlobalCallContextValue {
   toggleScreenShare: () => Promise<void>;
   isSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  applyStreamQuality: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void>;
   clearError: () => void;
   isPassive: boolean;
 }
@@ -100,6 +101,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     toggleScreenShare: videoChat.toggleScreenShare,
     isSharingScreen: videoChat.isSharingScreen,
     sendFavoriteNotification: videoChat.sendFavoriteNotification,
+    applyStreamQuality: videoChat.applyStreamQuality,
     clearError: videoChat.clearError,
     isPassive: videoChat.isPassive,
   }), [
@@ -115,6 +117,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     videoChat.toggleScreenShare,
     videoChat.isSharingScreen,
     videoChat.sendFavoriteNotification,
+    videoChat.applyStreamQuality,
     videoChat.clearError,
     videoChat.isPassive,
   ]);

@@ -150,7 +150,8 @@
       "blockUser": "Block User",
       "moreOptions": "More options",
       "moreOptionsTitle": "More Options",
-      "endSearch": "End Search"
+      "endSearch": "End Search",
+      "streamQuality": "Video Quality"
     },
     "dialogs": {
       "peerInfo": {
@@ -163,6 +164,35 @@
       "report": {
         "title": "Report User",
         "description": "Please provide a reason for reporting this user. Our team will review your report."
+      },
+      "streamQuality": {
+        "title": "Video Quality",
+        "description": "Choose how your video is sent. Auto adapts to your network; pick a preset to lock the bitrate.",
+        "saving": "Saving…",
+        "updated": "Video quality updated",
+        "updateFailed": "Failed to update video quality",
+        "options": {
+          "auto": {
+            "label": "Auto",
+            "description": "Adapts to your network. Recommended."
+          },
+          "360p": {
+            "label": "360p",
+            "description": "Low data"
+          },
+          "480p": {
+            "label": "480p",
+            "description": "Balanced"
+          },
+          "720p": {
+            "label": "720p",
+            "description": "Sharper, recommended"
+          },
+          "1080p": {
+            "label": "1080p",
+            "description": "Highest quality"
+          }
+        }
       }
     },
     "globalError": {

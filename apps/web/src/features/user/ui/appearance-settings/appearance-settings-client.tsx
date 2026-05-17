@@ -32,6 +32,7 @@ import type { UsersAPI } from '@/entities/user/types/users.types'
 import { useDebounceCallback } from '@/shared/hooks/common/use-debounce-callback'
 import { useSetShaderConfig } from '@ws/ui/components/mew-ui/shader'
 import {
+  normalizeUserCallPreferences,
   normalizeUserLanguage,
   normalizeUserShaderPreferences,
   normalizeUserSidebarPreferences,
@@ -57,9 +58,11 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
   const setCollapsible = useSidebarStore((s) => s.setCollapsible)
   const initialShader = normalizeUserShaderPreferences(initialSettings.shader)
   const initialSidebar = normalizeUserSidebarPreferences(initialSettings.sidebar)
+  const initialCall = normalizeUserCallPreferences(initialSettings.call)
   const initialLocale = normalizeUserLanguage(initialSettings.language) ?? useLocalePreferenceStore.getState().locale
-  const [defaultMuteMic, setDefaultMuteMic] = useState(initialSettings.default_mute_mic ?? false)
-  const [defaultDisableCamera, setDefaultDisableCamera] = useState(initialSettings.default_disable_camera ?? false)
+  const [defaultMuteMic, setDefaultMuteMic] = useState(initialCall.default_mute_mic)
+  const [defaultDisableCamera, setDefaultDisableCamera] = useState(initialCall.default_disable_camera)
+  const callQualityRef = useRef(initialCall.quality)
   const [shaderType, setShaderType] = useState<ShaderType>(initialShader.type)
   const [shaderPreset, setShaderPreset] = useState<ShaderPresetType>(initialShader.preset)
   const [shaderAnimationEnabled, setShaderAnimationEnabled] = useState<boolean>(!initialShader.disabled)
@@ -132,8 +135,12 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
         collapsible: sidebarCollapsible,
       },
       language: uiLocaleDraft,
-      default_mute_mic: defaultMuteMic,
-      default_disable_camera: defaultDisableCamera,
+      call: {
+        ...(current.call ?? {}),
+        default_mute_mic: defaultMuteMic,
+        default_disable_camera: defaultDisableCamera,
+        quality: callQualityRef.current,
+      },
     })
   }, [
     sidebarCollapsible,
@@ -148,8 +155,11 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
   ])
 
   const payload = useMemo<UsersAPI.UserSettings.PatchMe.Body>(() => ({
-    default_mute_mic: defaultMuteMic,
-    default_disable_camera: defaultDisableCamera,
+    call: {
+      default_mute_mic: defaultMuteMic,
+      default_disable_camera: defaultDisableCamera,
+      quality: callQualityRef.current,
+    },
     language: uiLocaleDraft,
     shader: {
       type: shaderType,

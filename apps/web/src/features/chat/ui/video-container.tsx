@@ -47,6 +47,7 @@ interface VideoContainerProps {
   isSharingScreen?: boolean;
   onBlockUser?: (userId: string) => void;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  onApplyStreamQuality?: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void> | void;
   isPassive?: boolean;
   initialProgress?: UsersAPI.Progress.GetMe.Response;
   initialFavorites?: ResourcesAPI.Favorites.Get.Response;
@@ -108,6 +109,7 @@ export function VideoContainer({
   isSharingScreen,
   onBlockUser,
   sendFavoriteNotification,
+  onApplyStreamQuality,
   isPassive = false,
   initialProgress,
   initialFavorites,
@@ -452,6 +454,7 @@ export function VideoContainer({
               onBlockUser={onBlockUser}
               sendFavoriteNotification={sendFavoriteNotification}
               initialFavorites={initialFavorites}
+              onApplyStreamQuality={onApplyStreamQuality}
             />
           </div>
         )}

@@ -10,6 +10,7 @@ import {
 } from "@/features/call/lib/webrtc/video-health-tracker";
 import { QualityController } from "@/features/call/lib/webrtc/quality-controller";
 import { applyInitialEncoding, type QualityTier } from "@/features/call/lib/webrtc/adaptive-encoding";
+import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
 
 export interface MonitoringCallbacks {
   onNetworkQualityChange: (quality: NetworkQuality) => void;
@@ -22,12 +23,14 @@ export interface UseWebRTCMonitoringReturn {
     pc: RTCPeerConnection,
     isMobile: boolean,
     callbacks: MonitoringCallbacks,
-    options?: VideoHealthTrackerOptions
+    options?: VideoHealthTrackerOptions,
+    streamQuality?: StreamVideoQuality
   ) => Promise<void>;
   stopMonitoring: () => void;
   getCurrentQuality: () => NetworkQuality;
   getCurrentTier: () => QualityTier;
   isVideoStalled: () => boolean;
+  applyStreamQuality: (quality: StreamVideoQuality) => Promise<void>;
 }
 
 export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
@@ -40,11 +43,12 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
       pc: RTCPeerConnection,
       isMobile: boolean,
       callbacks: MonitoringCallbacks,
-      options?: VideoHealthTrackerOptions
+      options?: VideoHealthTrackerOptions,
+      streamQuality: StreamVideoQuality = "auto"
     ): Promise<void> => {
       stopMonitoring();
 
-      await applyInitialEncoding(pc, isMobile);
+      await applyInitialEncoding(pc, isMobile, streamQuality);
 
       const networkMonitor = new NetworkMonitor();
       const videoHealthTracker = new VideoHealthTracker();
@@ -81,11 +85,18 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
         options
       );
 
-      qualityController.initialize(pc, networkMonitor, videoHealthTracker, {
-        onQualityTierChange: callbacks.onQualityTierChange,
-        onNetworkQualityChange: callbacks.onNetworkQualityChange,
-        onVideoStalled: callbacks.onVideoStalled,
-      }, isMobile);
+      qualityController.initialize(
+        pc,
+        networkMonitor,
+        videoHealthTracker,
+        {
+          onQualityTierChange: callbacks.onQualityTierChange,
+          onNetworkQualityChange: callbacks.onNetworkQualityChange,
+          onVideoStalled: callbacks.onVideoStalled,
+        },
+        isMobile,
+        streamQuality,
+      );
 
       networkMonitorRef.current = networkMonitor;
       videoHealthTrackerRef.current = videoHealthTracker;
@@ -127,11 +138,20 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
     return videoHealthTrackerRef.current?.isVideoStalled() ?? false;
   }, []);
 
+  const applyStreamQuality = useCallback(async (quality: StreamVideoQuality): Promise<void> => {
+    const controller = qualityControllerRef.current;
+    if (!controller) {
+      return;
+    }
+    await controller.setStreamQuality(quality);
+  }, []);
+
   return {
     initializeMonitoring,
     stopMonitoring,
     getCurrentQuality,
     getCurrentTier,
     isVideoStalled,
+    applyStreamQuality,
   };
 }

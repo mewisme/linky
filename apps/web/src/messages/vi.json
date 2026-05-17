@@ -150,7 +150,8 @@
       "blockUser": "Chặn người dùng",
       "moreOptions": "Thêm tùy chọn",
       "moreOptionsTitle": "Thêm tùy chọn",
-      "endSearch": "Kết thúc tìm"
+      "endSearch": "Kết thúc tìm",
+      "streamQuality": "Chất lượng video"
     },
     "dialogs": {
       "peerInfo": {
@@ -163,6 +164,35 @@
       "report": {
         "title": "Báo cáo người dùng",
         "description": "Vui lòng nhập lý do báo cáo. Đội ngũ của chúng tôi sẽ xem xét."
+      },
+      "streamQuality": {
+        "title": "Chất lượng video",
+        "description": "Chọn cách video của bạn được gửi đi. Tự động sẽ thích ứng với mạng; chọn một tuỳ chọn để khoá bitrate.",
+        "saving": "Đang lưu…",
+        "updated": "Đã cập nhật chất lượng video",
+        "updateFailed": "Cập nhật chất lượng video thất bại",
+        "options": {
+          "auto": {
+            "label": "Tự động",
+            "description": "Thích ứng theo mạng. Khuyên dùng."
+          },
+          "360p": {
+            "label": "360p",
+            "description": "Ít dữ liệu"
+          },
+          "480p": {
+            "label": "480p",
+            "description": "Cân bằng"
+          },
+          "720p": {
+            "label": "720p",
+            "description": "Sắc nét, khuyên dùng"
+          },
+          "1080p": {
+            "label": "1080p",
+            "description": "Chất lượng cao nhất"
+          }
+        }
       }
     },
     "globalError": {

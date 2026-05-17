@@ -1,5 +1,11 @@
 import * as Sentry from "@sentry/nextjs";
 
+import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
+import {
+  getStreamVideoQualityProfile,
+  PREFERRED_AUTO_QUALITY,
+} from "./stream-video-quality";
+
 export type QualityTier = "high" | "medium" | "low" | "minimal";
 
 export interface EncodingProfile {
@@ -17,46 +23,46 @@ export interface DeviceProfile {
 
 const DESKTOP_PROFILE: DeviceProfile = {
   high: {
-    maxBitrate: 1000000,
-    maxFramerate: 24,
+    maxBitrate: 2_500_000,
+    maxFramerate: 30,
     scaleResolutionDownBy: 1,
   },
   medium: {
-    maxBitrate: 700000,
-    maxFramerate: 20,
+    maxBitrate: 1_500_000,
+    maxFramerate: 24,
     scaleResolutionDownBy: 1.5,
   },
   low: {
-    maxBitrate: 500000,
-    maxFramerate: 15,
+    maxBitrate: 900_000,
+    maxFramerate: 20,
     scaleResolutionDownBy: 2,
   },
   minimal: {
-    maxBitrate: 300000,
-    maxFramerate: 12,
-    scaleResolutionDownBy: 2.5,
+    maxBitrate: 500_000,
+    maxFramerate: 15,
+    scaleResolutionDownBy: 3,
   },
 };
 
 const MOBILE_PROFILE: DeviceProfile = {
   high: {
-    maxBitrate: 600000,
+    maxBitrate: 1_500_000,
+    maxFramerate: 24,
+    scaleResolutionDownBy: 1,
+  },
+  medium: {
+    maxBitrate: 900_000,
     maxFramerate: 20,
     scaleResolutionDownBy: 1.5,
   },
-  medium: {
-    maxBitrate: 420000,
+  low: {
+    maxBitrate: 500_000,
     maxFramerate: 18,
     scaleResolutionDownBy: 2,
   },
-  low: {
-    maxBitrate: 300000,
-    maxFramerate: 15,
-    scaleResolutionDownBy: 2.5,
-  },
   minimal: {
-    maxBitrate: 180000,
-    maxFramerate: 10,
+    maxBitrate: 300_000,
+    maxFramerate: 12,
     scaleResolutionDownBy: 3,
   },
 };
@@ -76,6 +82,27 @@ export function getEncodingParamsForTier(
 ): EncodingProfile {
   const profile = getDeviceProfile(isMobile);
   return profile[tier];
+}
+
+export function getEncodingParamsForManualQuality(
+  quality: Exclude<StreamVideoQuality, "auto">
+): EncodingProfile {
+  const target = getStreamVideoQualityProfile(quality);
+  return {
+    maxBitrate: target.maxBitrate,
+    maxFramerate: target.maxFramerate,
+    scaleResolutionDownBy: 1,
+  };
+}
+
+export function getEncodingParamsForQuality(
+  quality: StreamVideoQuality,
+  isMobile: boolean
+): EncodingProfile {
+  if (quality === "auto") {
+    return getInitialEncodingParams(isMobile);
+  }
+  return getEncodingParamsForManualQuality(quality);
 }
 
 export async function applyEncodingToSender(
@@ -127,14 +154,17 @@ export function restoreQuality(currentTier: QualityTier): QualityTier {
 
 export async function applyInitialEncoding(
   pc: RTCPeerConnection,
-  isMobile: boolean
+  isMobile: boolean,
+  quality: StreamVideoQuality = "auto"
 ): Promise<void> {
-  const initialParams = getInitialEncodingParams(isMobile);
+  const params = getEncodingParamsForQuality(quality, isMobile);
   const senders = pc.getSenders();
 
   for (const sender of senders) {
     if (sender.track?.kind === "video") {
-      await applyEncodingToSender(sender, initialParams);
+      await applyEncodingToSender(sender, params);
     }
   }
 }
+
+export { PREFERRED_AUTO_QUALITY };

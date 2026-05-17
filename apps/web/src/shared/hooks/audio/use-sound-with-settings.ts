@@ -3,12 +3,17 @@
 import { useCallback } from "react";
 import { useSound, type SoundName } from "./use-sound";
 import { useUserContext } from "@/providers/user/user-provider";
+import { normalizeUserNotificationPreferences } from "@/entities/user/lib";
 
 export function useSoundWithSettings() {
   const { play: basePlay, stop, stopAll, isPlaying } = useSound();
   const {
     store: { userSettings },
   } = useUserContext();
+
+  const notificationSoundEnabled = normalizeUserNotificationPreferences(
+    userSettings?.notification,
+  ).sound_enabled;
 
   const play = useCallback(
     (
@@ -19,9 +24,7 @@ export function useSoundWithSettings() {
         ignoreSettings?: boolean;
       }
     ) => {
-      const soundEnabled =
-        options?.ignoreSettings ||
-        userSettings?.notification_sound_enabled !== false;
+      const soundEnabled = options?.ignoreSettings || notificationSoundEnabled;
 
       if (!soundEnabled) {
         return;
@@ -32,7 +35,7 @@ export function useSoundWithSettings() {
         loop: options?.loop,
       });
     },
-    [basePlay, userSettings?.notification_sound_enabled]
+    [basePlay, notificationSoundEnabled]
   );
 
   return {

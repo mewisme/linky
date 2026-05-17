@@ -482,6 +482,13 @@ export type Database = {
             foreignKeyName: "report_ai_summaries_report_id_fkey"
             columns: ["report_id"]
             isOneToOne: true
+            referencedRelation: "admin_reports_unified"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_ai_summaries_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: true
             referencedRelation: "reports"
             referencedColumns: ["id"]
           },
@@ -573,6 +580,13 @@ export type Database = {
             columns: ["ended_by"]
             isOneToOne: false
             referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_report_contexts_report"
+            columns: ["report_id"]
+            isOneToOne: true
+            referencedRelation: "admin_reports_unified"
             referencedColumns: ["id"]
           },
           {
@@ -1228,39 +1242,33 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          call: Json | null
           created_at: string
-          default_disable_camera: boolean
-          default_mute_mic: boolean
           id: string
           language: string | null
-          notification_preferences: Json | null
-          notification_sound_enabled: boolean
+          notification: Json | null
           shader: Json | null
           sidebar: Json | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          call?: Json | null
           created_at?: string
-          default_disable_camera?: boolean
-          default_mute_mic?: boolean
           id?: string
           language?: string | null
-          notification_preferences?: Json | null
-          notification_sound_enabled?: boolean
+          notification?: Json | null
           shader?: Json | null
           sidebar?: Json | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          call?: Json | null
           created_at?: string
-          default_disable_camera?: boolean
-          default_mute_mic?: boolean
           id?: string
           language?: string | null
-          notification_preferences?: Json | null
-          notification_sound_enabled?: boolean
+          notification?: Json | null
           shader?: Json | null
           sidebar?: Json | null
           updated_at?: string
@@ -1644,7 +1652,92 @@ export type Database = {
           status: string | null
           updated_at: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reported"
+            columns: ["reported_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reporter"
+            columns: ["reporter_user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "admin_users_unified"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_reports_reviewed_by"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users_with_details"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       admin_users_unified: {
         Row: {
@@ -1831,14 +1924,12 @@ export type Database = {
       }
       user_settings_v: {
         Row: {
+          call: Json | null
           clerk_user_id: string | null
           created_at: string | null
-          default_disable_camera: boolean | null
-          default_mute_mic: boolean | null
           id: string | null
           language: string | null
-          notification_preferences: Json | null
-          notification_sound_enabled: boolean | null
+          notification: Json | null
           shader: Json | null
           sidebar: Json | null
           updated_at: string | null

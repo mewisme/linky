@@ -51,6 +51,7 @@ export default function CallLayout({
     toggleScreenShare,
     isSharingScreen,
     sendFavoriteNotification,
+    applyStreamQuality,
     isPassive,
   } = useGlobalCallContext();
 
@@ -94,6 +95,7 @@ export default function CallLayout({
             endCall();
           }}
           sendFavoriteNotification={sendFavoriteNotification}
+          onApplyStreamQuality={applyStreamQuality}
           isPassive={isPassive}
           initialProgress={callInitialProgress ?? undefined}
           initialFavorites={callInitialFavorites ?? undefined}

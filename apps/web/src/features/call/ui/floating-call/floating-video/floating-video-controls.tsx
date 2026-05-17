@@ -6,6 +6,7 @@ import { usePathname } from "@/i18n/navigation";
 import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-chat";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { VideoControls } from "@/features/chat/ui/video-controls";
+import { useGlobalCallContext } from "@/providers/call/global-call-manager";
 
 interface FloatingVideoControlsProps {
   connectionStatus: ConnectionStatus;
@@ -46,6 +47,7 @@ export function FloatingVideoControls({
   isVisible,
 }: FloatingVideoControlsProps) {
   const pathname = usePathname();
+  const { applyStreamQuality } = useGlobalCallContext();
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
   const hideChatToggle = pathname === "/call/chat";
 
@@ -105,6 +107,7 @@ export function FloatingVideoControls({
           onToggleChat={onToggleChat}
           sendFavoriteNotification={sendFavoriteNotification}
           hideChatToggle={hideChatToggle}
+          onApplyStreamQuality={applyStreamQuality}
         />
       </div>
     </div>

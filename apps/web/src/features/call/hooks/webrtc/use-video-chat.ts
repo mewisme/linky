@@ -37,6 +37,7 @@ import { recoveryController } from "@/features/call/lib/webrtc/webrtc-recovery";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
+import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -62,6 +63,7 @@ export interface UseVideoChatReturn {
   isSharingScreen: boolean;
   isPeerSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  applyStreamQuality: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void>;
   error: string | null;
   clearError: () => void;
   isPassive: boolean;
@@ -578,6 +580,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
         const pc = peerConnection.getPeerConnection();
         if (pc) {
+          const callPrefs = normalizeUserCallPreferences(userSettings?.call);
           monitoring.initializeMonitoring(
             pc,
             isMobile,
@@ -594,7 +597,8 @@ export function useVideoChat(): UseVideoChatReturn {
             },
             {
               isRemoteVideoExpected: () => useVideoChatStore.getState().remoteCameraEnabled,
-            }
+            },
+            callPrefs.quality,
           );
 
           recoveryController.start({
@@ -946,13 +950,14 @@ export function useVideoChat(): UseVideoChatReturn {
         throw new Error("Failed to obtain ICE servers");
       }
 
-      const initialMuted = userSettings?.default_mute_mic ?? false;
-      const initialVideoOff = userSettings?.default_disable_camera ?? false;
+      const callPrefs = normalizeUserCallPreferences(userSettings?.call);
+      const initialMuted = callPrefs.default_mute_mic;
+      const initialVideoOff = callPrefs.default_disable_camera;
 
       actionsRef.current.setMuted(initialMuted);
       actionsRef.current.setVideoOff(initialVideoOff);
 
-      const stream = await mediaStream.acquireMedia(initialMuted, initialVideoOff);
+      const stream = await mediaStream.acquireMedia(initialMuted, initialVideoOff, callPrefs.quality);
 
       if (!mediaStream.hasCamera()) {
         actionsRef.current.setVideoOff(true);
@@ -1236,6 +1241,14 @@ export function useVideoChat(): UseVideoChatReturn {
     () => tabCoordination.releaseOwnership()
   );
 
+  const applyStreamQuality = useCallback(
+    async (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => {
+      await monitoring.applyStreamQuality(quality);
+      await mediaStream.setQuality(quality);
+    },
+    [mediaStream, monitoring],
+  );
+
   return {
     localStream: state.localStream,
     remoteStream: state.remoteStream,
@@ -1260,6 +1273,7 @@ export function useVideoChat(): UseVideoChatReturn {
     isSharingScreen,
     isPeerSharingScreen,
     sendFavoriteNotification: socketSignaling.sendFavoriteNotification,
+    applyStreamQuality,
     error: state.error,
     clearError,
     isPassive: tabCoordination.isPassive,

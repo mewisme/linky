@@ -17,6 +17,27 @@ import { shaderTypes } from "@ws/ui/components/mew-ui/shader";
 import type { UiLocale } from "@ws/shared-types";
 import type { SidebarCollapsible, SidebarVariant } from "@/shared/model/sidebar-store";
 
+export type StreamVideoQuality = "auto" | "360p" | "480p" | "720p" | "1080p";
+
+export const STREAM_VIDEO_QUALITY_VALUES: readonly StreamVideoQuality[] = [
+  "auto",
+  "360p",
+  "480p",
+  "720p",
+  "1080p",
+] as const;
+
+export type UserCallPreferences = {
+  default_mute_mic: boolean;
+  default_disable_camera: boolean;
+  quality: StreamVideoQuality;
+};
+
+export type UserNotificationPreferences = {
+  sound_enabled: boolean;
+  preferences: Record<string, unknown>;
+};
+
 export type UserShaderPreferences = {
   type: ShaderType;
   preset: ShaderPresetType;
@@ -27,6 +48,17 @@ export type UserShaderPreferences = {
 export type UserSidebarPreferences = {
   variant: SidebarVariant;
   collapsible: SidebarCollapsible;
+};
+
+const defaultCallPreferences: UserCallPreferences = {
+  default_mute_mic: false,
+  default_disable_camera: false,
+  quality: "auto",
+};
+
+const defaultNotificationPreferences: UserNotificationPreferences = {
+  sound_enabled: true,
+  preferences: {},
 };
 
 const defaultShaderPreferences: UserShaderPreferences = {
@@ -80,6 +112,49 @@ export function getDefaultShaderPreferences(): UserShaderPreferences {
 
 export function getDefaultSidebarPreferences(): UserSidebarPreferences {
   return defaultSidebarPreferences;
+}
+
+export function getDefaultCallPreferences(): UserCallPreferences {
+  return defaultCallPreferences;
+}
+
+export function getDefaultNotificationPreferences(): UserNotificationPreferences {
+  return defaultNotificationPreferences;
+}
+
+export function isStreamVideoQuality(value: unknown): value is StreamVideoQuality {
+  return typeof value === "string" && (STREAM_VIDEO_QUALITY_VALUES as readonly string[]).includes(value);
+}
+
+export function normalizeUserCallPreferences(value: unknown): UserCallPreferences {
+  if (!value || typeof value !== "object") {
+    return defaultCallPreferences;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return {
+    default_mute_mic: candidate.default_mute_mic === true,
+    default_disable_camera: candidate.default_disable_camera === true,
+    quality: isStreamVideoQuality(candidate.quality)
+      ? candidate.quality
+      : defaultCallPreferences.quality,
+  };
+}
+
+export function normalizeUserNotificationPreferences(value: unknown): UserNotificationPreferences {
+  if (!value || typeof value !== "object") {
+    return defaultNotificationPreferences;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const sound_enabled = candidate.sound_enabled === undefined
+    ? defaultNotificationPreferences.sound_enabled
+    : candidate.sound_enabled === true;
+  const preferences = candidate.preferences && typeof candidate.preferences === "object"
+    ? (candidate.preferences as Record<string, unknown>)
+    : defaultNotificationPreferences.preferences;
+
+  return { sound_enabled, preferences };
 }
 
 export function getShaderPresets(type: ShaderType): ShaderPresetType[] {

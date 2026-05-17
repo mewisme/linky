@@ -5,24 +5,24 @@
   "type": "module",
   "scripts": {
     "prebuild": "pnpm check-types",
-    "build": "tsc",
+    "build": "tsup",
     "check-types": "tsc --noEmit"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "main": "./dist/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
   "devDependencies": {
     "@types/node": "25.6.0",
     "@ws/typescript-config": "workspace:*",
+    "tsup": "catalog:",
     "typescript": "catalog:"
   }
 }

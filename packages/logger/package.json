@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "prebuild": "pnpm check-types",
-    "build": "tsc",
+    "build": "tsup",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
@@ -13,10 +13,10 @@
     "dist"
   ],
   "main": "./dist/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
@@ -30,6 +30,7 @@
     "@ws/eslint-config": "workspace:*",
     "@ws/typescript-config": "workspace:*",
     "eslint": "catalog:",
+    "tsup": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
   },

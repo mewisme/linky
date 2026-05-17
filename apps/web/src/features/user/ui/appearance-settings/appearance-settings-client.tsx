@@ -301,6 +301,7 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
   return (
     <AppLayout label={t('appearancePage.label')} description={t('appearancePage.description')}>
       <Tabs
+        className="gap-6"
         value={activeTab}
         onValueChange={(value) => {
           const nextTab = value as 'language' | 'shader' | 'video' | 'sidebar'

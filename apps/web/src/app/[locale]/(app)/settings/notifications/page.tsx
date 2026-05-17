@@ -1,13 +1,6 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@ws/ui/components/ui/card";
-import {
   IconBell,
   IconBellOff,
   IconLoader2,
@@ -39,6 +32,7 @@ export default function NotificationSettingsPage() {
   const {
     isSubscribed,
     permissionState,
+    isPending: isPushPending,
     enablePush,
     disablePush,
   } = usePushNotifications();
@@ -84,133 +78,142 @@ export default function NotificationSettingsPage() {
     <AppLayout
       label={ts("label")}
       description={ts("description")}
-      className="space-y-4"
     >
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          {ts("sectionInApp")}
-        </h3>
+      <div className="space-y-6">
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            {ts("sectionInApp")}
+          </h3>
 
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label
-              htmlFor="notification-sound"
-              className="flex items-center gap-2"
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label
+                htmlFor="notification-sound"
+                className="flex items-center gap-2"
+              >
+                <IconVolume className="size-4" />
+                {ts("notificationSound")}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {ts("notificationSoundHint")}
+              </p>
+            </div>
+            <Switch
+              id="notification-sound"
+              checked={notificationSoundEnabled}
+              onCheckedChange={setNotificationSoundEnabled}
+              disabled={isPending}
+            />
+          </div>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            {ts("sectionPush")}
+          </h3>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="flex items-center gap-2">
+                {isSubscribed ? (
+                  <IconBell className="size-4" />
+                ) : (
+                  <IconBellOff className="size-4" />
+                )}
+                {ts("browserPush")}
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                {ts("browserPushHint")}
+              </p>
+            </div>
+            {isSupported && permissionState !== "denied" && (
+              <div>
+                {isSubscribed ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={disablePush}
+                    disabled={isPushPending}
+                    data-testid="disable-push-button"
+                  >
+                    {isPushPending && (
+                      <IconLoader2 className="mr-2 size-4 animate-spin" />
+                    )}
+                    {ts("disable")}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={enablePush}
+                    disabled={isPushPending}
+                    data-testid="enable-push-button"
+                  >
+                    {isPushPending && (
+                      <IconLoader2 className="mr-2 size-4 animate-spin" />
+                    )}
+                    {ts("enable")}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {!isSupported && (
+            <div
+              className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+              data-testid="push-not-supported"
             >
-              <IconVolume className="size-4" />
-              {ts("notificationSound")}
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              {ts("notificationSoundHint")}
-            </p>
-          </div>
-          <Switch
-            id="notification-sound"
-            checked={notificationSoundEnabled}
-            onCheckedChange={setNotificationSoundEnabled}
-            disabled={isPending}
-          />
-        </div>
-      </div>
-
-      <Separator />
-
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          {ts("sectionPush")}
-        </h3>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label className="flex items-center gap-2">
-              {isSubscribed ? (
-                <IconBell className="size-4" />
-              ) : (
-                <IconBellOff className="size-4" />
-              )}
-              {ts("browserPush")}
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              {ts("browserPushHint")}
-            </p>
-          </div>
-          {isSupported && permissionState !== "denied" && (
-            <div>
-              {isSubscribed ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={disablePush}
-                  data-testid="disable-push-button"
-                >
-                  {ts("disable")}
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  onClick={enablePush}
-                  data-testid="enable-push-button"
-                >
-                  {ts("enable")}
-                </Button>
-              )}
+              {ts("pushNotSupportedBanner")}
             </div>
           )}
-        </div>
 
-        {!isSupported && (
-          <div
-            className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
-            data-testid="push-not-supported"
-          >
-            {ts("pushNotSupportedBanner")}
-          </div>
-        )}
-
-        {isSupported && permissionState === "denied" && (
-          <div
-            className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
-            data-testid="push-permission-denied"
-          >
-            {ts("permissionDeniedBanner")}
-          </div>
-        )}
-      </div>
-
-      <Separator />
-
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          {ts("sectionTriggers")}
-        </h3>
-
-        <div className="grid gap-3 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {ts("triggerStreak")}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {ts("triggerFavorites")}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {ts("triggerLevelUp")}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {ts("triggerAnnouncements")}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-end pt-4">
-        <Button onClick={handleSave} disabled={isPending || !hasChanges}>
-          {isPending && (
-            <IconLoader2 className="mr-2 size-4 animate-spin" />
+          {isSupported && permissionState === "denied" && (
+            <div
+              className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+              data-testid="push-permission-denied"
+            >
+              {ts("permissionDeniedBanner")}
+            </div>
           )}
-          {ts("saveChanges")}
-        </Button>
+        </section>
+
+        <Separator />
+
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            {ts("sectionTriggers")}
+          </h3>
+
+          <div className="grid gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {ts("triggerStreak")}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {ts("triggerFavorites")}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {ts("triggerLevelUp")}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {ts("triggerAnnouncements")}
+            </div>
+          </div>
+        </section>
+
+        <div className="flex justify-end pt-2">
+          <Button onClick={handleSave} disabled={isPending || !hasChanges}>
+            {isPending && (
+              <IconLoader2 className="mr-2 size-4 animate-spin" />
+            )}
+            {ts("saveChanges")}
+          </Button>
+        </div>
       </div>
     </AppLayout>
   );

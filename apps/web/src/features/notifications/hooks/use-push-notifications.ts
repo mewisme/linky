@@ -11,7 +11,7 @@ import {
   subscribeToPush as subscribeToPushAPI,
   unsubscribeFromPush as unsubscribeFromPushAPI,
 } from "@/lib/http/adapters/push-subscriptions";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
@@ -26,6 +26,7 @@ export function usePushNotifications() {
   const setSubscribed = usePushSubscriptionStore((s) => s.setSubscribed);
   const setPermissionState = usePushSubscriptionStore((s) => s.setPermissionState);
   const initRef = useRef(false);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     if (!authReady || initRef.current) return;
@@ -47,6 +48,7 @@ export function usePushNotifications() {
       return;
     }
 
+    setIsPending(true);
     try {
       const permission = await requestNotificationPermission();
       setPermissionState(permission);
@@ -83,10 +85,13 @@ export function usePushNotifications() {
           : message
       );
 
+    } finally {
+      setIsPending(false);
     }
   }, [getToken, setPermissionState, setSubscribed, t]);
 
   const disablePush = useCallback(async () => {
+    setIsPending(true);
     try {
       const existingSub = await getExistingSubscription();
       if (!existingSub) {
@@ -110,12 +115,15 @@ export function usePushNotifications() {
           ? error.message
           : t("disableFailed")
       );
+    } finally {
+      setIsPending(false);
     }
   }, [getToken, setSubscribed, t]);
 
   return {
     isSubscribed,
     permissionState,
+    isPending,
     enablePush,
     disablePush,
   };

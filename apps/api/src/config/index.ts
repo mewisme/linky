@@ -3,13 +3,14 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseCorsOrigin } from '../utils/cors.js';
+import { args } from "./args.js";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const rootEnvPath = resolve(currentDir, "../../../../.env");
 loadDotenv({ path: rootEnvPath, quiet: true });
 
 export const config = {
-  port: Number(process.env.PORT) || 7270,
+  port: args.port ?? (Number(process.env.PORT) || 7270),
   nodeEnv: process.env.NODE_ENV || "development",
   corsOrigin: parseCorsOrigin(process.env.CORS_ORIGIN),
   // Cloudflare TURN

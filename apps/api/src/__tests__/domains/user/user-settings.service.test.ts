@@ -27,7 +27,7 @@ beforeEach(() => {
 describe("putUserSettings", () => {
   it("when no existing: creates and invalidates user:profile:userId", async () => {
     mockGetUserSettingsByUserId.mockResolvedValue(null);
-    const callPayload = { default_mute_mic: true, default_disable_camera: false, quality: "auto" as const };
+    const callPayload = { default_mute_mic: true, default_disable_camera: false, quality: "sd" as const };
     const created = { user_id: "u1", call: callPayload };
     mockCreateUserSettings.mockResolvedValue(created);
 
@@ -41,7 +41,7 @@ describe("putUserSettings", () => {
 
   it("when existing: updates and invalidates", async () => {
     mockGetUserSettingsByUserId.mockResolvedValue({ user_id: "u1" });
-    const callPayload = { default_mute_mic: false, default_disable_camera: false, quality: "720p" as const };
+    const callPayload = { default_mute_mic: false, default_disable_camera: false, quality: "hd" as const };
     const updated = { user_id: "u1", call: callPayload };
     mockUpdateUserSettings.mockResolvedValue(updated);
 

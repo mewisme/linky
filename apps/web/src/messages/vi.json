@@ -121,9 +121,11 @@
     "connectionNotReadyToast": "Kết nối chưa sẵn sàng. Vui lòng đợi...",
     "activeInOtherTab": "Cuộc gọi đang mở ở tab khác",
     "connectedToast": "Bạn đã kết nối với đối phương.",
+    "connectingToPeer": "Đang kết nối...",
     "youEndedCall": "Bạn đã kết thúc cuộc gọi.",
     "failedToStart": "Không thể bắt đầu cuộc gọi video",
     "screenShareFailed": "Không thể bắt đầu chia sẻ màn hình. Vui lòng thử lại.",
+    "screenShareUnsupportedSfu": "Chia sẻ màn hình chưa được hỗ trợ trên kết nối SFU.",
     "pictureInPictureFailed": "Không thể bật hình trong hình. Vui lòng thử lại.",
     "pictureInPictureNotSupported": "Trình duyệt hoặc thiết bị này không hỗ trợ hình trong hình.",
     "someoneFallback": "Ai đó",
@@ -167,30 +169,18 @@
       },
       "streamQuality": {
         "title": "Chất lượng video",
-        "description": "Chọn cách video của bạn được gửi đi. Tự động sẽ thích ứng với mạng; chọn một tuỳ chọn để khoá bitrate.",
+        "description": "Chọn cách video được gửi. SD tiết kiệm dữ liệu; HD sắc nét hơn.",
         "saving": "Đang lưu…",
         "updated": "Đã cập nhật chất lượng video",
         "updateFailed": "Cập nhật chất lượng video thất bại",
         "options": {
-          "auto": {
-            "label": "Tự động",
-            "description": "Thích ứng theo mạng. Khuyên dùng."
+          "sd": {
+            "label": "SD",
+            "description": "360p, ít dữ liệu. Khuyên dùng."
           },
-          "360p": {
-            "label": "360p",
-            "description": "Ít dữ liệu"
-          },
-          "480p": {
-            "label": "480p",
-            "description": "Cân bằng"
-          },
-          "720p": {
-            "label": "720p",
-            "description": "Sắc nét, khuyên dùng"
-          },
-          "1080p": {
-            "label": "1080p",
-            "description": "Chất lượng cao nhất"
+          "hd": {
+            "label": "HD",
+            "description": "720p, video sắc nét hơn"
           }
         }
       }

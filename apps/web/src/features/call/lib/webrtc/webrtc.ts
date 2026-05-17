@@ -92,20 +92,25 @@ function getMediaErrorMessage(error: unknown): string {
 export async function getUserMedia(
   video: boolean = true,
   audio: boolean = true,
-  quality: StreamVideoQuality = "auto"
+  quality: StreamVideoQuality = "sd"
 ): Promise<MediaStream> {
   const videoConstraints = video ? getCaptureConstraintsForQuality(quality) : false;
+  const audioConstraints: MediaTrackConstraints = {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+  };
   try {
     return await navigator.mediaDevices.getUserMedia({
       video: videoConstraints,
-      audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
+      audio: audio ? audioConstraints : false,
     });
   } catch (error) {
     if (video && shouldRetryWithoutVideo(error)) {
       try {
         return await navigator.mediaDevices.getUserMedia({
           video: false,
-          audio: audio ? { echoCancellation: true, noiseSuppression: true } : false,
+          audio: audio ? audioConstraints : false,
         });
       } catch (audioOnlyError) {
         throw new Error(getMediaErrorMessage(audioOnlyError));

@@ -2,6 +2,7 @@ import type { ResyncSessionPayload } from "@/domains/video-chat/types/socket-eve
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatMatchmaking, VideoChatRooms } from "../types.js";
+import { config } from "@/config/index.js";
 import { logger } from "../helpers/logger.helper.js";
 import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
@@ -84,9 +85,11 @@ export function setupResyncHandler(
       socket.emit("matched", {
         roomId: roomWithUserId.id,
         peerId,
+        socketId: socket.id,
         isOfferer,
         peerInfo: null,
         myInfo: null,
+        mediaProvider: config.videoProvider,
       });
     }
   });

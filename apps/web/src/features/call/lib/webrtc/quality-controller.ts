@@ -2,10 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import {
   applyEncodingToSender,
-  degradeQuality,
-  getEncodingParamsForManualQuality,
-  getEncodingParamsForTier,
-  restoreQuality,
+  getEncodingParamsForStreamQuality,
   type QualityTier,
 } from "./adaptive-encoding";
 import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
@@ -18,24 +15,16 @@ export interface QualityControllerCallbacks {
   onVideoStalled: (stalled: boolean) => void;
 }
 
-const DEGRADATION_DELAY_MS = 5000;
-const RECOVERY_DELAY_MS = 10000;
-const MAX_DEGRADATION_STEPS = 3;
-
 export class QualityController {
   private pc: RTCPeerConnection | null = null;
   private networkMonitor: NetworkMonitor | null = null;
   private videoHealthTracker: VideoHealthTracker | null = null;
   private callbacks: QualityControllerCallbacks | null = null;
-  private isMobile = false;
   private isInitialized = false;
   private isBackgrounded = false;
-  private streamQuality: StreamVideoQuality = "auto";
+  private streamQuality: StreamVideoQuality = "sd";
 
   private currentTier: QualityTier = "high";
-  private degradationSteps = 0;
-  private degradationTimeoutId: number | null = null;
-  private recoveryTimeoutId: number | null = null;
   private visibilityChangeHandler: (() => void) | null = null;
 
   initialize(
@@ -43,8 +32,8 @@ export class QualityController {
     networkMonitor: NetworkMonitor,
     videoHealthTracker: VideoHealthTracker,
     callbacks: QualityControllerCallbacks,
-    isMobile: boolean,
-    streamQuality: StreamVideoQuality = "auto"
+    _isMobile: boolean,
+    streamQuality: StreamVideoQuality = "sd"
   ): void {
     if (this.isInitialized) {
       Sentry.logger.warn("[QualityController] Already initialized");
@@ -55,22 +44,15 @@ export class QualityController {
     this.networkMonitor = networkMonitor;
     this.videoHealthTracker = videoHealthTracker;
     this.callbacks = callbacks;
-    this.isMobile = isMobile;
     this.isInitialized = true;
     this.currentTier = "high";
-    this.degradationSteps = 0;
     this.streamQuality = streamQuality;
 
     this.setupVisibilityListener();
 
     Sentry.logger.info("[QualityController] Initialized", {
-      isMobile,
       streamQuality,
     });
-  }
-
-  private isAuto(): boolean {
-    return this.streamQuality === "auto";
   }
 
   async setStreamQuality(quality: StreamVideoQuality): Promise<void> {
@@ -79,22 +61,12 @@ export class QualityController {
     }
 
     this.streamQuality = quality;
-    this.clearDegradationTimeout();
-    this.clearRecoveryTimeout();
-    this.degradationSteps = 0;
 
     if (!this.pc) {
       return;
     }
 
-    if (quality === "auto") {
-      this.currentTier = "high";
-      await this.applyEncoding(getEncodingParamsForTier("high", this.isMobile));
-      this.callbacks?.onQualityTierChange("high");
-      return;
-    }
-
-    await this.applyEncoding(getEncodingParamsForManualQuality(quality));
+    await this.applyEncoding(getEncodingParamsForStreamQuality(quality));
   }
 
   getStreamQuality(): StreamVideoQuality {
@@ -106,8 +78,6 @@ export class QualityController {
       return;
     }
 
-    this.clearDegradationTimeout();
-    this.clearRecoveryTimeout();
     this.removeVisibilityListener();
 
     this.pc = null;
@@ -116,47 +86,16 @@ export class QualityController {
     this.callbacks = null;
     this.isInitialized = false;
     this.currentTier = "high";
-    this.degradationSteps = 0;
 
     Sentry.logger.info("[QualityController] Destroyed");
   }
 
   onNetworkDegraded(): void {
-    if (!this.isInitialized || this.isBackgrounded || !this.isAuto()) {
-      return;
-    }
-
-    this.clearRecoveryTimeout();
-
-    if (this.degradationTimeoutId !== null) {
-      return;
-    }
-
-    this.degradationTimeoutId = window.setTimeout(() => {
-      this.degradeVideoQuality();
-      this.degradationTimeoutId = null;
-    }, DEGRADATION_DELAY_MS);
-
-    Sentry.logger.info("[QualityController] Network degradation detected, scheduled quality reduction");
+    return;
   }
 
   onNetworkRecovered(): void {
-    if (!this.isInitialized || this.isBackgrounded || !this.isAuto()) {
-      return;
-    }
-
-    this.clearDegradationTimeout();
-
-    if (this.recoveryTimeoutId !== null) {
-      return;
-    }
-
-    this.recoveryTimeoutId = window.setTimeout(() => {
-      this.restoreVideoQuality();
-      this.recoveryTimeoutId = null;
-    }, RECOVERY_DELAY_MS);
-
-    Sentry.logger.info("[QualityController] Network recovery detected, scheduled quality restoration");
+    return;
   }
 
   onNetworkQualityChange(quality: NetworkQuality): void {
@@ -187,61 +126,6 @@ export class QualityController {
     return this.currentTier;
   }
 
-  async forceMinimalQuality(): Promise<void> {
-    if (!this.isInitialized || !this.pc || !this.isAuto()) {
-      return;
-    }
-
-    const newTier = "minimal";
-    if (newTier === this.currentTier) {
-      return;
-    }
-
-    await this.applyQualityTier(newTier);
-    Sentry.logger.warn("[QualityController] Forced minimal quality");
-  }
-
-  private async degradeVideoQuality(): Promise<void> {
-    if (!this.isInitialized || !this.pc || !this.isAuto()) {
-      return;
-    }
-
-    if (this.degradationSteps >= MAX_DEGRADATION_STEPS) {
-      Sentry.logger.warn("[QualityController] Maximum degradation steps reached");
-      return;
-    }
-
-    const newTier = degradeQuality(this.currentTier);
-    if (newTier === this.currentTier) {
-      return;
-    }
-
-    await this.applyQualityTier(newTier);
-    this.degradationSteps++;
-
-    Sentry.logger.warn("[QualityController] Degraded video quality", { tier: newTier, steps: this.degradationSteps });
-  }
-
-  private async restoreVideoQuality(): Promise<void> {
-    if (!this.isInitialized || !this.pc || !this.isAuto()) {
-      return;
-    }
-
-    if (this.degradationSteps === 0) {
-      return;
-    }
-
-    const newTier = restoreQuality(this.currentTier);
-    if (newTier === this.currentTier) {
-      return;
-    }
-
-    await this.applyQualityTier(newTier);
-    this.degradationSteps = Math.max(0, this.degradationSteps - 1);
-
-    Sentry.logger.info("[QualityController] Restored video quality", { tier: newTier, steps: this.degradationSteps });
-  }
-
   private async applyEncoding(params: { maxBitrate: number; maxFramerate: number; scaleResolutionDownBy: number }): Promise<void> {
     if (!this.pc) {
       return;
@@ -250,27 +134,6 @@ export class QualityController {
     for (const sender of senders) {
       if (sender.track?.kind === "video") {
         await applyEncodingToSender(sender, params);
-      }
-    }
-  }
-
-  private async applyQualityTier(tier: QualityTier): Promise<void> {
-    if (!this.pc) {
-      return;
-    }
-
-    const params = getEncodingParamsForTier(tier, this.isMobile);
-    const senders = this.pc.getSenders();
-
-    for (const sender of senders) {
-      if (sender.track?.kind === "video") {
-        const success = await applyEncodingToSender(sender, params);
-        if (success) {
-          this.currentTier = tier;
-          if (this.callbacks) {
-            this.callbacks.onQualityTierChange(tier);
-          }
-        }
       }
     }
   }
@@ -287,11 +150,9 @@ export class QualityController {
       this.isBackgrounded = document.hidden;
 
       if (wasBackgrounded && !this.isBackgrounded) {
-        Sentry.logger.info("[QualityController] App foregrounded - resuming quality control");
-        this.onAppForegrounded();
+        Sentry.logger.info("[QualityController] App foregrounded");
       } else if (!wasBackgrounded && this.isBackgrounded) {
-        Sentry.logger.info("[QualityController] App backgrounded - pausing quality adjustments");
-        this.onAppBackgrounded();
+        Sentry.logger.info("[QualityController] App backgrounded");
       }
     };
 
@@ -304,41 +165,5 @@ export class QualityController {
       this.visibilityChangeHandler = null;
     }
     this.isBackgrounded = false;
-  }
-
-  private onAppBackgrounded(): void {
-    this.clearDegradationTimeout();
-    this.clearRecoveryTimeout();
-
-    if (this.isAuto() && this.isMobile && this.currentTier !== "minimal") {
-      this.forceMinimalQuality();
-    }
-  }
-
-  private onAppForegrounded(): void {
-    if (!this.networkMonitor) {
-      return;
-    }
-
-    const quality = this.networkMonitor.getNetworkQuality();
-    const isGood = quality === "excellent" || quality === "good";
-
-    if (isGood && this.degradationSteps > 0) {
-      this.onNetworkRecovered();
-    }
-  }
-
-  private clearDegradationTimeout(): void {
-    if (this.degradationTimeoutId !== null) {
-      window.clearTimeout(this.degradationTimeoutId);
-      this.degradationTimeoutId = null;
-    }
-  }
-
-  private clearRecoveryTimeout(): void {
-    if (this.recoveryTimeoutId !== null) {
-      window.clearTimeout(this.recoveryTimeoutId);
-      this.recoveryTimeoutId = null;
-    }
   }
 }

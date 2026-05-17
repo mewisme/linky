@@ -31,10 +31,8 @@ export function setupSkipHandler(
           }
         }
 
-        rooms.deleteRoom(room.id);
-
-        if (peerSocket && peerSocket.connected) {
-          const peerDbUserId = await getDbUserId(peerSocket);
+        if (peerSocket?.connected) {
+          const peerDbUserId = peerSocket ? await getDbUserId(peerSocket) : undefined;
           if (peerDbUserId) {
             const peerAdded = await matchmaking.enqueue(peerSocket);
             if (peerAdded) {
@@ -60,9 +58,31 @@ export function setupSkipHandler(
                 ),
               });
             }
+          } else {
+            io.to(peerId).emit("end-call", {
+              ...userFacingPayload(
+                toUserMessage(
+                  "END_PEER_SKIPPED",
+                  { key: "call.end.peerSkipped" },
+                  "The other person skipped. The call has ended.",
+                ),
+              ),
+            });
           }
+        } else {
+          io.to(peerId).emit("end-call", {
+            ...userFacingPayload(
+              toUserMessage(
+                "END_PEER_SKIPPED",
+                { key: "call.end.peerSkipped" },
+                "The other person skipped. The call has ended.",
+              ),
+            ),
+          });
         }
       }
+
+      rooms.deleteRoom(room.id);
     }
 
     const added = await matchmaking.enqueue(socket);

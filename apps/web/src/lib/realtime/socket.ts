@@ -141,13 +141,27 @@ export type UserFacingSocketPayload = {
   userMessage: BackendUserMessage;
 };
 
+export type VideoMediaProvider = "p2p" | "cloudflare_sfu";
+
+export interface RealtimePeerTracksTrack {
+  trackName: string;
+  kind: "audio" | "video";
+  source: "camera" | "microphone" | "screen" | "screen-audio" | "unknown";
+}
+
+export interface RealtimePeerTracksPayload {
+  peerSessionId: string;
+  tracks: RealtimePeerTracksTrack[];
+}
+
 export interface SocketEvents {
   join: () => void;
   skip: () => void;
   disconnect: () => void;
   "joined-queue": (data: UserFacingSocketPayload & { queueSize: number }) => void;
-  matched: (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => void;
+  matched: (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => void;
   signal: (data: SignalData) => void;
+  "realtime:peer-tracks": (data: RealtimePeerTracksPayload) => void;
   "chat:message": (data: ChatMessagePayload) => void;
   "chat:typing": (data: ChatTypingPayload) => void;
   "chat:error": (data: ChatErrorPayload) => void;

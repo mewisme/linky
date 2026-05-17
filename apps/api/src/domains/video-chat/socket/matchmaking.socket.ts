@@ -1,4 +1,5 @@
 import type { Namespace } from "socket.io";
+import { config } from "@/config/index.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { AuthenticatedSocket } from "@/socket/auth.js";
@@ -15,7 +16,6 @@ import {
 import type { StreakStatus } from "@/domains/user/types/progress-insights.types.js";
 import { getUserProgressInsights } from "@/domains/user/service/user-progress.service.js";
 import { persistRoomCallHistory, recordCallHistoryFromRoom } from "@/domains/video-chat/socket/call-history.socket.js";
-
 const logger = createLogger("api:video-chat:matchmaking:socket");
 const STREAK_COMPLETED_EVENT = "streak:completed";
 const LEVEL_UP_EVENT = "level:up";
@@ -122,17 +122,21 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
         user1Socket.emit("matched", {
           roomId,
           peerId: user2.socketId,
+          socketId: user1.socketId,
           isOfferer: isUser1Offerer,
           peerInfo: user2Info,
           myInfo: user1Info,
+          mediaProvider: config.videoProvider,
         } satisfies MatchedPayload);
 
         user2Socket.emit("matched", {
           roomId,
           peerId: user1.socketId,
+          socketId: user2.socketId,
           isOfferer: !isUser1Offerer,
           peerInfo: user1Info,
           myInfo: user2Info,
+          mediaProvider: config.videoProvider,
         } satisfies MatchedPayload);
 
         if (dbUserId1) {

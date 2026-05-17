@@ -1,10 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
 import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
-import {
-  getStreamVideoQualityProfile,
-  PREFERRED_AUTO_QUALITY,
-} from "./stream-video-quality";
+import { getStreamVideoQualityProfile } from "./stream-video-quality";
 
 export type QualityTier = "high" | "medium" | "low" | "minimal";
 
@@ -84,8 +81,8 @@ export function getEncodingParamsForTier(
   return profile[tier];
 }
 
-export function getEncodingParamsForManualQuality(
-  quality: Exclude<StreamVideoQuality, "auto">
+export function getEncodingParamsForStreamQuality(
+  quality: StreamVideoQuality
 ): EncodingProfile {
   const target = getStreamVideoQualityProfile(quality);
   return {
@@ -93,16 +90,6 @@ export function getEncodingParamsForManualQuality(
     maxFramerate: target.maxFramerate,
     scaleResolutionDownBy: 1,
   };
-}
-
-export function getEncodingParamsForQuality(
-  quality: StreamVideoQuality,
-  isMobile: boolean
-): EncodingProfile {
-  if (quality === "auto") {
-    return getInitialEncodingParams(isMobile);
-  }
-  return getEncodingParamsForManualQuality(quality);
 }
 
 export async function applyEncodingToSender(
@@ -154,10 +141,10 @@ export function restoreQuality(currentTier: QualityTier): QualityTier {
 
 export async function applyInitialEncoding(
   pc: RTCPeerConnection,
-  isMobile: boolean,
-  quality: StreamVideoQuality = "auto"
+  _isMobile: boolean,
+  quality: StreamVideoQuality = "sd"
 ): Promise<void> {
-  const params = getEncodingParamsForQuality(quality, isMobile);
+  const params = getEncodingParamsForStreamQuality(quality);
   const senders = pc.getSenders();
 
   for (const sender of senders) {
@@ -166,5 +153,3 @@ export async function applyInitialEncoding(
     }
   }
 }
-
-export { PREFERRED_AUTO_QUALITY };

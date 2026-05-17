@@ -89,12 +89,22 @@ export interface ResyncSessionPayload {
   timestamp?: number;
 }
 
+export type VideoMediaProvider = "p2p" | "cloudflare_sfu";
+
 export interface MatchedPayload {
   roomId: string;
   peerId: string;
+  socketId: string;
   isOfferer: boolean;
   peerInfo: unknown | null;
   myInfo: unknown | null;
+  mediaProvider: VideoMediaProvider;
+  realtimeSessionId?: string;
+}
+
+export interface RealtimePeerTracksPayload {
+  peerSessionId: string;
+  tracks: { trackName: string; kind: "audio" | "video"; source: "camera" | "microphone" | "screen" | "screen-audio" | "unknown" }[];
 }
 
 export interface RoomPingPayload {

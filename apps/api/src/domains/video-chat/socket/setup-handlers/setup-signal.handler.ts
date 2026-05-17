@@ -2,6 +2,7 @@ import type { SignalPayload } from "@/domains/video-chat/types/socket-event.type
 import type { AuthenticatedSocket } from "@/socket/auth.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRooms } from "../types.js";
+import { config } from "@/config/index.js";
 import { logger } from "../helpers/logger.helper.js";
 import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
@@ -36,6 +37,10 @@ export function setupSignalHandler(
   rooms: VideoChatRooms,
 ): void {
   socket.on("signal", (data: SignalPayload) => {
+    if (config.videoProvider === "cloudflare_sfu") {
+      logger.debug("Ignoring P2P signal in cloudflare_sfu mode socket=%s", socket.id);
+      return;
+    }
     if (!isValidSignalPayload(data)) {
       logger.warn("Invalid signal payload from socket: %s", socket.id);
       socket.emit(

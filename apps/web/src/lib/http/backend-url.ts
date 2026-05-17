@@ -55,6 +55,13 @@ export const backendUrl = {
 
   videoChat: {
     endCallUnload: () => `${V1}/video-chat/end-call-unload`,
+    realtime: {
+      session: () => `${V1}/video-chat/realtime/session`,
+      publish: () => `${V1}/video-chat/realtime/publish`,
+      subscribe: () => `${V1}/video-chat/realtime/subscribe`,
+      renegotiate: () => `${V1}/video-chat/realtime/renegotiate`,
+      cleanup: () => `${V1}/video-chat/realtime/cleanup`,
+    },
   },
 
   matchmaking: {

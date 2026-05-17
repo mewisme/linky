@@ -43,7 +43,7 @@ export function getConnectionStatusMessage(status: ConnectionStatus): string {
   const statusMessages: Record<ConnectionStatus, string> = {
     idle: "Ready",
     searching: "Searching...",
-    matched: "Matched",
+    matched: "Connecting...",
     in_call: "In call",
     reconnecting: "Reconnecting...",
     ended: "Ended",

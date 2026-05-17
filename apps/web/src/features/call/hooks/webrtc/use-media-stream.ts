@@ -32,7 +32,7 @@ export function useMediaStream(): UseMediaStreamReturn {
   const lastCameraDeviceIdRef = useRef<string | null>(null);
   const lastCameraLabelRef = useRef<string | null>(null);
   const swapInProgressRef = useRef(false);
-  const qualityRef = useRef<StreamVideoQuality>("auto");
+  const qualityRef = useRef<StreamVideoQuality>("sd");
   const [cameraDeviceCount, setCameraDeviceCount] = useState(0);
 
   const refreshCameraDevices = useCallback(async () => {

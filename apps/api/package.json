@@ -14,7 +14,7 @@
     }
   },
   "scripts": {
-    "dev": "tsx watch --import=./src/instrument.ts src/index.ts",
+    "dev": "tsx watch --import=./src/instrument.ts src/index.ts --port 6666",
     "prebuild": "pnpm check-types",
     "build": "tsup",
     "start": "node --import=dist/instrument.js dist/index.js",

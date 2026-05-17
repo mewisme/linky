@@ -1,5 +1,24 @@
 import type { ChatMessageSnapshot } from "@/domains/video-chat/types/chat-message.types.js";
 
+export interface VideoChatRoomRealtimeTrack {
+  trackName: string;
+  mid?: string;
+  kind: "audio" | "video";
+  source: "camera" | "microphone" | "screen" | "screen-audio" | "unknown";
+}
+
+export interface VideoChatRoomRealtimeParticipant {
+  sessionId: string;
+  socketId: string;
+  publishedTracks: VideoChatRoomRealtimeTrack[];
+  subscribedMids: string[];
+  createdAt: number;
+}
+
+export interface VideoChatRoomRealtimeState {
+  participants: Record<string, VideoChatRoomRealtimeParticipant>;
+}
+
 export interface VideoChatRoom {
   user1: string;
   user2: string;
@@ -22,5 +41,6 @@ export interface VideoChatRoomRecord extends VideoChatRoom {
   hasEmittedStreakCompletedUser2?: boolean;
   lastAnnouncedLevelUser1?: number;
   lastAnnouncedLevelUser2?: number;
+  realtime?: VideoChatRoomRealtimeState;
 }
 

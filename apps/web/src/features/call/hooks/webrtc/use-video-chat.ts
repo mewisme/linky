@@ -30,14 +30,17 @@ import { useVideoChatStore } from "@/features/call/model/video-chat-store";
 import { useUnloadEndCall } from "./use-unload-end-call";
 import { useSocket } from "@/features/realtime/hooks/use-socket";
 import { useWebRTCMonitoring } from "./use-webrtc-monitoring";
+import { useCloudflareSfuConnection } from "./use-cloudflare-sfu-connection";
 import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordination";
 
 import { iceServerCache } from "@/features/call/lib/webrtc/ice-servers-cache";
 import { recoveryController } from "@/features/call/lib/webrtc/webrtc-recovery";
+import type { RealtimePeerTracksPayload, VideoMediaProvider } from "@/lib/realtime/socket";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
 import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
+import { isCallMediaReadyForInCall } from "@/features/call/lib/webrtc/call-media-readiness";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -123,6 +126,7 @@ export function useVideoChat(): UseVideoChatReturn {
       monitoring.stopMonitoring();
       recoveryController.stop();
       iceServerCache.resetSession();
+      void sfuConnection.cleanup();
       mediaStream.releaseMedia();
       peerConnection.closePeer();
       actionsRef.current.resetPeerState();
@@ -138,6 +142,24 @@ export function useVideoChat(): UseVideoChatReturn {
   });
 
   const peerConnection = usePeerConnection([]);
+  const sfuConnection = useCloudflareSfuConnection({
+    getToken: async () => {
+      try {
+        return await getTokenRef.current();
+      } catch {
+        return null;
+      }
+    },
+  });
+  const mediaProviderRef = useRef<VideoMediaProvider>("p2p");
+
+  const isActiveCallStatus = useCallback((status: ConnectionStatus) => {
+    return status === "matched" || status === "in_call" || status === "reconnecting";
+  }, []);
+
+  const hasActiveCallMedia = useCallback(() => {
+    return sfuConnection.getRoomId() != null || peerConnection.getPeerConnection() != null;
+  }, [sfuConnection, peerConnection]);
 
   const iceServersRef = useRef<RTCIceServer[]>([]);
   const turnCredentialRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -156,11 +178,19 @@ export function useVideoChat(): UseVideoChatReturn {
   const isInActiveCall = useMemo(() => {
     return (
       state.callStartedAt !== null &&
-      (state.connectionStatus === "matched" ||
-        state.connectionStatus === "in_call" ||
-        state.connectionStatus === "reconnecting")
+      (state.connectionStatus === "in_call" || state.connectionStatus === "reconnecting")
     );
   }, [state.callStartedAt, state.connectionStatus]);
+
+  const activeRoomIdRef = useRef<string | null>(null);
+  const hasEnteredInCallRef = useRef(false);
+  const transportReadyRef = useRef(false);
+
+  const resetCallEntryGate = useCallback(() => {
+    hasEnteredInCallRef.current = false;
+    transportReadyRef.current = false;
+    activeRoomIdRef.current = null;
+  }, []);
 
   useEffect(() => {
     if (!authReady) return;
@@ -285,6 +315,42 @@ export function useVideoChat(): UseVideoChatReturn {
     trackEvent({ name: "call_reconnected" });
   }, []);
 
+  const tryEnterInCall = useCallback(() => {
+    if (hasEnteredInCallRef.current) return;
+
+    const status = connectionStatusRef.current;
+    if (status !== "matched" && status !== "reconnecting") return;
+
+    const store = useVideoChatStore.getState();
+    if (
+      !isCallMediaReadyForInCall({
+        localStream: mediaStream.getStream(),
+        remoteStream: store.remoteStream,
+        remoteCameraEnabled: store.remoteCameraEnabled,
+        transportReady: transportReadyRef.current,
+      })
+    ) {
+      return;
+    }
+
+    hasEnteredInCallRef.current = true;
+    const startedAt = Date.now();
+    tabCoordination.claimOwnership(activeRoomIdRef.current, startedAt);
+    actionsRef.current.setCallStartedAt(startedAt);
+    actionsRef.current.setConnectionStatus("in_call");
+    trackEvent({ name: "call_started" });
+
+    if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
+      hasShownConnectedToastRef.current = true;
+      toast.success(t("call.connectedToast"));
+      play("join_call");
+    }
+
+    if (isReconnectingRef.current) {
+      completeReconnection();
+    }
+  }, [mediaStream, tabCoordination, t, play, completeReconnection]);
+
   useEffect(() => {
     const currentStatus = connectionStatusRef.current;
     const isInCall =
@@ -316,26 +382,29 @@ export function useVideoChat(): UseVideoChatReturn {
   }, [removeScreenTrackEndedListener, screenShare, socketSignaling]);
 
   const resetPeerState = useCallback(() => {
+    resetCallEntryGate();
     iceRestartCancelRef.current = true;
     stopActiveScreenShare();
     recoveryController.stop();
     iceServerCache.resetSession();
+    void sfuConnection.cleanup();
     mediaStream.releaseMedia();
     peerConnection.closePeer();
     actionsRef.current.resetPeerState();
     actionsRef.current.setLocalStream(null);
     actionsRef.current.setMuted(false);
     actionsRef.current.setVideoOff(false);
-  }, [mediaStream, peerConnection, stopActiveScreenShare]);
+  }, [mediaStream, peerConnection, sfuConnection, stopActiveScreenShare, resetCallEntryGate]);
 
   const resetRuntimeState = useCallback(() => {
     stopActiveScreenShare();
     recoveryController.stop();
     iceServerCache.resetSession();
+    void sfuConnection.cleanup();
     mediaStream.releaseMedia();
     peerConnection.closePeer();
     actionsRef.current.resetRuntimeState();
-  }, [mediaStream, peerConnection, stopActiveScreenShare]);
+  }, [mediaStream, peerConnection, sfuConnection, stopActiveScreenShare]);
 
   const cleanup = useCallback(() => {
     resetPeerState();
@@ -363,13 +432,7 @@ export function useVideoChat(): UseVideoChatReturn {
     () => ({
       onTrack: (stream: MediaStream) => {
         actionsRef.current.setRemoteStream(stream);
-        actionsRef.current.setConnectionStatus("in_call");
-
-        if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
-          hasShownConnectedToastRef.current = true;
-          toast.success(t("call.connectedToast"));
-          play('join_call')
-        }
+        tryEnterInCall();
       },
       onIceCandidate: (candidate: RTCIceCandidate) => {
         socketSignaling.sendSignal({
@@ -388,11 +451,11 @@ export function useVideoChat(): UseVideoChatReturn {
         } else if (connectionState === "connected") {
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier === "none") {
-            actionsRef.current.setConnectionStatus("in_call");
+            transportReadyRef.current = true;
+            tryEnterInCall();
           } else {
             actionsRef.current.setConnectionStatus("reconnecting");
           }
-          hasShownConnectedToastRef.current = true;
         } else if (connectionState === "disconnected") {
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier !== "none") {
@@ -422,14 +485,14 @@ export function useVideoChat(): UseVideoChatReturn {
           recoveryController.markIceRestartComplete();
           const currentTier = recoveryController.getCurrentTier();
           if (currentTier === "none") {
-            actionsRef.current.setConnectionStatus("in_call");
-            if (isReconnectingRef.current) {
-              completeReconnection();
-            }
-            if (!hasShownConnectedToastRef.current && !isReconnectingRef.current) {
-              hasShownConnectedToastRef.current = true;
-              toast.success(t("call.connectedToast"));
-              play('join_call');
+            transportReadyRef.current = true;
+            if (hasEnteredInCallRef.current) {
+              actionsRef.current.setConnectionStatus("in_call");
+              if (isReconnectingRef.current) {
+                completeReconnection();
+              }
+            } else {
+              tryEnterInCall();
             }
           } else {
             actionsRef.current.setConnectionStatus("reconnecting");
@@ -447,7 +510,7 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
     }),
-    [socketSignaling, startReconnecting, completeReconnection, peerConnection, t, play]
+    [socketSignaling, startReconnecting, completeReconnection, peerConnection, tryEnterInCall, t, play]
   );
 
   const socketCallbacks = useMemo(
@@ -539,25 +602,96 @@ export function useVideoChat(): UseVideoChatReturn {
         trackEvent({ name: "matchmaking_started" });
       },
 
-      onMatched: async (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => {
+      onMatched: async (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => {
         isReconnectingRef.current = false;
         hasShownConnectedToastRef.current = false;
+        mediaProviderRef.current = data.mediaProvider;
 
         actionsRef.current.setError(null);
-        actionsRef.current.setConnectionStatus("in_call");
+        resetCallEntryGate();
+        activeRoomIdRef.current = data.roomId;
+        transportReadyRef.current = false;
+        actionsRef.current.setConnectionStatus("matched");
         actionsRef.current.setPeerInfo(data.peerInfo);
         actionsRef.current.setRemoteCameraEnabled(true);
-        if (useVideoChatStore.getState().callStartedAt === null) {
-          actionsRef.current.setCallStartedAt(Date.now());
-          trackEvent({ name: "call_started" });
-        }
         trackEvent({ name: "matchmaking_matched" });
-
-        tabCoordination.claimOwnership(data.roomId);
 
         const localStream = mediaStream.getStream();
         if (!localStream) {
           Sentry.logger.error("No local stream available for match");
+          return;
+        }
+
+        if (data.mediaProvider === "cloudflare_sfu") {
+          const socketId =
+            data.socketId ?? socketSignaling.getSocket()?.id ?? socketSignaling.getSocketId();
+          if (!socketId) {
+            Sentry.logger.error("No socketId available for SFU match");
+            actionsRef.current.setError(t("call.failedEstablishConnection"));
+            return;
+          }
+          socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
+          try {
+            const pc = await sfuConnection.connect({
+              roomId: data.roomId,
+              socketId,
+              localStream,
+              realtimeSessionId: data.realtimeSessionId,
+              callbacks: {
+                onTrack: (stream) => {
+                  actionsRef.current.setRemoteStream(stream);
+                  tryEnterInCall();
+                },
+                onRemoteMediaUpdated: () => {
+                  tryEnterInCall();
+                },
+                onConnectionStateChange: (connectionState) => {
+                  if (connectionState === "connected") {
+                    transportReadyRef.current = true;
+                    if (hasEnteredInCallRef.current) {
+                      actionsRef.current.setConnectionStatus("in_call");
+                      if (isReconnectingRef.current) {
+                        completeReconnection();
+                      }
+                    } else {
+                      tryEnterInCall();
+                    }
+                  } else if (connectionState === "failed" || connectionState === "disconnected") {
+                    actionsRef.current.setConnectionStatus("reconnecting");
+                    hasShownConnectedToastRef.current = false;
+                    startReconnecting();
+                  }
+                },
+              },
+            });
+            const callPrefs = normalizeUserCallPreferences(userSettings?.call);
+            monitoring.initializeMonitoring(
+              pc,
+              isMobile,
+              {
+                onNetworkQualityChange: (quality) => {
+                  actionsRef.current.setNetworkQuality(quality);
+                },
+                onVideoStalled: (stalled) => {
+                  actionsRef.current.setVideoStalled(stalled);
+                },
+                onQualityTierChange: (tier) => {
+                  actionsRef.current.setQualityTier(tier);
+                },
+              },
+              {
+                isRemoteVideoExpected: () => useVideoChatStore.getState().remoteCameraEnabled,
+              },
+              callPrefs.quality,
+            );
+            transportReadyRef.current = true;
+            tryEnterInCall();
+          } catch (err) {
+            Sentry.logger.error("Cloudflare SFU connect failed", { error: err });
+            actionsRef.current.setError(t("call.failedEstablishConnection"));
+            actionsRef.current.setConnectionStatus("ended");
+            resetCallEntryGate();
+          }
           return;
         }
 
@@ -699,6 +833,9 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onSignal: async (data: SignalData) => {
+        if (mediaProviderRef.current === "cloudflare_sfu") {
+          return;
+        }
         const pc = peerConnection.getPeerConnection();
         if (!pc || pc.signalingState === "closed") {
           return;
@@ -744,6 +881,7 @@ export function useVideoChat(): UseVideoChatReturn {
         monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
+        void sfuConnection.cleanup();
         isOffererRef.current = false;
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
@@ -765,6 +903,7 @@ export function useVideoChat(): UseVideoChatReturn {
         monitoring.stopMonitoring();
         recoveryController.stop();
         peerConnection.closePeer();
+        void sfuConnection.cleanup();
         isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
@@ -783,6 +922,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
         peerConnection.closePeer();
+        void sfuConnection.cleanup();
         isOffererRef.current = false;
         actionsRef.current.clearChatMessages();
         actionsRef.current.setPeerTyping(false);
@@ -794,24 +934,31 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onEndCall: (data: UserFacingSocketPayload) => {
         const currentStatus = connectionStatusRef.current;
-        const isInCall =
-          currentStatus === "matched" ||
-          currentStatus === "in_call" ||
-          currentStatus === "reconnecting";
-        if (!isInCall) {
+        if (!isActiveCallStatus(currentStatus) && !hasActiveCallMedia()) {
           return;
         }
 
+        isReconnectingRef.current = false;
         monitoring.stopMonitoring();
         recoveryController.stop();
         toast(resolveUserMessage(data.userMessage));
-        play('leave_call')
+        play("leave_call");
         isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("ended");
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setPeerTyping(false);
+        actionsRef.current.setRemoteStream(null);
         resetPeerState();
         refreshUserProgress();
+      },
+
+      onRealtimePeerTracks: async (data: RealtimePeerTracksPayload) => {
+        if (mediaProviderRef.current !== "cloudflare_sfu") return;
+        try {
+          await sfuConnection.handlePeerTracks(data);
+        } catch (err) {
+          Sentry.logger.error("Failed to handle peer tracks", { error: err });
+        }
       },
 
       onChatMessage: (data: ChatMessagePayload) => {
@@ -868,6 +1015,18 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onError: (data: UserFacingSocketPayload) => {
+        const currentStatus = connectionStatusRef.current;
+        if (
+          data.userMessage.code === "RESYNC_NO_ROOM" &&
+          (isActiveCallStatus(currentStatus) || hasActiveCallMedia())
+        ) {
+          isReconnectingRef.current = false;
+          actionsRef.current.setConnectionStatus("ended");
+          actionsRef.current.setCallStartedAt(null);
+          actionsRef.current.setRemoteStream(null);
+          resetPeerState();
+        }
+
         const text = resolveUserMessage(data.userMessage);
         actionsRef.current.setError(text);
         toast.error(t("call.errorToast", { message: text }));
@@ -893,6 +1052,7 @@ export function useVideoChat(): UseVideoChatReturn {
       peerConnection,
       peerCallbacks,
       socketSignaling,
+      sfuConnection,
       resetPeerState,
       resetRuntimeState,
       startReconnecting,
@@ -903,6 +1063,10 @@ export function useVideoChat(): UseVideoChatReturn {
       isMobile,
       t,
       resolveUserMessage,
+      isActiveCallStatus,
+      hasActiveCallMedia,
+      tryEnterInCall,
+      resetCallEntryGate,
     ]
   );
 
@@ -991,6 +1155,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const skip = useCallback(() => {
     peerConnection.closePeer();
+    void sfuConnection.cleanup();
     actionsRef.current.setRemoteStream(null);
     actionsRef.current.clearChatMessages();
     actionsRef.current.setRemoteMuted(false);
@@ -1001,7 +1166,7 @@ export function useVideoChat(): UseVideoChatReturn {
     setTimeout(() => {
       void refreshUserProgress();
     }, 400);
-  }, [peerConnection, socketSignaling, refreshUserProgress]);
+  }, [peerConnection, sfuConnection, socketSignaling, refreshUserProgress]);
 
   const endCall = useCallback(() => {
     monitoring.stopMonitoring();
@@ -1164,6 +1329,10 @@ export function useVideoChat(): UseVideoChatReturn {
   }, []);
 
   const toggleScreenShare = async () => {
+    if (mediaProviderRef.current === "cloudflare_sfu") {
+      toast.error(t("call.screenShareUnsupportedSfu"));
+      return;
+    }
     if (isSharingScreen) {
       removeScreenTrackEndedListener();
       screenShare.stopScreenShare();

@@ -108,6 +108,7 @@ export default async function RootLayout({
             <Analytics />
             <SpeedInsights />
             <OpenPanelComponent
+              disabled={true}
               apiUrl="/api/op"
               scriptUrl="/api/op/op1.js"
               clientId={publicEnv.OPENPANEL_CLIENT_ID}

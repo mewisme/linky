@@ -284,7 +284,7 @@ class CallTabCoordinator {
     return this.getState().isCallOwner;
   }
 
-  claimOwnership(roomId: string | null = null): boolean {
+  claimOwnership(roomId: string | null = null, callStartedAt?: number): boolean {
     if (typeof window === "undefined" || typeof localStorage === "undefined") {
       return false;
     }
@@ -305,7 +305,7 @@ class CallTabCoordinator {
     if (roomId) {
       localStorage.setItem(keys.activeRoom, roomId);
     }
-    localStorage.setItem(keys.callStartedAt, Date.now().toString());
+    localStorage.setItem(keys.callStartedAt, String(callStartedAt ?? Date.now()));
 
     this.broadcastMessage({
       type: "CLAIM_OWNERSHIP",

@@ -1,6 +1,7 @@
 import type { ChatMessageSnapshot } from "@/domains/video-chat/types/chat-message.types.js";
 import type { Namespace } from "socket.io";
 import type { VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
+import { cleanupRoomBestEffort } from "@/domains/video-chat/service/realtime-sfu.service.js";
 import { createLogger } from "@/utils/logger.js";
 
 export class RoomService {
@@ -91,6 +92,10 @@ export class RoomService {
     this.userToRoom.delete(room.user1);
     this.userToRoom.delete(room.user2);
     this.rooms.delete(roomId);
+
+    if (room.realtime) {
+      void cleanupRoomBestEffort(room);
+    }
 
     this.logger.info(
       "Room deleted: %s age=%ds active=%d",

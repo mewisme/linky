@@ -121,9 +121,11 @@
     "connectionNotReadyToast": "Connection not ready. Please wait...",
     "activeInOtherTab": "Call is active in another tab",
     "connectedToast": "You are now connected with your peer.",
+    "connectingToPeer": "Connecting...",
     "youEndedCall": "You ended the call.",
     "failedToStart": "Failed to start video chat",
     "screenShareFailed": "Failed to start screen sharing. Please try again.",
+    "screenShareUnsupportedSfu": "Screen sharing is not yet supported on the SFU connection.",
     "pictureInPictureFailed": "Failed to enter Picture in Picture. Please try again.",
     "pictureInPictureNotSupported": "Picture in Picture is not supported on this browser or device.",
     "someoneFallback": "Someone",
@@ -167,30 +169,18 @@
       },
       "streamQuality": {
         "title": "Video Quality",
-        "description": "Choose how your video is sent. Auto adapts to your network; pick a preset to lock the bitrate.",
+        "description": "Choose how your video is sent. SD uses less data; HD is sharper.",
         "saving": "Saving…",
         "updated": "Video quality updated",
         "updateFailed": "Failed to update video quality",
         "options": {
-          "auto": {
-            "label": "Auto",
-            "description": "Adapts to your network. Recommended."
+          "sd": {
+            "label": "SD",
+            "description": "360p, lower data usage. Recommended."
           },
-          "360p": {
-            "label": "360p",
-            "description": "Low data"
-          },
-          "480p": {
-            "label": "480p",
-            "description": "Balanced"
-          },
-          "720p": {
-            "label": "720p",
-            "description": "Sharper, recommended"
-          },
-          "1080p": {
-            "label": "1080p",
-            "description": "Highest quality"
+          "hd": {
+            "label": "HD",
+            "description": "720p, sharper video"
           }
         }
       }

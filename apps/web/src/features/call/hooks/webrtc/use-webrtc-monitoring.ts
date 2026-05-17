@@ -44,7 +44,7 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
       isMobile: boolean,
       callbacks: MonitoringCallbacks,
       options?: VideoHealthTrackerOptions,
-      streamQuality: StreamVideoQuality = "auto"
+      streamQuality: StreamVideoQuality = "sd"
     ): Promise<void> => {
       stopMonitoring();
 

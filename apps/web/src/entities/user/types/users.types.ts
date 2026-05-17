@@ -134,7 +134,7 @@ export namespace UsersAPI {
       collapsible?: "offcanvas" | "icon";
     }
 
-    export type StreamVideoQuality = "auto" | "360p" | "480p" | "720p" | "1080p";
+    export type StreamVideoQuality = "sd" | "hd";
 
     export interface Call {
       default_mute_mic?: boolean;

@@ -4,11 +4,15 @@ const nodeEnvSchema = z.enum(["development", "production", "test"]).default("dev
 
 const requiredSecret = z.string().min(1);
 
+const videoProviderSchema = z.enum(["p2p", "cloudflare_sfu"]).default("p2p");
+
 const TEST_ENV_DEFAULTS: Record<string, string> = {
   CLERK_SECRET_KEY: "test-clerk-secret-key",
   CLERK_WEBHOOK_SECRET: "test-clerk-webhook-secret",
   CLOUDFLARE_TURN_API_TOKEN: "test-cloudflare-turn-token",
   CLOUDFLARE_TURN_KEY_ID: "test-cloudflare-turn-key-id",
+  CLOUDFLARE_REALTIME_APP_ID: "test-cloudflare-realtime-app-id",
+  CLOUDFLARE_REALTIME_APP_SECRET: "test-cloudflare-realtime-app-secret",
   S3_BUCKET: "test-bucket",
   S3_REGION: "us-east-1",
   S3_ENDPOINT: "https://s3.example.com",
@@ -31,6 +35,11 @@ export const apiEnvSchema = z
     CORS_ORIGIN: z.string().optional(),
     CLOUDFLARE_TURN_API_TOKEN: requiredSecret,
     CLOUDFLARE_TURN_KEY_ID: requiredSecret,
+    VIDEO_PROVIDER: videoProviderSchema,
+    CLOUDFLARE_REALTIME_APP_ID: z.string().optional(),
+    CLOUDFLARE_REALTIME_APP_SECRET: z.string().optional(),
+    CLOUDFLARE_REALTIME_BASE_URL: z.string().optional(),
+    CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
     CLERK_SECRET_KEY: requiredSecret,
     CLERK_WEBHOOK_SECRET: requiredSecret,
     S3_BUCKET: requiredSecret,
@@ -74,7 +83,25 @@ export const apiEnvSchema = z
     VAPID_PUBLIC_KEY: requiredSecret,
     VAPID_PRIVATE_KEY: requiredSecret,
   })
-  .strict();
+  .strict()
+  .superRefine((data, ctx) => {
+    if (data.VIDEO_PROVIDER === "cloudflare_sfu") {
+      if (!data.CLOUDFLARE_REALTIME_APP_ID || data.CLOUDFLARE_REALTIME_APP_ID.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["CLOUDFLARE_REALTIME_APP_ID"],
+          message: "CLOUDFLARE_REALTIME_APP_ID is required when VIDEO_PROVIDER=cloudflare_sfu",
+        });
+      }
+      if (!data.CLOUDFLARE_REALTIME_APP_SECRET || data.CLOUDFLARE_REALTIME_APP_SECRET.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["CLOUDFLARE_REALTIME_APP_SECRET"],
+          message: "CLOUDFLARE_REALTIME_APP_SECRET is required when VIDEO_PROVIDER=cloudflare_sfu",
+        });
+      }
+    }
+  });
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;
 
@@ -85,6 +112,11 @@ function pickApiEnv(source: NodeJS.ProcessEnv): Record<string, unknown> {
     CORS_ORIGIN: source.CORS_ORIGIN,
     CLOUDFLARE_TURN_API_TOKEN: source.CLOUDFLARE_TURN_API_TOKEN,
     CLOUDFLARE_TURN_KEY_ID: source.CLOUDFLARE_TURN_KEY_ID,
+    VIDEO_PROVIDER: source.VIDEO_PROVIDER,
+    CLOUDFLARE_REALTIME_APP_ID: source.CLOUDFLARE_REALTIME_APP_ID,
+    CLOUDFLARE_REALTIME_APP_SECRET: source.CLOUDFLARE_REALTIME_APP_SECRET,
+    CLOUDFLARE_REALTIME_BASE_URL: source.CLOUDFLARE_REALTIME_BASE_URL,
+    CLOUDFLARE_ACCOUNT_ID: source.CLOUDFLARE_ACCOUNT_ID,
     CLERK_SECRET_KEY: source.CLERK_SECRET_KEY,
     CLERK_WEBHOOK_SECRET: source.CLERK_WEBHOOK_SECRET,
     S3_BUCKET: source.S3_BUCKET,

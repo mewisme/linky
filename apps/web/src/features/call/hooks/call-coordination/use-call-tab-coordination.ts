@@ -52,8 +52,8 @@ export function useCallTabCoordination(options: UseCallTabCoordinationOptions = 
     previousOwnershipRef.current = isOwner;
   }, [state.isCallOwner, state.tabId, onOwnershipLost, onOwnershipGained, onSwitchApproved]);
 
-  const claimOwnership = useCallback((roomId: string | null = null) => {
-    return callTabCoordinator.claimOwnership(roomId);
+  const claimOwnership = useCallback((roomId: string | null = null, callStartedAt?: number) => {
+    return callTabCoordinator.claimOwnership(roomId, callStartedAt);
   }, []);
 
   const releaseOwnership = useCallback(() => {

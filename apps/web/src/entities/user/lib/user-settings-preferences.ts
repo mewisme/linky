@@ -17,15 +17,24 @@ import { shaderTypes } from "@ws/ui/components/mew-ui/shader";
 import type { UiLocale } from "@ws/shared-types";
 import type { SidebarCollapsible, SidebarVariant } from "@/shared/model/sidebar-store";
 
-export type StreamVideoQuality = "auto" | "360p" | "480p" | "720p" | "1080p";
+export type StreamVideoQuality = "sd" | "hd";
 
 export const STREAM_VIDEO_QUALITY_VALUES: readonly StreamVideoQuality[] = [
-  "auto",
-  "360p",
-  "480p",
-  "720p",
-  "1080p",
+  "sd",
+  "hd",
 ] as const;
+
+const LEGACY_HD_QUALITIES = new Set(["720p", "1080p"]);
+
+export function normalizeStreamVideoQuality(value: unknown): StreamVideoQuality {
+  if (value === "sd" || value === "hd") {
+    return value;
+  }
+  if (typeof value === "string" && LEGACY_HD_QUALITIES.has(value)) {
+    return "hd";
+  }
+  return "sd";
+}
 
 export type UserCallPreferences = {
   default_mute_mic: boolean;
@@ -53,7 +62,7 @@ export type UserSidebarPreferences = {
 const defaultCallPreferences: UserCallPreferences = {
   default_mute_mic: false,
   default_disable_camera: false,
-  quality: "auto",
+  quality: "sd",
 };
 
 const defaultNotificationPreferences: UserNotificationPreferences = {
@@ -135,9 +144,7 @@ export function normalizeUserCallPreferences(value: unknown): UserCallPreference
   return {
     default_mute_mic: candidate.default_mute_mic === true,
     default_disable_camera: candidate.default_disable_camera === true,
-    quality: isStreamVideoQuality(candidate.quality)
-      ? candidate.quality
-      : defaultCallPreferences.quality,
+    quality: normalizeStreamVideoQuality(candidate.quality),
   };
 }
 

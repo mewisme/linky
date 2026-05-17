@@ -3,7 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useRef, useCallback, useEffect, useMemo, type RefObject } from "react";
 import { publishPresence } from "@/lib/realtime/presence";
-import { type SignalData } from "@/lib/realtime/socket";
+import { type SignalData, type RealtimePeerTracksPayload, type VideoMediaProvider } from "@/lib/realtime/socket";
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/features/chat/types/chat-message.types";
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";
 import type { Socket } from "socket.io-client";
@@ -14,8 +14,9 @@ import { useSocket } from "./use-socket";
 
 export interface SocketCallbacks {
   onJoinedQueue: (data: UserFacingSocketPayload & { queueSize: number }) => void;
-  onMatched: (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => void;
+  onMatched: (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => void;
   onSignal: (data: SignalData) => void;
+  onRealtimePeerTracks: (data: RealtimePeerTracksPayload) => void;
   onPeerLeft: (data: UserFacingSocketPayload & { queueSize?: number }) => void;
   onPeerSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => void;
   onSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => void;
@@ -104,7 +105,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onJoinedQueue(data);
     });
 
-    register("matched", (data: { roomId: string; peerId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null }) => {
+    register("matched", (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onMatched(data);
@@ -114,6 +115,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onSignal(data);
+    });
+
+    register("realtime:peer-tracks", (data: RealtimePeerTracksPayload) => {
+      publishPresence('in_call');
+      socketHealthMonitor.markEventReceived();
+      callbacks.onRealtimePeerTracks(data);
     });
 
     register("peer-left", (data: UserFacingSocketPayload) => {

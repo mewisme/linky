@@ -62,7 +62,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
             </motion.div>
           </MotionEffect>
 
-          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.15}>
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.05}>
             <div className="relative z-10 pointer-events-none">
               <h1 className="mx-auto pointer-events-none">
                 <SplittingText
@@ -87,7 +87,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
             </div>
           </MotionEffect>
 
-          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.3}>
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.15}>
             <p className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-xl text-muted-foreground">
               {t("hero.subtitle")}
             </p>
@@ -96,7 +96,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
 
         {/* Content */}
         <div className="flex flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 md:px-8">
-          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.45}>
+          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.25}>
             <div className="w-full flex justify-center">
               <ShaderButton nativeButton={false} render={<Link href={startChatHref} prefetch data-testid="start-chat-button" />}>
                 {isSignedIn && isLoaded ? t("hero.ctaSignedIn") : t("hero.ctaSignedOut")}
@@ -109,7 +109,7 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
               const Icon = ICONS[index];
               if (!Icon) return null;
               return (
-                <MotionEffect key={item.title} slide={{ direction: "down" }} fade zoom delay={0.75}>
+                <MotionEffect key={item.title} slide={{ direction: "down" }} fade zoom delay={0.35}>
                   <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
                     <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
                       <Icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
@@ -125,10 +125,10 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
           </div>
 
           <div className="flex flex-col items-center gap-3 pt-2 sm:gap-4 sm:pt-4">
-            <MotionEffect slide={{ direction: "down" }} fade zoom delay={0.85}>
+            <MotionEffect slide={{ direction: "down" }} fade zoom delay={0.45}>
               <SocialProof />
             </MotionEffect>
-            <MotionEffect slide={{ direction: "down" }} fade zoom delay={0.9}>
+            <MotionEffect slide={{ direction: "down" }} fade zoom delay={0.55}>
               <p className="text-xs text-muted-foreground sm:text-sm">
                 {t.rich("hero.joinLine", {
                   strong: (chunks) => (

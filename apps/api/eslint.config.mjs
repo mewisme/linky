@@ -12,4 +12,7 @@ export default [
       "no-control-regex": "off",
     },
   },
+  {
+    ignores: ["dist/**", "scripts/**", "src-go/**"],
+  },
 ];

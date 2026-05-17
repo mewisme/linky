@@ -1,5 +1,5 @@
 import type { ChatMessageSnapshot } from "@/domains/video-chat/index.js";
-import type { Json } from "@/types/database/supabase.types.js";
+import type { Json } from "@ws/database-types";
 import type { Namespace } from "socket.io";
 
 export interface CollectReportContextParams {

@@ -1,4 +1,4 @@
-import { Database } from "@/types/database/supabase.types.js";
+import { Database } from "@ws/database-types";
 import { config } from "@/config/index.js";
 import { createClient } from "@supabase/supabase-js";
 

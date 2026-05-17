@@ -1,4 +1,4 @@
-import type { Database } from "@/types/database/supabase.types.js";
+import type { Database } from "@ws/database-types";
 import { buildPostgrestOrIlikeFilters } from "@/lib/postgrest/search-filter.js";
 import { createLogger } from "@/utils/logger.js";
 import { supabase } from "@/infra/supabase/client.js";

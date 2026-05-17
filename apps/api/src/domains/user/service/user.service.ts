@@ -1,5 +1,5 @@
 import { REDIS_CACHE_KEYS } from "@/infra/redis/cache/keys.js";
-import type { Tables } from "@/types/database/supabase.types.js";
+import type { Tables } from "@ws/database-types";
 import { invalidate } from "@/infra/redis/cache/index.js";
 import { supabase } from "@/infra/supabase/client.js";
 

@@ -6,14 +6,14 @@ import {
 } from "../../../domains/reports/service/reports.service.js";
 
 const mockCreateReport = vi.fn();
-const mockGetReports = vi.fn();
+const mockGetAdminReports = vi.fn();
 const mockUpdateReport = vi.fn();
 const mockGetOrSet = vi.fn();
 const mockInvalidateByPrefix = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../../../infra/supabase/repositories/reports.js", () => ({
   createReport: (...args: unknown[]) => mockCreateReport(...args),
-  getReports: (...args: unknown[]) => mockGetReports(...args),
+  getAdminReports: (...args: unknown[]) => mockGetAdminReports(...args),
   updateReport: (...args: unknown[]) => mockUpdateReport(...args),
 }));
 
@@ -50,9 +50,9 @@ describe("createUserReport", () => {
 });
 
 describe("listReports", () => {
-  it("delegates to getReports via getOrSet with filters", async () => {
+  it("delegates to getAdminReports via getOrSet with filters", async () => {
     const list = { data: [{ id: "r1" }], count: 1 };
-    mockGetReports.mockResolvedValue(list);
+    mockGetAdminReports.mockResolvedValue(list);
 
     const result = await listReports({
       limit: 10,
@@ -64,7 +64,7 @@ describe("listReports", () => {
 
     expect(result).toEqual(list);
     expect(mockGetOrSet).toHaveBeenCalledOnce();
-    expect(mockGetReports).toHaveBeenCalledWith({
+    expect(mockGetAdminReports).toHaveBeenCalledWith({
       limit: 10,
       offset: 0,
       status: "pending",

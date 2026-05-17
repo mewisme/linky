@@ -27,6 +27,7 @@
     "confirmAction": "Confirm",
     "selectCountry": "Select country",
     "selectDate": "Select date",
+    "unknownUser": "Unknown",
     "localeChangeGuard": {
       "title": "End call to change language",
       "description": "Changing language reloads the page. End the current call first, then your language will update.",

@@ -1,4 +1,4 @@
-import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
+import type { Database, TablesInsert, TablesUpdate } from "@ws/database-types";
 
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
@@ -6,6 +6,7 @@ import { supabase } from "@/infra/supabase/client.js";
 
 type ReportInsert = TablesInsert<"reports">;
 type ReportUpdate = TablesUpdate<"reports">;
+type AdminReportsUnifiedRow = Database["public"]["Views"]["admin_reports_unified"]["Row"];
 
 const logger = createLogger("infra:supabase:repositories:reports");
 
@@ -19,6 +20,11 @@ export interface GetReportsOptions {
 
 export interface GetReportsResult {
   data: ReportInsert[];
+  count: number;
+}
+
+export interface GetAdminReportsResult {
+  data: AdminReportsUnifiedRow[];
   count: number;
 }
 
@@ -59,6 +65,63 @@ export async function getReports(options: GetReportsOptions = {}): Promise<GetRe
   }
 
   return { data: data || [], count: count || 0 };
+}
+
+export async function getAdminReports(options: GetReportsOptions = {}): Promise<GetAdminReportsResult> {
+  const {
+    limit = 50,
+    offset = 0,
+    status,
+    reporterUserId,
+    reportedUserId,
+  } = options;
+
+  let query = supabase
+    .from("admin_reports_unified")
+    .select("*", { count: "exact" });
+
+  if (status) {
+    query = query.eq("status", status);
+  }
+
+  if (reporterUserId) {
+    query = query.eq("reporter_user_id", reporterUserId);
+  }
+
+  if (reportedUserId) {
+    query = query.eq("reported_user_id", reportedUserId);
+  }
+
+  query = query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    logger.error(toLoggableError(error), "Error fetching admin reports");
+    throw error;
+  }
+
+  return { data: (data || []) as AdminReportsUnifiedRow[], count: count || 0 };
+}
+
+export async function getAdminReportById(id: string): Promise<AdminReportsUnifiedRow | null> {
+  const { data, error } = await supabase
+    .from("admin_reports_unified")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+    logger.error(toLoggableError(error), "Error fetching admin report");
+    throw error;
+  }
+
+  return data as AdminReportsUnifiedRow;
 }
 
 export async function getReportById(id: string) {

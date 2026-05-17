@@ -5,7 +5,7 @@ import {
   unsetAdminConfig,
   type AdminConfigRow,
 } from "@/infra/supabase/repositories/admin-config.js";
-import type { Json } from "@/types/database/supabase.types.js";
+import type { Json } from "@ws/database-types";
 
 export type { AdminConfigRow };
 

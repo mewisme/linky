@@ -381,6 +381,17 @@ export namespace AdminAPI {
       reviewed_at: string | null;
       created_at: string;
       updated_at: string;
+      reporter_first_name: string | null;
+      reporter_last_name: string | null;
+      reporter_avatar_url: string | null;
+      reporter_email: string | null;
+      reported_first_name: string | null;
+      reported_last_name: string | null;
+      reported_avatar_url: string | null;
+      reported_email: string | null;
+      reviewed_by_first_name: string | null;
+      reviewed_by_last_name: string | null;
+      reviewed_by_avatar_url: string | null;
       context?: ReportContext | null;
       ai_summary?: AiSummary | null;
     }

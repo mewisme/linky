@@ -1,7 +1,7 @@
 import {
   createReport,
+  getAdminReports,
   getReportById,
-  getReports,
   getUserReports,
   updateReport,
 } from "@/infra/supabase/repositories/reports.js";
@@ -48,7 +48,7 @@ export async function listReports(params: {
     REDIS_CACHE_KEYS.admin("reports", hashFilters(filters)),
     REDIS_CACHE_TTL_SECONDS.ADMIN_LISTS,
     async () =>
-      await getReports({
+      await getAdminReports({
         limit: params.limit,
         offset: params.offset,
         status: params.status,

@@ -13,7 +13,7 @@ import type {
   ReportAiSummarySeverity,
   ReportAiSummaryStatus,
 } from "@/domains/reports/types/report-ai-summary.types.js";
-import { Json } from "@/types/supabase.js";
+import { Json } from "@ws/database-types";
 
 const logger = createLogger("api:reports:ai-summary:service");
 
@@ -95,7 +95,7 @@ export async function generateReportAiSummary(reportId: string, options?: { forc
 
   const dedupeHash = computeDedupeHash({
     reportId,
-    reportUpdatedAt: reportWithContext.updated_at,
+    reportUpdatedAt: reportWithContext.updated_at ?? new Date().toISOString(),
     contextCreatedAt: reportWithContext.context?.created_at ?? null,
   });
 
@@ -126,7 +126,7 @@ export async function generateReportAiSummary(reportId: string, options?: { forc
 
   try {
     const prompt = buildReportSummaryPrompt({
-      reportReason: reportWithContext.reason,
+      reportReason: reportWithContext.reason ?? "",
       contextJson: reportWithContext.context ?? null,
     });
 

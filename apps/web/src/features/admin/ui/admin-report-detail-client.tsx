@@ -8,6 +8,7 @@ import { useRouter } from '@/i18n/navigation'
 
 import type { AdminAPI } from '@/features/admin/types/admin.types'
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
+import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar'
 import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
 import { Label } from '@ws/ui/components/ui/label'
@@ -58,6 +59,36 @@ function reportStatusLabel(
     case 'dismissed': return t('reportDetail.statusDismissed')
     default: return status
   }
+}
+
+interface UserBlockProps {
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrl?: string | null;
+  email?: string | null;
+  userId?: string | null;
+  fallback: string;
+}
+
+function UserBlock({ firstName, lastName, avatarUrl, email, userId, fallback }: UserBlockProps) {
+  const name = `${firstName || ''} ${lastName || ''}`.trim() || fallback;
+  return (
+    <div className="flex items-center gap-3 mt-1 min-w-0">
+      <Avatar className="h-9 w-9 shrink-0">
+        <AvatarImage src={avatarUrl || ''} alt={name} />
+        <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="flex flex-col min-w-0">
+        <span className="font-medium text-sm truncate">{name}</span>
+        {email ? (
+          <span className="text-xs text-muted-foreground truncate">{email}</span>
+        ) : null}
+        {userId ? (
+          <span className="text-xs text-muted-foreground font-mono truncate">{userId}</span>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 interface Props {
@@ -223,11 +254,25 @@ export function AdminReportDetailClient({ report }: Props) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label className="text-muted-foreground">{t('reportDetail.reporterUserId')}</Label>
-                <div className="font-mono text-sm mt-1">{report.reporter_user_id}</div>
+                <UserBlock
+                  firstName={report.reporter_first_name}
+                  lastName={report.reporter_last_name}
+                  avatarUrl={report.reporter_avatar_url}
+                  email={report.reporter_email}
+                  userId={report.reporter_user_id}
+                  fallback={tc('unknownUser')}
+                />
               </div>
               <div>
                 <Label className="text-muted-foreground">{t('reportDetail.reportedUserId')}</Label>
-                <div className="font-mono text-sm mt-1">{report.reported_user_id}</div>
+                <UserBlock
+                  firstName={report.reported_first_name}
+                  lastName={report.reported_last_name}
+                  avatarUrl={report.reported_avatar_url}
+                  email={report.reported_email}
+                  userId={report.reported_user_id}
+                  fallback={tc('unknownUser')}
+                />
               </div>
               <div>
                 <Label className="text-muted-foreground">{t('reportDetail.createdAt')}</Label>
@@ -244,7 +289,13 @@ export function AdminReportDetailClient({ report }: Props) {
               {report.reviewed_by && (
                 <div>
                   <Label className="text-muted-foreground">{t('reportDetail.reviewedBy')}</Label>
-                  <div className="font-mono text-sm mt-1">{report.reviewed_by}</div>
+                  <UserBlock
+                    firstName={report.reviewed_by_first_name}
+                    lastName={report.reviewed_by_last_name}
+                    avatarUrl={report.reviewed_by_avatar_url}
+                    userId={report.reviewed_by}
+                    fallback={tc('unknownUser')}
+                  />
                 </div>
               )}
               {report.reviewed_at && (

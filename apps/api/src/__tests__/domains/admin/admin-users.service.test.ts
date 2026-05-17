@@ -8,7 +8,7 @@ import {
   updateAdminUser,
 } from "../../../domains/admin/service/admin-users.service.js";
 
-import type { Database } from "../../../types/database/supabase.types.js";
+import type { Database } from "@ws/database-types";
 
 const mockGetAdminUsersUnified = vi.fn();
 const mockGetUserById = vi.fn();

@@ -1620,6 +1620,32 @@ export type Database = {
       }
     }
     Views: {
+      admin_reports_unified: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          id: string | null
+          reason: string | null
+          reported_avatar_url: string | null
+          reported_email: string | null
+          reported_first_name: string | null
+          reported_last_name: string | null
+          reported_user_id: string | null
+          reporter_avatar_url: string | null
+          reporter_email: string | null
+          reporter_first_name: string | null
+          reporter_last_name: string | null
+          reporter_user_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_by_avatar_url: string | null
+          reviewed_by_first_name: string | null
+          reviewed_by_last_name: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
       admin_users_unified: {
         Row: {
           avatar_url: string | null

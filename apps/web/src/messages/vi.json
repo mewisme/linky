@@ -27,6 +27,7 @@
     "confirmAction": "Xác nhận",
     "selectCountry": "Chọn quốc gia",
     "selectDate": "Chọn ngày",
+    "unknownUser": "Không rõ",
     "localeChangeGuard": {
       "title": "Kết thúc cuộc gọi để đổi ngôn ngữ",
       "description": "Đổi ngôn ngữ sẽ tải lại trang. Hãy kết thúc cuộc gọi hiện tại trước, sau đó ngôn ngữ sẽ được cập nhật.",

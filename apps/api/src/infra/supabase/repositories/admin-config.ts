@@ -1,4 +1,4 @@
-import type { Json } from "@/types/database/supabase.types.js";
+import type { Json } from "@ws/database-types";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { supabase } from "@/infra/supabase/client.js";

@@ -1,4 +1,4 @@
-import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
+import type { TablesInsert, TablesUpdate } from "@ws/database-types";
 
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
@@ -62,7 +62,7 @@ export async function getReportContextByReportId(reportId: string): Promise<Repo
 
 export async function getReportWithContext(reportId: string) {
   const { data: report, error: reportError } = await supabase
-    .from("reports")
+    .from("admin_reports_unified")
     .select("*")
     .eq("id", reportId)
     .single();

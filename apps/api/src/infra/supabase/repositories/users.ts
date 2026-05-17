@@ -1,4 +1,4 @@
-import type { TablesInsert, TablesUpdate } from "@/types/database/supabase.types.js";
+import type { TablesInsert, TablesUpdate } from "@ws/database-types";
 
 import { buildPostgrestOrIlikeFilters } from "@/lib/postgrest/search-filter.js";
 import { createLogger } from "@/utils/logger.js";

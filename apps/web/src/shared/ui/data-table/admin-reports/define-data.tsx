@@ -3,6 +3,7 @@
 import type { AdminAPI } from '@/features/admin/types/admin.types'
 import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
 import { Checkbox } from '@ws/ui/components/ui/checkbox'
+import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar'
 import { IconCopy, IconEye, IconCheck, IconAlertCircle } from '@tabler/icons-react'
 import { ActionsButton, type ActionItem } from '@/shared/ui/common/actions-button'
 import { toast } from "@ws/ui/components/ui/sonner"
@@ -13,6 +14,32 @@ import {
 import { useMemo } from 'react'
 import { Badge } from '@ws/ui/components/ui/badge'
 import { useTranslations } from 'next-intl'
+
+interface UserCellProps {
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarUrl?: string | null;
+  userId?: string | null;
+  fallback: string;
+}
+
+function UserCell({ firstName, lastName, avatarUrl, userId, fallback }: UserCellProps) {
+  const name = `${firstName || ''} ${lastName || ''}`.trim() || fallback;
+  return (
+    <div className="flex items-center gap-3 min-w-0">
+      <Avatar className="h-9 w-9 shrink-0">
+        <AvatarImage src={avatarUrl || ''} alt={name} />
+        <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="flex flex-col min-w-0">
+        <span className="font-medium truncate">{name}</span>
+        {userId ? (
+          <span className="text-xs text-muted-foreground font-mono truncate">{userId}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export function getIconForStatus(status: AdminAPI.Reports.ReportStatus) {
   switch (status) {
@@ -96,12 +123,28 @@ export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<Admi
     {
       accessorKey: 'reporter_user_id',
       header: t('adminReports.reporterUser'),
-      cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('reporter_user_id')}</div>,
+      cell: ({ row }) => (
+        <UserCell
+          firstName={row.original.reporter_first_name}
+          lastName={row.original.reporter_last_name}
+          avatarUrl={row.original.reporter_avatar_url}
+          userId={row.original.reporter_user_id}
+          fallback={t('common.unknownUser')}
+        />
+      ),
     },
     {
       accessorKey: 'reported_user_id',
       header: t('adminReports.reportedUser'),
-      cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('reported_user_id')}</div>,
+      cell: ({ row }) => (
+        <UserCell
+          firstName={row.original.reported_first_name}
+          lastName={row.original.reported_last_name}
+          avatarUrl={row.original.reported_avatar_url}
+          userId={row.original.reported_user_id}
+          fallback={t('common.unknownUser')}
+        />
+      ),
     },
     {
       accessorKey: 'reason',
@@ -175,10 +218,21 @@ export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<Admi
       header: t('adminReports.reviewedBy'),
       cell: ({ row }) => {
         const reviewedBy = row.original.reviewed_by
+        if (!reviewedBy) {
+          return (
+            <div className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground/50">{t('common.emDash')}</span>
+            </div>
+          )
+        }
         return (
-          <div className="text-sm text-muted-foreground">
-            {reviewedBy ? <span className="font-mono">{reviewedBy}</span> : <span className="text-muted-foreground/50">{t('common.emDash')}</span>}
-          </div>
+          <UserCell
+            firstName={row.original.reviewed_by_first_name}
+            lastName={row.original.reviewed_by_last_name}
+            avatarUrl={row.original.reviewed_by_avatar_url}
+            userId={reviewedBy}
+            fallback={t('common.unknownUser')}
+          />
         )
       },
     },

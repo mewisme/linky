@@ -10,7 +10,7 @@ import {
   setConfig,
   unsetConfig,
 } from "@/domains/admin/service/admin-config.service.js";
-import type { Json } from "@/types/database/supabase.types.js";
+import type { Json } from "@ws/database-types";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:admin:config:route");

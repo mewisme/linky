@@ -81,6 +81,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.103.3
         version: 2.103.3
+      '@ws/database-types':
+        specifier: workspace:*
+        version: link:../../packages/database-types
       '@ws/logger':
         specifier: workspace:*
         version: link:../../packages/logger

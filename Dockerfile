@@ -2,7 +2,7 @@
 
 ARG TURBO_VERSION=2.9.8
 
-FROM node:24-bookworm-slim AS base
+FROM node:26-bookworm-slim AS base
 RUN apt-get update && apt-get install -y curl
 
 ENV PNPM_HOME="/pnpm"

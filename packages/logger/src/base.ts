@@ -50,28 +50,13 @@ export const createBaseLogger = (sentry?: SentryLike) => {
         if (formattedMessage) {
           switch (levelLabel) {
             case "trace":
-              break;
             case "debug":
-              break;
             case "info":
-              break;
             case "warn":
               break;
             case "error":
-              {
-                const err = extractErrorFromArgs(args);
-                if (err) {
-                  sentry.captureException(err, { level: "error" });
-                }
-              }
-              break;
             case "fatal":
-              {
-                const err = extractErrorFromArgs(args);
-                if (err) {
-                  sentry.captureException(err, { level: "fatal" });
-                }
-              }
+              sentry.captureException(extractErrorFromArgs(args) ?? new Error("Unknown error"), { level: levelLabel });
               break;
           }
         }

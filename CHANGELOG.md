@@ -2,10 +2,12 @@
 
 🔨 Other Changes
 
-- Add admin reports view and enhance report details ([68ffdd9](../../commit/68ffdd9d))
-- Update zod dependency to version 4.3.6 and add @hookform/resolvers to web package ([dfacdb7](../../commit/dfacdb74))
-- Enhance OpenPanel configuration and disable logic ([6f68d69](../../commit/6f68d694))
-- Update package versions to 1.9.1 and refresh version lock ([f448730](../../commit/f448730e))
+- Optimize compression middleware configuration ([dbe43e9](../../commit/dbe43e92))
+- Update package dependencies and versions in pnpm-lock.yaml and package.json ([840a568](../../commit/840a5684))
+- Update configuration and dependencies across multiple packages ([4ee03df](../../commit/4ee03df8))
+- Update pnpm to latest version and adjust zod dependency specifications ([ee62570](../../commit/ee625708))
+- Integrate TooltipProvider and enhance UserCell with tooltips ([c54f431](../../commit/c54f4315))
+- Update package versions to 1.10.0 and refresh version lock ([2e8cf9a](../../commit/2e8cf9a2))
 
 
-📋 Full Changelog: [f448730...68ffdd9](../../compare/f448730e...68ffdd9d)
+📋 Full Changelog: [2e8cf9a...dbe43e9](../../compare/2e8cf9a2...dbe43e92)

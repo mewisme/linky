@@ -1,4 +1,4 @@
-import { Browser, BrowserContext, Page } from '@playwright/test';
+import { Browser, BrowserContext, Page } from 'linky/playwright-test';
 import { TestUser } from './users.fixtures';
 import { createAuthenticatedContext } from './context.fixtures';
 import { VideoChatPage } from '../page-objects/video-chat/pages/video-chat.page';

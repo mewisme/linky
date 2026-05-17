@@ -10,12 +10,12 @@ import embeddingsRouter from "./http/embeddings.route.js";
 import broadcastsRouter from "./http/broadcasts.route.js";
 import { createAdminReportsRouter } from "./http/reports.route.js";
 import configRouter from "./http/config.route.js";
-import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
+import { rateLimitMiddlewareFailClosed } from "@/middleware/rate-limit.js";
 
 export function createAdminRouter(deps: { reportsRouter: ExpressRouter }): ExpressRouter {
   const router: ExpressRouter = Router();
 
-  router.use(rateLimitMiddleware);
+  router.use(rateLimitMiddlewareFailClosed);
 
   router.use("/config", configRouter);
   router.use("/users", usersRouter);

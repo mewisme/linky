@@ -69,16 +69,23 @@ async function postJson(
   return { status: response.status, body: await response.text() };
 }
 
+export type PostEnvelopeResult =
+  | { ok: true; attempts: number }
+  | { ok: false; dropped: boolean; attempts: number; lastStatus?: number; errorMessage?: string };
+
 export async function postEnvelopeToInternalApi(
   env: InternalWorkerRuntimeEnv,
   envelope: unknown,
   rawRedisPayload: string,
   logger: Logger,
-): Promise<{ ok: true } | { ok: false; dropped: boolean }> {
+): Promise<PostEnvelopeResult> {
   const body = JSON.stringify(envelope);
   const idempotencyKey = sha256Hex(rawRedisPayload);
   const requestId = randomUUID();
   const headers = buildInternalWorkerHeaders({ idempotencyKey, requestId });
+
+  let lastStatus: number | undefined;
+  let lastErrorMessage: string | undefined;
 
   for (let attempt = 0; attempt <= env.internalApiMaxRetries; attempt++) {
     const controller = new AbortController();
@@ -88,20 +95,28 @@ export async function postEnvelopeToInternalApi(
       clearTimeout(timer);
 
       if (response.status === 204 || response.status === 200) {
-        return { ok: true };
+        return { ok: true, attempts: attempt + 1 };
       }
 
       const text = response.body;
       const parsedErr = parseInternalWorkerErrorBody(text);
+      lastStatus = response.status;
+      lastErrorMessage = parsedErr ? `${parsedErr.error}: ${parsedErr.message}` : text;
 
       if (response.status === 400 || response.status === 401 || response.status === 409) {
         logger.error(
           "internal API rejected job status=%d requestId=%s body=%s",
           response.status,
           requestId,
-          parsedErr ? `${parsedErr.error}: ${parsedErr.message}` : text,
+          lastErrorMessage,
         );
-        return { ok: false, dropped: true };
+        return {
+          ok: false,
+          dropped: true,
+          attempts: attempt + 1,
+          lastStatus: response.status,
+          errorMessage: lastErrorMessage,
+        };
       }
 
       logger.warn(
@@ -117,11 +132,18 @@ export async function postEnvelopeToInternalApi(
           response.status,
           requestId,
         );
-        return { ok: false, dropped: false };
+        return {
+          ok: false,
+          dropped: false,
+          attempts: attempt + 1,
+          lastStatus: response.status,
+          errorMessage: lastErrorMessage,
+        };
       }
     } catch (error: unknown) {
       clearTimeout(timer);
       const err = error instanceof Error ? error : new Error(String(error));
+      lastErrorMessage = err.message;
       logger.warn(
         err,
         "internal API transport error attempt=%d requestId=%s",
@@ -130,7 +152,13 @@ export async function postEnvelopeToInternalApi(
       );
       if (attempt >= env.internalApiMaxRetries) {
         logger.error(err, "internal API transport gave up requestId=%s", requestId);
-        return { ok: false, dropped: false };
+        return {
+          ok: false,
+          dropped: false,
+          attempts: attempt + 1,
+          lastStatus,
+          errorMessage: lastErrorMessage,
+        };
       }
     }
 
@@ -138,5 +166,11 @@ export async function postEnvelopeToInternalApi(
     await sleep(delay);
   }
 
-  return { ok: false, dropped: false };
+  return {
+    ok: false,
+    dropped: false,
+    attempts: env.internalApiMaxRetries + 1,
+    lastStatus,
+    errorMessage: lastErrorMessage,
+  };
 }

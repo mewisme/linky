@@ -1,6 +1,6 @@
 import { IdentifierPage } from '../page-objects/auth/pages/identifier.page';
 import { OTPPage } from '../page-objects/auth/pages/otp.page';
-import { Page } from '@playwright/test';
+import { Page } from 'linky/playwright-test';
 import { PasswordPage } from '../page-objects/auth/pages/password.page';
 import { TestUser } from './users.fixtures';
 import { waitForClerkReady } from '../helpers/clerk-helpers';

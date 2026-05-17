@@ -1,7 +1,7 @@
 // spec: specs/video-call.plan.md
 // seed: playwright/tests/seed.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'linky/playwright-test';
 import { VideoChatPage } from '../../page-objects/video-chat/pages/video-chat.page';
 import { setupTwoUserCall, teardownTwoUserCall, establishCall } from '../../fixtures/call.fixtures';
 import { authenticateUser } from '../../fixtures/auth.fixtures';

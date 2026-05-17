@@ -9,15 +9,41 @@ import { withRedisTimeout } from "@/infra/redis/timeout-wrapper.js";
 
 const logger = createLogger("middleware:rate-limit");
 
-export function createRateLimitMiddleware(options?: {
+export interface RateLimitOptions {
   windowMs?: number;
   maxRequests?: number;
-}) {
+  failClosed?: boolean;
+}
+
+function sendServiceUnavailable(res: Response): void {
+  sendJsonError(
+    res,
+    503,
+    "Service Unavailable",
+    um(
+      "RATE_LIMIT_UNAVAILABLE",
+      "serviceUnavailable",
+      "Service unavailable",
+    ),
+  );
+}
+
+export function createRateLimitMiddleware(options?: RateLimitOptions) {
   const windowMs = options?.windowMs || config.rateLimitWindowMs;
   const maxRequests = options?.maxRequests || config.rateLimitMaxRequests;
+  const failClosed = options?.failClosed ?? false;
 
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!redisClient.isOpen) {
+      if (failClosed) {
+        logger.warn(
+          "Redis not available, failing closed for %s %s",
+          req.method,
+          req.originalUrl || req.url,
+        );
+        sendServiceUnavailable(res);
+        return;
+      }
       logger.warn("Redis not available, skipping rate limit");
       return next();
     }
@@ -55,9 +81,14 @@ export function createRateLimitMiddleware(options?: {
       next();
     } catch (error) {
       logger.error(toLoggableError(error), "Rate limit check failed");
+      if (failClosed) {
+        sendServiceUnavailable(res);
+        return;
+      }
       next();
     }
   };
 }
 
 export const rateLimitMiddleware = createRateLimitMiddleware();
+export const rateLimitMiddlewareFailClosed = createRateLimitMiddleware({ failClosed: true });

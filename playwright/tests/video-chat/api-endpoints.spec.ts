@@ -1,7 +1,7 @@
 // spec: specs/video-call.plan.md
 // seed: playwright/tests/seed.spec.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'linky/playwright-test';
 
 test.describe('API Endpoints', () => {
   test('Queue status returns correct format', async ({ request }) => {

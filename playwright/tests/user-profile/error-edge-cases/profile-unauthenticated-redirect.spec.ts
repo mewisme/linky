@@ -1,6 +1,6 @@
 // spec: specs/user-profile.plan.md
 // seed: playwright/tests/seed.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'linky/playwright-test';
 
 test.describe('Error & Edge Cases', () => {
   test('Profile page handles unauthenticated access', async ({ page }) => {

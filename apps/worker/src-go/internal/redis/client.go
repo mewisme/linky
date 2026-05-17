@@ -90,6 +90,93 @@ func (c *Client) BLPop(ctx context.Context, timeout time.Duration) (string, erro
 	return result[1], nil
 }
 
+func (c *Client) BLMove(ctx context.Context, source, destination, srcPos, destPos string, timeout time.Duration) (string, error) {
+	result, err := c.rdb.BLMove(ctx, source, destination, srcPos, destPos, timeout).Result()
+	if err == redis.Nil {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (c *Client) MoveToProcessing(ctx context.Context, workerID string, timeout time.Duration) (string, error) {
+	return c.BLMove(ctx, job.QueueKey, job.ProcessingListKey(workerID), "RIGHT", "LEFT", timeout)
+}
+
+func (c *Client) AckJob(ctx context.Context, workerID, raw string) error {
+	return c.rdb.LRem(ctx, job.ProcessingListKey(workerID), 1, raw).Err()
+}
+
+func (c *Client) PushToDLQ(ctx context.Context, entry job.DLQEntry) error {
+	encoded, err := entry.MarshalString()
+	if err != nil {
+		return fmt.Errorf("marshal dlq entry: %w", err)
+	}
+	return c.rdb.LPush(ctx, job.DLQKey, encoded).Err()
+}
+
+func (c *Client) RefreshHeartbeat(ctx context.Context, workerID string) error {
+	return c.rdb.SetEx(ctx, job.WorkerHeartbeatKey(workerID), "1", job.WorkerHeartbeatTTL).Err()
+}
+
+func (c *Client) ClearHeartbeat(ctx context.Context, workerID string) error {
+	return c.rdb.Del(ctx, job.WorkerHeartbeatKey(workerID)).Err()
+}
+
+func (c *Client) HeartbeatExists(ctx context.Context, workerID string) (bool, error) {
+	count, err := c.rdb.Exists(ctx, job.WorkerHeartbeatKey(workerID)).Result()
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (c *Client) RPopLPush(ctx context.Context, source, destination string) (string, error) {
+	result, err := c.rdb.RPopLPush(ctx, source, destination).Result()
+	if err == redis.Nil {
+		return "", nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (c *Client) Del(ctx context.Context, keys ...string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+	return c.rdb.Del(ctx, keys...).Err()
+}
+
+func (c *Client) ScanProcessingLists(ctx context.Context) ([]string, error) {
+	var (
+		cursor uint64
+		keys   []string
+	)
+	seen := make(map[string]struct{})
+	for {
+		batch, next, err := c.rdb.Scan(ctx, cursor, job.ProcessingListPrefix+"*", 50).Result()
+		if err != nil {
+			return nil, err
+		}
+		for _, k := range batch {
+			if _, ok := seen[k]; ok {
+				continue
+			}
+			seen[k] = struct{}{}
+			keys = append(keys, k)
+		}
+		if next == 0 {
+			break
+		}
+		cursor = next
+	}
+	return keys, nil
+}
+
 func (c *Client) Close() error {
 	return c.rdb.Close()
 }

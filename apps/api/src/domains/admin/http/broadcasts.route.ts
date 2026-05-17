@@ -146,7 +146,7 @@ router.post("/", async (req: Request, res: Response) => {
 
 router.post(
   "/ai-generate",
-  createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 3 }),
+  createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 3, failClosed: true }),
   async (req: Request, res: Response) => {
     try {
       const clerkUserId = req.auth?.sub;

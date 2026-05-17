@@ -16,3 +16,13 @@ export function um(
 export function umDetail(code: string, detail: string): BackendUserMessage {
   return um(code, "errorDetail", detail, { detail });
 }
+
+export function unexpectedServerUserMessage(
+  errorDetail: string,
+  nodeEnv: string,
+): BackendUserMessage {
+  if (nodeEnv === "production") {
+    return um("UNEXPECTED_SERVER", "internalServerError", "An unexpected error occurred");
+  }
+  return umDetail("UNEXPECTED_SERVER", errorDetail);
+}

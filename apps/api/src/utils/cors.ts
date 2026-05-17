@@ -5,7 +5,7 @@
  * - "url" -> returns single URL string
  * - "url1,url2" -> returns array of URLs
  * - "[url1, url2]" -> returns array of URLs (array-like format)
- * 
+ *
  * @param envValue - The CORS_ORIGIN environment variable value
  * @returns Parsed CORS origin value (string, array, or "*")
  */
@@ -41,5 +41,36 @@ export function parseCorsOrigin(envValue: string | undefined): string | string[]
   }
 
   return trimmed;
+}
+
+/**
+ * Production-safe wrapper around `parseCorsOrigin`.
+ *
+ * In production, refuse to start if `CORS_ORIGIN` is unset, an empty
+ * allowlist, or the wildcard `*`. The same parsed value is used for both
+ * Express CORS and Socket.IO CORS, so this is the single enforcement point.
+ *
+ * Throws an `Error` (caller is expected to fail fast at boot).
+ */
+export function parseCorsOriginStrict(
+  envValue: string | undefined,
+  nodeEnv: string,
+): string | string[] {
+  const origin = parseCorsOrigin(envValue);
+
+  if (nodeEnv !== "production") {
+    return origin;
+  }
+
+  const isWildcard = origin === "*";
+  const isEmptyArray = Array.isArray(origin) && origin.length === 0;
+
+  if (isWildcard || isEmptyArray) {
+    throw new Error(
+      "CORS_ORIGIN must be set to an explicit allowlist in production (wildcard '*' is not allowed)",
+    );
+  }
+
+  return origin;
 }
 

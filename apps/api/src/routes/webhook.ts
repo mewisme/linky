@@ -7,13 +7,13 @@ import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import type { ClerkWebhookEvent } from "@/types/webhook/webhook.types.js";
 import { processClerkWebhookDelivery } from "@/contexts/clerk-webhook-context.js";
-import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
+import { rateLimitMiddlewareFailClosed } from "@/middleware/rate-limit.js";
 import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("routes:webhook");
 
-router.post("/clerk", rateLimitMiddleware, async (req: Request, res: Response) => {
+router.post("/clerk", rateLimitMiddlewareFailClosed, async (req: Request, res: Response) => {
   try {
     const svixId = req.headers["svix-id"] as string;
     const svixTimestamp = req.headers["svix-timestamp"] as string;

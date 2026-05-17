@@ -11,7 +11,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"linky-api/src-go/internal/config"
 	"linky-api/src-go/internal/httpx"
 	"linky-api/src-go/internal/infra/redisx"
 	"linky-api/src-go/internal/infra/supax"
@@ -95,19 +94,10 @@ func statusOK(b bool) string {
 	return "error"
 }
 
-func RegisterRoot(e *echo.Echo, cfg *config.Config) {
+func RegisterRoot(e *echo.Echo) {
 	e.GET("/", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]interface{}{
-			"environment": cfg.NodeEnv,
-			"timestamp":   time.Now().UTC().Format(time.RFC3339Nano),
-			"status":      "running",
-		})
-	})
-
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"status":    "ok",
-			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
+			"status": "running",
 		})
 	})
 

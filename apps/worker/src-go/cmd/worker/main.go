@@ -5,8 +5,11 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"sync"
 	"sync/atomic"
 	"syscall"
+
+	"github.com/google/uuid"
 
 	"linky-worker/src-go/internal/api"
 	"linky-worker/src-go/internal/config"
@@ -21,7 +24,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := initLogger(cfg).With("scope", "worker")
+	workerID := uuid.New().String()
+	logger := initLogger(cfg).With("scope", "worker", "workerId", workerID)
 
 	logger.Info("worker starting")
 
@@ -61,7 +65,20 @@ func main() {
 		InternalAPIRetryBaseDelayMs: cfg.InternalAPIRetryBaseDelayMs,
 	}
 
-	runtime.RunJobLoop(ctx, rdb, apiCfg, logger, &stopping)
+	var bg sync.WaitGroup
+	bg.Add(2)
+	go func() {
+		defer bg.Done()
+		runtime.RunHeartbeat(ctx, rdb, workerID, logger, &stopping)
+	}()
+	go func() {
+		defer bg.Done()
+		runtime.RunReaper(ctx, rdb, workerID, logger, &stopping)
+	}()
+
+	runtime.RunJobLoop(ctx, rdb, apiCfg, workerID, logger, &stopping)
+
+	bg.Wait()
 
 	logger.Info("worker stopped")
 }

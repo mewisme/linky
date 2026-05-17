@@ -8,28 +8,16 @@ import { createAdminRouter } from "../domains/admin/index.js";
 import reportsAdminRouter from "@/domains/reports/http/admin-reports.route.js";
 import { clerkMiddleware } from "@/middleware/clerk.js";
 import { adminMiddleware } from "@/middleware/admin.js";
-import { config } from "@/config/index.js";
 import queueStatusRouter from "@/domains/video-chat/http/queue-status.route.js";
 import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 export function setupRoutes(app: Express): void {
   app.get("/", (_req: Request, res: Response) => {
-    res.json({
-      environment: config.nodeEnv,
-      timestamp: new Date().toISOString(),
-      status: "running",
-    });
+    res.json({ status: "running" });
   });
 
   app.use("/", healthRouter);
   app.use("/webhook", webhookRouter);
-
-  app.get("/health", (_req: Request, res: Response) => {
-    res.json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-    });
-  });
 
   app.get("/api", (_req: Request, res: Response) => {
     res.json({

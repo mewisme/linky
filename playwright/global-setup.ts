@@ -2,8 +2,7 @@ import 'dotenv/config';
 
 import * as fs from 'node:fs';
 
-import { chromium } from '@playwright/test';
-
+import { launchCloakBrowser } from './cloak-browser';
 import { waitForClerkReady } from './helpers/clerk-helpers';
 import { waitForRedirectToHome } from './helpers/wait-for-home';
 import { IdentifierPage } from './page-objects/auth/pages/identifier.page';
@@ -49,7 +48,7 @@ export default async function globalSetup(): Promise<void> {
     process.env.PLAYWRIGHT_IGNORE_HTTPS_ERRORS === 'true' ||
     process.env.PLAYWRIGHT_IGNORE_HTTPS_ERRORS === '1';
 
-  const browser = await chromium.launch();
+  const browser = await launchCloakBrowser();
 
   for (const user of targetUsers) {
     const context = await browser.newContext({ baseURL, ignoreHTTPSErrors });

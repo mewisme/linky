@@ -2,11 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-For dependency boundaries between apps and shared packages (workers, queues, what must stay in `apps/api`), see [.cursor/skills/project-architecture-operating-manual/SKILL.md](.cursor/skills/project-architecture-operating-manual/SKILL.md).
-
 ## Project Overview
 
-Linky is a real-time video chat platform. Turborepo monorepo with pnpm 10.33.0 (see root `package.json` `packageManager`) and Node.js 20+.
+Linky is a real-time video chat platform. Turborepo monorepo with pnpm 11.1+ (pinned via `packageManager` in root `package.json`) and Node.js 20+. `zod` is pinned to `4.3.6` via `pnpm.overrides` — don't bump it without a coordinated change.
 
 ## Common Commands
 
@@ -42,6 +40,7 @@ cd apps/api
 pnpm vitest run                            # All unit tests
 pnpm vitest run src/__tests__/cache        # Test directory
 pnpm vitest run src/__tests__/domains/user.test.ts  # Single file
+pnpm vitest run -t "should cache user"     # Filter by test name (regex)
 
 # Testing - E2E (Playwright, from root)
 pnpm test                 # All e2e tests
@@ -55,6 +54,13 @@ pnpm exec playwright test tests/user-profile.spec.ts
 
 # Run a specific test by title (regex)
 pnpm exec playwright test -g "should update avatar"
+
+# Single-package Turbo runs (handy when iterating on a shared package)
+pnpm exec turbo run check-types --filter=@ws/ui
+pnpm exec turbo run lint --filter=@ws/shared-types
+
+# Versioning: bumps versions and regenerates CHANGELOG.md
+pnpm upver
 ```
 
 ## Monorepo Structure
@@ -78,6 +84,8 @@ packages/
 ```
 
 **Queue contracts:** payload shapes and keys live in `@ws/shared-types` and `@ws/validation`. The API enqueues via `apps/api/src/jobs/` and Redis; the worker uses `@ws/sdk-internal` to dequeue and calls authenticated internal routes under `/internal/worker/v1` on `apps/api` to execute jobs (no direct imports from `@ws/api` in the worker runtime).
+
+**Reliable queue (at-least-once):** workers consume `linky:queue:jobs:v2` via `BLMOVE` into a per-worker processing list `linky:queue:jobs:processing:{workerId}`, then `LREM` (ack) on success. Each worker refreshes a `linky:worker:heartbeat:{workerId}` key (TTL 30s, refresh every 10s); a reaper goroutine/interval scans processing lists and `RPOPLPUSH`es items back to the main queue when the owning worker's heartbeat is missing. Terminal failures (4xx from internal API, retries exhausted, panics, unparseable payloads) are pushed to `linky:queue:jobs:dlq:v1` as JSON `JobDlqEntry`. Producers (`apps/api`) only see the main queue key — processing/DLQ/heartbeat keys are worker-internal.
 
 ## Backend Architecture (apps/api)
 
@@ -117,8 +125,6 @@ All route handlers return `{ error: "ErrorType", message: "description" }` on fa
 The worker calls API endpoints under `/internal/worker/v1`. The API exposes these routes on a separate, internal-only listener (Unix socket in Docker via `INTERNAL_API_SOCKET_PATH`, or `127.0.0.1:INTERNAL_API_PORT` for native dev) — they are not reachable on the public listener (port 7270). Set `INTERNAL_API_SOCKET_PATH` on both api and worker for Docker, or `INTERNAL_API_BASE_URL=http://127.0.0.1:7271` on the worker for native dev. No Bearer secret — segmentation is enforced at the transport layer.
 
 ## Frontend Architecture (apps/web)
-
-**Full contract:** [docs/FRONTEND_ARCHITECTURE_GUIDELINES.md](docs/FRONTEND_ARCHITECTURE_GUIDELINES.md) — layers, import rules, checklists, migration, and step-by-step guides for adding features/entities.
 
 Next.js 16 App Router with route groups:
 - `(app)/` - Authenticated pages
@@ -243,7 +249,7 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 - **Client UI:** Use `useTranslations('namespace')` from `next-intl` in client components and client hooks (e.g. hooks that call `toast`). For nested keys, use dot paths: `t('dataTable.importInterestTags.dialogTitle')`.
 - **Data tables:** Column definitions live in `shared/ui/data-table/**/define-data.tsx`. Export **`useXxxColumns(callbacks?)`** hooks that call `useTranslations` and return `useMemo`’d column defs; sibling `*-data-table.tsx` files call that hook (do not export a static `columns` factory for new work). Translate headers, action labels, `aria-label`s, and confirmation copy.
 - **API errors / realtime:** Prefer typed `BackendUserMessage` / `BackendI18nPayload` from `@ws/shared-types` on the server; the web app resolves copies via helpers such as `resolveBackendMessage` and HTTP `ApiError` parsing where those flows exist. Do not hardcode user-facing English in API bodies when a structured `userMessage` is available.
-- **Env:** For any new public env vars used by the frontend, follow [`.cursor/skills/frontend-env/SKILL.md`](.cursor/skills/frontend-env/SKILL.md).
+- **Env:** For any new public env vars used by the frontend, follow the [Frontend Environment Variables](#frontend-environment-variables) section above.
 
 ## Code Conventions
 
@@ -274,9 +280,12 @@ Backend: role is cached in Redis (5-min TTL) via `apps/api/src/infra/admin-cache
 
 ## Docker
 
-Root build context (`.`) for the API image (`Dockerfile`); the Go worker uses `apps/worker/Dockerfile.go` with context `./apps/worker`. See [docker-compose.yml](docker-compose.yml): services `api` (host port 7270), `worker` (container name `linky-worker`), `redis`, `ollama`. A separate Node worker Compose service remains commented out; production worker is Go. API container health: `node dist/healthcheck.js`. Local `.env` is loaded via Compose `env_file` where configured. Workers reach the API over a shared Unix socket at `INTERNAL_API_SOCKET_PATH=/var/run/linky/api.sock` (volume `backend-data` on api and worker).
+Both Dockerfiles live at the repo root with build context `.`:
+- [`Dockerfile`](Dockerfile) — API image (`mewthedev/linky:latest`); the `worker` service is commented out but uses the same image with `command: worker` for the Node worker path.
+- [`Dockerfile.go`](Dockerfile.go) — Go worker image (`mewthedev/linky-go:latest`), used by the active `worker` service in [docker-compose.yml](docker-compose.yml).
+
+Compose services: `api` (host port 7270), `worker` (Go, container `linky-worker`), `redis`, `ollama`. API container health: `node dist/healthcheck.js`. Local `.env` is loaded via Compose `env_file`. Workers reach the API over a shared Unix socket at `INTERNAL_API_SOCKET_PATH=/var/run/linky/api.sock` (volume `backend-data` mounted on both api and worker).
+
+Build images locally via `pnpm docker:build:api` / `pnpm docker:build:worker` (both use the root Dockerfiles).
 
 HTTP health: `GET /healthz` on the API.
-
-<!-- NEXT-AGENTS-MD-REF -->
-For Next.js documentation, see `.next-docs` directory (generated by `npx @next/codemod agents-md --output CLAUDE.md`). Do not embed the full index here; refer to that directory.

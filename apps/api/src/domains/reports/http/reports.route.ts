@@ -10,13 +10,13 @@ import type { CreateReportBody } from "@/domains/reports/types/report.types.js";
 import { createUserReport, listUserReports } from "@/domains/reports/service/reports.service.js";
 import { getCachedData, invalidateCacheKey } from "@/infra/redis/cache-utils.js";
 import { CACHE_KEYS, CACHE_TTL } from "@/infra/redis/cache-config.js";
-import { rateLimitMiddleware } from "@/middleware/rate-limit.js";
+import { rateLimitMiddlewareFailClosed } from "@/middleware/rate-limit.js";
 import { enqueueReportAiSummaryJob } from "@/jobs/worker-ai/report-ai-summary.job.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:reports:route");
 
-router.post("/", rateLimitMiddleware, async (req: Request, res: Response) => {
+router.post("/", rateLimitMiddlewareFailClosed, async (req: Request, res: Response) => {
   try {
     const clerkUserId = req.auth?.sub;
 

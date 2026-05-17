@@ -1,4 +1,4 @@
-import { Browser, BrowserContext } from '@playwright/test';
+import { Browser, BrowserContext } from 'linky/playwright-test';
 
 import { TestUser } from './users.fixtures';
 

@@ -26,7 +26,11 @@ export interface VideoChatRooms {
   isInRoom(socketId: string): boolean;
   getRoomCount(): number;
   getAllRooms(): VideoChatRoomRecord[];
-  createRoom(user1SocketId: string, user2SocketId: string): string;
+  createRoom(
+    user1SocketId: string,
+    user2SocketId: string,
+    options?: { user1ClerkId?: string; user2ClerkId?: string },
+  ): string;
   addChatSnapshot(roomId: string, message: ChatMessageSnapshot): void;
   getChatSnapshot(roomId: string): ChatMessageSnapshot[];
 }

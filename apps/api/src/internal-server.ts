@@ -9,9 +9,9 @@ import { INTERNAL_WORKER_V1_PREFIX } from "@ws/worker-api";
 import { config } from "@/config/index.js";
 import { createInternalWorkerRouter } from "@/routes/internal-worker.route.js";
 import { requestIdMiddleware } from "@/middleware/request-id.js";
-import { jsonBodySizeLimitMiddleware } from "@/middleware/json-body-size-limit.js";
-import { um, umDetail } from "@/lib/api-user-message.js";
+import { um, unexpectedServerUserMessage } from "@/lib/api-user-message.js";
 import { sendJsonError } from "@/lib/http-json-response.js";
+import { isPayloadTooLargeError, sendPayloadTooLargeError } from "@/lib/http-payload-too-large-error.js";
 import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 
@@ -21,7 +21,6 @@ export function createInternalApp(): express.Express {
   const app = express();
 
   app.use(requestIdMiddleware);
-  app.use(jsonBodySizeLimitMiddleware);
   app.use(express.json({ limit: config.jsonBodySizeLimit }));
 
   app.use(INTERNAL_WORKER_V1_PREFIX, createInternalWorkerRouter());
@@ -33,9 +32,18 @@ export function createInternalApp(): express.Express {
   setupExpressErrorHandler(app);
 
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    if (isPayloadTooLargeError(err)) {
+      sendPayloadTooLargeError(res);
+      return;
+    }
     const logErr = toLoggableError(err);
     logger.error(logErr, "Internal server error on internal listener");
-    sendJsonError(res, 500, "An unexpected error occurred", umDetail("UNEXPECTED_SERVER", logErr.message));
+    sendJsonError(
+      res,
+      500,
+      "An unexpected error occurred",
+      unexpectedServerUserMessage(logErr.message, config.nodeEnv),
+    );
   });
 
   return app;

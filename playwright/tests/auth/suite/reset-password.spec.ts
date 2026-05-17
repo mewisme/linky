@@ -1,6 +1,6 @@
 // spec: playwright/tests/auth/AUTH_TEST_PLAN.md — Suite 3: Password Reset
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from 'linky/playwright-test';
 
 import { NewPasswordPage } from '../../../page-objects/auth/pages/new-password.page';
 import { waitForClerkReady } from '../../../helpers/clerk-helpers';

@@ -18,6 +18,7 @@ import {
   trendingGiphy,
   type GiphyMediaItem,
 } from "@/features/chat/lib/giphy-client";
+import { isAllowedRemoteImageSrc } from "@/shared/config/remote-image-hosts";
 import { ButtonGroup } from "@ws/ui/components/ui/button-group";
 import { Loading } from "@/shared/ui/common/loading";
 import { useTranslations } from "next-intl";
@@ -96,24 +97,26 @@ function GiphyPickerContent({
           )}
 
           {!loading &&
-            results.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelect(item)}
-                className="overflow-hidden rounded-md border bg-muted"
-                data-slot="giphy-picker-item"
-              >
-                <Image
-                  src={item.previewUrl}
-                  alt="Giphy"
-                  width={120}
-                  height={120}
-                  className="h-full w-full object-cover"
-                  unoptimized
-                />
-              </button>
-            ))}
+            results.map((item) =>
+              isAllowedRemoteImageSrc(item.previewUrl) ? (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onSelect(item)}
+                  className="overflow-hidden rounded-md border bg-muted"
+                  data-slot="giphy-picker-item"
+                >
+                  <Image
+                    src={item.previewUrl}
+                    alt="Giphy"
+                    width={120}
+                    height={120}
+                    className="h-full w-full object-cover"
+                    unoptimized
+                  />
+                </button>
+              ) : null,
+            )}
         </div>
       </ScrollArea>
 

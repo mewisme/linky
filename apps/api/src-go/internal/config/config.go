@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -82,10 +83,16 @@ func Load() *Config {
 	}
 	loadDotenv()
 
+	nodeEnv := envStr("NODE_ENV", "development")
+	corsOrigin, err := parseCorsOriginStrict(os.Getenv("CORS_ORIGIN"), nodeEnv)
+	if err != nil {
+		panic(err)
+	}
+
 	c := &Config{
 		Port:                          envInt("PORT", 7270),
-		NodeEnv:                       envStr("NODE_ENV", "development"),
-		CorsOrigin:                    parseCorsOrigin(os.Getenv("CORS_ORIGIN")),
+		NodeEnv:                       nodeEnv,
+		CorsOrigin:                    corsOrigin,
 		CloudflareTurnAPIToken:        os.Getenv("CLOUDFLARE_TURN_API_TOKEN"),
 		CloudflareTurnKeyID:           os.Getenv("CLOUDFLARE_TURN_KEY_ID"),
 		ClerkSecretKey:                os.Getenv("CLERK_SECRET_KEY"),
@@ -185,6 +192,39 @@ func parseCorsOrigin(raw string) []string {
 		return []string{"http://localhost:3000"}
 	}
 	return out
+}
+
+// parseCorsOriginStrict mirrors the TS helper in apps/api/src/utils/cors.ts.
+//
+// In production, refuse to start when CORS_ORIGIN is unset, the wildcard "*",
+// or an empty allowlist. Outside production, fall back to parseCorsOrigin's
+// permissive default for local dev.
+func parseCorsOriginStrict(raw, nodeEnv string) ([]string, error) {
+	trimmed := strings.TrimSpace(raw)
+	isWildcard := trimmed == "*" || strings.EqualFold(trimmed, "wildcard")
+
+	if nodeEnv == "production" {
+		if trimmed == "" || isWildcard {
+			return nil, fmt.Errorf("CORS_ORIGIN must be set to an explicit allowlist in production (wildcard '*' is not allowed)")
+		}
+		parts := strings.Split(trimmed, ",")
+		out := make([]string, 0, len(parts))
+		for _, p := range parts {
+			p = strings.TrimSpace(p)
+			if p != "" {
+				out = append(out, p)
+			}
+		}
+		if len(out) == 0 {
+			return nil, fmt.Errorf("CORS_ORIGIN must be set to an explicit allowlist in production (wildcard '*' is not allowed)")
+		}
+		return out, nil
+	}
+
+	if isWildcard {
+		return []string{"*"}, nil
+	}
+	return parseCorsOrigin(raw), nil
 }
 
 func clampInt(v, lo, hi int) int {

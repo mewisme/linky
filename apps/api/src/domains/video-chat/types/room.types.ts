@@ -10,6 +10,8 @@ export interface VideoChatRoom {
 export interface VideoChatRoomRecord extends VideoChatRoom {
   id: string;
   createdAt: Date;
+  user1ClerkId?: string;
+  user2ClerkId?: string;
   user1DbId?: string;
   user2DbId?: string;
   user1Timezone?: string;

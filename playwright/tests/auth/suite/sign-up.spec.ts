@@ -1,6 +1,6 @@
 // spec: playwright/tests/auth/AUTH_TEST_PLAN.md — Suite 2: Sign-Up
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from 'linky/playwright-test';
 
 import { OTPPage } from '../../../page-objects/auth/pages/otp.page';
 import { SignUpPage } from '../../../page-objects/auth/pages/sign-up.page';

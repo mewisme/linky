@@ -9,13 +9,19 @@ export class RoomService {
   private readonly chatSnapshotLimit = 20;
   private readonly logger = createLogger("api:video-chat:rooms:service");
 
-  createRoom(user1SocketId: string, user2SocketId: string): string {
+  createRoom(
+    user1SocketId: string,
+    user2SocketId: string,
+    options?: { user1ClerkId?: string; user2ClerkId?: string },
+  ): string {
     const roomId = `room_${user1SocketId}_${user2SocketId}_${Date.now()}`;
 
     const room: VideoChatRoomRecord = {
       id: roomId,
       user1: user1SocketId,
       user2: user2SocketId,
+      user1ClerkId: options?.user1ClerkId,
+      user2ClerkId: options?.user2ClerkId,
       createdAt: new Date(),
       startedAt: new Date(),
       recentChatMessages: [],

@@ -1,6 +1,6 @@
 // spec: playwright/tests/auth/AUTH_TEST_PLAN.md — Suite 1: Sign-In
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from 'linky/playwright-test';
 
 import { IdentifierPage } from '../../../page-objects/auth/pages/identifier.page';
 import { OTPPage } from '../../../page-objects/auth/pages/otp.page';

@@ -3,6 +3,7 @@
 import type { ChatMessage } from "@/features/chat/types/chat-message.types";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { isAllowedRemoteImageSrc } from "@/shared/config/remote-image-hosts";
 import { ImageZoom } from "@ws/ui/components/kibo-ui/image-zoom";
 import { cn } from "@ws/ui/lib/utils";
 
@@ -24,6 +25,8 @@ export function ChatMessageBubble({
 
   const attachment = message.attachment;
   const attachmentUrl = attachment?.data || message.metadata?.url || "";
+  const remoteImageAllowed =
+    !attachmentUrl || isAllowedRemoteImageSrc(attachmentUrl);
 
   return (
     <div
@@ -34,7 +37,7 @@ export function ChatMessageBubble({
       )}
     >
       {message.type === "text" && message.message}
-      {message.type === "image" && attachmentUrl && (
+      {message.type === "image" && attachmentUrl && remoteImageAllowed && (
         <ImageZoom>
           <Image
             src={attachmentUrl}
@@ -46,7 +49,9 @@ export function ChatMessageBubble({
           />
         </ImageZoom>
       )}
-      {(message.type === "gif" || message.type === "sticker") && attachmentUrl && (
+      {(message.type === "gif" || message.type === "sticker") &&
+        attachmentUrl &&
+        remoteImageAllowed && (
         <ImageZoom>
           <Image
             src={attachmentUrl}

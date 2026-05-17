@@ -63,11 +63,14 @@ export function setupMatchmakingInterval(io: Namespace, matchmaking: VideoChatMa
           rooms.getRoomCount(),
         );
 
-        const roomId = rooms.createRoom(user1.socketId, user2.socketId);
-        const isUser1Offerer = user1.socketId < user2.socketId;
-
         const user1Socket = user1.socket as AuthenticatedSocket;
         const user2Socket = user2.socket as AuthenticatedSocket;
+
+        const roomId = rooms.createRoom(user1.socketId, user2.socketId, {
+          user1ClerkId: user1Socket.data.userId,
+          user2ClerkId: user2Socket.data.userId,
+        });
+        const isUser1Offerer = user1.socketId < user2.socketId;
 
         const clerkUserId1 = user1Socket.data.userId;
         const clerkUserId2 = user2Socket.data.userId;

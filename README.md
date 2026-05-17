@@ -30,7 +30,7 @@ Queue payload shapes live in `@ws/shared-types` and `@ws/validation`. The API en
 
 | Area | Technology |
 | --- | --- |
-| Monorepo | Turborepo, pnpm 10.33+ |
+| Monorepo | Turborepo, pnpm 11.1+ |
 | Frontend | Next.js 16, React 19, Tailwind CSS 4, next-intl (`en`, `vi`) |
 | Backend | Express.js, TypeScript |
 | Realtime | Socket.IO, MQTT, WebRTC (STUN/TURN) |
@@ -44,7 +44,7 @@ Queue payload shapes live in `@ws/shared-types` and `@ws/validation`. The API en
 ## Prerequisites
 
 - **Node.js** 20+ (see `engines` in root `package.json`)
-- **pnpm** 10.33+ (`corepack enable` or install globally; version pinned in `packageManager`)
+- **pnpm** 11.1+ (`corepack enable` or install globally; version pinned in `packageManager`)
 - **Go** 1.26+ (API and worker Go modules: `apps/api/go.mod`, `apps/worker/go.mod`)
 - **Docker** (optional — Redis, API, Go worker, Ollama via Compose)
 

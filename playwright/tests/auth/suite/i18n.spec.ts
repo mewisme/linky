@@ -1,6 +1,6 @@
 // spec: playwright/tests/auth/AUTH_TEST_PLAN.md — Suite 9: Internationalization Smoke Tests
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from 'linky/playwright-test';
 
 import { TEST_USERS } from '../../../fixtures/users.fixtures';
 import { waitForClerkReady } from '../../../helpers/clerk-helpers';

@@ -1,6 +1,6 @@
 // spec: playwright/tests/auth/AUTH_TEST_PLAN.md — Suite 4: Sign-In Breach Interstitial
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from 'linky/playwright-test';
 
 import { NewPasswordPage } from '../../../page-objects/auth/pages/new-password.page';
 import { OTPPage } from '../../../page-objects/auth/pages/otp.page';

@@ -93,7 +93,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 router.post(
   "/:id/ai-summary:generate",
-  createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 5 }),
+  createRateLimitMiddleware({ windowMs: 60_000, maxRequests: 5, failClosed: true }),
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params as { id: string };

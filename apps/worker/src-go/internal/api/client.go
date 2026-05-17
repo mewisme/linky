@@ -26,8 +26,11 @@ type EnvConfig struct {
 }
 
 type Result struct {
-	OK      bool
-	Dropped bool
+	OK           bool
+	Dropped      bool
+	Attempts     int
+	LastStatus   int
+	ErrorMessage string
 }
 
 const internalWorkerJobsPath = "/internal/worker/v1/jobs"
@@ -82,29 +85,33 @@ func PostEnvelope(ctx context.Context, cfg EnvConfig, envelope interface{}, rawR
 	body, err := json.Marshal(envelope)
 	if err != nil {
 		logger.Error("failed to marshal envelope", "error", err)
-		return Result{OK: false, Dropped: true}
+		return Result{OK: false, Dropped: true, Attempts: 0, ErrorMessage: err.Error()}
 	}
 
 	idempotencyKey := SHA256Hex(rawRedisPayload)
 	requestID := uuid.New().String()
 
+	var lastResult Result
 	for attempt := 0; attempt <= cfg.InternalAPIMaxRetries; attempt++ {
 		result := tryPost(ctx, url, body, cfg, idempotencyKey, requestID, attempt, logger)
+		result.Attempts = attempt + 1
 		if result.OK || result.Dropped {
 			return result
 		}
+		lastResult = result
 
 		if attempt < cfg.InternalAPIMaxRetries {
 			delay := time.Duration(cfg.InternalAPIRetryBaseDelayMs)*time.Millisecond * time.Duration(math.Pow(2, float64(attempt)))
 			select {
 			case <-ctx.Done():
-				return Result{OK: false, Dropped: false}
+				lastResult.ErrorMessage = ctx.Err().Error()
+				return lastResult
 			case <-time.After(delay):
 			}
 		}
 	}
 
-	return Result{OK: false, Dropped: false}
+	return lastResult
 }
 
 func tryPost(ctx context.Context, url string, body []byte, cfg EnvConfig, idempotencyKey, requestID string, attempt int, logger *slog.Logger) Result {
@@ -116,9 +123,8 @@ func tryPost(ctx context.Context, url string, body []byte, cfg EnvConfig, idempo
 		logger.Warn("internal API request creation failed", "attempt", attempt, "requestId", requestID, "error", err)
 		if attempt >= cfg.InternalAPIMaxRetries {
 			logger.Error("internal API transport gave up", "requestId", requestID, "error", err)
-			return Result{OK: false, Dropped: false}
 		}
-		return Result{OK: false, Dropped: false}
+		return Result{OK: false, Dropped: false, ErrorMessage: err.Error()}
 	}
 
 	for k, v := range BuildHeaders(idempotencyKey, requestID) {
@@ -130,31 +136,30 @@ func tryPost(ctx context.Context, url string, body []byte, cfg EnvConfig, idempo
 		logger.Warn("internal API transport error", "attempt", attempt, "requestId", requestID, "error", err)
 		if attempt >= cfg.InternalAPIMaxRetries {
 			logger.Error("internal API transport gave up", "requestId", requestID, "error", err)
-			return Result{OK: false, Dropped: false}
 		}
-		return Result{OK: false, Dropped: false}
+		return Result{OK: false, Dropped: false, ErrorMessage: err.Error()}
 	}
 	defer resp.Body.Close()
 
 	respBody, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent {
-		return Result{OK: true}
+		return Result{OK: true, LastStatus: resp.StatusCode}
 	}
 
 	parsedErr := parseErrorBody(respBody)
+	bodyStr := string(respBody)
+	if parsedErr != nil {
+		bodyStr = fmt.Sprintf("%s: %s", parsedErr.Error, parsedErr.Message)
+	}
 
 	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusConflict {
-		bodyStr := string(respBody)
-		if parsedErr != nil {
-			bodyStr = fmt.Sprintf("%s: %s", parsedErr.Error, parsedErr.Message)
-		}
 		logger.Error("internal API rejected job",
 			"status", resp.StatusCode,
 			"requestId", requestID,
 			"body", bodyStr,
 		)
-		return Result{OK: false, Dropped: true}
+		return Result{OK: false, Dropped: true, LastStatus: resp.StatusCode, ErrorMessage: bodyStr}
 	}
 
 	logger.Warn("internal API transient failure",
@@ -168,10 +173,9 @@ func tryPost(ctx context.Context, url string, body []byte, cfg EnvConfig, idempo
 			"status", resp.StatusCode,
 			"requestId", requestID,
 		)
-		return Result{OK: false, Dropped: false}
 	}
 
-	return Result{OK: false, Dropped: false}
+	return Result{OK: false, Dropped: false, LastStatus: resp.StatusCode, ErrorMessage: bodyStr}
 }
 
 type errorBody struct {

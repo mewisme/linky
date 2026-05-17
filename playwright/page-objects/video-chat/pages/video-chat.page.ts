@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page } from 'linky/playwright-test';
 import { waitForClerkReady } from '../../../helpers/clerk-helpers';
 
 export class VideoChatPage {

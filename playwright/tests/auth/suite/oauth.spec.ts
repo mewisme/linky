@@ -1,6 +1,6 @@
 // spec: playwright/tests/auth/AUTH_TEST_PLAN.md — Suite 6: Connected OAuth Providers
 
-import { Browser, BrowserContext, Page, expect, test } from '@playwright/test';
+import { Browser, BrowserContext, Page, expect, test } from 'linky/playwright-test';
 
 import { SecurityPage } from '../../../page-objects/auth/pages/security.page';
 import { TEST_USERS } from '../../../fixtures/users.fixtures';

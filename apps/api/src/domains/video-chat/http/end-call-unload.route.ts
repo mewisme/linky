@@ -4,6 +4,7 @@ import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { recordCallHistory, recordCallHistoryFromRoom } from "@/domains/video-chat/socket/call-history.socket.js";
 import { type AuthenticatedSocket } from "@/socket/auth.js";
+import type { VideoChatRoomRecord } from "@/domains/video-chat/types/room.types.js";
 import { getUserIdByClerkId } from "@/infra/supabase/repositories/call-history.js";
 import { createRateLimitMiddleware } from "@/middleware/rate-limit.js";
 import { um } from "@/lib/api-user-message.js";
@@ -12,7 +13,25 @@ import { toUserMessage, userFacingPayload } from "@/types/user-message.js";
 
 const router: ExpressRouter = Router();
 const logger = createLogger("api:video-chat:end-call-unload:route");
-const unloadRateLimit = createRateLimitMiddleware({ windowMs: 10_000, maxRequests: 5 });
+const unloadRateLimit = createRateLimitMiddleware({
+  windowMs: 10_000,
+  maxRequests: 5,
+  failClosed: true,
+});
+
+function callerOwnsSocketInRoom(
+  room: VideoChatRoomRecord,
+  socketId: string,
+  callerClerkId: string,
+): boolean {
+  if (room.user1 === socketId) {
+    return room.user1ClerkId === callerClerkId;
+  }
+  if (room.user2 === socketId) {
+    return room.user2ClerkId === callerClerkId;
+  }
+  return false;
+}
 
 router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Response) => {
   try {
@@ -54,6 +73,20 @@ router.post("/end-call-unload", unloadRateLimit, async (req: Request, res: Respo
       logger.warn("Socket not found: %s - may have already disconnected", socketId);
       const room = rooms.getRoomByUser(socketId);
       if (room) {
+        if (!callerOwnsSocketInRoom(room, socketId, callerClerkId)) {
+          logger.warn(
+            "Ownership mismatch on offline socket: caller=%s socketId=%s room=%s",
+            callerClerkId,
+            socketId,
+            room.id,
+          );
+          return sendJsonError(
+            res,
+            403,
+            "Forbidden",
+            toUserMessage("API_SOCKET_FORBIDDEN", { key: "api.socketForbidden" }, "Socket does not belong to caller"),
+          );
+        }
         if (room.user1DbId && room.user2DbId) {
           await recordCallHistoryFromRoom(io, room).catch((error) => {
             logger.error(toLoggableError(error), "Failed to record call history from room");

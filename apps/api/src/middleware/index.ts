@@ -8,9 +8,9 @@ import { createLogger } from "@/utils/logger.js";
 import { toLoggableError } from "@/utils/to-loggable-error.js";
 import { clientIpMiddleware } from "./client-ip.js";
 import { requestIdMiddleware } from "./request-id.js";
-import { um, umDetail } from "@/lib/api-user-message.js";
+import { um, unexpectedServerUserMessage } from "@/lib/api-user-message.js";
 import { sendJsonError } from "@/lib/http-json-response.js";
-import { jsonBodySizeLimitMiddleware } from "./json-body-size-limit.js";
+import { isPayloadTooLargeError, sendPayloadTooLargeError } from "@/lib/http-payload-too-large-error.js";
 
 const logger = createLogger("middleware");
 
@@ -51,7 +51,6 @@ export function setupMiddleware(app: Express): void {
     },
   }));
 
-  app.use(jsonBodySizeLimitMiddleware);
   app.use(express.json({ limit: config.jsonBodySizeLimit }));
   app.use(express.urlencoded({ extended: true }));
 
@@ -76,11 +75,20 @@ export function setupErrorHandlers(app: Express): void {
   setupExpressErrorHandler(app);
 
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    if (isPayloadTooLargeError(err)) {
+      sendPayloadTooLargeError(res);
+      return;
+    }
     const logErr = toLoggableError(err);
     logger.error(logErr, "Internal server error");
     if (logErr.stack) {
       logger.trace(logErr, "Stack trace");
     }
-    sendJsonError(res, 500, "An unexpected error occurred", umDetail("UNEXPECTED_SERVER", logErr.message));
+    sendJsonError(
+      res,
+      500,
+      "An unexpected error occurred",
+      unexpectedServerUserMessage(logErr.message, config.nodeEnv),
+    );
   });
 }

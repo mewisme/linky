@@ -1,6 +1,6 @@
 // spec: specs/user-profile.plan.md
 // seed: playwright/tests/seed.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from 'linky/playwright-test';
 import { authenticateUser } from '../../../fixtures/auth.fixtures';
 import { TEST_USERS } from '../../../fixtures/users.fixtures';
 import * as path from 'path';

@@ -1,4 +1,4 @@
-import { Browser, BrowserContext, Page } from '@playwright/test';
+import { Browser, BrowserContext, Page } from 'linky/playwright-test';
 
 import { TestUser } from '../../fixtures/users.fixtures';
 import { createAuthenticatedContext } from '../../fixtures/context.fixtures';

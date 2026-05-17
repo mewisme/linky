@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import path from 'node:path';
 
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 import { playwrightReportSlug } from './playwright/helpers/report-slug';
 
@@ -14,6 +14,7 @@ const reportSlug = playwrightReportSlug();
 const reportDir = path.join('playwright-report', reportSlug);
 
 export default defineConfig({
+  tsconfig: './tsconfig.playwright.json',
   globalSetup: './playwright/global-setup.ts',
   testDir: './playwright/tests',
   fullyParallel: true,
@@ -32,8 +33,10 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'cloak-chromium',
+      use: {
+        viewport: { width: 1280, height: 720 },
+      },
     },
   ],
 

@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { remoteImagePatterns } from "./src/shared/config/remote-image-hosts";
 import { publicEnv } from "./src/shared/env/public-env";
 import { serverEnv } from "./src/shared/env/server-env";
 import { withSentryConfig } from "@sentry/nextjs";
@@ -22,16 +23,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [...publicEnv.ALLOWED_DEV_ORIGINS],
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
-      {
-        protocol: "http",
-        hostname: "**",
-      },
-    ],
+    remotePatterns: remoteImagePatterns,
   },
   logging: {
     browserToTerminal: false,

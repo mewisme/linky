@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page } from 'linky/playwright-test';
 
 import { IdentifierPage } from '../../../../page-objects/auth/pages/identifier.page';
 import { OTPPage } from '../../../../page-objects/auth/pages/otp.page';

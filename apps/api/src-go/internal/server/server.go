@@ -59,7 +59,7 @@ func NewPublicApp(cfg *config.Config) *echo.Echo {
 		Output: os.Stdout,
 	}))
 
-	routes.RegisterRoot(e, cfg)
+	routes.RegisterRoot(e)
 	routes.RegisterHealth(e)
 
 	webhookGroup := e.Group("/webhook", middleware.RateLimit(cfg))

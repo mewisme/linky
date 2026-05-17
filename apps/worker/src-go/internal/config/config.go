@@ -37,6 +37,10 @@ func Parse() (*Config, error) {
 		return nil, fmt.Errorf("INTERNAL_API_BASE_URL or INTERNAL_API_SOCKET_PATH is required")
 	}
 
+	if cfg.NodeEnv == "production" && cfg.RedisURL == "" {
+		return nil, fmt.Errorf("REDIS_URL is required in production")
+	}
+
 	return cfg, nil
 }
 

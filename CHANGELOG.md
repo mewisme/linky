@@ -2,12 +2,11 @@
 
 🔨 Other Changes
 
-- Optimize compression middleware configuration ([dbe43e9](../../commit/dbe43e92))
-- Update package dependencies and versions in pnpm-lock.yaml and package.json ([840a568](../../commit/840a5684))
-- Update configuration and dependencies across multiple packages ([4ee03df](../../commit/4ee03df8))
-- Update pnpm to latest version and adjust zod dependency specifications ([ee62570](../../commit/ee625708))
-- Integrate TooltipProvider and enhance UserCell with tooltips ([c54f431](../../commit/c54f4315))
-- Update package versions to 1.10.0 and refresh version lock ([2e8cf9a](../../commit/2e8cf9a2))
+- Update project documentation and dependencies ([ecc9d18](../../commit/ecc9d18b))
+- Adjust motion effect delays for improved UI transitions ([04c038a](../../commit/04c038a4))
+- Enhance logging configuration and update UI transition behavior ([ff18529](../../commit/ff18529e))
+- Streamline error handling in logger implementation ([76e6ed5](../../commit/76e6ed53))
+- Update package versions to 1.10.1 and refresh version lock ([051659c](../../commit/051659c3))
 
 
-📋 Full Changelog: [2e8cf9a...dbe43e9](../../compare/2e8cf9a2...dbe43e92)
+📋 Full Changelog: [051659c...ecc9d18](../../compare/051659c3...ecc9d18b)

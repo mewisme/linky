@@ -69,7 +69,7 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
     name: "", description: "", category: "", is_active: true, icon: ""
   });
 
-  const { data, isFetching, refetch } = useQuery({
+  const { data, isPending, isFetching, refetch } = useQuery({
     queryKey: ["interest-tags"],
     queryFn: () => fetchFromActionRoute<AdminAPI.InterestTags.Get.Response>("/api/admin/interest-tags"),
     initialData,
@@ -184,6 +184,7 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
     <AppLayout sidebarItem="adminInterestTags">
       <InterestTagsDataTable
         initialData={data?.data || []}
+        isLoading={isPending}
         callbacks={rowCallbacks}
         leftColumnVisibilityContent={
           <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />

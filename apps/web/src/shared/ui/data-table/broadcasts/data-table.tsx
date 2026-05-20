@@ -7,12 +7,14 @@ import { useTranslations } from "next-intl";
 
 interface BroadcastsDataTableProps {
   initialData: BroadcastHistoryRow[];
+  isLoading?: boolean;
   className?: string;
   leftColumnVisibilityContent?: React.ReactNode;
 }
 
 export function BroadcastsDataTable({
   initialData,
+  isLoading = false,
   className,
   leftColumnVisibilityContent = null,
 }: BroadcastsDataTableProps) {
@@ -22,6 +24,8 @@ export function BroadcastsDataTable({
   return (
     <DataTable
       initialData={initialData}
+      isLoading={isLoading}
+      loadingTitle={t('broadcasts.loadingTitle')}
       initialColumnVisibility={{}}
       columns={tableColumns}
       className={cn(className)}

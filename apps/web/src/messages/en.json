@@ -1048,6 +1048,7 @@
       "calendarDialogDescription": "View your complete streak history",
       "streakCalendarLoading": "Loading streak calendar…",
       "expAmount": "{amount} EXP",
+      "expAmountRemaining": "{amount} EXP remaining",
       "expBonusesHeading": "Active EXP bonuses",
       "expBonusesHint": "Applied to EXP you earn from calls while these conditions match.",
       "expBonusTypeStreak": "Streak",
@@ -1276,7 +1277,7 @@
       "modelBroadcast": "Broadcast composer",
       "modelReportSummary": "Report AI summary",
       "modelEmbedding": "Embeddings",
-      "futureCapabilities": "Other capabilities (reserved)",
+      "futureCapabilities": "Other capabilities",
       "modelImage": "Image",
       "modelTts": "Text-to-speech",
       "modelStt": "Speech-to-text",
@@ -1413,6 +1414,7 @@
   },
   "dataTable": {
     "common": {
+      "loading": "Loading...",
       "actions": "Actions",
       "selectAllAria": "Select all",
       "selectRowAria": "Select row",
@@ -1438,6 +1440,7 @@
       "cancel": "Cancel"
     },
     "reports": {
+      "loadingTitle": "Loading reports...",
       "copyReportId": "Copy report ID",
       "reportIdCopied": "Report ID copied to clipboard",
       "reportedUser": "Reported User",
@@ -1446,6 +1449,7 @@
       "createdAt": "Created At"
     },
     "adminReports": {
+      "loadingTitle": "Loading reports...",
       "viewDetails": "View details",
       "copyReportId": "Copy report ID",
       "reportIdCopied": "Report ID copied to clipboard",
@@ -1461,6 +1465,7 @@
       "filterPlaceholder": "Filter by reason..."
     },
     "users": {
+      "loadingTitle": "Loading users...",
       "copyUserId": "Copy user ID",
       "copyClerkUserId": "Copy Clerk user ID",
       "userIdCopied": "User ID copied to clipboard",
@@ -1496,6 +1501,7 @@
       "updatedAt": "Updated At"
     },
     "callHistory": {
+      "loadingTitle": "Loading call history...",
       "copyCallId": "Copy call ID",
       "callIdCopied": "Call ID copied to clipboard",
       "user": "User",
@@ -1506,6 +1512,7 @@
       "dateTime": "Date & Time"
     },
     "blockedUsers": {
+      "loadingTitle": "Loading blocked users...",
       "unblockUser": "Unblock user",
       "unblockTitle": "Unblock User",
       "unblockDescription": "Are you sure you want to unblock {name}? They will be able to match with you again.",
@@ -1515,6 +1522,7 @@
       "searchPlaceholder": "Search blocked users..."
     },
     "favorites": {
+      "loadingTitle": "Loading favorites...",
       "removeFromFavorites": "Remove from favorites",
       "user": "User",
       "matches": "Matches",
@@ -1523,6 +1531,7 @@
       "added": "Added"
     },
     "expBonuses": {
+      "loadingTitle": "Loading EXP bonuses...",
       "copyBonusId": "Copy bonus ID",
       "bonusIdCopied": "Bonus ID copied to clipboard",
       "editDetails": "Edit Details",
@@ -1541,6 +1550,7 @@
       "filterPlaceholder": "Search by type..."
     },
     "interestTags": {
+      "loadingTitle": "Loading interest tags...",
       "copyTagId": "Copy tag ID",
       "tagIdCopied": "Tag ID copied to clipboard",
       "editDetails": "Edit Details",
@@ -1559,12 +1569,14 @@
       "filterPlaceholder": "Search tags..."
     },
     "adminConfig": {
+      "loadingTitle": "Loading configuration...",
       "update": "Update",
       "unset": "Unset",
       "key": "Key",
       "value": "Value"
     },
     "broadcasts": {
+      "loadingTitle": "Loading broadcasts...",
       "date": "Date",
       "title": "Title",
       "message": "Message",

@@ -39,7 +39,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
     return params
   }
 
-  const { data: reports, isFetching, refetch } = useQuery({
+  const { data: reports, isPending, isFetching, refetch } = useQuery({
     queryKey: ['admin-reports', statusFilter, reporterUserIdFilter, reportedUserIdFilter],
     queryFn: () => {
       const qs = new URLSearchParams(buildQueryParams()).toString()
@@ -101,6 +101,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
         </div>
         <AdminReportsDataTable
           initialData={data}
+          isLoading={isPending}
           callbacks={{
             onView: handleViewReport
           }}

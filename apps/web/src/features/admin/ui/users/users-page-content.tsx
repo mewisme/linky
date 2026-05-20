@@ -35,7 +35,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   const t = useTranslations('admin');
   const { store: { user: currentUser } } = useUserContext();
   const [deletedFilter, setDeletedFilter] = useState<UsersDeletedFilter>('active');
-  const { users, isFetching, refetch } = useUsersQuery({ initialData, deletedFilter });
+  const { users, isPending, isFetching, refetch } = useUsersQuery({ initialData, deletedFilter });
   const dataWithPresence = useUsersPresence(users, deletedFilter === 'active');
   const {
     updateMutation,
@@ -131,8 +131,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
 
   return (
     <AppLayout sidebarItem="adminUsers">
-      {isFetching && <div data-testid="admin-users-loading" />}
-      {!isFetching && users.length === 0 && <div data-testid="admin-users-empty-state" />}
+      {!isPending && users.length === 0 && <div data-testid="admin-users-empty-state" />}
       <BulkDeleteDialog
         open={bulkDeleteDialogOpen}
         onOpenChange={setBulkDeleteDialogOpen}
@@ -157,6 +156,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
       )}
       <UsersDataTable
         initialData={dataWithPresence}
+        isLoading={isPending}
         callbacks={tableCallbacks}
         selectionResetKey={selectionResetKey}
         leftColumnVisibilityContent={

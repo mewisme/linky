@@ -8,18 +8,21 @@ import { useTranslations } from 'next-intl'
 
 interface BlockedUsersDataTableProps {
   initialData: BlockedUserWithDetails[]
+  isLoading?: boolean
   className?: string
   callbacks?: RowCallbacks
   leftColumnVisibilityContent?: React.ReactNode
 }
 
-export function BlockedUsersDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null }: BlockedUsersDataTableProps) {
+export function BlockedUsersDataTable({ initialData, isLoading = false, className, callbacks, leftColumnVisibilityContent = null }: BlockedUsersDataTableProps) {
   const t = useTranslations('dataTable')
   const tableColumns = useBlockedUsersColumns(callbacks)
 
   return (
     <DataTable
       initialData={initialData}
+      isLoading={isLoading}
+      loadingTitle={t('blockedUsers.loadingTitle')}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}
       className={cn(className)}

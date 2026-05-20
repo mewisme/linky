@@ -94,7 +94,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
     }
   }, [userStore, router]);
 
-  const { data, isFetching, refetch } = useQuery({
+  const { data, isPending, isFetching, refetch } = useQuery({
     queryKey: ['admin-config'],
     queryFn: () => fetchFromActionRoute<AdminAPI.Config.Get.Response>('/api/admin/config'),
     initialData: initialData ?? undefined,
@@ -174,6 +174,7 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       <div className="space-y-4">
         <AdminConfigDataTable
           initialData={rows}
+          isLoading={isPending}
           callbacks={{ onUpdate: handleUpdate, onUnset: handleUnset }}
           leftColumnVisibilityContent={
             <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />

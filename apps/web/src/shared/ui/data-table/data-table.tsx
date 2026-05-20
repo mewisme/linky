@@ -22,6 +22,7 @@ import { cn } from "@ws/ui/lib/utils"
 import { useTranslations } from "next-intl"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { SimpleTooltip } from "../common/simple-tooltip"
+import { Loader } from "@/shared/ui/loader"
 import { useTextHighlight } from "./use-text-highlight"
 
 interface DataTableProps<TData> {
@@ -31,6 +32,8 @@ interface DataTableProps<TData> {
   initialColumnVisibility: VisibilityState
   columns: ColumnDef<TData>[]
   className?: string
+  isLoading?: boolean
+  loadingTitle?: string
   leftColumnVisibilityContent?: React.ReactNode
   rightColumnVisibilityContent?: React.ReactNode
   bulkActionsContent?: (selectedRows: TData[]) => React.ReactNode
@@ -38,7 +41,7 @@ interface DataTableProps<TData> {
   selectionResetKey?: unknown
 }
 
-export function DataTable<TData>({ initialData, filterColumns, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName, selectionResetKey }: DataTableProps<TData>) {
+export function DataTable<TData>({ initialData, filterColumns, filterPlaceholder, initialColumnVisibility, columns, className, isLoading = false, loadingTitle, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName, selectionResetKey }: DataTableProps<TData>) {
   const t = useTranslations("dataTable.common")
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -217,7 +220,20 @@ export function DataTable<TData>({ initialData, filterColumns, filterPlaceholder
             ))}
           </TableHeader>
           <TableBody className="**:data-[slot=table-cell]:last:w-20 **:data-[slot=table-cell]:first:w-10">
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={table.getAllColumns().length}
+                  className="h-48 p-0"
+                >
+                  <Loader
+                    title={loadingTitle ?? t("loading")}
+                    size="md"
+                    className="w-full py-12"
+                  />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

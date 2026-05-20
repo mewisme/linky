@@ -69,7 +69,7 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
     };
   }, [formData.type, t]);
 
-  const { data, isFetching, refetch } = useQuery({
+  const { data, isPending, isFetching, refetch } = useQuery({
     queryKey: ["exp-bonuses"],
     queryFn: () =>
       fetchFromActionRoute<AdminAPI.ExpBonuses.Get.Response>('/api/admin/exp-bonuses'),
@@ -185,6 +185,7 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
     <AppLayout sidebarItem="adminExpBonuses">
       <ExpBonusesDataTable
         initialData={data?.data || []}
+        isLoading={isPending}
         callbacks={rowCallbacks}
         leftColumnVisibilityContent={
           <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
@@ -218,10 +219,10 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
                     setFormData({ ...formData, type: value })
                   }
                 >
-                  <SelectTrigger id="type">
+                  <SelectTrigger id="type" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="w-full">
                     <SelectItem value="streak">{t("expBonusModal.typeStreak")}</SelectItem>
                     <SelectItem value="level">{t("expBonusModal.typeLevel")}</SelectItem>
                   </SelectContent>

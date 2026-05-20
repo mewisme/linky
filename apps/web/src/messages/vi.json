@@ -1048,6 +1048,7 @@
       "calendarDialogDescription": "Xem toàn bộ lịch sử chuỗi",
       "streakCalendarLoading": "Đang tải lịch chuỗi…",
       "expAmount": "{amount} EXP",
+      "expAmountRemaining": "Còn {amount} EXP",
       "expBonusesHeading": "EXP bonus đang áp dụng",
       "expBonusesHint": "Áp dụng cho EXP từ cuộc gọi khi bạn vẫn thỏa điều kiện bên dưới.",
       "expBonusTypeStreak": "Chuỗi",
@@ -1276,7 +1277,7 @@
       "modelBroadcast": "Soạn broadcast",
       "modelReportSummary": "Tóm tắt báo cáo AI",
       "modelEmbedding": "Embeddings",
-      "futureCapabilities": "Loại khác (dự phòng)",
+      "futureCapabilities": "Loại khác",
       "modelImage": "Ảnh",
       "modelTts": "Text-to-speech",
       "modelStt": "Speech-to-text",
@@ -1413,6 +1414,7 @@
   },
   "dataTable": {
     "common": {
+      "loading": "Đang tải...",
       "actions": "Thao tác",
       "selectAllAria": "Chọn tất cả",
       "selectRowAria": "Chọn dòng",
@@ -1438,6 +1440,7 @@
       "cancel": "Hủy"
     },
     "reports": {
+      "loadingTitle": "Đang tải báo cáo...",
       "copyReportId": "Sao chép ID báo cáo",
       "reportIdCopied": "Đã sao chép ID báo cáo",
       "reportedUser": "Người bị báo cáo",
@@ -1446,6 +1449,7 @@
       "createdAt": "Ngày tạo"
     },
     "adminReports": {
+      "loadingTitle": "Đang tải báo cáo...",
       "viewDetails": "Xem chi tiết",
       "copyReportId": "Sao chép ID báo cáo",
       "reportIdCopied": "Đã sao chép ID báo cáo",
@@ -1461,6 +1465,7 @@
       "filterPlaceholder": "Lọc theo lý do..."
     },
     "users": {
+      "loadingTitle": "Đang tải người dùng...",
       "copyUserId": "Sao chép ID người dùng",
       "copyClerkUserId": "Sao chép Clerk user ID",
       "userIdCopied": "Đã sao chép ID người dùng",
@@ -1496,6 +1501,7 @@
       "updatedAt": "Ngày cập nhật"
     },
     "callHistory": {
+      "loadingTitle": "Đang tải lịch sử cuộc gọi...",
       "copyCallId": "Sao chép ID cuộc gọi",
       "callIdCopied": "Đã sao chép ID cuộc gọi",
       "user": "Người dùng",
@@ -1506,6 +1512,7 @@
       "dateTime": "Ngày giờ"
     },
     "blockedUsers": {
+      "loadingTitle": "Đang tải danh sách chặn...",
       "unblockUser": "Bỏ chặn",
       "unblockTitle": "Bỏ chặn người dùng",
       "unblockDescription": "Bạn có chắc muốn bỏ chặn {name}? Họ có thể ghép đôi với bạn lại.",
@@ -1515,6 +1522,7 @@
       "searchPlaceholder": "Tìm người đã chặn..."
     },
     "favorites": {
+      "loadingTitle": "Đang tải danh sách yêu thích...",
       "removeFromFavorites": "Xóa khỏi yêu thích",
       "user": "Người dùng",
       "matches": "Lần ghép",
@@ -1523,6 +1531,7 @@
       "added": "Đã thêm"
     },
     "expBonuses": {
+      "loadingTitle": "Đang tải EXP bonus...",
       "copyBonusId": "Sao chép ID thưởng",
       "bonusIdCopied": "Đã sao chép ID thưởng",
       "editDetails": "Sửa chi tiết",
@@ -1541,6 +1550,7 @@
       "filterPlaceholder": "Tìm theo loại..."
     },
     "interestTags": {
+      "loadingTitle": "Đang tải interest tags...",
       "copyTagId": "Sao chép ID thẻ",
       "tagIdCopied": "Đã sao chép ID thẻ",
       "editDetails": "Sửa chi tiết",
@@ -1559,12 +1569,14 @@
       "filterPlaceholder": "Tìm thẻ..."
     },
     "adminConfig": {
+      "loadingTitle": "Đang tải cấu hình...",
       "update": "Cập nhật",
       "unset": "Gỡ",
       "key": "Khóa",
       "value": "Giá trị"
     },
     "broadcasts": {
+      "loadingTitle": "Đang tải broadcast...",
       "date": "Ngày",
       "title": "Tiêu đề",
       "message": "Nội dung",

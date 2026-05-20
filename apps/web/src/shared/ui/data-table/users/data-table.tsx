@@ -4,9 +4,11 @@ import type { AdminAPI } from '@/features/admin/types/admin.types'
 import { useUsersColumns, type RowCallbacks } from './define-data'
 import { DataTable } from '../data-table'
 import { cn } from '@ws/ui/lib/utils'
+import { useTranslations } from 'next-intl'
 
 interface UsersDataTableProps {
   initialData: AdminAPI.User[]
+  isLoading?: boolean
   className?: string
   callbacks?: RowCallbacks
   leftColumnVisibilityContent?: React.ReactNode
@@ -14,13 +16,16 @@ interface UsersDataTableProps {
   selectionResetKey?: unknown
 }
 
-export function UsersDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, bulkActionsContent, selectionResetKey }: UsersDataTableProps) {
+export function UsersDataTable({ initialData, isLoading = false, className, callbacks, leftColumnVisibilityContent = null, bulkActionsContent, selectionResetKey }: UsersDataTableProps) {
+  const t = useTranslations('dataTable')
   const tableColumns = useUsersColumns(callbacks)
 
   return (
     <div data-testid="admin-users-table">
       <DataTable
         initialData={initialData}
+        isLoading={isLoading}
+        loadingTitle={t('users.loadingTitle')}
         filterColumns="email"
         initialColumnVisibility={{
           id: false,

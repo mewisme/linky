@@ -15,6 +15,7 @@ import { Badge } from "@ws/ui/components/ui/badge";
 import { Button } from "@ws/ui/components/ui/button";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { Progress } from "@ws/ui/components/ui/progress";
+import { ExpAmountLabel } from "./exp-amount-label";
 import { ExpBonusesActive } from "./exp-bonuses-active";
 import { StreakCalendar } from "./streak-calendar";
 import { StreakMiniCalendar } from "./streak-mini-calendar";
@@ -24,16 +25,6 @@ import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-
-function formatExp(exp: number): string {
-  if (exp >= 1000000) {
-    return `${(exp / 1000000).toFixed(1)}M`;
-  }
-  if (exp >= 1000) {
-    return `${(exp / 1000).toFixed(1)}k`;
-  }
-  return exp.toString();
-}
 
 interface ProgressClientProps {
   initialData: UsersAPI.Progress.GetMe.Response
@@ -119,20 +110,22 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                         level: displayLevel + 1,
                       })}
                     </span>
-                    <span
+                    <ExpAmountLabel
+                      exp={data.expProgress.expToNextLevel}
+                      messageKey="expAmountRemaining"
                       className="font-medium text-foreground tabular-nums"
-                      data-testid="progress-exp-remaining"
-                    >
-                      {t("expAmount", { amount: formatExp(data.expProgress.expToNextLevel) })}
-                    </span>
+                      testId="progress-exp-remaining"
+                    />
                   </div>
                 </div>
                 {(data.expEarnedToday ?? 0) > 0 && (
                   <div className="flex justify-between gap-3 border-t pt-4 text-sm">
                     <span className="text-muted-foreground">{t("expEarnedToday")}</span>
-                    <span className="font-medium tabular-nums" data-testid="progress-exp-today">
-                      {t("expAmount", { amount: formatExp(data.expEarnedToday) })}
-                    </span>
+                    <ExpAmountLabel
+                      exp={data.expEarnedToday}
+                      className="font-medium tabular-nums"
+                      testId="progress-exp-today"
+                    />
                   </div>
                 )}
                 {data.expBonuses && data.expBonuses.length > 0 && (

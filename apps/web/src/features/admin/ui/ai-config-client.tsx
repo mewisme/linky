@@ -274,40 +274,41 @@ export function AdminAIConfigClient() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">{t('chatCapability')}</p>
-              <ModelCombobox
-                id="chat_broadcast"
-                label={t('modelBroadcast')}
-                value={form.models?.chat?.broadcast ?? ''}
-                models={modelsByCap.chat}
-                loading={modelsLoading}
-                onChange={(v) => updateChat({ broadcast: v })}
-                placeholder={t('selectModel')}
-                emptyLabel={t('noModelsFound')}
-              />
-              <ModelCombobox
-                id="chat_report"
-                label={t('modelReportSummary')}
-                value={form.models?.chat?.report_summary ?? ''}
-                models={modelsByCap.chat}
-                loading={modelsLoading}
-                onChange={(v) => updateChat({ report_summary: v })}
-                placeholder={t('selectModel')}
-                emptyLabel={t('noModelsFound')}
-              />
-              <Separator />
-              <ModelCombobox
-                id="embedding"
-                label={t('modelEmbedding')}
-                value={form.models?.embedding ?? ''}
-                models={modelsByCap.embedding}
-                loading={modelsLoading}
-                onChange={(v) => updateModels({ embedding: v })}
-                placeholder={t('selectModel')}
-                emptyLabel={t('noModelsFound')}
-              />
+              <div className="grid gap-4 lg:grid-cols-2">
+                <ModelCombobox
+                  id="chat_broadcast"
+                  label={t('modelBroadcast')}
+                  value={form.models?.chat?.broadcast ?? ''}
+                  models={modelsByCap.chat}
+                  loading={modelsLoading}
+                  onChange={(v) => updateChat({ broadcast: v })}
+                  placeholder={t('selectModel')}
+                  emptyLabel={t('noModelsFound')}
+                />
+                <ModelCombobox
+                  id="chat_report"
+                  label={t('modelReportSummary')}
+                  value={form.models?.chat?.report_summary ?? ''}
+                  models={modelsByCap.chat}
+                  loading={modelsLoading}
+                  onChange={(v) => updateChat({ report_summary: v })}
+                  placeholder={t('selectModel')}
+                  emptyLabel={t('noModelsFound')}
+                />
+              </div>
               <Separator />
               <p className="text-sm text-muted-foreground">{t('futureCapabilities')}</p>
               <div className="grid gap-4 sm:grid-cols-2">
+                <ModelCombobox
+                  id="embedding"
+                  label={t('modelEmbedding')}
+                  value={form.models?.embedding ?? ''}
+                  models={modelsByCap.embedding}
+                  loading={modelsLoading}
+                  onChange={(v) => updateModels({ embedding: v })}
+                  placeholder={t('selectModel')}
+                  emptyLabel={t('noModelsFound')}
+                />
                 <ModelCombobox
                   id="image"
                   label={t('modelImage')}
@@ -401,7 +402,7 @@ export function AdminAIConfigClient() {
                   }
                 />
               </div>
-              <div className="space-y-2 sm:col-span-2">
+              <div className="space-y-2">
                 <Label htmlFor="user_batch" className="font-normal">
                   {t('embedUserBatchSize')}
                 </Label>
@@ -423,7 +424,7 @@ export function AdminAIConfigClient() {
                 />
                 <p className="text-xs text-muted-foreground">{t('embedUserBatchHint')}</p>
               </div>
-              <div className="space-y-2 sm:col-span-2">
+              <div className="space-y-2">
                 <Label htmlFor="embedding_dimension" className="font-normal">
                   {t('embeddingDimension')}
                 </Label>
@@ -439,10 +440,10 @@ export function AdminAIConfigClient() {
                     }))
                   }
                 >
-                  <SelectTrigger id="embedding_dimension" className="w-full sm:max-w-xs">
+                  <SelectTrigger id="embedding_dimension" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="w-full">
                     {EMBEDDING_DIMENSIONS.map((dim) => (
                       <SelectItem key={dim} value={String(dim)}>
                         {dim}

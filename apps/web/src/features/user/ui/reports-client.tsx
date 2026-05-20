@@ -21,7 +21,7 @@ interface ReportsClientProps {
 export function ReportsClient({ initialData }: ReportsClientProps) {
   const [data, setData] = useState<ResourcesAPI.Reports.Report[]>(initialData.data)
 
-  const { data: reports, isFetching, refetch } = useQuery({
+  const { data: reports, isPending, isFetching, refetch } = useQuery({
     queryKey: ['user-reports'],
     queryFn: () =>
       fetchFromActionRoute<ResourcesAPI.Reports.GetMe.Response>(
@@ -41,6 +41,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
     <AppLayout sidebarItem="userReports">
       <ReportsDataTable
         initialData={data}
+        isLoading={isPending}
         leftColumnVisibilityContent={
           <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
         }

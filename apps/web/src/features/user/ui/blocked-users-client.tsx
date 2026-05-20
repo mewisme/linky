@@ -60,6 +60,7 @@ export function BlockedUsersClient({ initialData }: Props) {
     <AppLayout label={t('blockedUsersTitle')} description={t('blockedUsersDescription')}>
       <BlockedUsersDataTable
         initialData={data}
+        isLoading={isFetching && data.length === 0}
         callbacks={{ onUnblock: handleUnblock }}
         leftColumnVisibilityContent={
           <DataTableRefreshButton onClick={handleRefresh} isFetching={isFetching} />

@@ -8,13 +8,14 @@ import { useTranslations } from 'next-intl'
 
 interface InterestTagsDataTableProps {
   initialData: AdminAPI.InterestTags.InterestTag[]
+  isLoading?: boolean
   className?: string
   callbacks?: RowCallbacks
   leftColumnVisibilityContent?: React.ReactNode
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function InterestTagsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: InterestTagsDataTableProps) {
+export function InterestTagsDataTable({ initialData, isLoading = false, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: InterestTagsDataTableProps) {
   const t = useTranslations('dataTable')
   const tableColumns = useInterestTagColumns(callbacks)
 
@@ -22,6 +23,8 @@ export function InterestTagsDataTable({ initialData, className, callbacks, leftC
     <div data-testid="admin-interest-tags-table">
       <DataTable
         initialData={initialData}
+        isLoading={isLoading}
+        loadingTitle={t('interestTags.loadingTitle')}
         filterColumns="name"
         filterPlaceholder={t('interestTags.filterPlaceholder')}
         initialColumnVisibility={{ id: false }}

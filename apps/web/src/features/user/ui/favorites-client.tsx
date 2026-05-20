@@ -23,7 +23,7 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
   const t = useTranslations('user')
   const [data, setData] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>(initialData.data)
 
-  const { data: favorites, isFetching, refetch } = useQuery({
+  const { data: favorites, isPending, isFetching, refetch } = useQuery({
     queryKey: ['user-favorites'],
     queryFn: () => fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>('/api/resources/favorites'),
     initialData,
@@ -64,6 +64,7 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
     <AppLayout label={t('favoritesTitle')} description={t('favoritesDescription')}>
       <FavoritesDataTable
         initialData={data}
+        isLoading={isPending}
         callbacks={{
           onRemove: handleRemoveFavorite,
         }}

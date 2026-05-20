@@ -8,19 +8,22 @@ import { useTranslations } from 'next-intl'
 
 interface AdminReportsDataTableProps {
   initialData: AdminAPI.Reports.Report[]
+  isLoading?: boolean
   className?: string
   callbacks?: RowCallbacks
   leftColumnVisibilityContent?: React.ReactNode
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function AdminReportsDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: AdminReportsDataTableProps) {
+export function AdminReportsDataTable({ initialData, isLoading = false, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: AdminReportsDataTableProps) {
   const t = useTranslations('dataTable')
   const tableColumns = useAdminReportsColumns(callbacks)
 
   return (
     <DataTable
       initialData={initialData}
+      isLoading={isLoading}
+      loadingTitle={t('adminReports.loadingTitle')}
       filterColumns="reason"
       filterPlaceholder={t('adminReports.filterPlaceholder')}
       initialColumnVisibility={{

@@ -25,6 +25,7 @@ export function useUsersQuery(options?: UseUsersQueryOptions) {
 
   return {
     users: query.data?.data ?? [],
+    isPending: query.isPending,
     isFetching: query.isFetching,
     refetch: query.refetch,
   };

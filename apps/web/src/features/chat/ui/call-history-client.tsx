@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function CallHistoryClient({ initialData }: Props) {
-  const { data, isFetching, refetch } = useQuery({
+  const { data, isPending, isFetching, refetch } = useQuery({
     queryKey: ['call-history'],
     queryFn: () =>
       fetchFromActionRoute<CallHistoryResponse>('/api/resources/call-history?limit=50&offset=0'),
@@ -29,6 +29,7 @@ export function CallHistoryClient({ initialData }: Props) {
     <AppLayout sidebarItem="callHistory">
       <CallHistoryDataTable
         initialData={data?.data || []}
+        isLoading={isPending}
         leftColumnVisibilityContent={
           <DataTableRefreshButton onClick={() => void refetch()} isFetching={isFetching} />
         }

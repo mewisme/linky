@@ -32,7 +32,7 @@ interface BroadcastsClientProps {
 
 export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
   const t = useTranslations("admin");
-  const { data, isFetching, refetch } = useQuery({
+  const { data, isPending, isFetching, refetch } = useQuery({
     queryKey: ["admin", "broadcasts"],
     queryFn: () =>
       fetchFromActionRoute<AdminAPI.Broadcasts.Get.Response>(
@@ -65,6 +65,7 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
             <CardContent>
               <BroadcastsDataTable
                 initialData={history}
+                isLoading={isPending}
                 leftColumnVisibilityContent={
                   <DataTableRefreshButton onClick={() => void refetch()} isFetching={isFetching} />
                 }

@@ -8,19 +8,22 @@ import { useTranslations } from 'next-intl'
 
 interface ExpBonusesDataTableProps {
   initialData: AdminAPI.ExpBonuses.ExpBonus[]
+  isLoading?: boolean
   className?: string
   callbacks?: RowCallbacks
   leftColumnVisibilityContent?: React.ReactNode
   rightColumnVisibilityContent?: React.ReactNode
 }
 
-export function ExpBonusesDataTable({ initialData, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: ExpBonusesDataTableProps) {
+export function ExpBonusesDataTable({ initialData, isLoading = false, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: ExpBonusesDataTableProps) {
   const t = useTranslations('dataTable')
   const tableColumns = useExpBonusColumns(callbacks)
 
   return (
     <DataTable
       initialData={initialData}
+      isLoading={isLoading}
+      loadingTitle={t('expBonuses.loadingTitle')}
       filterColumns="type"
       filterPlaceholder={t('expBonuses.filterPlaceholder')}
       initialColumnVisibility={{ id: false }}

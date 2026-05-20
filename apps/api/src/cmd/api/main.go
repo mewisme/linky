@@ -14,7 +14,6 @@ import (
 	"linky-api/src/internal/infra/clerkx"
 	"linky-api/src/internal/infra/cloudflarerealtime"
 	"linky-api/src/internal/infra/aiconfig"
-	"linky-api/src/internal/infra/embeddingconfig"
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/preload"
 	"linky-api/src/internal/infra/redisx"
@@ -68,11 +67,7 @@ func main() {
 	if err := aiconfig.Load(rootCtx); err != nil {
 		log.Warn().Err(err).Msg("Failed to load AI config")
 	}
-	if err := embeddingconfig.Load(rootCtx); err != nil {
-		log.Warn().Err(err).Msg("Failed to load user embedding config")
-	}
 	aiconfig.StartRefresher(rootCtx)
-	embeddingconfig.StartRefresher(rootCtx)
 	openaix.StartModelsRefresher(rootCtx)
 	openaix.LogConfigured()
 

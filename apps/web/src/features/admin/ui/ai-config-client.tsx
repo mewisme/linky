@@ -24,6 +24,13 @@ import { AppLayout } from '@/shared/ui/layouts/app-layout';
 import { Button } from '@ws/ui/components/ui/button';
 import { Input } from '@ws/ui/components/ui/input';
 import { Label } from '@ws/ui/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@ws/ui/components/ui/select';
 import { Loader2 } from '@ws/ui/internal-lib/icons';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useTranslations } from 'next-intl';
@@ -32,6 +39,8 @@ import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settin
 import { isSuperAdmin } from '@/shared/utils/roles';
 import { useUserStore } from '@/entities/user/model/user-store';
 import { Separator } from '@ws/ui/components/ui/separator';
+
+const EMBEDDING_DIMENSIONS = [384, 768, 1024, 1536, 3072] as const;
 
 const EMPTY_SETTINGS: AdminAPI.AI.Settings = {
   base_url: '',
@@ -45,7 +54,7 @@ const EMPTY_SETTINGS: AdminAPI.AI.Settings = {
     web_fetch: '',
   },
   timeouts: { request_ms: 60000, embedding_ms: 60000 },
-  embedding: { user_api_batch_size: 8 },
+  embedding: { user_api_batch_size: 8, dimension: 3072 },
 };
 
 function mergeFormFromResponse(res: AdminAPI.AI.Config.Response): AdminAPI.AI.Settings {
@@ -75,6 +84,10 @@ function mergeFormFromResponse(res: AdminAPI.AI.Config.Response): AdminAPI.AI.Se
         admin.embedding?.user_api_batch_size ??
         (eff.embedding as AdminAPI.AI.EmbeddingJobConfig | undefined)?.user_api_batch_size ??
         8,
+      dimension:
+        admin.embedding?.dimension ??
+        (eff.embedding as AdminAPI.AI.EmbeddingJobConfig | undefined)?.dimension ??
+        3072,
     },
   };
 }
@@ -409,6 +422,35 @@ export function AdminAIConfigClient() {
                   }
                 />
                 <p className="text-xs text-muted-foreground">{t('embedUserBatchHint')}</p>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="embedding_dimension" className="font-normal">
+                  {t('embeddingDimension')}
+                </Label>
+                <Select
+                  value={String(form.embedding?.dimension ?? 3072)}
+                  onValueChange={(v) =>
+                    setForm((p) => ({
+                      ...p,
+                      embedding: {
+                        ...p.embedding,
+                        dimension: Number(v),
+                      },
+                    }))
+                  }
+                >
+                  <SelectTrigger id="embedding_dimension" className="w-full sm:max-w-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EMBEDDING_DIMENSIONS.map((dim) => (
+                      <SelectItem key={dim} value={String(dim)}>
+                        {dim}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">{t('embeddingDimensionHint')}</p>
               </div>
             </CardContent>
           </Card>

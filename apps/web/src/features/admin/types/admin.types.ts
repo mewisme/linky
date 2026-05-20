@@ -691,6 +691,7 @@ export namespace AdminAPI {
 
     export interface EmbeddingJobConfig {
       user_api_batch_size?: number;
+      dimension?: number;
     }
 
     export interface Settings {

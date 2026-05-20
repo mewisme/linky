@@ -1300,6 +1300,8 @@
       "embeddingTimeoutMs": "Embedding timeout (ms)",
       "embedUserBatchSize": "Users per embedding API batch",
       "embedUserBatchHint": "Between 5 and 10 users per job when syncing embeddings.",
+      "embeddingDimension": "Embedding vector dimension",
+      "embeddingDimensionHint": "Stored in user_embeddings column e{N}. Changing dimension requires re-syncing embeddings.",
       "save": "Save AI config",
       "reset": "Reset form",
       "saved": "AI configuration saved",

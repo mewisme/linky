@@ -64,6 +64,7 @@ func EffectiveToPublicMap() map[string]any {
 		},
 		"embedding": map[string]any{
 			"user_api_batch_size": e.EmbedUserAPIBatchSize,
+			"dimension":           e.EmbeddingDimension,
 		},
 	}
 }

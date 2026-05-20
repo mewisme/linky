@@ -3,10 +3,12 @@ package aiconfig
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"sync"
 	"time"
 
 	"linky-api/src/internal/config"
+	"linky-api/src/internal/infra/embeddingconfig"
 	"linky-api/src/internal/logger"
 )
 
@@ -51,6 +53,7 @@ type TimeoutsSettings struct {
 
 type EmbeddingJobSettings struct {
 	UserAPIBatchSize *int `json:"user_api_batch_size,omitempty"`
+	Dimension        *int `json:"dimension,omitempty"`
 }
 
 type Settings struct {
@@ -75,6 +78,7 @@ type Effective struct {
 	RequestTimeoutMs     int
 	EmbeddingTimeoutMs   int
 	EmbedUserAPIBatchSize int
+	EmbeddingDimension    int
 }
 
 func Init(c *config.Config) {
@@ -109,6 +113,7 @@ func mergeEffective(a Settings) Effective {
 		RequestTimeoutMs:      60000,
 		EmbeddingTimeoutMs:    60000,
 		EmbedUserAPIBatchSize: 8,
+		EmbeddingDimension:    3072,
 	}
 	if envCfg != nil {
 		e.BaseURL = envCfg.OpenAIBaseURL
@@ -162,6 +167,9 @@ func mergeEffective(a Settings) Effective {
 	if a.Embedding.UserAPIBatchSize != nil && *a.Embedding.UserAPIBatchSize > 0 {
 		e.EmbedUserAPIBatchSize = clamp(*a.Embedding.UserAPIBatchSize, 5, 10)
 	}
+	if a.Embedding.Dimension != nil && *a.Embedding.Dimension > 0 {
+		e.EmbeddingDimension = *a.Embedding.Dimension
+	}
 	return e
 }
 
@@ -192,9 +200,13 @@ func ApplySettings(raw json.RawMessage) error {
 	admin = s
 	mu.Unlock()
 	e := mergeEffective(s)
+	if err := embeddingconfig.ApplyDimension(e.EmbeddingDimension); err != nil {
+		return err
+	}
 	log.Info().
 		Str("base_url", e.BaseURL).
 		Str("embedding_model", e.EmbeddingModel).
+		Int("embedding_dimension", e.EmbeddingDimension).
 		Str("chat_broadcast_model", e.ChatBroadcast).
 		Str("chat_report_summary_model", e.ChatReportSummary).
 		Msg("AI config applied")
@@ -259,6 +271,14 @@ func SettingsFromMap(value map[string]any) (Settings, error) {
 		return Settings{}, err
 	}
 	s.APIKey = ""
+	if s.Embedding.Dimension != nil && *s.Embedding.Dimension <= 0 {
+		return Settings{}, errors.New("embedding.dimension must be positive")
+	}
+	if s.Embedding.Dimension != nil {
+		if _, err := embeddingconfig.ColumnForDimension(*s.Embedding.Dimension); err != nil {
+			return Settings{}, err
+		}
+	}
 	return s, nil
 }
 
@@ -279,6 +299,7 @@ func DefaultSettingsFromEnv() Settings {
 		},
 		Embedding: EmbeddingJobSettings{
 			UserAPIBatchSize: intPtr(e.EmbedUserAPIBatchSize),
+			Dimension:        intPtr(e.EmbeddingDimension),
 		},
 	}
 }

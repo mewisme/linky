@@ -15,7 +15,6 @@ import (
 	"linky-api/src/internal/domains/user/leveling"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/aiconfig"
-	"linky-api/src/internal/infra/embeddingconfig"
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/jobs"
@@ -101,11 +100,17 @@ func handleAdminConfigList(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]any{"data": rows})
 }
 
+const deprecatedUserEmbeddingsConfigKey = "user_embeddings"
+
 func handleAdminConfigUpsert(c echo.Context) error {
 	key := c.Param("key")
 	if key == "" {
 		return httpx.SendError(c, 400, "Bad Request",
 			httpx.UM("ADMIN_CONFIG_KEY_REQUIRED", "adminConfigKeyRequired", "key required"))
+	}
+	if key == deprecatedUserEmbeddingsConfigKey {
+		return httpx.SendError(c, 400, "Bad Request",
+			httpx.UMDetail("ADMIN_CONFIG_KEY_DEPRECATED", "Use /admin/config/ai (ai.embedding.dimension) instead of user_embeddings"))
 	}
 	rawBody, _ := io.ReadAll(c.Request().Body)
 	var input struct {
@@ -154,7 +159,6 @@ func prepareAIConfigMap(ctx context.Context, value map[string]any) (map[string]a
 }
 
 func notifyAdminConfigChanged(ctx context.Context, key string, value map[string]any) {
-	embeddingconfig.NotifyConfigChanged(ctx, key, value)
 	aiconfig.NotifyConfigChanged(ctx, key, value)
 	if key == aiconfig.AdminConfigKey {
 		openaix.TriggerModelsRefreshAsync()

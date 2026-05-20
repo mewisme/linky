@@ -1300,6 +1300,8 @@
       "embeddingTimeoutMs": "Timeout embedding (ms)",
       "embedUserBatchSize": "Số user mỗi batch embedding",
       "embedUserBatchHint": "Từ 5 đến 10 user mỗi job khi sync embedding.",
+      "embeddingDimension": "Chiều vector embedding",
+      "embeddingDimensionHint": "Lưu trong cột user_embeddings e{N}. Đổi chiều cần sync lại embedding.",
       "save": "Lưu cấu hình AI",
       "reset": "Đặt lại form",
       "saved": "Đã lưu cấu hình AI",

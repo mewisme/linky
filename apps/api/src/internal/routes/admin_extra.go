@@ -14,6 +14,7 @@ import (
 	"linky-api/src/internal/contexts/broadcastai"
 	"linky-api/src/internal/domains/embeddings"
 	"linky-api/src/internal/httpx"
+	"linky-api/src/internal/infra/aiconfig"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/jobs"
 )
@@ -45,17 +46,37 @@ func handleAdminConfigPost(c echo.Context) error {
 		Value map[string]any `json:"value"`
 	}
 	_ = json.Unmarshal(body, &input)
+	if input.Value == nil {
+		input.Value = map[string]any{}
+	}
 	if input.Key == "" {
 		return httpx.SendError(c, 400, "Bad Request",
 			httpx.UM("ADMIN_CONFIG_KEY_REQUIRED", "adminConfigKeyRequired", "key required"))
 	}
-	if input.Value == nil {
-		input.Value = map[string]any{}
+	if input.Key == deprecatedUserEmbeddingsConfigKey {
+		return httpx.SendError(c, 400, "Bad Request",
+			httpx.UMDetail("ADMIN_CONFIG_KEY_DEPRECATED", "Use /admin/config/ai (ai.embedding.dimension) instead of user_embeddings"))
 	}
-	row, err := supax.UpsertAdminConfig(c.Request().Context(), input.Key, input.Value)
+	ctx := c.Request().Context()
+	value := input.Value
+	if input.Key == aiconfig.AdminConfigKey {
+		prepared, err := prepareAIConfigMap(ctx, value)
+		if err != nil {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("AI_CONFIG_INVALID", "aiConfigInvalid", "Invalid AI config JSON"))
+		}
+		value = prepared
+	}
+	row, err := supax.UpsertAdminConfig(ctx, input.Key, value)
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_UPSERT_ADMIN_CONFIG", "failedUpsertAdminConfig", "Failed to upsert admin config"))
+	}
+	notifyAdminConfigChanged(ctx, input.Key, value)
+	if input.Key == aiconfig.AdminConfigKey && row != nil {
+		if v, ok := row["value"].(map[string]any); ok {
+			row["value"] = aiconfig.RedactSettingsMap(v)
+		}
 	}
 	return c.JSON(http.StatusCreated, row)
 }

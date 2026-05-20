@@ -1,12 +1,9 @@
 ## What's Changed
 
-🐛 Bug Fixes
-
-- Improve local version check and error handling in Jenkins pipeline ([23a3e75](../../commit/23a3e751))
-
 🔨 Other Changes
 
-- Update package versions to 2.0.1 and refresh version lock ([d394a63](../../commit/d394a637))
+- Update OpenAI model configuration and documentation ([30a4146](../../commit/30a4146d))
+- Update package versions to 2.0.2 and refresh version lock ([88feb3c](../../commit/88feb3c7))
 
 
-📋 Full Changelog: [d394a63...23a3e75](../../compare/d394a637...23a3e751)
+📋 Full Changelog: [88feb3c...30a4146](../../compare/88feb3c7...30a4146d)

@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react'
 import type { AdminAPI } from '@/features/admin/types/admin.types'
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
 import { Button } from '@ws/ui/components/ui/button'
-import { IconRefresh } from '@tabler/icons-react'
 import { Input } from '@ws/ui/components/ui/input'
 import { Label } from '@ws/ui/components/ui/label'
+import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button'
 import dynamic from 'next/dynamic'
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useQuery } from '@ws/ui/internal-lib/react-query'
@@ -105,9 +105,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
             onView: handleViewReport
           }}
           leftColumnVisibilityContent={
-            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-              <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            </Button>
+            <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
           }
         />
       </div>

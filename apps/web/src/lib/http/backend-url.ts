@@ -27,30 +27,6 @@ export const backendUrl = {
     blocks: () => `${V1}/users/blocks`,
     blocksMe: () => `${V1}/users/blocks/me`,
     blockByUserId: (userId: string) => `${V1}/users/blocks/${userId}`,
-    prestige: () => `${V1}/users/prestige`,
-  },
-
-  economy: {
-    convert: () => `${V1}/economy/convert`,
-    daily: {
-      progress: (params?: URLSearchParams) => `${V1}/economy/daily/progress${qs(params)}`,
-    },
-    weekly: {
-      progress: (params?: URLSearchParams) => `${V1}/economy/weekly/progress${qs(params)}`,
-      checkin: () => `${V1}/economy/weekly/checkin`,
-    },
-    monthly: {
-      progress: (params?: URLSearchParams) => `${V1}/economy/monthly/progress${qs(params)}`,
-      checkin: () => `${V1}/economy/monthly/checkin`,
-      buyback: () => `${V1}/economy/monthly/buyback`,
-    },
-    shop: {
-      list: (params?: URLSearchParams) => `${V1}/economy/shop${qs(params)}`,
-      purchase: () => `${V1}/economy/shop/purchase`,
-    },
-    boost: {
-      purchase: () => `${V1}/economy/boost/purchase`,
-    },
   },
 
   videoChat: {
@@ -82,6 +58,8 @@ export const backendUrl = {
   admin: {
     config: () => `${V1}/admin/config`,
     configByKey: (key: string) => `${V1}/admin/config/${encodeURIComponent(key)}`,
+    aiConfig: () => `${V1}/admin/ai/config`,
+    aiModels: (params?: URLSearchParams) => `${V1}/admin/ai/models${qs(params)}`,
     broadcasts: (params?: URLSearchParams) => `${V1}/admin/broadcasts${qs(params)}`,
     broadcastsAiGenerate: () => `${V1}/admin/broadcasts/ai-generate`,
     interestTags: (params?: URLSearchParams) => `${V1}/admin/interest-tags${qs(params)}`,
@@ -92,8 +70,6 @@ export const backendUrl = {
     levelFeatureUnlockById: (id: string) => `${V1}/admin/level-feature-unlocks/${id}`,
     levelRewards: (params?: URLSearchParams) => `${V1}/admin/level-rewards${qs(params)}`,
     levelRewardById: (id: string) => `${V1}/admin/level-rewards/${id}`,
-    favoriteExpBoost: (params?: URLSearchParams) => `${V1}/admin/favorite-exp-boost${qs(params)}`,
-    favoriteExpBoostById: (id: string) => `${V1}/admin/favorite-exp-boost/${id}`,
     streakExpBonuses: (params?: URLSearchParams) => `${V1}/admin/streak-exp-bonuses${qs(params)}`,
     streakExpBonusById: (id: string) => `${V1}/admin/streak-exp-bonuses/${id}`,
     reports: (params?: URLSearchParams) => `${V1}/admin/reports${qs(params)}`,
@@ -101,16 +77,28 @@ export const backendUrl = {
     users: (params?: URLSearchParams) => `${V1}/admin/users${qs(params)}`,
     usersBatch: () => `${V1}/admin/users/batch`,
     userById: (id: string) => `${V1}/admin/users/${id}`,
-    economyStats: (params?: URLSearchParams) => `${V1}/admin/economy/stats${qs(params)}`,
-    economySimulate: () => `${V1}/admin/economy/simulate`,
-    seasons: (params?: URLSearchParams) => `${V1}/admin/seasons${qs(params)}`,
-    seasonById: (id: string) => `${V1}/admin/seasons/${id}`,
-    seasonForceDecay: (id: string) => `${V1}/admin/seasons/${id}/force-decay`,
     embeddingsCompare: () => `${V1}/admin/embeddings/compare`,
     embeddingsSimilar: () => `${V1}/admin/embeddings/similar`,
     embeddingsSync: () => `${V1}/admin/embeddings/sync`,
     embeddingsSyncAll: () => `${V1}/admin/embeddings/sync-all`,
     mediaPresignedUpload: () => `${V1}/admin/media/presigned-upload`,
+    s3PresignedUpload: (params?: URLSearchParams) => `${V1}/admin/s3/presigned/upload${qs(params)}`,
+    s3PresignedDownload: (params?: URLSearchParams) => `${V1}/admin/s3/presigned/download${qs(params)}`,
+    s3Objects: (params?: URLSearchParams) => `${V1}/admin/s3/objects${qs(params)}`,
+    s3ObjectByKey: (key: string) => `${V1}/admin/s3/objects/${encodeURIComponent(key)}`,
+    s3MultipartStart: () => `${V1}/admin/s3/multipart/start`,
+    s3MultipartPart: (uploadId: string, partNumber: number, params?: URLSearchParams) =>
+      `${V1}/admin/s3/multipart/${encodeURIComponent(uploadId)}/part/${partNumber}${qs(params)}`,
+    s3MultipartComplete: () => `${V1}/admin/s3/multipart/complete`,
+    s3MultipartAbort: () => `${V1}/admin/s3/multipart/abort`,
+  },
+
+  me: {
+    s3PresignUpload: () => `${V1}/me/s3/presign-upload`,
+    s3MultipartInitiate: () => `${V1}/me/s3/multipart/initiate`,
+    s3MultipartSignPart: () => `${V1}/me/s3/multipart/sign-part`,
+    s3MultipartComplete: () => `${V1}/me/s3/multipart/complete`,
+    s3MultipartAbort: () => `${V1}/me/s3/multipart/abort`,
   },
 
   notifications: {
@@ -124,10 +112,6 @@ export const backendUrl = {
     subscribe: () => `${V1}/push/subscribe`,
     unsubscribe: () => `${V1}/push/unsubscribe`,
     vapidPublicKey: () => `${V1}/push/vapid-public-key`,
-  },
-
-  media: {
-    iceServers: () => `${API}/ice-servers`,
   },
 
 } as const;

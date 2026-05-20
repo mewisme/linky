@@ -199,6 +199,13 @@ export function useCloudflareSfuConnection(
 
   const handlePeerTracks = useCallback(
     async (data: RealtimePeerTracksPayload) => {
+      // eslint-disable-next-line no-console
+      console.info("[debug] handlePeerTracks", {
+        peerSessionId: data?.peerSessionId,
+        trackCount: data?.tracks?.length ?? 0,
+        hasSession: Boolean(sessionIdRef.current),
+        hasPc: Boolean(pcRef.current),
+      });
       if (!data?.peerSessionId || data.tracks.length === 0) return;
       if (!sessionIdRef.current || !pcRef.current) {
         pendingPeerTracksRef.current = data;

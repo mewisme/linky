@@ -30,7 +30,7 @@ export async function GET(
     }
 
     const response = await fetchWithApiFallback(
-      `${publicEnv.API_URL}/api/v1/s3/multipart/${uploadId}/part/${partNumber}?${searchParams.toString()}`,
+      `${publicEnv.API_URL}/api/v1/admin/s3/multipart/${uploadId}/part/${partNumber}?${searchParams.toString()}`,
       {
         method: "GET",
         headers: {

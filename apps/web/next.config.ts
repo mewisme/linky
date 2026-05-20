@@ -8,7 +8,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@ws/ui", "@ws/shared-types"],
+  transpilePackages: ["@ws/ui"],
   experimental: {
     optimizePackageImports: [
       "country-flag-icons",

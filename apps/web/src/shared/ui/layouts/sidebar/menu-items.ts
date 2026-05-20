@@ -14,6 +14,7 @@ import {
   IconMessages,
   IconPalette,
   IconSettings,
+  IconBrain,
   IconSettingsCog,
   IconShield,
   IconSpeakerphone,
@@ -45,6 +46,7 @@ export type MenuItemId =
   | "userDevelopment"
   | "adminPanel"
   | "adminConfig"
+  | "adminAiConfig"
   | "adminBroadcasts"
   | "adminUsers"
   | "adminInterestTags"

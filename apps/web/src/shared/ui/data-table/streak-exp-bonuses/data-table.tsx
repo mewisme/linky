@@ -21,7 +21,7 @@ export function StreakExpBonusesDataTable({ initialData, className, callbacks, l
   return (
     <DataTable
       initialData={initialData}
-      filterColumn="bonus_multiplier"
+      filterColumns="bonus_multiplier"
       filterPlaceholder={t('streakExpBonuses.filterPlaceholder')}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}

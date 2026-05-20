@@ -1,20 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
 export namespace MediaAPI {
-  export namespace IceServers {
-    export namespace Get {
-      export interface IceServer {
-        urls: string[];
-        username: string;
-        credential: string;
-      }
-
-      export interface Response {
-        iceServers: IceServer[];
-      }
-    }
-  }
-
   export namespace S3 {
     export namespace GetUploadUrl {
       export interface QueryParams {

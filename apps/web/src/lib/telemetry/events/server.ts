@@ -82,7 +82,6 @@ export const SERVER_EVENT_NAMES = [
   "api_admin_reports_get",
   "api_admin_reports_id_get",
   "api_admin_reports_id_patch",
-  "api_media_ice_servers_get",
   "api_media_s3_multipart_start_post",
   "api_media_s3_multipart_complete_post",
   "api_media_s3_multipart_abort_post",

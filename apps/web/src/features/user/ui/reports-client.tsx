@@ -3,12 +3,11 @@
 import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
-import { Button } from '@ws/ui/components/ui/button'
-import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/shared/types/resources.types'
 import dynamic from 'next/dynamic'
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useQuery } from "@ws/ui/internal-lib/react-query"
+import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button'
 
 const ReportsDataTable = dynamic(
   () => import('@/shared/ui/data-table/reports/data-table').then(mod => ({ default: mod.ReportsDataTable })),
@@ -43,9 +42,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
       <ReportsDataTable
         initialData={data}
         leftColumnVisibilityContent={
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
         }
       />
     </AppLayout>

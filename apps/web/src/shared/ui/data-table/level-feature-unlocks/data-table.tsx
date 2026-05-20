@@ -21,7 +21,7 @@ export function LevelFeatureUnlocksDataTable({ initialData, className, callbacks
   return (
     <DataTable
       initialData={initialData}
-      filterColumn="feature_key"
+      filterColumns="feature_key"
       filterPlaceholder={t('levelFeatureUnlocks.filterPlaceholder')}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}

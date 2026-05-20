@@ -1,36 +1,8 @@
-import { apiUrl } from "@/lib/http/api-url";
-import { fetchData } from "@/lib/http/client-api";
-
 import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "./video-chat-media-errors";
 import {
   getCaptureConstraintsForQuality,
 } from "./stream-video-quality";
 import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
-
-export interface IceServersResponse {
-  iceServers: RTCIceServer[];
-}
-
-export async function fetchIceServers(token: string | null): Promise<RTCIceServer[]> {
-  try {
-    const data = await fetchData<IceServersResponse>(apiUrl.media.iceServers(), {
-      token: token ?? undefined,
-    });
-    return data.iceServers;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Failed to fetch ICE servers: ${error.message}`);
-    }
-    throw new Error("Failed to fetch ICE servers: Unknown error");
-  }
-}
-
-export function createPeerConnection(iceServers: RTCIceServer[]): RTCPeerConnection {
-  return new RTCPeerConnection({
-    iceServers,
-    iceCandidatePoolSize: 10,
-  });
-}
 
 function isDeviceNotFoundError(error: unknown): boolean {
   return (
@@ -125,16 +97,5 @@ export function stopMediaStream(stream: MediaStream | null): void {
     stream.getTracks().forEach((track) => {
       track.stop();
     });
-  }
-}
-
-export function closePeerConnection(pc: RTCPeerConnection | null): void {
-  if (pc) {
-    pc.ontrack = null;
-    pc.onicecandidate = null;
-    pc.onconnectionstatechange = null;
-    pc.oniceconnectionstatechange = null;
-    pc.onicegatheringstatechange = null;
-    pc.close();
   }
 }

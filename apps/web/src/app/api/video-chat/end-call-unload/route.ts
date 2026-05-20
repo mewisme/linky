@@ -1,60 +1,29 @@
-import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 
-import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { backendUrl } from "@/lib/http/backend-url";
+import { proxyToBackend } from "@/lib/http/proxy-to-backend";
 
 export async function POST(request: NextRequest) {
+  let socketId: unknown;
   try {
-    const body = await request.json();
-    const socketId = body?.socketId;
+    const cloned = request.clone();
+    const parsed = await cloned.json();
+    socketId = parsed?.socketId;
+  } catch {
+    socketId = undefined;
+  }
 
-    if (!socketId || typeof socketId !== "string") {
-      return NextResponse.json(
-        { error: "socketId is required" },
-        { status: 400 }
-      );
-    }
-
-    let authToken: string | null = null;
-    const authHeader = request.headers.get("authorization");
-    if (authHeader) {
-      authToken = authHeader.replace("Bearer ", "");
-    } else {
-      try {
-        const { getToken } = await auth({ acceptsToken: "any" });
-        authToken = await getToken();
-      } catch {
-        Sentry.logger.warn("Failed to retrieve Clerk token for unload proxy");
-      }
-    }
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (authToken) {
-      headers["Authorization"] = `Bearer ${authToken}`;
-    }
-
-    const response = await fetchWithApiFallback(backendUrl.videoChat.endCallUnload(), {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ socketId }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    Sentry.logger.error("Error in POST /api/video-chat/end-call-unload", { error });
+  if (!socketId || typeof socketId !== "string") {
     return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to proxy end-call-unload" },
-      { status: 500 }
+      { error: "socketId is required" },
+      { status: 400 },
     );
   }
+
+  return proxyToBackend({
+    request,
+    url: backendUrl.videoChat.endCallUnload(),
+    method: "POST",
+    logLabel: "POST /api/video-chat/end-call-unload",
+  });
 }

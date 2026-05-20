@@ -3,7 +3,8 @@
 import type { AdminAPI } from '@/features/admin/types/admin.types';
 import type { ColumnDef } from '@ws/ui/internal-lib/react-table';
 import { ActionsButton, type ActionItem } from '@/shared/ui/common/actions-button';
-import { IconPencil, IconTrash } from '@tabler/icons-react';
+import { IconBrain, IconPencil, IconTrash } from '@tabler/icons-react';
+import { Link } from '@/i18n/navigation';
 import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 
@@ -59,7 +60,18 @@ export function useAdminConfigColumns(callbacks?: RowCallbacks): ColumnDef<Admin
     {
       accessorKey: 'key',
       header: t('adminConfig.key'),
-      cell: ({ row }) => <div className="font-mono text-sm">{row.getValue('key')}</div>,
+      cell: ({ row }) => {
+        const key = row.getValue('key') as string;
+        if (key === 'ai') {
+          return (
+            <Link href="/admin/config/ai" className="inline-flex items-center gap-1 font-mono text-sm text-primary hover:underline">
+              <IconBrain className="size-3.5" />
+              {key}
+            </Link>
+          );
+        }
+        return <div className="font-mono text-sm">{key}</div>;
+      },
     },
     {
       accessorKey: 'value',

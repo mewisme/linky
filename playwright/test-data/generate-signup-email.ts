@@ -3,8 +3,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
-const rootEnvPath = resolve(currentDir, "../../.env");
-loadDotenv({ path: rootEnvPath });
+const repoRoot = resolve(currentDir, "../../");
+loadDotenv({ path: resolve(repoRoot, ".env"), override: false });
 
 export type AutoRemovePosition = "prefix" | "suffix" | "include";
 

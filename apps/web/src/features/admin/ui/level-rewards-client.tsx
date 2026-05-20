@@ -1,7 +1,9 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
-import { IconPlus, IconRefresh } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
+import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
+import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
 import React, { useState } from "react";
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
@@ -152,16 +154,17 @@ export function LevelRewardsClient({ initialData }: LevelRewardsClientProps) {
         initialData={data?.data || []}
         callbacks={rowCallbacks}
         leftColumnVisibilityContent={
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
         }
         rightColumnVisibilityContent={
-          <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
-            <Link href="/admin/level-rewards/create">
-              <IconPlus className="w-4 h-4 mr-2" /> {tm("addNew")}
-            </Link>
-          </Button>
+          <SimpleTooltip content={tm("addNew")}>
+            <Button asChild className="bg-primary hover:opacity-90 shadow-md" size="sm">
+              <Link href="/admin/level-rewards/create">
+                <IconPlus className="w-4 h-4" />
+                <span className="hidden lg:inline">{tm("addNew")}</span>
+              </Link>
+            </Button>
+          </SimpleTooltip>
         }
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

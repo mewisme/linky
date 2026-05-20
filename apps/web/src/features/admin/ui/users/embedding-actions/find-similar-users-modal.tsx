@@ -27,11 +27,10 @@ import { useState } from 'react';
 
 interface SimilarResult {
   user_id: string;
-  similarity_score: number;
+  similarity: number;
 }
 
 interface FindSimilarResponse {
-  base_user_id: string;
   results: SimilarResult[];
 }
 
@@ -137,7 +136,7 @@ export function FindSimilarUsersModal({
                   {i + 1}. {label}
                 </span>
                 <span className="ml-2 shrink-0 text-muted-foreground">
-                  {(r.similarity_score * 100).toFixed(1)}%
+                  {(r.similarity * 100).toFixed(1)}%
                 </span>
               </div>
             );

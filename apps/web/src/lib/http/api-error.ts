@@ -1,15 +1,15 @@
-import type { BackendUserMessage } from "@ws/shared-types";
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 export class ApiError extends Error {
   readonly status: number;
 
-  readonly userMessage?: BackendUserMessage;
+  readonly userMessage?: ApiUserMessage;
 
   readonly rawBody?: string;
 
   constructor(
     message: string,
-    options: { status: number; userMessage?: BackendUserMessage; rawBody?: string },
+    options: { status: number; userMessage?: ApiUserMessage; rawBody?: string },
   ) {
     super(message);
     this.name = "ApiError";
@@ -21,13 +21,13 @@ export class ApiError extends Error {
 
 export function parseApiErrorBody(text: string): {
   message: string;
-  userMessage?: BackendUserMessage;
+  userMessage?: ApiUserMessage;
 } {
   try {
     const parsed = JSON.parse(text) as {
       message?: string;
       error?: string;
-      userMessage?: BackendUserMessage;
+      userMessage?: ApiUserMessage;
     };
     const message =
       typeof parsed.message === "string"

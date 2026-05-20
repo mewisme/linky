@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json() as MediaAPI.S3.CompleteMultipart.Body;
-    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/s3/multipart/complete`, {
+    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/admin/s3/multipart/complete`, {
       method: "POST",
       headers: {
         Authorization: authHeader,

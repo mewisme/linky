@@ -3,7 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { useRef, useCallback, useEffect, useMemo, type RefObject } from "react";
 import { publishPresence } from "@/lib/realtime/presence";
-import { type SignalData, type RealtimePeerTracksPayload, type VideoMediaProvider } from "@/lib/realtime/socket";
+import { type RealtimePeerTracksPayload, type VideoMediaProvider } from "@/lib/realtime/socket";
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/features/chat/types/chat-message.types";
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";
 import type { Socket } from "socket.io-client";
@@ -15,7 +15,6 @@ import { useSocket } from "./use-socket";
 export interface SocketCallbacks {
   onJoinedQueue: (data: UserFacingSocketPayload & { queueSize: number }) => void;
   onMatched: (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => void;
-  onSignal: (data: SignalData) => void;
   onRealtimePeerTracks: (data: RealtimePeerTracksPayload) => void;
   onPeerLeft: (data: UserFacingSocketPayload & { queueSize?: number }) => void;
   onPeerSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => void;
@@ -44,7 +43,6 @@ export interface SocketCallbacks {
 
 export interface UseSocketSignalingReturn {
   initializeSocket: (callbacks: SocketCallbacks) => Promise<void>;
-  sendSignal: (data: SignalData) => void;
   joinQueue: () => void;
   skipPeer: () => void;
   sendEndCall: () => void;
@@ -111,13 +109,12 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       callbacks.onMatched(data);
     });
 
-    register("signal", (data: SignalData) => {
-      publishPresence('in_call');
-      socketHealthMonitor.markEventReceived();
-      callbacks.onSignal(data);
-    });
-
     register("realtime:peer-tracks", (data: RealtimePeerTracksPayload) => {
+      // eslint-disable-next-line no-console
+      console.info("[debug] realtime:peer-tracks received", {
+        peerSessionId: data?.peerSessionId,
+        trackCount: data?.tracks?.length ?? 0,
+      });
       publishPresence('in_call');
       socketHealthMonitor.markEventReceived();
       callbacks.onRealtimePeerTracks(data);
@@ -247,18 +244,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     [registerSocketListeners, unregisterSocketListeners, registerCallbacks, unregisterCallbacks]
   );
 
-  const sendSignal = useCallback((data: SignalData) => {
-    if (socketRef.current) {
-      if (!socketHealthMonitor.isHealthy()) {
-        if (socketRef.current.connected) {
-          socketRef.current.emit("signal", data);
-        }
-      } else {
-        socketRef.current.emit("signal", data);
-      }
-    }
-  }, []);
-
   const joinQueue = useCallback(() => {
     if (socketRef.current) {
       if (socketRef.current.connected) {
@@ -293,12 +278,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
           });
         }
       };
-
-      if (socketHealthMonitor.isHealthy() || socketRef.current.connected) {
-        sendEndCallWithRetry();
-      } else {
-        sendEndCallWithRetry();
-      }
+      sendEndCallWithRetry();
     }
   }, []);
 
@@ -425,7 +405,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   return useMemo(
     () => ({
       initializeSocket,
-      sendSignal,
       joinQueue,
       skipPeer,
       sendEndCall,
@@ -448,7 +427,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     }),
     [
       initializeSocket,
-      sendSignal,
       joinQueue,
       skipPeer,
       sendEndCall,

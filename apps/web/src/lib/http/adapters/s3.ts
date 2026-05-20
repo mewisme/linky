@@ -55,9 +55,30 @@ export async function uploadToS3(presignedUrl: string, file: File | Blob): Promi
   if (!res.ok) throw new Error(await res.text() || res.statusText);
 }
 
+export async function uploadToS3PostPolicy(
+  url: string,
+  fields: Record<string, string>,
+  file: File | Blob
+): Promise<void> {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    form.append(key, value);
+  }
+  form.append("file", file);
+  const res = await fetch(url, { method: "POST", body: form });
+  if (!res.ok) throw new Error(await res.text() || res.statusText);
+}
+
 export async function uploadFile(file: File | Blob, key: string, token: string): Promise<string> {
-  const { url } = await getUploadUrl({ key, expires: 300 }, token);
-  await uploadToS3(url, file);
+  const raw = await fetchData<{ url: string; fields?: Record<string, string> }>(
+    withQuery(apiUrl.media.s3PresignedUpload(), { key, expires: 300 }),
+    { token },
+  );
+  if (raw.fields && Object.keys(raw.fields).length > 0) {
+    await uploadToS3PostPolicy(raw.url, raw.fields, file);
+  } else {
+    await uploadToS3(raw.url, file);
+  }
   return key;
 }
 

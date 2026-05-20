@@ -118,7 +118,7 @@ export namespace AdminAPI {
       deleted_at?: string | null;
     }
     export interface Response {
-      data: User[];
+      updated: number;
     }
   }
 
@@ -127,8 +127,7 @@ export namespace AdminAPI {
       ids: string[];
     }
     export interface Response {
-      success: true;
-      message: string;
+      deleted: number;
     }
   }
 
@@ -665,6 +664,104 @@ export namespace AdminAPI {
 
       export interface Response {
         message: string;
+      }
+    }
+  }
+
+  export namespace AI {
+    export interface ChatModels {
+      broadcast?: string;
+      report_summary?: string;
+    }
+
+    export interface ModelsConfig {
+      chat?: ChatModels;
+      embedding?: string;
+      image?: string;
+      tts?: string;
+      stt?: string;
+      web_search?: string;
+      web_fetch?: string;
+    }
+
+    export interface TimeoutsConfig {
+      request_ms?: number;
+      embedding_ms?: number;
+    }
+
+    export interface EmbeddingJobConfig {
+      user_api_batch_size?: number;
+    }
+
+    export interface Settings {
+      base_url?: string;
+      api_key?: string;
+      api_key_configured?: boolean;
+      models?: ModelsConfig;
+      timeouts?: TimeoutsConfig;
+      embedding?: EmbeddingJobConfig;
+    }
+
+    export interface Effective extends Settings {
+      base_url: string;
+      models: Required<Pick<ModelsConfig, "chat">> & ModelsConfig & {
+        chat: Required<ChatModels>;
+      };
+    }
+
+    export interface ModelEntry {
+      id: string;
+      object?: string;
+      owned_by?: string;
+      kind?: string;
+    }
+
+    export namespace Config {
+      export interface Response {
+        key: string;
+        admin: Settings | null;
+        effective: Record<string, unknown>;
+        env_defaults: Record<string, unknown>;
+        has_admin_config: boolean;
+        api_key_configured: boolean;
+      }
+
+      export interface PutBody {
+        value: Settings;
+      }
+
+      export type PutResponse = {
+        key: string;
+        effective: Record<string, unknown>;
+        api_key_configured: boolean;
+      };
+    }
+
+    export namespace Models {
+      export type Capability =
+        | "chat"
+        | "embedding"
+        | "image"
+        | "tts"
+        | "stt"
+        | "web_search"
+        | "web_fetch";
+
+      export interface QueryParams {
+        capability?: Capability;
+      }
+
+      export interface SingleResponse {
+        capability: string;
+        object: string;
+        data: ModelEntry[];
+      }
+
+      export interface AllResponse {
+        capabilities: Record<
+          string,
+          { object: string; data: ModelEntry[] }
+        >;
       }
     }
   }

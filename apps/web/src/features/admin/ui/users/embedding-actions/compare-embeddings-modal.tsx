@@ -26,10 +26,9 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 interface EmbeddingCompareResponse {
-  similarity_score: number;
-  model_name: string;
-  user_a_updated_at: string;
-  user_b_updated_at: string;
+  user_id_a: string;
+  user_id_b: string;
+  similarity: number;
 }
 
 interface CompareEmbeddingsModalProps {
@@ -114,16 +113,7 @@ export function CompareEmbeddingsModal({
       {result && (
         <div className="space-y-2 rounded-md border p-3">
           <p className="text-sm font-medium">
-            {te('similarityScore', { score: (result.similarity_score * 100).toFixed(2) })}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {te('modelLabel')} {result.model_name}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {te('userAUpdated')} {result.user_a_updated_at}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {te('userBUpdated')} {result.user_b_updated_at}
+            {te('similarityScore', { score: (result.similarity * 100).toFixed(2) })}
           </p>
         </div>
       )}

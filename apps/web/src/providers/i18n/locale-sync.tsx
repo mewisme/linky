@@ -1,6 +1,6 @@
 "use client";
 
-import { isUiLocale, type UiLocale } from "@ws/shared-types";
+import { isAppLocale, type AppLocale } from "@/shared/types/app-locale.types";
 import { useLocale } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
@@ -18,7 +18,7 @@ export function LocaleSync() {
   const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
   const [hydrated, setHydrated] = useState(false);
   const isFirstLocaleSync = useRef(true);
-  const deferredRedirectLocale = useRef<UiLocale | null>(null);
+  const deferredRedirectLocale = useRef<AppLocale | null>(null);
   const preferenceRedirectPending = useRef(false);
 
   useEffect(() => {
@@ -42,7 +42,7 @@ export function LocaleSync() {
     isFirstLocaleSync.current = false;
 
     const stored = useLocalePreferenceStore.getState().locale;
-    if (!isUiLocale(stored) || stored === locale) return;
+    if (!isAppLocale(stored) || stored === locale) return;
 
     if (isVideoChatBlockingLocaleChange(useVideoChatStore.getState().connectionStatus)) {
       deferredRedirectLocale.current = stored;
@@ -70,7 +70,7 @@ export function LocaleSync() {
     if (!hydrated) return;
     if (!preferenceRedirectPending.current) return;
     const stored = useLocalePreferenceStore.getState().locale;
-    if (isUiLocale(stored) && stored === locale) {
+    if (isAppLocale(stored) && stored === locale) {
       preferenceRedirectPending.current = false;
     }
   }, [hydrated, locale]);
@@ -79,7 +79,7 @@ export function LocaleSync() {
     if (!hydrated) return;
     if (deferredRedirectLocale.current) return;
     if (preferenceRedirectPending.current) return;
-    setLocalePreference(locale as UiLocale);
+    setLocalePreference(locale as AppLocale);
   }, [hydrated, locale, setLocalePreference]);
 
   return null;

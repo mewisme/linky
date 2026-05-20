@@ -95,6 +95,14 @@ export namespace ResourcesAPI {
       reviewed_at: string | null;
       created_at: string;
       updated_at: string;
+      reporter_first_name?: string | null;
+      reporter_last_name?: string | null;
+      reporter_avatar_url?: string | null;
+      reporter_email?: string | null;
+      reported_first_name?: string | null;
+      reported_last_name?: string | null;
+      reported_avatar_url?: string | null;
+      reported_email?: string | null;
       context?: ReportContext | null;
     }
 
@@ -102,6 +110,8 @@ export namespace ResourcesAPI {
       export interface Body {
         reported_user_id: string;
         reason: string;
+        description?: string;
+        metadata?: Record<string, unknown>;
         call_id?: string;
         room_id?: string;
         behavior_flags?: {

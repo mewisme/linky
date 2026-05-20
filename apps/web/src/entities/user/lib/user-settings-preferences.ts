@@ -14,7 +14,7 @@ import type {
   GodRaysPresetType,
 } from "@ws/ui/components/mew-ui/shader";
 import { shaderTypes } from "@ws/ui/components/mew-ui/shader";
-import type { UiLocale } from "@ws/shared-types";
+import type { AppLocale } from "@/shared/types/app-locale.types";
 import type { SidebarCollapsible, SidebarVariant } from "@/shared/model/sidebar-store";
 
 export type StreamVideoQuality = "sd" | "hd";
@@ -211,7 +211,7 @@ export function normalizeUserSidebarPreferences(value: unknown): UserSidebarPref
   return { variant, collapsible };
 }
 
-export function normalizeUserLanguage(value: unknown): UiLocale | null {
+export function normalizeUserLanguage(value: unknown): AppLocale | null {
   if (value === "en" || value === "vi") {
     return value;
   }

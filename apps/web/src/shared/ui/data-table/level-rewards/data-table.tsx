@@ -21,7 +21,7 @@ export function LevelRewardsDataTable({ initialData, className, callbacks, leftC
   return (
     <DataTable
       initialData={initialData}
-      filterColumn="reward_type"
+      filterColumns="reward_type"
       filterPlaceholder={t('levelRewards.filterPlaceholder')}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}

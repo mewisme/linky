@@ -54,9 +54,9 @@ export async function hardDeleteAdminUser(id: string): Promise<AdminAPI.DeleteUs
     ));
 }
 
-export async function hardDeleteAdminUsers(ids: string[]): Promise<AdminAPI.DeleteUsersBatch.Response> {
+export async function hardDeleteAdminUsers(ids: string[]): Promise<{ deleted: number }> {
   return withSentryAction("hardDeleteAdminUsers", async () =>
-    serverFetch<AdminAPI.DeleteUsersBatch.Response>(
+    serverFetch<{ deleted: number }>(
       backendUrl.admin.usersBatch(),
       { method: 'DELETE', body: JSON.stringify({ ids }) }
     ));

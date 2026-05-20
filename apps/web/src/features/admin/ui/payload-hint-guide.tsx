@@ -31,10 +31,6 @@ const REWARD_EXAMPLES: Record<string, string> = {
     "content_type": "image/png"
   }
 }`,
-  currency: `{
-  "amount": 100,
-  "currency_key": "coins"
-}`,
   cosmetic_unlock: `{
   "item_key": "theme_dark",
   "display_name": "Dark Theme",
@@ -55,8 +51,7 @@ const FEATURE_EXAMPLES: Record<string, string> = {
   "limit": 20
 }`,
   streak_freeze: `{
-  "max_freezes": 2,
-  "cost_in_coins": 100
+  "max_freezes": 2
 }`,
   ui_customization: `{
   "themes": ["light", "dark", "system"],
@@ -108,14 +103,6 @@ function rewardHintFields(t: (key: string) => string, type: string): HintFields 
         description: t("rewards.badge.description"),
         mediaNote: t("rewards.badge.mediaNote"),
         resourceTypeNote: t("rewards.badge.resourceTypeNote"),
-        example,
-      };
-    case "currency":
-      return {
-        title: t("rewards.currency.title"),
-        description: t("rewards.currency.description"),
-        mediaNote: t("rewards.currency.mediaNote"),
-        resourceTypeNote: t("rewards.currency.resourceTypeNote"),
         example,
       };
     case "cosmetic_unlock":

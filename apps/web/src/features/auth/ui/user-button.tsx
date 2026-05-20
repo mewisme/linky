@@ -28,7 +28,7 @@ import { useUserStore } from "@/entities/user/model/user-store";
 import { useTheme } from "next-themes"
 import { IconDeviceDesktop } from "@tabler/icons-react";
 import { useLocaleSwitch } from "@/shared/hooks/i18n/use-locale-switch";
-import type { UiLocale } from "@ws/shared-types";
+import type { AppLocale } from "@/shared/types/app-locale.types";
 import { absoluteLocalePrefixedUrl } from "@/i18n/locale-path";
 import { ShaderAvatar, AvatarFallback, AvatarImage } from "@ws/ui/components/mew-ui/shader";
 
@@ -37,7 +37,7 @@ export function UserButton() {
   const tCommon = useTranslations("common");
   const { user, auth: { signOut } } = useUserContext();
   const { user: userStore } = useUserStore();
-  const locale = useLocale() as UiLocale;
+  const locale = useLocale() as AppLocale;
   const { switchLocale } = useLocaleSwitch();
   const { setTheme } = useTheme();
   const signOutRedirectUrl = useMemo(

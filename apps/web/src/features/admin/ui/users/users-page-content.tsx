@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { IconRefresh, IconRefreshDot, IconTrash, IconUserPlus } from '@tabler/icons-react';
+import { IconRefreshDot, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { toast } from '@ws/ui/components/ui/sonner';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
@@ -24,6 +24,8 @@ import { BulkDeleteDialog } from './bulk-delete-dialog';
 import { BulkActions, type BulkAction } from './bulk-actions';
 import { CompareEmbeddingsModal, FindSimilarUsersModal } from './embedding-actions';
 import { isAdmin } from '@/shared/utils/roles';
+import { SimpleTooltip } from '@/shared/ui/common/simple-tooltip';
+import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button';
 
 interface UsersPageContentProps {
   initialData?: AdminAPI.GetUsers.Response;
@@ -170,18 +172,22 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
               <ToggleGroupItem value="active">{t('usersFilterActive')}</ToggleGroupItem>
               <ToggleGroupItem value="deleted">{t('usersFilterDeleted')}</ToggleGroupItem>
             </ToggleGroup>
-            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-              <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => embeddingSyncAllMutation.mutate()}
-              disabled={embeddingSyncAllMutation.isPending}
-            >
-              <IconRefreshDot className={`w-4 h-4 ${embeddingSyncAllMutation.isPending ? 'animate-spin' : ''}`} />
-              {t('syncAllEmbeddings')}
-            </Button>
+            <DataTableRefreshButton
+              onClick={() => refetch()}
+              isFetching={isFetching}
+              tooltip={t("refreshUsersTooltip")}
+            />
+            <SimpleTooltip content={t("syncAllEmbeddings")}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => embeddingSyncAllMutation.mutate()}
+                disabled={embeddingSyncAllMutation.isPending}
+              >
+                <IconRefreshDot className={`w-4 h-4 ${embeddingSyncAllMutation.isPending ? 'animate-spin' : ''}`} />
+                <span className="hidden lg:inline">{t('syncAllEmbeddings')}</span>
+              </Button>
+            </SimpleTooltip>
           </>
         }
         bulkActionsContent={(selected) => (

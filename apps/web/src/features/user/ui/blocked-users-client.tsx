@@ -9,12 +9,12 @@ import type {
   BlockedUsersResponse,
 } from '@/entities/notification/types/notifications.types'
 import { Button } from '@ws/ui/components/ui/button'
-import { IconRefresh } from '@tabler/icons-react'
 import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useTranslations } from 'next-intl'
 import { trackEvent } from '@/lib/telemetry/events/client'
 import { useBlockedUsersStore } from "@/features/user/model/blocked-users-store";
+import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button'
 
 const BlockedUsersDataTable = dynamic(
   () => import('@/shared/ui/data-table/blocked-users/data-table').then(mod => ({ default: mod.BlockedUsersDataTable })),
@@ -62,9 +62,7 @@ export function BlockedUsersClient({ initialData }: Props) {
         initialData={data}
         callbacks={{ onUnblock: handleUnblock }}
         leftColumnVisibilityContent={
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isFetching}>
-            <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          <DataTableRefreshButton onClick={handleRefresh} isFetching={isFetching} />
         }
       />
     </AppLayout>

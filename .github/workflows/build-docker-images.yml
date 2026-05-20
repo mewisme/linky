@@ -19,9 +19,6 @@ jobs:
           - image: linky
             dockerfile: Dockerfile
             context: .
-          - image: linky-go
-            dockerfile: Dockerfile.go
-            context: .
 
     env:
       IMAGE_NAME: ${{ matrix.image }}

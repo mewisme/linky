@@ -59,6 +59,6 @@ export async function importInterestTags(
   return withSentryAction("importInterestTags", async () =>
     serverFetch<AdminAPI.InterestTags.Import.Response>(
       backendUrl.admin.interestTagsImport(),
-      { method: 'POST', body: JSON.stringify(data) }
+      { method: 'POST', body: JSON.stringify(data) },
     ));
 }

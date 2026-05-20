@@ -96,7 +96,7 @@ export function ChatSidebar({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
         side="right"
-        className="p-0 [&>button]:hidden"
+        className="p-0 [&>button]:hidden z-110"
       >
         <SheetHeader className="flex flex-row items-center justify-between border-t border-b p-4">
           <SheetTitle>{t("sheetTitle")}</SheetTitle>

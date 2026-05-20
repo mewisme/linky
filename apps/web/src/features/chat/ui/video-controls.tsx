@@ -33,11 +33,9 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@ws/ui/components/ui/tooltip";
 import { MoreOptionsMenu } from "./more-options-menu";
-import { MoreOptionsDrawer } from "./more-options-drawer";
 import { StreamVideoQualityDialog } from "./stream-video-quality-dialog";
 
 import { Badge } from "@ws/ui/components/ui/badge";
@@ -553,29 +551,27 @@ export function VideoControls({
           : undefined
       }
     >
-      <TooltipProvider>
-        {primaryControls.map((control) => (
-          <ControlButton
-            key={control.id}
-            config={control}
-            context={context}
-            onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
-            onReportOpen={() => setIsReportOpen(true)}
-            onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
-          />
-        ))}
+      {primaryControls.map((control) => (
+        <ControlButton
+          key={control.id}
+          config={control}
+          context={context}
+          onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
+          onReportOpen={() => setIsReportOpen(true)}
+          onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
+        />
+      ))}
 
-        {showOverflowMenu && (
-          <MoreOptionsMenu
-            controls={visibleOverflowControls}
-            context={context}
-            hasUnreadIndicator={hasUnreadMessagesIndicator}
-            onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
-            onReportOpen={() => setIsReportOpen(true)}
-            onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
-          />
-        )}
-      </TooltipProvider>
+      {showOverflowMenu && (
+        <MoreOptionsMenu
+          controls={visibleOverflowControls}
+          context={context}
+          hasUnreadIndicator={hasUnreadMessagesIndicator}
+          onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
+          onReportOpen={() => setIsReportOpen(true)}
+          onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
+        />
+      )}
 
       <StreamVideoQualityDialog
         open={isStreamQualityOpen}

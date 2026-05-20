@@ -29,7 +29,7 @@ export async function DELETE(
     }
 
     const encodedKey = encodeURIComponent(key);
-    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/s3/objects/${encodedKey}`, {
+    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/admin/s3/objects/${encodedKey}`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

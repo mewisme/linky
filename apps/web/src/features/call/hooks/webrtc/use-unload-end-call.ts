@@ -1,18 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
 
 import { useEffect, useRef, type RefObject } from "react";
 
-import { recoveryController } from "@/features/call/lib/webrtc/webrtc-recovery";
-
 export function useUnloadEndCall(
   isInActiveCall: boolean,
   getIsInActiveCall: () => boolean,
   sendEndCall: () => void,
   socketId: string | null,
-  socketRef: RefObject<{ connected: boolean; emit: (event: string, ...args: any[]) => void } | null>,
+  socketRef: RefObject<{ connected: boolean; emit: (event: string, ...args: unknown[]) => void } | null>,
   releaseOwnership?: () => void
 ): void {
   const hasSentUnloadSignalRef = useRef(false);
@@ -32,7 +29,6 @@ export function useUnloadEndCall(
     Sentry.logger.info("TRUE EXIT detected during active call - sending end-call signal");
 
     releaseOwnership?.();
-    recoveryController.stop();
 
     if (socketRef.current?.connected && socketId) {
       try {

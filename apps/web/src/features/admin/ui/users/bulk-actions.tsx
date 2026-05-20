@@ -1,14 +1,6 @@
 'use client';
 
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@ws/ui/components/ui/drawer';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -17,9 +9,9 @@ import {
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { Button } from '@ws/ui/components/ui/button';
-import { IconProps } from '@tabler/icons-react';
-import { useIsMobile } from '@ws/ui/hooks/use-mobile';
+import { IconProps, IconDotsVertical } from '@tabler/icons-react';
 import { useTranslations } from 'next-intl';
+import { SimpleTooltip } from '@/shared/ui/common/simple-tooltip';
 
 export interface BulkAction {
   label: string;
@@ -33,60 +25,30 @@ interface BulkActionsProps {
 }
 
 export function BulkActions({ bulkActions, selected }: BulkActionsProps) {
-  const t = useTranslations('admin');
   const tc = useTranslations('common');
-  const isMobile = useIsMobile();
 
   return (
-    <>
-      {isMobile ? (
-        <Drawer>
-          <DrawerTrigger asChild>
-            <Button variant="outline" size="sm">
-              {tc('actionsMenu')}
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>{t('bulkActionsDrawerTitle')}</DrawerTitle>
-            </DrawerHeader>
-            <div className="p-4 flex flex-col gap-2">
-              {bulkActions.map((action) => (
-                <DrawerClose key={action.label} asChild>
-                  <Button
-                    variant="outline"
-                    className="h-12 w-full justify-start gap-3"
-                    onClick={() => action.onClick(selected)}
-                  >
-                    <action.icon className="w-4 h-4" />
-                    <span>{action.label}</span>
-                  </Button>
-                </DrawerClose>
-              ))}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      ) : (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              {tc('actionsMenu')}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {bulkActions.map((action) => (
-              <DropdownMenuItem
-                key={action.label}
-                onClick={() => action.onClick(selected)}
-                disabled={!selected.length}
-              >
-                <action.icon className="w-4 h-4" />
-                {action.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-    </>
+    <DropdownMenu>
+      <SimpleTooltip content={tc('actionsMenu')}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">
+            <IconDotsVertical className="w-4 h-4" />
+            <span className="hidden lg:inline-block">{tc('actionsMenu')}</span>
+          </Button>
+        </DropdownMenuTrigger>
+      </SimpleTooltip>
+      <DropdownMenuContent>
+        {bulkActions.map((action) => (
+          <DropdownMenuItem
+            key={action.label}
+            onClick={() => action.onClick(selected)}
+            disabled={!selected.length}
+          >
+            <action.icon className="w-4 h-4" />
+            {action.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

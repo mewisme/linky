@@ -12,7 +12,6 @@ pipeline {
   environment {
     LINKY_API_URL = 'https://api.linkynow.site'
     DOCKER_IMAGE_API_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky'
-    DOCKER_IMAGE_WORKER_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-go'
   }
 
   stages {
@@ -45,7 +44,7 @@ pipeline {
           if (compareResult <= 0) {
             doPull = true
           }
-          echo "✔ Local & Remote versions compared"
+          echo "Local & Remote versions compared"
         }
       }
     }
@@ -61,59 +60,40 @@ pipeline {
             def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_API_URL/tags"
             def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
-            def tagsDockerHubWorkerResponse = httpRequest url: "$DOCKER_IMAGE_WORKER_URL/tags"
-            def tagsDockerHubWorkerJson = readJSON text: tagsDockerHubWorkerResponse.content
-
-            def latestDigestMain = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
-            def matchedTagMain = latestDigestMain
+            def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
+            def matchedTag = latestDigest
               ? tagsDockerHubJson.results.find { tag ->
-                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestMain }
+                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigest }
                 }
               : null
 
-            def latestDigestWorker = tagsDockerHubWorkerJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
-            def matchedTagWorker = latestDigestWorker
-              ? tagsDockerHubWorkerJson.results.find { tag ->
-                  tag.name != "latest" && tag.images.any { img -> img.digest == latestDigestWorker }
-                }
-              : null
+            def dockerVersion = matchedTag?.name
 
-            def dockerMainVersion = matchedTagMain?.name
-            def dockerWorkerVersion = matchedTagWorker?.name
-
-            echo "Docker Hub main version: ${dockerMainVersion}"
-            echo "Docker Hub worker version: ${dockerWorkerVersion}"
+            echo "Docker Hub version: ${dockerVersion}"
             echo "Remote version: ${remoteVersion}"
             echo "Local version: ${localVersion}"
 
-            def allDockerVersionsSame =
-              dockerMainVersion &&
-              dockerWorkerVersion &&
-              compareVersions(v1: dockerMainVersion, v2: dockerWorkerVersion) == 0
+            def dockerMatchesRemote =
+              dockerVersion &&
+              compareVersions(v1: remoteVersion, v2: dockerVersion) == 0
 
-            def allDockerMatchRemote =
-              allDockerVersionsSame &&
-              compareVersions(v1: remoteVersion, v2: dockerMainVersion) == 0
+            if (dockerMatchesRemote) {
+              echo 'Docker Hub & Remote versions are the same'
 
-            if (allDockerMatchRemote) {
-              echo '✔ Docker Hub api and worker versions match'
-              echo '✔ Docker Hub & Remote versions are the same'
+              def dockerMatchesLocal =
+                compareVersions(v1: localVersion, v2: dockerVersion) == 0
 
-              def allDockerMatchLocal =
-                compareVersions(v1: localVersion, v2: dockerMainVersion) == 0 &&
-                compareVersions(v1: localVersion, v2: dockerWorkerVersion) == 0
-
-              if (allDockerMatchLocal) {
-                echo '✔ Docker Hub & Local versions are the same'
-                echo '✔ No need to deploy'
+              if (dockerMatchesLocal) {
+                echo 'Docker Hub & Local versions are the same'
+                echo 'No need to deploy'
                 doPull = false
               }
 
               return true
             }
 
-            echo '△ Docker Hub versions are not fully synced with Remote yet'
-            echo '△ Waiting for Github Actions to complete'
+            echo 'Docker Hub version is not synced with Remote yet'
+            echo 'Waiting for Github Actions to complete'
             return false
           }
         }
@@ -130,7 +110,7 @@ pipeline {
             cp "$ENV_FILE" .env
             chmod 600 .env
           '''
-          echo '✔ Env files prepared'
+          echo 'Env files prepared'
         }
       }
     }
@@ -152,10 +132,10 @@ pipeline {
       cleanWs()
     }
     success {
-      echo '✔ Linky deployed successfully'
+      echo 'Linky deployed successfully'
     }
     failure {
-      echo '✘ Linky deployment failed'
+      echo 'Linky deployment failed'
     }
   }
 }

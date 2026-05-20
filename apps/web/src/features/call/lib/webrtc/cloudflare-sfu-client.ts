@@ -1,8 +1,15 @@
 "use client";
 
-import { backendUrl } from "@/lib/http/backend-url";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { ApiError, parseApiErrorBody } from "@/lib/http/api-error";
+
+const REALTIME_PROXY = {
+  session: "/api/video-chat/realtime/session",
+  publish: "/api/video-chat/realtime/publish",
+  subscribe: "/api/video-chat/realtime/subscribe",
+  renegotiate: "/api/video-chat/realtime/renegotiate",
+  cleanup: "/api/video-chat/realtime/cleanup",
+} as const;
 
 export interface CloudflareSdpDescription {
   sdp: string;
@@ -43,13 +50,13 @@ async function send<T>(
   token: string | null,
   body: unknown,
 ): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   const response = await fetchWithApiFallback(url, {
     method,
-    headers: {
-      Authorization: token ? `Bearer ${token}` : "",
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify(body),
+    cache: "no-store",
   });
 
   if (!response.ok) {
@@ -71,7 +78,7 @@ export async function createRealtimeSession(
   token: string | null,
   payload: { roomId: string; socketId: string },
 ): Promise<RealtimeSessionResponse> {
-  return send<RealtimeSessionResponse>("POST", backendUrl.videoChat.realtime.session(), token, payload);
+  return send<RealtimeSessionResponse>("POST", REALTIME_PROXY.session, token, payload);
 }
 
 export interface RealtimePublishTrack {
@@ -90,14 +97,14 @@ export async function publishRealtimeTracks(
     tracks: RealtimePublishTrack[];
   },
 ): Promise<RealtimeNegotiateResponse> {
-  return send<RealtimeNegotiateResponse>("POST", backendUrl.videoChat.realtime.publish(), token, payload);
+  return send<RealtimeNegotiateResponse>("POST", REALTIME_PROXY.publish, token, payload);
 }
 
 export async function subscribeRealtimeTracks(
   token: string | null,
   payload: { roomId: string; socketId: string; sessionId: string },
 ): Promise<RealtimeNegotiateResponse> {
-  return send<RealtimeNegotiateResponse>("POST", backendUrl.videoChat.realtime.subscribe(), token, payload);
+  return send<RealtimeNegotiateResponse>("POST", REALTIME_PROXY.subscribe, token, payload);
 }
 
 export async function renegotiateRealtimeSession(
@@ -107,7 +114,7 @@ export async function renegotiateRealtimeSession(
   try {
     return await send<{ ok: boolean; errorCode?: string; errorDescription?: string }>(
       "PUT",
-      backendUrl.videoChat.realtime.renegotiate(),
+      REALTIME_PROXY.renegotiate,
       token,
       payload,
     );
@@ -124,7 +131,7 @@ export async function cleanupRealtimeSession(
   payload: { roomId: string; socketId: string },
 ): Promise<{ ok: boolean }> {
   try {
-    return await send<{ ok: boolean }>("POST", backendUrl.videoChat.realtime.cleanup(), token, payload);
+    return await send<{ ok: boolean }>("POST", REALTIME_PROXY.cleanup, token, payload);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       return { ok: true };

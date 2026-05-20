@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const response = await fetchWithApiFallback(
-      `${publicEnv.API_URL}/api/v1/s3/objects?${searchParams.toString()}`,
+      `${publicEnv.API_URL}/api/v1/admin/s3/objects?${searchParams.toString()}`,
       {
         method: "GET",
         headers: {

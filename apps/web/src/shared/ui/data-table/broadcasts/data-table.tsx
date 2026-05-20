@@ -26,7 +26,7 @@ export function BroadcastsDataTable({
       columns={tableColumns}
       className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
-      filterColumn="message"
+      filterColumns="message"
       filterPlaceholder={t('broadcasts.filterPlaceholder')}
     />
   );

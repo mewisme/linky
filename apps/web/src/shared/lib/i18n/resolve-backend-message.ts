@@ -1,9 +1,9 @@
-import type { BackendUserMessage } from "@ws/shared-types";
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 type TranslateFn = (key: string, values?: Record<string, unknown>) => string;
 
 export function resolveBackendMessage(
-  message: BackendUserMessage | undefined,
+  message: ApiUserMessage | undefined,
   t: TranslateFn,
   genericKey = "errors.unexpected",
 ): string {

@@ -1,7 +1,9 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
-import { IconPlus, IconRefresh } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
+import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
+import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
 import React, { useState } from "react";
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
@@ -151,14 +153,15 @@ export function StreakExpBonusesClient({ initialData }: StreakExpBonusesClientPr
         initialData={data?.data || []}
         callbacks={rowCallbacks}
         leftColumnVisibilityContent={
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
         }
         rightColumnVisibilityContent={
-          <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
-            <IconPlus className="w-4 h-4 mr-2" /> {t("streakExpModal.addNew")}
-          </Button>
+          <SimpleTooltip content={t("streakExpModal.addNew")}>
+            <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
+              <IconPlus className="w-4 h-4" />
+              <span className="hidden lg:inline">{t("streakExpModal.addNew")}</span>
+            </Button>
+          </SimpleTooltip>
         }
       />
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

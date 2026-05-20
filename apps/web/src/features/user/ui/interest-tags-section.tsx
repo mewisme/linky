@@ -24,7 +24,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@ws/ui/components/ui/tooltip'
 import { useEffect, useMemo, useState, useTransition } from 'react'
@@ -301,7 +300,6 @@ export function InterestTagsSection({
             <div className="space-y-2">
               <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-3 sm:px-4 sm:py-3">
                 <div className="flex flex-wrap gap-2">
-                  <TooltipProvider>
                     {(showAllTags
                       ? displayTags
                       : displayTags.slice(0, INITIAL_TAGS_VISIBLE)
@@ -331,7 +329,6 @@ export function InterestTagsSection({
                         )}
                       </Tooltip>
                     ))}
-                  </TooltipProvider>
                 </div>
               </div>
             </div>

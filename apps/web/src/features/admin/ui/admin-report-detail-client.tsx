@@ -134,7 +134,7 @@ export function AdminReportDetailClient({ report }: Props) {
 
   const generateAiMutation = useMutation({
     mutationFn: () =>
-      fetchFromActionRoute<{ success: true }>(
+      fetchFromActionRoute<{ queued: true }>(
         `/api/admin/reports/${encodeURIComponent(report.id)}/ai-summary`,
         { method: 'POST' },
       ),

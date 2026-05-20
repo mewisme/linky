@@ -18,7 +18,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@ws/ui/components/ui/dialog';
-import { IconPlus, IconRefresh } from '@tabler/icons-react';
+import { IconBrain, IconPlus } from '@tabler/icons-react';
+import { Link } from '@/i18n/navigation';
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@ws/ui/internal-lib/react-query';
@@ -37,6 +38,8 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 import { useUserStore } from '@/entities/user/model/user-store';
+import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button';
+import { SimpleTooltip } from '@/shared/ui/common/simple-tooltip';
 
 const AdminConfigDataTable = dynamic(
   () =>
@@ -173,20 +176,25 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
           initialData={rows}
           callbacks={{ onUpdate: handleUpdate, onUnset: handleUnset }}
           leftColumnVisibilityContent={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              disabled={isFetching}
-            >
-              <IconRefresh className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-            </Button>
+            <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
           }
           rightColumnVisibilityContent={
-            <Button size="sm" onClick={handleOpenSet} className="bg-primary hover:opacity-90 shadow-md">
-              <IconPlus className="h-4 w-4" />
-              {ta('configForm.setButton')}
-            </Button>
+            <div className="flex items-center gap-2">
+              <SimpleTooltip content={ta('aiConfig.openVisualEditor')}>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/admin/config/ai">
+                    <IconBrain className="h-4 w-4" />
+                    <span className="hidden lg:inline">{ta('aiConfig.openVisualEditor')}</span>
+                  </Link>
+                </Button>
+              </SimpleTooltip>
+              <SimpleTooltip content={ta('configForm.setButton')}>
+                <Button size="sm" onClick={handleOpenSet} className="bg-primary hover:opacity-90 shadow-md">
+                  <IconPlus className="h-4 w-4" />
+                  <span className="hidden lg:inline">{ta('configForm.setButton')}</span>
+                </Button>
+              </SimpleTooltip>
+            </div>
           }
         />
       </div>

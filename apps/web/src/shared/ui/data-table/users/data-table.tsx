@@ -21,7 +21,7 @@ export function UsersDataTable({ initialData, className, callbacks, leftColumnVi
     <div data-testid="admin-users-table">
       <DataTable
         initialData={initialData}
-        filterColumn="email"
+        filterColumns="email"
         initialColumnVisibility={{
           id: false,
           avatar_url: false,

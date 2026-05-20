@@ -24,7 +24,7 @@ export function BlockedUsersDataTable({ initialData, className, callbacks, leftC
       columns={tableColumns}
       className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
-      filterColumn="blocked_user"
+      filterColumns="blocked_user"
       filterPlaceholder={t('blockedUsers.searchPlaceholder')}
     />
   )

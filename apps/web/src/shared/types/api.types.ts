@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import type { BackendUserMessage } from "@ws/shared-types";
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 export interface ApiError {
   error: string;
   message: string;
-  userMessage?: BackendUserMessage;
+  userMessage?: ApiUserMessage;
 }
 
 export namespace S3API {

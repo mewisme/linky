@@ -17,6 +17,7 @@ export function FavoritesDataTable({ initialData, className, callbacks, leftColu
 
   return (
     <DataTable
+      filterColumns="name"
       initialData={initialData}
       initialColumnVisibility={{ id: false }}
       columns={tableColumns}

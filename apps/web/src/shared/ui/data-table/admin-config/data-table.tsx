@@ -24,6 +24,7 @@ export function AdminConfigDataTable({
 
   return (
     <DataTable
+      filterColumns='key'
       initialData={initialData}
       initialColumnVisibility={{}}
       columns={tableColumns}

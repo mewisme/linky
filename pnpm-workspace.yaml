@@ -1,5 +1,5 @@
 packages:
-  - apps/*
+  - apps/web
   - packages/*
 
 allowBuilds:
@@ -7,23 +7,16 @@ allowBuilds:
   '@parcel/watcher': true
   '@sentry/cli': true
   '@swc/core': true
-  esbuild: true
   msw: true
   sharp: true
   unrs-resolver: true
 
 catalog:
   '@types/node': ^25.6.0
-  dotenv: ^17.4.2
   eslint: ^9.39.4
   react: ^19.2.5
-  redis: ^5.12.1
-  socket.io: ^4.8.3
   socket.io-client: ^4.8.3
-  tsup: ^8.5.1
-  tsx: ^4.21.0
   typescript: ^5.9.3
-  vitest: ^4.1.4
   zod: 4.3.6
 
 injectWorkspacePackages: true
@@ -33,9 +26,6 @@ onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@sentry/cli'
   - '@swc/core'
-  - esbuild
   - msw
-  - protobufjs
   - sharp
-  - supabase
   - unrs-resolver

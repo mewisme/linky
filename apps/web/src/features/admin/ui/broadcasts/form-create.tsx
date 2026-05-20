@@ -67,6 +67,12 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
   const isSubmitting = form.formState.isSubmitting;
 
+  function clearAiWriterState() {
+    setAiDraft(null);
+    setSelectedTone("primary");
+    setIsAiDialogOpen(false);
+  }
+
   async function onSubmit(values: BroadcastFormValues) {
     try {
       const res = await fetchFromActionRoute<AdminAPI.Broadcasts.Post.Response>("/api/admin/broadcasts", {
@@ -83,6 +89,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       playSound("success");
       toast.success(res.message ?? t("broadcastSent", { count: res.sent }));
       form.reset();
+      clearAiWriterState();
       onSuccess?.();
     } catch (error) {
       toast.error(
@@ -125,8 +132,13 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
           }),
         },
       );
+      if (!res.draft?.primary) {
+        toast.error(t("aiDraftFailed"));
+        return;
+      }
       setAiDraft(res.draft);
       setSelectedTone("primary");
+      setIsAiDialogOpen(false);
       toast.success(t("aiDraftGenerated"));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t("aiDraftFailed"));
@@ -137,9 +149,8 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
   function onUseAiDraft() {
     if (!selectedDraft) return;
-    form.setValue("title", selectedDraft.title);
-    form.setValue("message", `${selectedDraft.body}\n\n${selectedDraft.cta}`);
-    setIsAiDialogOpen(false);
+    form.setValue("title", selectedDraft.title, { shouldDirty: true });
+    form.setValue("message", `${selectedDraft.body}\n\n${selectedDraft.cta}`, { shouldDirty: true });
     toast.success(t("draftApplied"));
   }
 

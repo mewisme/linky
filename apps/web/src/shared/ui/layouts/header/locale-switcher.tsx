@@ -11,12 +11,12 @@ import { CountryFlag } from "@/shared/ui/common/country-flag"
 import { Button } from "@ws/ui/components/ui/button"
 import { routing } from "@/i18n/routing"
 import { useLocaleSwitch } from "@/shared/hooks/i18n/use-locale-switch"
-import type { UiLocale } from "@ws/shared-types"
+import type { AppLocale } from "@/shared/types/app-locale.types"
 import { useLocale, useTranslations } from "next-intl"
 
 export function LocaleSwitcher() {
   const t = useTranslations("common")
-  const locale = useLocale() as UiLocale
+  const locale = useLocale() as AppLocale
   const { switchLocale } = useLocaleSwitch()
 
   return (

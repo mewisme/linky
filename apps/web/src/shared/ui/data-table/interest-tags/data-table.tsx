@@ -22,7 +22,7 @@ export function InterestTagsDataTable({ initialData, className, callbacks, leftC
     <div data-testid="admin-interest-tags-table">
       <DataTable
         initialData={initialData}
-        filterColumn="name"
+        filterColumns="name"
         filterPlaceholder={t('interestTags.filterPlaceholder')}
         initialColumnVisibility={{ id: false }}
         columns={tableColumns}

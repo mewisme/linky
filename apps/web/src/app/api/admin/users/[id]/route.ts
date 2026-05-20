@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { hardDeleteAdminUser, updateAdminUser } from "@/features/admin/api/users";
+import { hardDeleteAdminUsers, updateAdminUser } from "@/features/admin/api/users";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
@@ -24,7 +24,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
-    const data = await hardDeleteAdminUser(id);
+    const data = await hardDeleteAdminUsers([id]);
     return NextResponse.json(data);
   } catch (error) {
     return nextResponseFromActionError(error, "DELETE /api/admin/users/[id]");

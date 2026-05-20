@@ -21,7 +21,7 @@ export function AdminReportsDataTable({ initialData, className, callbacks, leftC
   return (
     <DataTable
       initialData={initialData}
-      filterColumn="reason"
+      filterColumns="reason"
       filterPlaceholder={t('adminReports.filterPlaceholder')}
       initialColumnVisibility={{
         reviewed_by: false,

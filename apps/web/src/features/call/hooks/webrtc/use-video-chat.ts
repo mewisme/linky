@@ -1,7 +1,7 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import type { BackendUserMessage } from "@ws/shared-types";
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
 import { useTranslations } from "next-intl";
 import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
@@ -10,7 +10,8 @@ import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useHotkey } from "@tanstack/react-hotkeys";
 
 import type { UsersAPI } from "@/entities/user/types/users.types";
-import type { SignalData, UserFacingSocketPayload } from "@/lib/realtime/socket";
+import { normalizePublicUserInfo } from "@/shared/lib/normalize-public-user-info";
+import type { UserFacingSocketPayload } from "@/lib/realtime/socket";
 import type {
   ChatMessage,
   ChatMessageDraft,
@@ -22,7 +23,6 @@ import type {
 
 import { useUserContext } from "@/providers/user/user-provider";
 import { useMediaStream } from "./use-media-stream";
-import { usePeerConnection } from "./use-peer-connection";
 import { useScreenShare } from "./use-screen-share";
 import { useSocketSignaling } from "@/features/realtime/hooks/use-socket-signaling";
 import { useVideoChatState, type ConnectionStatus } from "./use-video-chat-state";
@@ -33,8 +33,6 @@ import { useWebRTCMonitoring } from "./use-webrtc-monitoring";
 import { useCloudflareSfuConnection } from "./use-cloudflare-sfu-connection";
 import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordination";
 
-import { iceServerCache } from "@/features/call/lib/webrtc/ice-servers-cache";
-import { recoveryController } from "@/features/call/lib/webrtc/webrtc-recovery";
 import type { RealtimePeerTracksPayload, VideoMediaProvider } from "@/lib/realtime/socket";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
@@ -87,7 +85,7 @@ export function useVideoChat(): UseVideoChatReturn {
   const { play } = useSoundWithSettings();
   const t = useTranslations();
   const resolveUserMessage = useCallback(
-    (msg: BackendUserMessage) =>
+    (msg: ApiUserMessage) =>
       resolveBackendMessage(msg, t as (key: string, values?: Record<string, unknown>) => string),
     [t],
   );
@@ -106,29 +104,39 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const refreshUserProgress = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["user-progress"] });
-    await queryClient.refetchQueries({ queryKey: ["user-progress"], type: "active" });
   }, [queryClient]);
 
-  const syncUserProgressAfterCallEnd = useCallback(() => {
-    void refreshUserProgress();
-    setTimeout(() => {
+  // Backend emits `user:progress:applied` once the post-call EXP/streak
+  // pipeline has finished writing to Postgres for this user. Refetch
+  // immediately when it arrives so the UI shows fresh values without polling.
+  useEffect(() => {
+    const socket = socketSignaling.getSocket();
+    if (!socket) return;
+    const onApplied = () => {
       void refreshUserProgress();
-    }, 1200);
-    setTimeout(() => {
-      void refreshUserProgress();
-    }, 3500);
-  }, [refreshUserProgress]);
+    };
+    socket.on("user:progress:applied", onApplied);
+    return () => {
+      socket.off("user:progress:applied", onApplied);
+    };
+  }, [socketSignaling, refreshUserProgress, state.connectionStatus]);
+
+  const sfuConnection = useCloudflareSfuConnection({
+    getToken: async () => {
+      try {
+        return await getTokenRef.current();
+      } catch {
+        return null;
+      }
+    },
+  });
 
   const tabCoordination = useCallTabCoordination({
     scopeId: user?.id ?? null,
     onOwnershipLost: () => {
-      iceRestartCancelRef.current = true;
       monitoring.stopMonitoring();
-      recoveryController.stop();
-      iceServerCache.resetSession();
       void sfuConnection.cleanup();
       mediaStream.releaseMedia();
-      peerConnection.closePeer();
       actionsRef.current.resetPeerState();
       actionsRef.current.setLocalStream(null);
       actionsRef.current.setMuted(false);
@@ -141,34 +149,10 @@ export function useVideoChat(): UseVideoChatReturn {
     },
   });
 
-  const peerConnection = usePeerConnection([]);
-  const sfuConnection = useCloudflareSfuConnection({
-    getToken: async () => {
-      try {
-        return await getTokenRef.current();
-      } catch {
-        return null;
-      }
-    },
-  });
-  const mediaProviderRef = useRef<VideoMediaProvider>("p2p");
-
-  const isActiveCallStatus = useCallback((status: ConnectionStatus) => {
-    return status === "matched" || status === "in_call" || status === "reconnecting";
-  }, []);
-
-  const hasActiveCallMedia = useCallback(() => {
-    return sfuConnection.getRoomId() != null || peerConnection.getPeerConnection() != null;
-  }, [sfuConnection, peerConnection]);
-
-  const iceServersRef = useRef<RTCIceServer[]>([]);
-  const turnCredentialRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const isOffererRef = useRef<boolean>(false);
   const getTokenRef = useRef(getToken);
   getTokenRef.current = getToken;
   const screenTrackRef = useRef<MediaStreamTrack | null>(null);
   const screenTrackEndedHandlerRef = useRef<(() => void) | null>(null);
-  const iceRestartCancelRef = useRef(false);
 
   const hasShownConnectedToastRef = useRef(false);
   const isReconnectingRef = useRef(false);
@@ -192,106 +176,13 @@ export function useVideoChat(): UseVideoChatReturn {
     activeRoomIdRef.current = null;
   }, []);
 
-  useEffect(() => {
-    if (!authReady) return;
-    let mounted = true;
+  const isActiveCallStatus = useCallback((status: ConnectionStatus) => {
+    return status === "matched" || status === "in_call" || status === "reconnecting";
+  }, []);
 
-    async function initIceServers() {
-      try {
-        const servers = await iceServerCache.getIceServers(
-          (opts) => getTokenRef.current(opts),
-          "initial"
-        );
-        if (mounted) {
-          iceServersRef.current = servers;
-        }
-      } catch (err) {
-        Sentry.logger.error("Failed to fetch ICE servers", { error: err });
-        if (mounted) {
-          actionsRef.current.setError(t("call.failedInitIce"));
-        }
-      }
-    }
-
-    void initIceServers();
-
-    return () => {
-      mounted = false;
-    };
-  }, [authReady, t]);
-
-  const refreshTurnCredentials = useCallback(async () => {
-    const pc = peerConnection.getPeerConnection();
-    if (!pc || pc.signalingState === "closed") {
-      return;
-    }
-
-    if (!iceServerCache.isExpired()) {
-      return;
-    }
-
-    const isInActiveCall =
-      state.connectionStatus === "matched" ||
-      state.connectionStatus === "in_call" ||
-      state.connectionStatus === "reconnecting";
-
-    try {
-      const newServers = await iceServerCache.getIceServers(
-        (opts) => getTokenRef.current(opts),
-        "expired"
-      );
-
-      if (newServers.length === 0) {
-        return;
-      }
-
-      await peerConnection.updateIceServers(newServers);
-      iceServersRef.current = newServers;
-
-      if (isInActiveCall && isOffererRef.current) {
-        if (!iceServerCache.recordIceRestart()) {
-          return;
-        }
-
-        try {
-          const restartOffer = await peerConnection.restartIce();
-          socketSignaling.sendSignal({
-            type: "offer",
-            sdp: restartOffer,
-            iceRestart: true,
-          });
-        } catch (err) {
-          Sentry.logger.error("[IceServerCache] Failed to initiate ICE restart after credential refresh", { error: err });
-        }
-      }
-    } catch (err) {
-      Sentry.logger.error("[IceServerCache] Error refreshing TURN credentials", { error: err });
-    }
-  }, [peerConnection, state.connectionStatus, socketSignaling]);
-
-  useEffect(() => {
-    if (!authReady) return;
-
-    const checkAndRefreshCredentials = () => {
-      const pc = peerConnection.getPeerConnection();
-      if (
-        pc &&
-        pc.signalingState !== "closed" &&
-        (state.connectionStatus === "in_call" || state.connectionStatus === "reconnecting")
-      ) {
-        refreshTurnCredentials();
-      }
-    };
-
-    turnCredentialRefreshTimerRef.current = setInterval(checkAndRefreshCredentials, 60_000);
-
-    return () => {
-      if (turnCredentialRefreshTimerRef.current) {
-        clearInterval(turnCredentialRefreshTimerRef.current);
-        turnCredentialRefreshTimerRef.current = null;
-      }
-    };
-  }, [authReady, peerConnection, state.connectionStatus, refreshTurnCredentials]);
+  const hasActiveCallMedia = useCallback(() => {
+    return sfuConnection.getRoomId() != null;
+  }, [sfuConnection]);
 
   const startReconnecting = useCallback(() => {
     const currentStatus = connectionStatusRef.current;
@@ -383,150 +274,50 @@ export function useVideoChat(): UseVideoChatReturn {
 
   const resetPeerState = useCallback(() => {
     resetCallEntryGate();
-    iceRestartCancelRef.current = true;
     stopActiveScreenShare();
-    recoveryController.stop();
-    iceServerCache.resetSession();
     void sfuConnection.cleanup();
     mediaStream.releaseMedia();
-    peerConnection.closePeer();
     actionsRef.current.resetPeerState();
     actionsRef.current.setLocalStream(null);
     actionsRef.current.setMuted(false);
     actionsRef.current.setVideoOff(false);
-  }, [mediaStream, peerConnection, sfuConnection, stopActiveScreenShare, resetCallEntryGate]);
+  }, [mediaStream, sfuConnection, stopActiveScreenShare, resetCallEntryGate]);
 
   const resetRuntimeState = useCallback(() => {
     stopActiveScreenShare();
-    recoveryController.stop();
-    iceServerCache.resetSession();
     void sfuConnection.cleanup();
     mediaStream.releaseMedia();
-    peerConnection.closePeer();
     actionsRef.current.resetRuntimeState();
-  }, [mediaStream, peerConnection, sfuConnection, stopActiveScreenShare]);
+  }, [mediaStream, sfuConnection, stopActiveScreenShare]);
 
   const cleanup = useCallback(() => {
     resetPeerState();
     socketSignaling.disconnectSocket();
   }, [resetPeerState, socketSignaling]);
 
-  const initializeConnectionRef = useCallback((
-    peerCallbacks: {
-      onTrack: (stream: MediaStream) => void;
-      onIceCandidate: (candidate: RTCIceCandidate) => void;
-      onConnectionStateChange: (connectionState: RTCPeerConnectionState) => void;
-      onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => void;
+  const initializeConnectionRef = useCallback(
+    (socketCallbacks: Record<string, (...args: unknown[]) => void>) => {
+      return async () => {
+        // SFU only: the RTCPeerConnection is created lazily inside the SFU
+        // connection hook on the `matched` event. We just open the Socket.IO
+        // connection and join the queue here.
+        await socketSignaling.initializeSocket(socketCallbacks as never);
+        actionsRef.current.setConnectionStatus("searching");
+        socketSignaling.joinQueue();
+      };
     },
-    socketCallbacks: Record<string, (...args: unknown[]) => void>
-  ) => {
-    return async (stream: MediaStream) => {
-      peerConnection.initializePeerConnection(stream, peerCallbacks, iceServersRef.current);
-      await socketSignaling.initializeSocket(socketCallbacks as never);
-      actionsRef.current.setConnectionStatus("searching");
-      socketSignaling.joinQueue();
-    };
-  }, [peerConnection, socketSignaling]);
-
-  const peerCallbacks = useMemo(
-    () => ({
-      onTrack: (stream: MediaStream) => {
-        actionsRef.current.setRemoteStream(stream);
-        tryEnterInCall();
-      },
-      onIceCandidate: (candidate: RTCIceCandidate) => {
-        socketSignaling.sendSignal({
-          type: "ice-candidate",
-          candidate: candidate.toJSON(),
-        });
-      },
-      onConnectionStateChange: (connectionState: RTCPeerConnectionState) => {
-        if (peerConnection.getIceRestartInProgress?.() && (connectionState === "disconnected" || connectionState === "connecting")) {
-          return;
-        }
-        if (connectionState === "failed") {
-          actionsRef.current.setConnectionStatus("reconnecting");
-          hasShownConnectedToastRef.current = false;
-          recoveryController.stop();
-        } else if (connectionState === "connected") {
-          const currentTier = recoveryController.getCurrentTier();
-          if (currentTier === "none") {
-            transportReadyRef.current = true;
-            tryEnterInCall();
-          } else {
-            actionsRef.current.setConnectionStatus("reconnecting");
-          }
-        } else if (connectionState === "disconnected") {
-          const currentTier = recoveryController.getCurrentTier();
-          if (currentTier !== "none") {
-            actionsRef.current.setConnectionStatus("reconnecting");
-          } else {
-            actionsRef.current.setConnectionStatus("reconnecting");
-          }
-        }
-      },
-      onIceConnectionStateChange: (iceConnectionState: RTCIceConnectionState) => {
-        if (peerConnection.getIceRestartInProgress?.() && (iceConnectionState === "checking" || iceConnectionState === "disconnected")) {
-          return;
-        }
-        const currentStatus = connectionStatusRef.current;
-        const isInCall =
-          currentStatus === "matched" ||
-          currentStatus === "in_call" ||
-          currentStatus === "reconnecting";
-
-        if (iceConnectionState === "failed") {
-          actionsRef.current.setConnectionStatus("reconnecting");
-          hasShownConnectedToastRef.current = false;
-          recoveryController.stop();
-          isReconnectingRef.current = false;
-        } else if (iceConnectionState === "connected" || iceConnectionState === "completed") {
-          peerConnection.setIceRestartInProgress?.(false);
-          recoveryController.markIceRestartComplete();
-          const currentTier = recoveryController.getCurrentTier();
-          if (currentTier === "none") {
-            transportReadyRef.current = true;
-            if (hasEnteredInCallRef.current) {
-              actionsRef.current.setConnectionStatus("in_call");
-              if (isReconnectingRef.current) {
-                completeReconnection();
-              }
-            } else {
-              tryEnterInCall();
-            }
-          } else {
-            actionsRef.current.setConnectionStatus("reconnecting");
-          }
-        } else if (iceConnectionState === "disconnected" || iceConnectionState === "checking") {
-          if (isInCall) {
-            startReconnecting();
-          }
-          const currentTier = recoveryController.getCurrentTier();
-          if (currentTier !== "none") {
-            actionsRef.current.setConnectionStatus("reconnecting");
-          } else {
-            actionsRef.current.setConnectionStatus("reconnecting");
-          }
-        }
-      },
-    }),
-    [socketSignaling, startReconnecting, completeReconnection, peerConnection, tryEnterInCall, t, play]
+    [socketSignaling]
   );
 
   const socketCallbacks = useMemo(
     () => ({
       onConnect: () => {
         const currentStatus = connectionStatusRef.current;
-        const isInCall =
-          currentStatus === "matched" ||
-          currentStatus === "in_call" ||
-          currentStatus === "reconnecting";
-
         if (currentStatus === "searching") {
           socketSignaling.joinQueue();
-        } else if (isInCall && isReconnectingRef.current) {
+        } else if (isReconnectingRef.current) {
           socketSignaling.requestResync();
-          const pc = peerConnection.getPeerConnection();
+          const pc = sfuConnection.getPeerConnection();
           if (pc) {
             const iceState = pc.iceConnectionState;
             if (iceState === "connected" || iceState === "completed") {
@@ -605,14 +396,13 @@ export function useVideoChat(): UseVideoChatReturn {
       onMatched: async (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => {
         isReconnectingRef.current = false;
         hasShownConnectedToastRef.current = false;
-        mediaProviderRef.current = data.mediaProvider;
 
         actionsRef.current.setError(null);
         resetCallEntryGate();
         activeRoomIdRef.current = data.roomId;
         transportReadyRef.current = false;
         actionsRef.current.setConnectionStatus("matched");
-        actionsRef.current.setPeerInfo(data.peerInfo);
+        actionsRef.current.setPeerInfo(normalizePublicUserInfo(data.peerInfo));
         actionsRef.current.setRemoteCameraEnabled(true);
         trackEvent({ name: "matchmaking_matched" });
 
@@ -622,98 +412,47 @@ export function useVideoChat(): UseVideoChatReturn {
           return;
         }
 
-        if (data.mediaProvider === "cloudflare_sfu") {
-          const socketId =
-            data.socketId ?? socketSignaling.getSocket()?.id ?? socketSignaling.getSocketId();
-          if (!socketId) {
-            Sentry.logger.error("No socketId available for SFU match");
-            actionsRef.current.setError(t("call.failedEstablishConnection"));
-            return;
-          }
-          socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
-          try {
-            const pc = await sfuConnection.connect({
-              roomId: data.roomId,
-              socketId,
-              localStream,
-              realtimeSessionId: data.realtimeSessionId,
-              callbacks: {
-                onTrack: (stream) => {
-                  actionsRef.current.setRemoteStream(stream);
-                  tryEnterInCall();
-                },
-                onRemoteMediaUpdated: () => {
-                  tryEnterInCall();
-                },
-                onConnectionStateChange: (connectionState) => {
-                  if (connectionState === "connected") {
-                    transportReadyRef.current = true;
-                    if (hasEnteredInCallRef.current) {
-                      actionsRef.current.setConnectionStatus("in_call");
-                      if (isReconnectingRef.current) {
-                        completeReconnection();
-                      }
-                    } else {
-                      tryEnterInCall();
-                    }
-                  } else if (connectionState === "failed" || connectionState === "disconnected") {
-                    actionsRef.current.setConnectionStatus("reconnecting");
-                    hasShownConnectedToastRef.current = false;
-                    startReconnecting();
-                  }
-                },
-              },
-            });
-            const callPrefs = normalizeUserCallPreferences(userSettings?.call);
-            monitoring.initializeMonitoring(
-              pc,
-              isMobile,
-              {
-                onNetworkQualityChange: (quality) => {
-                  actionsRef.current.setNetworkQuality(quality);
-                },
-                onVideoStalled: (stalled) => {
-                  actionsRef.current.setVideoStalled(stalled);
-                },
-                onQualityTierChange: (tier) => {
-                  actionsRef.current.setQualityTier(tier);
-                },
-              },
-              {
-                isRemoteVideoExpected: () => useVideoChatStore.getState().remoteCameraEnabled,
-              },
-              callPrefs.quality,
-            );
-            transportReadyRef.current = true;
-            tryEnterInCall();
-          } catch (err) {
-            Sentry.logger.error("Cloudflare SFU connect failed", { error: err });
-            actionsRef.current.setError(t("call.failedEstablishConnection"));
-            actionsRef.current.setConnectionStatus("ended");
-            resetCallEntryGate();
-          }
+        const socketId =
+          data.socketId ?? socketSignaling.getSocket()?.id ?? socketSignaling.getSocketId();
+        if (!socketId) {
+          Sentry.logger.error("No socketId available for SFU match");
+          actionsRef.current.setError(t("call.failedEstablishConnection"));
           return;
         }
-
-        if (iceServersRef.current.length === 0) {
-          try {
-            iceServersRef.current = await iceServerCache.getIceServers(
-              (opts) => getTokenRef.current(opts),
-              "initial"
-            );
-          } catch (err) {
-            Sentry.logger.error("ICE servers not available for match", { error: err });
-            actionsRef.current.setError(t("call.connectionConfigNotReady"));
-            return;
-          }
-        }
-
-        peerConnection.initializePeerConnection(localStream, peerCallbacks, iceServersRef.current);
-        isOffererRef.current = data.isOfferer;
         socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
-
-        const pc = peerConnection.getPeerConnection();
-        if (pc) {
+        try {
+          const pc = await sfuConnection.connect({
+            roomId: data.roomId,
+            socketId,
+            localStream,
+            realtimeSessionId: data.realtimeSessionId,
+            callbacks: {
+              onTrack: (stream) => {
+                actionsRef.current.setRemoteStream(stream);
+                tryEnterInCall();
+              },
+              onRemoteMediaUpdated: () => {
+                tryEnterInCall();
+              },
+              onConnectionStateChange: (connectionState) => {
+                if (connectionState === "connected") {
+                  transportReadyRef.current = true;
+                  if (hasEnteredInCallRef.current) {
+                    actionsRef.current.setConnectionStatus("in_call");
+                    if (isReconnectingRef.current) {
+                      completeReconnection();
+                    }
+                  } else {
+                    tryEnterInCall();
+                  }
+                } else if (connectionState === "failed" || connectionState === "disconnected") {
+                  actionsRef.current.setConnectionStatus("reconnecting");
+                  hasShownConnectedToastRef.current = false;
+                  startReconnecting();
+                }
+              },
+            },
+          });
           const callPrefs = normalizeUserCallPreferences(userSettings?.call);
           monitoring.initializeMonitoring(
             pc,
@@ -734,155 +473,19 @@ export function useVideoChat(): UseVideoChatReturn {
             },
             callPrefs.quality,
           );
-
-          recoveryController.start({
-            pc,
-            isOfferer: data.isOfferer,
-            onIceRestart: async (offer) => {
-              peerConnection.setIceRestartInProgress?.(true);
-              iceRestartCancelRef.current = false;
-              if (!socketSignaling.isSocketHealthy()) {
-                await new Promise<void>((resolve) => {
-                  let settled = false;
-                  const checkInterval = setInterval(() => {
-                    if (iceRestartCancelRef.current) {
-                      if (!settled) {
-                        settled = true;
-                        clearInterval(checkInterval);
-                        clearTimeout(timeoutId);
-                        resolve();
-                      }
-                      return;
-                    }
-                    if (socketSignaling.isSocketHealthy() || !socketSignaling.getSocket()?.connected) {
-                      if (!settled) {
-                        settled = true;
-                        clearInterval(checkInterval);
-                        clearTimeout(timeoutId);
-                        resolve();
-                      }
-                    }
-                  }, 500);
-                  const timeoutId = setTimeout(() => {
-                    if (!settled) {
-                      settled = true;
-                      clearInterval(checkInterval);
-                      resolve();
-                    }
-                  }, 5000);
-                });
-              }
-
-              if (socketSignaling.isSocketHealthy() && socketSignaling.getSocket()?.connected) {
-                socketSignaling.sendSignal({
-                  type: "offer",
-                  sdp: offer,
-                  iceRestart: true,
-                });
-              } else {
-                throw new Error("Socket not healthy for ICE restart");
-              }
-            },
-            getIceServers: async () => {
-              const cached = iceServerCache.getCachedServers();
-              if (cached && !iceServerCache.isExpired()) {
-                return cached;
-              }
-
-              return await iceServerCache.getIceServers(
-                (opts) => getTokenRef.current(opts),
-                "expired"
-              );
-            },
-            recordIceRestart: () => {
-              return iceServerCache.recordIceRestart();
-            },
-            onRecoveryStateChange: (tier) => {
-              if (tier === "none") {
-                if (peerConnection.getIceRestartInProgress?.()) {
-                  return;
-                }
-                const pcState = pc.connectionState;
-                const iceState = pc.iceConnectionState;
-                if (pcState === "connected" && (iceState === "connected" || iceState === "completed")) {
-                  actionsRef.current.setConnectionStatus("in_call");
-                } else {
-                  actionsRef.current.setConnectionStatus("reconnecting");
-                }
-              } else {
-                actionsRef.current.setConnectionStatus("reconnecting");
-              }
-            },
-          });
-        }
-
-        if (data.isOfferer) {
-          try {
-            const offer = await peerConnection.createOffer();
-            socketSignaling.sendSignal({
-              type: "offer",
-              sdp: offer,
-            });
-          } catch (err) {
-            Sentry.logger.error("Error creating offer", { error: err instanceof Error ? err.message : "Unknown error" });
-            actionsRef.current.setError(t("call.failedEstablishConnection"));
-            actionsRef.current.setConnectionStatus("ended");
-            recoveryController.stop();
-          }
-        }
-      },
-
-      onSignal: async (data: SignalData) => {
-        if (mediaProviderRef.current === "cloudflare_sfu") {
-          return;
-        }
-        const pc = peerConnection.getPeerConnection();
-        if (!pc || pc.signalingState === "closed") {
-          return;
-        }
-
-        try {
-          if (data.type === "offer") {
-            const isIceRestart = data.iceRestart === true;
-            const answer = await peerConnection.handleOffer(data.sdp as RTCSessionDescriptionInit, isIceRestart);
-            socketSignaling.sendSignal({
-              type: "answer",
-              sdp: answer,
-              iceRestart: isIceRestart,
-            });
-            if (!isIceRestart) {
-              actionsRef.current.setConnectionStatus("in_call");
-            }
-          } else if (data.type === "answer") {
-            await peerConnection.handleAnswer(data.sdp as RTCSessionDescriptionInit, data.iceRestart);
-            if (data.iceRestart) {
-              recoveryController.markIceRestartComplete();
-            } else {
-              const currentTier = recoveryController.getCurrentTier();
-              if (currentTier === "none") {
-                actionsRef.current.setConnectionStatus("in_call");
-              } else {
-                actionsRef.current.setConnectionStatus("reconnecting");
-              }
-            }
-          } else if (data.type === "ice-candidate" && data.candidate) {
-            await peerConnection.addIceCandidate(data.candidate);
-          }
+          transportReadyRef.current = true;
+          tryEnterInCall();
         } catch (err) {
-          const currentPc = peerConnection.getPeerConnection();
-          if (currentPc && currentPc.signalingState !== "closed") {
-            Sentry.logger.error("Error handling signal", { error: err instanceof Error ? err.message : "Unknown error" });
-            actionsRef.current.setError(t("call.failedProcessSignal"));
-          }
+          Sentry.logger.error("Cloudflare SFU connect failed", { error: err });
+          actionsRef.current.setError(t("call.failedEstablishConnection"));
+          actionsRef.current.setConnectionStatus("ended");
+          resetCallEntryGate();
         }
       },
 
       onPeerLeft: (data: UserFacingSocketPayload & { queueSize?: number }) => {
         monitoring.stopMonitoring();
-        recoveryController.stop();
-        peerConnection.closePeer();
         void sfuConnection.cleanup();
-        isOffererRef.current = false;
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
         actionsRef.current.setPeerTyping(false);
@@ -901,10 +504,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onPeerSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => {
         monitoring.stopMonitoring();
-        recoveryController.stop();
-        peerConnection.closePeer();
         void sfuConnection.cleanup();
-        isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
         actionsRef.current.clearChatMessages();
@@ -913,23 +513,18 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setError(null);
         toast(resolveUserMessage(data.userMessage));
-        syncUserProgressAfterCallEnd();
       },
 
       onSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => {
         monitoring.stopMonitoring();
-        recoveryController.stop();
         actionsRef.current.setConnectionStatus("searching");
         actionsRef.current.setRemoteStream(null);
-        peerConnection.closePeer();
         void sfuConnection.cleanup();
-        isOffererRef.current = false;
         actionsRef.current.clearChatMessages();
         actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
         toast(resolveUserMessage(data.userMessage));
-        refreshUserProgress();
       },
 
       onEndCall: (data: UserFacingSocketPayload) => {
@@ -940,20 +535,16 @@ export function useVideoChat(): UseVideoChatReturn {
 
         isReconnectingRef.current = false;
         monitoring.stopMonitoring();
-        recoveryController.stop();
         toast(resolveUserMessage(data.userMessage));
         play("leave_call");
-        isOffererRef.current = false;
         actionsRef.current.setConnectionStatus("ended");
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteStream(null);
         resetPeerState();
-        refreshUserProgress();
       },
 
       onRealtimePeerTracks: async (data: RealtimePeerTracksPayload) => {
-        if (mediaProviderRef.current !== "cloudflare_sfu") return;
         try {
           await sfuConnection.handlePeerTracks(data);
         } catch (err) {
@@ -1049,8 +640,6 @@ export function useVideoChat(): UseVideoChatReturn {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       mediaStream,
-      peerConnection,
-      peerCallbacks,
       socketSignaling,
       sfuConnection,
       resetPeerState,
@@ -1103,17 +692,6 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
-      if (iceServersRef.current.length === 0) {
-        iceServersRef.current = await iceServerCache.getIceServers(
-          (opts) => getTokenRef.current(opts),
-          "initial"
-        );
-      }
-
-      if (iceServersRef.current.length === 0) {
-        throw new Error("Failed to obtain ICE servers");
-      }
-
       const callPrefs = normalizeUserCallPreferences(userSettings?.call);
       const initialMuted = callPrefs.default_mute_mic;
       const initialVideoOff = callPrefs.default_disable_camera;
@@ -1129,8 +707,8 @@ export function useVideoChat(): UseVideoChatReturn {
 
       actionsRef.current.setLocalStream(stream);
 
-      const initialize = initializeConnectionRef(peerCallbacks, socketCallbacks as Record<string, (...args: unknown[]) => void>);
-      await initialize(stream);
+      const initialize = initializeConnectionRef(socketCallbacks as Record<string, (...args: unknown[]) => void>);
+      await initialize();
     } catch (err) {
       Sentry.logger.error("Error starting video chat", { error: err instanceof Error ? err.message : "Unknown error" });
       const message = err instanceof Error ? err.message : t("call.failedToStart");
@@ -1148,13 +726,11 @@ export function useVideoChat(): UseVideoChatReturn {
     authReady,
     authLoading,
     initializeConnectionRef,
-    peerCallbacks,
     socketCallbacks,
     tabCoordination,
   ]);
 
   const skip = useCallback(() => {
-    peerConnection.closePeer();
     void sfuConnection.cleanup();
     actionsRef.current.setRemoteStream(null);
     actionsRef.current.clearChatMessages();
@@ -1163,14 +739,10 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setConnectionStatus("searching");
     socketSignaling.skipPeer();
     trackEvent({ name: "matchmaking_skipped" });
-    setTimeout(() => {
-      void refreshUserProgress();
-    }, 400);
-  }, [peerConnection, sfuConnection, socketSignaling, refreshUserProgress]);
+  }, [sfuConnection, socketSignaling]);
 
   const endCall = useCallback(() => {
     monitoring.stopMonitoring();
-    recoveryController.stop();
     socketSignaling.sendEndCall();
     trackEvent({ name: "call_ended" });
     toast(t("call.youEndedCall"));
@@ -1178,13 +750,7 @@ export function useVideoChat(): UseVideoChatReturn {
     actionsRef.current.setCallStartedAt(null);
     tabCoordination.releaseOwnership();
     resetPeerState();
-    setTimeout(() => {
-      void refreshUserProgress();
-    }, 400);
-    setTimeout(() => {
-      void refreshUserProgress();
-    }, 1500);
-  }, [socketSignaling, resetPeerState, refreshUserProgress, tabCoordination, monitoring, t]);
+  }, [socketSignaling, resetPeerState, tabCoordination, monitoring, t]);
 
   useHotkey(
     "Mod+D",
@@ -1222,12 +788,19 @@ export function useVideoChat(): UseVideoChatReturn {
 
     actionsRef.current.setLocalStream(mediaStream.getStream());
 
-    try {
-      await peerConnection.replaceVideoTrack(nextTrack);
-    } catch {
-      // PeerConnection not ready or no sender yet
+    const sfuPc = sfuConnection.getPeerConnection();
+    if (!sfuPc) return;
+    const sender = sfuPc
+      .getSenders()
+      .find((s) => s.track && s.track.kind === "video");
+    if (sender) {
+      try {
+        await sender.replaceTrack(nextTrack);
+      } catch (err) {
+        Sentry.logger.warn("Failed to replace video track on SFU sender", { error: err });
+      }
     }
-  }, [mediaStream, peerConnection]);
+  }, [mediaStream, sfuConnection]);
 
   const createMessageId = useCallback(() => {
     if (globalThis.crypto?.randomUUID) {
@@ -1329,10 +902,21 @@ export function useVideoChat(): UseVideoChatReturn {
   }, []);
 
   const toggleScreenShare = async () => {
-    if (mediaProviderRef.current === "cloudflare_sfu") {
-      toast.error(t("call.screenShareUnsupportedSfu"));
+    const sfuPc = sfuConnection.getPeerConnection();
+    if (!sfuPc) {
+      toast.error(t("call.screenShareFailed"));
       return;
     }
+    const replaceSenderVideoTrack = async (track: MediaStreamTrack | null) => {
+      const sender = sfuPc
+        .getSenders()
+        .find((s) => s.track && s.track.kind === "video");
+      if (!sender) {
+        throw new Error("No video sender available for screen share");
+      }
+      await sender.replaceTrack(track);
+    };
+
     if (isSharingScreen) {
       removeScreenTrackEndedListener();
       screenShare.stopScreenShare();
@@ -1345,7 +929,11 @@ export function useVideoChat(): UseVideoChatReturn {
       if (localStream) {
         const cameraTrack = localStream.getVideoTracks()[0];
         if (cameraTrack) {
-          await peerConnection.replaceVideoTrack(cameraTrack);
+          try {
+            await replaceSenderVideoTrack(cameraTrack);
+          } catch (err) {
+            Sentry.logger.error("Failed to swap camera track back after screen share", { error: err });
+          }
         }
       }
     } else {
@@ -1364,7 +952,7 @@ export function useVideoChat(): UseVideoChatReturn {
             if (localStream) {
               const cameraTrack = localStream.getVideoTracks()[0];
               if (cameraTrack) {
-                void peerConnection.replaceVideoTrack(cameraTrack);
+                void replaceSenderVideoTrack(cameraTrack);
               }
             }
           };
@@ -1372,7 +960,7 @@ export function useVideoChat(): UseVideoChatReturn {
           screenTrackEndedHandlerRef.current = handler;
           screenTrack.addEventListener("ended", handler);
 
-          await peerConnection.replaceVideoTrack(screenTrack);
+          await replaceSenderVideoTrack(screenTrack);
           actionsRef.current.setSharingScreen(true);
           actionsRef.current.setScreenStream(stream);
           trackEvent({ name: "screen_share_started" });
@@ -1391,12 +979,6 @@ export function useVideoChat(): UseVideoChatReturn {
   useEffect(() => {
     return () => {
       monitoring.stopMonitoring();
-      recoveryController.stop();
-      iceServerCache.resetSession();
-      if (turnCredentialRefreshTimerRef.current) {
-        clearInterval(turnCredentialRefreshTimerRef.current);
-        turnCredentialRefreshTimerRef.current = null;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

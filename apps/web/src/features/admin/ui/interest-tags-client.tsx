@@ -1,7 +1,9 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
-import { IconFileImport, IconMoodSearch, IconPlus, IconRefresh } from "@tabler/icons-react";
+import { IconFileImport, IconMoodSearch, IconPlus } from "@tabler/icons-react";
+import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
+import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
 import {
   Popover,
   PopoverContent,
@@ -184,18 +186,22 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
         initialData={data?.data || []}
         callbacks={rowCallbacks}
         leftColumnVisibilityContent={
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
         }
         rightColumnVisibilityContent={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)} data-testid="admin-interest-tags-import-button">
-              <IconFileImport className="w-4 h-4 mr-2" /> {tif("importJson")}
-            </Button>
-            <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm" data-testid="admin-interest-tag-create-button">
-              <IconPlus className="w-4 h-4 mr-2" /> {tif("addNewTag")}
-            </Button>
+            <SimpleTooltip content={tif("importJson")}>
+              <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)} data-testid="admin-interest-tags-import-button">
+                <IconFileImport className="w-4 h-4" />
+                <span className="hidden lg:inline">{tif("importJson")}</span>
+              </Button>
+            </SimpleTooltip>
+            <SimpleTooltip content={tif("addNewTag")}>
+              <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm" data-testid="admin-interest-tag-create-button">
+                <IconPlus className="w-4 h-4" />
+                <span className="hidden lg:inline">{tif("addNewTag")}</span>
+              </Button>
+            </SimpleTooltip>
           </div>
         }
       />

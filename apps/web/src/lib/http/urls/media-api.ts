@@ -1,10 +1,6 @@
 import { BaseApiUrl } from './base-api-url';
 
 export class MediaApi extends BaseApiUrl {
-  iceServers() {
-    return this.buildUrl('/api/media/ice-servers');
-  }
-
   s3Objects(params?: URLSearchParams) {
     return this.buildUrl('/api/media/s3/objects', params);
   }

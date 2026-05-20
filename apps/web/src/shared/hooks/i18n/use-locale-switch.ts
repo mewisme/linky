@@ -1,6 +1,6 @@
 "use client";
 
-import type { UiLocale } from "@ws/shared-types";
+import type { AppLocale } from "@/shared/types/app-locale.types";
 import { useRouter as useNextRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useCallback } from "react";
@@ -20,7 +20,7 @@ export function useLocaleSwitch() {
   const connectionStatus = useVideoChatStore((s) => s.connectionStatus);
 
   const executeSwitch = useCallback(
-    (next: UiLocale) => {
+    (next: AppLocale) => {
       setPersistedLocale(next);
       router.replace(pathname, { locale: next });
       nextRouter.refresh();
@@ -29,7 +29,7 @@ export function useLocaleSwitch() {
   );
 
   const switchLocale = useCallback(
-    (next: UiLocale) => {
+    (next: AppLocale) => {
       if (next === locale) return;
       if (isVideoChatBlockingLocaleChange(connectionStatus)) {
         useLocaleChangeGuardStore.getState().openDialog(next, () => executeSwitch(next));

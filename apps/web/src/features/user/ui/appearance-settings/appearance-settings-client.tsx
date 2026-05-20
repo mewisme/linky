@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ws/ui/components/ui/select'
-import type { UiLocale } from '@ws/shared-types'
+import type { AppLocale } from '@/shared/types/app-locale.types'
 import { useTranslations } from 'next-intl'
 import { useRouter as useNextRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -72,7 +72,7 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
   const [activeTab, setActiveTab] = useState<'language' | 'shader' | 'video' | 'sidebar'>('language')
   const [sidebarVariant, setSidebarVariant] = useState<SidebarVariant>(initialSidebar.variant)
   const [sidebarCollapsible, setSidebarCollapsible] = useState<SidebarCollapsible>(initialSidebar.collapsible)
-  const [uiLocaleDraft, setUiLocaleDraft] = useState<UiLocale>(initialLocale)
+  const [uiLocaleDraft, setUiLocaleDraft] = useState<AppLocale>(initialLocale)
   const [draftVersion, setDraftVersion] = useState(0)
   const hasMountedRef = useRef(false)
   const lastSavedKeyRef = useRef<string | null>(null)
@@ -229,7 +229,7 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
     debouncedAutosave(payload)
   }, [debouncedAutosave, draftVersion, payload])
 
-  const handleLocaleChange = (nextLocale: UiLocale) => {
+  const handleLocaleChange = (nextLocale: AppLocale) => {
     markUserInteracted()
     setUiLocaleDraft(nextLocale)
 

@@ -1,11 +1,11 @@
-import type { UiLocale } from "@ws/shared-types";
+import type { AppLocale } from "@/shared/types/app-locale.types";
 import { create } from "zustand";
 
 type LocaleChangeGuardState = {
   dialogOpen: boolean;
-  pendingLocale: UiLocale | null;
+  pendingLocale: AppLocale | null;
   pendingRun: (() => void | Promise<void>) | null;
-  openDialog: (locale: UiLocale, run: () => void | Promise<void>) => void;
+  openDialog: (locale: AppLocale, run: () => void | Promise<void>) => void;
   closeDialog: () => void;
   takePendingRun: () => (() => void | Promise<void>) | null;
 };

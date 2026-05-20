@@ -1,10 +1,10 @@
-import type { UiLocale } from "@ws/shared-types";
+import type { AppLocale } from "@/shared/types/app-locale.types";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface LocalePreferenceState {
-  locale: UiLocale;
-  setLocale: (locale: UiLocale) => void;
+  locale: AppLocale;
+  setLocale: (locale: AppLocale) => void;
 }
 
 export const useLocalePreferenceStore = create<LocalePreferenceState>()(

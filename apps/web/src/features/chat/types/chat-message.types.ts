@@ -1,4 +1,4 @@
-import type { BackendUserMessage } from "@ws/shared-types";
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 export type ChatMessageType = "text" | "image" | "gif" | "sticker" | "system";
 
@@ -69,5 +69,5 @@ export interface ChatTypingPayload {
 
 export interface ChatErrorPayload {
   message: string;
-  userMessage: BackendUserMessage;
+  userMessage: ApiUserMessage;
 }

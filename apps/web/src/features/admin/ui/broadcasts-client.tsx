@@ -12,7 +12,7 @@ import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { Button } from "@ws/ui/components/ui/button";
 import { FormCreateBroadcast } from "./broadcasts/form-create";
-import { IconRefresh } from "@tabler/icons-react";
+import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
 import dynamic from "next/dynamic";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
@@ -66,16 +66,7 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
               <BroadcastsDataTable
                 initialData={history}
                 leftColumnVisibilityContent={
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void refetch()}
-                    disabled={isFetching}
-                  >
-                    <IconRefresh
-                      className={`size-4 ${isFetching ? "animate-spin" : ""}`}
-                    />
-                  </Button>
+                  <DataTableRefreshButton onClick={() => void refetch()} isFetching={isFetching} />
                 }
               />
             </CardContent>

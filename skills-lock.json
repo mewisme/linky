@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "skills": {
+    "9router": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router/SKILL.md",
+      "computedHash": "670a1e8d9b0027674a6509a8f460ab126d1c97268ab2acfc5d6045db8b7afa0c"
+    },
+    "9router-chat": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router-chat/SKILL.md",
+      "computedHash": "f10f8257d7db994b622abd04bc92ac36349f8087e3be073695b4a00c95d37e25"
+    },
+    "9router-embeddings": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router-embeddings/SKILL.md",
+      "computedHash": "3701f27fe40d06b1d0e736d60c53374b244cb5c475db9140f703f801535f21f5"
+    },
+    "9router-image": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router-image/SKILL.md",
+      "computedHash": "3933bcb50f2ec077fab4541e08dd22187cf31d2e29462a08115c200552d52d44"
+    },
+    "9router-stt": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router-stt/SKILL.md",
+      "computedHash": "6fb3ed0b4e693c56517c3339214bb0da499ec10e49f56862f63fb024282fab1e"
+    },
+    "9router-tts": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router-tts/SKILL.md",
+      "computedHash": "1e4f1fe793e4897b2d3209a1bc0495642fa8ece1cffd374f2d8d5797172eee41"
+    },
+    "9router-web-fetch": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router-web-fetch/SKILL.md",
+      "computedHash": "4a6d738cba1ef4994558d3c397f048032b68d7b8cb205b6bc60514b3626fd860"
+    },
+    "9router-web-search": {
+      "source": "decolua/9router",
+      "sourceType": "github",
+      "skillPath": "skills/9router-web-search/SKILL.md",
+      "computedHash": "0183f62175ee0396816d1344fd30ac8cfbc7e1bce269f39eb2f7d7d48a2fb5a3"
+    }
+  }
+}

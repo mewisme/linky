@@ -4,13 +4,12 @@ import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
 import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
-import { Button } from '@ws/ui/components/ui/button'
-import { IconRefresh } from '@tabler/icons-react'
 import type { ResourcesAPI } from '@/shared/types/resources.types'
 import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useTranslations } from 'next-intl'
 import { useQuery } from "@ws/ui/internal-lib/react-query"
+import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button'
 
 const FavoritesDataTable = dynamic(
   () => import('@/shared/ui/data-table/favorites/data-table').then(mod => ({ default: mod.FavoritesDataTable }))
@@ -69,9 +68,7 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
           onRemove: handleRemoveFavorite,
         }}
         leftColumnVisibilityContent={
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <IconRefresh className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          </Button>
+          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
         }
       />
     </AppLayout>

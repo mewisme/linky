@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 
-import type { BackendUserMessage } from "@ws/shared-types";
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/features/chat/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
@@ -138,10 +138,10 @@ export function destroySockets(): void {
 
 export type UserFacingSocketPayload = {
   message: string;
-  userMessage: BackendUserMessage;
+  userMessage: ApiUserMessage;
 };
 
-export type VideoMediaProvider = "p2p" | "cloudflare_sfu";
+export type VideoMediaProvider = "sfu";
 
 export interface RealtimePeerTracksTrack {
   trackName: string;
@@ -160,7 +160,6 @@ export interface SocketEvents {
   disconnect: () => void;
   "joined-queue": (data: UserFacingSocketPayload & { queueSize: number }) => void;
   matched: (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => void;
-  signal: (data: SignalData) => void;
   "realtime:peer-tracks": (data: RealtimePeerTracksPayload) => void;
   "chat:message": (data: ChatMessagePayload) => void;
   "chat:typing": (data: ChatTypingPayload) => void;
@@ -172,6 +171,7 @@ export interface SocketEvents {
   "video-chat:error": (data: UserFacingSocketPayload) => void;
   "queue-timeout": (data: UserFacingSocketPayload) => void;
   "user:progress:update": (data: UsersAPI.Progress.GetMe.Response) => void;
+  "user:progress:applied": (data: { roomId: string; ok: boolean; timestamp: number }) => void;
   "level:up": (data: {
     eventKey?: string;
     leveledUserId?: string;
@@ -179,11 +179,4 @@ export interface SocketEvents {
     previousLevel: number;
     newLevel: number;
   }) => void;
-}
-
-export interface SignalData {
-  type: "offer" | "answer" | "ice-candidate";
-  sdp?: RTCSessionDescriptionInit;
-  candidate?: RTCIceCandidateInit;
-  iceRestart?: boolean;
 }

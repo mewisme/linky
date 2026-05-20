@@ -1,13 +1,13 @@
 'use client'
-
-import { ColumnDef, ColumnFiltersState, PaginationState, RowSelectionState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@ws/ui/internal-lib/react-table"
+import { debounce } from 'lodash-es'
+import { ColumnDef, ColumnFiltersState, PaginationState, RowSelectionState, SortingState, VisibilityState, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, type Row } from "@ws/ui/internal-lib/react-table"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger
 } from "@ws/ui/components/animate-ui/components/radix/dropdown-menu"
-import { IconChevronDown, IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconLayoutColumns, IconSearch } from "@tabler/icons-react"
+import { IconChevronLeft, IconChevronRight, IconChevronsLeft, IconChevronsRight, IconLayoutColumns, IconSearch } from "@tabler/icons-react"
 import {
   InputGroup,
   InputGroupAddon,
@@ -20,11 +20,13 @@ import { Button } from "@ws/ui/components/ui/button"
 import { Label } from "@ws/ui/components/ui/label"
 import { cn } from "@ws/ui/lib/utils"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { SimpleTooltip } from "../common/simple-tooltip"
+import { useTextHighlight } from "./use-text-highlight"
 
 interface DataTableProps<TData> {
   initialData: TData[]
-  filterColumn?: string
+  filterColumns?: string | string[]
   filterPlaceholder?: string
   initialColumnVisibility: VisibilityState
   columns: ColumnDef<TData>[]
@@ -36,19 +38,30 @@ interface DataTableProps<TData> {
   selectionResetKey?: unknown
 }
 
-export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName, selectionResetKey }: DataTableProps<TData>) {
+export function DataTable<TData>({ initialData, filterColumns, filterPlaceholder, initialColumnVisibility, columns, className, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName, selectionResetKey }: DataTableProps<TData>) {
   const t = useTranslations("dataTable.common")
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(initialColumnVisibility)
+  const [globalFilter, setGlobalFilter] = useState("")
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   })
 
-  const filterColumnLabel =
-    filterColumn?.replace(/_/g, " ") ?? ""
+  const filterColumnIds = useMemo<string[]>(() => {
+    if (!filterColumns) return []
+    return Array.isArray(filterColumns) ? filterColumns : [filterColumns]
+  }, [filterColumns])
+
+  const filterColumnLabel = useMemo(
+    () =>
+      filterColumnIds
+        .map((id) => id.replace(/_/g, " "))
+        .join(", "),
+    [filterColumnIds],
+  )
 
   useEffect(() => {
     if (selectionResetKey === undefined) return
@@ -56,11 +69,28 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
     return () => clearTimeout(tid)
   }, [selectionResetKey])
 
+  const globalFilterFn = useMemo(
+    () =>
+      (row: Row<TData>, _columnId: string, filterValue: string): boolean => {
+        const term = String(filterValue ?? "").trim().toLowerCase()
+        if (!term) return true
+        if (filterColumnIds.length === 0) return true
+        return filterColumnIds.some((id) => {
+          const value = row.getValue(id)
+          if (value == null) return false
+          return String(value).toLowerCase().includes(term)
+        })
+      },
+    [filterColumnIds],
+  )
+
   const table = useReactTable({
     data: initialData,
     columns: columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -74,22 +104,52 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
       columnVisibility,
       rowSelection,
       pagination,
+      globalFilter,
     },
   })
+
+  const debouncedFilter = useMemo(
+    () =>
+      debounce((value: string) => {
+        if (filterColumnIds.length === 0) return
+        table.setGlobalFilter(value)
+      }, 250),
+    [filterColumnIds, table],
+  )
+  useEffect(() => () => debouncedFilter.cancel(), [debouncedFilter])
+
+  const [filterInput, setFilterInput] = useState("")
+
+  const tableContainerRef = useRef<HTMLDivElement | null>(null)
+  const highlightSelector = useMemo(() => {
+    if (filterColumnIds.length === 0) return undefined
+    return filterColumnIds
+      .map((id) => `[data-column-id="${id.replace(/"/g, '\\"')}"]`)
+      .join(",")
+  }, [filterColumnIds])
+
+  useTextHighlight({
+    containerRef: tableContainerRef,
+    term: filterInput,
+    scopeSelector: highlightSelector,
+  })
+
   return (
     <div className={cn('w-full', className)}>
       <div className="flex items-center py-4 space-x-2">
-        {filterColumn ? (
+        {filterColumnIds.length > 0 ? (
           <InputGroup className="max-w-sm">
             <InputGroupInput
+              value={filterInput}
               placeholder={
                 filterPlaceholder ??
                 t("filterColumnPlaceholder", { column: filterColumnLabel })
               }
-              value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
-              onChange={(event) =>
-                table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-              }
+              onChange={(event) => {
+                const value = event.target.value
+                setFilterInput(value)
+                debouncedFilter(value)
+              }}
             />
             <InputGroupAddon>
               <IconSearch />
@@ -101,14 +161,14 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
             leftColumnVisibilityContent
           )}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto" size="sm">
-                <IconLayoutColumns />
-                <span className="hidden lg:inline">{t("customizeColumns")}</span>
-                <span className="lg:hidden">{t("columnsShort")}</span>
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
+            <SimpleTooltip content={t("customizeColumns")}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto" size="sm">
+                  <IconLayoutColumns />
+                  <span className="hidden 2xl:inline">{t("customizeColumns")}</span>
+                </Button>
+              </DropdownMenuTrigger>
+            </SimpleTooltip>
             <DropdownMenuContent align="end">
               {table
                 .getAllColumns()
@@ -136,7 +196,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
           )}
         </div>
       </div>
-      <div className="overflow-hidden rounded-md border">
+      <div className="overflow-hidden rounded-md border" ref={tableContainerRef}>
         <Table>
           <TableHeader className="bg-muted sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -166,7 +226,7 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
                   data-testid={row.original && typeof row.original === 'object' && 'id' in row.original ? `admin-user-row-${row.original.id}` : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} data-column-id={cell.column.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -189,13 +249,13 @@ export function DataTable<TData>({ initialData, filterColumn, filterPlaceholder,
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
+        <div className="text-muted-foreground text-sm flex-1">
           {t("rowsSelected", {
             selected: table.getFilteredSelectedRowModel().rows.length,
             total: table.getFilteredRowModel().rows.length,
           })}
         </div>
-        <div className="flex w-full items-center gap-8 lg:w-fit">
+        <div className="flex items-center gap-8 w-fit">
           <div className="hidden items-center gap-2 lg:flex">
             <Label htmlFor="rows-per-page" className="text-sm font-medium">
               {t("rowsPerPage")}

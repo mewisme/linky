@@ -85,7 +85,7 @@ Validated modules — **do not read `process.env` directly in app code.**
 
 **Server:** `OPENPANEL_API_URL`, `OPENPANEL_CLIENT_SECRET`, optional Sentry build vars.
 
-**Clerk** (standard `@clerk/nextjs`): `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — typically in `apps/web/.env.local` or the repo root env file used by Next.
+**Clerk** (standard `@clerk/nextjs`): `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — typically in the repo-root `.env` (merged dev file) or `apps/web/.env.local`.
 
 Clerk dashboard tips:
 

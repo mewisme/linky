@@ -71,9 +71,13 @@ export function useUsersMutations() {
 
   const hardDeleteMutation = useMutation({
     mutationFn: (id: string) =>
-      fetchFromActionRoute<AdminAPI.DeleteUser.Response>(
-        `/api/admin/users/${encodeURIComponent(id)}`,
-        { method: 'DELETE' },
+      fetchFromActionRoute<{ deleted: number }>(
+        '/api/admin/users/batch',
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: [id] }),
+        },
       ),
     onSuccess: async () => {
       await invalidateAndRefetch();
@@ -121,7 +125,7 @@ export function useUsersMutations() {
 
   const embeddingSyncMutation = useMutation({
     mutationFn: (userIds: string[]) =>
-      fetchFromActionRoute<{ accepted_user_ids: string[]; skipped_user_ids: string[] }>(
+      fetchFromActionRoute<{ enqueued: number }>(
         '/api/admin/embeddings/sync',
         {
           method: 'POST',
@@ -129,12 +133,10 @@ export function useUsersMutations() {
           body: JSON.stringify({ user_ids: userIds }),
         },
       ),
-    onSuccess: async (data: { accepted_user_ids: string[]; skipped_user_ids: string[] }) => {
+    onSuccess: async (data: { enqueued: number }) => {
       await invalidateAndRefetch();
-      const accepted = data.accepted_user_ids?.length ?? 0;
-      const skipped = data.skipped_user_ids?.length ?? 0;
-      if (accepted > 0) toast.success(t('embeddingSyncScheduled', { count: accepted }));
-      if (skipped > 0) toast.info(t('embeddingSkipped', { count: skipped }));
+      const enqueued = data.enqueued ?? 0;
+      if (enqueued > 0) toast.success(t('embeddingSyncScheduled', { count: enqueued }));
     },
     onError: (error: Error) => {
       toast.error(error.message || t('errorDuringEmbeddingSync'));
@@ -143,10 +145,10 @@ export function useUsersMutations() {
 
   const embeddingSyncAllMutation = useMutation({
     mutationFn: () =>
-      fetchFromActionRoute<{ message: string }>('/api/admin/embeddings/sync-all', { method: 'POST' }),
-    onSuccess: async (data: { message: string }) => {
+      fetchFromActionRoute<{ scheduled: number }>('/api/admin/embeddings/sync-all', { method: 'POST' }),
+    onSuccess: async (data: { scheduled: number }) => {
       await invalidateAndRefetch();
-      toast.success(data.message || t('embeddingSyncAllDefault'));
+      toast.success(t('embeddingSyncAllDefault'));
     },
     onError: (error: Error) => {
       toast.error(error.message || t('errorDuringEmbeddingSyncAll'));

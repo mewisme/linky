@@ -13,9 +13,8 @@ import { PayloadHintGuide } from "@/features/admin/ui/payload-hint-guide";
 import { Textarea } from "@ws/ui/components/ui/textarea";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
-import { getAdminPresignedUpload } from "@/lib/http/adapters/admin-media";
+import { getAdminPresignedUpload, uploadAdminMediaFile } from "@/lib/http/adapters/admin-media";
 import { toast } from "@ws/ui/components/ui/sonner";
-import { uploadToS3 } from "@/lib/http/adapters/s3";
 import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
@@ -65,11 +64,11 @@ export default function CreateLevelFeatureUnlockPage() {
       if (selectedFile) {
         const token = await getToken();
         if (!token) throw new Error(te("authRequired"));
-        const { upload_url, resource_key } = await getAdminPresignedUpload(
+        const presign = await getAdminPresignedUpload(
           { intent: "feature", content_type: selectedFile.type },
           token
         );
-        await uploadToS3(upload_url, selectedFile);
+        const resource_key = await uploadAdminMediaFile(presign, selectedFile);
         featurePayload = {
           ...featurePayload,
           media: {

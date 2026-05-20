@@ -34,10 +34,10 @@ export async function updateAdminReport(
     ));
 }
 
-export async function generateAdminReportAiSummary(id: string): Promise<{ success: true }> {
+export async function generateAdminReportAiSummary(id: string): Promise<{ queued: true }> {
   return withSentryAction("generateAdminReportAiSummary", async () =>
-    serverFetch<{ success: true }>(
-      `${backendUrl.admin.reportById(id)}/ai-summary:generate`,
+    serverFetch<{ queued: true }>(
+      `${backendUrl.admin.reportById(id)}/ai-summary`,
       { method: 'POST' },
     ));
 }

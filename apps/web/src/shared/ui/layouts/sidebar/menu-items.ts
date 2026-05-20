@@ -5,12 +5,10 @@ import {
   IconChartLine,
   IconCode,
   IconFlag,
-  IconGift,
   IconHeart,
   IconHome,
   IconHistory,
   IconId,
-  IconLock,
   IconMessages,
   IconPalette,
   IconSettings,
@@ -51,9 +49,7 @@ export type MenuItemId =
   | "adminUsers"
   | "adminInterestTags"
   | "adminReports"
-  | "adminLevelRewards"
-  | "adminFeatureUnlocks"
-  | "adminStreakExp"
+  | "adminExpBonuses"
   | "settings"
   | "settingsAppearance"
   | "settingsNotifications"
@@ -218,19 +214,9 @@ export const menuItemDefinitions: MenuItemDef[] = [
         href: "/admin/reports",
       },
       {
-        id: "adminLevelRewards",
-        icon: IconGift,
-        href: "/admin/level-rewards",
-      },
-      {
-        id: "adminFeatureUnlocks",
-        icon: IconLock,
-        href: "/admin/level-feature-unlocks",
-      },
-      {
-        id: "adminStreakExp",
+        id: "adminExpBonuses",
         icon: IconBolt,
-        href: "/admin/streak-exp-bonuses",
+        href: "/admin/exp-bonuses",
       },
     ],
   },

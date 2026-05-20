@@ -546,15 +546,17 @@ func (r *chatRuntime) persistCallEnd(room *rooms.Room, durationSeconds int) {
 		DurationSecs:   durationSeconds,
 	})
 	if err != nil || res == nil {
-		_ = jobs.EnqueueApplyCallExp(ctx, a.UserID, durationSeconds, b.UserID, tzA, time.Now().Format("2006-01-02"))
-		_ = jobs.EnqueueApplyCallExp(ctx, b.UserID, durationSeconds, a.UserID, tzB, time.Now().Format("2006-01-02"))
+		dateA := callended.LocalDateString(now, tzA)
+		dateB := callended.LocalDateString(now, tzB)
+		_ = jobs.EnqueueApplyCallExp(ctx, a.UserID, durationSeconds, b.UserID, tzA, dateA)
+		_ = jobs.EnqueueApplyCallExp(ctx, b.UserID, durationSeconds, a.UserID, tzB, dateB)
 		r.emitProgressApplied(a.UserID, room.ID, false)
 		r.emitProgressApplied(b.UserID, room.ID, false)
 		return
 	}
 	r.broadcastCallEndedTransitions(room, res)
-	r.emitProgressApplied(a.UserID, room.ID, true)
-	r.emitProgressApplied(b.UserID, room.ID, true)
+	r.emitProgressApplied(a.UserID, room.ID, res.ExpSettled(a.UserID))
+	r.emitProgressApplied(b.UserID, room.ID, res.ExpSettled(b.UserID))
 }
 
 func (r *chatRuntime) emitProgressApplied(dbUserID, roomID string, ok bool) {

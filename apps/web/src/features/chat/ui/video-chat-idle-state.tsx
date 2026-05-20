@@ -70,6 +70,8 @@ export function VideoChatIdleState({
     queryKey: ["user-progress"],
     queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
     initialData: initialProgress ?? undefined,
+    staleTime: Infinity,
+    refetchOnMount: false,
     gcTime: 5 * 60 * 1000,
   });
 

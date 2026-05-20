@@ -199,17 +199,9 @@ func ApplySettings(raw json.RawMessage) error {
 	adminRaw = raw
 	admin = s
 	mu.Unlock()
-	e := mergeEffective(s)
-	if err := embeddingconfig.ApplyDimension(e.EmbeddingDimension); err != nil {
+	if err := embeddingconfig.ApplyDimension(mergeEffective(s).EmbeddingDimension); err != nil {
 		return err
 	}
-	log.Info().
-		Str("base_url", e.BaseURL).
-		Str("embedding_model", e.EmbeddingModel).
-		Int("embedding_dimension", e.EmbeddingDimension).
-		Str("chat_broadcast_model", e.ChatBroadcast).
-		Str("chat_report_summary_model", e.ChatReportSummary).
-		Msg("AI config applied")
 	return nil
 }
 
@@ -258,7 +250,18 @@ func NotifyConfigChanged(ctx context.Context, key string, value map[string]any) 
 		log.Warn().Err(err).Msg("Failed to apply ai admin config")
 		return
 	}
+	logConfigApplied(EffectiveConfig())
 	_ = ctx
+}
+
+func logConfigApplied(e Effective) {
+	log.Info().
+		Str("base_url", e.BaseURL).
+		Str("embedding_model", e.EmbeddingModel).
+		Int("embedding_dimension", e.EmbeddingDimension).
+		Str("chat_broadcast_model", e.ChatBroadcast).
+		Str("chat_report_summary_model", e.ChatReportSummary).
+		Msg("AI config applied")
 }
 
 func SettingsFromMap(value map[string]any) (Settings, error) {

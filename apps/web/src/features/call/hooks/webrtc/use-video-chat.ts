@@ -103,8 +103,27 @@ export function useVideoChat(): UseVideoChatReturn {
   const isPeerSharingScreen = useVideoChatStore((s) => s.isPeerSharingScreen);
 
   const refreshUserProgress = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ["user-progress"] });
+    await queryClient.refetchQueries({ queryKey: ["user-progress"], type: "active" });
   }, [queryClient]);
+
+  const progressRefetchInFlightRef = useRef(false);
+  const progressRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleProgressRefetch = useCallback((retryOnFailure: boolean) => {
+    if (progressRefetchInFlightRef.current) return;
+    progressRefetchInFlightRef.current = true;
+    void refreshUserProgress().finally(() => {
+      progressRefetchInFlightRef.current = false;
+    });
+    if (!retryOnFailure) return;
+    if (progressRetryTimerRef.current) {
+      clearTimeout(progressRetryTimerRef.current);
+    }
+    progressRetryTimerRef.current = setTimeout(() => {
+      progressRetryTimerRef.current = null;
+      void refreshUserProgress();
+    }, 3000);
+  }, [refreshUserProgress]);
 
   // Backend emits `user:progress:applied` once the post-call EXP/streak
   // pipeline has finished writing to Postgres for this user. Refetch
@@ -112,14 +131,18 @@ export function useVideoChat(): UseVideoChatReturn {
   useEffect(() => {
     const socket = socketSignaling.getSocket();
     if (!socket) return;
-    const onApplied = () => {
-      void refreshUserProgress();
+    const onApplied = (data: { ok?: boolean }) => {
+      scheduleProgressRefetch(data.ok === false);
     };
     socket.on("user:progress:applied", onApplied);
     return () => {
       socket.off("user:progress:applied", onApplied);
+      if (progressRetryTimerRef.current) {
+        clearTimeout(progressRetryTimerRef.current);
+        progressRetryTimerRef.current = null;
+      }
     };
-  }, [socketSignaling, refreshUserProgress, state.connectionStatus]);
+  }, [socketSignaling, scheduleProgressRefetch]);
 
   const sfuConnection = useCloudflareSfuConnection({
     getToken: async () => {

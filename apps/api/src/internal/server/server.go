@@ -108,7 +108,8 @@ type ListenerHandle struct {
 
 func StartPublic(cfg *config.Config, handler http.Handler) (*ListenerHandle, error) {
 	addr := ":" + intToStr(cfg.Port)
-	l, err := net.Listen("tcp", addr)
+	reclaim := strings.ToLower(strings.TrimSpace(cfg.NodeEnv)) != "production"
+	l, err := listenTCP(addr, reclaim)
 	if err != nil {
 		return nil, err
 	}

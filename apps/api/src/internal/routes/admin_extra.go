@@ -373,38 +373,6 @@ func handleAdminBroadcastAIGenerate(c echo.Context) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func handleAdminMediaPresignedUpload(c echo.Context) error {
-	rawBody, _ := io.ReadAll(c.Request().Body)
-	var input struct {
-		Intent      string `json:"intent"`
-		ContentType string `json:"content_type"`
-	}
-	_ = json.Unmarshal(rawBody, &input)
-	if input.Intent != "reward" && input.Intent != "feature" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("MEDIA_INTENT_INVALID", "mediaIntentInvalid", "intent must be reward or feature"))
-	}
-	if !strings.HasPrefix(input.ContentType, "image/") {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("MEDIA_CONTENT_TYPE_INVALID", "mediaContentTypeInvalid", "content_type must be image/*"))
-	}
-	folder := "rewards"
-	if input.Intent == "feature" {
-		folder = "features"
-	}
-	ext := "png"
-	if i := strings.LastIndex(input.ContentType, "/"); i >= 0 {
-		ext = strings.ToLower(input.ContentType[i+1:])
-	}
-	key := "admin/" + folder + "/" + uuid.NewString() + "." + ext
-	url, fields, err := s3PresignUpload(c.Request().Context(), key, input.ContentType, 600)
-	if err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UMDetail("S3_PRESIGN_FAIL", err.Error()))
-	}
-	return c.JSON(http.StatusOK, map[string]any{"url": url, "fields": fields, "key": key})
-}
-
 func handleAdminS3PresignUploadGET(c echo.Context) error {
 	key := c.QueryParam("key")
 	expires := atoiDefault(c.QueryParam("expires"), 600)

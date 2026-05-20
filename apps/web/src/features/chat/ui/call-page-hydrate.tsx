@@ -23,11 +23,12 @@ export function CallPageHydrate({
 }: CallPageHydrateProps) {
   const prevStatusRef = useRef(useVideoChatStore.getState().connectionStatus);
 
-  const { data: progress, refetch: refetchProgress } = useQuery({
+  const { data: progress } = useQuery({
     queryKey: ["user-progress"],
     queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
     initialData: initialProgress ?? undefined,
     staleTime: Infinity,
+    refetchOnMount: false,
   });
 
   const { data: favorites, refetch: refetchFavorites } = useQuery({
@@ -51,12 +52,11 @@ export function CallPageHydrate({
       const next = state.connectionStatus;
       prevStatusRef.current = next;
       if (wasInCall(prev) && isAfterCall(next)) {
-        refetchProgress();
-        refetchFavorites();
+        void refetchFavorites();
       }
     });
     return unsub;
-  }, [refetchProgress, refetchFavorites]);
+  }, [refetchFavorites]);
 
   return <>{children}</>;
 }

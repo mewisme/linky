@@ -8,8 +8,11 @@ import (
 
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/redisx"
+	"linky-api/src/internal/logger"
 	"linky-api/src/internal/sharedtypes"
 )
+
+var enqueueLog = logger.New("jobs:enqueue")
 
 const enqueueTimeout = 5 * time.Second
 
@@ -117,7 +120,11 @@ func push(ctx context.Context, jobType string, payload map[string]any) error {
 	}
 	cctx, cancel := context.WithTimeout(ctx, enqueueTimeout)
 	defer cancel()
-	return c.LPush(cctx, sharedtypes.JobQueueKey, body).Err()
+	if err := c.LPush(cctx, sharedtypes.JobQueueKey, body).Err(); err != nil {
+		return err
+	}
+	enqueueLog.Info().Str("type", jobType).Msg("Job enqueued")
+	return nil
 }
 
 // CanonicalEnvelopeJSON serialises a job envelope (`{ v, type, payload }`).

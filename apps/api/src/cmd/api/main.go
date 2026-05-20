@@ -14,12 +14,14 @@ import (
 	"linky-api/src/internal/infra/clerkx"
 	"linky-api/src/internal/infra/cloudflarerealtime"
 	"linky-api/src/internal/infra/aiconfig"
+	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/preload"
 	"linky-api/src/internal/infra/redisx"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/infra/webpush"
 	"linky-api/src/internal/jobs/pool"
+	"linky-api/src/internal/lib/staleproc"
 	"linky-api/src/internal/logger"
 	"linky-api/src/internal/routes"
 	"linky-api/src/internal/server"
@@ -68,8 +70,18 @@ func main() {
 		log.Warn().Err(err).Msg("Failed to load AI config")
 	}
 	aiconfig.StartRefresher(rootCtx)
+	if err := expbonus.Load(rootCtx); err != nil {
+		log.Warn().Err(err).Msg("Failed to load EXP bonus config")
+	}
+	expbonus.StartRefresher(rootCtx)
 	openaix.StartModelsRefresher(rootCtx)
 	openaix.LogConfigured()
+
+	if killed, err := staleproc.KillOthers("tmp/main", os.Getpid()); err != nil {
+		log.Warn().Err(err).Msg("Failed to scan for stale API processes")
+	} else if killed > 0 {
+		log.Warn().Int("count", killed).Msg("Killed stale API processes from prior Air restarts")
+	}
 
 	connectCtx, connectCancel := context.WithTimeout(rootCtx, 10*time.Second)
 	if err := redisx.Connect(connectCtx); err != nil {

@@ -534,17 +534,9 @@
         "label": "Reports",
         "description": "Manage reports"
       },
-      "adminLevelRewards": {
-        "label": "Level Rewards",
-        "description": "Manage level rewards"
-      },
-      "adminFeatureUnlocks": {
-        "label": "Feature Unlocks",
-        "description": "Manage level-based feature unlocks"
-      },
-      "adminStreakExp": {
-        "label": "Streak EXP",
-        "description": "Manage streak EXP bonus multipliers"
+      "adminExpBonuses": {
+        "label": "EXP Bonuses",
+        "description": "Manage EXP bonus multipliers by streak or level"
       },
       "settings": {
         "label": "Settings",
@@ -632,7 +624,6 @@
       "adminUsers": "users accounts manage",
       "adminTags": "tags interests",
       "adminReports": "reports flags moderation",
-      "adminRewards": "rewards levels",
       "adminFeatures": "features unlocks levels",
       "adminBonuses": "streak bonus xp multiplier",
       "adminBroadcasts": "broadcast announcements notifications",
@@ -1151,10 +1142,7 @@
     "bulkActionsDrawerTitle": "Bulk actions",
     "invalidJsonPayload": "Invalid JSON in feature payload",
     "payloadMustBeObject": "Feature payload must be a JSON object",
-    "featureUnlockCreated": "Feature unlock created successfully",
-    "invalidRewardJson": "Invalid JSON in reward payload",
-    "rewardPayloadObject": "Reward payload must be a JSON object",
-    "levelRewardCreated": "Level reward created successfully",
+    "expBonusDeleted": "EXP bonus deleted successfully",
     "audienceRequired": "Audience is required for AI generation",
     "keyPointsRequired": "Key points are required for AI generation",
     "aiDraftGenerated": "AI draft generated",
@@ -1163,7 +1151,6 @@
     "broadcastSent": "Broadcast sent to {count} user(s).",
     "broadcastSendFailed": "Failed to send broadcast",
     "aiSummaryStarted": "AI summary generation started",
-    "streakBonusDeleted": "Streak EXP bonus deleted successfully",
     "configSet": "Config set successfully",
     "configUnset": "Config unset successfully",
     "keyRequired": "Key is required",
@@ -1192,8 +1179,6 @@
     "aiSummaryFailed": "Failed to start AI summary generation",
     "configSetFailed": "Failed to set config",
     "configUnsetFailed": "Failed to unset config",
-    "rewardDeleted": "Reward deleted successfully",
-    "featureUnlockDeleted": "Feature unlock deleted successfully",
     "copyReportId": "Copy report ID",
     "softDeleteUserTitle": "Soft delete user?",
     "softDeleteUserDescription": "The user will be marked as deleted and hidden from active lists. They can be restored later.",
@@ -1207,10 +1192,6 @@
     "roleAdmin": "Admin",
     "roleMember": "Member",
     "superadminProtected": "Superadmin (protected)",
-    "createLevelRewardTitle": "Create Level Reward",
-    "createLevelRewardDescription": "Define a reward granted when users reach a specific level",
-    "createFeatureUnlockTitle": "Create Feature Unlock",
-    "createFeatureUnlockDescription": "Define a feature that unlocks when users reach a specific level",
     "configPageTitle": "Admin Config",
     "configPageDescription": "Key-value config (superadmin only). Used by backend e.g. clerk_auto_remove_email_prefix.",
     "reportDetailTitle": "Report Details",
@@ -1374,64 +1355,28 @@
       "addNewTag": "Add New Tag",
       "saveChanges": "Save Changes"
     },
-    "levelRewardModal": {
-      "createTitle": "Create Level Reward",
-      "updateTitle": "Update Level Reward",
-      "description": "Define rewards that are automatically granted when users reach specific levels.",
-      "payloadJsonHint": "JSON object containing reward-specific data. Must be valid JSON.",
-      "addNew": "Add New Reward",
-      "saveChanges": "Save Changes"
-    },
-    "featureUnlockModal": {
-      "createTitle": "Create Feature Unlock",
-      "updateTitle": "Update Feature Unlock",
-      "description": "Define features that unlock when users reach specific levels.",
-      "payloadJsonHint": "JSON object containing feature-specific configuration. Must be valid JSON.",
-      "addNew": "Add New Unlock",
-      "saveChanges": "Save Changes"
-    },
-    "streakExpModal": {
-      "createTitle": "Create Streak EXP Bonus",
-      "updateTitle": "Update Streak EXP Bonus",
-      "description": "Define EXP bonus multipliers that apply when users have streaks within specific ranges.",
-      "addNew": "Add New Bonus",
-      "multiplierHint": "Multiplier applied to EXP. Must be at least 1.0 (e.g., 1.50 = 50% bonus).",
-      "saveChanges": "Save Changes"
-    },
-    "levelRewardCreatePage": {
-      "breadcrumbParent": "Level Rewards",
-      "breadcrumbCreate": "Create",
-      "payloadIntro": "JSON object with reward-specific data. Add an optional image below to store a media descriptor (resource_type, resource_key, content_type) in the payload.",
-      "mediaOptional": "Media (optional)",
-      "mediaHint": "Upload an image to attach an S3-backed media descriptor to the payload. Accepted: PNG, JPEG, GIF, WebP. Max 5MB.",
-      "clearFile": "Clear file",
-      "submit": "Create Reward"
-    },
-    "featureUnlockCreatePage": {
-      "breadcrumbParent": "Level Feature Unlocks",
-      "breadcrumbCreate": "Create",
-      "payloadIntro": "JSON object with feature-specific configuration. Add an optional image below to store a media descriptor (resource_type, resource_key, content_type) in the payload.",
-      "mediaOptional": "Media (optional)",
-      "mediaHint": "Upload an image to attach an S3-backed media descriptor to the payload. Accepted: PNG, JPEG, GIF, WebP. Max 5MB.",
-      "clearFile": "Clear file",
-      "submit": "Create Unlock"
-    },
-    "levelForm": {
-      "levelRequired": "Level Required",
-      "featureKey": "Feature Key",
-      "rewardType": "Reward Type",
-      "featurePayload": "Feature Payload (JSON)",
-      "rewardPayload": "Reward Payload (JSON)",
-      "levelPlaceholder": "e.g. 10",
-      "featureKeyPlaceholder": "e.g. reaction_types, favorite_limit",
-      "rewardTypePlaceholder": "e.g. avatar_frame, badge, cosmetic_unlock",
+    "expBonusModal": {
+      "createTitle": "Create EXP Bonus",
+      "updateTitle": "Update EXP Bonus",
+      "description": "Define EXP bonus multipliers that apply when a user matches the selected type and range.",
+      "type": "Type",
+      "typeStreak": "Streak",
+      "typeLevel": "Level",
       "minStreak": "Min Streak",
       "maxStreak": "Max Streak",
+      "minLevel": "Min Level",
+      "maxLevel": "Max Level",
+      "minStreakPlaceholder": "e.g. 0",
+      "maxStreakPlaceholder": "e.g. 7",
+      "minLevelPlaceholder": "e.g. 1",
+      "maxLevelPlaceholder": "e.g. 10",
       "bonusMultiplier": "Bonus Multiplier",
-      "minStreakPlaceholder": "e.g. 7",
-      "maxStreakPlaceholder": "e.g. 30",
-      "bonusPlaceholder": "e.g. 1.50 for 50% bonus",
-      "topKPlaceholder": "10"
+      "bonusPlaceholder": "e.g. 1.50",
+      "addNew": "Add New Bonus",
+      "multiplierHint": "Multiplier applied to EXP. Must be at least 1.0 (e.g., 1.50 = 50% bonus).",
+      "rangeOptionalHint": "Set at least min or max. Leave one empty for no lower or upper bound.",
+      "rangeRequired": "Enter at least a min or max value for the range.",
+      "saveChanges": "Save Changes"
     },
     "embedding": {
       "compareTitle": "Compare embeddings",
@@ -1456,78 +1401,6 @@
       "searchUserPlaceholder": "Search by email or name...",
       "noEmail": "no-email",
       "unknownName": "Unknown"
-    },
-    "payloadGuide": {
-      "exampleJsonAria": "Example JSON",
-      "hideGuide": "Hide guide",
-      "showGuide": "Show guide",
-      "exampleCopyable": "Example (copyable):",
-      "mediaHeading": "Media:",
-      "resourceTypeHeading": "resource_type:",
-      "rewards": {
-        "avatar_frame": {
-          "title": "avatar_frame reward",
-          "description": "Unlocks an avatar frame at the given level. Users can equip it on their profile.",
-          "mediaNote": "Upload an image above to automatically add a media object with resource_type \"s3\" and resource_key. Media is optional; you can also use resource_type \"static\" with a resource_path for app-bundled assets.",
-          "resourceTypeNote": "resource_type: \"static\" = app-bundled asset (use resource_path). \"s3\" = file stored in S3 (use resource_key; populated when you upload)."
-        },
-        "badge": {
-          "title": "badge reward",
-          "description": "Unlocks a badge displayed on the user profile or in activity.",
-          "mediaNote": "Upload an image to attach an S3-backed media descriptor. The payload will reference the file via resource_type and resource_key. Media is optional.",
-          "resourceTypeNote": "resource_type: \"static\" = app-bundled path. \"s3\" = uploaded file (resource_key points to the S3 object)."
-        },
-        "currency": {
-          "title": "currency reward",
-          "description": "Grants in-app currency when the user reaches this level.",
-          "mediaNote": "Currency rewards typically do not use media. If you need an icon, you can add an optional media descriptor with resource_type \"static\" or \"s3\".",
-          "resourceTypeNote": "resource_type: \"static\" = app path. \"s3\" = uploaded file. Usually not used for currency."
-        },
-        "cosmetic_unlock": {
-          "title": "cosmetic_unlock reward",
-          "description": "Unlocks a cosmetic item (theme, border, effect) at the given level.",
-          "mediaNote": "Upload an image to add an S3-backed media descriptor. The payload references the file via resource_type and resource_key. Media is optional.",
-          "resourceTypeNote": "resource_type: \"static\" = app-bundled. \"s3\" = uploaded file (resource_key set when you upload)."
-        }
-      },
-      "genericReward": {
-        "title": "Reward payload",
-        "description": "Use a JSON object with keys relevant to your reward type. Structure depends on how the app consumes this reward.",
-        "mediaNote": "Media is optional. Upload an image above to add a media descriptor (resource_type \"s3\", resource_key) automatically. For app-bundled assets use resource_type \"static\" and resource_path.",
-        "resourceTypeNote": "resource_type: \"static\" = app-bundled path. \"s3\" = file stored in S3 (resource_key points to the object; set automatically when you upload)."
-      },
-      "features": {
-        "reaction_types": {
-          "title": "reaction_types",
-          "description": "Configures which reaction types are available. The payload is configuration, not a boolean toggle; the app reads these values at runtime.",
-          "mediaNote": "Reaction types usually do not use media. If a custom reaction needs an icon, add an optional media object with resource_type \"s3\" or \"static\".",
-          "resourceTypeNote": "resource_type: \"static\" = app path. \"s3\" = uploaded file. Optional for this feature."
-        },
-        "favorite_limit": {
-          "title": "favorite_limit",
-          "description": "Configures how many favorites a user can have. The payload holds the numeric limit and any extra options.",
-          "mediaNote": "favorite_limit does not use media. Media is optional and only needed if you add custom UI assets (resource_type \"static\" or \"s3\").",
-          "resourceTypeNote": "resource_type: \"static\" or \"s3\" only if you attach a custom asset; otherwise omit media."
-        },
-        "streak_freeze": {
-          "title": "streak_freeze",
-          "description": "Configures streak freeze behavior: how many freezes, how to earn or spend them. The payload is configuration, not a simple on/off.",
-          "mediaNote": "Optional: add media with resource_type \"s3\" or \"static\" if you need an icon for the freeze in the UI.",
-          "resourceTypeNote": "resource_type: \"static\" = app path. \"s3\" = uploaded file. Optional."
-        },
-        "ui_customization": {
-          "title": "ui_customization",
-          "description": "Configures UI customization options (themes, layout, compact mode). Different keys can require different payload shapes.",
-          "mediaNote": "Upload an image to attach an S3-backed asset (e.g. custom theme preview). The payload will reference it via resource_type and resource_key. Media is optional.",
-          "resourceTypeNote": "resource_type: \"static\" = app-bundled. \"s3\" = uploaded file (resource_key set when you upload)."
-        }
-      },
-      "genericFeature": {
-        "title": "Feature payload",
-        "description": "feature_payload is configuration the app reads for this feature, not a boolean. Use a JSON object; the shape depends on the feature.",
-        "mediaNote": "Media is optional. Upload an image to add an S3-backed descriptor (resource_type, resource_key). The payload will reference the file; you can also use resource_type \"static\" for app paths.",
-        "resourceTypeNote": "resource_type: \"static\" = app path. \"s3\" = uploaded file (resource_key filled when you upload)."
-      }
     }
   },
   "dataTable": {
@@ -1641,44 +1514,23 @@
       "avgDuration": "Avg Duration",
       "added": "Added"
     },
-    "levelFeatureUnlocks": {
-      "copyUnlockId": "Copy unlock ID",
-      "unlockIdCopied": "Unlock ID copied to clipboard",
-      "editDetails": "Edit Details",
-      "delete": "Delete",
-      "deleteDescription": "This action cannot be undone. This will permanently delete the level feature unlock.",
-      "levelRequired": "Level Required",
-      "levelPrefix": "Level {level}",
-      "featureKey": "Feature Key",
-      "featureConfig": "Feature Config",
-      "created": "Created",
-      "filterPlaceholder": "Search by feature key..."
-    },
-    "levelRewards": {
-      "copyRewardId": "Copy reward ID",
-      "rewardIdCopied": "Reward ID copied to clipboard",
-      "editDetails": "Edit Details",
-      "delete": "Delete",
-      "deleteDescription": "This action cannot be undone. This will permanently delete the level reward.",
-      "levelRequired": "Level Required",
-      "levelPrefix": "Level {level}",
-      "rewardType": "Reward Type",
-      "rewardDetails": "Reward Details",
-      "created": "Created",
-      "filterPlaceholder": "Search by reward type..."
-    },
-    "streakExpBonuses": {
+    "expBonuses": {
       "copyBonusId": "Copy bonus ID",
       "bonusIdCopied": "Bonus ID copied to clipboard",
       "editDetails": "Edit Details",
       "delete": "Delete",
-      "deleteDescription": "This action cannot be undone. This will permanently delete the streak EXP bonus.",
-      "minStreak": "Min Streak",
-      "maxStreak": "Max Streak",
+      "deleteDescription": "This action cannot be undone. This will permanently delete the EXP bonus.",
+      "type": "Type",
+      "typeStreak": "Streak",
+      "typeLevel": "Level",
+      "min": "Min",
+      "max": "Max",
+      "unboundedMin": "Any",
+      "unboundedMax": "Any",
       "bonusMultiplier": "Bonus Multiplier",
       "bonusPercent": "{multiplier}x ({percent}% bonus)",
       "created": "Created",
-      "filterPlaceholder": "Search by multiplier..."
+      "filterPlaceholder": "Search by type..."
     },
     "interestTags": {
       "copyTagId": "Copy tag ID",
@@ -1771,11 +1623,9 @@
     "failedCompleteMultipart": "Failed to complete multipart upload",
     "failedCreateCallHistory": "Failed to create call history",
     "failedCreateFeatureUnlock": "Failed to create level feature unlock",
-    "failedCreateLevelReward": "Failed to create level reward",
     "failedCreateReport": "Failed to create report",
     "failedDeleteAdminUser": "Failed to delete user",
     "failedDeleteFeatureUnlock": "Failed to delete level feature unlock",
-    "failedDeleteLevelReward": "Failed to delete level reward",
     "failedDeleteObject": "Failed to delete object",
     "failedDownloadUrl": "Failed to generate download URL",
     "failedFetchAdminConfig": "Failed to fetch admin config",
@@ -1790,8 +1640,6 @@
     "failedFetchInterestTags": "Failed to fetch interest tags",
     "failedFetchLevelFeatureUnlock": "Failed to fetch level feature unlock",
     "failedFetchLevelFeatureUnlocks": "Failed to fetch level feature unlocks",
-    "failedFetchLevelReward": "Failed to fetch level reward",
-    "failedFetchLevelRewards": "Failed to fetch level rewards",
     "failedFetchNotifications": "Failed to fetch notifications",
     "failedFetchReports": "Failed to fetch reports",
     "failedFetchUnreadCount": "Failed to fetch unread count",
@@ -1827,7 +1675,6 @@
     "failedUnsubscribePush": "Failed to unsubscribe from push notifications",
     "failedUpdateAdminUser": "Failed to update user",
     "failedUpdateFeatureUnlock": "Failed to update level feature unlock",
-    "failedUpdateLevelReward": "Failed to update level reward",
     "failedUpdateReport": "Failed to update report",
     "failedUpdateUserCountry": "Failed to update user country",
     "failedUpdateUserDetails": "Failed to update user details",
@@ -1847,15 +1694,12 @@
     "idempotencyKeyBodyMismatch": "Idempotency-Key was used with a different body",
     "idempotencyKeyRequired": "Idempotency-Key header is required",
     "idsNonEmptyArray": "ids must be a non-empty array",
-    "intentInvalid": "intent must be one of: reward, feature",
-    "intentRequiredString": "intent is required and must be a string",
     "internalServerError": "Internal server error",
     "internalWorkerNotConfigured": "Internal worker API is not configured",
     "invalidCredentials": "Invalid credentials",
     "invalidKey": "Invalid key",
     "invalidPartNumber": "Invalid part number",
     "invalidReportStatus": "Invalid status value",
-    "invalidRewardId": "Invalid reward ID",
     "invalidTagId": "Invalid tag ID",
     "invalidUnlockId": "Invalid unlock ID",
     "invalidUserId": "Invalid user ID",
@@ -1863,13 +1707,6 @@
     "jobExecutionFailed": "Job execution failed",
     "keyRequired": "key is required",
     "levelFeatureUnlockNotFound": "Level feature unlock not found",
-    "levelRewardDeletedSuccess": "Level reward deleted successfully",
-    "levelRewardDuplicate": "A level reward with this level and type already exists",
-    "levelRewardLevelRequired": "level_required is required and must be a positive number",
-    "levelRewardNotFound": "Level reward not found",
-    "levelRewardPayloadObject": "reward_payload is required and must be an object",
-    "levelRewardTypeLength": "reward_type must be 100 characters or less",
-    "levelRewardTypeRequired": "reward_type is required and must be a non-empty string",
     "limitBetween1And100": "Limit must be between 1 and 100",
     "missingAuth": "Missing authentication",
     "missingAuthHeader": "Missing or invalid Authorization header",

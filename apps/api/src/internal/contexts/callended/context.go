@@ -5,7 +5,9 @@ import (
 	"errors"
 	"time"
 
+	"linky-api/src/internal/domains/user/leveling"
 	"linky-api/src/internal/domains/user/userservice"
+	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/jobs"
 	"linky-api/src/internal/logger"
@@ -27,9 +29,28 @@ type LevelOutcome struct {
 	NewLevel      int
 }
 
+type ExpOutcome struct {
+	UserID   string
+	Applied  bool
+	Enqueued bool
+}
+
 type Result struct {
 	StreakOutcomes []StreakOutcome
 	LevelOutcomes  []LevelOutcome
+	ExpOutcomes    []ExpOutcome
+}
+
+func (r *Result) ExpSettled(userID string) bool {
+	if r == nil || userID == "" {
+		return false
+	}
+	for _, o := range r.ExpOutcomes {
+		if o.UserID == userID {
+			return o.Applied || o.Enqueued
+		}
+	}
+	return false
 }
 
 type ApplyParams struct {
@@ -66,7 +87,7 @@ func Apply(ctx context.Context, p ApplyParams) (*Result, error) {
 		{p.CallerID, p.CalleeID, p.CallerTimezone},
 		{p.CalleeID, p.CallerID, p.CalleeTimezone},
 	} {
-		dateStr := localDateString(p.EndedAt, side.timezone)
+		dateStr := LocalDateString(p.EndedAt, side.timezone)
 
 		streakRes, err := supax.UpsertUserStreakDay(ctx, side.userID, dateStr, p.DurationSecs)
 		if err != nil {
@@ -80,37 +101,48 @@ func Apply(ctx context.Context, p ApplyParams) (*Result, error) {
 			})
 		}
 
-		expSeconds := computeExpSecondsForCallDuration(p.DurationSecs)
+		streakCount := 0
+		if streakRes != nil {
+			streakCount = streakRes.CurrentStreak
+		}
+		userLevel := 1
+		if levelRow, lerr := supax.GetUserLevel(ctx, side.userID); lerr == nil && levelRow != nil {
+			userLevel = leveling.CalculateLevelFromExp(levelRow.TotalExpSeconds, leveling.Default).Level
+		}
+		expSeconds := expbonus.EffectiveSeconds(p.DurationSecs, streakCount, userLevel)
 		expSecondsPtr := &expSeconds
-		level, err := userservice.AddCallExp(ctx, side.userID, p.DurationSecs, expSecondsPtr)
+		expOutcome := ExpOutcome{UserID: side.userID}
+		level, err := userservice.AddCallExp(ctx, side.userID, p.DurationSecs, expSecondsPtr, dateStr)
 		if err != nil {
-			log.Warn().Err(err).Str("userId", side.userID).Msg("AddCallExp failed; enqueueing job")
+			log.Warn().Err(err).Str("userId", side.userID).Int("durationSeconds", p.DurationSecs).Str("date", dateStr).
+				Msg("AddCallExp failed; enqueueing apply_call_exp recovery job")
 			if jerr := jobs.EnqueueApplyCallExpFull(ctx, side.userID, p.DurationSecs, expSecondsPtr, side.counterpartID, side.timezone, dateStr); jerr != nil {
 				log.Error().Err(jerr).Str("userId", side.userID).Msg("Failed to enqueue apply_call_exp recovery job")
+			} else {
+				expOutcome.Enqueued = true
+				log.Info().Str("userId", side.userID).Int("durationSeconds", p.DurationSecs).Str("date", dateStr).
+					Msg("apply_call_exp recovery job enqueued")
 			}
-			continue
+		} else {
+			expOutcome.Applied = true
+			log.Info().Str("userId", side.userID).Int("durationSeconds", p.DurationSecs).Int("expSeconds", expSeconds).
+				Str("date", dateStr).Msg("call exp applied synchronously")
+			if level != nil {
+				res.LevelOutcomes = append(res.LevelOutcomes, LevelOutcome{
+					UserID:        side.userID,
+					DidLevelUp:    level.DidLevelUp,
+					PreviousLevel: level.PreviousLevel,
+					NewLevel:      level.NewLevel,
+				})
+			}
 		}
-		if level != nil {
-			res.LevelOutcomes = append(res.LevelOutcomes, LevelOutcome{
-				UserID:        side.userID,
-				DidLevelUp:    level.DidLevelUp,
-				PreviousLevel: level.PreviousLevel,
-				NewLevel:      level.NewLevel,
-			})
-		}
+		res.ExpOutcomes = append(res.ExpOutcomes, expOutcome)
 	}
 
 	return res, nil
 }
 
-func computeExpSecondsForCallDuration(durationSeconds int) int {
-	if durationSeconds <= 0 {
-		return 0
-	}
-	return durationSeconds
-}
-
-func localDateString(t time.Time, timezone string) string {
+func LocalDateString(t time.Time, timezone string) string {
 	loc, err := time.LoadLocation(timezone)
 	if err != nil {
 		loc = time.UTC

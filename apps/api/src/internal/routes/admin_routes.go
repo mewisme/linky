@@ -15,6 +15,7 @@ import (
 	"linky-api/src/internal/domains/user/leveling"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/aiconfig"
+	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/jobs"
@@ -41,9 +42,7 @@ func registerAdminRoutes(g *echo.Group) {
 	g.DELETE("/users/:id", handleAdminUserSoftDelete)
 
 	registerAdminCRUD(g, "/interest-tags", "interest_tags")
-	registerAdminCRUD(g, "/level-rewards", "level_rewards")
-	registerAdminCRUD(g, "/level-feature-unlocks", "level_feature_unlocks")
-	registerAdminCRUD(g, "/streak-exp-bonuses", "streak_exp_bonuses")
+	registerAdminCRUD(g, "/exp-bonuses", "exp_bonuses", refreshExpBonusesAfterAdminMutate)
 
 	g.GET("/broadcasts", handleAdminBroadcastsList)
 	g.POST("/broadcasts", handleAdminBroadcastsCreate)
@@ -51,8 +50,6 @@ func registerAdminRoutes(g *echo.Group) {
 
 	g.POST("/interest-tags/import", handleAdminImportInterestTags)
 	g.DELETE("/interest-tags/:id/hard", handleAdminInterestTagHardDelete)
-
-	g.POST("/media/presigned-upload", handleAdminMediaPresignedUpload)
 
 	g.GET("/embeddings", handleAdminEmbeddings)
 	g.POST("/embeddings/regenerate", handleAdminEmbeddingsRegenerate)
@@ -337,8 +334,21 @@ func handleAdminUserSoftDelete(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func registerAdminCRUD(g *echo.Group, prefix, table string) {
+func refreshExpBonusesAfterAdminMutate(ctx context.Context) {
+	if err := expbonus.Reload(ctx); err != nil {
+		adminLog.Warn().Err(err).Msg("EXP bonus reload after admin mutate failed")
+	}
+}
+
+func registerAdminCRUD(g *echo.Group, prefix, table string, afterMutate ...func(context.Context)) {
 	sub := g.Group(prefix)
+	runAfterMutate := func(c echo.Context) {
+		for _, fn := range afterMutate {
+			if fn != nil {
+				fn(c.Request().Context())
+			}
+		}
+	}
 	sub.GET("", func(c echo.Context) error {
 		limit, _ := strconv.Atoi(c.QueryParam("limit"))
 		if limit <= 0 {
@@ -376,6 +386,7 @@ func registerAdminCRUD(g *echo.Group, prefix, table string) {
 			return httpx.SendError(c, 500, "Internal Server Error",
 				httpx.UM("FAILED_INSERT_RECORD", "failedInsertRecord", "Failed to insert record"))
 		}
+		runAfterMutate(c)
 		return c.JSON(http.StatusCreated, row)
 	})
 	sub.PUT("/:id", func(c echo.Context) error {
@@ -387,6 +398,7 @@ func registerAdminCRUD(g *echo.Group, prefix, table string) {
 			return httpx.SendError(c, 500, "Internal Server Error",
 				httpx.UM("FAILED_PATCH_RECORD", "failedPatchRecord", "Failed to update record"))
 		}
+		runAfterMutate(c)
 		return c.JSON(http.StatusOK, row)
 	})
 	sub.PATCH("/:id", func(c echo.Context) error {
@@ -398,6 +410,7 @@ func registerAdminCRUD(g *echo.Group, prefix, table string) {
 			return httpx.SendError(c, 500, "Internal Server Error",
 				httpx.UM("FAILED_PATCH_RECORD", "failedPatchRecord", "Failed to update record"))
 		}
+		runAfterMutate(c)
 		return c.JSON(http.StatusOK, row)
 	})
 	sub.DELETE("/:id", func(c echo.Context) error {
@@ -405,6 +418,7 @@ func registerAdminCRUD(g *echo.Group, prefix, table string) {
 			return httpx.SendError(c, 500, "Internal Server Error",
 				httpx.UM("FAILED_DELETE_RECORD", "failedDeleteRecord", "Failed to delete record"))
 		}
+		runAfterMutate(c)
 		return c.NoContent(http.StatusNoContent)
 	})
 }

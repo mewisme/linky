@@ -434,168 +434,19 @@ export namespace AdminAPI {
     }
   }
 
-  export namespace LevelRewards {
-    export interface LevelReward {
+  export namespace ExpBonuses {
+    export type ExpBonusType = "streak" | "level";
+
+    export interface ExpBonusConfig {
+      min?: number;
+      max?: number;
+    }
+
+    export interface ExpBonus {
       id: string;
-      level_required: number;
-      reward_type: string;
-      reward_payload: Record<string, unknown>;
-      created_at: string;
-      updated_at: string;
-    }
-
-    export namespace Get {
-      export interface QueryParams {
-        limit?: number;
-        offset?: number;
-      }
-
-      export interface Response {
-        data: LevelReward[];
-      }
-    }
-
-    export namespace GetById {
-      export interface PathParams {
-        id: string;
-      }
-
-      export type Response = LevelReward;
-    }
-
-    export namespace Create {
-      export interface Body {
-        level_required: number;
-        reward_type: string;
-        reward_payload: Record<string, unknown>;
-      }
-
-      export type Response = LevelReward;
-    }
-
-    export namespace Update {
-      export interface PathParams {
-        id: string;
-      }
-
-      export interface Body {
-        level_required?: number;
-        reward_type?: string;
-        reward_payload?: Record<string, unknown>;
-      }
-
-      export type Response = LevelReward;
-    }
-
-    export namespace Patch {
-      export interface PathParams {
-        id: string;
-      }
-
-      export interface Body {
-        level_required?: number;
-        reward_type?: string;
-        reward_payload?: Record<string, unknown>;
-      }
-
-      export type Response = LevelReward;
-    }
-
-    export namespace Delete {
-      export interface PathParams {
-        id: string;
-      }
-
-      export interface Response {
-        message: string;
-      }
-    }
-  }
-
-  export namespace LevelFeatureUnlocks {
-    export interface LevelFeatureUnlock {
-      id: string;
-      level_required: number;
-      feature_key: string;
-      feature_payload: Record<string, unknown>;
-      created_at: string;
-      updated_at: string;
-    }
-
-    export namespace Get {
-      export interface QueryParams {
-        limit?: number;
-        offset?: number;
-      }
-
-      export interface Response {
-        data: LevelFeatureUnlock[];
-      }
-    }
-
-    export namespace GetById {
-      export interface PathParams {
-        id: string;
-      }
-
-      export type Response = LevelFeatureUnlock;
-    }
-
-    export namespace Create {
-      export interface Body {
-        level_required: number;
-        feature_key: string;
-        feature_payload: Record<string, unknown>;
-      }
-
-      export type Response = LevelFeatureUnlock;
-    }
-
-    export namespace Update {
-      export interface PathParams {
-        id: string;
-      }
-
-      export interface Body {
-        level_required?: number;
-        feature_key?: string;
-        feature_payload?: Record<string, unknown>;
-      }
-
-      export type Response = LevelFeatureUnlock;
-    }
-
-    export namespace Patch {
-      export interface PathParams {
-        id: string;
-      }
-
-      export interface Body {
-        level_required?: number;
-        feature_key?: string;
-        feature_payload?: Record<string, unknown>;
-      }
-
-      export type Response = LevelFeatureUnlock;
-    }
-
-    export namespace Delete {
-      export interface PathParams {
-        id: string;
-      }
-
-      export interface Response {
-        message: string;
-      }
-    }
-  }
-
-  export namespace StreakExpBonuses {
-    export interface StreakExpBonus {
-      id: string;
-      min_streak: number;
-      max_streak: number;
       bonus_multiplier: number;
+      type: ExpBonusType;
+      config: ExpBonusConfig;
       created_at: string;
       updated_at: string;
     }
@@ -607,7 +458,7 @@ export namespace AdminAPI {
       }
 
       export interface Response {
-        data: StreakExpBonus[];
+        data: ExpBonus[];
       }
     }
 
@@ -616,17 +467,17 @@ export namespace AdminAPI {
         id: string;
       }
 
-      export type Response = StreakExpBonus;
+      export type Response = ExpBonus;
     }
 
     export namespace Create {
       export interface Body {
-        min_streak: number;
-        max_streak: number;
         bonus_multiplier: number;
+        type: ExpBonusType;
+        config: ExpBonusConfig;
       }
 
-      export type Response = StreakExpBonus;
+      export type Response = ExpBonus;
     }
 
     export namespace Update {
@@ -635,12 +486,12 @@ export namespace AdminAPI {
       }
 
       export interface Body {
-        min_streak?: number;
-        max_streak?: number;
         bonus_multiplier?: number;
+        type?: ExpBonusType;
+        config?: ExpBonusConfig;
       }
 
-      export type Response = StreakExpBonus;
+      export type Response = ExpBonus;
     }
 
     export namespace Patch {
@@ -649,12 +500,12 @@ export namespace AdminAPI {
       }
 
       export interface Body {
-        min_streak?: number;
-        max_streak?: number;
         bonus_multiplier?: number;
+        type?: ExpBonusType;
+        config?: ExpBonusConfig;
       }
 
-      export type Response = StreakExpBonus;
+      export type Response = ExpBonus;
     }
 
     export namespace Delete {

@@ -18,7 +18,6 @@ import { VideoControls } from "./video-controls";
 import { useMirrorLocalPreview, VideoPlayer } from "./video-player";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useMousePosition } from "@/shared/hooks/ui/use-mouse-move";
-import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useReactionTrigger } from "@/features/call/hooks/webrtc/use-reaction-trigger";
 import { useStreamAspectRatio } from "@/features/call/hooks/webrtc/use-stream-aspect-ratio";
@@ -132,17 +131,11 @@ export function VideoContainer({
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
   const mirrorLocalPreview = useMirrorLocalPreview(localStream, !!isSharingScreen);
 
-  const queryClient = useQueryClient();
   const [isMounted, setIsMounted] = useState(false);
   const [isPictureInPictureActive, setIsPictureInPictureActive] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
-  useEffect(() => {
-    if (connectionStatus === "ended") {
-      queryClient.invalidateQueries({ queryKey: ["user-progress"] });
-    }
-  }, [connectionStatus, queryClient]);
 
   const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled && !isVideoStalled;
   const isLocalCameraOn = !isVideoOff;

@@ -3,6 +3,8 @@ package progress
 import (
 	"encoding/json"
 	"testing"
+
+	"linky-api/src/internal/infra/expbonus"
 )
 
 func TestInsightsJSONMatchesProgressInsightsShape(t *testing.T) {
@@ -106,5 +108,34 @@ func TestApplyRealtimeCallProjectionPreservesExpProgress(t *testing.T) {
 	}
 	if projected.ExpProgress.ProgressPercentage <= 0 {
 		t.Errorf("progressPercentage = %f", projected.ExpProgress.ProgressPercentage)
+	}
+}
+
+func TestApplyRealtimeCallProjectionAppliesExpBonus(t *testing.T) {
+	expbonus.ApplySnapshot(
+		[]expbonus.Tier{{Min: 1, Max: 99, HasMin: true, HasMax: true, Multiplier: 2.0}},
+		nil,
+	)
+	defer expbonus.ApplySnapshot(nil, nil)
+
+	base := &Insights{
+		CurrentLevel:             2,
+		StreakRequiredSeconds:    300,
+		IsTodayStreakComplete:    true,
+		TodayCallDurationSeconds: 300,
+		ExpProgress:              ExpProgress{TotalExpSeconds: 100, ExpToNextLevel: 200, ProgressPercentage: 33.3},
+		ExpEarnedToday:           50,
+		Streak:                   StreakSummary{CurrentStreak: 3, LongestStreak: 5},
+	}
+
+	projected := ApplyRealtimeCallProjection(base, 60, 60)
+	if projected == nil {
+		t.Fatal("expected projection")
+	}
+	if projected.ExpProgress.TotalExpSeconds != 220 {
+		t.Errorf("totalExpSeconds = %d want 220", projected.ExpProgress.TotalExpSeconds)
+	}
+	if projected.ExpEarnedToday != 170 {
+		t.Errorf("expEarnedToday = %d want 170", projected.ExpEarnedToday)
 	}
 }

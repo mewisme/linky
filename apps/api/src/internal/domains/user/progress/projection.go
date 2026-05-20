@@ -1,11 +1,17 @@
 package progress
 
-import "linky-api/src/internal/domains/user/leveling"
+import (
+	"linky-api/src/internal/domains/user/leveling"
+	"linky-api/src/internal/infra/expbonus"
+)
 
 func ApplyRealtimeCallProjection(progress *Insights, unpersistedElapsedSeconds, projectedExpGain int) *Insights {
 	if progress == nil {
 		return nil
 	}
+
+	streakForBonus := streakCountForExpBonus(progress, unpersistedElapsedSeconds)
+	projectedExpGain = expbonus.EffectiveSeconds(projectedExpGain, streakForBonus, progress.CurrentLevel)
 
 	baselineTotal := progress.ExpProgress.TotalExpSeconds
 	projectedTotal := baselineTotal + projectedExpGain
@@ -86,4 +92,18 @@ func ApplyRealtimeCallProjection(progress *Insights, unpersistedElapsedSeconds, 
 		LastValidDate:                progress.Streak.LastValidDate,
 	}
 	return &out
+}
+
+func streakCountForExpBonus(progress *Insights, unpersistedElapsedSeconds int) int {
+	if progress == nil {
+		return 0
+	}
+	if progress.IsTodayStreakComplete {
+		return progress.Streak.CurrentStreak
+	}
+	projectedToday := progress.TodayCallDurationSeconds + unpersistedElapsedSeconds
+	if projectedToday >= progress.StreakRequiredSeconds {
+		return progress.StreakIfTodayCompleted
+	}
+	return progress.Streak.CurrentStreak
 }

@@ -534,17 +534,9 @@
         "label": "Báo cáo",
         "description": "Quản lý báo cáo"
       },
-      "adminLevelRewards": {
-        "label": "Phần thưởng cấp",
-        "description": "Quản lý phần thưởng cấp"
-      },
-      "adminFeatureUnlocks": {
-        "label": "Mở khóa tính năng",
-        "description": "Quản lý mở khóa theo cấp"
-      },
-      "adminStreakExp": {
-        "label": "EXP chuỗi",
-        "description": "Quản lý hệ số EXP bonus chuỗi"
+      "adminExpBonuses": {
+        "label": "EXP Bonus",
+        "description": "Quản lý hệ số EXP bonus theo chuỗi hoặc cấp"
       },
       "settings": {
         "label": "Cài đặt",
@@ -632,7 +624,6 @@
       "adminUsers": "người dùng tài khoản",
       "adminTags": "thẻ sở thích",
       "adminReports": "báo cáo kiểm duyệt",
-      "adminRewards": "phần thưởng cấp",
       "adminFeatures": "mở khóa tính năng",
       "adminBonuses": "chuỗi bonus xp",
       "adminBroadcasts": "phát sóng thông báo",
@@ -1151,10 +1142,7 @@
     "bulkActionsDrawerTitle": "Thao tác hàng loạt",
     "invalidJsonPayload": "JSON trong cấu hình tính năng không hợp lệ",
     "payloadMustBeObject": "Cấu hình tính năng phải là đối tượng JSON",
-    "featureUnlockCreated": "Đã tạo mở khóa tính năng theo cấp",
-    "invalidRewardJson": "JSON trong phần thưởng không hợp lệ",
-    "rewardPayloadObject": "Phần thưởng phải là đối tượng JSON",
-    "levelRewardCreated": "Đã tạo phần thưởng cấp",
+    "expBonusDeleted": "Đã xóa EXP bonus",
     "audienceRequired": "Cần nhập đối tượng để tạo bằng AI",
     "keyPointsRequired": "Cần nhập điểm chính để tạo bằng AI",
     "aiDraftGenerated": "Đã tạo bản nháp AI",
@@ -1163,7 +1151,6 @@
     "broadcastSent": "Đã gửi thông báo tới {count} người dùng.",
     "broadcastSendFailed": "Gửi thông báo thất bại",
     "aiSummaryStarted": "Đã bắt đầu tóm tắt AI",
-    "streakBonusDeleted": "Đã xóa thưởng EXP chuỗi",
     "configSet": "Đã lưu cấu hình",
     "configUnset": "Đã gỡ cấu hình",
     "keyRequired": "Cần nhập khóa",
@@ -1192,8 +1179,6 @@
     "aiSummaryFailed": "Không thể bắt đầu tóm tắt AI",
     "configSetFailed": "Lưu cấu hình thất bại",
     "configUnsetFailed": "Gỡ cấu hình thất bại",
-    "rewardDeleted": "Đã xóa phần thưởng",
-    "featureUnlockDeleted": "Đã xóa mở khóa tính năng",
     "copyReportId": "Sao chép ID báo cáo",
     "softDeleteUserTitle": "Xóa mềm người dùng?",
     "softDeleteUserDescription": "Người dùng sẽ được đánh dấu đã xóa và ẩn khỏi danh sách hoạt động. Có thể khôi phục sau.",
@@ -1207,10 +1192,6 @@
     "roleAdmin": "Quản trị viên",
     "roleMember": "Thành viên",
     "superadminProtected": "Siêu quản trị (bảo vệ)",
-    "createLevelRewardTitle": "Tạo phần thưởng cấp",
-    "createLevelRewardDescription": "Định nghĩa phần thưởng khi người dùng đạt cấp nhất định",
-    "createFeatureUnlockTitle": "Tạo mở khóa tính năng",
-    "createFeatureUnlockDescription": "Định nghĩa tính năng mở khi người dùng đạt cấp nhất định",
     "configPageTitle": "Cấu hình quản trị",
     "configPageDescription": "Cấu hình khóa–giá trị (chỉ siêu quản trị). Backend dùng ví dụ clerk_auto_remove_email_prefix.",
     "reportDetailTitle": "Chi tiết báo cáo",
@@ -1374,64 +1355,28 @@
       "addNewTag": "Thêm thẻ mới",
       "saveChanges": "Lưu thay đổi"
     },
-    "levelRewardModal": {
-      "createTitle": "Tạo phần thưởng theo cấp",
-      "updateTitle": "Cập nhật phần thưởng theo cấp",
-      "description": "Định nghĩa phần thưởng tự động khi người dùng đạt cấp đó.",
-      "payloadJsonHint": "Đối tượng JSON chứa dữ liệu theo loại phần thưởng. Phải là JSON hợp lệ.",
-      "addNew": "Thêm phần thưởng mới",
-      "saveChanges": "Lưu thay đổi"
-    },
-    "featureUnlockModal": {
-      "createTitle": "Tạo mở khóa tính năng",
-      "updateTitle": "Cập nhật mở khóa tính năng",
-      "description": "Định nghĩa tính năng mở khi người dùng đạt cấp đó.",
-      "payloadJsonHint": "Đối tượng JSON cấu hình tính năng. Phải là JSON hợp lệ.",
-      "addNew": "Thêm mở khóa mới",
-      "saveChanges": "Lưu thay đổi"
-    },
-    "streakExpModal": {
-      "createTitle": "Tạo thưởng EXP chuỗi",
-      "updateTitle": "Cập nhật thưởng EXP chuỗi",
-      "description": "Định nghĩa hệ số thưởng EXP khi chuỗi nằm trong khoảng nhất định.",
-      "addNew": "Thêm thưởng mới",
-      "multiplierHint": "Hệ số nhân EXP. Tối thiểu 1.0 (vd. 1.50 = thưởng 50%).",
-      "saveChanges": "Lưu thay đổi"
-    },
-    "levelRewardCreatePage": {
-      "breadcrumbParent": "Phần thưởng theo cấp",
-      "breadcrumbCreate": "Tạo mới",
-      "payloadIntro": "Đối tượng JSON theo loại phần thưởng. Có thể thêm ảnh bên dưới để lưu mô tả media (resource_type, resource_key, content_type) trong payload.",
-      "mediaOptional": "Media (tuỳ chọn)",
-      "mediaHint": "Tải ảnh để gắn mô tả media S3 vào payload. Chấp nhận: PNG, JPEG, GIF, WebP. Tối đa 5MB.",
-      "clearFile": "Xóa tệp",
-      "submit": "Tạo phần thưởng"
-    },
-    "featureUnlockCreatePage": {
-      "breadcrumbParent": "Mở khóa tính năng",
-      "breadcrumbCreate": "Tạo mới",
-      "payloadIntro": "Đối tượng JSON cấu hình tính năng. Có thể thêm ảnh bên dưới để lưu mô tả media (resource_type, resource_key, content_type) trong payload.",
-      "mediaOptional": "Media (tuỳ chọn)",
-      "mediaHint": "Tải ảnh để gắn mô tả media S3 vào payload. Chấp nhận: PNG, JPEG, GIF, WebP. Tối đa 5MB.",
-      "clearFile": "Xóa tệp",
-      "submit": "Tạo mở khóa"
-    },
-    "levelForm": {
-      "levelRequired": "Cấp yêu cầu",
-      "featureKey": "Khóa tính năng",
-      "rewardType": "Loại phần thưởng",
-      "featurePayload": "Payload tính năng (JSON)",
-      "rewardPayload": "Payload phần thưởng (JSON)",
-      "levelPlaceholder": "vd. 10",
-      "featureKeyPlaceholder": "vd. reaction_types, favorite_limit",
-      "rewardTypePlaceholder": "vd. avatar_frame, badge, cosmetic_unlock",
+    "expBonusModal": {
+      "createTitle": "Tạo EXP bonus",
+      "updateTitle": "Cập nhật EXP bonus",
+      "description": "Định nghĩa hệ số thưởng EXP khi người dùng khớp loại và khoảng đã chọn.",
+      "type": "Loại",
+      "typeStreak": "Chuỗi",
+      "typeLevel": "Cấp",
       "minStreak": "Chuỗi tối thiểu",
       "maxStreak": "Chuỗi tối đa",
+      "minLevel": "Cấp tối thiểu",
+      "maxLevel": "Cấp tối đa",
+      "minStreakPlaceholder": "vd. 0",
+      "maxStreakPlaceholder": "vd. 7",
+      "minLevelPlaceholder": "vd. 1",
+      "maxLevelPlaceholder": "vd. 10",
       "bonusMultiplier": "Hệ số thưởng",
-      "minStreakPlaceholder": "vd. 7",
-      "maxStreakPlaceholder": "vd. 30",
-      "bonusPlaceholder": "vd. 1.50 cho thưởng 50%",
-      "topKPlaceholder": "10"
+      "bonusPlaceholder": "vd. 1.50",
+      "addNew": "Thêm thưởng mới",
+      "multiplierHint": "Hệ số nhân EXP. Tối thiểu 1.0 (vd. 1.50 = thưởng 50%).",
+      "rangeOptionalHint": "Cần ít nhất min hoặc max. Để trống một ô = không giới hạn dưới hoặc trên.",
+      "rangeRequired": "Nhập ít nhất min hoặc max cho khoảng.",
+      "saveChanges": "Lưu thay đổi"
     },
     "embedding": {
       "compareTitle": "So sánh embedding",
@@ -1456,78 +1401,6 @@
       "searchUserPlaceholder": "Tìm theo email hoặc tên...",
       "noEmail": "không có email",
       "unknownName": "Không rõ"
-    },
-    "payloadGuide": {
-      "exampleJsonAria": "JSON ví dụ",
-      "hideGuide": "Ẩn hướng dẫn",
-      "showGuide": "Hiện hướng dẫn",
-      "exampleCopyable": "Ví dụ (có thể sao chép):",
-      "mediaHeading": "Media:",
-      "resourceTypeHeading": "resource_type:",
-      "rewards": {
-        "avatar_frame": {
-          "title": "phần thưởng avatar_frame",
-          "description": "Mở khung avatar ở cấp đã cho. Người dùng có thể đeo trên hồ sơ.",
-          "mediaNote": "Tải ảnh phía trên để tự thêm đối tượng media với resource_type \"s3\" và resource_key. Media là tuỳ chọn; có thể dùng resource_type \"static\" với resource_path cho asset đi kèm app.",
-          "resourceTypeNote": "resource_type: \"static\" = asset trong app (dùng resource_path). \"s3\" = file trên S3 (dùng resource_key; điền khi tải lên)."
-        },
-        "badge": {
-          "title": "phần thưởng badge",
-          "description": "Mở huy hiệu hiển thị trên hồ sơ hoặc hoạt động.",
-          "mediaNote": "Tải ảnh để gắn mô tả media S3. Payload tham chiếu file qua resource_type và resource_key. Media là tuỳ chọn.",
-          "resourceTypeNote": "resource_type: \"static\" = đường dẫn trong app. \"s3\" = file đã tải (resource_key trỏ tới đối tượng S3)."
-        },
-        "currency": {
-          "title": "phần thưởng currency",
-          "description": "Cấp tiền tệ trong app khi đạt cấp này.",
-          "mediaNote": "Thường không cần media. Nếu cần icon, có thể thêm mô tả media tuỳ chọn với resource_type \"static\" hoặc \"s3\".",
-          "resourceTypeNote": "resource_type: \"static\" = đường dẫn app. \"s3\" = file đã tải. Thường không dùng cho currency."
-        },
-        "cosmetic_unlock": {
-          "title": "phần thưởng cosmetic_unlock",
-          "description": "Mở vật phẩm giao diện (theme, viền, hiệu ứng) ở cấp đã cho.",
-          "mediaNote": "Tải ảnh để thêm mô tả media S3. Payload tham chiếu qua resource_type và resource_key. Media là tuỳ chọn.",
-          "resourceTypeNote": "resource_type: \"static\" = trong app. \"s3\" = file đã tải (resource_key khi upload)."
-        }
-      },
-      "genericReward": {
-        "title": "Payload phần thưởng",
-        "description": "Dùng đối tượng JSON với khóa phù hợp loại phần thưởng. Cấu trúc tuỳ cách app xử lý.",
-        "mediaNote": "Media tuỳ chọn. Tải ảnh để thêm mô tả (resource_type \"s3\", resource_key). Asset trong app dùng resource_type \"static\" và resource_path.",
-        "resourceTypeNote": "resource_type: \"static\" = đường dẫn trong app. \"s3\" = file trên S3 (resource_key trỏ tới đối tượng; điền khi tải)."
-      },
-      "features": {
-        "reaction_types": {
-          "title": "reaction_types",
-          "description": "Cấu hình loại reaction khả dụng. Payload là cấu hình, không phải bật/tắt; app đọc khi chạy.",
-          "mediaNote": "Thường không cần media. Nếu reaction tuỳ chỉnh cần icon, thêm media tuỳ chọn với resource_type \"s3\" hoặc \"static\".",
-          "resourceTypeNote": "resource_type: \"static\" = đường dẫn app. \"s3\" = file đã tải. Tuỳ chọn cho tính năng này."
-        },
-        "favorite_limit": {
-          "title": "favorite_limit",
-          "description": "Cấu hình số lượng favorite tối đa. Payload chứa giới hạn số và tuỳ chọn khác.",
-          "mediaNote": "favorite_limit không dùng media. Media chỉ khi cần asset giao diện tuỳ chỉnh (resource_type \"static\" hoặc \"s3\").",
-          "resourceTypeNote": "resource_type \"static\" hoặc \"s3\" chỉ khi gắn asset tuỳ chỉnh; không thì bỏ media."
-        },
-        "streak_freeze": {
-          "title": "streak_freeze",
-          "description": "Cấu hình đóng băng streak: số lần, cách kiếm hoặc tiêu. Payload là cấu hình, không chỉ bật/tắt.",
-          "mediaNote": "Tuỳ chọn: thêm media với resource_type \"s3\" hoặc \"static\" nếu cần icon đóng băng trên UI.",
-          "resourceTypeNote": "resource_type: \"static\" = đường dẫn app. \"s3\" = file đã tải. Tuỳ chọn."
-        },
-        "ui_customization": {
-          "title": "ui_customization",
-          "description": "Cấu hình tuỳ biến giao diện (theme, bố cục, chế độ gọn). Khóa khác nhau có thể cần payload khác nhau.",
-          "mediaNote": "Tải ảnh để gắn asset S3 (vd. xem trước theme). Payload tham chiếu qua resource_type và resource_key. Media tuỳ chọn.",
-          "resourceTypeNote": "resource_type: \"static\" = trong app. \"s3\" = file đã tải (resource_key khi upload)."
-        }
-      },
-      "genericFeature": {
-        "title": "Payload tính năng",
-        "description": "feature_payload là cấu hình app đọc cho tính năng này, không phải boolean. Dùng đối tượng JSON; hình dạng tuỳ tính năng.",
-        "mediaNote": "Media tuỳ chọn. Tải ảnh để thêm mô tả S3 (resource_type, resource_key). Payload tham chiếu file; có thể dùng resource_type \"static\" cho đường dẫn app.",
-        "resourceTypeNote": "resource_type: \"static\" = đường dẫn app. \"s3\" = file đã tải (resource_key điền khi upload)."
-      }
     }
   },
   "dataTable": {
@@ -1641,44 +1514,23 @@
       "avgDuration": "TB thời lượng",
       "added": "Đã thêm"
     },
-    "levelFeatureUnlocks": {
-      "copyUnlockId": "Sao chép ID mở khóa",
-      "unlockIdCopied": "Đã sao chép ID mở khóa",
-      "editDetails": "Sửa chi tiết",
-      "delete": "Xóa",
-      "deleteDescription": "Không thể hoàn tác. Thao tác này xóa vĩnh viễn mở khóa tính năng theo cấp.",
-      "levelRequired": "Cấp yêu cầu",
-      "levelPrefix": "Cấp {level}",
-      "featureKey": "Khóa tính năng",
-      "featureConfig": "Cấu hình tính năng",
-      "created": "Ngày tạo",
-      "filterPlaceholder": "Tìm theo khóa tính năng..."
-    },
-    "levelRewards": {
-      "copyRewardId": "Sao chép ID phần thưởng",
-      "rewardIdCopied": "Đã sao chép ID phần thưởng",
-      "editDetails": "Sửa chi tiết",
-      "delete": "Xóa",
-      "deleteDescription": "Không thể hoàn tác. Thao tác này xóa vĩnh viễn phần thưởng cấp.",
-      "levelRequired": "Cấp yêu cầu",
-      "levelPrefix": "Cấp {level}",
-      "rewardType": "Loại phần thưởng",
-      "rewardDetails": "Chi tiết phần thưởng",
-      "created": "Ngày tạo",
-      "filterPlaceholder": "Tìm theo loại phần thưởng..."
-    },
-    "streakExpBonuses": {
+    "expBonuses": {
       "copyBonusId": "Sao chép ID thưởng",
       "bonusIdCopied": "Đã sao chép ID thưởng",
       "editDetails": "Sửa chi tiết",
       "delete": "Xóa",
-      "deleteDescription": "Không thể hoàn tác. Thao tác này xóa vĩnh viễn thưởng EXP chuỗi.",
-      "minStreak": "Chuỗi tối thiểu",
-      "maxStreak": "Chuỗi tối đa",
+      "deleteDescription": "Không thể hoàn tác. Thao tác này xóa vĩnh viễn EXP bonus.",
+      "type": "Loại",
+      "typeStreak": "Chuỗi",
+      "typeLevel": "Cấp",
+      "min": "Tối thiểu",
+      "max": "Tối đa",
+      "unboundedMin": "Mọi",
+      "unboundedMax": "Mọi",
       "bonusMultiplier": "Hệ số thưởng",
       "bonusPercent": "{multiplier}x (thưởng {percent}%)",
       "created": "Ngày tạo",
-      "filterPlaceholder": "Tìm theo hệ số..."
+      "filterPlaceholder": "Tìm theo loại..."
     },
     "interestTags": {
       "copyTagId": "Sao chép ID thẻ",
@@ -1771,11 +1623,9 @@
     "failedCompleteMultipart": "Failed to complete multipart upload",
     "failedCreateCallHistory": "Failed to create call history",
     "failedCreateFeatureUnlock": "Failed to create level feature unlock",
-    "failedCreateLevelReward": "Failed to create level reward",
     "failedCreateReport": "Failed to create report",
     "failedDeleteAdminUser": "Failed to delete user",
     "failedDeleteFeatureUnlock": "Failed to delete level feature unlock",
-    "failedDeleteLevelReward": "Failed to delete level reward",
     "failedDeleteObject": "Failed to delete object",
     "failedDownloadUrl": "Failed to generate download URL",
     "failedFetchAdminConfig": "Failed to fetch admin config",
@@ -1790,8 +1640,6 @@
     "failedFetchInterestTags": "Failed to fetch interest tags",
     "failedFetchLevelFeatureUnlock": "Failed to fetch level feature unlock",
     "failedFetchLevelFeatureUnlocks": "Failed to fetch level feature unlocks",
-    "failedFetchLevelReward": "Failed to fetch level reward",
-    "failedFetchLevelRewards": "Failed to fetch level rewards",
     "failedFetchNotifications": "Failed to fetch notifications",
     "failedFetchReports": "Failed to fetch reports",
     "failedFetchUnreadCount": "Failed to fetch unread count",
@@ -1827,7 +1675,6 @@
     "failedUnsubscribePush": "Failed to unsubscribe from push notifications",
     "failedUpdateAdminUser": "Failed to update user",
     "failedUpdateFeatureUnlock": "Failed to update level feature unlock",
-    "failedUpdateLevelReward": "Failed to update level reward",
     "failedUpdateReport": "Failed to update report",
     "failedUpdateUserCountry": "Failed to update user country",
     "failedUpdateUserDetails": "Failed to update user details",
@@ -1847,15 +1694,12 @@
     "idempotencyKeyBodyMismatch": "Idempotency-Key was used with a different body",
     "idempotencyKeyRequired": "Idempotency-Key header is required",
     "idsNonEmptyArray": "ids must be a non-empty array",
-    "intentInvalid": "intent must be one of: reward, feature",
-    "intentRequiredString": "intent is required and must be a string",
     "internalServerError": "Lỗi máy chủ nội bộ",
     "internalWorkerNotConfigured": "API internal worker chưa được cấu hình",
     "invalidCredentials": "Thông tin đăng nhập không hợp lệ",
     "invalidKey": "Invalid key",
     "invalidPartNumber": "Invalid part number",
     "invalidReportStatus": "Invalid status value",
-    "invalidRewardId": "Invalid reward ID",
     "invalidTagId": "Invalid tag ID",
     "invalidUnlockId": "Invalid unlock ID",
     "invalidUserId": "Invalid user ID",
@@ -1863,13 +1707,6 @@
     "jobExecutionFailed": "Job execution failed",
     "keyRequired": "key is required",
     "levelFeatureUnlockNotFound": "Level feature unlock not found",
-    "levelRewardDeletedSuccess": "Level reward deleted successfully",
-    "levelRewardDuplicate": "A level reward with this level and type already exists",
-    "levelRewardLevelRequired": "level_required is required and must be a positive number",
-    "levelRewardNotFound": "Level reward not found",
-    "levelRewardPayloadObject": "reward_payload is required and must be an object",
-    "levelRewardTypeLength": "reward_type must be 100 characters or less",
-    "levelRewardTypeRequired": "reward_type is required and must be a non-empty string",
     "limitBetween1And100": "Limit must be between 1 and 100",
     "missingAuth": "Thiếu xác thực",
     "missingAuthHeader": "Thiếu hoặc không hợp lệ header Authorization",

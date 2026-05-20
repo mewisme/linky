@@ -1,5 +1,4 @@
 import {
-  AdminApi,
   MediaApi,
   NotificationsApi,
   PushApi,
@@ -12,7 +11,6 @@ import { publicEnv } from "@/shared/env/public-env";
 export class ApiUrl {
   private static readonly PROXY_URL = publicEnv.APP_URL;
 
-  admin: AdminApi;
   resources: ResourcesApi;
   users: UserApi;
   media: MediaApi;
@@ -20,7 +18,6 @@ export class ApiUrl {
   push: PushApi;
 
   constructor() {
-    this.admin = new AdminApi(ApiUrl.PROXY_URL);
     this.resources = new ResourcesApi(ApiUrl.PROXY_URL);
     this.users = new UserApi(ApiUrl.PROXY_URL);
     this.media = new MediaApi(ApiUrl.PROXY_URL);

@@ -418,6 +418,25 @@ func IncrementUserExp(ctx context.Context, userID string, seconds int) error {
 	return nil
 }
 
+func IncrementUserExpDaily(ctx context.Context, userID, localDate string, seconds int) error {
+	if seconds <= 0 || userID == "" || localDate == "" {
+		return nil
+	}
+	if !dateRegex.MatchString(localDate) {
+		return nil
+	}
+	body := map[string]any{
+		"p_user_id":      userID,
+		"p_date":         localDate,
+		"p_exp_seconds":  seconds,
+	}
+	if _, err := RPC(ctx, "increment_user_exp_daily", body); err != nil {
+		repoLog.Error().Err(err).Str("userId", userID).Str("date", localDate).Int("seconds", seconds).Msg("increment_user_exp_daily RPC failed")
+		return err
+	}
+	return nil
+}
+
 type UserStreakRow struct {
 	ID                         string  `json:"id"`
 	UserID                     string  `json:"user_id"`

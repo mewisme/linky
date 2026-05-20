@@ -236,8 +236,8 @@ func GetInsights(ctx context.Context, userID, timezone string) (*Insights, error
 	if expEarnedToday <= 0 {
 		expEarnedToday, _ = supax.GetCallDurationsForUserOnLocalDate(ctx, userID, todayStr, tz)
 	}
-	if expEarnedToday > levelTotalExp {
-		expEarnedToday = levelTotalExp
+	if expEarnedToday < todayCallSeconds {
+		expEarnedToday = todayCallSeconds
 	}
 
 	streakStatus := StreakIncomplete

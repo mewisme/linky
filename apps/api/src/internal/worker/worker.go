@@ -76,11 +76,15 @@ func ExecuteReportAISummary(ctx context.Context, reportID string, force bool) er
 }
 
 func ExecuteApplyCallExp(ctx context.Context, p ApplyCallExpPayload) error {
-	log.Info().Str("userId", p.UserID).Int("durationSeconds", p.DurationSeconds).Msg("apply_call_exp start")
-	res, err := userservice.AddCallExp(ctx, p.UserID, p.DurationSeconds, p.ExpSecondsToAdd)
+	log.Info().Str("userId", p.UserID).Int("durationSeconds", p.DurationSeconds).Str("date", p.DateForExpToday).
+		Msg("apply_call_exp job start")
+	res, err := userservice.AddCallExp(ctx, p.UserID, p.DurationSeconds, p.ExpSecondsToAdd, p.DateForExpToday)
 	if err != nil {
+		log.Error().Err(err).Str("userId", p.UserID).Int("durationSeconds", p.DurationSeconds).
+			Msg("apply_call_exp job failed")
 		return err
 	}
-	log.Info().Str("userId", p.UserID).Bool("didLevelUp", res.DidLevelUp).Int("previousLevel", res.PreviousLevel).Int("newLevel", res.NewLevel).Msg("apply_call_exp done")
+	log.Info().Str("userId", p.UserID).Bool("didLevelUp", res.DidLevelUp).Int("previousLevel", res.PreviousLevel).
+		Int("newLevel", res.NewLevel).Msg("apply_call_exp job done")
 	return nil
 }

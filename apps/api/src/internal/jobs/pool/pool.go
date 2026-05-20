@@ -111,6 +111,11 @@ func (p *Pool) runWorker(ctx context.Context, workerID string) {
 			if errors.Is(err, redis.Nil) || errors.Is(err, context.Canceled) {
 				continue
 			}
+			if redisx.IsConnError(err) {
+				if rerr := redisx.Reconnect(ctx); rerr != nil {
+					poolLog.Warn().Err(rerr).Str("workerId", workerID).Msg("Redis reconnect failed")
+				}
+			}
 			poolLog.Warn().Err(err).Str("workerId", workerID).Msg("BLMOVE failed; backing off")
 			if !sleep(ctx, p.stopCh, 2*time.Second) {
 				return
@@ -139,6 +144,7 @@ func (p *Pool) process(ctx context.Context, workerID, processingKey string, raw 
 		p.dlq(processingKey, raw, "dropped", workerID, err.Error())
 		return
 	}
+	poolLog.Info().Str("workerId", workerID).Str("type", env.Type).Msg("Job dequeued")
 
 	jobCtx, cancel := context.WithTimeout(ctx, jobExecTimeout)
 	defer cancel()
@@ -146,6 +152,7 @@ func (p *Pool) process(ctx context.Context, workerID, processingKey string, raw 
 	outcome, errMsg := p.dispatch(jobCtx, env, raw)
 	switch outcome {
 	case outcomeAck:
+		poolLog.Info().Str("workerId", workerID).Str("type", env.Type).Msg("Job completed")
 		if err := ackJob(processingKey, raw); err != nil {
 			poolLog.Warn().Err(err).Str("workerId", workerID).Msg("LREM ack failed; will be reaped")
 		}
@@ -304,6 +311,9 @@ func refreshHeartbeat(key string, ttl time.Duration) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	if err := c.Set(ctx, key, "1", ttl).Err(); err != nil {
+		if redisx.IsConnError(err) {
+			_ = redisx.Reconnect(ctx)
+		}
 		poolLog.Warn().Err(err).Str("key", key).Msg("Heartbeat SET failed")
 	}
 }
@@ -344,6 +354,9 @@ func (p *Pool) reapOnce(ctx context.Context) {
 	for {
 		keys, next, err := c.Scan(scanCtx, cursor, sharedtypes.JobProcessingListPrefix+"*", 100).Result()
 		if err != nil {
+			if redisx.IsConnError(err) {
+				_ = redisx.Reconnect(ctx)
+			}
 			poolLog.Warn().Err(err).Msg("Reaper SCAN failed")
 			return
 		}

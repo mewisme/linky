@@ -3,8 +3,8 @@ package expbonus
 import "testing"
 
 func TestEffectiveSecondsNoTiers(t *testing.T) {
-	ApplySnapshot(nil, nil)
-	if got := EffectiveSeconds(100, 5, 3); got != 100 {
+	ApplySnapshot(nil, nil, nil)
+	if got := EffectiveSeconds(100, 5, 3, ""); got != 100 {
 		t.Fatalf("got %d want 100", got)
 	}
 }
@@ -13,8 +13,9 @@ func TestEffectiveSecondsStreakAndLevelMultiply(t *testing.T) {
 	ApplySnapshot(
 		[]Tier{{Min: 1, Max: 10, HasMin: true, HasMax: true, Multiplier: 1.5}},
 		[]Tier{{Min: 1, Max: 5, HasMin: true, HasMax: true, Multiplier: 2.0}},
+		nil,
 	)
-	got := EffectiveSeconds(100, 3, 2)
+	got := EffectiveSeconds(100, 3, 2, "")
 	want := 300
 	if got != want {
 		t.Fatalf("got %d want %d", got, want)
@@ -22,23 +23,23 @@ func TestEffectiveSecondsStreakAndLevelMultiply(t *testing.T) {
 }
 
 func TestMultiplierForValueMinOnly(t *testing.T) {
-	ApplySnapshot(nil, []Tier{{Min: 10, HasMin: true, Multiplier: 2.0}})
-	defer ApplySnapshot(nil, nil)
-	if got := EffectiveSeconds(50, 0, 15); got != 100 {
+	ApplySnapshot(nil, []Tier{{Min: 10, HasMin: true, Multiplier: 2.0}}, nil)
+	defer ApplySnapshot(nil, nil, nil)
+	if got := EffectiveSeconds(50, 0, 15, ""); got != 100 {
 		t.Fatalf("got %d want 100", got)
 	}
-	if got := EffectiveSeconds(50, 0, 5); got != 50 {
+	if got := EffectiveSeconds(50, 0, 5, ""); got != 50 {
 		t.Fatalf("got %d want 50", got)
 	}
 }
 
 func TestMultiplierForValueMaxOnly(t *testing.T) {
-	ApplySnapshot([]Tier{{Max: 3, HasMax: true, Multiplier: 1.5}}, nil)
-	defer ApplySnapshot(nil, nil)
-	if got := EffectiveSeconds(100, 2, 1); got != 150 {
+	ApplySnapshot([]Tier{{Max: 3, HasMax: true, Multiplier: 1.5}}, nil, nil)
+	defer ApplySnapshot(nil, nil, nil)
+	if got := EffectiveSeconds(100, 2, 1, ""); got != 150 {
 		t.Fatalf("got %d want 150", got)
 	}
-	if got := EffectiveSeconds(100, 10, 1); got != 100 {
+	if got := EffectiveSeconds(100, 10, 1, ""); got != 100 {
 		t.Fatalf("got %d want 100", got)
 	}
 }
@@ -61,7 +62,7 @@ func TestMultiplierForValueOutOfRange(t *testing.T) {
 }
 
 func TestParseRows(t *testing.T) {
-	streak, level := ParseRows([]map[string]any{
+	streak, level, favorite := ParseRows([]map[string]any{
 		{
 			"type":              "streak",
 			"bonus_multiplier":  1.25,
@@ -84,10 +85,40 @@ func TestParseRows(t *testing.T) {
 	if len(level) != 1 || level[0].Multiplier != 2.5 || !level[0].HasMin || level[0].Min != 10 || !level[0].HasMax {
 		t.Fatalf("level tiers: %+v", level)
 	}
+	if len(favorite) != 0 {
+		t.Fatalf("favorite rules: %+v", favorite)
+	}
+}
+
+func TestEffectiveSecondsFavoriteMultiplier(t *testing.T) {
+	ApplySnapshot(nil, nil, []FavoriteRule{
+		{Relation: RelationMutual, Multiplier: 2.0},
+		{Relation: RelationOneWay, Multiplier: 1.25},
+	})
+	defer ApplySnapshot(nil, nil, nil)
+	if got := EffectiveSeconds(100, 0, 1, RelationMutual); got != 200 {
+		t.Fatalf("mutual got %d want 200", got)
+	}
+	if got := EffectiveSeconds(100, 0, 1, RelationOneWay); got != 125 {
+		t.Fatalf("one_way got %d want 125", got)
+	}
+}
+
+func TestParseRowsFavorite(t *testing.T) {
+	_, _, favorite := ParseRows([]map[string]any{
+		{
+			"type":             "favorite",
+			"bonus_multiplier": 2,
+			"config":           map[string]any{"relation": "mutual"},
+		},
+	})
+	if len(favorite) != 1 || favorite[0].Relation != RelationMutual || favorite[0].Multiplier != 2 {
+		t.Fatalf("favorite: %+v", favorite)
+	}
 }
 
 func TestParseRowsOpenEnded(t *testing.T) {
-	streak, _ := ParseRows([]map[string]any{
+	streak, _, _ := ParseRows([]map[string]any{
 		{
 			"type":             "streak",
 			"bonus_multiplier": 1.1,

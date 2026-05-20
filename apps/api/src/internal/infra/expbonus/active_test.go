@@ -6,10 +6,11 @@ func TestActiveBonuses(t *testing.T) {
 	ApplySnapshot(
 		[]Tier{{Min: 1, Max: 5, HasMin: true, HasMax: true, Multiplier: 1.5}},
 		[]Tier{{Min: 10, HasMin: true, Multiplier: 2.0}},
+		[]FavoriteRule{{Relation: RelationMutual, Multiplier: 2.0}},
 	)
-	defer ApplySnapshot(nil, nil)
+	defer ApplySnapshot(nil, nil, nil)
 
-	bonuses := ActiveBonuses(3, 12)
+	bonuses := ActiveBonuses(3, 12, "")
 	if len(bonuses) != 2 {
 		t.Fatalf("got %d bonuses", len(bonuses))
 	}
@@ -20,8 +21,13 @@ func TestActiveBonuses(t *testing.T) {
 		t.Fatalf("level bonus: %+v", bonuses[1])
 	}
 
-	none := ActiveBonuses(0, 5)
+	none := ActiveBonuses(0, 5, "")
 	if len(none) != 0 {
 		t.Fatalf("expected no bonuses, got %+v", none)
+	}
+
+	withFavorite := ActiveBonuses(0, 5, RelationMutual)
+	if len(withFavorite) != 1 || withFavorite[0].Type != TypeFavorite {
+		t.Fatalf("favorite bonus: %+v", withFavorite)
 	}
 }

@@ -99,7 +99,7 @@ func TestApplyRealtimeCallProjectionPreservesExpProgress(t *testing.T) {
 		RecentStreakDays: []RecentStreakDay{{Date: "2026-05-16", IsValid: true}},
 	}
 
-	projected := ApplyRealtimeCallProjection(base, 60, 60)
+	projected := ApplyRealtimeCallProjection(base, 60, 60, "")
 	if projected == nil {
 		t.Fatal("expected projection")
 	}
@@ -115,8 +115,9 @@ func TestApplyRealtimeCallProjectionAppliesExpBonus(t *testing.T) {
 	expbonus.ApplySnapshot(
 		[]expbonus.Tier{{Min: 1, Max: 99, HasMin: true, HasMax: true, Multiplier: 2.0}},
 		nil,
+		nil,
 	)
-	defer expbonus.ApplySnapshot(nil, nil)
+	defer expbonus.ApplySnapshot(nil, nil, nil)
 
 	base := &Insights{
 		CurrentLevel:             2,
@@ -128,7 +129,7 @@ func TestApplyRealtimeCallProjectionAppliesExpBonus(t *testing.T) {
 		Streak:                   StreakSummary{CurrentStreak: 3, LongestStreak: 5},
 	}
 
-	projected := ApplyRealtimeCallProjection(base, 60, 60)
+	projected := ApplyRealtimeCallProjection(base, 60, 60, "")
 	if projected == nil {
 		t.Fatal("expected projection")
 	}

@@ -5,13 +5,13 @@ import (
 	"linky-api/src/internal/infra/expbonus"
 )
 
-func ApplyRealtimeCallProjection(progress *Insights, unpersistedElapsedSeconds, projectedExpGain int) *Insights {
+func ApplyRealtimeCallProjection(progress *Insights, unpersistedElapsedSeconds, projectedExpGain int, favoriteRelation string) *Insights {
 	if progress == nil {
 		return nil
 	}
 
 	streakForBonus := streakCountForExpBonus(progress, unpersistedElapsedSeconds)
-	projectedExpGain = expbonus.EffectiveSeconds(projectedExpGain, streakForBonus, progress.CurrentLevel)
+	projectedExpGain = expbonus.EffectiveSeconds(projectedExpGain, streakForBonus, progress.CurrentLevel, favoriteRelation)
 
 	baselineTotal := progress.ExpProgress.TotalExpSeconds
 	projectedTotal := baselineTotal + projectedExpGain
@@ -91,7 +91,7 @@ func ApplyRealtimeCallProjection(progress *Insights, unpersistedElapsedSeconds, 
 		RemainingSecondsToKeepStreak: streakRemaining,
 		LastValidDate:                progress.Streak.LastValidDate,
 	}
-	out.ExpBonuses = expbonus.ActiveBonuses(streakCountForExpBonus(&out, unpersistedElapsedSeconds), out.CurrentLevel)
+	out.ExpBonuses = expbonus.ActiveBonuses(streakCountForExpBonus(&out, unpersistedElapsedSeconds), out.CurrentLevel, favoriteRelation)
 	return &out
 }
 

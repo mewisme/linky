@@ -286,6 +286,6 @@ func GetInsights(ctx context.Context, userID, timezone string) (*Insights, error
 		TodayDate:        todayStr,
 		RecentStreakDays: recent,
 	}
-	out.ExpBonuses = expbonus.ActiveBonuses(streakCountForExpBonus(out, 0), calc.Level)
+	out.ExpBonuses = expbonus.ActiveBonuses(streakCountForExpBonus(out, 0), calc.Level, "")
 	return out, nil
 }

@@ -157,10 +157,13 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
     setEditingBonus(bonus);
     setFormData({
       type: bonus.type,
-      config: {
-        ...(bonus.config.min !== undefined ? { min: bonus.config.min } : {}),
-        ...(bonus.config.max !== undefined ? { max: bonus.config.max } : {}),
-      },
+      config:
+        bonus.type === 'favorite'
+          ? { relation: bonus.config.relation }
+          : {
+              ...(bonus.config.min !== undefined ? { min: bonus.config.min } : {}),
+              ...(bonus.config.max !== undefined ? { max: bonus.config.max } : {}),
+            },
       bonus_multiplier: bonus.bonus_multiplier,
     });
     setIsModalOpen(true);
@@ -168,13 +171,19 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
 
   const onFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const config = buildExpBonusConfig(formData.config);
+    const config = buildExpBonusConfig(formData.type, formData.config);
     if (!config) {
-      toast.error(t("expBonusModal.rangeRequired"));
+      toast.error(
+        formData.type === 'favorite'
+          ? t('expBonusModal.relationRequired')
+          : t('expBonusModal.rangeRequired'),
+      );
       return;
     }
     upsertMutation.mutate({ ...formData, config });
   };
+
+  const isFavoriteType = formData.type === 'favorite';
 
   const rowCallbacks = {
     onEdit: (bonus: AdminAPI.ExpBonuses.ExpBonus) => handleOpenEdit(bonus),
@@ -216,7 +225,11 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
                 <Select
                   value={formData.type}
                   onValueChange={(value: AdminAPI.ExpBonuses.ExpBonusType) =>
-                    setFormData({ ...formData, type: value })
+                    setFormData({
+                      type: value,
+                      config: value === 'favorite' ? {} : {},
+                      bonus_multiplier: formData.bonus_multiplier,
+                    })
                   }
                 >
                   <SelectTrigger id="type" className="w-full">
@@ -225,9 +238,35 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
                   <SelectContent className="w-full">
                     <SelectItem value="streak">{t("expBonusModal.typeStreak")}</SelectItem>
                     <SelectItem value="level">{t("expBonusModal.typeLevel")}</SelectItem>
+                    <SelectItem value="favorite">{t("expBonusModal.typeFavorite")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {isFavoriteType ? (
+                <div className="space-y-2">
+                  <Label htmlFor="config_relation">
+                    {t('expBonusModal.relation')} <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.config.relation ?? ''}
+                    onValueChange={(value: AdminAPI.ExpBonuses.ExpBonusRelation) =>
+                      setFormData({ ...formData, config: { relation: value } })
+                    }
+                  >
+                    <SelectTrigger id="config_relation" className="w-full">
+                      <SelectValue placeholder={t('expBonusModal.relationPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent className="w-full">
+                      <SelectItem value="mutual">{t('expBonusModal.relationMutual')}</SelectItem>
+                      <SelectItem value="one_way">{t('expBonusModal.relationOneWay')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {t('expBonusModal.favoriteHint')}
+                  </p>
+                </div>
+              ) : (
+              <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="config_min">{rangeLabels.min}</Label>
@@ -279,6 +318,8 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
               <p className="text-xs text-muted-foreground -mt-2">
                 {t("expBonusModal.rangeOptionalHint")}
               </p>
+              </>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="bonus_multiplier">{t("expBonusModal.bonusMultiplier")} <span className="text-destructive">*</span></Label>
                 <Input

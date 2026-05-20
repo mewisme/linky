@@ -78,7 +78,7 @@ func ExecuteReportAISummary(ctx context.Context, reportID string, force bool) er
 func ExecuteApplyCallExp(ctx context.Context, p ApplyCallExpPayload) error {
 	log.Info().Str("userId", p.UserID).Int("durationSeconds", p.DurationSeconds).Str("date", p.DateForExpToday).
 		Msg("apply_call_exp job start")
-	res, err := userservice.AddCallExp(ctx, p.UserID, p.DurationSeconds, p.ExpSecondsToAdd, p.DateForExpToday)
+	res, err := userservice.AddCallExp(ctx, p.UserID, p.DurationSeconds, p.ExpSecondsToAdd, p.DateForExpToday, p.CounterpartUserID)
 	if err != nil {
 		log.Error().Err(err).Str("userId", p.UserID).Int("durationSeconds", p.DurationSeconds).
 			Msg("apply_call_exp job failed")

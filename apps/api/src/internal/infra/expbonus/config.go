@@ -22,9 +22,10 @@ const (
 var (
 	log = logger.New("infra:expbonus")
 
-	mu         sync.RWMutex
-	streakTiers []Tier
-	levelTiers  []Tier
+	mu            sync.RWMutex
+	streakTiers   []Tier
+	levelTiers    []Tier
+	favoriteRules []FavoriteRule
 
 	startOnce sync.Once
 	reloadFn  func(context.Context) error
@@ -39,11 +40,12 @@ type Tier struct {
 }
 
 type Breakdown struct {
-	BaseSeconds      int
-	EffectiveSeconds int
-	StreakMultiplier float64
-	LevelMultiplier  float64
-	CombinedMultiplier float64
+	BaseSeconds          int
+	EffectiveSeconds     int
+	StreakMultiplier     float64
+	LevelMultiplier      float64
+	FavoriteMultiplier   float64
+	CombinedMultiplier   float64
 }
 
 func SetReloadFunc(fn func(context.Context) error) {
@@ -56,7 +58,7 @@ func Load(ctx context.Context) error {
 
 func Reload(ctx context.Context) error {
 	if reloadFn == nil {
-		ApplySnapshot(nil, nil)
+		ApplySnapshot(nil, nil, nil)
 		return nil
 	}
 	return reloadFn(ctx)
@@ -83,43 +85,48 @@ func StartRefresher(ctx context.Context) {
 	})
 }
 
-func ApplySnapshot(streak, level []Tier) {
+func ApplySnapshot(streak, level []Tier, favorite []FavoriteRule) {
 	mu.Lock()
 	streakTiers = append([]Tier(nil), streak...)
 	levelTiers = append([]Tier(nil), level...)
+	favoriteRules = append([]FavoriteRule(nil), favorite...)
 	mu.Unlock()
 	log.Info().
 		Int("streak_tiers", len(streakTiers)).
 		Int("level_tiers", len(levelTiers)).
+		Int("favorite_rules", len(favoriteRules)).
 		Msg("EXP bonus config applied")
 }
 
-func EffectiveSeconds(baseSeconds, streakCount, level int) int {
-	return BreakdownFor(baseSeconds, streakCount, level).EffectiveSeconds
+func EffectiveSeconds(baseSeconds, streakCount, level int, favoriteRelation string) int {
+	return BreakdownFor(baseSeconds, streakCount, level, favoriteRelation).EffectiveSeconds
 }
 
-func BreakdownFor(baseSeconds, streakCount, level int) Breakdown {
+func BreakdownFor(baseSeconds, streakCount, level int, favoriteRelation string) Breakdown {
 	if baseSeconds <= 0 {
 		return Breakdown{}
 	}
 	mu.RLock()
 	streak := append([]Tier(nil), streakTiers...)
 	levelTiersCopy := append([]Tier(nil), levelTiers...)
+	favoriteCopy := append([]FavoriteRule(nil), favoriteRules...)
 	mu.RUnlock()
 
 	streakMult := multiplierForValue(streak, streakCount)
 	levelMult := multiplierForValue(levelTiersCopy, level)
-	combined := streakMult * levelMult
+	favMult := favoriteMultiplier(favoriteCopy, favoriteRelation)
+	combined := streakMult * levelMult * favMult
 	effective := int(math.Floor(float64(baseSeconds) * combined))
 	if effective < 0 {
 		effective = 0
 	}
 	return Breakdown{
-		BaseSeconds:          baseSeconds,
-		EffectiveSeconds:     effective,
-		StreakMultiplier:     streakMult,
-		LevelMultiplier:      levelMult,
-		CombinedMultiplier:   combined,
+		BaseSeconds:        baseSeconds,
+		EffectiveSeconds:   effective,
+		StreakMultiplier:   streakMult,
+		LevelMultiplier:    levelMult,
+		FavoriteMultiplier: favMult,
+		CombinedMultiplier: combined,
 	}
 }
 
@@ -131,26 +138,46 @@ func multiplierForValue(tiers []Tier, value int) float64 {
 	return tier.Multiplier
 }
 
-func ParseRows(rows []map[string]any) (streak, level []Tier) {
+func ParseRows(rows []map[string]any) (streak, level []Tier, favorite []FavoriteRule) {
 	for _, row := range rows {
 		typ, _ := row["type"].(string)
-		tier, ok := parseConfigTier(row["config"])
-		if !ok {
-			continue
-		}
 		mult, ok := parseMultiplier(row["bonus_multiplier"])
 		if !ok || mult < 1 {
 			continue
 		}
-		tier.Multiplier = mult
 		switch typ {
-		case TypeStreak:
-			streak = append(streak, tier)
-		case TypeLevel:
-			level = append(level, tier)
+		case TypeStreak, TypeLevel:
+			tier, ok := parseConfigTier(row["config"])
+			if !ok {
+				continue
+			}
+			tier.Multiplier = mult
+			if typ == TypeStreak {
+				streak = append(streak, tier)
+			} else {
+				level = append(level, tier)
+			}
+		case TypeFavorite:
+			rel, ok := parseFavoriteRelation(row["config"])
+			if !ok {
+				continue
+			}
+			favorite = append(favorite, FavoriteRule{Relation: rel, Multiplier: mult})
 		}
 	}
-	return streak, level
+	return streak, level, favorite
+}
+
+func parseFavoriteRelation(raw any) (string, bool) {
+	cfg, err := configToMap(raw)
+	if err != nil || cfg == nil {
+		return "", false
+	}
+	rel, _ := cfg["relation"].(string)
+	if rel != RelationMutual && rel != RelationOneWay {
+		return "", false
+	}
+	return rel, true
 }
 
 func parseConfigTier(raw any) (Tier, bool) {

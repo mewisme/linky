@@ -48,6 +48,7 @@ type Room struct {
 	HasEmittedStreakComplete map[string]bool
 
 	CallHistoryPersisted bool
+	FavoriteRelation     string
 
 	mu sync.Mutex
 }

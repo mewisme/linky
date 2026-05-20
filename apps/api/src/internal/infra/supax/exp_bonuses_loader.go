@@ -13,8 +13,8 @@ func RefreshExpBonuses(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	streak, level := expbonus.ParseRows(rows)
-	expbonus.ApplySnapshot(streak, level)
+	streak, level, favorite := expbonus.ParseRows(rows)
+	expbonus.ApplySnapshot(streak, level, favorite)
 	return nil
 }
 

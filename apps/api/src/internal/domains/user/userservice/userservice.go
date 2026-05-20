@@ -7,6 +7,7 @@ import (
 
 	"linky-api/src/internal/domains/user/leveling"
 	"linky-api/src/internal/infra/expbonus"
+	"linky-api/src/internal/lib/callfavorite"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/logger"
 )
@@ -84,7 +85,7 @@ type AddCallExpResult struct {
 	NewLevel      int
 }
 
-func AddCallExp(ctx context.Context, userID string, durationSeconds int, expSecondsToAdd *int, localDate string) (*AddCallExpResult, error) {
+func AddCallExp(ctx context.Context, userID string, durationSeconds int, expSecondsToAdd *int, localDate, counterpartUserID string) (*AddCallExpResult, error) {
 	if durationSeconds <= 0 || userID == "" {
 		return &AddCallExpResult{}, nil
 	}
@@ -98,7 +99,7 @@ func AddCallExp(ctx context.Context, userID string, durationSeconds int, expSeco
 	}
 	beforeLevel := leveling.CalculateLevelFromExp(beforeTotal, leveling.Default).Level
 
-	expToAdd := resolveCallExpSeconds(ctx, userID, durationSeconds, expSecondsToAdd, beforeTotal)
+	expToAdd := resolveCallExpSeconds(ctx, userID, durationSeconds, expSecondsToAdd, beforeTotal, counterpartUserID)
 
 	if err := supax.IncrementUserExp(ctx, userID, expToAdd); err != nil {
 		log.Error().Err(err).Str("userId", userID).Int("expToAdd", expToAdd).Msg("increment_user_exp failed")
@@ -132,7 +133,7 @@ func AddCallExp(ctx context.Context, userID string, durationSeconds int, expSeco
 	}, nil
 }
 
-func resolveCallExpSeconds(ctx context.Context, userID string, durationSeconds int, expSecondsToAdd *int, totalExpBefore int) int {
+func resolveCallExpSeconds(ctx context.Context, userID string, durationSeconds int, expSecondsToAdd *int, totalExpBefore int, counterpartUserID string) int {
 	if expSecondsToAdd != nil {
 		if *expSecondsToAdd < 0 {
 			return 0
@@ -147,5 +148,11 @@ func resolveCallExpSeconds(ctx context.Context, userID string, durationSeconds i
 		streakCount = row.CurrentStreak
 	}
 	userLevel := leveling.CalculateLevelFromExp(totalExpBefore, leveling.Default).Level
-	return expbonus.EffectiveSeconds(durationSeconds, streakCount, userLevel)
+	favoriteRelation := ""
+	if counterpartUserID != "" {
+		if rel, err := callfavorite.Relation(ctx, userID, counterpartUserID); err == nil {
+			favoriteRelation = rel
+		}
+	}
+	return expbonus.EffectiveSeconds(durationSeconds, streakCount, userLevel, favoriteRelation)
 }

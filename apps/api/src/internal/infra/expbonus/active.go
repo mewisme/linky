@@ -1,21 +1,37 @@
 package expbonus
 
 type ActiveBonus struct {
-	Type       string   `json:"type"`
-	Multiplier float64  `json:"multiplier"`
-	Min        *int     `json:"min,omitempty"`
-	Max        *int     `json:"max,omitempty"`
+	Type       string  `json:"type"`
+	Multiplier float64 `json:"multiplier"`
+	Min        *int    `json:"min,omitempty"`
+	Max        *int    `json:"max,omitempty"`
+	Relation   *string `json:"relation,omitempty"`
 }
 
-func ActiveBonuses(streakCount, level int) []ActiveBonus {
-	out := make([]ActiveBonus, 0, 2)
+func ActiveBonuses(streakCount, level int, favoriteRelation string) []ActiveBonus {
+	out := make([]ActiveBonus, 0, 3)
 	if b, ok := activeBonusFor(TypeStreak, streakCount); ok {
 		out = append(out, b)
 	}
 	if b, ok := activeBonusFor(TypeLevel, level); ok {
 		out = append(out, b)
 	}
+	if b, ok := activeFavoriteBonus(favoriteRelation); ok {
+		out = append(out, b)
+	}
 	return out
+}
+
+func activeFavoriteBonus(relation string) (ActiveBonus, bool) {
+	mu.RLock()
+	rules := append([]FavoriteRule(nil), favoriteRules...)
+	mu.RUnlock()
+	mult := favoriteMultiplier(rules, relation)
+	if mult <= 1 || relation == "" {
+		return ActiveBonus{}, false
+	}
+	rel := relation
+	return ActiveBonus{Type: TypeFavorite, Multiplier: mult, Relation: &rel}, true
 }
 
 func activeBonusFor(typ string, value int) (ActiveBonus, bool) {

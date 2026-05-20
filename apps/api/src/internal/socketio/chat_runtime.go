@@ -16,6 +16,7 @@ import (
 	"linky-api/src/internal/domains/user/progress"
 	"linky-api/src/internal/domains/videochat/realtime"
 	"linky-api/src/internal/infra/cloudflarerealtime"
+	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/jobs"
 	"linky-api/src/internal/logger"
@@ -538,12 +539,13 @@ func (r *chatRuntime) persistCallEnd(room *rooms.Room, durationSeconds int) {
 		tzB, _ = supax.GetUserTimezone(ctx, b.UserID)
 	}
 	res, err := callended.Apply(ctx, callended.ApplyParams{
-		CallerID:       a.UserID,
-		CalleeID:       b.UserID,
-		CallerTimezone: tzA,
-		CalleeTimezone: tzB,
-		EndedAt:        now,
-		DurationSecs:   durationSeconds,
+		CallerID:         a.UserID,
+		CalleeID:         b.UserID,
+		CallerTimezone:   tzA,
+		CalleeTimezone:   tzB,
+		EndedAt:          now,
+		DurationSecs:     durationSeconds,
+		FavoriteRelation: room.FavoriteRelation,
 	})
 	if err != nil || res == nil {
 		dateA := callended.LocalDateString(now, tzA)
@@ -852,6 +854,7 @@ func (r *chatRuntime) tryMatch() {
 		Msg("Match created")
 
 	room := r.rooms.Create(participant(entryA.socket, pick.Pair.UserAID), participant(entryB.socket, pick.Pair.UserBID))
+	room.FavoriteRelation = expbonus.RelationForCallFavorite(string(pick.Pair.FavoriteType))
 	isAOfferer := entryA.socket.Id() < entryB.socket.Id()
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	peerInfoForA := supax.PublicUserInfoByUserID(ctx, pick.Pair.UserBID)
@@ -938,7 +941,7 @@ func (r *chatRuntime) computeProjection(room *rooms.Room, userID string, duratio
 	if err != nil || insights == nil {
 		return nil, nil
 	}
-	return insights, progress.ApplyRealtimeCallProjection(insights, durationSeconds, durationSeconds)
+	return insights, progress.ApplyRealtimeCallProjection(insights, durationSeconds, durationSeconds, room.FavoriteRelation)
 }
 
 func (r *chatRuntime) maybeEmitStreakAndLevel(room *rooms.Room, p *rooms.Participant, baseline, projected *progress.Insights, target *types.Map[socket.SocketId, *socket.Socket]) {

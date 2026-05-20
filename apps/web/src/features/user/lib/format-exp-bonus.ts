@@ -12,8 +12,18 @@ export function formatExpBonusRange(
     minMax: (min: number, max: number) => string;
     minOnly: (min: number) => string;
     maxOnly: (max: number) => string;
+    favoriteMutual?: () => string;
+    favoriteOneWay?: () => string;
   },
 ): string {
+  if (bonus.type === 'favorite' && bonus.relation) {
+    if (bonus.relation === 'mutual' && labels.favoriteMutual) {
+      return labels.favoriteMutual();
+    }
+    if (bonus.relation === 'one_way' && labels.favoriteOneWay) {
+      return labels.favoriteOneWay();
+    }
+  }
   const hasMin = bonus.min !== undefined;
   const hasMax = bonus.max !== undefined;
   if (hasMin && hasMax) {

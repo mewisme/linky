@@ -1,8 +1,15 @@
 import type { AdminAPI } from '@/features/admin/types/admin.types';
 
 export function buildExpBonusConfig(
+  type: AdminAPI.ExpBonuses.ExpBonusType,
   config: AdminAPI.ExpBonuses.ExpBonusConfig,
 ): AdminAPI.ExpBonuses.ExpBonusConfig | null {
+  if (type === 'favorite') {
+    if (config.relation !== 'mutual' && config.relation !== 'one_way') {
+      return null;
+    }
+    return { relation: config.relation };
+  }
   const out: AdminAPI.ExpBonuses.ExpBonusConfig = {};
   if (config.min !== undefined && !Number.isNaN(config.min)) {
     out.min = config.min;

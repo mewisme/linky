@@ -54,12 +54,13 @@ func (r *Result) ExpSettled(userID string) bool {
 }
 
 type ApplyParams struct {
-	CallerID       string
-	CalleeID       string
-	CallerTimezone string
-	CalleeTimezone string
-	EndedAt        time.Time
-	DurationSecs   int
+	CallerID         string
+	CalleeID         string
+	CallerTimezone   string
+	CalleeTimezone   string
+	EndedAt          time.Time
+	DurationSecs     int
+	FavoriteRelation string
 }
 
 func Apply(ctx context.Context, p ApplyParams) (*Result, error) {
@@ -109,10 +110,10 @@ func Apply(ctx context.Context, p ApplyParams) (*Result, error) {
 		if levelRow, lerr := supax.GetUserLevel(ctx, side.userID); lerr == nil && levelRow != nil {
 			userLevel = leveling.CalculateLevelFromExp(levelRow.TotalExpSeconds, leveling.Default).Level
 		}
-		expSeconds := expbonus.EffectiveSeconds(p.DurationSecs, streakCount, userLevel)
+		expSeconds := expbonus.EffectiveSeconds(p.DurationSecs, streakCount, userLevel, p.FavoriteRelation)
 		expSecondsPtr := &expSeconds
 		expOutcome := ExpOutcome{UserID: side.userID}
-		level, err := userservice.AddCallExp(ctx, side.userID, p.DurationSecs, expSecondsPtr, dateStr)
+		level, err := userservice.AddCallExp(ctx, side.userID, p.DurationSecs, expSecondsPtr, dateStr, side.counterpartID)
 		if err != nil {
 			log.Warn().Err(err).Str("userId", side.userID).Int("durationSeconds", p.DurationSecs).Str("date", dateStr).
 				Msg("AddCallExp failed; enqueueing apply_call_exp recovery job")

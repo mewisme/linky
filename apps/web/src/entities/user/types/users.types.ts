@@ -191,10 +191,11 @@ export namespace UsersAPI {
 
     export namespace GetMe {
       export interface ExpBonusActive {
-        type: 'streak' | 'level';
+        type: 'streak' | 'level' | 'favorite';
         multiplier: number;
         min?: number;
         max?: number;
+        relation?: 'mutual' | 'one_way';
       }
 
       export interface Response {

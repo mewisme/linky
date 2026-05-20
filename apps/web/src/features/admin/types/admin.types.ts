@@ -435,11 +435,14 @@ export namespace AdminAPI {
   }
 
   export namespace ExpBonuses {
-    export type ExpBonusType = "streak" | "level";
+    export type ExpBonusType = "streak" | "level" | "favorite";
+
+    export type ExpBonusRelation = "mutual" | "one_way";
 
     export interface ExpBonusConfig {
       min?: number;
       max?: number;
+      relation?: ExpBonusRelation;
     }
 
     export interface ExpBonus {

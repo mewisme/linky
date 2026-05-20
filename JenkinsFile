@@ -27,24 +27,29 @@ pipeline {
         script {
           echo '- Checking local & remote versions'
 
-          def localVersionResponse = httpRequest url: "$LINKY_API_URL/healthz"
-          def localVersionJson = readJSON text: localVersionResponse.content
-          localVersion = localVersionJson?.version ?: null
-
           def remoteVersionJson = readJSON file: 'package.json'
           remoteVersion = remoteVersionJson?.version ?: null
-
-          echo "- Local version: $localVersion"
           echo "- Remote version: $remoteVersion"
 
-          def compareResult = compareVersions v1: localVersion, v2: remoteVersion
-          def compareResultMessage = compareResult == 0 ? 'matched' : compareResult == 1 ? 'newer' : 'older'
-          echo "- Compare result: $compareResultMessage"
+          try {
+            def localVersionResponse = httpRequest url: "$LINKY_API_URL/healthz"
+            def localVersionJson = readJSON text: localVersionResponse.content
+            localVersion = localVersionJson?.version ?: null
+            echo "- Local version: $localVersion"
 
-          if (compareResult <= 0) {
+            def compareResult = compareVersions v1: localVersion, v2: remoteVersion
+            def compareResultMessage = compareResult == 0 ? 'matched' : compareResult == 1 ? 'newer' : 'older'
+            echo "- Compare result: $compareResultMessage"
+
+            if (compareResult <= 0) {
+              doPull = true
+            }
+            echo 'Local & Remote versions compared'
+          } catch (Exception e) {
+            echo "- Healthz fetch failed (${e.message});"
+            echo 'Forcing pull...'
             doPull = true
           }
-          echo "Local & Remote versions compared"
         }
       }
     }

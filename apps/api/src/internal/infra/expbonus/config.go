@@ -124,27 +124,11 @@ func BreakdownFor(baseSeconds, streakCount, level int) Breakdown {
 }
 
 func multiplierForValue(tiers []Tier, value int) float64 {
-	if value < 0 || len(tiers) == 0 {
+	tier, ok := matchedTier(tiers, value)
+	if !ok {
 		return 1
 	}
-	best := 1.0
-	matched := false
-	for _, t := range tiers {
-		if t.HasMin && value < t.Min {
-			continue
-		}
-		if t.HasMax && value > t.Max {
-			continue
-		}
-		matched = true
-		if t.Multiplier > best {
-			best = t.Multiplier
-		}
-	}
-	if !matched {
-		return 1
-	}
-	return best
+	return tier.Multiplier
 }
 
 func ParseRows(rows []map[string]any) (streak, level []Tier) {

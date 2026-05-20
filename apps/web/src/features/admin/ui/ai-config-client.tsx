@@ -450,7 +450,9 @@ export function AdminAIConfigClient() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">{t('embeddingDimensionHint')}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t('embeddingDimensionHint', { N: form.embedding?.dimension ?? 3072 })}
+                </p>
               </div>
             </CardContent>
           </Card>

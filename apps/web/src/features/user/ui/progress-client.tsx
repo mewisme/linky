@@ -15,6 +15,7 @@ import { Badge } from "@ws/ui/components/ui/badge";
 import { Button } from "@ws/ui/components/ui/button";
 import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { Progress } from "@ws/ui/components/ui/progress";
+import { ExpBonusesActive } from "./exp-bonuses-active";
 import { StreakCalendar } from "./streak-calendar";
 import { StreakMiniCalendar } from "./streak-mini-calendar";
 import { UsersAPI } from "@/entities/user/types/users.types";
@@ -84,19 +85,20 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
     );
   }
 
+  const isTodayStreakComplete = data.isTodayStreakComplete;
   const streakDisplayStatus =
-    data.isTodayStreakComplete ? "active" : data.streakStatus === "frozen" ? "frozen" : "incomplete";
+    isTodayStreakComplete ? "active" : data.streakStatus === "frozen" ? "frozen" : "incomplete";
   const displayLevel = data.expProgress?.totalExpSeconds != null
     ? calculateLevelFromExp(data.expProgress.totalExpSeconds).level
     : data.currentLevel;
 
   return (
-    <AppLayout sidebarItem="progress" className="space-y-4">
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
+    <AppLayout sidebarItem="progress" className="space-y-6">
+      <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-2">
           <Card data-testid="progress-level-card">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <CardTitle className="flex items-center gap-2">
                   <IconStar className="w-5 h-5 text-yellow-500" />
                   {t("currentLevelTitle")}
@@ -105,49 +107,37 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   {t("levelBadge", { level: displayLevel })}
                 </Badge>
               </div>
-              <CardDescription>{t("currentLevelDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t("expToNext")}</span>
-                    <span className="font-medium" data-testid="progress-exp-remaining">
+                  <Progress value={data.expProgress.progressPercentage} className="h-2" />
+                  <div className="flex justify-between gap-3 text-sm text-muted-foreground">
+                    <span>
+                      {t("percentToLevel", {
+                        percent: data.expProgress.progressPercentage.toFixed(0),
+                        level: displayLevel + 1,
+                      })}
+                    </span>
+                    <span
+                      className="font-medium text-foreground tabular-nums"
+                      data-testid="progress-exp-remaining"
+                    >
                       {t("expAmount", { amount: formatExp(data.expProgress.expToNextLevel) })}
                     </span>
                   </div>
-                  <Progress value={data.expProgress.progressPercentage} className="h-2" />
-                  <p className="text-xs text-center text-muted-foreground">
-                    {t("percentToLevel", {
-                      percent: data.expProgress.progressPercentage.toFixed(1),
-                      level: displayLevel + 1,
-                    })}
-                  </p>
                 </div>
-                <div className="pt-3 border-t">
-                  <div className="flex justify-between text-sm">
+                {(data.expEarnedToday ?? 0) > 0 && (
+                  <div className="flex justify-between gap-3 border-t pt-4 text-sm">
                     <span className="text-muted-foreground">{t("expEarnedToday")}</span>
-                    <span className="font-medium" data-testid="progress-exp-today">
-                      {t("expAmount", { amount: formatExp(data.expEarnedToday ?? 0) })}
+                    <span className="font-medium tabular-nums" data-testid="progress-exp-today">
+                      {t("expAmount", { amount: formatExp(data.expEarnedToday) })}
                     </span>
                   </div>
-                </div>
-                <div className="pt-3 border-t">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground">{t("nextLevelHeading")}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {t("nextLevelBadge", { level: displayLevel + 1 })}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t("unlockHint")}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("favoritesBonusHint")}
-                    </p>
-                  </div>
-                </div>
+                )}
+                {data.expBonuses && data.expBonuses.length > 0 && (
+                  <ExpBonusesActive bonuses={data.expBonuses} />
+                )}
               </div>
             </CardContent>
           </Card>
@@ -163,7 +153,7 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   )}
                   {t("streakTitle")}
                 </CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -172,22 +162,30 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   >
                     {t("viewAll")}
                   </Button>
-                  <Badge
-                    variant={
-                      streakDisplayStatus === "active"
-                        ? "default"
-                        : streakDisplayStatus === "frozen"
-                          ? "secondary"
-                          : "outline"
-                    }
-                    className="text-sm px-3 py-1"
-                  >
-                    {streakDisplayStatus === "active"
-                      ? t("statusComplete")
-                      : streakDisplayStatus === "frozen"
+                  {isTodayStreakComplete ? (
+                    <span
+                      className="text-sm font-medium tabular-nums text-foreground"
+                      data-testid="progress-today-call-duration-header"
+                    >
+                      {formatDuration(data.todayCallDurationSeconds)}
+                    </span>
+                  ) : (
+                    <Badge
+                      variant={
+                        streakDisplayStatus === "frozen" ? "secondary" : "outline"
+                      }
+                      className="text-sm px-3 py-1"
+                    >
+                      {streakDisplayStatus === "frozen"
                         ? t("statusFrozen")
                         : t("statusIncomplete")}
-                  </Badge>
+                    </Badge>
+                  )}
+                  {isTodayStreakComplete && (
+                    <Badge variant="default" className="text-sm px-3 py-1">
+                      {t("statusComplete")}
+                    </Badge>
+                  )}
                 </div>
               </div>
               <CardDescription>{t("streakDescription")}</CardDescription>
@@ -195,20 +193,24 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t("currentStreak")}</span>
-                    <span className="font-medium" data-testid="progress-current-streak">
-                      {t("days", { count: data.streak.currentStreak })}
-                      {streakDisplayStatus === "frozen" && (
-                        <span className="ml-1.5 text-sky-600" title={t("freezeTitle")}>
-                          <IconSnowflake className="inline-block size-3.5" aria-hidden />
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t("longestStreak")}</span>
-                    <span className="font-medium" data-testid="progress-longest-streak">{t("days", { count: data.streak.longestStreak })}</span>
+                  <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{t("currentStreak")}</span>
+                      <span className="font-medium tabular-nums" data-testid="progress-current-streak">
+                        {t("days", { count: data.streak.currentStreak })}
+                        {streakDisplayStatus === "frozen" && (
+                          <span className="ml-1.5 text-sky-600" title={t("freezeTitle")}>
+                            <IconSnowflake className="inline-block size-3.5" aria-hidden />
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">{t("longestStreak")}</span>
+                      <span className="font-medium tabular-nums" data-testid="progress-longest-streak">
+                        {t("days", { count: data.streak.longestStreak })}
+                      </span>
+                    </div>
                   </div>
                   {data.freeze && data.freeze.availableCount != null && (
                     <div className="flex justify-between text-sm">
@@ -220,27 +222,26 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                     <p className="text-xs text-muted-foreground">{t("freezeUsedToday")}</p>
                   )}
                 </div>
-                <div className="pt-3 border-t">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{t("todayCallDuration")}</span>
-                      <span className="font-medium">{formatDuration(data.todayCallDurationSeconds)}</span>
-                    </div>
-                    {data.streakRemainingSeconds > 0 && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <IconClock className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {t("moreNeededToday", { time: formatDuration(data.streakRemainingSeconds) })}
+                {!isTodayStreakComplete && (
+                  <div className="border-t pt-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between gap-3 text-sm">
+                        <span className="text-muted-foreground">{t("todayCallDuration")}</span>
+                        <span className="font-medium tabular-nums">
+                          {formatDuration(data.todayCallDurationSeconds)}
                         </span>
                       </div>
-                    )}
-                    {data.isTodayStreakComplete && (
-                      <Badge variant="default" className="w-full justify-center">
-                        {t("streakCompletedToday")}
-                      </Badge>
-                    )}
+                      {data.streakRemainingSeconds > 0 && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <IconClock className="size-4 shrink-0 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            {t("moreNeededToday", { time: formatDuration(data.streakRemainingSeconds) })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
                 <div className="pt-3 border-t">
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground">{t("miniCalendarHeading")}</p>

@@ -190,8 +190,16 @@ export namespace UsersAPI {
     export type StreakStatus = "active" | "frozen" | "incomplete";
 
     export namespace GetMe {
+      export interface ExpBonusActive {
+        type: 'streak' | 'level';
+        multiplier: number;
+        min?: number;
+        max?: number;
+      }
+
       export interface Response {
         currentLevel: number;
+        expBonuses?: ExpBonusActive[];
         expProgress: {
           totalExpSeconds: number;
           expToNextLevel: number;

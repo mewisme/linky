@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"linky-api/src/internal/domains/user/leveling"
+	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/supax"
 )
 
@@ -48,6 +49,7 @@ type RecentStreakDay struct {
 
 type Insights struct {
 	CurrentLevel                int               `json:"currentLevel"`
+	ExpBonuses                  []expbonus.ActiveBonus `json:"expBonuses"`
 	ExpProgress                 ExpProgress       `json:"expProgress"`
 	ExpEarnedToday              int               `json:"expEarnedToday"`
 	RemainingSecondsToNextLevel int               `json:"remainingSecondsToNextLevel"`
@@ -256,7 +258,7 @@ func GetInsights(ctx context.Context, userID, timezone string) (*Insights, error
 		lastValidDate = streakRow.LastValidDate
 	}
 
-	return &Insights{
+	out := &Insights{
 		CurrentLevel: calc.Level,
 		ExpProgress: ExpProgress{
 			TotalExpSeconds:    levelTotalExp,
@@ -283,5 +285,7 @@ func GetInsights(ctx context.Context, userID, timezone string) (*Insights, error
 		},
 		TodayDate:        todayStr,
 		RecentStreakDays: recent,
-	}, nil
+	}
+	out.ExpBonuses = expbonus.ActiveBonuses(streakCountForExpBonus(out, 0), calc.Level)
+	return out, nil
 }

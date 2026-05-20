@@ -91,6 +91,7 @@ func ApplyRealtimeCallProjection(progress *Insights, unpersistedElapsedSeconds, 
 		RemainingSecondsToKeepStreak: streakRemaining,
 		LastValidDate:                progress.Streak.LastValidDate,
 	}
+	out.ExpBonuses = expbonus.ActiveBonuses(streakCountForExpBonus(&out, unpersistedElapsedSeconds), out.CurrentLevel)
 	return &out
 }
 

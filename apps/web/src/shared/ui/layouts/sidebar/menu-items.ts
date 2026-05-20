@@ -194,6 +194,11 @@ export const menuItemDefinitions: MenuItemDef[] = [
         isSuperAdminOnly: true,
       },
       {
+        id: "adminExpBonuses",
+        icon: IconBolt,
+        href: "/admin/exp-bonuses",
+      },
+      {
         id: "adminBroadcasts",
         icon: IconSpeakerphone,
         href: "/admin/broadcasts",
@@ -212,11 +217,6 @@ export const menuItemDefinitions: MenuItemDef[] = [
         id: "adminReports",
         icon: IconFlag,
         href: "/admin/reports",
-      },
-      {
-        id: "adminExpBonuses",
-        icon: IconBolt,
-        href: "/admin/exp-bonuses",
       },
     ],
   },

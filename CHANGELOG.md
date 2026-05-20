@@ -1,12 +1,26 @@
 ## What's Changed
 
+💥 Breaking Changes
+
+- Refactor!: Go-only API, in-process workers, SFU video, exp_bonuses schema ([c8671c2](../../commit/c8671c21))
+
+✨ Features
+
+- Enhance loading state management across admin and user components ([d6026bc](../../commit/d6026bc5))
+
+♻️ Refactoring
+
+- Consolidate backend into Go-only API with in-process workers ([0ab69d8](../../commit/0ab69d87))
+
 🔨 Other Changes
 
-- Update project documentation and dependencies ([ecc9d18](../../commit/ecc9d18b))
-- Adjust motion effect delays for improved UI transitions ([04c038a](../../commit/04c038a4))
-- Enhance logging configuration and update UI transition behavior ([ff18529](../../commit/ff18529e))
-- Streamline error handling in logger implementation ([76e6ed5](../../commit/76e6ed53))
-- Update package versions to 1.10.1 and refresh version lock ([051659c](../../commit/051659c3))
+- Introduce favorite relation feature for EXP bonuses ([086f3fe](../../commit/086f3fec))
+- Enhance EXP bonus system with new features and UI integration ([ad443e4](../../commit/ad443e4b))
+- Implement new EXP bonus system and migration ([4d12d6e](../../commit/4d12d6e9))
+- Migrate user embeddings to AI config and enhance dimension handling ([c3e7285](../../commit/c3e72854))
+- Integrate Cloudflare Realtime SFU for enhanced video communication ([2c73871](../../commit/2c73871b))
+- Introduce call and notification preferences in user settings ([dfbeab0](../../commit/dfbeab0d))
+- Update package versions to 1.10.2 and refresh version lock ([20cf15e](../../commit/20cf15e0))
 
 
-📋 Full Changelog: [051659c...ecc9d18](../../compare/051659c3...ecc9d18b)
+📋 Full Changelog: [20cf15e...c8671c2](../../compare/20cf15e0...c8671c21)

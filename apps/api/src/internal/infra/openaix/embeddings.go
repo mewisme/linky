@@ -26,7 +26,7 @@ type embeddingResponse struct {
 func EmbedBatch(ctx context.Context, inputs []string) ([][]float32, string, error) {
 	model := EmbeddingModel()
 	if model == "" {
-		return nil, "", errors.New("openai: OPENAI_EMBEDDING_MODEL not configured")
+		return nil, "", errors.New("openai: embedding model not configured (set models.embedding in admin AI config or OPENAI_EMBEDDING_MODEL)")
 	}
 	if len(inputs) == 0 {
 		return nil, model, nil

@@ -154,7 +154,7 @@ func Load() *Config {
 		JobWorkerConcurrency:          envInt("JOB_WORKER_CONCURRENCY", 4),
 		OpenAIBaseURL:                 mustEnv("OPENAI_BASE_URL"),
 		OpenAIAPIKey:                  mustEnv("OPENAI_API_KEY"),
-		OpenAIEmbeddingModel:          mustEnv("OPENAI_EMBEDDING_MODEL"),
+		OpenAIEmbeddingModel:          os.Getenv("OPENAI_EMBEDDING_MODEL"),
 		OpenAIBroadcastModel:          mustEnv("OPENAI_BROADCAST_MODEL"),
 		OpenAIReportSummaryModel:      mustEnv("OPENAI_REPORT_SUMMARY_MODEL"),
 		OpenAIRequestTimeoutMs:         envInt("OPENAI_REQUEST_TIMEOUT_MS", 60000),

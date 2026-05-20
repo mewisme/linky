@@ -55,7 +55,7 @@ Typical variables you'll need to fill in:
 - **Clerk** — `CLERK_SECRET_KEY`, web `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - **Supabase** — `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 - **Redis** — `REDIS_URL` (worker queues)
-- **OpenAI-compatible AI** — required: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_EMBEDDING_MODEL`, `OPENAI_BROADCAST_MODEL`, `OPENAI_REPORT_SUMMARY_MODEL` (optional: `OPENAI_REQUEST_TIMEOUT_MS`, `OPENAI_EMBEDDING_TIMEOUT_MS`)
+- **OpenAI-compatible AI** — required: `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_BROADCAST_MODEL`, `OPENAI_REPORT_SUMMARY_MODEL`; embedding model via admin AI config (`models.embedding`) or optional env `OPENAI_EMBEDDING_MODEL` (optional: `OPENAI_REQUEST_TIMEOUT_MS`, `OPENAI_EMBEDDING_TIMEOUT_MS`)
 - **Cloudflare Realtime** — SFU app id + secret
 - **S3** — bucket and access keys
 - **Web** — `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL`, other `NEXT_PUBLIC_*` (validated in `apps/web/src/env/`)

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import time
-
 from selenium.webdriver.remote.webelement import WebElement
 
+from linky_e2e.helpers.pace import pause
 from linky_e2e.helpers.waits import wait_hidden
 
 
@@ -25,4 +24,4 @@ def element_visible(el: WebElement) -> bool:
 
 
 def sleep(seconds: float) -> None:
-    time.sleep(seconds)
+    pause(seconds)

@@ -11,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait, Select
 
 from linky_e2e.config import settings
+from linky_e2e.helpers.pace import PAGE_SETTLE, pause
 from linky_e2e.fixtures.auth_flow import authenticate_user
 from linky_e2e.fixtures.users import TEST_USERS
 from linky_e2e.helpers.network import block_url_pattern
@@ -54,4 +55,4 @@ def test_refresh_button_reloads_blocked_users(driver):
     visible = [b for b in refresh_buttons if b.is_displayed()]
     if visible:
         visible[0].click()
-        time.sleep(1)
+        pause(PAGE_SETTLE)

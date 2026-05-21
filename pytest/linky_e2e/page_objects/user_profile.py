@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import time
 from typing import Pattern
 
 from selenium.webdriver.common.by import By
@@ -13,6 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from linky_e2e.config import settings
 from linky_e2e.fixtures.auth_flow import authenticate_user
 from linky_e2e.fixtures.users import TestUser
+from linky_e2e.helpers.pace import PAGE_SETTLE, pause
 from linky_e2e.helpers.waits import wait_visible
 
 
@@ -20,14 +20,14 @@ def goto_profile_authenticated(driver: WebDriver, user: TestUser) -> None:
     authenticate_user(driver, user)
     driver.get(f"{settings.base_url}/user/profile")
     driver.implicitly_wait(0)
-    time.sleep(1)
+    pause(PAGE_SETTLE)
 
 
-def wait_page_loaded(driver: WebDriver, delay: float = 1.0) -> None:
+def wait_page_loaded(driver: WebDriver, delay: float | None = None) -> None:
     WebDriverWait(driver, settings.default_timeout_sec).until(
         lambda d: d.execute_script("return document.readyState") == "complete"
     )
-    time.sleep(delay)
+    pause(delay if delay is not None else PAGE_SETTLE)
 
 
 def set_viewport(driver: WebDriver, w: int = 1280, h: int = 720) -> None:

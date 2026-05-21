@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import time
-
 from selenium.webdriver.remote.webdriver import WebDriver
 
+from linky_e2e.helpers.pace import OTP_WAIT, pause
 from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_for_redirect_to_home, wait_url_matches
 from linky_e2e.page_objects.auth.identifier_page import IdentifierPage
 from linky_e2e.page_objects.auth.otp_page import OTPPage
@@ -47,7 +46,7 @@ def submit_otp_code(driver: WebDriver, code: str | None = None, _depth: int = 0)
         return
     if "factor-two" in driver.current_url:
         OTPPage(driver).fill_otp(otp)
-    time.sleep(5)
+    pause(OTP_WAIT, fast_floor=1.0)
     try:
         alert = driver.find_element("css selector", "p.cl-alertText")
         if alert.is_displayed() and alert.get_attribute("data-color") == "danger":

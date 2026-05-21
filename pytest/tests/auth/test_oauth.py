@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import re
-import time
 
 import pytest
 from selenium.webdriver.common.by import By
 
 from linky_e2e.helpers.auth_ui import open_security_page
+from linky_e2e.helpers.pace import AUTH_STEP, OAUTH_WAIT, pause
 from linky_e2e.helpers.waits import wait_visible
 
 pytestmark = pytest.mark.auth
@@ -47,7 +47,7 @@ def test_oa_02_click_unlinked_provider_triggers_oauth(driver):
         pytest.skip("No unlinked providers found for user1 — all providers already connected.")
     handles_before = set(driver.window_handles)
     visible[0].click()
-    time.sleep(2)
+    pause(OAUTH_WAIT)
     handles_after = set(driver.window_handles)
     redirected = "/user/security" not in driver.current_url
     assert len(handles_after) > len(handles_before) or redirected
@@ -115,7 +115,7 @@ def test_oa_04_cancel_disconnect_keeps_provider(driver):
     visible_cancel = [el for el in cancel if el.is_displayed()]
     assert visible_cancel, "Cancel button not found in disconnect dialog"
     visible_cancel[0].click()
-    time.sleep(1)
+    pause(AUTH_STEP)
     dialogs = driver.find_elements(By.CSS_SELECTOR, '[role="alertdialog"]')
     assert not any(d.is_displayed() for d in dialogs)
 

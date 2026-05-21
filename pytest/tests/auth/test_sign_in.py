@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from linky_e2e.config import settings
 from linky_e2e.fixtures.users import TEST_USERS
 from linky_e2e.helpers.locators import by_role, by_test_id
+from linky_e2e.helpers.pace import AUTH_STEP, pause
 from linky_e2e.helpers.waits import (
     assert_not_visible_error,
     poll_until,
@@ -83,7 +84,7 @@ def test_si_06_malformed_email_validation(driver):
     inp = page.email_input()
     inp.clear()
     inp.send_keys("notanemail\n")
-    time.sleep(1)
+    pause(AUTH_STEP)
     err = driver.find_elements(By.CSS_SELECTOR, '[data-testid="form-feedback-error"], #error-identifier')
     if not any(e.is_displayed() for e in err):
         msg = driver.execute_script("return arguments[0].validationMessage;", inp)

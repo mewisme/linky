@@ -20,6 +20,7 @@ def _truthy(name: str) -> bool:
 class Settings:
     base_url: str
     headed: bool
+    run_fast: bool
     ignore_https_errors: bool
     default_timeout_sec: float
     viewport_width: int
@@ -33,6 +34,7 @@ class Settings:
             raise RuntimeError("BASE_TEST_URL is not set (repo root .env or pytest/.env)")
         self.base_url = base
         self.headed = _truthy("HEADED") or _truthy("PWHEADED") or _truthy("PWDEBUG")
+        self.run_fast = _truthy("RUN_FAST")
         self.ignore_https_errors = _truthy("IGNORE_HTTPS_ERRORS") or _truthy("E2E_IGNORE_HTTPS_ERRORS")
         self.default_timeout_sec = float(os.environ.get("E2E_TIMEOUT_SEC", "30"))
         self.viewport_width = int(os.environ.get("E2E_VIEWPORT_WIDTH", "1280"))

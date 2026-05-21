@@ -39,6 +39,7 @@ uv run pytest tests/video_chat -m video_chat   # serial, không xdist
 
 uv run pytest tests/auth tests/user_profile -n auto
 HEADED=1 uv run pytest tests/auth/test_sign_in.py -s
+RUN_FAST=1 uv run pytest tests/auth -q
 uv run pytest --html=reports/report.html --self-contained-html
 ```
 
@@ -49,6 +50,7 @@ uv run pytest --html=reports/report.html --self-contained-html
 | `BASE_TEST_URL` | App under test (required) |
 | `E2E_IGNORE_HTTPS_ERRORS` | `--ignore-certificate-errors` |
 | `HEADED` / `PWHEADED` | Headed browser |
+| `RUN_FAST=1` | Bỏ delay human-paced (mặc định: chậm, dễ theo dõi từng bước) |
 | `E2E_TIMEOUT_SEC` | WebDriverWait default (30) |
 | `CLERK_TEST_DOMAIN` | Clerk test email domain (`linky.now`) |
 

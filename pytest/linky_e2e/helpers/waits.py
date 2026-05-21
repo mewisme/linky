@@ -10,6 +10,7 @@ from tenacity import retry, stop_after_delay, wait_fixed
 
 from linky_e2e.config import settings
 from linky_e2e.helpers.locators import by_role, find_by_test_id, find_optional
+from linky_e2e.helpers.pace import pause, poll_interval
 
 
 def wait_visible(driver: WebDriver, locator: tuple[str, str], timeout: float | None = None) -> None:
@@ -100,16 +101,18 @@ def wait_for_redirect_to_home(driver: WebDriver, timeout: float = 20) -> None:
         _click_proceed_to_redirect_if_shown(driver)
         if is_post_auth_app_url(driver.current_url):
             return
-        time.sleep(0.3)
+        pause(poll_interval(), fast_floor=0.05)
     raise TimeoutError(f"Timed out waiting for post-auth URL, last: {driver.current_url}")
 
 
-def poll_until(predicate, timeout: float = 8, interval: float = 0.25) -> bool:
+def poll_until(predicate, timeout: float = 8, interval: float | None = None) -> bool:
+    if interval is None:
+        interval = poll_interval()
     deadline = time.time() + timeout
     while time.time() < deadline:
         if predicate():
             return True
-        time.sleep(interval)
+        pause(interval, fast_floor=0.05)
     return False
 
 

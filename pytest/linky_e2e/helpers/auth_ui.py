@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import time
 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -10,6 +9,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from linky_e2e.config import settings
 from linky_e2e.fixtures.auth_flow import create_authenticated_driver
+from linky_e2e.helpers.pace import NETWORK_SETTLE, STEP_SHORT, pause
 from linky_e2e.fixtures.users import TEST_USERS, TestUser
 from linky_e2e.helpers.locators import by_role
 from linky_e2e.helpers.waits import wait_for_clerk_ready
@@ -56,7 +56,7 @@ def click_sign_out(driver: WebDriver) -> None:
         visible = [el for el in logout if el.is_displayed()]
         if visible:
             break
-        time.sleep(0.2)
+        pause(STEP_SHORT, fast_floor=0.05)
         logout = driver.find_elements(
             By.XPATH,
             "//*[@role='menuitem' or self::button][contains("
@@ -76,5 +76,5 @@ def press_sign_out_shortcut(driver: WebDriver) -> None:
     ).key_up(Keys.CONTROL).perform()
 
 
-def wait_for_network_idle(driver: WebDriver, settle_sec: float = 1.5) -> None:
-    time.sleep(settle_sec)
+def wait_for_network_idle(driver: WebDriver, settle_sec: float | None = None) -> None:
+    pause(settle_sec if settle_sec is not None else NETWORK_SETTLE)

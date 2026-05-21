@@ -9,6 +9,7 @@ from selenium.webdriver.common.keys import Keys
 
 from linky_e2e.fixtures.auth_flow import create_authenticated_driver
 from linky_e2e.fixtures.users import TEST_USERS
+from linky_e2e.helpers.pace import AUTH_STEP, OAUTH_WAIT, STEP_SHORT, pause
 from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_for_redirect_to_home, wait_url_matches, wait_visible
 from linky_e2e.page_objects.auth.otp_page import OTPPage
 from linky_e2e.page_objects.auth.sign_in_steps import navigate_and_wait_for_clerk
@@ -41,7 +42,7 @@ def _any_visible(driver, selectors: list[str], timeout: float = 5) -> bool:
             for el in driver.find_elements(By.CSS_SELECTOR, sel):
                 if el.is_displayed():
                     return True
-        time.sleep(0.2)
+        pause(STEP_SHORT, fast_floor=0.05)
     return False
 
 
@@ -81,7 +82,7 @@ def test_su_02_already_signed_in_form_not_shown():
                     return
             except Exception:
                 return
-            time.sleep(0.25)
+            pause(STEP_SHORT)
         assert not sign_up.first_name_input().is_displayed()
     finally:
         quit_driver(d)
@@ -163,7 +164,7 @@ def test_su_08_duplicate_email_error(driver):
                 if el.is_displayed():
                     _contains_text(el, r"already in use|is taken")
                     return
-        time.sleep(0.25)
+        pause(STEP_SHORT)
     raise AssertionError("Duplicate email error not shown")
 
 
@@ -217,7 +218,7 @@ def test_su_12_resend_code_no_error(driver):
     visible = [el for el in resend if el.is_displayed()]
     assert visible, "Resend link not found"
     visible[0].click()
-    time.sleep(1)
+    pause(AUTH_STEP)
     err = driver.find_elements(By.CSS_SELECTOR, '[data-testid="form-feedback-error"]')
     assert not any(e.is_displayed() for e in err)
 
@@ -236,7 +237,7 @@ def test_su_13_oauth_google_smoke(driver):
     assert visible, "Google OAuth button not found"
     handles_before = set(driver.window_handles)
     visible[0].click()
-    time.sleep(2)
+    pause(OAUTH_WAIT)
     handles_after = set(driver.window_handles)
     url = driver.current_url.lower()
     popup_opened = len(handles_after) > len(handles_before)
@@ -257,7 +258,7 @@ def test_su_14_special_characters_in_names(driver):
     sign_up.fill_password(DEFAULT_TEST_PASSWORD)
     sign_up.fill_checkbox()
     sign_up.submit_sign_up()
-    time.sleep(2)
+    pause(OAUTH_WAIT)
     for sel in ("#error-firstName", "#error-lastName"):
         err = driver.find_elements(By.CSS_SELECTOR, sel)
         assert not any(e.is_displayed() for e in err)
@@ -274,7 +275,7 @@ def test_su_15_long_valid_names(driver):
     sign_up.fill_password(DEFAULT_TEST_PASSWORD)
     sign_up.fill_checkbox()
     sign_up.submit_sign_up()
-    time.sleep(2)
+    pause(OAUTH_WAIT)
     for sel in ("#error-firstName", "#error-lastName"):
         err = driver.find_elements(By.CSS_SELECTOR, sel)
         assert not any(e.is_displayed() for e in err)

@@ -60,9 +60,9 @@ def test_rd_03_api_users_me_auth_status():
 def test_rd_04_unknown_auth_path_404_or_error(driver):
     """Redirect / Middleware Guards: RD-04 · P2 — 404 on unknown auth-group path"""
     """Redirect / Middleware Guards: RD-04 · P2 — 404 on unknown auth-group path"""
-    import time
-
     from selenium.webdriver.common.by import By
+
+    from linky_e2e.helpers.pace import pause, poll_interval
 
     driver.get(f"{settings.base_url}/sign-in/nonexistent-step")
     deadline = time.time() + 15
@@ -86,5 +86,5 @@ def test_rd_04_unknown_auth_path_404_or_error(driver):
         )
         if any(e.is_displayed() for e in err):
             return
-        time.sleep(0.3)
+        pause(poll_interval(), fast_floor=0.05)
     raise AssertionError("Expected 404 or Clerk error state on unknown auth path")

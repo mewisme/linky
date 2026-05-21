@@ -5,6 +5,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from linky_e2e.browser.cloak_driver import create_cloak_driver, quit_all_drivers, quit_driver
 from linky_e2e.config import settings
+from linky_e2e.helpers.pace import BETWEEN_TESTS, pause
 from linky_e2e.fixtures.auth_flow import create_authenticated_driver
 from linky_e2e.fixtures.users import get_test_users
 
@@ -28,6 +29,12 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     quit_all_drivers()
+
+
+@pytest.fixture(autouse=True)
+def _human_pace_between_tests() -> None:
+    yield
+    pause(BETWEEN_TESTS)
 
 
 @pytest.fixture(scope="session")

@@ -19,14 +19,14 @@ def main() -> None:
     _configure_progress_logging()
     from cloakbrowser.download import ensure_binary
 
-    from linky_e2e.browser.chromedriver import install_chromedriver_for_binary
+    from linky_e2e.browser.chromedriver import install_chromedriver
 
     print("Downloading / verifying CloakBrowser Chromium binary...")
     binary_path = ensure_binary()
     print(f"CloakBrowser binary ready: {binary_path}")
 
     print("Installing / verifying ChromeDriver (matched to Cloak Chromium)...")
-    driver_path = install_chromedriver_for_binary(binary_path)
+    driver_path = install_chromedriver()
     print(f"ChromeDriver ready: {driver_path}")
 
 

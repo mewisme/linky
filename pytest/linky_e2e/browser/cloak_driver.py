@@ -14,7 +14,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
-from linky_e2e.browser.chromedriver import install_chromedriver_for_binary
+from linky_e2e.browser.chromedriver import install_chromedriver
 from linky_e2e.config import settings
 
 if TYPE_CHECKING:
@@ -29,11 +29,11 @@ _active_drivers: WeakSet[WebDriver] = WeakSet()
 _chromedriver_ready = False
 
 
-def _ensure_chromedriver(binary_path: str) -> None:
+def _ensure_chromedriver() -> None:
     global _chromedriver_ready
     if _chromedriver_ready:
         return
-    install_chromedriver_for_binary(binary_path)
+    install_chromedriver()
     _chromedriver_ready = True
 
 
@@ -81,7 +81,7 @@ def create_cloak_driver(
     media_permissions: bool = False,
 ) -> WebDriver:
     binary_path = ensure_binary()
-    _ensure_chromedriver(binary_path)
+    _ensure_chromedriver()
 
     options = Options()
     options.binary_location = binary_path

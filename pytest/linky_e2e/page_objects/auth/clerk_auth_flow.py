@@ -44,6 +44,6 @@ def sign_up_and_redirect_home(
     wait_url_matches(driver, r"sign-up/verify-email-address", timeout=20)
     otp_page = OTPPage(driver)
     otp_page.wait_until_visible()
-    otp_page.submit_otp(resolve_test_otp(otp))
+    otp_page.fill_otp(resolve_test_otp(otp))
     wait_for_redirect_to_home(driver, home_timeout)
     return email

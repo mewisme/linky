@@ -2,11 +2,18 @@ from __future__ import annotations
 
 import re
 
-from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webdriver import WebDriver
 
-from linky_e2e.helpers.locators import by_role, by_test_id
+from linky_e2e.helpers.locators import by_role, by_test_id, first_visible_css, scoped_css
 from linky_e2e.helpers.waits import wait_hidden, wait_visible
+
+_CLERK_SCOPE = '[data-clerk-ready="true"] '
+_EMAIL_FIELDS = (
+    'input[name="identifier"], input#identifier, '
+    'input[name="emailAddress"], input#emailAddress, '
+    'input[type="email"]'
+)
+_EMAIL_INPUT_SCOPED_CSS = scoped_css(_CLERK_SCOPE, _EMAIL_FIELDS)
 
 
 class IdentifierPage:
@@ -14,7 +21,14 @@ class IdentifierPage:
         self._driver = driver
 
     def email_input(self):
-        return by_role(self._driver, "textbox", name=re.compile(r"emailAddress", re.I))
+        el = first_visible_css(self._driver, _EMAIL_INPUT_SCOPED_CSS, _EMAIL_FIELDS)
+        if el is not None:
+            return el
+        return by_role(
+            self._driver,
+            "textbox",
+            name=re.compile(r"identifier|emailAddress|email address", re.I),
+        )
 
     def continue_button(self):
         return by_role(self._driver, "button", name=re.compile(r"continue", re.I))
@@ -28,7 +42,7 @@ class IdentifierPage:
         self.continue_button().click()
 
     def wait_until_visible(self, timeout: float | None = None) -> None:
-        wait_visible(self._driver, ("xpath", "//input[contains(@aria-label,'mail') or @name='identifier']"), timeout)
+        wait_visible(self._driver, ("css selector", _EMAIL_INPUT_SCOPED_CSS), timeout)
 
     def wait_until_hidden(self, timeout: float | None = None) -> None:
-        wait_hidden(self._driver, ("xpath", "//input[contains(@aria-label,'mail') or @name='identifier']"), timeout)
+        wait_hidden(self._driver, ("css selector", _EMAIL_INPUT_SCOPED_CSS), timeout)

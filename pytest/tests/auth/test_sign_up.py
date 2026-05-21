@@ -9,6 +9,7 @@ from selenium.webdriver.common.keys import Keys
 
 from linky_e2e.fixtures.auth_flow import create_authenticated_driver
 from linky_e2e.fixtures.users import TEST_USERS
+from linky_e2e.helpers.locators import by_role
 from linky_e2e.helpers.pace import AUTH_STEP, OAUTH_WAIT, STEP_SHORT, pause
 from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_for_redirect_to_home, wait_url_matches, wait_visible
 from linky_e2e.page_objects.auth.otp_page import OTPPage
@@ -188,7 +189,7 @@ def test_su_09_terms_unchecked_submit_blocked(driver):
 def test_su_10_wrong_otp_error(driver):
     sign_up = SignUpPage(driver)
     _reach_verify_email(driver, sign_up)
-    OTPPage(driver).submit_otp("123456")
+    OTPPage(driver).fill_otp("123456")
     wait_visible(driver, ("css selector", '[data-testid="form-feedback-error"]'), 10)
 
 
@@ -198,7 +199,7 @@ def test_su_11_empty_otp_error(driver):
     _reach_verify_email(driver, sign_up)
     otp = OTPPage(driver)
     otp.wait_until_visible()
-    otp.submit_otp_button().click()
+    by_role(driver, "button", name=re.compile(r"continue", re.I)).click()
     wait_visible(driver, ("css selector", '[data-testid="form-feedback-error"]'), 5)
 
 

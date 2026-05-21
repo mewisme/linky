@@ -48,6 +48,12 @@ local/
 
 .agents/
 
+# pytest E2E (standalone)
+pytest/.venv/
+pytest/.pytest_cache/
+pytest/reports/
+pytest/.auth/
+
 # Playwright
 /test-results/
 /playwright-report/

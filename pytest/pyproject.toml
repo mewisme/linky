@@ -20,6 +20,7 @@ dependencies = [
 [project.scripts]
 ensure-cloak = "linky_e2e.browser.ensure_cloak:main"
 clean-cloak = "linky_e2e.browser.clean_cloak:main"
+refresh-auth = "linky_e2e.browser.refresh_auth:main"
 
 [build-system]
 requires = ["hatchling"]

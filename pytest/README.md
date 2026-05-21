@@ -7,7 +7,7 @@ Standalone Python E2E suite. Không phụ thuộc Playwright hay pnpm workspace.
 - [uv](https://docs.astral.sh/uv/)
 - `.env` với `BASE_TEST_URL` (repo root hoặc `pytest/.env`)
 - Test data: `linky_e2e/test_data/*.xlsx`
-- Auth storage (tạo khi chạy lần đầu): `pytest/.auth/*.json`
+- Auth storage: `pytest/.auth/user1.json`, `user2.json` (tự tạo khi test cần login lần đầu, hoặc `uv run refresh-auth`)
 
 ## Setup
 
@@ -23,7 +23,9 @@ cp .env.example .env   # hoặc dùng ../.env
 
 `clean-cloak` xóa cache để tải lại từ đầu; sau đó chạy lại `ensure-cloak`.
 
-Browser lifecycle: mỗi test chỉ giữ một driver (fixture `driver` / `video_chat_page`); teardown gọi `quit()` + kill process tree. Cuối session, `pytest_sessionfinish` dọn mọi driver còn sót. Tránh `-n auto` với `video_chat` (mỗi worker spawn browser riêng).
+`refresh-auth` tạo/cập nhật `.auth/*.json` bằng **một** browser (chạy tay trước CI, không dùng trong pytest).
+
+Browser lifecycle: pytest **không** mở browser session riêng. Mỗi test một driver (`driver`, `video_chat_page`, …); login/storage load trên cùng driver đó. Teardown: `quit()` + kill process tree; `pytest_sessionfinish` dọn driver sót. Tránh `-n auto` với `video_chat`.
 
 ## Run tests
 

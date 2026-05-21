@@ -5,11 +5,8 @@ from selenium.webdriver.remote.webdriver import WebDriver
 
 from linky_e2e.browser.cloak_driver import create_cloak_driver, quit_all_drivers, quit_driver
 from linky_e2e.config import settings
-from linky_e2e.fixtures.auth_flow import create_authenticated_driver, refresh_storage_state_for_user
-from linky_e2e.fixtures.users import TestUser, get_test_users
-from linky_e2e.storage.state import is_valid_storage_state, resolve_storage_path
-
-_SESSION_SETUP_USERS = ("user1", "user2")
+from linky_e2e.fixtures.auth_flow import create_authenticated_driver
+from linky_e2e.fixtures.users import get_test_users
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -31,42 +28,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     quit_all_drivers()
-
-
-def _session_setup_targets() -> list[TestUser]:
-    users = get_test_users()
-    return [users[k] for k in _SESSION_SETUP_USERS if k in users]
-
-
-def _refresh_missing_storage_states() -> None:
-    targets = _session_setup_targets()
-    if not targets:
-        return
-    missing = [
-        u
-        for u in targets
-        if not is_valid_storage_state(resolve_storage_path(u.storage_state_path))
-    ]
-    if not missing:
-        return
-
-    driver = create_cloak_driver()
-    try:
-        for user in missing:
-            try:
-                refresh_storage_state_for_user(driver, user)
-            except Exception as exc:
-                print(
-                    f"[session-setup] WARNING: could not refresh {user.id}: {exc}; "
-                    f"using existing storage if present"
-                )
-    finally:
-        quit_driver(driver)
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _session_storage_states() -> None:
-    _refresh_missing_storage_states()
 
 
 @pytest.fixture(scope="session")
@@ -98,4 +59,3 @@ def media_driver(request: pytest.FixtureRequest) -> WebDriver:
 def authenticated_driver(driver: WebDriver) -> WebDriver:
     create_authenticated_driver(driver, get_test_users()["user1"])
     return driver
-

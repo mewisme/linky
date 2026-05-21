@@ -1,9 +1,22 @@
 from __future__ import annotations
 
+import logging
 import sys
 
 
+def _configure_progress_logging() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+        force=True,
+        stream=sys.stdout,
+    )
+    for name in ("cloakbrowser", "chromedriver_autoinstaller", "linky_e2e.browser.chromedriver"):
+        logging.getLogger(name).setLevel(logging.INFO)
+
+
 def main() -> None:
+    _configure_progress_logging()
     from cloakbrowser.download import ensure_binary
 
     from linky_e2e.browser.chromedriver import install_chromedriver_for_binary

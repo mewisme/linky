@@ -15,10 +15,13 @@ Standalone Python E2E suite. Không phụ thuộc Playwright hay pnpm workspace.
 cd pytest
 uv sync
 uv run ensure-cloak      # tải / xác minh CloakBrowser bin + ChromeDriver (~200MB lần đầu)
+uv run clean-cloak       # xóa cache CloakBrowser (~/.cloakbrowser) + ChromeDriver trong venv
 cp .env.example .env   # hoặc dùng ../.env
 ```
 
-`ensure-cloak` gọi `cloakbrowser.ensure_binary()` và `chromedriver-autoinstaller` — chạy trước khi `pytest` lần đầu hoặc trên CI.
+`ensure-cloak` gọi `cloakbrowser.ensure_binary()` và `chromedriver-autoinstaller` — chạy trước khi `pytest` lần đầu hoặc trên CI. Khi đang tải Chromium (~200MB), log hiển thị tiến độ theo % (mỗi 10%).
+
+`clean-cloak` xóa cache để tải lại từ đầu; sau đó chạy lại `ensure-cloak`.
 
 ## Run tests
 

@@ -8,19 +8,15 @@ from linky_e2e.fixtures.users import TEST_USERS
 from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_url_matches
 from linky_e2e.page_objects.auth.identifier_page import IdentifierPage
 from linky_e2e.browser.cloak_driver import create_cloak_driver, quit_driver
+from selenium.webdriver.remote.webdriver import WebDriver
 
 pytestmark = pytest.mark.auth
 
 
-def test_rd_01_unauthenticated_protected_page_redirects_sign_in():
+def test_rd_01_unauthenticated_protected_page_redirects_sign_in(driver: WebDriver):
     """Redirect / Middleware Guards: RD-01 · P0 — Unauthenticated user accessing protected page → redirect to sign-in"""
-    """Redirect / Middleware Guards: RD-01 · P0 — Unauthenticated user accessing protected page → redirect to sign-in"""
-    d = create_cloak_driver()
-    try:
-        d.get(f"{settings.base_url}/user/profile")
-        wait_url_matches(d, r"/sign-in", timeout=15)
-    finally:
-        quit_driver(d)
+    driver.get(f"{settings.base_url}/user/profile")
+    wait_url_matches(driver, r"/sign-in", timeout=15)
 
 
 def test_rd_02_unauthenticated_sign_in_not_redirected(driver):

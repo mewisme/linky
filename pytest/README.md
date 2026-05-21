@@ -23,6 +23,8 @@ cp .env.example .env   # hoặc dùng ../.env
 
 `clean-cloak` xóa cache để tải lại từ đầu; sau đó chạy lại `ensure-cloak`.
 
+Browser lifecycle: mỗi test chỉ giữ một driver (fixture `driver` / `video_chat_page`); teardown gọi `quit()` + kill process tree. Cuối session, `pytest_sessionfinish` dọn mọi driver còn sót. Tránh `-n auto` với `video_chat` (mỗi worker spawn browser riêng).
+
 ## Run tests
 
 ```bash

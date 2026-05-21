@@ -12,7 +12,7 @@ from linky_e2e.page_objects.video_chat.video_chat_page import VideoChatPage
 
 @dataclass
 class TwoUserCallSetup:
-    user1_driver: WebDriver
+    user1_driver: WebDriver | None
     user2_driver: WebDriver
     user1_page: VideoChatPage
     user2_page: VideoChatPage
@@ -31,9 +31,14 @@ def setup_two_user_call(user1: TestUser, user2: TestUser) -> TwoUserCallSetup:
     )
 
 
+def quit_call_driver(driver: WebDriver | None) -> None:
+    quit_driver(driver)
+
+
 def teardown_two_user_call(setup: TwoUserCallSetup) -> None:
     quit_driver(setup.user1_driver)
     quit_driver(setup.user2_driver)
+    setup.user1_driver = None
 
 
 def establish_call(page1: VideoChatPage, page2: VideoChatPage) -> None:

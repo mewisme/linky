@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import chromedriver_autoinstaller
 from cloakbrowser.config import get_default_stealth_args
 from cloakbrowser.download import ensure_binary
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
+from linky_e2e.browser.chromedriver import install_chromedriver_for_binary
 from linky_e2e.config import settings
 
 _MEDIA_PREFS = {
@@ -21,7 +21,7 @@ def create_cloak_driver(
     media_permissions: bool = False,
 ) -> webdriver.Chrome:
     binary_path = ensure_binary()
-    chromedriver_autoinstaller.install()
+    install_chromedriver_for_binary(binary_path)
 
     options = Options()
     options.binary_location = binary_path

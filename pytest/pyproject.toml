@@ -17,6 +17,9 @@ dependencies = [
     "tenacity>=9.1.4",
 ]
 
+[project.scripts]
+ensure-cloak = "linky_e2e.browser.ensure_cloak:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

@@ -14,7 +14,7 @@ class IdentifierPage:
         self._driver = driver
 
     def email_input(self):
-        return by_role(self._driver, "textbox", name=re.compile(r"email address", re.I))
+        return by_role(self._driver, "textbox", name=re.compile(r"emailAddress", re.I))
 
     def continue_button(self):
         return by_role(self._driver, "button", name=re.compile(r"continue", re.I))

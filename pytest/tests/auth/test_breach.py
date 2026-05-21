@@ -30,7 +30,6 @@ def _sign_in_with_breached_account(driver) -> None:
 @pytest.mark.skipif(not HAS_BREACH, reason="BREACH_TEST_EMAIL env var not set.")
 def test_br_01_breach_interstitial_displayed(driver):
     """Sign-In Breach Interstitial: BR-01 · P0 — Breach interstitial displayed on compromised password"""
-    """Sign-In Breach Interstitial: BR-01 · P0 — Breach interstitial displayed on compromised password"""
     _sign_in_with_breached_account(driver)
     reset = ResetPasswordPage(driver)
     wait_visible(
@@ -49,7 +48,6 @@ def test_br_01_breach_interstitial_displayed(driver):
 @pytest.mark.skipif(not HAS_BREACH, reason="BREACH_TEST_EMAIL env var not set.")
 def test_br_02_reset_password_transitions_to_otp(driver):
     """Sign-In Breach Interstitial: BR-02 · P0 — Clicking "Reset your password" → transitions to OTP/email step"""
-    """Sign-In Breach Interstitial: BR-02 · P0 — Clicking"""
     _sign_in_with_breached_account(driver)
     reset = ResetPasswordPage(driver)
     wait_visible(
@@ -79,7 +77,6 @@ def test_br_02_reset_password_transitions_to_otp(driver):
 @pytest.mark.skipif(not HAS_BREACH, reason="BREACH_TEST_EMAIL env var not set.")
 def test_br_03_wrong_otp_on_breach_reset_error(driver):
     """Sign-In Breach Interstitial: BR-03 · P0 — Wrong OTP on breach reset → error"""
-    """Sign-In Breach Interstitial: BR-03 · P0 — Wrong OTP on breach reset → error"""
     _sign_in_with_breached_account(driver)
     reset = ResetPasswordPage(driver)
     wait_visible(
@@ -103,7 +100,6 @@ def test_br_03_wrong_otp_on_breach_reset_error(driver):
 @pytest.mark.skipif(not HAS_BREACH, reason="BREACH_TEST_EMAIL env var not set.")
 @pytest.mark.skipif(not BREACH_OTP, reason="BREACH_TEST_OTP env var not set.")
 def test_br_04_correct_otp_new_password_success(driver):
-    """Sign-In Breach Interstitial: BR-04 · P1 — Correct OTP → proceeds to new-password step → success"""
     """Sign-In Breach Interstitial: BR-04 · P1 — Correct OTP → proceeds to new-password step → success"""
     _sign_in_with_breached_account(driver)
     reset = ResetPasswordPage(driver)

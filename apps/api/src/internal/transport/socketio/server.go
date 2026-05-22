@@ -10,6 +10,7 @@ import (
 	"github.com/zishang520/socket.io/v3/pkg/types"
 
 	"linky-api/src/internal/config"
+	"linky-api/src/internal/lib/corsorigin"
 	"linky-api/src/internal/domain/rooms"
 	"linky-api/src/internal/app/videochat/realtime"
 	"linky-api/src/internal/infra/admincache"
@@ -40,7 +41,7 @@ func NewServer(cfg *config.Config) *Server {
 	opts.SetPath("/ws")
 	opts.SetServeClient(false)
 	opts.SetCors(&types.Cors{
-		Origin:      cfg.CorsOrigin,
+		Origin:      corsorigin.SocketIOOrigin(cfg.CorsOrigin),
 		Credentials: true,
 		Methods:     []string{"GET", "POST"},
 	})

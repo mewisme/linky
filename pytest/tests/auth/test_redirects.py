@@ -21,7 +21,6 @@ def test_rd_01_unauthenticated_protected_page_redirects_sign_in(driver: WebDrive
 
 def test_rd_02_unauthenticated_sign_in_not_redirected(driver):
     """Redirect / Middleware Guards: RD-02 · P0 — Unauthenticated user accessing /sign-in is not redirected away"""
-    """Redirect / Middleware Guards: RD-02 · P0 — Unauthenticated user accessing /sign-in is not redirected away"""
     driver.get(f"{settings.base_url}/sign-in")
     wait_for_clerk_ready(driver)
     IdentifierPage(driver).wait_until_visible(10)
@@ -29,7 +28,6 @@ def test_rd_02_unauthenticated_sign_in_not_redirected(driver):
 
 
 def test_rd_03_api_users_me_auth_status():
-    """Redirect / Middleware Guards: RD-03 · P1 — /api/* routes respect Clerk auth (200 when authenticated, 401 when not)"""
     """Redirect / Middleware Guards: RD-03 · P1 — /api/* routes respect Clerk auth (200 when authenticated, 401 when not)"""
     auth = create_cloak_driver()
     anon = create_cloak_driver()
@@ -58,7 +56,6 @@ def test_rd_03_api_users_me_auth_status():
 
 
 def test_rd_04_unknown_auth_path_404_or_error(driver):
-    """Redirect / Middleware Guards: RD-04 · P2 — 404 on unknown auth-group path"""
     """Redirect / Middleware Guards: RD-04 · P2 — 404 on unknown auth-group path"""
     from selenium.webdriver.common.by import By
 

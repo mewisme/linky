@@ -82,4 +82,12 @@ func TestParseCorsOriginStrict_ProductionAccepts(t *testing.T) {
 	if len(got) != 2 || got[0] != "https://a.com" || got[1] != "https://b.com" {
 		t.Fatalf("expected two origins, got %v", got)
 	}
+
+	got, err = parseCorsOriginStrict("*.mewis.me,*.linkynow.site", "production")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(got) != 4 {
+		t.Fatalf("expected four normalized origins, got %v", got)
+	}
 }

@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+
+	"linky-api/src/internal/lib/corsorigin"
 )
 
 type Config struct {
@@ -283,14 +285,14 @@ func parseCorsOrigin(raw string) []string {
 	if len(out) == 0 {
 		return []string{"http://localhost:3000"}
 	}
-	return out
+	return corsorigin.NormalizeList(out)
 }
 
 // parseCorsOriginStrict mirrors the TS helper in apps/api/src/utils/cors.ts.
 //
-// In production, refuse to start when CORS_ORIGIN is unset, the wildcard "*",
-// or an empty allowlist. Outside production, fall back to parseCorsOrigin's
-// permissive default for local dev.
+// In production, refuse to start when CORS_ORIGIN is unset, the global wildcard "*",
+// or an empty allowlist. Host patterns like *.mewis.me are allowed. Outside
+// production, fall back to parseCorsOrigin's permissive default for local dev.
 func parseCorsOriginStrict(raw, nodeEnv string) ([]string, error) {
 	trimmed := strings.TrimSpace(raw)
 	isWildcard := trimmed == "*" || strings.EqualFold(trimmed, "wildcard")
@@ -310,7 +312,7 @@ func parseCorsOriginStrict(raw, nodeEnv string) ([]string, error) {
 		if len(out) == 0 {
 			return nil, fmt.Errorf("CORS_ORIGIN must be set to an explicit allowlist in production (wildcard '*' is not allowed)")
 		}
-		return out, nil
+		return corsorigin.NormalizeList(out), nil
 	}
 
 	if isWildcard {

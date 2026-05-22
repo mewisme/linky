@@ -11,6 +11,7 @@ import (
 
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/httpx"
+	"linky-api/src/internal/lib/corsorigin"
 	"linky-api/src/internal/logger"
 	"linky-api/src/internal/transport/http/middleware"
 	"linky-api/src/internal/transport/http"
@@ -19,8 +20,11 @@ import (
 var serverLog = logger.New("api:server")
 
 func corsConfig(cfg *config.Config) echomw.CORSConfig {
+	rules := cfg.CorsOrigin
 	return echomw.CORSConfig{
-		AllowOrigins:     cfg.CorsOrigin,
+		AllowOriginFunc: func(origin string) (bool, error) {
+			return corsorigin.Match(origin, rules), nil
+		},
 		AllowCredentials: true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "X-Request-ID", "svix-id", "svix-timestamp", "svix-signature"},

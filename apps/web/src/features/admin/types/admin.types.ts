@@ -83,6 +83,40 @@ export namespace AdminAPI {
     export type Response = User;
   }
 
+  export namespace UpdateClerkUser {
+    export interface PathParams {
+      id: string;
+    }
+
+    export interface Body {
+      password?: string;
+      skip_password_checks?: boolean;
+      sign_out_of_other_sessions?: boolean;
+    }
+
+    export type Response = Record<string, unknown>;
+  }
+
+  export namespace SetClerkPasswordCompromised {
+    export interface PathParams {
+      id: string;
+    }
+
+    export interface Body {
+      revoke_all_sessions?: boolean;
+    }
+
+    export type Response = Record<string, unknown>;
+  }
+
+  export namespace UnsetClerkPasswordCompromised {
+    export interface PathParams {
+      id: string;
+    }
+
+    export type Response = Record<string, unknown>;
+  }
+
   export namespace PatchUser {
     export interface PathParams {
       id: string;

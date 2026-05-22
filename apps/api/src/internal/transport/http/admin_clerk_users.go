@@ -17,6 +17,7 @@ func registerAdminClerkUserRoutes(g *echo.Group) {
 	g.PATCH("/users/clerk/batch", handleAdminClerkUserBatchPatch)
 	g.DELETE("/users/clerk/batch", handleAdminClerkUserBatchDelete)
 	g.POST("/users/clerk/:id/password/set-compromised", handleAdminClerkUserSetPasswordCompromised)
+	g.POST("/users/clerk/:id/password/unset-compromised", handleAdminClerkUserUnsetPasswordCompromised)
 	g.GET("/users/clerk/:id", handleAdminClerkUserGet)
 	g.PUT("/users/clerk/:id", handleAdminClerkUserPut)
 	g.PATCH("/users/clerk/:id", handleAdminClerkUserPatch)
@@ -111,6 +112,18 @@ func handleAdminClerkUserSetPasswordCompromised(c echo.Context) error {
 	out, err := clerkadmin.SetPasswordCompromised(c.Request().Context(), adminClerkActor(c), id, params)
 	if err != nil {
 		return sendClerkAdminError(c, err, "FAILED_SET_PASSWORD_COMPROMISED", "failedSetPasswordCompromised", "Failed to set password as compromised in Clerk")
+	}
+	if out == nil {
+		return c.NoContent(http.StatusOK)
+	}
+	return c.JSON(http.StatusOK, out)
+}
+
+func handleAdminClerkUserUnsetPasswordCompromised(c echo.Context) error {
+	id := c.Param("id")
+	out, err := clerkadmin.UnsetPasswordCompromised(c.Request().Context(), adminClerkActor(c), id)
+	if err != nil {
+		return sendClerkAdminError(c, err, "FAILED_UNSET_PASSWORD_COMPROMISED", "failedUnsetPasswordCompromised", "Failed to unset password as compromised in Clerk")
 	}
 	if out == nil {
 		return c.NoContent(http.StatusOK)

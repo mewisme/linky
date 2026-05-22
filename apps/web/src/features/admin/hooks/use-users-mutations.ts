@@ -8,6 +8,22 @@ import { toast } from '@ws/ui/components/ui/sonner';
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 import { useTranslations } from 'next-intl';
 
+export interface SetClerkPasswordPayload {
+  clerkUserId: string;
+  password: string;
+  skipPasswordChecks?: boolean;
+  signOutOfOtherSessions?: boolean;
+}
+
+export interface SetClerkPasswordCompromisedPayload {
+  clerkUserId: string;
+  revokeAllSessions?: boolean;
+}
+
+export interface UnsetClerkPasswordCompromisedPayload {
+  clerkUserId: string;
+}
+
 export function useUsersMutations() {
   const t = useTranslations('admin');
   const queryClient = useQueryClient();
@@ -31,6 +47,65 @@ export function useUsersMutations() {
     },
     onError: (error: Error) => {
       toast.error(error.message || t('errorDuringUpdate'));
+    },
+  });
+
+  const setClerkPasswordMutation = useMutation({
+    mutationFn: (payload: SetClerkPasswordPayload) =>
+      fetchFromActionRoute<AdminAPI.UpdateClerkUser.Response>(
+        `/api/admin/users/clerk/${encodeURIComponent(payload.clerkUserId)}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            password: payload.password,
+            skip_password_checks: payload.skipPasswordChecks ?? false,
+            sign_out_of_other_sessions: payload.signOutOfOtherSessions ?? true,
+          }),
+        },
+      ),
+    onSuccess: async () => {
+      await invalidateAndRefetch();
+      toast.success(t('clerkPasswordUpdated'));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('errorDuringClerkPasswordUpdate'));
+    },
+  });
+
+  const setClerkPasswordCompromisedMutation = useMutation({
+    mutationFn: (payload: SetClerkPasswordCompromisedPayload) =>
+      fetchFromActionRoute<AdminAPI.SetClerkPasswordCompromised.Response>(
+        `/api/admin/users/clerk/${encodeURIComponent(payload.clerkUserId)}/password/set-compromised`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            revoke_all_sessions: payload.revokeAllSessions ?? true,
+          }),
+        },
+      ),
+    onSuccess: async () => {
+      await invalidateAndRefetch();
+      toast.success(t('clerkPasswordCompromisedSet'));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('errorDuringClerkPasswordCompromised'));
+    },
+  });
+
+  const unsetClerkPasswordCompromisedMutation = useMutation({
+    mutationFn: (payload: UnsetClerkPasswordCompromisedPayload) =>
+      fetchFromActionRoute<AdminAPI.UnsetClerkPasswordCompromised.Response>(
+        `/api/admin/users/clerk/${encodeURIComponent(payload.clerkUserId)}/password/unset-compromised`,
+        { method: 'POST' },
+      ),
+    onSuccess: async () => {
+      await invalidateAndRefetch();
+      toast.success(t('clerkPasswordCompromisedUnset'));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('errorDuringClerkPasswordCompromisedUnset'));
     },
   });
 
@@ -157,6 +232,9 @@ export function useUsersMutations() {
 
   return {
     updateMutation,
+    setClerkPasswordMutation,
+    setClerkPasswordCompromisedMutation,
+    unsetClerkPasswordCompromisedMutation,
     softDeleteMutation,
     softDeleteManyMutation,
     hardDeleteMutation,

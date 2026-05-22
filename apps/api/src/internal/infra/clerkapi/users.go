@@ -133,6 +133,26 @@ func (c *Client) SetPasswordCompromised(ctx context.Context, id string, params S
 	return out, nil
 }
 
+func UnsetPasswordCompromised(ctx context.Context, id string) (map[string]any, error) {
+	c, err := Default()
+	if err != nil {
+		return nil, err
+	}
+	return c.UnsetPasswordCompromised(ctx, id)
+}
+
+func (c *Client) UnsetPasswordCompromised(ctx context.Context, id string) (map[string]any, error) {
+	path, err := userPath(id, "password", "unset_compromised")
+	if err != nil {
+		return nil, err
+	}
+	var out map[string]any
+	if err := c.Post(ctx, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func itoa(n int) string {
 	return strconv.Itoa(n)
 }

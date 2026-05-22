@@ -216,6 +216,7 @@ function renderDropdownItem(
             disabled={item.disabled}
             variant={item.variant}
             data-testid={item.testId}
+            className='flex items-center gap-2'
           >
             {item.icon}
             {item.dropdownItemLabel ?? item.label}
@@ -237,6 +238,7 @@ function renderDropdownItem(
           disabled={item.disabled}
           variant={item.variant}
           data-testid={item.testId}
+          className='flex items-center gap-2'
         >
           {item.icon}
           {item.dropdownItemLabel ?? item.label}
@@ -250,6 +252,7 @@ function renderDropdownItem(
           onCheckedChange={item.onCheckedChange}
           disabled={item.disabled}
           data-testid={item.testId}
+          className='flex items-center gap-2'
         >
           {item.icon}
           {item.dropdownItemLabel ?? item.label}
@@ -285,7 +288,7 @@ function renderDropdownItem(
     case 'sub':
       return (
         <DropdownMenuSub key={key}>
-          <DropdownMenuSubTrigger disabled={item.disabled}>
+          <DropdownMenuSubTrigger disabled={item.disabled} className='flex items-center gap-2'>
             {item.icon}
             {item.dropdownItemLabel ?? item.label}
           </DropdownMenuSubTrigger>

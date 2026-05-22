@@ -4,7 +4,7 @@ import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { Checkbox } from '@ws/ui/components/ui/checkbox';
 import { Badge } from '@ws/ui/components/ui/badge';
 import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
-import { IconArrowsExchange, IconCircleCheckFilled, IconCircleXFilled, IconTrash, IconRefresh, IconUserPlus, IconUsersGroup, IconShieldLock, IconCopy } from '@tabler/icons-react';
+import { IconArrowsExchange, IconCircleCheckFilled, IconCircleXFilled, IconTrash, IconRefresh, IconUserPlus, IconUsersGroup, IconShieldLock, IconCopy, IconKey, IconAlertTriangle, IconShieldCheck, IconSparkles } from '@tabler/icons-react';
 import {
   Popover,
   PopoverTrigger,
@@ -23,6 +23,9 @@ export interface RowCallbacks {
   onSoftDelete?: (user: AdminAPI.User) => void
   onHardDelete?: (user: AdminAPI.User) => void
   onRestore?: (user: AdminAPI.User) => void
+  onSetPassword?: (user: AdminAPI.User) => void
+  onSetPasswordCompromised?: (user: AdminAPI.User) => void
+  onUnsetPasswordCompromised?: (user: AdminAPI.User) => void
   onEmbeddingSync?: (user: AdminAPI.User) => void
   onCompareEmbeddings?: (user: AdminAPI.User) => void
   onFindSimilarUsers?: (user: AdminAPI.User) => void
@@ -55,22 +58,29 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
   const actions: ActionItem[] = useMemo(() => {
     const items: ActionItem[] = [
       {
-        type: 'item',
-        label: td('users.copyUserId'),
+        type: 'sub',
+        label: td('users.copyMenu'),
         icon: <IconCopy className="size-4" />,
-        onClick: () => {
-          navigator.clipboard.writeText(user.id);
-          toast.success(td('users.userIdCopied'));
-        },
-      },
-      {
-        type: 'item',
-        label: td('users.copyClerkUserId'),
-        icon: <IconCopy className="size-4" />,
-        onClick: () => {
-          navigator.clipboard.writeText(user.clerk_user_id);
-          toast.success(td('users.clerkUserIdCopied'));
-        },
+        children: [
+          {
+            type: 'item',
+            label: td('users.copyUserId'),
+            icon: <IconCopy className="size-4" />,
+            onClick: () => {
+              navigator.clipboard.writeText(user.id);
+              toast.success(td('users.userIdCopied'));
+            },
+          },
+          {
+            type: 'item',
+            label: td('users.copyClerkUserId'),
+            icon: <IconCopy className="size-4" />,
+            onClick: () => {
+              navigator.clipboard.writeText(user.clerk_user_id);
+              toast.success(td('users.clerkUserIdCopied'));
+            },
+          },
+        ],
       },
       { type: 'separator' },
       ...(user.role !== 'superadmin'
@@ -111,8 +121,9 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
       });
     }
 
+    const aiEmbeddingsChildren: ActionItem[] = [];
     if (callbacks?.onEmbeddingSync) {
-      items.push({
+      aiEmbeddingsChildren.push({
         type: 'item',
         label: td('users.manualEmbeddingSync'),
         icon: <IconRefresh className="size-4" />,
@@ -120,28 +131,88 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
         testId: 'admin-user-embedding-sync-button',
       });
     }
+    if (callbacks?.onCompareEmbeddings) {
+      aiEmbeddingsChildren.push({
+        type: 'item',
+        label: td('users.compareEmbeddings'),
+        icon: <IconArrowsExchange className="size-4" />,
+        onClick: () => callbacks.onCompareEmbeddings?.(user),
+        testId: 'admin-user-compare-embeddings-button',
+      });
+    }
+    if (callbacks?.onFindSimilarUsers) {
+      aiEmbeddingsChildren.push({
+        type: 'item',
+        label: td('users.findSimilarUsers'),
+        icon: <IconUsersGroup className="size-4" />,
+        onClick: () => callbacks.onFindSimilarUsers?.(user),
+        testId: 'admin-user-find-similar-button',
+      });
+    }
+    if (aiEmbeddingsChildren.length > 0) {
+      items.push({
+        type: 'sub',
+        label: td('users.aiEmbeddings'),
+        icon: <IconSparkles className="size-4" />,
+        children: aiEmbeddingsChildren,
+      });
+    }
 
-    if (callbacks?.onCompareEmbeddings || callbacks?.onFindSimilarUsers) {
-      items.push({ type: 'separator' });
-      items.push({ type: 'label', label: td('users.aiEmbeddings') });
-      if (callbacks?.onCompareEmbeddings) {
-        items.push({
+    const passwordChildren: ActionItem[] = [];
+    if (
+      !isDeleted &&
+      user.role !== 'superadmin' &&
+      callbacks?.currentUserRole === 'superadmin'
+    ) {
+      if (callbacks?.onSetPassword) {
+        passwordChildren.push({
           type: 'item',
-          label: td('users.compareEmbeddings'),
-          icon: <IconArrowsExchange className="size-4" />,
-          onClick: () => callbacks.onCompareEmbeddings?.(user),
-          testId: 'admin-user-compare-embeddings-button',
+          label: td('users.setPassword'),
+          icon: <IconKey className="size-4" />,
+          onClick: () => callbacks.onSetPassword?.(user),
+          testId: 'admin-user-set-password-button',
         });
       }
-      if (callbacks?.onFindSimilarUsers) {
-        items.push({
+      if (callbacks?.onSetPasswordCompromised) {
+        passwordChildren.push({
           type: 'item',
-          label: td('users.findSimilarUsers'),
-          icon: <IconUsersGroup className="size-4" />,
-          onClick: () => callbacks.onFindSimilarUsers?.(user),
-          testId: 'admin-user-find-similar-button',
+          label: td('users.setPasswordCompromised'),
+          icon: <IconAlertTriangle className="size-4" />,
+          onClick: () => callbacks.onSetPasswordCompromised?.(user),
+          testId: 'admin-user-set-password-compromised-button',
+          confirmAction: {
+            title: ta('setPasswordCompromisedTitle'),
+            description: ta('setPasswordCompromisedDescription'),
+            confirmLabel: ta('setPasswordCompromisedConfirm'),
+            cancelLabel: td('confirm.cancel'),
+            variant: 'destructive',
+          },
         });
       }
+      if (callbacks?.onUnsetPasswordCompromised) {
+        passwordChildren.push({
+          type: 'item',
+          label: td('users.unsetPasswordCompromised'),
+          icon: <IconShieldCheck className="size-4" />,
+          onClick: () => callbacks.onUnsetPasswordCompromised?.(user),
+          testId: 'admin-user-unset-password-compromised-button',
+          confirmAction: {
+            title: ta('unsetPasswordCompromisedTitle'),
+            description: ta('unsetPasswordCompromisedDescription'),
+            confirmLabel: ta('unsetPasswordCompromisedConfirm'),
+            cancelLabel: td('confirm.cancel'),
+            variant: 'default',
+          },
+        });
+      }
+    }
+    if (passwordChildren.length > 0) {
+      items.push({
+        type: 'sub',
+        label: td('users.passwordMenu'),
+        icon: <IconKey className="size-4" />,
+        children: passwordChildren,
+      });
     }
 
     if (!isDeleted && user.role !== 'superadmin') {

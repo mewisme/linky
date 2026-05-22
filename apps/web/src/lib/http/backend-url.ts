@@ -78,6 +78,8 @@ export const backendUrl = {
     clerkUserById: (id: string) => `${V1}/admin/users/clerk/${id}`,
     clerkUserSetPasswordCompromised: (id: string) =>
       `${V1}/admin/users/clerk/${id}/password/set-compromised`,
+    clerkUserUnsetPasswordCompromised: (id: string) =>
+      `${V1}/admin/users/clerk/${id}/password/unset-compromised`,
     embeddingsCompare: () => `${V1}/admin/embeddings/compare`,
     embeddingsSimilar: () => `${V1}/admin/embeddings/similar`,
     embeddingsSync: () => `${V1}/admin/embeddings/sync`,

@@ -11,6 +11,7 @@ import { AppLayout } from '@/shared/ui/layouts/app-layout';
 import { Button } from '@ws/ui/components/ui/button';
 import { useUserContext } from '@/providers/user/user-provider';
 import { ToggleGroup, ToggleGroupItem } from "@ws/ui/components/ui/toggle-group"
+import type { RowCallbacks } from '@/shared/ui/data-table/users/define-data';
 
 const UsersDataTable = dynamic(
   () => import('@/shared/ui/data-table/users/data-table').then(mod => ({ default: mod.UsersDataTable })),
@@ -21,6 +22,8 @@ import { useUsersQuery, type UsersDeletedFilter } from '@/features/admin/hooks/u
 import { useUsersMutations } from '@/features/admin/hooks/use-users-mutations';
 import { useUsersPresence } from '@/features/admin/hooks/use-users-presence';
 import { BulkDeleteDialog } from './bulk-delete-dialog';
+import { SetClerkPasswordDialog } from './set-clerk-password-dialog';
+import { isSuperAdmin } from '@/shared/utils/roles';
 import { BulkActions, type BulkAction } from './bulk-actions';
 import { CompareEmbeddingsModal, FindSimilarUsersModal } from './embedding-actions';
 import { isAdmin } from '@/shared/utils/roles';
@@ -39,6 +42,9 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   const dataWithPresence = useUsersPresence(users, deletedFilter === 'active');
   const {
     updateMutation,
+    setClerkPasswordMutation,
+    setClerkPasswordCompromisedMutation,
+    unsetClerkPasswordCompromisedMutation,
     softDeleteMutation,
     softDeleteManyMutation,
     hardDeleteMutation,
@@ -53,8 +59,9 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   const [selectionResetKey, setSelectionResetKey] = useState(0);
   const [compareModalUser, setCompareModalUser] = useState<AdminAPI.User | null>(null);
   const [findSimilarModalUser, setFindSimilarModalUser] = useState<AdminAPI.User | null>(null);
+  const [setPasswordUser, setSetPasswordUser] = useState<AdminAPI.User | null>(null);
 
-  const tableCallbacks = {
+  const tableCallbacks: RowCallbacks = {
     currentUserRole: currentUser?.role,
     onSelectRole: (user: AdminAPI.User, role: AdminAPI.UserRole) => {
       updateMutation.mutate({ id: user.id, role });
@@ -68,6 +75,19 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
     onRestore: (user: AdminAPI.User) => {
       restoreMutation.mutate(user.id);
     },
+    onSetPassword: isSuperAdmin(currentUser?.role)
+      ? (user: AdminAPI.User) => setSetPasswordUser(user)
+      : undefined,
+    onSetPasswordCompromised: isSuperAdmin(currentUser?.role)
+      ? (user: AdminAPI.User) => {
+          setClerkPasswordCompromisedMutation.mutate({ clerkUserId: user.clerk_user_id });
+        }
+      : undefined,
+    onUnsetPasswordCompromised: isSuperAdmin(currentUser?.role)
+      ? (user: AdminAPI.User) => {
+          unsetClerkPasswordCompromisedMutation.mutate({ clerkUserId: user.clerk_user_id });
+        }
+      : undefined,
     onEmbeddingSync: (user: AdminAPI.User) => {
       embeddingSyncMutation.mutate([user.id]);
     },
@@ -154,6 +174,17 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
           users={dataWithPresence}
         />
       )}
+      <SetClerkPasswordDialog
+        user={setPasswordUser}
+        open={!!setPasswordUser}
+        onOpenChange={(open) => !open && setSetPasswordUser(null)}
+        isPending={setClerkPasswordMutation.isPending}
+        onSubmit={(payload) => {
+          setClerkPasswordMutation.mutate(payload, {
+            onSuccess: () => setSetPasswordUser(null),
+          });
+        }}
+      />
       <UsersDataTable
         initialData={dataWithPresence}
         isLoading={isPending}

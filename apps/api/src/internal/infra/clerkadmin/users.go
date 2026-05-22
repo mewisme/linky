@@ -101,6 +101,13 @@ func SetPasswordCompromised(ctx context.Context, actorClerkID, id string, params
 	return clerkapi.SetPasswordCompromised(ctx, id, params)
 }
 
+func UnsetPasswordCompromised(ctx context.Context, actorClerkID, id string) (map[string]any, error) {
+	if err := requireAdminActor(ctx, actorClerkID); err != nil {
+		return nil, err
+	}
+	return clerkapi.UnsetPasswordCompromised(ctx, id)
+}
+
 func isSDKUnavailable(err error) bool {
 	return err == clerkx.ErrNotConfigured
 }

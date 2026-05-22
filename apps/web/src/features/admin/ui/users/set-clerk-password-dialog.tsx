@@ -38,12 +38,14 @@ export function SetClerkPasswordDialog({
   const [password, setPassword] = useState('');
   const [skipPasswordChecks, setSkipPasswordChecks] = useState(false);
   const [signOutOfOtherSessions, setSignOutOfOtherSessions] = useState(true);
+  const [setPasswordCompromised, setSetPasswordCompromised] = useState(false);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
       setPassword('');
       setSkipPasswordChecks(false);
       setSignOutOfOtherSessions(true);
+      setSetPasswordCompromised(false);
     }
     onOpenChange(next);
   };
@@ -55,6 +57,7 @@ export function SetClerkPasswordDialog({
       password,
       skipPasswordChecks,
       signOutOfOtherSessions,
+      setPasswordCompromised,
     });
   };
 
@@ -103,6 +106,16 @@ export function SetClerkPasswordDialog({
             />
             <Label htmlFor="admin-sign-out-sessions" className="font-normal">
               {t('setClerkPasswordSignOutSessions')}
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="admin-set-password-compromised"
+              checked={setPasswordCompromised}
+              onCheckedChange={(v) => setSetPasswordCompromised(v === true)}
+            />
+            <Label htmlFor="admin-set-password-compromised" className="font-normal">
+              {t('setClerkPasswordMarkCompromised')}
             </Label>
           </div>
         </div>

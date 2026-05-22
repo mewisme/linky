@@ -1184,6 +1184,7 @@
     "setClerkPasswordLabel": "Mật khẩu mới",
     "setClerkPasswordSkipChecks": "Bỏ qua kiểm tra policy mật khẩu Clerk",
     "setClerkPasswordSignOutSessions": "Đăng xuất mọi phiên khác sau khi cập nhật",
+    "setClerkPasswordMarkCompromised": "Đánh dấu mật khẩu bị lộ sau khi cập nhật",
     "setClerkPasswordConfirm": "Cập nhật mật khẩu",
     "setClerkPasswordSaving": "Đang cập nhật...",
     "setPasswordCompromisedTitle": "Đánh dấu mật khẩu bị lộ?",

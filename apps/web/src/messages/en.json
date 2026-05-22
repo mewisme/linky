@@ -1184,6 +1184,7 @@
     "setClerkPasswordLabel": "New password",
     "setClerkPasswordSkipChecks": "Skip Clerk password policy checks",
     "setClerkPasswordSignOutSessions": "Sign out all other sessions after update",
+    "setClerkPasswordMarkCompromised": "Mark password as compromised after update",
     "setClerkPasswordConfirm": "Update password",
     "setClerkPasswordSaving": "Updating...",
     "setPasswordCompromisedTitle": "Mark password as compromised?",

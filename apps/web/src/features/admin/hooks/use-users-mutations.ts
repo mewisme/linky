@@ -13,6 +13,7 @@ export interface SetClerkPasswordPayload {
   password: string;
   skipPasswordChecks?: boolean;
   signOutOfOtherSessions?: boolean;
+  setPasswordCompromised?: boolean;
 }
 
 export interface SetClerkPasswordCompromisedPayload {

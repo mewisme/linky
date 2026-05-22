@@ -178,10 +178,24 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
         user={setPasswordUser}
         open={!!setPasswordUser}
         onOpenChange={(open) => !open && setSetPasswordUser(null)}
-        isPending={setClerkPasswordMutation.isPending}
+        isPending={
+          setClerkPasswordMutation.isPending || setClerkPasswordCompromisedMutation.isPending
+        }
         onSubmit={(payload) => {
           setClerkPasswordMutation.mutate(payload, {
-            onSuccess: () => setSetPasswordUser(null),
+            onSuccess: () => {
+              if (payload.setPasswordCompromised) {
+                setClerkPasswordCompromisedMutation.mutate(
+                  {
+                    clerkUserId: payload.clerkUserId,
+                    revokeAllSessions: payload.signOutOfOtherSessions ?? true,
+                  },
+                  { onSuccess: () => setSetPasswordUser(null) },
+                );
+              } else {
+                setSetPasswordUser(null);
+              }
+            },
           });
         }}
       />

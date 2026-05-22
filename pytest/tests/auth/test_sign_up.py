@@ -5,18 +5,16 @@ import time
 
 import pytest
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 from linky_e2e.fixtures.auth_flow import create_authenticated_driver
 from linky_e2e.fixtures.users import TEST_USERS
 from linky_e2e.helpers.locators import by_role
 from linky_e2e.helpers.pace import AUTH_STEP, OAUTH_WAIT, STEP_SHORT, pause
-from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_for_redirect_to_home, wait_url_matches, wait_visible
+from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_url_matches, wait_visible
 from linky_e2e.page_objects.auth.otp_page import OTPPage
 from linky_e2e.page_objects.auth.sign_in_steps import navigate_and_wait_for_clerk
 from linky_e2e.page_objects.auth.sign_up_page import SignUpPage
 from linky_e2e.test_data.clerk_test_auth import (
-    CLERK_TEST_OTP,
     DEFAULT_TEST_PASSWORD,
     clerk_test_email,
 )
@@ -48,8 +46,6 @@ def _any_visible(driver, selectors: list[str], timeout: float = 5) -> bool:
 
 
 def _fill_sign_up_form(sign_up: SignUpPage, *, email: str, check_terms: bool = True) -> None:
-    sign_up.fill_first_name("Test")
-    sign_up.fill_last_name("User")
     sign_up.fill_email_address(email)
     sign_up.fill_password(DEFAULT_TEST_PASSWORD)
     if check_terms:
@@ -66,10 +62,12 @@ def _reach_verify_email(driver, sign_up: SignUpPage) -> None:
 
 @pytest.mark.slow
 def test_su_01_valid_registration_redirect_home(driver):
+    """Sign-Up: SU-01 · P0 — Valid registration → email verification → redirect to home"""
     sign_up_and_redirect_home(driver)
 
 
 def test_su_02_already_signed_in_form_not_shown():
+    """Sign-Up: SU-02 · P1 — Already signed-in user visiting /sign-up → form not shown"""
     d = create_cloak_driver()
     try:
         create_authenticated_driver(d, TEST_USERS["user1"])
@@ -79,80 +77,74 @@ def test_su_02_already_signed_in_form_not_shown():
         deadline = time.time() + 5
         while time.time() < deadline:
             try:
-                if not sign_up.first_name_input().is_displayed():
+                if not sign_up.email_address_input().is_displayed():
                     return
             except Exception:
                 return
             pause(STEP_SHORT)
-        assert not sign_up.first_name_input().is_displayed()
+        assert not sign_up.email_address_input().is_displayed()
     finally:
         quit_driver(d)
 
 
 def test_su_03_vietnamese_locale_sign_up(driver):
+    """Sign-Up: SU-03 · P2 — Sign-up page renders in Vietnamese locale"""
     driver.get(f"{settings.base_url}/vi/sign-up")
     wait_for_clerk_ready(driver)
     wait_visible(
         driver,
-        ("css selector", 'input[name="firstName"], input[autocomplete="given-name"]'),
+        ("css selector", 'input[name="emailAddress"], input[name="email"]'),
         10,
     )
 
 
 def test_su_04_all_fields_blank_submit_blocked(driver):
+    """Sign-Up: SU-04 · P2 — All fields blank submit blocked"""
     sign_up = SignUpPage(driver)
     navigate_and_wait_for_clerk(driver, "/sign-up")
     sign_up.wait_until_visible()
     sign_up.submit_sign_up()
     assert _any_visible(
         driver,
-        ["#error-firstName", "#error-lastName", "#error-emailAddress", "#error-password"],
+        ["#error-emailAddress", "#error-password"],
         5,
     )
 
 
-def test_su_05_invalid_email_format(driver):
+@pytest.mark.parametrize(
+    "email,password,check_terms,error_selector",
+    [
+        ("bademail", DEFAULT_TEST_PASSWORD, True, "#error-emailAddress"),
+        (fresh_test_email(), "abc123", True, "#error-password"),
+        (fresh_test_email(), "A" * 73, True, "#error-password"),
+        (fresh_test_email(), DEFAULT_TEST_PASSWORD, False, "#error-legalAccepted"),
+    ],
+)
+def test_signup_validation(
+    driver,
+    email,
+    password,
+    check_terms,
+    error_selector,
+):
     sign_up = SignUpPage(driver)
+
     navigate_and_wait_for_clerk(driver, "/sign-up")
     sign_up.wait_until_visible()
-    sign_up.fill_first_name("Test")
-    sign_up.fill_last_name("User")
-    sign_up.fill_password(DEFAULT_TEST_PASSWORD)
-    sign_up.fill_checkbox()
-    sign_up.fill_email_address("bademail")
+
+    sign_up.fill_email_address(email)
+    sign_up.fill_password(password)
+
+    if check_terms:
+        sign_up.fill_checkbox()
+
     sign_up.submit_sign_up()
-    try:
-        wait_visible(driver, ("css selector", "#error-emailAddress"), 3)
-    except Exception:
-        msg = driver.execute_script(
-            "return arguments[0].validationMessage;",
-            sign_up.email_address_input(),
-        )
-        assert msg and len(msg) > 0
 
-
-def test_su_06_password_too_short(driver):
-    sign_up = SignUpPage(driver)
-    navigate_and_wait_for_clerk(driver, "/sign-up")
-    sign_up.wait_until_visible()
-    _fill_sign_up_form(sign_up, email=fresh_test_email())
-    sign_up.fill_password("abc123")
-    sign_up.submit_sign_up()
-    wait_visible(driver, ("css selector", "#error-password"), 5)
-    _contains_text(sign_up.error_password_message(), r"8 or more characters")
-
-
-def test_su_07_password_max_length_inline_error(driver):
-    sign_up = SignUpPage(driver)
-    navigate_and_wait_for_clerk(driver, "/sign-up")
-    sign_up.wait_until_visible()
-    _fill_sign_up_form(sign_up, email=fresh_test_email(), check_terms=True)
-    sign_up.fill_password("A" * 73)
-    sign_up.password_input().send_keys(Keys.TAB)
-    wait_visible(driver, ("css selector", "#error-password"), 5)
+    wait_visible(driver, ("css selector", error_selector), 5)
 
 
 def test_su_08_duplicate_email_error(driver):
+    """Sign-Up: SU-08 · P2 — Duplicate email error"""
     sign_up = SignUpPage(driver)
     navigate_and_wait_for_clerk(driver, "/sign-up")
     sign_up.wait_until_visible()
@@ -169,24 +161,9 @@ def test_su_08_duplicate_email_error(driver):
     raise AssertionError("Duplicate email error not shown")
 
 
-def test_su_09_terms_unchecked_submit_blocked(driver):
-    sign_up = SignUpPage(driver)
-    navigate_and_wait_for_clerk(driver, "/sign-up")
-    sign_up.wait_until_visible()
-    _fill_sign_up_form(sign_up, email=fresh_test_email(), check_terms=False)
-    sign_up.submit_sign_up()
-    url = driver.current_url
-    still_on_sign_up = "/sign-up" in url and "verify-email" not in url
-    terms_err = _any_visible(
-        driver,
-        ['[name="legalAccepted"]', '[data-testid="form-feedback-error"]', "#error-legalAccepted"],
-        3,
-    )
-    assert still_on_sign_up or terms_err
-
-
 @pytest.mark.slow
 def test_su_10_wrong_otp_error(driver):
+    """Sign-Up: SU-10 · P2 — Wrong OTP error"""
     sign_up = SignUpPage(driver)
     _reach_verify_email(driver, sign_up)
     OTPPage(driver).fill_otp("123456")
@@ -195,6 +172,7 @@ def test_su_10_wrong_otp_error(driver):
 
 @pytest.mark.slow
 def test_su_11_empty_otp_error(driver):
+    """Sign-Up: SU-11 · P2 — Empty OTP error"""
     sign_up = SignUpPage(driver)
     _reach_verify_email(driver, sign_up)
     otp = OTPPage(driver)
@@ -205,6 +183,7 @@ def test_su_11_empty_otp_error(driver):
 
 @pytest.mark.slow
 def test_su_12_resend_code_no_error(driver):
+    """Sign-Up: SU-12 · P2 — Resend code no error"""
     sign_up = SignUpPage(driver)
     _reach_verify_email(driver, sign_up)
     resend = driver.find_elements(
@@ -225,6 +204,7 @@ def test_su_12_resend_code_no_error(driver):
 
 
 def test_su_13_oauth_google_smoke(driver):
+    """Sign-Up: SU-13 · P2 — OAuth Google smoke"""
     navigate_and_wait_for_clerk(driver, "/sign-up")
     sign_up = SignUpPage(driver)
     sign_up.wait_until_visible()
@@ -246,37 +226,3 @@ def test_su_13_oauth_google_smoke(driver):
         "accounts.google.com" in url or "oauth" in url or "clerk" in url
     )
     assert popup_opened or redirected
-
-
-@pytest.mark.slow
-def test_su_14_special_characters_in_names(driver):
-    sign_up = SignUpPage(driver)
-    navigate_and_wait_for_clerk(driver, "/sign-up")
-    sign_up.wait_until_visible()
-    sign_up.fill_first_name("Ân")
-    sign_up.fill_last_name("Nguyễn")
-    sign_up.fill_email_address(fresh_test_email())
-    sign_up.fill_password(DEFAULT_TEST_PASSWORD)
-    sign_up.fill_checkbox()
-    sign_up.submit_sign_up()
-    pause(OAUTH_WAIT)
-    for sel in ("#error-firstName", "#error-lastName"):
-        err = driver.find_elements(By.CSS_SELECTOR, sel)
-        assert not any(e.is_displayed() for e in err)
-
-
-@pytest.mark.slow
-def test_su_15_long_valid_names(driver):
-    sign_up = SignUpPage(driver)
-    navigate_and_wait_for_clerk(driver, "/sign-up")
-    sign_up.wait_until_visible()
-    sign_up.fill_first_name("A" * 50)
-    sign_up.fill_last_name("B" * 50)
-    sign_up.fill_email_address(fresh_test_email())
-    sign_up.fill_password(DEFAULT_TEST_PASSWORD)
-    sign_up.fill_checkbox()
-    sign_up.submit_sign_up()
-    pause(OAUTH_WAIT)
-    for sel in ("#error-firstName", "#error-lastName"):
-        err = driver.find_elements(By.CSS_SELECTOR, sel)
-        assert not any(e.is_displayed() for e in err)

@@ -87,7 +87,7 @@ def test_rp_04_short_password_error(driver):
     new_pw.wait_until_visible()
     new_pw.fill_new_password("abc123")
     new_pw.new_password_input().send_keys("\t")
-    wait_visible(driver, ("css selector", "#error-password"), 5)
+    new_pw.wait_until_error_new_password_visible(5)
     text = new_pw.error_new_password_message().text
     assert re.search(r"8 or more characters|at least 8", text, re.I)
 

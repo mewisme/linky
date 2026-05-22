@@ -18,7 +18,6 @@ pytestmark = pytest.mark.auth
 
 def test_so_01_sign_out_via_user_menu_redirects_sign_in(authenticated_driver):
     """Sign-Out: SO-01 · P0 — Sign out via user button dropdown → redirect to /sign-in"""
-    """Sign-Out: SO-01 · P0 — Sign out via user button dropdown → redirect to /sign-in"""
     authenticated_driver.get(settings.base_url + "/")
     wait_for_network_idle(authenticated_driver)
     click_sign_out(authenticated_driver)
@@ -29,7 +28,6 @@ def test_so_01_sign_out_via_user_menu_redirects_sign_in(authenticated_driver):
 
 def test_so_02_keyboard_shortcut_sign_out(authenticated_driver):
     """Sign-Out: SO-02 · P0 — Keyboard shortcut Ctrl+Shift+Q triggers sign-out"""
-    """Sign-Out: SO-02 · P0 — Keyboard shortcut Ctrl+Shift+Q triggers sign-out"""
     authenticated_driver.get(settings.base_url + "/")
     wait_for_network_idle(authenticated_driver)
     press_sign_out_shortcut(authenticated_driver)
@@ -37,7 +35,6 @@ def test_so_02_keyboard_shortcut_sign_out(authenticated_driver):
 
 
 def test_so_03_vietnamese_locale_sign_out_redirects_vi_sign_in(authenticated_driver):
-    """Sign-Out: SO-03 · P1 — Sign-out in Vietnamese locale redirects to /vi/sign-in"""
     """Sign-Out: SO-03 · P1 — Sign-out in Vietnamese locale redirects to /vi/sign-in"""
     authenticated_driver.get(settings.base_url + "/")
     wait_for_network_idle(authenticated_driver)

@@ -12,8 +12,8 @@ import (
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/logger"
-	"linky-api/src/internal/middleware"
-	"linky-api/src/internal/routes"
+	"linky-api/src/internal/transport/http/middleware"
+	"linky-api/src/internal/transport/http"
 )
 
 var serverLog = logger.New("api:server")

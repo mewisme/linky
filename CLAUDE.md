@@ -74,29 +74,38 @@ Single Go binary. Entrypoint [`apps/api/src/cmd/api/main.go`](apps/api/src/cmd/a
 
 ```
 src/
-  cmd/api/                 main.go
+  cmd/api/                      main.go
   internal/
-    config/                env parsing
-    server/                Echo bootstrap
-    middleware/            Clerk, admin, request id, rate limit, access log
-    routes/                HTTP route registration (no business logic)
-    socketio/              Socket.IO namespaces (/chat, /admin, /video-chat)
-    domains/               Business logic per domain (user, matchmaking, videochat, rooms, embeddings)
-    contexts/              Cross-domain orchestration (the only place that may pull from multiple domains)
-    jobs/                  Envelopes + enqueue helpers
-    jobs/pool/             Worker pool (BLMOVE + heartbeat + reaper)
-    worker/                Job handlers
-    infra/                 supax, redisx, clerkx, cloudflarerealtime, openaix, webpush, admincache, preload
-    httpx/                 HTTP helpers (response shapes, errors, request context)
-    lib/                   Misc shared helpers
-    sharedtypes/           Cross-package Go types
+    config/                     env parsing
+    server/                     Echo bootstrap
+    transport/
+      http/                     HTTP routes (package `routes`; import path transport/http)
+        middleware/             Clerk, admin, request id, rate limit, access log
+      socketio/                 Socket.IO namespaces (/chat, /admin, /video-chat)
+      worker/                   Job dispatch → app workflows
+    app/                        Use-case orchestration (callended, user, videochat, matchmaking, report, …)
+    domain/                     Pure business rules (matchmaking, rooms, user/exp, user/progress, embeddings)
+    jobs/                       Envelopes + enqueue helpers
+    jobs/pool/                  Worker pool (BLMOVE + heartbeat + reaper)
+    infra/                      Integrations only (supax, redisx, clerkx, …)
+      supax/                    Supabase/PostgREST; subpackages: client/, rpc/, webhook/, favorites/, streaks/, embeddings/, reports/, codec/
+    httpx/                      HTTP helpers (response shapes, errors, request context)
+    lib/                        Misc shared helpers
+    sharedtypes/                Cross-package Go types
 ```
 
 ### Rules
 
-- **Domains must not import other domains.** Cross-domain work goes through `internal/contexts/`.
+| Layer | May import | Must not import |
+|-------|------------|-----------------|
+| `transport/*` | `app`, `httpx`, `domain` (types only where needed) | `infra/supax` directly |
+| `app/*` | `domain`, `infra`, `jobs` | other `app` packages (except documented exceptions) |
+| `domain/*` | other `domain` packages, stdlib | `infra/*`, `transport/*`, `app/*` |
+| `infra/*` | stdlib, vendor SDKs | `domain`, `app`, `transport` |
+
+- **Cross-domain orchestration** lives in `app/`, not a separate `contexts/` tree.
 - **Infra has no business rules.** Just integrations.
-- **Routes wire handlers**; the actual logic lives in domains/contexts.
+- **Transport wires handlers**; logic lives in `app/` and `domain/`.
 - **Errors** return JSON `{ "error": "...", "message": "..." }`. Log with `logger.X` before responding.
 - **Cache.** Redis is read-optimization only, never source of truth. Cache failures are logged and swallowed.
 

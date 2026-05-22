@@ -3,50 +3,45 @@ package expbonus
 import (
 	"context"
 	"encoding/json"
-	"math"
 	"strconv"
 	"sync"
 	"time"
 
+	"linky-api/src/internal/domain/user/exp"
 	"linky-api/src/internal/logger"
 )
 
 const (
-	TypeStreak = "streak"
-	TypeLevel  = "level"
+	TypeStreak   = exp.TypeStreak
+	TypeLevel    = exp.TypeLevel
+	TypeFavorite = exp.TypeFavorite
+
+	RelationMutual = exp.RelationMutual
+	RelationOneWay = exp.RelationOneWay
+
+	CallFavoriteMutual = exp.CallFavoriteMutual
+	CallFavoriteOneWay = exp.CallFavoriteOneWay
 
 	refreshInterval = 30 * time.Second
 	refreshTimeout  = 10 * time.Second
 )
 
+type (
+	Tier         = exp.Tier
+	FavoriteRule = exp.FavoriteRule
+	Breakdown    = exp.Breakdown
+	ActiveBonus  = exp.ActiveBonus
+)
+
 var (
 	log = logger.New("infra:expbonus")
 
-	mu            sync.RWMutex
-	streakTiers   []Tier
-	levelTiers    []Tier
-	favoriteRules []FavoriteRule
+	mu       sync.RWMutex
+	snapshot exp.Config
 
 	startOnce sync.Once
 	reloadFn  func(context.Context) error
 )
-
-type Tier struct {
-	Min        int
-	Max        int
-	HasMin     bool
-	HasMax     bool
-	Multiplier float64
-}
-
-type Breakdown struct {
-	BaseSeconds          int
-	EffectiveSeconds     int
-	StreakMultiplier     float64
-	LevelMultiplier      float64
-	FavoriteMultiplier   float64
-	CombinedMultiplier   float64
-}
 
 func SetReloadFunc(fn func(context.Context) error) {
 	reloadFn = fn
@@ -87,55 +82,43 @@ func StartRefresher(ctx context.Context) {
 
 func ApplySnapshot(streak, level []Tier, favorite []FavoriteRule) {
 	mu.Lock()
-	streakTiers = append([]Tier(nil), streak...)
-	levelTiers = append([]Tier(nil), level...)
-	favoriteRules = append([]FavoriteRule(nil), favorite...)
+	snapshot = exp.Config{
+		StreakTiers:   append([]exp.Tier(nil), streak...),
+		LevelTiers:    append([]exp.Tier(nil), level...),
+		FavoriteRules: append([]exp.FavoriteRule(nil), favorite...),
+	}
 	mu.Unlock()
 	log.Info().
-		Int("streak_tiers", len(streakTiers)).
-		Int("level_tiers", len(levelTiers)).
-		Int("favorite_rules", len(favoriteRules)).
+		Int("streak_tiers", len(snapshot.StreakTiers)).
+		Int("level_tiers", len(snapshot.LevelTiers)).
+		Int("favorite_rules", len(snapshot.FavoriteRules)).
 		Msg("EXP bonus config applied")
 }
 
+func Config() exp.Config {
+	mu.RLock()
+	defer mu.RUnlock()
+	return exp.Config{
+		StreakTiers:   append([]exp.Tier(nil), snapshot.StreakTiers...),
+		LevelTiers:    append([]exp.Tier(nil), snapshot.LevelTiers...),
+		FavoriteRules: append([]exp.FavoriteRule(nil), snapshot.FavoriteRules...),
+	}
+}
+
 func EffectiveSeconds(baseSeconds, streakCount, level int, favoriteRelation string) int {
-	return BreakdownFor(baseSeconds, streakCount, level, favoriteRelation).EffectiveSeconds
+	return exp.EffectiveSeconds(baseSeconds, streakCount, level, favoriteRelation, Config())
 }
 
 func BreakdownFor(baseSeconds, streakCount, level int, favoriteRelation string) Breakdown {
-	if baseSeconds <= 0 {
-		return Breakdown{}
-	}
-	mu.RLock()
-	streak := append([]Tier(nil), streakTiers...)
-	levelTiersCopy := append([]Tier(nil), levelTiers...)
-	favoriteCopy := append([]FavoriteRule(nil), favoriteRules...)
-	mu.RUnlock()
-
-	streakMult := multiplierForValue(streak, streakCount)
-	levelMult := multiplierForValue(levelTiersCopy, level)
-	favMult := favoriteMultiplier(favoriteCopy, favoriteRelation)
-	combined := streakMult * levelMult * favMult
-	effective := int(math.Floor(float64(baseSeconds) * combined))
-	if effective < 0 {
-		effective = 0
-	}
-	return Breakdown{
-		BaseSeconds:        baseSeconds,
-		EffectiveSeconds:   effective,
-		StreakMultiplier:   streakMult,
-		LevelMultiplier:    levelMult,
-		FavoriteMultiplier: favMult,
-		CombinedMultiplier: combined,
-	}
+	return exp.BreakdownFor(baseSeconds, streakCount, level, favoriteRelation, Config())
 }
 
-func multiplierForValue(tiers []Tier, value int) float64 {
-	tier, ok := matchedTier(tiers, value)
-	if !ok {
-		return 1
-	}
-	return tier.Multiplier
+func ActiveBonuses(streakCount, level int, favoriteRelation string) []ActiveBonus {
+	return exp.ActiveBonuses(streakCount, level, favoriteRelation, Config())
+}
+
+func RelationForCallFavorite(callFavoriteType string) string {
+	return exp.RelationForCallFavorite(callFavoriteType)
 }
 
 func ParseRows(rows []map[string]any) (streak, level []Tier, favorite []FavoriteRule) {
@@ -283,4 +266,8 @@ func intFromAny(v any) (int, bool) {
 	default:
 		return 0, false
 	}
+}
+
+func multiplierForValue(tiers []Tier, value int) float64 {
+	return exp.MultiplierForValue(tiers, value)
 }

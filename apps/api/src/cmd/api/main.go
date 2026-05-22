@@ -11,6 +11,7 @@ import (
 
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/infra/admincache"
+	"linky-api/src/internal/infra/clerkapi"
 	"linky-api/src/internal/infra/clerkx"
 	"linky-api/src/internal/infra/cloudflarerealtime"
 	"linky-api/src/internal/infra/aiconfig"
@@ -23,10 +24,10 @@ import (
 	"linky-api/src/internal/jobs/pool"
 	"linky-api/src/internal/lib/staleproc"
 	"linky-api/src/internal/logger"
-	"linky-api/src/internal/routes"
+	"linky-api/src/internal/transport/http"
 	"linky-api/src/internal/server"
-	"linky-api/src/internal/socketio"
-	"linky-api/src/internal/worker"
+	"linky-api/src/internal/transport/socketio"
+	"linky-api/src/internal/transport/worker"
 )
 
 func roomFromSocket(io *socketio.Server, socketID string) string {
@@ -46,6 +47,7 @@ func main() {
 	logger.SetLevel(strings.ToLower(os.Getenv("LOG_LEVEL")))
 
 	clerkx.Init(cfg)
+	clerkapi.Init(cfg)
 	if err := supax.Init(cfg); err != nil {
 		log.Error().Err(err).Msg("Failed to init Supabase client")
 	}

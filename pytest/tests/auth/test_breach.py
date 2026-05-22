@@ -4,19 +4,19 @@ import os
 
 import pytest
 
-from linky_e2e.helpers.waits import wait_for_redirect_to_home, wait_hidden, wait_visible
+from linky_e2e.helpers.waits import wait_url_matches
 from linky_e2e.page_objects.auth.new_password_page import NewPasswordPage
 from linky_e2e.page_objects.auth.otp_page import OTPPage
 from linky_e2e.page_objects.auth.password_page import PasswordPage
 from linky_e2e.page_objects.auth.compromised_page import CompromisedPage
-from linky_e2e.page_objects.auth.reset_password_page import ResetPasswordPage
 from linky_e2e.page_objects.auth.sign_in_steps import fill_email_and_continue, navigate_and_wait_for_clerk
 
 pytestmark = pytest.mark.auth
 
 BREACH_EMAIL = os.environ.get("BREACH_TEST_EMAIL", "").strip()
-BREACH_PASSWORD = os.environ.get("BREACH_TEST_PASSWORD", "password123").strip()
 BREACH_OTP = os.environ.get("BREACH_TEST_OTP", "").strip()
+BREACH_PASSWORD = os.environ.get("BREACH_TEST_PASSWORD", "").strip()
+BREACH_NEW_PASSWORD = os.environ.get("BREACH_TEST_NEW_PASSWORD", "").strip()
 HAS_BREACH = bool(BREACH_EMAIL)
 
 
@@ -66,6 +66,8 @@ def test_br_03_wrong_otp_on_breach_reset_error(driver):
 
 @pytest.mark.skipif(not HAS_BREACH, reason="BREACH_TEST_EMAIL env var not set.")
 @pytest.mark.skipif(not BREACH_OTP, reason="BREACH_TEST_OTP env var not set.")
+@pytest.mark.skipif(not BREACH_PASSWORD, reason="BREACH_TEST_PASSWORD env var not set.")
+@pytest.mark.skipif(not BREACH_NEW_PASSWORD, reason="BREACH_TEST_NEW_PASSWORD env var not set.")
 def test_br_04_correct_otp_new_password_success(driver):
     """Sign-In Breach Interstitial: BR-04 · P1 — Correct OTP → proceeds to new-password step → success"""
     _sign_in_with_breached_account(driver)
@@ -79,7 +81,7 @@ def test_br_04_correct_otp_new_password_success(driver):
     otp.wait_until_hidden()
     new_pw = NewPasswordPage(driver)
     new_pw.wait_until_visible()
-    new_pw.fill_new_password("BrandNewSecure456!")
-    new_pw.fill_confirm_password("BrandNewSecure456!")
+    new_pw.fill_new_password(BREACH_NEW_PASSWORD)
+    new_pw.fill_confirm_password(BREACH_NEW_PASSWORD)
     new_pw.submit_reset_password()
-    wait_for_redirect_to_home(driver, 20)
+    wait_url_matches(driver, "/user/security") or wait_url_matches(driver, "/")

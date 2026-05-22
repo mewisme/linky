@@ -17,7 +17,7 @@ import (
 	"linky-api/src/internal/jobs"
 	"linky-api/src/internal/logger"
 	"linky-api/src/internal/sharedtypes"
-	"linky-api/src/internal/worker"
+	"linky-api/src/internal/transport/worker"
 )
 
 const (

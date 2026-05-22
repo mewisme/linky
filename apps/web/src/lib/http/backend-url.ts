@@ -73,6 +73,11 @@ export const backendUrl = {
     users: (params?: URLSearchParams) => `${V1}/admin/users${qs(params)}`,
     usersBatch: () => `${V1}/admin/users/batch`,
     userById: (id: string) => `${V1}/admin/users/${id}`,
+    clerkUsers: (params?: URLSearchParams) => `${V1}/admin/users/clerk${qs(params)}`,
+    clerkUsersBatch: () => `${V1}/admin/users/clerk/batch`,
+    clerkUserById: (id: string) => `${V1}/admin/users/clerk/${id}`,
+    clerkUserSetPasswordCompromised: (id: string) =>
+      `${V1}/admin/users/clerk/${id}/password/set-compromised`,
     embeddingsCompare: () => `${V1}/admin/embeddings/compare`,
     embeddingsSimilar: () => `${V1}/admin/embeddings/similar`,
     embeddingsSync: () => `${V1}/admin/embeddings/sync`,

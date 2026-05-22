@@ -26,8 +26,6 @@ def sign_up_and_redirect_home(
     *,
     name: str | None = None,
     password: str = DEFAULT_TEST_PASSWORD,
-    first_name: str = "Test",
-    last_name: str = "User",
     otp: str | None = None,
     home_timeout: float = 30,
 ) -> str:
@@ -35,8 +33,6 @@ def sign_up_and_redirect_home(
     sign_up = SignUpPage(driver)
     navigate_and_wait_for_clerk(driver, "/sign-up")
     sign_up.wait_until_visible()
-    sign_up.fill_first_name(first_name)
-    sign_up.fill_last_name(last_name)
     sign_up.fill_email_address(email)
     sign_up.fill_password(password)
     sign_up.fill_checkbox()

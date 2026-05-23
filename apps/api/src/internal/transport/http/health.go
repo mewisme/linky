@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"linky-api/src/internal/httpx"
+	"linky-api/src/internal/infra/supax/graphqlclient"
 	"linky-api/src/internal/infra/supax/pgclient"
 )
 
@@ -24,17 +25,20 @@ func RegisterHealth(e *echo.Echo) {
 		defer cancel()
 
 		supabaseReady := pgclient.Ping(ctx) == nil
+		graphqlReady := !graphqlclient.Configured() || graphqlclient.Ping(ctx) == nil
+		ready := supabaseReady && graphqlReady
 
-		if supabaseReady {
-			return c.JSON(http.StatusOK, map[string]interface{}{
-				"status":   "ready",
-				"supabase": "ok",
-			})
-		}
-		return c.JSON(http.StatusServiceUnavailable, map[string]interface{}{
-			"status":   "not ready",
+		body := map[string]interface{}{
+			"status":   statusReady(ready),
 			"supabase": statusOK(supabaseReady),
-		})
+		}
+		if graphqlclient.Configured() {
+			body["graphql"] = statusOK(graphqlReady)
+		}
+		if ready {
+			return c.JSON(http.StatusOK, body)
+		}
+		return c.JSON(http.StatusServiceUnavailable, body)
 	})
 }
 
@@ -43,6 +47,13 @@ func statusOK(b bool) string {
 		return "ok"
 	}
 	return "error"
+}
+
+func statusReady(ready bool) string {
+	if ready {
+		return "ready"
+	}
+	return "not ready"
 }
 
 func RegisterRoot(e *echo.Echo) {

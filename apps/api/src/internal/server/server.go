@@ -70,6 +70,7 @@ func NewPublicApp(cfg *config.Config) *echo.Echo {
 
 	authed := e.Group("/api/v1", middleware.Clerk())
 	routes.RegisterAPIv1(authed, cfg)
+	routes.RegisterGraphQL(authed, cfg)
 
 	admin := e.Group("/api/v1/admin", middleware.Clerk(), middleware.Admin(), middleware.RateLimit(cfg))
 	routes.RegisterAdminAPI(admin)

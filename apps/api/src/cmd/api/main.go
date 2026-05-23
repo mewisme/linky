@@ -19,6 +19,8 @@ import (
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/preload"
 	"linky-api/src/internal/infra/redisx"
+	"linky-api/src/internal/app/graphql"
+	"linky-api/src/internal/infra/supax/graphqlclient"
 	"linky-api/src/internal/infra/supax/pgclient"
 	"linky-api/src/internal/infra/webpush"
 	"linky-api/src/internal/jobs/pool"
@@ -51,6 +53,10 @@ func main() {
 	if err := pgclient.Init(cfg); err != nil {
 		log.Error().Err(err).Msg("Failed to init PostgREST client")
 	}
+	if err := graphqlclient.Init(cfg); err != nil {
+		log.Error().Err(err).Msg("Failed to init Supabase GraphQL client")
+	}
+	graphql.Init(cfg)
 	redisx.Init(cfg)
 	webpush.Init(cfg)
 	aiconfig.Init(cfg)

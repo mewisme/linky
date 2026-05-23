@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"linky-api/src/internal/infra/supax/client"
 	"linky-api/src/internal/infra/supax/codec"
-	"linky-api/src/internal/infra/supax/rpc"
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 type UpsertDayResult struct {
@@ -22,7 +21,7 @@ func UpsertUserDay(ctx context.Context, userID, dateStr string, totalCallSeconds
 	if !codec.DateRegex.MatchString(dateStr) {
 		return nil, errors.New("date must be YYYY-MM-DD")
 	}
-	raw, err := rpc.Call(ctx, "upsert_user_streak_day", map[string]any{
+	raw, err := pgclient.RPC(ctx, "upsert_user_streak_day", map[string]any{
 		"p_user_id":            userID,
 		"p_date":               dateStr,
 		"p_total_call_seconds": totalCallSeconds,
@@ -52,7 +51,7 @@ type DayRow struct {
 }
 
 func GetUserDays(ctx context.Context, userID string, limit, offset int) ([]DayRow, int64, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -70,7 +69,7 @@ func GetUserDays(ctx context.Context, userID string, limit, offset int) ([]DayRo
 }
 
 func GetUserDaysByMonth(ctx context.Context, userID string, year, month int) ([]DayRow, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}

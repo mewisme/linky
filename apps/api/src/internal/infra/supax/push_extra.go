@@ -3,10 +3,12 @@ package supax
 import (
 	"context"
 	"errors"
+
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 func GetUserPushSubscriptions(ctx context.Context, userID string) ([]PushSubscriptionRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -21,7 +23,7 @@ func GetUserPushSubscriptions(ctx context.Context, userID string) ([]PushSubscri
 }
 
 func DeletePushSubscriptionByEndpoint(ctx context.Context, endpoint string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}

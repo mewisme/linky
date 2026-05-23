@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 type userExpDailyRow struct {
@@ -14,7 +16,7 @@ func GetUserExpDaily(ctx context.Context, userID, date string) (int, error) {
 	if !dateRegex.MatchString(date) {
 		return 0, nil
 	}
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return 0, errors.New("supabase: not configured")
 	}
@@ -42,7 +44,7 @@ func GetCallDurationsForUserOnLocalDate(ctx context.Context, userID, localDateSt
 	if !dateRegex.MatchString(localDateStr) {
 		return 0, nil
 	}
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return 0, errors.New("supabase: not configured")
 	}

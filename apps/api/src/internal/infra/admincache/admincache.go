@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/infra/supax/pgclient"
 	"linky-api/src/internal/logger"
 )
 
@@ -66,7 +66,7 @@ func GetRole(ctx context.Context, clerkUserID string) (string, error) {
 		}
 	}
 
-	sb := supax.Client()
+	sb := pgclient.Client()
 	if sb == nil {
 		return "", errors.New("supabase not configured")
 	}
@@ -102,7 +102,7 @@ func IsAdmin(ctx context.Context, clerkUserID string) (bool, error) {
 }
 
 func Initialize(ctx context.Context) error {
-	sb := supax.Client()
+	sb := pgclient.Client()
 	if sb == nil {
 		return nil
 	}

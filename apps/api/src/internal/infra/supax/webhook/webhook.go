@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"linky-api/src/internal/infra/supax/rpc"
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 type Outcome string
@@ -20,7 +20,7 @@ func TryClaimDelivery(ctx context.Context, id, source string, lockSeconds int) (
 	if id == "" {
 		return Busy, errors.New("delivery id required")
 	}
-	raw, err := rpc.Call(ctx, "try_claim_webhook_delivery", map[string]any{
+	raw, err := pgclient.RPC(ctx, "try_claim_webhook_delivery", map[string]any{
 		"p_id":           id,
 		"p_source":       source,
 		"p_lock_seconds": lockSeconds,
@@ -40,7 +40,7 @@ func TryClaimDelivery(ctx context.Context, id, source string, lockSeconds int) (
 }
 
 func MarkProcessed(ctx context.Context, id, source string) error {
-	_, err := rpc.Call(ctx, "mark_webhook_processed", map[string]any{
+	_, err := pgclient.RPC(ctx, "mark_webhook_processed", map[string]any{
 		"p_id":     id,
 		"p_source": source,
 	})
@@ -48,6 +48,6 @@ func MarkProcessed(ctx context.Context, id, source string) error {
 }
 
 func ReleaseProcessing(ctx context.Context, id string) error {
-	_, err := rpc.Call(ctx, "release_webhook_processing", map[string]any{"p_id": id})
+	_, err := pgclient.RPC(ctx, "release_webhook_processing", map[string]any{"p_id": id})
 	return err
 }

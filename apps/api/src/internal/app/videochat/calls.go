@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 var ErrCallHistoryForbidden = errors.New("call history forbidden")
@@ -63,7 +64,7 @@ func ListCallHistory(ctx context.Context, userID string, limit, offset int) ([]E
 }
 
 func getUserBrief(ctx context.Context, id string) (*OtherUser, error) {
-	c := supax.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, nil
 	}

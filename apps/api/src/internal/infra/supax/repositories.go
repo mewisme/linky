@@ -9,6 +9,7 @@ import (
 
 	"github.com/supabase-community/postgrest-go"
 
+	"linky-api/src/internal/infra/supax/pgclient"
 	"linky-api/src/internal/logger"
 )
 
@@ -63,7 +64,7 @@ type UserRow struct {
 }
 
 func GetUserByClerkID(ctx context.Context, clerkUserID string) (*UserRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -90,7 +91,7 @@ func GetUserInternalID(ctx context.Context, clerkUserID string) (string, error) 
 }
 
 func UpdateUserCountry(ctx context.Context, clerkUserID, country string) (*UserRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -116,7 +117,7 @@ type BlockedUserRow struct {
 }
 
 func GetBlockedUserIDs(ctx context.Context, userID string) ([]string, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -140,7 +141,7 @@ func GetBlockedUserIDs(ctx context.Context, userID string) ([]string, error) {
 }
 
 func GetBlockedUsersWithDetails(ctx context.Context, userID string) ([]map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -161,7 +162,7 @@ func GetBlockedUsersWithDetails(ctx context.Context, userID string) ([]map[strin
 }
 
 func CreateBlock(ctx context.Context, blockerID, blockedID string) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -184,7 +185,7 @@ func CreateBlock(ctx context.Context, blockerID, blockedID string) (map[string]a
 }
 
 func DeleteBlock(ctx context.Context, blockerID, blockedID string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -201,7 +202,7 @@ func DeleteBlock(ctx context.Context, blockerID, blockedID string) error {
 }
 
 func CheckBlockExists(ctx context.Context, blockerID, blockedID string) (bool, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return false, errors.New("supabase: not configured")
 	}
@@ -218,7 +219,7 @@ func CheckBlockExists(ctx context.Context, blockerID, blockedID string) (bool, e
 }
 
 func GetUserCountry(ctx context.Context, userID string) (*string, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -251,7 +252,7 @@ type InterestTagRow struct {
 }
 
 func GetInterestTags(ctx context.Context, category, search string, isActiveOnly bool, limit, offset int) ([]InterestTagRow, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -276,7 +277,7 @@ func GetInterestTags(ctx context.Context, category, search string, isActiveOnly 
 }
 
 func GetInterestTagByID(ctx context.Context, id string) (*InterestTagRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -299,7 +300,7 @@ type UserLevelRow struct {
 }
 
 func GetUserLevel(ctx context.Context, userID string) (*UserLevelRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -324,7 +325,7 @@ func IncrementUserExp(ctx context.Context, userID string, seconds int) error {
 		"p_user_id": userID,
 		"p_seconds": seconds,
 	}
-	if _, err := RPC(ctx, "increment_user_exp", body); err != nil {
+	if _, err := pgclient.RPC(ctx, "increment_user_exp", body); err != nil {
 		repoLog.Error().Err(err).Str("userId", userID).Int("seconds", seconds).Msg("increment_user_exp RPC failed")
 		return err
 	}
@@ -343,7 +344,7 @@ func IncrementUserExpDaily(ctx context.Context, userID, localDate string, second
 		"p_date":         localDate,
 		"p_exp_seconds":  seconds,
 	}
-	if _, err := RPC(ctx, "increment_user_exp_daily", body); err != nil {
+	if _, err := pgclient.RPC(ctx, "increment_user_exp_daily", body); err != nil {
 		repoLog.Error().Err(err).Str("userId", userID).Str("date", localDate).Int("seconds", seconds).Msg("increment_user_exp_daily RPC failed")
 		return err
 	}
@@ -361,7 +362,7 @@ type UserStreakRow struct {
 }
 
 func GetUserStreak(ctx context.Context, userID string) (*UserStreakRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -385,7 +386,7 @@ type PushSubscriptionRow struct {
 }
 
 func UpsertPushSubscription(ctx context.Context, userID, endpoint, p256dh, auth string) (*PushSubscriptionRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -405,7 +406,7 @@ func UpsertPushSubscription(ctx context.Context, userID, endpoint, p256dh, auth 
 }
 
 func DeletePushSubscription(ctx context.Context, userID, endpoint string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -430,7 +431,7 @@ type NotificationRow struct {
 }
 
 func GetUserNotifications(ctx context.Context, userID string, limit, offset int, unreadOnly bool) ([]NotificationRow, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -450,7 +451,7 @@ func GetUserNotifications(ctx context.Context, userID string, limit, offset int,
 }
 
 func GetUnreadNotificationCount(ctx context.Context, userID string) (int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return 0, errors.New("supabase: not configured")
 	}
@@ -463,7 +464,7 @@ func GetUnreadNotificationCount(ctx context.Context, userID string) (int64, erro
 }
 
 func MarkNotificationRead(ctx context.Context, notificationID, userID string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -480,7 +481,7 @@ func MarkNotificationRead(ctx context.Context, notificationID, userID string) er
 }
 
 func MarkAllNotificationsRead(ctx context.Context, userID string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}

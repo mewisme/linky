@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"linky-api/src/internal/infra/supax/client"
+	"linky-api/src/internal/infra/supax/pgclient"
 	"linky-api/src/internal/infra/supax/codec"
 )
 
@@ -43,7 +43,7 @@ type LimitRow struct {
 const defaultDailyLimit = 10
 
 func GetByUserID(ctx context.Context, userID string) ([]string, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -66,7 +66,7 @@ func GetByUserID(ctx context.Context, userID string) ([]string, error) {
 }
 
 func GetWithStats(ctx context.Context, userID string) ([]WithStatsRow, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -89,7 +89,7 @@ func GetWithStats(ctx context.Context, userID string) ([]WithStatsRow, error) {
 }
 
 func Exists(ctx context.Context, userID, favoriteUserID string) (bool, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return false, errors.New("supabase: not configured")
 	}
@@ -109,7 +109,7 @@ func Exists(ctx context.Context, userID, favoriteUserID string) (bool, error) {
 }
 
 func Create(ctx context.Context, userID, favoriteUserID string) (*Row, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -127,7 +127,7 @@ func Create(ctx context.Context, userID, favoriteUserID string) (*Row, error) {
 }
 
 func Delete(ctx context.Context, userID, favoriteUserID string) error {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -140,7 +140,7 @@ func Delete(ctx context.Context, userID, favoriteUserID string) error {
 }
 
 func CreationDate(ctx context.Context, userID, favoriteUserID string) (string, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return "", errors.New("supabase: not configured")
 	}
@@ -160,7 +160,7 @@ func CreationDate(ctx context.Context, userID, favoriteUserID string) (string, e
 }
 
 func getLimitForToday(ctx context.Context, userID string) (*LimitRow, error) {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -198,7 +198,7 @@ func CheckDailyLimitReached(ctx context.Context, userID string) (LimitCheck, err
 }
 
 func IncrementLimit(ctx context.Context, userID string) error {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -231,7 +231,7 @@ func IncrementLimit(ctx context.Context, userID string) error {
 }
 
 func DecrementLimit(ctx context.Context, userID string) error {
-	c := client.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}

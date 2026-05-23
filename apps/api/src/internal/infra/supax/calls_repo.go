@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 type CallHistoryRow struct {
@@ -30,7 +32,7 @@ type CreateCallHistoryParams struct {
 }
 
 func GetCallHistoryByUserID(ctx context.Context, userID string, limit, offset int) ([]CallHistoryRow, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -50,7 +52,7 @@ func GetCallHistoryByUserID(ctx context.Context, userID string, limit, offset in
 }
 
 func GetCallHistoryByID(ctx context.Context, id string) (*CallHistoryRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -65,7 +67,7 @@ func GetCallHistoryByID(ctx context.Context, id string) (*CallHistoryRow, error)
 }
 
 func CreateCallHistory(ctx context.Context, p CreateCallHistoryParams) (*CallHistoryRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}

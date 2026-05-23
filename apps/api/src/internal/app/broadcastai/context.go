@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"linky-api/src/internal/infra/openaix"
-	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 const (
@@ -102,7 +102,7 @@ func Generate(ctx context.Context, p GenerateParams) (*Output, error) {
 }
 
 func loadCached(ctx context.Context, hash string) (*Output, bool, error) {
-	c := supax.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, false, nil
 	}
@@ -141,7 +141,7 @@ func loadCached(ctx context.Context, hash string) (*Output, bool, error) {
 }
 
 func claim(ctx context.Context, hash string) (bool, error) {
-	c := supax.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return true, nil
 	}
@@ -189,7 +189,7 @@ func claim(ctx context.Context, hash string) (bool, error) {
 }
 
 func revertIfGenerating(ctx context.Context, hash string) error {
-	c := supax.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil
 	}
@@ -203,7 +203,7 @@ func revertIfGenerating(ctx context.Context, hash string) error {
 }
 
 func persist(ctx context.Context, hash string, out *Output) error {
-	c := supax.Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil
 	}

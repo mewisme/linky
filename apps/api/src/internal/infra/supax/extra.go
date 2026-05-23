@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 type UserDetailsRow struct {
@@ -20,7 +22,7 @@ type UserDetailsRow struct {
 }
 
 func GetUserDetailsByUserID(ctx context.Context, userID string) (*UserDetailsRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -35,7 +37,7 @@ func GetUserDetailsByUserID(ctx context.Context, userID string) (*UserDetailsRow
 }
 
 func GetUserDetailsWithTags(ctx context.Context, userID string) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -67,7 +69,7 @@ type SetTimezoneOnceResult struct {
 }
 
 func SetUserTimezoneOnce(ctx context.Context, userID, timezone string) (SetTimezoneOnceResult, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return SetTimezoneOnceResult{}, errors.New("supabase: not configured")
 	}
@@ -106,7 +108,7 @@ func SetUserTimezoneOnce(ctx context.Context, userID, timezone string) (SetTimez
 }
 
 func UpsertUserDetails(ctx context.Context, userID string, body map[string]any) (*UserDetailsRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -145,7 +147,7 @@ type UserSettingsRow struct {
 }
 
 func GetUserSettings(ctx context.Context, userID string) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -164,7 +166,7 @@ func GetUserSettings(ctx context.Context, userID string) (map[string]any, error)
 }
 
 func UpsertUserSettings(ctx context.Context, userID string, body map[string]any) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -220,7 +222,7 @@ func GetInterestTagsByIDs(ctx context.Context, ids []string) ([]InterestTagRow, 
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -262,7 +264,7 @@ type ReportRow struct {
 }
 
 func CreateReport(ctx context.Context, body map[string]any) (*ReportRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -279,7 +281,7 @@ func CreateReportContext(ctx context.Context, reportID string, metadata map[stri
 	if reportID == "" || len(metadata) == 0 {
 		return nil
 	}
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -303,7 +305,7 @@ func CreateReportContext(ctx context.Context, reportID string, metadata map[stri
 }
 
 func ListReports(ctx context.Context, userID string, limit, offset int) ([]ReportRow, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -321,7 +323,7 @@ func ListReports(ctx context.Context, userID string, limit, offset int) ([]Repor
 }
 
 func ListAdminReports(ctx context.Context, status, reporterUserID, reportedUserID string, limit, offset int) ([]ReportRow, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -353,7 +355,7 @@ type AdminConfigRow struct {
 }
 
 func GetAdminConfigValue(ctx context.Context, key string) (json.RawMessage, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -378,7 +380,7 @@ func GetAdminConfigValue(ctx context.Context, key string) (json.RawMessage, erro
 }
 
 func ListAdminConfig(ctx context.Context) ([]AdminConfigRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -396,7 +398,7 @@ func ListAdminConfig(ctx context.Context) ([]AdminConfigRow, error) {
 }
 
 func UpsertAdminConfig(ctx context.Context, key string, value map[string]any) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -426,7 +428,7 @@ type AdminUsersOptions struct {
 }
 
 func ListAdminUsers(ctx context.Context, opts AdminUsersOptions) ([]map[string]any, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -469,7 +471,7 @@ func ListAdminUsers(ctx context.Context, opts AdminUsersOptions) ([]map[string]a
 }
 
 func ListAdminUsersUnified(ctx context.Context, opts AdminUsersOptions) ([]map[string]any, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -512,7 +514,7 @@ func ListAdminUsersUnified(ctx context.Context, opts AdminUsersOptions) ([]map[s
 }
 
 func GetUserByID(ctx context.Context, id string) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -531,7 +533,7 @@ func GetUserByID(ctx context.Context, id string) (map[string]any, error) {
 }
 
 func GetUserByEmail(ctx context.Context, email string) (*UserRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -546,7 +548,7 @@ func GetUserByEmail(ctx context.Context, email string) (*UserRow, error) {
 }
 
 func PatchUser(ctx context.Context, id string, body map[string]any) (*UserRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -562,7 +564,7 @@ func PatchUser(ctx context.Context, id string, body map[string]any) (*UserRow, e
 }
 
 func CreateUser(ctx context.Context, payload map[string]any) (*UserRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -576,7 +578,7 @@ func CreateUser(ctx context.Context, payload map[string]any) (*UserRow, error) {
 }
 
 func SoftDeleteUserByClerkID(ctx context.Context, clerkUserID string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -592,7 +594,7 @@ func SoftDeleteUserByClerkID(ctx context.Context, clerkUserID string) error {
 }
 
 func ListGenericTable(ctx context.Context, table string, limit, offset int) ([]map[string]any, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -613,7 +615,7 @@ func ListGenericTable(ctx context.Context, table string, limit, offset int) ([]m
 }
 
 func InsertGeneric(ctx context.Context, table string, body map[string]any) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -631,7 +633,7 @@ func InsertGeneric(ctx context.Context, table string, body map[string]any) (map[
 }
 
 func PatchGeneric(ctx context.Context, table, id string, body map[string]any) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -651,7 +653,7 @@ func PatchGeneric(ctx context.Context, table, id string, body map[string]any) (m
 }
 
 func DeleteGeneric(ctx context.Context, table, id string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -663,7 +665,7 @@ func DeleteGeneric(ctx context.Context, table, id string) error {
 }
 
 func GetGeneric(ctx context.Context, table, id string) (map[string]any, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -682,7 +684,7 @@ func GetGeneric(ctx context.Context, table, id string) (map[string]any, error) {
 }
 
 func DeleteAdminConfig(ctx context.Context, key string) error {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return errors.New("supabase: not configured")
 	}
@@ -694,7 +696,7 @@ func DeleteAdminConfig(ctx context.Context, key string) error {
 }
 
 func ListAllUserIDs(ctx context.Context) ([]string, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -722,7 +724,7 @@ func ListAllUserIDs(ctx context.Context) ([]string, error) {
 }
 
 func FilterNonDeletedUserIDs(ctx context.Context, userIDs []string) ([]string, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -787,7 +789,7 @@ type BroadcastHistoryRow struct {
 }
 
 func ListBroadcastHistory(ctx context.Context, limit, offset int) ([]BroadcastHistoryRow, int64, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, 0, errors.New("supabase: not configured")
 	}
@@ -838,7 +840,7 @@ func ListBroadcastHistory(ctx context.Context, limit, offset int) ([]BroadcastHi
 }
 
 func InsertBroadcastHistory(ctx context.Context, createdByUserID, title, message string) (*BroadcastHistoryRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -859,7 +861,7 @@ func InsertBroadcastHistory(ctx context.Context, createdByUserID, title, message
 }
 
 func PatchReport(ctx context.Context, id string, body map[string]any) (*ReportRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}
@@ -874,7 +876,7 @@ func PatchReport(ctx context.Context, id string, body map[string]any) (*ReportRo
 }
 
 func GetReport(ctx context.Context, id string) (*ReportRow, error) {
-	c := Client()
+	c := pgclient.Client()
 	if c == nil {
 		return nil, errors.New("supabase: not configured")
 	}

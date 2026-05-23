@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/infra/supax/webhook"
 	"linky-api/src/internal/logger"
 )
 
@@ -19,22 +20,22 @@ func ProcessDelivery(ctx context.Context, deliveryID string, evt map[string]inte
 	if deliveryID == "" {
 		return nil
 	}
-	outcome, err := supax.TryClaimWebhookDeliveryPG(ctx, deliveryID, source, processingLockSeconds)
+	outcome, err := webhook.TryClaimDelivery(ctx, deliveryID, source, processingLockSeconds)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to claim webhook delivery")
 		return err
 	}
 	switch outcome {
-	case supax.WebhookProcessed:
+	case webhook.Processed:
 		return nil
-	case supax.WebhookBusy:
+	case webhook.Busy:
 		return nil
 	}
 	if err := handleEvent(ctx, evt); err != nil {
-		_ = supax.ReleaseWebhookProcessingPG(ctx, deliveryID)
+		_ = webhook.ReleaseProcessing(ctx, deliveryID)
 		return err
 	}
-	if err := supax.MarkWebhookProcessedPG(ctx, deliveryID, source); err != nil {
+	if err := webhook.MarkProcessed(ctx, deliveryID, source); err != nil {
 		log.Warn().Err(err).Msg("Failed to mark webhook delivery as processed")
 	}
 	return nil

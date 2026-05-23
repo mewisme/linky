@@ -10,8 +10,7 @@ import (
 	"strings"
 
 	"linky-api/src/internal/infra/embeddingconfig"
-	"linky-api/src/internal/infra/supax/postgrest"
-	"linky-api/src/internal/infra/supax/rpc"
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 func encodePgVector(v []float32) string {
@@ -67,6 +66,10 @@ func UpsertUser(ctx context.Context, userID string, embedding []float32, sourceT
 	if col == "" {
 		return errors.New("embedding column not configured")
 	}
+	c := pgclient.Client()
+	if c == nil {
+		return errors.New("supabase: not configured")
+	}
 	hash := sha256.Sum256([]byte(sourceText))
 	body := map[string]any{
 		"user_id":     userID,
@@ -74,19 +77,9 @@ func UpsertUser(ctx context.Context, userID string, embedding []float32, sourceT
 		"source_hash": hex.EncodeToString(hash[:]),
 		"model_name":  modelName,
 	}
-	cfg := rpc.Config()
-	if cfg == nil || cfg.SupabaseURL == "" {
-		return errors.New("supabase rpc not configured")
-	}
-	url := strings.TrimRight(cfg.SupabaseURL, "/") + "/rest/v1/user_embeddings?on_conflict=user_id"
-	bodyJSON, _ := json.Marshal(body)
-	headers := map[string]string{
-		"Content-Type":  "application/json",
-		"apikey":        cfg.SupabaseServiceRoleKey,
-		"Authorization": "Bearer " + cfg.SupabaseServiceRoleKey,
-		"Prefer":        "resolution=merge-duplicates,return=representation",
-	}
-	_, err := postgrest.Raw(ctx, "POST", url, headers, bodyJSON)
+	_, _, err := c.From("user_embeddings").
+		Upsert(body, "user_id", "representation", "exact").
+		ExecuteWithContext(ctx)
 	return err
 }
 
@@ -94,27 +87,23 @@ func ListByUserIDs(ctx context.Context, userIDs []string) (map[string][]float32,
 	if len(userIDs) == 0 {
 		return map[string][]float32{}, nil
 	}
-	cfg := rpc.Config()
-	if cfg == nil || cfg.SupabaseURL == "" {
-		return nil, errors.New("supabase rpc not configured")
-	}
 	col := embeddingconfig.ColumnName()
 	if col == "" {
 		return nil, errors.New("embedding column not configured")
 	}
-	in := strings.Join(userIDs, ",")
-	url := strings.TrimRight(cfg.SupabaseURL, "/") +
-		"/rest/v1/user_embeddings?select=user_id," + col + "&user_id=in.(" + in + ")"
-	headers := map[string]string{
-		"apikey":        cfg.SupabaseServiceRoleKey,
-		"Authorization": "Bearer " + cfg.SupabaseServiceRoleKey,
+	c := pgclient.Client()
+	if c == nil {
+		return nil, errors.New("supabase: not configured")
 	}
-	body, err := postgrest.Raw(ctx, "GET", url, headers, nil)
+	raw, _, err := c.From("user_embeddings").
+		Select("user_id,"+col, "exact", false).
+		In("user_id", userIDs).
+		ExecuteWithContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var rows []map[string]json.RawMessage
-	if err := json.Unmarshal(body, &rows); err != nil {
+	if err := json.Unmarshal(raw, &rows); err != nil {
 		return nil, err
 	}
 	out := make(map[string][]float32, len(rows))

@@ -19,7 +19,7 @@ import (
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/preload"
 	"linky-api/src/internal/infra/redisx"
-	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/infra/supax/pgclient"
 	"linky-api/src/internal/infra/webpush"
 	"linky-api/src/internal/jobs/pool"
 	"linky-api/src/internal/lib/staleproc"
@@ -48,10 +48,9 @@ func main() {
 
 	clerkx.Init(cfg)
 	clerkapi.Init(cfg)
-	if err := supax.Init(cfg); err != nil {
-		log.Error().Err(err).Msg("Failed to init Supabase client")
+	if err := pgclient.Init(cfg); err != nil {
+		log.Error().Err(err).Msg("Failed to init PostgREST client")
 	}
-	supax.InitRPC(cfg)
 	redisx.Init(cfg)
 	webpush.Init(cfg)
 	aiconfig.Init(cfg)

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"linky-api/src/internal/httpx"
-	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/infra/supax/pgclient"
 )
 
 func RegisterHealth(e *echo.Echo) {
@@ -23,7 +23,7 @@ func RegisterHealth(e *echo.Echo) {
 		ctx, cancel := context.WithTimeout(c.Request().Context(), 5*time.Second)
 		defer cancel()
 
-		supabaseReady := supax.Ping(ctx) == nil
+		supabaseReady := pgclient.Ping(ctx) == nil
 
 		if supabaseReady {
 			return c.JSON(http.StatusOK, map[string]interface{}{

@@ -1,6 +1,7 @@
 packages:
   - apps/web
   - packages/*
+  - e2e/playwright
 
 allowBuilds:
   '@clerk/shared': true

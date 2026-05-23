@@ -49,17 +49,17 @@ local/
 .agents/
 
 # pytest E2E (standalone)
-pytest/.venv/
-pytest/.pytest_cache/
-pytest/reports/
-pytest/.auth/
+e2e/pytest/.venv/
+e2e/pytest/.pytest_cache/
+e2e/pytest/reports/
+e2e/pytest/.auth/
 
 # Playwright
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
+/e2e/playwright/test-results/
+/e2e/playwright/playwright-report/
+/e2e/playwright/blob-report/
+/e2e/playwright/.cache/
+/e2e/playwright/.auth/
 
 docker-compose.local.yml
 docker-compose.dev.yml

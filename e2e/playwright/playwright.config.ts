@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { defineConfig } from '@playwright/test';
 
-import { playwrightReportSlug } from './playwright/helpers/report-slug';
+import { playwrightReportSlug } from './helpers/report-slug';
 
 const ignoreHttpsErrors =
   process.env.PLAYWRIGHT_IGNORE_HTTPS_ERRORS === 'true' ||
@@ -14,9 +14,9 @@ const reportSlug = playwrightReportSlug();
 const reportDir = path.join('playwright-report', reportSlug);
 
 export default defineConfig({
-  tsconfig: './tsconfig.playwright.json',
-  globalSetup: './playwright/global-setup.ts',
-  testDir: './playwright/tests',
+  tsconfig: './tsconfig.json',
+  globalSetup: './global-setup.ts',
+  testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

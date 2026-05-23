@@ -9,6 +9,8 @@ Linky is a real-time 1-to-1 video chat platform. The repo is a Turborepo / pnpm 
 - `apps/web` — Next.js 16 frontend (`@ws/web`)
 - `apps/api` — Go API (module `linky-api`); single binary that serves HTTP, Socket.IO, and an in-process Redis-backed worker pool
 - `packages/ui`, `packages/eslint-config`, `packages/typescript-config`
+- `e2e/playwright` — Playwright E2E tests (`@ws/playwright-e2e`)
+- `e2e/pytest` — Python Selenium E2E tests (standalone uv project)
 
 `zod` is pinned to `4.3.6` via `pnpm.overrides`. Don't bump it without coordination.
 
@@ -38,14 +40,19 @@ pnpm check-types
 pnpm check-types:web
 pnpm format
 
-# E2E (Playwright, from root)
+# E2E — Playwright (from root)
 pnpm test
 pnpm test:ui
 pnpm test:debug
 pnpm test:trace
 pnpm test:report
-pnpm exec playwright test tests/user-profile.spec.ts
-pnpm exec playwright test -g "should update avatar"
+pnpm exec playwright test --config e2e/playwright/playwright.config.ts tests/user-profile.spec.ts
+pnpm exec playwright test --config e2e/playwright/playwright.config.ts -g "should update avatar"
+
+# E2E — Python (pytest + Selenium + CloakBrowser, from e2e/pytest/)
+cd e2e/pytest && uv sync && uv run ensure-cloak   # one-time setup; downloads ~200MB
+cd e2e/pytest && uv run pytest                    # all
+cd e2e/pytest && uv run pytest tests/video_chat   # serial — never use -n auto for video_chat
 
 # Single-package Turbo
 pnpm exec turbo run check-types --filter=@ws/ui
@@ -60,6 +67,9 @@ pnpm upver
 apps/
   api/            Go API (module linky-api). Source in src/. Migrations in migrations/.
   web/            Next.js 16 frontend (App Router)
+e2e/
+  playwright/     Playwright E2E tests (@ws/playwright-e2e)
+  pytest/         Python Selenium E2E tests (standalone uv project)
 packages/
   eslint-config/      Shared ESLint configs
   typescript-config/  Shared TS configs
@@ -256,8 +266,9 @@ Backend caches the role in Redis (5-min TTL) via `internal/infra/admincache`. Th
 | UI | Radix UI + shadcn + Tailwind CSS 4 |
 | State | Zustand + TanStack React Query |
 | i18n | next-intl (messages in `apps/web/src/messages/`) |
-| Testing | Playwright (e2e) |
+| Testing | Playwright (TS e2e, `e2e/playwright/`) + pytest/Selenium (Python e2e, `e2e/pytest/`) |
 | Logging | zerolog |
+| AI | OpenAI-compatible API (`OPENAI_BASE_URL`); separate models for embeddings, broadcast, report-summary |
 
 ## Docker
 
@@ -269,4 +280,51 @@ Single Dockerfile at the repo root:
 
 Build the image locally: `pnpm docker:build:api`.
 
-HTTP health: `GET /healthz` on the API.
+HTTP health: `GET /healthz`. Readiness (deps reachable): `GET /readyz`.
+
+## Environment files
+
+Single root [`.env`](.env) is the source of truth for local dev, Docker Compose, and the Go API. Templates at the repo root: [`.env.api.example`](.env.api.example) (server vars), [`.env.web.example`](.env.web.example) (`NEXT_PUBLIC_*`). Next.js will also read `apps/web/.env.local` if present; the Go API only loads the root `.env`. Frontend env access still goes through the validated `@/env/public-env` / `@/env/server-env` modules — never `process.env` in `apps/web`.
+
+## Further reading
+
+- [`apps/api/README.md`](apps/api/README.md) — deeper API layout, env, jobs
+- [`README.md`](README.md) — quick start, prerequisites, full env var list
+- [`e2e/pytest/README.md`](e2e/pytest/README.md) — Python E2E suite (Clerk test accounts, fixtures)
+
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+This project has a CodeGraph MCP server (`codegraph_*` tools) configured. CodeGraph is a tree-sitter-parsed knowledge graph of every symbol, edge, and file. Reads are sub-millisecond and return structural information grep cannot.
+
+### When to prefer codegraph over native search
+
+Use codegraph for **structural** questions — what calls what, what would break, where is X defined, what is X's signature. Use native grep/read only for **literal text** queries (string contents, comments, log messages) or after you already have a specific file open.
+
+| Question | Tool |
+|---|---|
+| "Where is X defined?" / "Find symbol named X" | `codegraph_search` |
+| "What calls function Y?" | `codegraph_callers` |
+| "What does Y call?" | `codegraph_callees` |
+| "What would break if I changed Z?" | `codegraph_impact` |
+| "Show me Y's signature / source / docstring" | `codegraph_node` |
+| "Give me focused context for a task/area" | `codegraph_context` — pass **`task`**, not `query` |
+| "See several related symbols' source at once" | `codegraph_explore` |
+| "What files exist under path/" | `codegraph_files` |
+| "Is the index healthy?" | `codegraph_status` |
+
+### Rules of thumb
+
+- **`codegraph_context` uses `task`, not `query`.** Pass the task description as `task`:
+  `codegraph_context({ task: "how auth redirects work after sign-in" })`
+- **Answer directly — don't delegate exploration.** For "how does X work" / architecture / trace questions, answer with 2-3 codegraph calls: `codegraph_context` first, then ONE `codegraph_explore` for the source of the symbols it surfaces. Codegraph IS the pre-built index, so spawning a separate file-reading sub-task/agent — or running a grep + read loop — repeats work codegraph already did and costs more for the same answer.
+- **Trust codegraph results.** They come from a full AST parse. Do NOT re-verify them with grep — that's slower, less accurate, and wastes context.
+- **Don't grep first** when looking up a symbol by name. `codegraph_search` is faster and returns kind + location + signature in one call.
+- **Don't chain `codegraph_search` + `codegraph_node`** when you just want context — `codegraph_context` is one call.
+- **Don't loop `codegraph_node` over many symbols** — one `codegraph_explore` call returns several symbols' source grouped in a single capped call, while each separate node/Read call re-reads the whole context and costs far more.
+- **Index lag**: the file watcher debounces ~500ms behind writes; don't re-query immediately after editing a file in the same turn.
+
+### If `.codegraph/` doesn't exist
+
+The MCP server returns "not initialized." Ask the user: *"I notice this project doesn't have CodeGraph initialized. Want me to run `codegraph init -i` to build the index?"*
+<!-- CODEGRAPH_END -->

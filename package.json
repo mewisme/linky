@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./playwright-test": "./playwright/fixtures/test.ts"
+    "./playwright-test": "./e2e/playwright/fixtures/test.ts"
   },
   "license": "MIT",
   "engines": {
@@ -26,26 +26,21 @@
     "check-types": "turbo run check-types",
     "check-types:web": "turbo run check-types --filter=@ws/web",
     "docker:build:api": "docker build -f Dockerfile -t linky-api:local .",
-    "test": "pnpm exec playwright test",
-    "test:ui": "pnpm exec playwright test --ui",
-    "test:debug": "pnpm exec playwright test --debug",
-    "test:trace": "pnpm exec playwright test --trace",
+    "test": "pnpm exec playwright test --config e2e/playwright/playwright.config.ts",
+    "test:ui": "pnpm exec playwright test --config e2e/playwright/playwright.config.ts --ui",
+    "test:debug": "pnpm exec playwright test --config e2e/playwright/playwright.config.ts --debug",
+    "test:trace": "pnpm exec playwright test --config e2e/playwright/playwright.config.ts --trace",
     "test:report": "pnpm exec playwright show-report",
-    "test:report:last": "node scripts/playwright-show-last-report.mjs",
-    "test:report:excel": "node scripts/playwright-json-to-excel.mjs",
+    "test:report:last": "node e2e/playwright/scripts/show-last-report.mjs",
+    "test:report:excel": "node e2e/playwright/scripts/json-to-excel.mjs",
     "test:codegen": "pnpm exec playwright codegen",
     "upver": "node scripts/generate-changelog.js && node scripts/version-upgrade.js"
   },
   "packageManager": "pnpm@11.2.2+sha512.36e6621fad506178936455e70247b8808ef4ec25797a9f437a93281a020484e2607f6a469a22e982987c3dbb8866e3071514ab10a4a1749e06edcd1ec118436f",
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
-    "playwright-core": "^1.59.1",
     "@types/node": "25.6.0",
-    "cloakbrowser": "^0.3.28",
-    "dotenv": "^17.4.2",
     "prettier": "^3.8.3",
     "turbo": "^2.9.14",
-    "typescript": "catalog:",
-    "xlsx": "^0.18.5"
+    "typescript": "catalog:"
   }
 }

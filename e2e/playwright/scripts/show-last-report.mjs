@@ -13,7 +13,7 @@ if (fs.existsSync(marker)) {
   }
 }
 const reportDir = path.join(root, "playwright-report", slug);
-spawnSync("pnpm", ["exec", "playwright", "show-report", reportDir], {
+spawnSync("pnpm", ["--filter", "@ws/playwright-e2e", "exec", "playwright", "show-report", reportDir], {
   stdio: "inherit",
   shell: true,
   cwd: root,

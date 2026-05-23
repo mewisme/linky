@@ -145,6 +145,7 @@ export function readClerkTestUserRows(): ExcelClerkTestUserRow[] {
     if (last) {
       row.lastName = last;
     }
+    row.storageStatePath = row.storageStatePath.replace(/^playwright\//, 'e2e/playwright/');
     out.push(row);
   }
   return out;

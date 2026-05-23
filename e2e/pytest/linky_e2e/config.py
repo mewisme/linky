@@ -5,7 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+_REPO_ROOT = Path(__file__).resolve().parents[3]
 _PYTEST_ROOT = Path(__file__).resolve().parents[1]
 
 load_dotenv(_REPO_ROOT / ".env")
@@ -31,7 +31,7 @@ class Settings:
     def __init__(self) -> None:
         base = os.environ.get("BASE_TEST_URL", "").rstrip("/")
         if not base:
-            raise RuntimeError("BASE_TEST_URL is not set (repo root .env or pytest/.env)")
+            raise RuntimeError("BASE_TEST_URL is not set (repo root .env or e2e/pytest/.env)")
         self.base_url = base
         self.headed = _truthy("HEADED") or _truthy("PWHEADED") or _truthy("PWDEBUG")
         self.run_fast = _truthy("RUN_FAST")

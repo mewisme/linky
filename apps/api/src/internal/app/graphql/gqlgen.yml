@@ -1,0 +1,65 @@
+schema:
+  - schema/*.graphqls
+
+exec:
+  filename: generated/generated.go
+  package: generated
+
+model:
+  filename: generated/models_gen.go
+  package: generated
+
+resolver:
+  layout: follow-schema
+  dir: resolver
+  package: resolver
+  filename_template: "{name}.resolvers.go"
+
+models:
+  JSON:
+    model:
+      - github.com/99designs/gqlgen/graphql.Any
+  Viewer:
+    fields:
+      me:
+        resolver: true
+      details:
+        resolver: true
+      settings:
+        resolver: true
+      profile:
+        resolver: true
+      level:
+        resolver: true
+      streak:
+        resolver: true
+      progress:
+        resolver: true
+      notifications:
+        resolver: true
+      unreadNotificationCount:
+        resolver: true
+      callHistory:
+        resolver: true
+      callHistoryItem:
+        resolver: true
+      reports:
+        resolver: true
+  Admin:
+    fields:
+      reports:
+        resolver: true
+      report:
+        resolver: true
+      interestTags:
+        resolver: true
+      expBonuses:
+        resolver: true
+      config:
+        resolver: true
+      configByKey:
+        resolver: true
+      broadcasts:
+        resolver: true
+      embeddings:
+        resolver: true

@@ -1,0 +1,11 @@
+directive @auth on FIELD_DEFINITION | OBJECT
+directive @admin on FIELD_DEFINITION | OBJECT
+
+scalar JSON
+
+type Query {
+  viewer: Viewer! @auth
+  interestTags(category: String, search: String, limit: Int = 100, offset: Int = 0): InterestTagPage! @auth
+  interestTag(id: ID!): JSON @auth
+  admin: Admin! @auth @admin
+}

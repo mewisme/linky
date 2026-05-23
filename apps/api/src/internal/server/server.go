@@ -65,10 +65,10 @@ func NewPublicApp(cfg *config.Config) *echo.Echo {
 	webhookGroup := e.Group("/webhook", middleware.RateLimit(cfg))
 	routes.RegisterWebhook(webhookGroup, cfg)
 
-	routes.RegisterInterestTagsPublic(e.Group("/api/v1/interest-tags"))
 	routes.RegisterQueueStatus(e.Group("/api/v1/matchmaking", middleware.RateLimit(cfg)), cfg)
 
 	authed := e.Group("/api/v1", middleware.Clerk())
+	routes.RegisterInterestTags(authed.Group("/interest-tags"))
 	routes.RegisterAPIv1(authed, cfg)
 	routes.RegisterGraphQL(authed, cfg)
 

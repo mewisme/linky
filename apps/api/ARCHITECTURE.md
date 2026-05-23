@@ -28,7 +28,7 @@ Requests enter **transport**, which calls **app** workflows. **App** loads data 
 ## Supabase (`infra/supax`)
 
 - Root `supax` package: bridge + shared repositories (`repositories.go`, `extra.go`, …)
-- Subpackages: `client/`, `rpc/`, `webhook/`, `favorites/`, `streaks/`, `embeddings/`, `reports/`, `codec/`, `postgrest/`, `pgclient/`, `graphqlclient/`
+- Subpackages: `client/`, `rpc/`, `webhook/`, `favorites/`, `streaks/`, `embeddings/`, `reports/`, `codec/`, `postgrest/`, `pgclient/`
 - Root `*_alias.go` files re-export subpackage symbols for backward-compatible imports
 - **PostgREST:** `pgclient` — table/RPC access via `/rest/v1`
-- **GraphQL (placeholder):** `graphqlclient` proxies to Supabase `pg_graphql` at `/graphql/v1`; `POST /api/v1/graphql` (Clerk) goes through `app/graphql` (`GRAPHQL_BACKEND=supabase|native`). Future native backend uses gqlgen behind the same route.
+- **GraphQL:** gqlgen in `app/graphql` (Tier 1 reads). `POST /api/v1/graphql` requires Clerk; user role from Supabase `users.role` gates `admin` fields.

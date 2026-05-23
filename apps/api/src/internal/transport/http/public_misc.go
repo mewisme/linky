@@ -11,7 +11,7 @@ import (
 	"linky-api/src/internal/infra/supax"
 )
 
-func RegisterInterestTagsPublic(g *echo.Group) {
+func RegisterInterestTags(g *echo.Group) {
 	g.GET("", func(c echo.Context) error {
 		category := c.QueryParam("category")
 		search := c.QueryParam("search")

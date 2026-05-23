@@ -3,9 +3,7 @@ package graphql
 import (
 	"context"
 	"errors"
-	"strings"
 
-	"linky-api/src/internal/config"
 	"linky-api/src/internal/logger"
 )
 
@@ -20,17 +18,9 @@ type Context struct {
 	exec Executor
 }
 
-func Init(cfg *config.Config) {
-	var exec Executor
-	switch strings.ToLower(strings.TrimSpace(cfg.GraphQLBackend)) {
-	case "native":
-		exec = NativeExecutor{}
-		log.Info().Msg("GraphQL backend: native (gqlgen placeholder)")
-	default:
-		exec = SupabaseProxyExecutor{}
-		log.Info().Msg("GraphQL backend: supabase proxy")
-	}
-	defaultCtx = &Context{exec: exec}
+func Init() {
+	defaultCtx = &Context{exec: NativeExecutor{}}
+	log.Info().Msg("GraphQL: gqlgen (Clerk auth, Supabase user roles)")
 }
 
 func Default() *Context {

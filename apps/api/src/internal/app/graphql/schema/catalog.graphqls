@@ -1,0 +1,4 @@
+type InterestTagPage {
+  data: JSON!
+  pagination: JSON!
+}

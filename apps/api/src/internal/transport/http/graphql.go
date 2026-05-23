@@ -2,16 +2,16 @@ package routes
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 
 	"linky-api/src/internal/app/graphql"
+	"linky-api/src/internal/app/graphql/gqlx"
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/httpx"
-	"linky-api/src/internal/infra/supax/graphqlclient"
+	"linky-api/src/internal/infra/admincache"
 	"linky-api/src/internal/logger"
 	"linky-api/src/internal/transport/http/middleware"
 )
@@ -26,11 +26,11 @@ type graphQLHTTPRequest struct {
 
 func RegisterGraphQL(g *echo.Group, cfg *config.Config) {
 	g.POST("/graphql", func(c echo.Context) error {
-		return handleGraphQL(c, cfg)
+		return handleGraphQL(c)
 	}, middleware.RateLimit(cfg))
 }
 
-func handleGraphQL(c echo.Context, cfg *config.Config) error {
+func handleGraphQL(c echo.Context) error {
 	var body graphQLHTTPRequest
 	if err := c.Bind(&body); err != nil {
 		return httpx.SendError(c, http.StatusBadRequest, "Bad Request",
@@ -43,7 +43,11 @@ func handleGraphQL(c echo.Context, cfg *config.Config) error {
 	}
 
 	auth := httpx.GetAuth(c)
-	if auth != nil && body.OperationName != "" {
+	if auth == nil || auth.Sub == "" {
+		return httpx.Unauthorized(c)
+	}
+
+	if body.OperationName != "" {
 		graphqlLog.Info().
 			Str("clerk_user_id", auth.Sub).
 			Str("operation_name", body.OperationName).
@@ -63,23 +67,24 @@ func handleGraphQL(c echo.Context, cfg *config.Config) error {
 			httpx.UM("GRAPHQL_UNAVAILABLE", "graphqlUnavailable", "GraphQL is not available"))
 	}
 
-	backend := strings.ToLower(strings.TrimSpace(cfg.GraphQLBackend))
-	if backend == "" || backend == "supabase" {
-		if !graphqlclient.Configured() {
-			return httpx.SendError(c, http.StatusServiceUnavailable, "Service Unavailable",
-				httpx.UM("GRAPHQL_UNAVAILABLE", "graphqlUnavailable", "GraphQL is not available"))
-		}
+	ctx := c.Request().Context()
+	cfCountry := strings.TrimSpace(c.Request().Header.Get("cf-ipcountry"))
+	if cfCountry == "" {
+		cfCountry = strings.TrimSpace(c.Request().Header.Get("x-cf-ipcountry"))
 	}
-
-	status, respBody, err := gql.Execute(c.Request().Context(), req)
+	role, err := admincache.GetRole(ctx, auth.Sub)
 	if err != nil {
-		if errors.Is(err, graphql.ErrNativeNotImplemented) {
-			return httpx.SendError(c, http.StatusServiceUnavailable, "Service Unavailable",
-				httpx.UM("GRAPHQL_NATIVE_UNAVAILABLE", "graphqlNativeUnavailable", "Native GraphQL backend is not available yet"))
-		}
+		graphqlLog.Error().Err(err).Str("clerk_user_id", auth.Sub).Msg("GraphQL role lookup failed")
+		return httpx.SendError(c, http.StatusInternalServerError, "Internal Server Error",
+			httpx.UM("GRAPHQL_ROLE_LOOKUP_FAILED", "graphqlRoleLookupFailed", "Failed to resolve user role"))
+	}
+	ctx = gqlx.WithRequestContext(ctx, auth.Sub, cfCountry, role)
+
+	status, respBody, err := gql.Execute(ctx, req)
+	if err != nil {
 		graphqlLog.Error().Err(err).Msg("GraphQL execute failed")
-		return httpx.SendError(c, http.StatusBadGateway, "Bad Gateway",
-			httpx.UM("GRAPHQL_UPSTREAM_FAILED", "graphqlUpstreamFailed", "Failed to reach GraphQL upstream"))
+		return httpx.SendError(c, http.StatusInternalServerError, "Internal Server Error",
+			httpx.UM("GRAPHQL_EXECUTE_FAILED", "graphqlExecuteFailed", "GraphQL request failed"))
 	}
 	if status == 0 {
 		status = http.StatusOK

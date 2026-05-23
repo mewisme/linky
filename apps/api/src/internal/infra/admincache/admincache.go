@@ -58,12 +58,7 @@ func GetRole(ctx context.Context, clerkUserID string) (string, error) {
 		return "", errors.New("clerk user id required")
 	}
 	if cached, ok := lookup(clerkUserID); ok {
-		switch cached {
-		case "admin", "superadmin":
-			return cached, nil
-		case "user":
-			return "", nil
-		}
+		return cached, nil
 	}
 
 	sb := pgclient.Client()
@@ -79,17 +74,14 @@ func GetRole(ctx context.Context, clerkUserID string) (string, error) {
 		log.Error().Err(err).Msg("Error checking admin role")
 		return "", err
 	}
-	role := ""
+	role := "user"
 	if len(rows) > 0 && rows[0].Role != nil {
-		if *rows[0].Role == "admin" || *rows[0].Role == "superadmin" {
+		switch *rows[0].Role {
+		case "admin", "superadmin":
 			role = *rows[0].Role
 		}
 	}
-	cacheValue := role
-	if cacheValue == "" {
-		cacheValue = "user"
-	}
-	putRole(clerkUserID, cacheValue)
+	putRole(clerkUserID, role)
 	return role, nil
 }
 

@@ -1,0 +1,30 @@
+type Viewer {
+  me: JSON
+  details: JSON
+  settings: JSON
+  profile: JSON
+  level: JSON
+  streak: JSON
+  progress: JSON
+  notifications(limit: Int = 20, offset: Int = 0, unreadOnly: Boolean = false): NotificationsPage!
+  unreadNotificationCount: Int!
+  callHistory(limit: Int = 50, offset: Int = 0): CallHistoryPage!
+  callHistoryItem(id: ID!): JSON
+  reports(limit: Int = 20, offset: Int = 0): ReportsPage!
+}
+
+type NotificationsPage {
+  notifications: JSON!
+}
+
+type CallHistoryPage {
+  data: JSON!
+  count: Int!
+  limit: Int!
+  offset: Int!
+}
+
+type ReportsPage {
+  data: JSON!
+  count: Int!
+}

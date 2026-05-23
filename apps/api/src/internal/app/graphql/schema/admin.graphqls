@@ -1,0 +1,28 @@
+type Admin {
+  reports(
+    status: String
+    reporterUserId: ID
+    reportedUserId: ID
+    limit: Int = 50
+    offset: Int = 0
+  ): AdminReportsPage!
+  report(id: ID!): JSON
+  interestTags(limit: Int = 50, offset: Int = 0): GenericTablePage!
+  expBonuses(limit: Int = 50, offset: Int = 0): GenericTablePage!
+  config: JSON!
+  configByKey(key: String!): JSON
+  broadcasts(limit: Int = 50, offset: Int = 0): JSON!
+  embeddings(limit: Int = 50, offset: Int = 0): GenericTablePage!
+}
+
+type AdminReportsPage {
+  data: JSON!
+  count: Int!
+  limit: Int!
+  offset: Int!
+}
+
+type GenericTablePage {
+  data: JSON!
+  count: Int!
+}

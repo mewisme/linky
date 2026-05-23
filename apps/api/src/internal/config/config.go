@@ -35,7 +35,6 @@ type Config struct {
 
 	SupabaseURL            string
 	SupabaseServiceRoleKey string
-	GraphQLBackend         string
 
 	// Redis (worker queue only). REDIS_URL is the full URL, optionally with
 	// embedded creds. REDIS_USERNAME / REDIS_PASSWORD override on top.
@@ -144,7 +143,6 @@ func Load() *Config {
 		S3SecretAccessKey:             os.Getenv("S3_SECRET_ACCESS_KEY"),
 		SupabaseURL:                   os.Getenv("SUPABASE_URL"),
 		SupabaseServiceRoleKey:        os.Getenv("SUPABASE_SERVICE_ROLE_KEY"),
-		GraphQLBackend:                envStr("GRAPHQL_BACKEND", "supabase"),
 		RedisURL:                      os.Getenv("REDIS_URL"),
 		RedisPort:                     os.Getenv("REDIS_PORT"),
 		RedisUsername:                 os.Getenv("REDIS_USERNAME"),

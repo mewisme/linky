@@ -41,3 +41,25 @@ migrations/         Postgres migrations
 ## Environment
 
 See `src/internal/config` and repo-root `.env` used by Docker Compose.
+
+## GraphQL
+
+- Endpoint: `POST /api/v1/graphql` (Clerk + Supabase `users.role` + rate limit)
+- gqlgen resolvers in `src/internal/app/graphql/` (see [GRAPHQL.md](./GRAPHQL.md))
+- Regenerate: `cd src/internal/app/graphql && go generate`
+
+Example:
+
+```graphql
+query ViewerBoot {
+  viewer {
+    me
+    details
+    settings
+    profile
+    level
+    streak
+    progress
+  }
+}
+```

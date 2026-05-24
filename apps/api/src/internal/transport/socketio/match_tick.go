@@ -176,9 +176,9 @@ func (r *chatRuntime) tryMatch() {
 	room.FavoriteRelation = details.FavoriteRelation
 	isAOfferer := entryA.socket.Id() < entryB.socket.Id()
 
-	peerInfoForA := details.PublicInfo[pair.UserBID]
+	peerInfoForA := details.PublicInfo[pair.UserAID]
 	myInfoForA := details.PublicInfo["my:"+pair.UserAID]
-	peerInfoForB := details.PublicInfo[pair.UserAID]
+	peerInfoForB := details.PublicInfo[pair.UserBID]
 	myInfoForB := details.PublicInfo["my:"+pair.UserBID]
 	payloadA := buildMatchedPayload(room, &room.Participants[1], string(entryA.socket.Id()), pair.UserAID, isAOfferer, peerInfoForA, myInfoForA)
 	payloadB := buildMatchedPayload(room, &room.Participants[0], string(entryB.socket.Id()), pair.UserBID, !isAOfferer, peerInfoForB, myInfoForB)

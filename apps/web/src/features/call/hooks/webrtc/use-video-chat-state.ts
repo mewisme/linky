@@ -34,6 +34,7 @@ export interface VideoChatActions {
   setPeerSharingScreen: (sharing: boolean) => void;
   setScreenStream: (stream: MediaStream | null) => void;
   setPeerTyping: (isTyping: boolean) => void;
+  setSelectedVideoFilterPresetId: (id: string | null) => void;
   resetState: () => void;
   resetPeerState: () => void;
   resetRuntimeState: () => void;
@@ -134,6 +135,8 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setScreenStream(stream),
       setPeerTyping: (isTyping: boolean) =>
         useVideoChatStore.getState().setPeerTyping(isTyping),
+      setSelectedVideoFilterPresetId: (id: string | null) =>
+        useVideoChatStore.getState().setSelectedVideoFilterPresetId(id),
       resetState: () => useVideoChatStore.getState().resetState(),
       resetPeerState: () => useVideoChatStore.getState().resetPeerState(),
       resetRuntimeState: () => useVideoChatStore.getState().resetRuntimeState(),

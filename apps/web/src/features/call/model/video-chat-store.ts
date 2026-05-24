@@ -49,6 +49,7 @@ interface VideoChatStore {
   isPeerTyping: boolean;
   callInitialProgress: UsersAPI.Progress.GetMe.Response | null;
   callInitialFavorites: ResourcesAPI.Favorites.Get.Response | null;
+  selectedVideoFilterPresetId: string | null;
 
   setLocalStream: (stream: MediaStream | null) => void;
   setRemoteStream: (stream: MediaStream | null) => void;
@@ -75,6 +76,7 @@ interface VideoChatStore {
   setPeerSharingScreen: (sharing: boolean) => void;
   setScreenStream: (stream: MediaStream | null) => void;
   setPeerTyping: (isTyping: boolean) => void;
+  setSelectedVideoFilterPresetId: (id: string | null) => void;
   setCallInitialData: (
     progress: UsersAPI.Progress.GetMe.Response | null,
     favorites: ResourcesAPI.Favorites.Get.Response | null
@@ -113,6 +115,7 @@ const initialState = {
   isPeerTyping: false,
   callInitialProgress: null as UsersAPI.Progress.GetMe.Response | null,
   callInitialFavorites: null as ResourcesAPI.Favorites.Get.Response | null,
+  selectedVideoFilterPresetId: null as string | null,
 };
 
 export const useVideoChatStore = create<VideoChatStore>((set) => ({
@@ -156,8 +159,9 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   setPeerTyping: (isTyping) => set({ isPeerTyping: isTyping }),
   setCallInitialData: (progress, favorites) =>
     set({ callInitialProgress: progress, callInitialFavorites: favorites }),
+  setSelectedVideoFilterPresetId: (id: string | null) => set({ selectedVideoFilterPresetId: id }),
 
-  resetState: () => set(initialState),
+  resetState: () => set({ ...initialState, selectedVideoFilterPresetId: null }),
   resetPeerState: () =>
     set({
       remoteStream: null,

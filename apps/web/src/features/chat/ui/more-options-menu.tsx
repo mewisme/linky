@@ -24,6 +24,7 @@ export interface MoreOptionsMenuProps {
   onPeerInfoOpen: () => void;
   onReportOpen: () => void;
   onStreamQualityOpen: () => void;
+  onVideoFilterPickerOpen: () => void;
 }
 
 export function MoreOptionsMenu({
@@ -33,6 +34,7 @@ export function MoreOptionsMenu({
   onPeerInfoOpen,
   onReportOpen,
   onStreamQualityOpen,
+  onVideoFilterPickerOpen,
 }: MoreOptionsMenuProps) {
   const t = useTranslations("call.controls");
   return (
@@ -87,6 +89,8 @@ export function MoreOptionsMenu({
                   onReportOpen();
                 } else if (control.id === "stream-quality") {
                   onStreamQualityOpen();
+                } else if (control.id === "video-filter") {
+                  onVideoFilterPickerOpen();
                 } else {
                   control.onClick();
                 }

@@ -150,6 +150,9 @@
       "pictureInPicture": "Picture in Picture",
       "exitPictureInPicture": "Exit Picture in Picture",
       "blockUser": "Block User",
+      "videoFilter": "Video Filter",
+      "noFilter": "No Filter",
+      "filterShaderError": "Shader compile error — reverting to no filter",
       "moreOptions": "More options",
       "moreOptionsTitle": "More Options",
       "endSearch": "End Search",
@@ -529,6 +532,10 @@
       "adminInterestTags": {
         "label": "Interest Tags",
         "description": "View the interest tags list"
+      },
+      "adminVideoFilterPresets": {
+        "label": "Video Filter Presets",
+        "description": "Manage WebGL video filter presets"
       },
       "adminReports": {
         "label": "Reports",
@@ -1169,6 +1176,14 @@
     "tagDeleted": "Tag deleted successfully",
     "crudUpdated": "Updated successfully!",
     "crudCreated": "Created successfully!",
+    "crudDeleted": "Deleted successfully!",
+    "crudEdit": "Edit",
+    "crudCreate": "Create",
+    "crudDelete": "Delete",
+    "confirmDelete": "Are you sure you want to delete?",
+    "actions": "Actions",
+    "noResults": "No results",
+    "saving": "Saving...",
     "genericError": "An error occurred",
     "deleteError": "An error occurred during deletion",
     "userUpdated": "User updated successfully",

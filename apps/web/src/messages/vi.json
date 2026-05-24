@@ -150,6 +150,9 @@
       "pictureInPicture": "Hình trong hình",
       "exitPictureInPicture": "Thoát hình trong hình",
       "blockUser": "Chặn người dùng",
+      "videoFilter": "Bộ lọc video",
+      "noFilter": "Không lọc",
+      "filterShaderError": "Lỗi biên dịch shader — quay về không lọc",
       "moreOptions": "Thêm tùy chọn",
       "moreOptionsTitle": "Thêm tùy chọn",
       "endSearch": "Kết thúc tìm",
@@ -529,6 +532,10 @@
       "adminInterestTags": {
         "label": "Thẻ sở thích",
         "description": "Xem danh sách thẻ sở thích"
+      },
+      "adminVideoFilterPresets": {
+        "label": "Bộ lọc video",
+        "description": "Quản lý bộ lọc video WebGL"
       },
       "adminReports": {
         "label": "Báo cáo",
@@ -1169,6 +1176,14 @@
     "tagDeleted": "Đã xóa thẻ",
     "crudUpdated": "Cập nhật thành công!",
     "crudCreated": "Tạo thành công!",
+    "crudDeleted": "Xóa thành công!",
+    "crudEdit": "Sửa",
+    "crudCreate": "Tạo",
+    "crudDelete": "Xóa",
+    "confirmDelete": "Bạn có chắc muốn xóa?",
+    "actions": "Thao tác",
+    "noResults": "Không có kết quả",
+    "saving": "Đang lưu...",
     "genericError": "Đã xảy ra lỗi",
     "deleteError": "Xóa thất bại",
     "userUpdated": "Cập nhật người dùng thành công",

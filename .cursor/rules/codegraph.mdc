@@ -11,28 +11,29 @@ This project has a CodeGraph MCP server (`codegraph_*` tools) configured. CodeGr
 
 Use codegraph for **structural** questions — what calls what, what would break, where is X defined, what is X's signature. Use native grep/read only for **literal text** queries (string contents, comments, log messages) or after you already have a specific file open.
 
-| Question | Tool |
-|---|---|
-| "Where is X defined?" / "Find symbol named X" | `codegraph_search` |
-| "What calls function Y?" | `codegraph_callers` |
-| "What does Y call?" | `codegraph_callees` |
-| "What would break if I changed Z?" | `codegraph_impact` |
-| "Show me Y's signature / source / docstring" | `codegraph_node` |
-| "Give me focused context for a task/area" | `codegraph_context` — pass **`task`**, not `query` |
-| "See several related symbols' source at once" | `codegraph_explore` |
-| "What files exist under path/" | `codegraph_files` |
-| "Is the index healthy?" | `codegraph_status` |
+| Question | Tool | inputSchema |
+|---|---|---|
+| "Where is X defined?" / find symbol by name (locations only) | `codegraph_search` | `query` (required), `kind?`, `limit?` |
+| "How does X work?" / architecture / feature / bug context — **call first** | `codegraph_context` | `task` (required), `maxNodes?`, `includeCode?` |
+| "What calls function Y?" | `codegraph_callers` | `symbol` (required), `limit?` |
+| "What does Y call?" | `codegraph_callees` | `symbol` (required), `limit?` |
+| "What would break if I changed Z?" | `codegraph_impact` | `symbol` (required), `depth?` |
+| One symbol's signature, source, or call trail; walk graph hop-by-hop | `codegraph_node` | `symbol` (required), `includeCode?` |
+| Several related symbols' source in one call (after context) | `codegraph_explore` | `query` (required) — symbol/file terms, not prose; `maxFiles?` |
+| Project file tree / find files under path | `codegraph_files` | `path?`, `pattern?`, `format?`, `includeMetadata?`, `maxDepth?` |
+| Is the index healthy? | `codegraph_status` | (optional `projectPath`) |
+| "How does A reach B?" / call path between two symbols | `codegraph_trace` | `from` (required), `to` (required) |
 
 ### Rules of thumb
 
-- **`codegraph_context` uses `task`, not `query`.** Pass the task description as `task`:
-  `codegraph_context({ task: "how auth redirects work after sign-in" })`
-- **Answer directly — don't delegate exploration.** For "how does X work" / architecture / trace questions, answer with 2-3 codegraph calls: `codegraph_context` first, then ONE `codegraph_explore` for the source of the symbols it surfaces. Codegraph IS the pre-built index, so spawning a separate file-reading sub-task/agent — or running a grep + read loop — repeats work codegraph already did and costs more for the same answer.
-- **Trust codegraph results.** They come from a full AST parse. Do NOT re-verify them with grep — that's slower, less accurate, and wastes context.
-- **Don't grep first** when looking up a symbol by name. `codegraph_search` is faster and returns kind + location + signature in one call.
-- **Don't chain `codegraph_search` + `codegraph_node`** when you just want context — `codegraph_context` is one call.
-- **Don't loop `codegraph_node` over many symbols** — one `codegraph_explore` call returns several symbols' source grouped in a single capped call, while each separate node/Read call re-reads the whole context and costs far more.
-- **Index lag**: the file watcher debounces ~500ms behind writes; don't re-query immediately after editing a file in the same turn.
+- **PRIMARY:** `codegraph_context` first for "how does X work", architecture, features, or bug context — usually enough alone. It returns code context, not product requirements; clarify UX/edge cases with the user for new features.
+- **Answer directly — don't delegate exploration.** After context, at most ONE `codegraph_explore` (symbol names, not natural-language sentences). Do not spawn explore sub-agents or grep+read loops.
+- **Trust codegraph results** (full AST). Do not re-verify with grep.
+- **Don't grep first** for symbol lookup — `codegraph_search` is faster (locations only; use `codegraph_context` for comprehensive context).
+- **Don't chain** `codegraph_search` + `codegraph_node` when context suffices.
+- **Don't loop** `codegraph_node` or Read — one `codegraph_explore` beats many node/Read calls. Use `codegraph_node` to drill along one trail path; use `codegraph_trace` for A→B flow.
+- **File structure:** `codegraph_files` before Glob/filesystem scan.
+- **Index lag:** ~500ms after writes; don't re-query the same file in the same turn.
 
 ### If `.codegraph/` doesn't exist
 

@@ -21,6 +21,7 @@ import {
   IconUserShield,
   IconUsers,
   IconVideo,
+  IconWand,
 } from "@tabler/icons-react";
 
 import type { ElementType } from "react";
@@ -48,6 +49,7 @@ export type MenuItemId =
   | "adminBroadcasts"
   | "adminUsers"
   | "adminInterestTags"
+  | "adminVideoFilterPresets"
   | "adminReports"
   | "adminExpBonuses"
   | "settings"
@@ -212,6 +214,11 @@ export const menuItemDefinitions: MenuItemDef[] = [
         id: "adminInterestTags",
         icon: IconTags,
         href: "/admin/interest-tags",
+      },
+      {
+        id: "adminVideoFilterPresets",
+        icon: IconWand,
+        href: "/admin/video-filter-presets",
       },
       {
         id: "adminReports",

@@ -685,4 +685,88 @@ export namespace AdminAPI {
       }
     }
   }
+
+  export namespace VideoFilterPresets {
+    export interface VideoFilterPreset {
+      id: string;
+      slug: string;
+      name: string;
+      description: string | null;
+      fragment_shader: string;
+      thumbnail_url: string | null;
+      sort_order: number;
+      is_active: boolean;
+      created_at: string;
+      updated_at: string;
+    }
+
+    export namespace Get {
+      export interface QueryParams {
+        limit?: number;
+        offset?: number;
+      }
+
+      export interface Pagination {
+        limit: number;
+        offset: number;
+        total: number;
+        totalPages: number;
+      }
+
+      export interface Response {
+        data: VideoFilterPreset[];
+        count: number;
+      }
+    }
+
+    export namespace GetById {
+      export interface PathParams {
+        id: string;
+      }
+
+      export type Response = VideoFilterPreset;
+    }
+
+    export namespace Create {
+      export interface Body {
+        slug: string;
+        name: string;
+        description?: string | null;
+        fragment_shader: string;
+        thumbnail_url?: string | null;
+        sort_order?: number;
+        is_active?: boolean;
+      }
+
+      export type Response = VideoFilterPreset;
+    }
+
+    export namespace Update {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Body {
+        slug?: string;
+        name?: string;
+        description?: string | null;
+        fragment_shader?: string;
+        thumbnail_url?: string | null;
+        sort_order?: number;
+        is_active?: boolean;
+      }
+
+      export type Response = VideoFilterPreset;
+    }
+
+    export namespace Delete {
+      export interface PathParams {
+        id: string;
+      }
+
+      export interface Response {
+        message: string;
+      }
+    }
+  }
 }

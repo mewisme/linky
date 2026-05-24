@@ -34,6 +34,7 @@ interface GlobalCallContextValue {
   isSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   applyStreamQuality: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void>;
+  setVideoFilterPreset: (presetId: string | null, fragmentShader: string | null) => boolean;
   clearError: () => void;
   isPassive: boolean;
 }
@@ -102,6 +103,7 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
     isSharingScreen: videoChat.isSharingScreen,
     sendFavoriteNotification: videoChat.sendFavoriteNotification,
     applyStreamQuality: videoChat.applyStreamQuality,
+    setVideoFilterPreset: videoChat.setVideoFilterPreset,
     clearError: videoChat.clearError,
     isPassive: videoChat.isPassive,
   }), [

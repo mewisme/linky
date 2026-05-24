@@ -1,0 +1,212 @@
+"use client";
+
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
+import { IconPlus } from "@tabler/icons-react";
+import React, { useState } from "react";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
+
+import { AdminAPI } from "@/features/admin/types/admin.types";
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
+import { Button } from "@ws/ui/components/ui/button";
+import { Input } from "@ws/ui/components/ui/input";
+import { Label } from "@ws/ui/components/ui/label";
+import { Switch } from "@ws/ui/components/ui/switch";
+import { Textarea } from "@ws/ui/components/ui/textarea";
+import { useTranslations } from "next-intl";
+import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
+import { toast } from "@ws/ui/components/ui/sonner";
+import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
+
+interface VideoFilterPresetsClientProps {
+  initialData: AdminAPI.VideoFilterPresets.Get.Response;
+}
+
+export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClientProps) {
+  const t = useTranslations("admin");
+  const tc = useTranslations("common");
+  const { play: playSound } = useSoundWithSettings();
+  const queryClient = useQueryClient();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPreset, setEditingPreset] = useState<AdminAPI.VideoFilterPresets.VideoFilterPreset | null>(null);
+  const [formData, setFormData] = useState({
+    slug: "", name: "", description: "", fragment_shader: "", thumbnail_url: "", sort_order: 0, is_active: true,
+  });
+
+  const { data, isPending, isFetching, refetch } = useQuery({
+    queryKey: ["video-filter-presets"],
+    queryFn: () => fetchFromActionRoute<AdminAPI.VideoFilterPresets.Get.Response>("/api/admin/video-filter-presets"),
+    initialData,
+    staleTime: Infinity,
+  });
+
+  const upsertMutation = useMutation({
+    mutationFn: async (payload: typeof formData & { id?: string }) => {
+      const presetId = payload.id || editingPreset?.id;
+      if (presetId) {
+        const { ...rest } = payload;
+        if ('id' in rest) delete (rest as Record<string, unknown>).id;
+        return fetchFromActionRoute<AdminAPI.VideoFilterPresets.Update.Response>(
+          `/api/admin/video-filter-presets/${encodeURIComponent(presetId)}`,
+          { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rest) },
+        );
+      }
+      const { ...rest } = payload;
+      if ('id' in rest) delete (rest as Record<string, unknown>).id;
+      return fetchFromActionRoute<AdminAPI.VideoFilterPresets.Create.Response>("/api/admin/video-filter-presets", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rest),
+      });
+    },
+    onSuccess: async (_, variables) => {
+      await queryClient.invalidateQueries({ queryKey: ["video-filter-presets"], refetchType: 'active' });
+      await refetch();
+      playSound('success');
+      toast.success(variables.id || editingPreset?.id ? t("crudUpdated") : t("crudCreated"));
+      if (isModalOpen) {
+        setIsModalOpen(false);
+        setEditingPreset(null);
+        setFormData({ slug: "", name: "", description: "", fragment_shader: "", thumbnail_url: "", sort_order: 0, is_active: true });
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t("genericError"));
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) =>
+      fetchFromActionRoute<AdminAPI.VideoFilterPresets.Delete.Response>(`/api/admin/video-filter-presets/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["video-filter-presets"], refetchType: 'active' });
+      await refetch();
+      playSound('success');
+      toast.success(t("crudDeleted"));
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t("deleteError"));
+    },
+  });
+
+  const openCreate = () => {
+    setEditingPreset(null);
+    setFormData({ slug: "", name: "", description: "", fragment_shader: "", thumbnail_url: "", sort_order: 0, is_active: true });
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (preset: AdminAPI.VideoFilterPresets.VideoFilterPreset) => {
+    setEditingPreset(preset);
+    setFormData({
+      slug: preset.slug, name: preset.name, description: preset.description ?? "",
+      fragment_shader: preset.fragment_shader, thumbnail_url: preset.thumbnail_url ?? "",
+      sort_order: preset.sort_order, is_active: preset.is_active,
+    });
+    setIsModalOpen(true);
+  };
+
+  const items = data?.data ?? [];
+
+  return (
+    <AppLayout sidebarItem="adminVideoFilterPresets">
+      <div className="flex items-center justify-between mb-4">
+        <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
+        <Button onClick={openCreate} disabled={upsertMutation.isPending}>
+          <IconPlus className="size-4 mr-1" />
+          {t("crudCreate")}
+        </Button>
+      </div>
+
+      {isPending && <div className="text-muted-foreground text-sm py-8 text-center">{tc("loading")}</div>}
+
+      {!isPending && (
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted/50 border-b">
+                <th className="text-left px-4 py-2 font-medium">Name</th>
+                <th className="text-left px-4 py-2 font-medium">Slug</th>
+                <th className="text-left px-4 py-2 font-medium">Sort</th>
+                <th className="text-left px-4 py-2 font-medium">Active</th>
+                <th className="text-right px-4 py-2 font-medium w-24">{t("actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((preset) => (
+                <tr key={preset.id} className="border-b hover:bg-muted/30">
+                  <td className="px-4 py-2">{preset.name}</td>
+                  <td className="px-4 py-2 text-muted-foreground font-mono text-xs">{preset.slug}</td>
+                  <td className="px-4 py-2">{preset.sort_order}</td>
+                  <td className="px-4 py-2">{preset.is_active ? tc("yes") : tc("no")}</td>
+                  <td className="px-4 py-2 text-right space-x-1">
+                    <Button variant="outline" size="sm" onClick={() => openEdit(preset)}>{t("crudEdit")}</Button>
+                    <Button variant="outline" size="sm" onClick={() => { if (confirm(t("confirmDelete"))) deleteMutation.mutate(preset.id); }}>{t("crudDelete")}</Button>
+                  </td>
+                </tr>
+              ))}
+              {items.length === 0 && (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">{t("noResults")}</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingPreset ? t("crudEdit") : t("crudCreate")}</DialogTitle>
+            <DialogDescription>{editingPreset ? "Edit video filter preset" : "Create a new video filter preset"}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Slug</Label>
+                <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Name</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Description</Label>
+              <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label>Fragment Shader</Label>
+              <Textarea
+                className="font-mono text-xs min-h-[200px]"
+                value={formData.fragment_shader}
+                onChange={(e) => setFormData({ ...formData, fragment_shader: e.target.value })}
+                placeholder="vec4 color = texture2D(u_texture, v_texCoord);&#10;gl_FragColor = color;"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Thumbnail URL</Label>
+              <Input value={formData.thumbnail_url} onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Sort Order</Label>
+                <Input type="number" value={formData.sort_order} onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })} />
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Switch checked={formData.is_active} onCheckedChange={(v) => setFormData({ ...formData, is_active: v })} />
+                <Label>Active</Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>{tc("cancel")}</Button>
+            <Button
+              disabled={upsertMutation.isPending || !formData.slug || !formData.name || !formData.fragment_shader}
+              onClick={() => upsertMutation.mutate({ ...formData, id: editingPreset?.id ?? "" })}
+            >
+              {upsertMutation.isPending ? t("saving") : tc("save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AppLayout>
+  );
+}

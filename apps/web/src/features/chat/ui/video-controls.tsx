@@ -29,6 +29,7 @@ import {
   IconSwitchHorizontal,
   IconBan,
   IconAdjustmentsHorizontal,
+  IconWand,
 } from "@tabler/icons-react";
 import {
   Tooltip,
@@ -37,6 +38,7 @@ import {
 } from "@ws/ui/components/ui/tooltip";
 import { MoreOptionsMenu } from "./more-options-menu";
 import { StreamVideoQualityDialog } from "./stream-video-quality-dialog";
+import { VideoFilterPickerDialog } from "./video-filter-picker-dialog";
 
 import { Badge } from "@ws/ui/components/ui/badge";
 import { Button } from "@ws/ui/components/ui/button";
@@ -109,6 +111,8 @@ interface VideoControlsProps {
   initialFavorites?: ResourcesAPI.Favorites.Get.Response | null;
   hideChatToggle?: boolean;
   onApplyStreamQuality?: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void> | void;
+  selectedVideoFilterId?: string | null;
+  onSelectVideoFilter?: (presetId: string | null) => void;
 }
 
 interface ControlButtonProps {
@@ -117,9 +121,10 @@ interface ControlButtonProps {
   onPeerInfoOpen: () => void;
   onReportOpen: () => void;
   onStreamQualityOpen: () => void;
+  onVideoFilterPickerOpen: () => void;
 }
 
-function ControlButton({ config, context, onPeerInfoOpen, onReportOpen, onStreamQualityOpen }: ControlButtonProps) {
+function ControlButton({ config, context, onPeerInfoOpen, onReportOpen, onStreamQualityOpen, onVideoFilterPickerOpen }: ControlButtonProps) {
   const isVisible =
     config.visible === undefined
       ? true
@@ -149,6 +154,8 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen, onStream
       onReportOpen();
     } else if (config.id === "stream-quality") {
       onStreamQualityOpen();
+    } else if (config.id === "video-filter") {
+      onVideoFilterPickerOpen();
     } else {
       config.onClick();
     }
@@ -202,6 +209,8 @@ export function VideoControls({
   initialFavorites,
   hideChatToggle = false,
   onApplyStreamQuality,
+  selectedVideoFilterId,
+  onSelectVideoFilter,
 }: VideoControlsProps) {
   const t = useTranslations("call");
   const tCommon = useTranslations("common");
@@ -211,6 +220,7 @@ export function VideoControls({
   const [isPeerInfoOpen, setIsPeerInfoOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isStreamQualityOpen, setIsStreamQualityOpen] = useState(false);
+  const [isVideoFilterPickerOpen, setIsVideoFilterPickerOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -493,6 +503,16 @@ export function VideoControls({
         visible: hasLocalStream,
         testId: "chat-stream-quality-button",
       },
+      {
+        id: "video-filter",
+        priority: "overflow",
+        icon: IconWand,
+        label: t("controls.videoFilter"),
+        variant: "outline",
+        onClick: () => { },
+        visible: hasLocalStream && isInActiveCall,
+        testId: "chat-video-filter-button",
+      },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -559,6 +579,7 @@ export function VideoControls({
           onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
           onReportOpen={() => setIsReportOpen(true)}
           onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
+          onVideoFilterPickerOpen={() => setIsVideoFilterPickerOpen(true)}
         />
       ))}
 
@@ -570,6 +591,7 @@ export function VideoControls({
           onPeerInfoOpen={() => setIsPeerInfoOpen(true)}
           onReportOpen={() => setIsReportOpen(true)}
           onStreamQualityOpen={() => setIsStreamQualityOpen(true)}
+          onVideoFilterPickerOpen={() => setIsVideoFilterPickerOpen(true)}
         />
       )}
 
@@ -737,6 +759,24 @@ export function VideoControls({
           </div>
         </DialogContent>
       </Dialog>
+      <VideoFilterPickerDialog
+        open={isVideoFilterPickerOpen}
+        onOpenChange={setIsVideoFilterPickerOpen}
+        selectedId={selectedVideoFilterId ?? null}
+        onSelect={onSelectVideoFilter ?? (() => {})}
+        fetchPresets={async () => {
+          const res = await fetchFromActionRoute<{ data: Array<{ id: string; slug: string; name: string; description: string | null; thumbnail_url: string | null }> }>("/api/resources/video-filter-presets");
+          const ids = (res?.data ?? []).map((p) => p.id);
+          if (ids.length === 0) return [];
+          const res2 = await fetchFromActionRoute<{ id: string; fragment_shader: string } & Record<string, unknown>>(`/api/resources/video-filter-presets/${ids[0]}`);
+          const all: Array<{ id: string; slug: string; name: string; description: string | null; thumbnail_url: string | null; fragment_shader: string }> = [];
+          for (const p of (res?.data ?? [])) {
+            const detail = await fetchFromActionRoute<{ id: string; fragment_shader: string } & Record<string, unknown>>(`/api/resources/video-filter-presets/${p.id}`);
+            all.push({ ...p, fragment_shader: detail.fragment_shader ?? "" });
+          }
+          return all;
+        }}
+      />
     </div>
   );
 }

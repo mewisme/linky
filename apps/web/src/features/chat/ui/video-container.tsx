@@ -50,6 +50,8 @@ interface VideoContainerProps {
   isPassive?: boolean;
   initialProgress?: UsersAPI.Progress.GetMe.Response;
   initialFavorites?: ResourcesAPI.Favorites.Get.Response;
+  selectedVideoFilterId?: string | null;
+  onSelectVideoFilter?: (presetId: string | null) => void;
 }
 
 interface WebkitPictureInPictureVideo extends HTMLVideoElement {
@@ -112,6 +114,8 @@ export function VideoContainer({
   isPassive = false,
   initialProgress,
   initialFavorites,
+  selectedVideoFilterId,
+  onSelectVideoFilter,
 }: VideoContainerProps) {
   const tCall = useTranslations("call");
   const tp = useTranslations("user.profile");
@@ -475,6 +479,8 @@ export function VideoContainer({
               sendFavoriteNotification={sendFavoriteNotification}
               initialFavorites={initialFavorites}
               onApplyStreamQuality={onApplyStreamQuality}
+              selectedVideoFilterId={selectedVideoFilterId}
+              onSelectVideoFilter={onSelectVideoFilter}
             />
           </div>
         )}

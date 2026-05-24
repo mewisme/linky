@@ -39,6 +39,7 @@ export default function CallLayout({
   const isFloatingMode = useVideoChatStore((s) => s.isFloatingMode);
   const callInitialProgress = useVideoChatStore((s) => s.callInitialProgress);
   const callInitialFavorites = useVideoChatStore((s) => s.callInitialFavorites);
+  const selectedVideoFilterId = useVideoChatStore((s) => s.selectedVideoFilterPresetId);
 
   const {
     isInActiveCall,
@@ -52,6 +53,7 @@ export default function CallLayout({
     isSharingScreen,
     sendFavoriteNotification,
     applyStreamQuality,
+    setVideoFilterPreset,
     isPassive,
   } = useGlobalCallContext();
 
@@ -99,6 +101,8 @@ export default function CallLayout({
           isPassive={isPassive}
           initialProgress={callInitialProgress ?? undefined}
           initialFavorites={callInitialFavorites ?? undefined}
+          selectedVideoFilterId={selectedVideoFilterId}
+          onSelectVideoFilter={(presetId) => setVideoFilterPreset(presetId, null)}
         />
       )}
       {children}

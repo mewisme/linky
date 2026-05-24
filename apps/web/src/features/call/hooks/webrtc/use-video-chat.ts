@@ -39,6 +39,7 @@ import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settin
 import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
 import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
 import { isCallMediaReadyForInCall } from "@/features/call/lib/webrtc/call-media-readiness";
+import { useVideoFilterPipeline } from "./use-video-filter-pipeline";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -61,6 +62,7 @@ export interface UseVideoChatReturn {
   toggleVideo: () => void;
   swapCamera: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
+  setVideoFilterPreset: (presetId: string | null, fragmentShader: string | null) => boolean;
   isSharingScreen: boolean;
   isPeerSharingScreen: boolean;
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
@@ -96,6 +98,7 @@ export function useVideoChat(): UseVideoChatReturn {
   actionsRef.current = actions;
 
   const mediaStream = useMediaStream();
+  const filterPipeline = useVideoFilterPipeline();
   const socketSignaling = useSocketSignaling();
   const screenShare = useScreenShare();
   const monitoring = useWebRTCMonitoring();
@@ -159,6 +162,7 @@ export function useVideoChat(): UseVideoChatReturn {
     onOwnershipLost: () => {
       monitoring.stopMonitoring();
       void sfuConnection.cleanup();
+      filterPipeline.dispose();
       mediaStream.releaseMedia();
       actionsRef.current.resetPeerState();
       actionsRef.current.setLocalStream(null);
@@ -728,7 +732,8 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setVideoOff(true);
       }
 
-      actionsRef.current.setLocalStream(stream);
+      const filtered = filterPipeline.start(stream);
+      actionsRef.current.setLocalStream(filtered);
 
       const initialize = initializeConnectionRef(socketCallbacks as Record<string, (...args: unknown[]) => void>);
       await initialize();
@@ -1044,6 +1049,10 @@ export function useVideoChat(): UseVideoChatReturn {
     toggleVideo,
     swapCamera,
     toggleScreenShare,
+    setVideoFilterPreset: (presetId, shader) => {
+      actionsRef.current.setSelectedVideoFilterPresetId(presetId);
+      return filterPipeline.setPreset(shader);
+    },
     isSharingScreen,
     isPeerSharingScreen,
     sendFavoriteNotification: socketSignaling.sendFavoriteNotification,

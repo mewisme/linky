@@ -66,6 +66,7 @@ func NewPublicApp(cfg *config.Config) *echo.Echo {
 	routes.RegisterWebhook(webhookGroup, cfg)
 
 	routes.RegisterInterestTagsPublic(e.Group("/api/v1/interest-tags"))
+	routes.RegisterVideoFilterPresetsPublic(e.Group("/api/v1/video-filter-presets"))
 	routes.RegisterQueueStatus(e.Group("/api/v1/matchmaking", middleware.RateLimit(cfg)), cfg)
 
 	authed := e.Group("/api/v1", middleware.Clerk())

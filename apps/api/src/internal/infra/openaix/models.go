@@ -30,8 +30,8 @@ func fetchModels(ctx context.Context, cap Capability) (*ModelsListResponse, erro
 	if base == "" {
 		return nil, fmt.Errorf("openai: base URL not configured")
 	}
-	if strings.HasSuffix(base, "/v1") {
-		base = strings.TrimSuffix(base, "/v1")
+	if before, ok := strings.CutSuffix(base, "/v1"); ok {
+		base = before
 	}
 	path := cap.ModelsListPath()
 	url := base + "/v1" + path

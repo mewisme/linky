@@ -32,6 +32,9 @@ func Clerk() echo.MiddlewareFunc {
 				clerkLog.Error().Err(err).Msg("Clerk token verification error")
 				return httpx.Unauthorized(c)
 			}
+			expTime := time.Now().Add(time.Duration(payload.Raw["exp"].(int64)-time.Now().Unix()) * time.Second)
+			clerkLog.Info().Str("sub", payload.Sub).Time("exp", expTime).Msg("Clerk token verified")
+
 			httpx.SetAuth(c, &httpx.AuthClaims{Sub: payload.Sub, Raw: payload.Raw})
 			return next(c)
 		}

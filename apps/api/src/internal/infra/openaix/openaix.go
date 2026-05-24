@@ -30,13 +30,23 @@ func LogConfigured() {
 			return
 		}
 		e := aiconfig.EffectiveConfig()
-		log.Info().
-			Str("base_url", e.BaseURL).
-			Str("embedding_model", e.EmbeddingModel).
-			Str("broadcast_model", e.ChatBroadcast).
-			Str("report_summary_model", e.ChatReportSummary).
-			Msg("OpenAI-compatible provider configured")
+		// move each model to a separate field
+		models := map[string]string{
+			"embedding":      e.EmbeddingModel,
+			"broadcast":      e.ChatBroadcast,
+			"report_summary": e.ChatReportSummary,
+		}
+		for model, name := range models {
+			if name == "" {
+				log.Info().Str("model", model).Msg("Model not configured")
+				continue
+			}
+			log.Info().Str("model", model).Str("name", name).Msg("Model configured")
+		}
 	})
+	log.Info().
+		Str("base_url", cfg.OpenAIBaseURL).
+		Msg("OpenAI-compatible provider configured")
 }
 
 func EmbedUserAPIBatchSize() int {

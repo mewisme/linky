@@ -49,7 +49,7 @@ import type { ConnectionStatus } from "@/features/call/hooks/webrtc/use-video-ch
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import type { ResourcesAPI } from "@/shared/types/resources.types";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
-import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "react";
+import React, { useState, useMemo, useEffect, useCallback, type ReactNode, Activity } from "react";
 
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useLocale, useTranslations } from "next-intl";
@@ -225,6 +225,21 @@ export function VideoControls({
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+
+  const fetchVideoFilterPresets = useCallback(async () => {
+    const res = await fetchFromActionRoute<{ data: Array<{ id: string; slug: string; name: string; description: string | null; thumbnail_url: string | null }> }>("/api/resources/video-filter-presets");
+    const items = res?.data ?? [];
+    if (items.length === 0) return [];
+    const settled = await Promise.allSettled(
+      items.map(async (p) => {
+        const detail = await fetchFromActionRoute<{ id: string; fragment_shader: string } & Record<string, unknown>>(`/api/resources/video-filter-presets/${p.id}`);
+        return { ...p, fragment_shader: detail.fragment_shader ?? "" };
+      })
+    );
+    return settled
+      .filter((r): r is PromiseFulfilledResult<{ id: string; slug: string; name: string; description: string | null; thumbnail_url: string | null; fragment_shader: string }> => r.status === "fulfilled")
+      .map((r) => r.value);
+  }, []);
 
   useEffect(() => {
     if (!peerInfo?.id) {
@@ -764,18 +779,7 @@ export function VideoControls({
         onOpenChange={setIsVideoFilterPickerOpen}
         selectedId={selectedVideoFilterId ?? null}
         onSelect={onSelectVideoFilter ?? (() => {})}
-        fetchPresets={async () => {
-          const res = await fetchFromActionRoute<{ data: Array<{ id: string; slug: string; name: string; description: string | null; thumbnail_url: string | null }> }>("/api/resources/video-filter-presets");
-          const ids = (res?.data ?? []).map((p) => p.id);
-          if (ids.length === 0) return [];
-          const res2 = await fetchFromActionRoute<{ id: string; fragment_shader: string } & Record<string, unknown>>(`/api/resources/video-filter-presets/${ids[0]}`);
-          const all: Array<{ id: string; slug: string; name: string; description: string | null; thumbnail_url: string | null; fragment_shader: string }> = [];
-          for (const p of (res?.data ?? [])) {
-            const detail = await fetchFromActionRoute<{ id: string; fragment_shader: string } & Record<string, unknown>>(`/api/resources/video-filter-presets/${p.id}`);
-            all.push({ ...p, fragment_shader: detail.fragment_shader ?? "" });
-          }
-          return all;
-        }}
+        fetchPresets={fetchVideoFilterPresets}
       />
     </div>
   );

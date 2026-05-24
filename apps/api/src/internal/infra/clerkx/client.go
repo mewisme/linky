@@ -59,6 +59,9 @@ func VerifyToken(ctx context.Context, token string) (*VerifiedToken, error) {
 		"sid": claims.SessionID,
 		"azp": claims.AuthorizedParty,
 	}
+	if claims.Expiry != nil {
+		raw["exp"] = *claims.Expiry
+	}
 	return &VerifiedToken{Sub: claims.Subject, Raw: raw}, nil
 }
 

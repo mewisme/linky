@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@ws/ui/compone
 import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
 import { Skeleton } from "@ws/ui/components/ui/skeleton";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 interface PresetOption {
@@ -51,9 +52,8 @@ export function VideoFilterPickerDialog({
         <ScrollArea className="max-h-[60vh]">
           <div className="space-y-2 pr-2">
             <button
-              className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                !selectedId ? "border-primary bg-primary/10" : "hover:bg-muted"
-              }`}
+              className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${!selectedId ? "border-primary bg-primary/10" : "hover:bg-muted"
+                }`}
               onClick={() => {
                 onSelect(null, null);
                 onOpenChange(false);
@@ -77,20 +77,21 @@ export function VideoFilterPickerDialog({
               presets.map((preset) => (
                 <button
                   key={preset.id}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${
-                    selectedId === preset.id ? "border-primary bg-primary/10" : "hover:bg-muted"
-                  }`}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-colors ${selectedId === preset.id ? "border-primary bg-primary/10" : "hover:bg-muted"
+                    }`}
                   onClick={() => {
                     onSelect(preset.id, preset.fragment_shader);
                     onOpenChange(false);
                   }}
                 >
-                  <div className="w-12 h-9 bg-muted rounded overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-9 bg-muted rounded overflow-hidden shrink-0 relative">
                     {preset.thumbnail_url ? (
-                      <img
+                      <Image
                         src={preset.thumbnail_url}
                         alt={preset.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="48px"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground">

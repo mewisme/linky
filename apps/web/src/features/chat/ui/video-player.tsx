@@ -129,7 +129,7 @@ export function VideoPlayer({
         height: '100%',
         display: 'block',
         ...(mirrored && {
-          transform: 'scaleX(-1)',
+          transform: 'rotateY(180deg) scale(-1, -1)',
           transformOrigin: 'center center',
         }),
       }}

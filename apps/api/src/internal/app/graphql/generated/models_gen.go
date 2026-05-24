@@ -11,6 +11,25 @@ type Admin struct {
 	ConfigByKey  any               `json:"configByKey,omitempty"`
 	Broadcasts   any               `json:"broadcasts"`
 	Embeddings   *GenericTablePage `json:"embeddings"`
+	Users        any               `json:"users"`
+	User         any               `json:"user,omitempty"`
+	AiConfig     any               `json:"aiConfig"`
+	AiModels     any               `json:"aiModels,omitempty"`
+}
+
+type AdminMutation struct {
+	PatchUser              any             `json:"patchUser,omitempty"`
+	SoftDeleteUser         *bool           `json:"softDeleteUser,omitempty"`
+	PatchReport            any             `json:"patchReport,omitempty"`
+	EnqueueReportAiSummary *AsyncJobResult `json:"enqueueReportAiSummary,omitempty"`
+	RegenerateEmbeddings   *AsyncJobResult `json:"regenerateEmbeddings,omitempty"`
+	SyncEmbeddings         *AsyncJobResult `json:"syncEmbeddings,omitempty"`
+	SyncAllEmbeddings      *AsyncJobResult `json:"syncAllEmbeddings,omitempty"`
+	CompareEmbeddings      any             `json:"compareEmbeddings,omitempty"`
+	FindSimilarEmbeddings  any             `json:"findSimilarEmbeddings,omitempty"`
+	CreateBroadcast        any             `json:"createBroadcast,omitempty"`
+	GenerateBroadcastAi    any             `json:"generateBroadcastAi,omitempty"`
+	UpdateAiConfig         any             `json:"updateAiConfig,omitempty"`
 }
 
 type AdminReportsPage struct {
@@ -20,11 +39,25 @@ type AdminReportsPage struct {
 	Offset int `json:"offset"`
 }
 
+type AsyncJobResult struct {
+	Queued    bool `json:"queued"`
+	Enqueued  *int `json:"enqueued,omitempty"`
+	Scheduled *int `json:"scheduled,omitempty"`
+}
+
 type CallHistoryPage struct {
 	Data   any `json:"data"`
 	Count  int `json:"count"`
 	Limit  int `json:"limit"`
 	Offset int `json:"offset"`
+}
+
+type CreateCallHistoryInput struct {
+	CallerID        string  `json:"callerId"`
+	CalleeID        string  `json:"calleeId"`
+	StartedAt       *string `json:"startedAt,omitempty"`
+	EndedAt         *string `json:"endedAt,omitempty"`
+	DurationSeconds *int    `json:"durationSeconds,omitempty"`
 }
 
 type GenericTablePage struct {
@@ -35,6 +68,9 @@ type GenericTablePage struct {
 type InterestTagPage struct {
 	Data       any `json:"data"`
 	Pagination any `json:"pagination"`
+}
+
+type Mutation struct {
 }
 
 type NotificationsPage struct {
@@ -62,4 +98,23 @@ type Viewer struct {
 	CallHistory             *CallHistoryPage   `json:"callHistory"`
 	CallHistoryItem         any                `json:"callHistoryItem,omitempty"`
 	Reports                 *ReportsPage       `json:"reports"`
+	StreakCalendar          any                `json:"streakCalendar"`
+	StreakHistory           any                `json:"streakHistory"`
+	Favorites               any                `json:"favorites"`
+	Blocks                  any                `json:"blocks"`
+}
+
+type ViewerMutation struct {
+	UpdateCountry       any   `json:"updateCountry,omitempty"`
+	UpdateUserDetails   any   `json:"updateUserDetails,omitempty"`
+	AddInterestTags     any   `json:"addInterestTags,omitempty"`
+	RemoveInterestTags  any   `json:"removeInterestTags,omitempty"`
+	ReplaceInterestTags any   `json:"replaceInterestTags,omitempty"`
+	ClearInterestTags   any   `json:"clearInterestTags,omitempty"`
+	AddFavorite         any   `json:"addFavorite,omitempty"`
+	RemoveFavorite      any   `json:"removeFavorite,omitempty"`
+	CreateBlock         any   `json:"createBlock,omitempty"`
+	DeleteBlock         *bool `json:"deleteBlock,omitempty"`
+	CreateReport        any   `json:"createReport,omitempty"`
+	CreateCallHistory   any   `json:"createCallHistory,omitempty"`
 }

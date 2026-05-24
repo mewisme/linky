@@ -16,6 +16,41 @@ Resolvers call the same `app/*` and `supax` functions as REST (Clerk-scoped inte
 | `interestTags`, `interestTag` | `GET /interest-tags` (Clerk required) |
 | `admin { reports, report, interestTags, expBonuses, config, configByKey, broadcasts, embeddings }` | `/admin/*` list/get reads |
 
+### Tier 2 schema (reads + mutations) — implemented
+
+| GraphQL | REST equivalent |
+|---------|-----------------|
+| `viewer { streakCalendar, streakHistory, favorites, blocks }` | `/users/streak/calendar`, `/users/streak/me/history`, `/favorites`, `/users/blocks/me` |
+| `mutation.viewer { updateCountry, updateUserDetails, addInterestTags, removeInterestTags, replaceInterestTags, clearInterestTags, addFavorite, removeFavorite, createBlock, deleteBlock, createReport, createCallHistory }` | `/users/me/country`, `/users/details/*`, `/favorites`, `/users/blocks`, `/reports`, `POST /call-history` |
+| `admin { users, user, aiConfig, aiModels }` | `GET /admin/users`, `/admin/users/:id`, `/admin/ai/config`, `/admin/ai/models` |
+| `mutation.admin { patchUser, softDeleteUser, patchReport, enqueueReportAiSummary, regenerateEmbeddings, syncEmbeddings, syncAllEmbeddings, compareEmbeddings, findSimilarEmbeddings, createBroadcast, generateBroadcastAi, updateAiConfig }` | matching `/admin/*` write routes |
+
+Shared logic lives in `app/user`, `app/favorite`, `app/report`, `app/videochat`, and `app/admin` — REST handlers delegate to the same functions as GraphQL resolvers.
+
+Example queries:
+
+```graphql
+query StreakAndFavorites {
+  viewer {
+    streakCalendar(year: 2026, month: 5)
+    favorites
+    blocks
+  }
+}
+
+mutation CreateReport {
+  viewer {
+    createReport(reportedUserId: "...", reason: "harassment", description: "...")
+  }
+}
+
+query AdminUsers {
+  admin {
+    users(page: 1, limit: 50, deleted: false)
+  }
+}
+```
+
 Generate after schema changes:
 
 ```bash
@@ -132,7 +167,7 @@ These are read-heavy, relational, or classic CRUD. They benefit from **one query
 
 ---
 
-### Tier 2 — Migrate with native resolvers only (not raw Supabase proxy)
+### Tier 2 — Migrate with native resolvers only (not raw Supabase proxy) — **done**
 
 These hit **app/domain logic**, side effects, or computed fields. Supabase `pg_graphql` alone will not match REST behavior or auth.
 
@@ -154,7 +189,7 @@ These hit **app/domain logic**, side effects, or computed fields. Supabase `pg_g
 | **Admin AI config** | GET/PUT | Redaction/merge via `aiconfig` |
 | **User me country** | PATCH | CF header + clerk sync logic in `user.GetMe` path |
 
-Implement these as **gqlgen resolvers** calling existing `app/*` and `supax` helpers — same as REST handlers do today.
+Implemented as **gqlgen resolvers** calling `app/*` helpers — same as REST handlers.
 
 ---
 
@@ -188,11 +223,12 @@ flowchart LR
 1. **Phase 1 — `viewer` query** (done)  
    `me`, `details`, `settings`, `profile`, `notifications`, `callHistory` (reads only) on `POST /api/v1/graphql`.
 
-2. **Phase 2 — Catalog + admin reads**  
+2. **Phase 2 — Catalog + admin reads** (done)  
    Public `interestTags`; admin `reports`, `interestTags`, `expBonuses`, `config`, `broadcasts`, `embeddings` (list).
 
-3. **Phase 3 — Mutations**  
-   `updateUserDetails`, `updateSettings`, `createReport`, `markNotificationRead`, favorites/blocks with existing app validation.
+3. **Phase 3 — Mutations** (Tier 2 done; remaining Tier 3)  
+   Tier 2: `updateUserDetails`, favorites/blocks, `createReport`, `createCallHistory`, admin user/report/embedding/broadcast/aiConfig mutations.  
+   Still REST-only: `updateSettings`, `markNotificationRead`, admin Clerk API, S3, webhooks, batch ops.
 
 4. **Never (or only if you add a separate “admin GraphQL” with strict field policies)**  
    S3, Clerk admin, webhooks, realtime, job triggers.

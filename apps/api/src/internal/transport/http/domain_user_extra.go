@@ -1,22 +1,21 @@
 package routes
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
-	"time"
 
 	"github.com/labstack/echo/v4"
 
-	"linky-api/src/internal/app/report"
+	"linky-api/src/internal/app/favorite"
+	reportapp "linky-api/src/internal/app/report"
+	"linky-api/src/internal/app/user"
+	"linky-api/src/internal/app/videochat"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/supax"
 )
-
-const bioMaxLength = 500
 
 func registerUserDetailsRoutes(g *echo.Group) {
 	g.GET("/me", handleUserDetailsGet)
@@ -51,72 +50,6 @@ func handleUserDetailsGet(c echo.Context) error {
 	return c.JSON(http.StatusOK, details)
 }
 
-func validateAndApplyDetails(c echo.Context, body map[string]any) error {
-	if interestTags, ok := body["interest_tags"]; ok && interestTags != nil {
-		arr, ok := interestTags.([]any)
-		if !ok {
-			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UMDetail("PUT_DETAILS_VALIDATION", "interest_tags must be an array"))
-		}
-		ids := make([]string, 0, len(arr))
-		for _, v := range arr {
-			s, _ := v.(string)
-			if s == "" {
-				continue
-			}
-			ids = append(ids, s)
-		}
-		if len(ids) > 0 {
-			valid, err := supax.GetInterestTagsByIDs(c.Request().Context(), ids)
-			if err != nil {
-				return httpx.SendError(c, 500, "Internal Server Error",
-					httpx.UM("INTEREST_TAGS_VALIDATE", "failedValidateInterestTags", "Failed to validate interest tags"))
-			}
-			if len(valid) != len(ids) {
-				validIDs := map[string]bool{}
-				for _, t := range valid {
-					validIDs[t.ID] = true
-				}
-				missing := []string{}
-				for _, id := range ids {
-					if !validIDs[id] {
-						missing = append(missing, id)
-					}
-				}
-				return httpx.SendError(c, 400, "Bad Request",
-					httpx.UMDetail("PUT_DETAILS_VALIDATION", "Invalid interest tag IDs: "+strings.Join(missing, ", ")))
-			}
-		}
-		body["interest_tags"] = ids
-	}
-	if dob, ok := body["date_of_birth"]; ok && dob != nil {
-		s, _ := dob.(string)
-		if s != "" {
-			t, err := time.Parse("2006-01-02", s)
-			if err != nil {
-				if t2, err2 := time.Parse(time.RFC3339, s); err2 == nil {
-					t = t2
-				} else {
-					return httpx.SendError(c, 400, "Bad Request",
-						httpx.UMDetail("PUT_DETAILS_DOB", "Date of birth must be a valid date"))
-				}
-			}
-			if t.After(time.Now()) {
-				return httpx.SendError(c, 400, "Bad Request",
-					httpx.UMDetail("PUT_DETAILS_DOB", "Date of birth cannot be in the future"))
-			}
-		}
-	}
-	if bio, ok := body["bio"]; ok && bio != nil {
-		s, _ := bio.(string)
-		if len(s) > bioMaxLength {
-			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UMDetail("PUT_DETAILS_BIO", "Bio must be 500 characters or less"))
-		}
-	}
-	return nil
-}
-
 func handleUserDetailsPut(c echo.Context) error {
 	clerkID := httpx.MustClerkUserID(c)
 	uid, _ := supax.GetUserInternalID(c.Request().Context(), clerkID)
@@ -130,15 +63,15 @@ func handleUserDetailsPut(c echo.Context) error {
 	if body == nil {
 		body = map[string]any{}
 	}
-	delete(body, "user_id")
-	if err := validateAndApplyDetails(c, body); err != nil {
-		return err
-	}
-	if _, err := supax.UpsertUserDetails(c.Request().Context(), uid, body); err != nil {
+	details, err := user.UpsertDetails(c.Request().Context(), uid, body)
+	if err != nil {
+		var ve *user.DetailsValidationError
+		if errors.As(err, &ve) {
+			return httpx.SendError(c, 400, "Bad Request", httpx.UMDetail(ve.Code, ve.Message))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_UPDATE_DETAILS_PUT", "failedUpdateUserDetails", "Failed to update user details"))
 	}
-	details, _ := supax.GetUserDetailsWithTags(c.Request().Context(), uid)
 	return c.JSON(http.StatusOK, details)
 }
 
@@ -165,12 +98,11 @@ func handleClearInterestTags(c echo.Context) error {
 		return httpx.SendError(c, 404, "Not Found",
 			httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
 	}
-	body := map[string]any{"interest_tags": nil}
-	if _, err := supax.UpsertUserDetails(c.Request().Context(), uid, body); err != nil {
+	details, err := user.ClearInterestTags(c.Request().Context(), uid)
+	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_CLEAR_TAGS", "failedClearInterestTags", "Failed to clear interest tags"))
 	}
-	details, _ := supax.GetUserDetailsWithTags(c.Request().Context(), uid)
 	return c.JSON(http.StatusOK, details)
 }
 
@@ -186,86 +118,23 @@ func mutateInterestTags(c echo.Context, mode string) error {
 		TagIDs []string `json:"tagIds"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if mode != "replace" && len(input.TagIDs) == 0 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("TAG_IDS_NON_EMPTY", "tagIdsNonEmpty", "tagIds must be a non-empty array"))
-	}
-	if mode == "replace" && input.TagIDs == nil {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("TAG_IDS_ARRAY", "tagIdsArray", "tagIds must be an array"))
-	}
-	if mode != "remove" && len(input.TagIDs) > 0 {
-		valid, err := supax.GetInterestTagsByIDs(c.Request().Context(), input.TagIDs)
-		if err != nil {
-			return httpx.SendError(c, 500, "Internal Server Error",
-				httpx.UM("INTEREST_TAGS_VALIDATE", "failedValidateInterestTags", "Failed to validate interest tags"))
-		}
-		if len(valid) != len(input.TagIDs) {
-			validIDs := map[string]bool{}
-			for _, t := range valid {
-				validIDs[t.ID] = true
-			}
-			missing := []string{}
-			for _, id := range input.TagIDs {
-				if !validIDs[id] {
-					missing = append(missing, id)
-				}
-			}
-			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UMDetail("ADD_TAGS_INVALID", "Invalid or inactive tag IDs: "+strings.Join(missing, ", ")))
-		}
-	}
-
-	existing, err := supax.GetUserDetailsByUserID(c.Request().Context(), uid)
+	details, err := user.MutateInterestTags(c.Request().Context(), uid, mode, input.TagIDs)
 	if err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_FETCH_DETAILS", "failedFetchUserDetails", "Failed to fetch user details"))
-	}
-	current := []string{}
-	if existing != nil {
-		current = append(current, existing.InterestTags...)
-	}
-	var updated []string
-	switch mode {
-	case "add":
-		set := map[string]bool{}
-		for _, t := range current {
-			set[t] = true
+		if errors.Is(err, user.ErrTagIDsNonEmpty) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("TAG_IDS_NON_EMPTY", "tagIdsNonEmpty", "tagIds must be a non-empty array"))
 		}
-		for _, t := range input.TagIDs {
-			set[t] = true
+		if errors.Is(err, user.ErrTagIDsArray) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("TAG_IDS_ARRAY", "tagIdsArray", "tagIds must be an array"))
 		}
-		for k := range set {
-			updated = append(updated, k)
+		var ve *user.DetailsValidationError
+		if errors.As(err, &ve) {
+			return httpx.SendError(c, 400, "Bad Request", httpx.UMDetail(ve.Code, ve.Message))
 		}
-	case "remove":
-		drop := map[string]bool{}
-		for _, t := range input.TagIDs {
-			drop[t] = true
-		}
-		for _, t := range current {
-			if !drop[t] {
-				updated = append(updated, t)
-			}
-		}
-	case "replace":
-		seen := map[string]bool{}
-		for _, t := range input.TagIDs {
-			if !seen[t] {
-				seen[t] = true
-				updated = append(updated, t)
-			}
-		}
-	}
-	body := map[string]any{"interest_tags": updated}
-	if mode == "remove" && len(updated) == 0 {
-		body["interest_tags"] = nil
-	}
-	if _, err := supax.UpsertUserDetails(c.Request().Context(), uid, body); err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_TAGS_MUTATE", "failedMutateInterestTags", "Failed to mutate interest tags"))
 	}
-	details, _ := supax.GetUserDetailsWithTags(c.Request().Context(), uid)
 	return c.JSON(http.StatusOK, details)
 }
 
@@ -346,38 +215,21 @@ func handleStreakHistory(c echo.Context) error {
 			httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
 	}
 	limit, _ := strconv.Atoi(c.QueryParam("limit"))
-	if limit <= 0 {
-		limit = 50
-	}
-	if limit > 100 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("STREAK_LIMIT_RANGE", "limitBetween1And100", "Limit must be between 1 and 100"))
-	}
 	offset, _ := strconv.Atoi(c.QueryParam("offset"))
-	if offset < 0 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("STREAK_OFFSET_NONNEG", "offsetNonNegative", "Offset must be a non-negative number"))
-	}
-	rows, count, err := supax.GetUserStreakDays(c.Request().Context(), uid, limit, offset)
+	out, err := user.StreakHistory(c.Request().Context(), uid, limit, offset)
 	if err != nil {
+		if errors.Is(err, user.ErrStreakLimitRange) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("STREAK_LIMIT_RANGE", "limitBetween1And100", "Limit must be between 1 and 100"))
+		}
+		if errors.Is(err, user.ErrStreakOffsetNonNeg) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("STREAK_OFFSET_NONNEG", "offsetNonNegative", "Offset must be a non-negative number"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_FETCH_STREAK_HISTORY", "failedFetchStreakHistory", "Failed to fetch user streak history"))
 	}
-	if rows == nil {
-		rows = []supax.UserStreakDayRow{}
-	}
-	out := make([]map[string]any, 0, len(rows))
-	for _, r := range rows {
-		out = append(out, map[string]any{
-			"id":               r.ID,
-			"userId":           r.UserID,
-			"date":             r.Date,
-			"totalCallSeconds": r.TotalCallSeconds,
-			"isValid":          r.IsValid,
-			"createdAt":        r.CreatedAt,
-		})
-	}
-	return c.JSON(http.StatusOK, map[string]any{"data": out, "count": count})
+	return c.JSON(http.StatusOK, out)
 }
 
 func handleStreakCalendar(c echo.Context) error {
@@ -389,40 +241,22 @@ func handleStreakCalendar(c echo.Context) error {
 	}
 	year, _ := strconv.Atoi(c.QueryParam("year"))
 	month, _ := strconv.Atoi(c.QueryParam("month"))
-	if year == 0 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("YEAR_QUERY_REQUIRED", "yearQueryRequired", "Year query parameter is required and must be a number"))
-	}
-	if month == 0 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("MONTH_QUERY_REQUIRED", "monthQueryRequired", "Month query parameter is required and must be a number"))
-	}
-	if month < 1 || month > 12 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("MONTH_RANGE", "monthBetween1And12", "Month must be between 1 and 12"))
-	}
-	rows, err := supax.GetUserStreakDaysByMonth(c.Request().Context(), uid, year, month)
+	out, err := user.StreakCalendar(c.Request().Context(), uid, year, month)
 	if err != nil {
+		if errors.Is(err, user.ErrYearRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("YEAR_QUERY_REQUIRED", "yearQueryRequired", "Year query parameter is required and must be a number"))
+		}
+		if errors.Is(err, user.ErrMonthRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("MONTH_QUERY_REQUIRED", "monthQueryRequired", "Month query parameter is required and must be a number"))
+		}
+		if errors.Is(err, user.ErrMonthRange) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("MONTH_RANGE", "monthBetween1And12", "Month must be between 1 and 12"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_FETCH_STREAK_CAL", "failedFetchStreakCalendar", "Failed to fetch user streak calendar"))
-	}
-	tz, _ := supax.GetUserTimezone(c.Request().Context(), uid)
-	if tz == "" {
-		tz = "UTC"
-	}
-	loc, err := time.LoadLocation(tz)
-	if err != nil {
-		loc = time.UTC
-	}
-	todayStr := time.Now().In(loc).Format("2006-01-02")
-	out := make([]map[string]any, 0, len(rows))
-	for _, r := range rows {
-		out = append(out, map[string]any{
-			"date":             r.Date,
-			"isValid":          r.IsValid,
-			"totalCallSeconds": r.TotalCallSeconds,
-			"isToday":          r.Date == todayStr,
-		})
 	}
 	return c.JSON(http.StatusOK, out)
 }
@@ -470,34 +304,26 @@ func handleCreateReport(c echo.Context) error {
 		Metadata       map[string]any `json:"metadata"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if input.ReportedUserID == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("REPORT_TARGET_REQUIRED", "reportTargetRequired", "reported_user_id is required"))
-	}
-	if input.Reason == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("REPORT_REASON_REQUIRED", "reportReasonRequired", "reason is required"))
-	}
-	if input.ReportedUserID == uid {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UMDetail("REPORT_SELF", "Cannot report yourself"))
-	}
-	body := map[string]any{
-		"reporter_user_id": uid,
-		"reported_user_id": input.ReportedUserID,
-		"reason":           input.Reason,
-		"status":           "pending",
-	}
-	row, err := supax.CreateReport(c.Request().Context(), body)
+	row, err := reportapp.Create(c.Request().Context(), uid, reportapp.CreateInput{
+		ReportedUserID: input.ReportedUserID,
+		Reason:         input.Reason,
+		Description:    input.Description,
+		Metadata:       input.Metadata,
+	})
 	if err != nil {
+		if errors.Is(err, reportapp.ErrReportTargetRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("REPORT_TARGET_REQUIRED", "reportTargetRequired", "reported_user_id is required"))
+		}
+		if errors.Is(err, reportapp.ErrReportReasonRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("REPORT_REASON_REQUIRED", "reportReasonRequired", "reason is required"))
+		}
+		if errors.Is(err, reportapp.ErrReportSelf) {
+			return httpx.SendError(c, 400, "Bad Request", httpx.UMDetail("REPORT_SELF", "Cannot report yourself"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_CREATE_REPORT", "failedCreateReport", "Failed to create report"))
-	}
-	if row != nil && input.Metadata != nil {
-		_ = supax.CreateReportContext(c.Request().Context(), row.ID, input.Metadata)
-	}
-	if row != nil {
-		go report.OnReportCreated(context.Background(), row.ID)
 	}
 	return c.JSON(http.StatusCreated, row)
 }
@@ -519,18 +345,12 @@ func handleListFavorites(c echo.Context) error {
 		return httpx.SendError(c, 404, "Not Found",
 			httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
 	}
-	rows, err := supax.GetFavoritesWithStats(c.Request().Context(), uid)
+	out, err := favorite.ListWithStats(c.Request().Context(), uid)
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_FETCH_FAVORITES", "failedFetchFavorites", "Failed to fetch favorites"))
 	}
-	if rows == nil {
-		rows = []supax.FavoriteWithStatsRow{}
-	}
-	return c.JSON(http.StatusOK, map[string]any{
-		"data":  rows,
-		"count": len(rows),
-	})
+	return c.JSON(http.StatusOK, out)
 }
 
 func handleCreateFavorite(c echo.Context) error {
@@ -549,42 +369,26 @@ func handleCreateFavorite(c echo.Context) error {
 		FavoriteUserID string `json:"favorite_user_id"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if input.FavoriteUserID == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("FAVORITE_USER_ID_REQUIRED", "favoriteUserIdRequired", "favorite_user_id is required"))
-	}
-	if input.FavoriteUserID == uid {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("CANNOT_FAVORITE_SELF", "cannotFavoriteYourself", "Cannot favorite yourself"))
-	}
-
-	limitCheck, err := supax.CheckDailyFavoriteLimitReached(c.Request().Context(), uid)
+	row, err := favorite.Add(c.Request().Context(), uid, input.FavoriteUserID)
 	if err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_ADD_FAVORITE", "failedAddFavorite", "Failed to add favorite"))
-	}
-	if limitCheck.Reached {
-		return httpx.SendErrorExtra(c, 429, "Too Many Requests",
-			httpx.UM("DAILY_FAVORITE_LIMIT", "dailyFavoriteLimitReached", "Daily favorite limit reached"),
-			map[string]interface{}{"current": limitCheck.Current, "limit": limitCheck.Limit})
-	}
-
-	exists, err := supax.CheckFavoriteExists(c.Request().Context(), uid, input.FavoriteUserID)
-	if err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_ADD_FAVORITE", "failedAddFavorite", "Failed to add favorite"))
-	}
-	if exists {
-		return httpx.SendError(c, 409, "Conflict",
-			httpx.UM("ALREADY_IN_FAVORITES", "alreadyInFavorites", "User is already in favorites"))
-	}
-
-	row, err := supax.CreateFavorite(c.Request().Context(), uid, input.FavoriteUserID)
-	if err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_ADD_FAVORITE", "failedAddFavorite", "Failed to add favorite"))
-	}
-	if err := supax.IncrementFavoriteLimit(c.Request().Context(), uid); err != nil {
+		var limitErr *favorite.DailyLimitError
+		if errors.As(err, &limitErr) {
+			return httpx.SendErrorExtra(c, 429, "Too Many Requests",
+				httpx.UM("DAILY_FAVORITE_LIMIT", "dailyFavoriteLimitReached", "Daily favorite limit reached"),
+				map[string]interface{}{"current": limitErr.Current, "limit": limitErr.Limit})
+		}
+		if errors.Is(err, favorite.ErrFavoriteUserIDReq) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("FAVORITE_USER_ID_REQUIRED", "favoriteUserIdRequired", "favorite_user_id is required"))
+		}
+		if errors.Is(err, favorite.ErrSelfFavorite) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("CANNOT_FAVORITE_SELF", "cannotFavoriteYourself", "Cannot favorite yourself"))
+		}
+		if errors.Is(err, favorite.ErrAlreadyExists) {
+			return httpx.SendError(c, 409, "Conflict",
+				httpx.UM("ALREADY_IN_FAVORITES", "alreadyInFavorites", "User is already in favorites"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_ADD_FAVORITE", "failedAddFavorite", "Failed to add favorite"))
 	}
@@ -604,43 +408,20 @@ func handleDeleteFavorite(c echo.Context) error {
 			httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
 	}
 	target := c.Param("favorite_user_id")
-	if target == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("FAVORITE_USER_ID_REQUIRED", "favoriteUserIdRequired", "favorite_user_id is required"))
-	}
-
-	exists, err := supax.CheckFavoriteExists(c.Request().Context(), uid, target)
+	refunded, err := favorite.Remove(c.Request().Context(), uid, target)
 	if err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_REMOVE_FAVORITE", "failedRemoveFavorite", "Failed to remove favorite"))
-	}
-	if !exists {
-		return httpx.SendError(c, 404, "Not Found",
-			httpx.UM("FAVORITE_NOT_FOUND", "favoriteNotFound", "Favorite not found"))
-	}
-
-	createdAt, _ := supax.GetFavoriteCreationDate(c.Request().Context(), uid, target)
-	today := time.Now().UTC().Format("2006-01-02")
-	createdDate := ""
-	if createdAt != "" {
-		if idx := strings.Index(createdAt, "T"); idx > 0 {
-			createdDate = createdAt[:idx]
-		} else {
-			createdDate = createdAt
+		if errors.Is(err, favorite.ErrFavoriteUserIDReq) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("FAVORITE_USER_ID_REQUIRED", "favoriteUserIdRequired", "favorite_user_id is required"))
 		}
-	}
-	isSameDay := createdDate != "" && createdDate == today
-
-	if err := supax.DeleteFavorite(c.Request().Context(), uid, target); err != nil {
+		if errors.Is(err, favorite.ErrNotFound) {
+			return httpx.SendError(c, 404, "Not Found",
+				httpx.UM("FAVORITE_NOT_FOUND", "favoriteNotFound", "Favorite not found"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_REMOVE_FAVORITE", "failedRemoveFavorite", "Failed to remove favorite"))
 	}
-
-	if isSameDay {
-		_ = supax.DecrementFavoriteLimit(c.Request().Context(), uid)
-	}
-
-	return httpx.SendUserMessage(c, http.StatusOK, map[string]interface{}{"refunded": isSameDay},
+	return httpx.SendUserMessage(c, http.StatusOK, map[string]interface{}{"refunded": refunded},
 		httpx.UM("FAVORITE_REMOVED", "favoriteRemovedSuccess", "Favorite removed successfully"))
 }
 
@@ -660,38 +441,22 @@ func handleCreateCallHistory(c echo.Context) error {
 		DurationSeconds *int   `json:"duration_seconds"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if input.CallerID == "" || input.CalleeID == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("CALLER_CALLEE_REQUIRED", "callerCalleeRequired", "caller_id and callee_id are required"))
-	}
-	if input.CallerID != uid && input.CalleeID != uid {
-		return httpx.SendError(c, 403, "Forbidden",
-			httpx.UM("CALL_HISTORY_SELF_ONLY", "callHistorySelfOnly", "You can only create call history records for yourself"))
-	}
-	startedAt := time.Now()
-	if input.StartedAt != "" {
-		if t, err := time.Parse(time.RFC3339, input.StartedAt); err == nil {
-			startedAt = t
-		}
-	}
-	var endedAt *time.Time
-	if input.EndedAt != "" {
-		if t, err := time.Parse(time.RFC3339, input.EndedAt); err == nil {
-			endedAt = &t
-		}
-	}
-	callerCountry, _ := supax.GetUserCountry(c.Request().Context(), input.CallerID)
-	calleeCountry, _ := supax.GetUserCountry(c.Request().Context(), input.CalleeID)
-	row, err := supax.CreateCallHistory(c.Request().Context(), supax.CreateCallHistoryParams{
+	row, err := videochat.CreateCallHistory(c.Request().Context(), uid, videochat.CreateCallHistoryInput{
 		CallerID:        input.CallerID,
 		CalleeID:        input.CalleeID,
-		CallerCountry:   callerCountry,
-		CalleeCountry:   calleeCountry,
-		StartedAt:       startedAt,
-		EndedAt:         endedAt,
+		StartedAt:       input.StartedAt,
+		EndedAt:         input.EndedAt,
 		DurationSeconds: input.DurationSeconds,
 	})
 	if err != nil {
+		if errors.Is(err, videochat.ErrCallerCalleeRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("CALLER_CALLEE_REQUIRED", "callerCalleeRequired", "caller_id and callee_id are required"))
+		}
+		if errors.Is(err, videochat.ErrCallHistorySelfOnly) {
+			return httpx.SendError(c, 403, "Forbidden",
+				httpx.UM("CALL_HISTORY_SELF_ONLY", "callHistorySelfOnly", "You can only create call history records for yourself"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_CREATE_CALL_HISTORY", "failedCreateCallHistory", "Failed to create call history"))
 	}

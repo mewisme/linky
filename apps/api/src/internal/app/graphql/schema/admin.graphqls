@@ -13,6 +13,10 @@ type Admin {
   configByKey(key: String!): JSON
   broadcasts(limit: Int = 50, offset: Int = 0): JSON!
   embeddings(limit: Int = 50, offset: Int = 0): GenericTablePage!
+  users(page: Int = 1, limit: Int = 50, role: String, search: String, deleted: Boolean): JSON!
+  user(id: ID!): JSON
+  aiConfig: JSON!
+  aiModels(capability: String): JSON
 }
 
 type AdminReportsPage {

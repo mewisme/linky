@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"linky-api/src/internal/app/admin"
 	"linky-api/src/internal/app/graphql/generated"
 	"linky-api/src/internal/app/graphql/gqlx"
 	"linky-api/src/internal/infra/aiconfig"
@@ -127,27 +128,53 @@ func (r *adminResolver) Embeddings(ctx context.Context, obj *generated.Admin, li
 	return r.adminGenericTable(ctx, "user_embeddings", limit, offset)
 }
 
+// Users is the resolver for the users field.
+func (r *adminResolver) Users(ctx context.Context, obj *generated.Admin, page *int, limit *int, role *string, search *string, deleted *bool) (any, error) {
+	p := 1
+	if page != nil && *page > 0 {
+		p = *page
+	}
+	out, err := admin.ListUsers(ctx, admin.ListUsersOptions{
+		Page: p, Limit: gqlx.IntDefault(limit, 50),
+		Role: gqlx.StrPtr(role), Search: gqlx.StrPtr(search), Deleted: deleted,
+	})
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_USERS", "failedFetchUsers", "Failed to fetch users", err))
+	}
+	return out, nil
+}
+
+// User is the resolver for the user field.
+func (r *adminResolver) User(ctx context.Context, obj *generated.Admin, id string) (any, error) {
+	row, err := admin.GetUser(ctx, id)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_USER", "failedFetchUser", "Failed to fetch user", err))
+	}
+	if row == nil {
+		return nil, gqlx.ErrNotFound("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database")
+	}
+	return row, nil
+}
+
+// AiConfig is the resolver for the aiConfig field.
+func (r *adminResolver) AiConfig(ctx context.Context, obj *generated.Admin) (any, error) {
+	out, err := admin.GetAIConfig(ctx)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_AI_CONFIG", "failedFetchAiConfig", "Failed to fetch AI config", err))
+	}
+	return out, nil
+}
+
+// AiModels is the resolver for the aiModels field.
+func (r *adminResolver) AiModels(ctx context.Context, obj *generated.Admin, capability *string) (any, error) {
+	out, err := admin.ListAIModels(ctx, capability)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("AI_MODELS_LIST_FAIL", "aiModelsListFail", err.Error(), err))
+	}
+	return out, nil
+}
+
 // Admin returns generated.AdminResolver implementation.
 func (r *Resolver) Admin() generated.AdminResolver { return &adminResolver{r} }
 
 type adminResolver struct{ *Resolver }
-
-func (r *adminResolver) adminGenericTable(ctx context.Context, table string, limit *int, offset *int) (*generated.GenericTablePage, error) {
-	lim := gqlx.IntDefault(limit, 50)
-	off := gqlx.IntDefault(offset, 0)
-	rows, count, err := supax.ListGenericTable(ctx, table, lim, off)
-	if err != nil {
-		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_TABLE", "failedFetchTable", "Failed to fetch records", err))
-	}
-	if rows == nil {
-		rows = []map[string]any{}
-	}
-	data, err := gqlx.ToAny(rows)
-	if err != nil {
-		return nil, gqlx.AsGraphQLError(err)
-	}
-	return &generated.GenericTablePage{
-		Data:  data,
-		Count: int(count),
-	}, nil
-}

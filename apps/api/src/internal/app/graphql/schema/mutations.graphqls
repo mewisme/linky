@@ -1,0 +1,48 @@
+type Mutation {
+  viewer: ViewerMutation! @auth
+  admin: AdminMutation! @auth @admin
+}
+
+type ViewerMutation {
+  updateCountry(country: String!): JSON
+  updateUserDetails(input: JSON!): JSON
+  addInterestTags(tagIds: [ID!]!): JSON
+  removeInterestTags(tagIds: [ID!]!): JSON
+  replaceInterestTags(tagIds: [ID!]!): JSON
+  clearInterestTags: JSON
+  addFavorite(favoriteUserId: ID!): JSON
+  removeFavorite(favoriteUserId: ID!): JSON
+  createBlock(blockedUserId: ID!): JSON
+  deleteBlock(blockedUserId: ID!): Boolean
+  createReport(reportedUserId: ID!, reason: String!, description: String, metadata: JSON): JSON
+  createCallHistory(input: CreateCallHistoryInput!): JSON
+}
+
+input CreateCallHistoryInput {
+  callerId: ID!
+  calleeId: ID!
+  startedAt: String
+  endedAt: String
+  durationSeconds: Int
+}
+
+type AsyncJobResult {
+  queued: Boolean!
+  enqueued: Int
+  scheduled: Int
+}
+
+type AdminMutation {
+  patchUser(id: ID!, input: JSON!): JSON
+  softDeleteUser(id: ID!): Boolean
+  patchReport(id: ID!, input: JSON!): JSON
+  enqueueReportAiSummary(id: ID!): AsyncJobResult
+  regenerateEmbeddings(userIds: [ID!]!): AsyncJobResult
+  syncEmbeddings(userIds: [ID!]!): AsyncJobResult
+  syncAllEmbeddings: AsyncJobResult
+  compareEmbeddings(userIdA: ID!, userIdB: ID!): JSON
+  findSimilarEmbeddings(userId: ID!, limit: Int = 25, threshold: Float = 0.5): JSON
+  createBroadcast(message: String!, title: String, deliveryMode: String, url: String): JSON
+  generateBroadcastAi(audience: String, keyPoints: String): JSON
+  updateAiConfig(value: JSON!): JSON
+}

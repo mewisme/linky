@@ -1,23 +1,19 @@
 package routes
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
+	appadmin "linky-api/src/internal/app/admin"
 	"linky-api/src/internal/app/broadcastai"
-	"linky-api/src/internal/app/embeddings"
-	domainembed "linky-api/src/internal/domain/embeddings"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/aiconfig"
 	"linky-api/src/internal/infra/supax"
-	"linky-api/src/internal/jobs"
 )
 
 func handleAdminConfigGet(c echo.Context) error {
@@ -103,12 +99,12 @@ func handleAdminUserPut(c echo.Context) error {
 	if body == nil {
 		body = map[string]any{}
 	}
-	if r, _ := body["role"].(string); r == "superadmin" {
-		return httpx.SendError(c, 403, "Forbidden",
-			httpx.UM("CANNOT_ASSIGN_SUPERADMIN", "cannotAssignSuperadmin", "Cannot assign superadmin role"))
-	}
-	row, err := supax.PatchUser(c.Request().Context(), id, body)
+	row, err := appadmin.PatchUser(c.Request().Context(), id, body, true)
 	if err != nil {
+		if errors.Is(err, appadmin.ErrCannotAssignSuperadmin) {
+			return httpx.SendError(c, 403, "Forbidden",
+				httpx.UM("CANNOT_ASSIGN_SUPERADMIN", "cannotAssignSuperadmin", "Cannot assign superadmin role"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_UPDATE_USER", "failedUpdateUser", "Failed to update user"))
 	}
@@ -222,39 +218,29 @@ func handleAdminBroadcastsCreate(c echo.Context) error {
 		URL          string `json:"url"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if input.Message == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("BROADCAST_MESSAGE_REQUIRED", "broadcastMessageRequired", "message is required"))
-	}
 	clerkID := httpx.MustClerkUserID(c)
 	if clerkID == "" {
 		return httpx.Unauthorized(c)
 	}
-	creatorID, err := supax.GetUserInternalID(c.Request().Context(), clerkID)
-	if err != nil {
-		adminLog.Error().Err(err).Msg("GetUserInternalID failed")
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_FETCH_USER", "failedFetchUser", "Failed to fetch user"))
-	}
-	if creatorID == "" {
-		return httpx.SendError(c, 404, "Not Found",
-			httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
-	}
-	row, err := supax.InsertBroadcastHistory(c.Request().Context(), creatorID, input.Title, input.Message)
-	if err != nil {
-		adminLog.Error().Err(err).Msg("InsertBroadcastHistory failed")
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_CREATE_BROADCAST", "failedCreateBroadcast", "Failed to create broadcast"))
-	}
-	if row == nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_CREATE_BROADCAST", "failedCreateBroadcast", "Failed to create broadcast"))
-	}
-	return c.JSON(http.StatusCreated, map[string]any{
-		"message": "Broadcast saved",
-		"sent":    0,
-		"row":     row,
+	out, err := appadmin.CreateBroadcast(c.Request().Context(), appadmin.CreateBroadcastInput{
+		Message: input.Message, Title: input.Title,
+		DeliveryMode: input.DeliveryMode, URL: input.URL,
+		CreatorClerk: clerkID,
 	})
+	if err != nil {
+		if errors.Is(err, appadmin.ErrBroadcastMessageRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("BROADCAST_MESSAGE_REQUIRED", "broadcastMessageRequired", "message is required"))
+		}
+		if err.Error() == "user not found in database" {
+			return httpx.SendError(c, 404, "Not Found",
+				httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
+		}
+		adminLog.Error().Err(err).Msg("CreateBroadcast failed")
+		return httpx.SendError(c, 500, "Internal Server Error",
+			httpx.UM("FAILED_CREATE_BROADCAST", "failedCreateBroadcast", "Failed to create broadcast"))
+	}
+	return c.JSON(http.StatusCreated, out)
 }
 
 func handleAdminEmbeddingsSync(c echo.Context) error {
@@ -263,35 +249,25 @@ func handleAdminEmbeddingsSync(c echo.Context) error {
 		UserIDs []string `json:"user_ids"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if len(input.UserIDs) == 0 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("USER_IDS_REQUIRED", "userIdsRequired", "user_ids must be a non-empty array"))
-	}
-	enqueued := 0
-	for _, id := range input.UserIDs {
-		if _, err := uuid.Parse(id); err != nil {
-			continue
+	result, err := appadmin.SyncEmbeddings(c.Request().Context(), input.UserIDs)
+	if err != nil {
+		if errors.Is(err, appadmin.ErrUserIDsRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("USER_IDS_REQUIRED", "userIdsRequired", "user_ids must be a non-empty array"))
 		}
-		if err := jobs.EnqueueUserEmbeddingRegenerate(c.Request().Context(), id); err == nil {
-			enqueued++
-		}
+		return httpx.SendError(c, 500, "Internal Server Error",
+			httpx.UM("FAILED_LIST_USERS", "failedListUsers", "Failed to list users"))
 	}
-	return c.JSON(http.StatusAccepted, map[string]any{"enqueued": enqueued})
+	return c.JSON(http.StatusAccepted, map[string]any{"enqueued": result.Enqueued})
 }
 
 func handleAdminEmbeddingsSyncAll(c echo.Context) error {
-	ids, err := supax.ListAllUserIDs(c.Request().Context())
+	result, err := appadmin.SyncAllEmbeddings(c.Request().Context())
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_LIST_USERS", "failedListUsers", "Failed to list users"))
 	}
-	go func() {
-		ctx := context.Background()
-		for _, id := range ids {
-			_ = jobs.EnqueueUserEmbeddingRegenerate(ctx, id)
-		}
-	}()
-	return c.JSON(http.StatusAccepted, map[string]any{"scheduled": len(ids)})
+	return c.JSON(http.StatusAccepted, map[string]any{"scheduled": result.Scheduled})
 }
 
 func handleAdminEmbeddingsCompare(c echo.Context) error {
@@ -301,27 +277,20 @@ func handleAdminEmbeddingsCompare(c echo.Context) error {
 		UserB string `json:"user_id_b"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if input.UserA == "" || input.UserB == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("USER_IDS_REQUIRED", "userIdsRequired", "user_id_a and user_id_b are required"))
-	}
-	emb, err := supax.ListUserEmbeddings(c.Request().Context(), []string{input.UserA, input.UserB})
+	out, err := appadmin.CompareEmbeddings(c.Request().Context(), input.UserA, input.UserB)
 	if err != nil {
+		if errors.Is(err, appadmin.ErrUserIDsRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("USER_IDS_REQUIRED", "userIdsRequired", "user_id_a and user_id_b are required"))
+		}
+		if errors.Is(err, appadmin.ErrEmbeddingMissing) {
+			return httpx.SendError(c, 404, "Not Found",
+				httpx.UM("EMBEDDING_MISSING", "embeddingMissing", "Embedding not found for one or both users"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_FETCH_EMBEDDINGS", "failedFetchEmbeddings", "Failed to fetch embeddings"))
 	}
-	a, ok1 := emb[input.UserA]
-	b, ok2 := emb[input.UserB]
-	if !ok1 || !ok2 {
-		return httpx.SendError(c, 404, "Not Found",
-			httpx.UM("EMBEDDING_MISSING", "embeddingMissing", "Embedding not found for one or both users"))
-	}
-	score := domainembed.CosineSimilarity(a, b)
-	return c.JSON(http.StatusOK, map[string]any{
-		"user_id_a":  input.UserA,
-		"user_id_b":  input.UserB,
-		"similarity": score,
-	})
+	return c.JSON(http.StatusOK, out)
 }
 
 func handleAdminEmbeddingsSimilar(c echo.Context) error {
@@ -332,19 +301,16 @@ func handleAdminEmbeddingsSimilar(c echo.Context) error {
 		Threshold float64 `json:"threshold"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if input.UserID == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("USER_ID_REQUIRED", "userIdRequired", "user_id is required"))
-	}
-	if input.Limit <= 0 {
-		input.Limit = 25
-	}
-	results, err := embeddings.FindSimilar(c.Request().Context(), input.UserID, input.Limit, input.Threshold)
+	out, err := appadmin.FindSimilarEmbeddings(c.Request().Context(), input.UserID, input.Limit, input.Threshold)
 	if err != nil {
+		if errors.Is(err, appadmin.ErrUserIDRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("USER_ID_REQUIRED", "userIdRequired", "user_id is required"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_FIND_SIMILAR", "failedFindSimilar", "Failed to find similar users"))
 	}
-	return c.JSON(http.StatusOK, map[string]any{"results": results})
+	return c.JSON(http.StatusOK, out)
 }
 
 func handleAdminBroadcastAIGenerate(c echo.Context) error {
@@ -358,13 +324,11 @@ func handleAdminBroadcastAIGenerate(c echo.Context) error {
 	if clerkID == "" {
 		return httpx.Unauthorized(c)
 	}
-	out, err := broadcastai.Generate(c.Request().Context(), broadcastai.GenerateParams{
-		Audience:        strings.TrimSpace(input.Audience),
-		KeyPoints:       strings.TrimSpace(input.KeyPoints),
-		CreatedByUserID: clerkID,
+	out, err := appadmin.GenerateBroadcastAI(c.Request().Context(), appadmin.GenerateBroadcastAIInput{
+		Audience: input.Audience, KeyPoints: input.KeyPoints, CreatedByUserID: clerkID,
 	})
 	if err != nil {
-		if err == broadcastai.ErrInProgress {
+		if errors.Is(err, broadcastai.ErrInProgress) {
 			return httpx.SendError(c, 429, "Too Many Requests",
 				httpx.UM("BROADCAST_AI_BUSY", "broadcastAiBusy", "Broadcast AI generation already in progress. Please retry shortly."))
 		}

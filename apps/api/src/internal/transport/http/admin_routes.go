@@ -3,22 +3,20 @@ package routes
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/labstack/echo/v4"
 
-	"linky-api/src/internal/app/presence"
-	"linky-api/src/internal/domain/user/leveling"
+	appadmin "linky-api/src/internal/app/admin"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/aiconfig"
 	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/supax"
-	"linky-api/src/internal/jobs"
 	"linky-api/src/internal/logger"
 )
 
@@ -175,127 +173,19 @@ func handleAdminUserList(c echo.Context) error {
 		v := deletedQ == "true"
 		deleted = &v
 	}
-	rows, count, err := supax.ListAdminUsersUnified(c.Request().Context(), supax.AdminUsersOptions{
+	out, err := appadmin.ListUsers(c.Request().Context(), appadmin.ListUsersOptions{
 		Page: page, Limit: limit, Role: role, Search: search, Deleted: deleted,
 	})
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_FETCH_USERS", "failedFetchUsers", "Failed to fetch users"))
 	}
-	out := make([]map[string]any, 0, len(rows))
-	presenceSnap := presence.SnapshotPresence()
-	for _, r := range rows {
-		out = append(out, mapAdminUserRow(r, presenceSnap))
-	}
-	return c.JSON(http.StatusOK, map[string]any{"data": out, "count": count})
-}
-
-func mapAdminUserRow(row map[string]any, presence map[string]struct {
-	State     string
-	UpdatedAt time.Time
-}) map[string]any {
-	id, _ := row["user_id"].(string)
-	clerk, _ := row["clerk_user_id"].(string)
-	totalExp := toIntFromAny(row["total_exp_seconds"])
-	level := leveling.CalculateLevelFromExp(totalExp, leveling.Default).Level
-
-	bio, _ := row["bio"].(string)
-	gender, _ := row["gender"].(string)
-	dob, _ := row["date_of_birth"].(string)
-	hasDetails := bio != "" || gender != "" || dob != "" || row["bio"] != nil || row["gender"] != nil || row["date_of_birth"] != nil
-	var details map[string]any
-	if hasDetails {
-		details = map[string]any{
-			"bio":           nullableString(row["bio"]),
-			"gender":        nullableString(row["gender"]),
-			"date_of_birth": nullableString(row["date_of_birth"]),
-		}
-	}
-
-	tags := stringSliceFromAny(row["interest_tags"])
-
-	var embedding map[string]any
-	if updated, ok := row["embedding_updated_at"].(string); ok && updated != "" {
-		hash, _ := row["embedding_source_hash"].(string)
-		embedding = map[string]any{
-			"model":       nullableString(row["embedding_model"]),
-			"source_hash": hash,
-			"updated_at":  updated,
-		}
-	}
-
-	state := "offline"
-	if clerk != "" {
-		if p, ok := presence[clerk]; ok && p.State != "" {
-			state = p.State
-		}
-	}
-
-	return map[string]any{
-		"id":                 id,
-		"clerk_user_id":      clerk,
-		"email":              row["email"],
-		"first_name":         row["first_name"],
-		"last_name":          row["last_name"],
-		"avatar_url":         row["avatar_url"],
-		"role":               row["role"],
-		"deleted":            row["deleted"],
-		"presence":           state,
-		"created_at":         row["created_at"],
-		"updated_at":         row["updated_at"],
-		"details":            details,
-		"interest_tag_names": tags,
-		"embedding":          embedding,
-		"level":              level,
-	}
-}
-
-func toIntFromAny(v any) int {
-	switch n := v.(type) {
-	case int:
-		return n
-	case int64:
-		return int(n)
-	case float64:
-		return int(n)
-	case json.Number:
-		i, _ := n.Int64()
-		return int(i)
-	case string:
-		x, _ := strconv.Atoi(n)
-		return x
-	}
-	return 0
-}
-
-func nullableString(v any) any {
-	if v == nil {
-		return nil
-	}
-	if s, ok := v.(string); ok {
-		if s == "" {
-			return nil
-		}
-		return s
-	}
-	return v
-}
-
-func stringSliceFromAny(v any) []string {
-	out := []string{}
-	if arr, ok := v.([]any); ok {
-		for _, item := range arr {
-			if s, ok := item.(string); ok {
-				out = append(out, s)
-			}
-		}
-	}
-	return out
+	return c.JSON(http.StatusOK, out)
 }
 
 func handleAdminUserGet(c echo.Context) error {
 	id := c.Param("id")
-	row, err := supax.GetUserByID(c.Request().Context(), id)
+	row, err := appadmin.GetUser(c.Request().Context(), id)
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_FETCH_USER", "failedFetchUser", "Failed to fetch user"))
@@ -315,7 +205,7 @@ func handleAdminUserPatch(c echo.Context) error {
 	if body == nil {
 		body = map[string]any{}
 	}
-	row, err := supax.PatchUser(c.Request().Context(), id, body)
+	row, err := appadmin.PatchUser(c.Request().Context(), id, body, false)
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_UPDATE_USER", "failedUpdateUser", "Failed to update user"))
@@ -325,11 +215,7 @@ func handleAdminUserPatch(c echo.Context) error {
 
 func handleAdminUserSoftDelete(c echo.Context) error {
 	id := c.Param("id")
-	body := map[string]any{
-		"deleted":    true,
-		"deleted_at": supax.NowRFC3339(),
-	}
-	if _, err := supax.PatchUser(c.Request().Context(), id, body); err != nil {
+	if err := appadmin.SoftDeleteUser(c.Request().Context(), id); err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_DELETE_USER", "failedDeleteUser", "Failed to delete user"))
 	}
@@ -521,20 +407,17 @@ func handleAdminEmbeddingsRegenerate(c echo.Context) error {
 		UserIDs []string `json:"user_ids"`
 	}
 	_ = json.Unmarshal(rawBody, &input)
-	if len(input.UserIDs) == 0 {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("USER_IDS_REQUIRED", "userIdsRequired", "user_ids must be a non-empty array"))
-	}
-	eligible, err := supax.FilterNonDeletedUserIDs(c.Request().Context(), input.UserIDs)
+	result, err := appadmin.RegenerateEmbeddings(c.Request().Context(), input.UserIDs)
 	if err != nil {
+		if errors.Is(err, appadmin.ErrUserIDsRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("USER_IDS_REQUIRED", "userIdsRequired", "user_ids must be a non-empty array"))
+		}
+		adminLog.Warn().Err(err).Msg("RegenerateEmbeddings failed")
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_LIST_USERS", "failedListUsers", "Failed to list users"))
 	}
-	enqueued, err := jobs.EnqueueUserEmbeddingRegenerateMany(c.Request().Context(), eligible)
-	if err != nil {
-		adminLog.Warn().Err(err).Msg("EnqueueUserEmbeddingRegenerateMany partial failure")
-	}
-	return c.JSON(http.StatusAccepted, map[string]any{"enqueued": enqueued})
+	return c.JSON(http.StatusAccepted, map[string]any{"enqueued": result.Enqueued})
 }
 
 func handleAdminS3PresignUpload(c echo.Context) error {
@@ -630,7 +513,7 @@ func handleAdminReportPatch(c echo.Context) error {
 	rawBody, _ := io.ReadAll(c.Request().Body)
 	var body map[string]any
 	_ = json.Unmarshal(rawBody, &body)
-	row, err := supax.PatchReport(c.Request().Context(), c.Param("id"), body)
+	row, err := appadmin.PatchReport(c.Request().Context(), c.Param("id"), body)
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("FAILED_UPDATE_REPORT", "failedUpdateReport", "Failed to update report"))
@@ -640,15 +523,14 @@ func handleAdminReportPatch(c echo.Context) error {
 
 func handleAdminReportAISummary(c echo.Context) error {
 	id := c.Param("id")
-	if id == "" {
-		return httpx.SendError(c, 400, "Bad Request",
-			httpx.UM("REPORT_ID_REQUIRED", "reportIdRequired", "id required"))
-	}
-	if err := jobs.EnqueueReportAISummary(c.Request().Context(), id, true); err != nil {
+	result, err := appadmin.EnqueueReportAISummary(c.Request().Context(), id)
+	if err != nil {
+		if errors.Is(err, appadmin.ErrReportIDRequired) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UM("REPORT_ID_REQUIRED", "reportIdRequired", "id required"))
+		}
 		return httpx.SendError(c, 500, "Internal Server Error",
 			httpx.UM("REPORT_AI_ENQUEUE_FAIL", "reportAiEnqueueFail", "Failed to enqueue AI summary job"))
 	}
-	return c.JSON(http.StatusAccepted, map[string]any{
-		"queued": true,
-	})
+	return c.JSON(http.StatusAccepted, map[string]any{"queued": result.Queued})
 }

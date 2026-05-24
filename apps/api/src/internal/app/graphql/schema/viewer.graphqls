@@ -11,6 +11,10 @@ type Viewer {
   callHistory(limit: Int = 50, offset: Int = 0): CallHistoryPage!
   callHistoryItem(id: ID!): JSON
   reports(limit: Int = 20, offset: Int = 0): ReportsPage!
+  streakCalendar(year: Int!, month: Int!): JSON!
+  streakHistory(limit: Int = 50, offset: Int = 0): JSON!
+  favorites: JSON!
+  blocks: JSON!
 }
 
 type NotificationsPage {

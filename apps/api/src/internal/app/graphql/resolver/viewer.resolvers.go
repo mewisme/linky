@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"errors"
+	"linky-api/src/internal/app/favorite"
 	"linky-api/src/internal/app/graphql/generated"
 	"linky-api/src/internal/app/graphql/gqlx"
 	"linky-api/src/internal/app/user"
@@ -219,6 +220,77 @@ func (r *viewerResolver) Reports(ctx context.Context, obj *generated.Viewer, lim
 		Data:  data,
 		Count: int(count),
 	}, nil
+}
+
+// StreakCalendar is the resolver for the streakCalendar field.
+func (r *viewerResolver) StreakCalendar(ctx context.Context, obj *generated.Viewer, year int, month int) (any, error) {
+	uid, err := gqlx.RequireInternalUser(ctx)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(err)
+	}
+	out, err := user.StreakCalendar(ctx, uid, year, month)
+	if err != nil {
+		if errors.Is(err, user.ErrYearRequired) {
+			return nil, gqlx.ErrBadRequest("YEAR_QUERY_REQUIRED", "yearQueryRequired", "Year query parameter is required and must be a number")
+		}
+		if errors.Is(err, user.ErrMonthRequired) {
+			return nil, gqlx.ErrBadRequest("MONTH_QUERY_REQUIRED", "monthQueryRequired", "Month query parameter is required and must be a number")
+		}
+		if errors.Is(err, user.ErrMonthRange) {
+			return nil, gqlx.ErrBadRequest("MONTH_RANGE", "monthBetween1And12", "Month must be between 1 and 12")
+		}
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_STREAK_CAL", "failedFetchStreakCalendar", "Failed to fetch user streak calendar", err))
+	}
+	return out, nil
+}
+
+// StreakHistory is the resolver for the streakHistory field.
+func (r *viewerResolver) StreakHistory(ctx context.Context, obj *generated.Viewer, limit *int, offset *int) (any, error) {
+	uid, err := gqlx.RequireInternalUser(ctx)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(err)
+	}
+	off := 0
+	if offset != nil {
+		off = *offset
+	}
+	out, err := user.StreakHistory(ctx, uid, gqlx.IntDefault(limit, 50), off)
+	if err != nil {
+		if errors.Is(err, user.ErrStreakLimitRange) {
+			return nil, gqlx.ErrBadRequest("STREAK_LIMIT_RANGE", "limitBetween1And100", "Limit must be between 1 and 100")
+		}
+		if errors.Is(err, user.ErrStreakOffsetNonNeg) {
+			return nil, gqlx.ErrBadRequest("STREAK_OFFSET_NONNEG", "offsetNonNegative", "Offset must be a non-negative number")
+		}
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_STREAK_HISTORY", "failedFetchStreakHistory", "Failed to fetch user streak history", err))
+	}
+	return out, nil
+}
+
+// Favorites is the resolver for the favorites field.
+func (r *viewerResolver) Favorites(ctx context.Context, obj *generated.Viewer) (any, error) {
+	uid, err := gqlx.RequireInternalUser(ctx)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(err)
+	}
+	out, err := favorite.ListWithStats(ctx, uid)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_FAVORITES", "failedFetchFavorites", "Failed to fetch favorites", err))
+	}
+	return out, nil
+}
+
+// Blocks is the resolver for the blocks field.
+func (r *viewerResolver) Blocks(ctx context.Context, obj *generated.Viewer) (any, error) {
+	uid, err := gqlx.RequireInternalUser(ctx)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(err)
+	}
+	rows, err := user.ListBlocks(ctx, uid)
+	if err != nil {
+		return nil, gqlx.AsGraphQLError(gqlx.ErrInternal("FAILED_FETCH_BLOCKED", "failedFetchBlockedUsers", "Failed to fetch blocked users", err))
+	}
+	return map[string]any{"blocked_users": rows}, nil
 }
 
 // Viewer returns generated.ViewerResolver implementation.

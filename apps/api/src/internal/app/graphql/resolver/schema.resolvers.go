@@ -6,12 +6,12 @@ package resolver
 
 import (
 	"context"
-
 	"linky-api/src/internal/app/graphql/generated"
 	"linky-api/src/internal/app/graphql/gqlx"
 	"linky-api/src/internal/infra/supax"
 )
 
+// Viewer is the resolver for the viewer field.
 func (r *queryResolver) Viewer(ctx context.Context) (*generated.Viewer, error) {
 	if err := gqlx.RequireClerk(ctx); err != nil {
 		return nil, err
@@ -19,6 +19,7 @@ func (r *queryResolver) Viewer(ctx context.Context) (*generated.Viewer, error) {
 	return &generated.Viewer{}, nil
 }
 
+// InterestTags is the resolver for the interestTags field.
 func (r *queryResolver) InterestTags(ctx context.Context, category *string, search *string, limit *int, offset *int) (*generated.InterestTagPage, error) {
 	if err := gqlx.RequireClerk(ctx); err != nil {
 		return nil, err
@@ -58,6 +59,7 @@ func (r *queryResolver) InterestTags(ctx context.Context, category *string, sear
 	}, nil
 }
 
+// InterestTag is the resolver for the interestTag field.
 func (r *queryResolver) InterestTag(ctx context.Context, id string) (any, error) {
 	if err := gqlx.RequireClerk(ctx); err != nil {
 		return nil, err
@@ -72,6 +74,7 @@ func (r *queryResolver) InterestTag(ctx context.Context, id string) (any, error)
 	return gqlx.ToAny(row)
 }
 
+// Admin is the resolver for the admin field.
 func (r *queryResolver) Admin(ctx context.Context) (*generated.Admin, error) {
 	if err := gqlx.RequireAdmin(ctx); err != nil {
 		return nil, err
@@ -79,6 +82,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*generated.Admin, error) {
 	return &generated.Admin{}, nil
 }
 
+// Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }

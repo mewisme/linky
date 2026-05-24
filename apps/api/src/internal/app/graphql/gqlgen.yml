@@ -45,6 +45,14 @@ models:
         resolver: true
       reports:
         resolver: true
+      streakCalendar:
+        resolver: true
+      streakHistory:
+        resolver: true
+      favorites:
+        resolver: true
+      blocks:
+        resolver: true
   Admin:
     fields:
       reports:
@@ -62,4 +70,70 @@ models:
       broadcasts:
         resolver: true
       embeddings:
+        resolver: true
+      users:
+        resolver: true
+      user:
+        resolver: true
+      aiConfig:
+        resolver: true
+      aiModels:
+        resolver: true
+  ViewerMutation:
+    fields:
+      updateCountry:
+        resolver: true
+      updateUserDetails:
+        resolver: true
+      addInterestTags:
+        resolver: true
+      removeInterestTags:
+        resolver: true
+      replaceInterestTags:
+        resolver: true
+      clearInterestTags:
+        resolver: true
+      addFavorite:
+        resolver: true
+      removeFavorite:
+        resolver: true
+      createBlock:
+        resolver: true
+      deleteBlock:
+        resolver: true
+      createReport:
+        resolver: true
+      createCallHistory:
+        resolver: true
+  AdminMutation:
+    fields:
+      patchUser:
+        resolver: true
+      softDeleteUser:
+        resolver: true
+      patchReport:
+        resolver: true
+      enqueueReportAiSummary:
+        resolver: true
+      regenerateEmbeddings:
+        resolver: true
+      syncEmbeddings:
+        resolver: true
+      syncAllEmbeddings:
+        resolver: true
+      compareEmbeddings:
+        resolver: true
+      findSimilarEmbeddings:
+        resolver: true
+      createBroadcast:
+        resolver: true
+      generateBroadcastAi:
+        resolver: true
+      updateAiConfig:
+        resolver: true
+  Mutation:
+    fields:
+      viewer:
+        resolver: true
+      admin:
         resolver: true

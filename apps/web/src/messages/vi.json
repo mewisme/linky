@@ -1622,6 +1622,22 @@
       "inactive": "Không hoạt động",
       "filterPlaceholder": "Tìm thẻ..."
     },
+    "videoFilterPresets": {
+      "loadingTitle": "Đang tải video filter presets...",
+      "copyPresetId": "Sao chép ID preset",
+      "presetIdCopied": "Đã sao chép ID preset",
+      "editDetails": "Sửa chi tiết",
+      "deletePreset": "Xóa",
+      "deleteDescription": "Không thể hoàn tác.",
+      "name": "Tên",
+      "slug": "Slug",
+      "description": "Mô tả",
+      "sortOrder": "Thứ tự",
+      "status": "Trạng thái",
+      "active": "Hoạt động",
+      "inactive": "Không hoạt động",
+      "filterPlaceholder": "Tìm presets..."
+    },
     "adminConfig": {
       "loadingTitle": "Đang tải cấu hình...",
       "update": "Cập nhật",

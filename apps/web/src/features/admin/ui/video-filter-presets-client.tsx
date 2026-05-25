@@ -13,10 +13,15 @@ import { Input } from "@ws/ui/components/ui/input";
 import { Label } from "@ws/ui/components/ui/label";
 import { Switch } from "@ws/ui/components/ui/switch";
 import { Textarea } from "@ws/ui/components/ui/textarea";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
 import { toast } from "@ws/ui/components/ui/sonner";
 import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
+
+const VideoFilterPresetsDataTable = dynamic(
+  () => import('@/shared/ui/data-table/video-filter-presets/data-table').then(mod => ({ default: mod.VideoFilterPresetsDataTable })),
+);
 
 interface VideoFilterPresetsClientProps {
   initialData: AdminAPI.VideoFilterPresets.Get.Response;
@@ -104,52 +109,27 @@ export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClie
     setIsModalOpen(true);
   };
 
-  const items = data?.data ?? [];
+  const rowCallbacks = {
+    onEdit: (preset: AdminAPI.VideoFilterPresets.VideoFilterPreset) => openEdit(preset),
+    onDelete: (preset: AdminAPI.VideoFilterPresets.VideoFilterPreset) => deleteMutation.mutate(preset.id),
+  }
 
   return (
     <AppLayout sidebarItem="adminVideoFilterPresets">
-      <div className="flex items-center justify-between mb-4">
-        <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
-        <Button onClick={openCreate} disabled={upsertMutation.isPending}>
-          <IconPlus className="size-4 mr-1" />
-          {t("crudCreate")}
-        </Button>
-      </div>
-
-      {isPending && <div className="text-muted-foreground text-sm py-8 text-center">{tc("loading")}</div>}
-
-      {!isPending && (
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/50 border-b">
-                <th className="text-left px-4 py-2 font-medium">Name</th>
-                <th className="text-left px-4 py-2 font-medium">Slug</th>
-                <th className="text-left px-4 py-2 font-medium">Sort</th>
-                <th className="text-left px-4 py-2 font-medium">Active</th>
-                <th className="text-right px-4 py-2 font-medium w-24">{t("actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((preset) => (
-                <tr key={preset.id} className="border-b hover:bg-muted/30">
-                  <td className="px-4 py-2">{preset.name}</td>
-                  <td className="px-4 py-2 text-muted-foreground font-mono text-xs">{preset.slug}</td>
-                  <td className="px-4 py-2">{preset.sort_order}</td>
-                  <td className="px-4 py-2">{preset.is_active ? tc("yes") : tc("no")}</td>
-                  <td className="px-4 py-2 text-right space-x-1">
-                    <Button variant="outline" size="sm" onClick={() => openEdit(preset)}>{t("crudEdit")}</Button>
-                    <Button variant="outline" size="sm" onClick={() => { if (confirm(t("confirmDelete"))) deleteMutation.mutate(preset.id); }}>{t("crudDelete")}</Button>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">{t("noResults")}</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <VideoFilterPresetsDataTable
+        initialData={data?.data ?? []}
+        isLoading={isPending}
+        callbacks={rowCallbacks}
+        leftColumnVisibilityContent={
+          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
+        }
+        rightColumnVisibilityContent={
+          <Button onClick={openCreate} disabled={upsertMutation.isPending} size="sm">
+            <IconPlus className="size-4" />
+            <span className="hidden lg:inline">{t("crudCreate")}</span>
+          </Button>
+        }
+      />
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

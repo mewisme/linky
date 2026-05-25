@@ -1622,6 +1622,22 @@
       "inactive": "Inactive",
       "filterPlaceholder": "Search tags..."
     },
+    "videoFilterPresets": {
+      "loadingTitle": "Loading video filter presets...",
+      "copyPresetId": "Copy preset ID",
+      "presetIdCopied": "Preset ID copied to clipboard",
+      "editDetails": "Edit Details",
+      "deletePreset": "Delete",
+      "deleteDescription": "This action cannot be undone.",
+      "name": "Name",
+      "slug": "Slug",
+      "description": "Description",
+      "sortOrder": "Sort Order",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "filterPlaceholder": "Search presets..."
+    },
     "adminConfig": {
       "loadingTitle": "Loading configuration...",
       "update": "Update",

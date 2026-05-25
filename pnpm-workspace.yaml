@@ -14,7 +14,7 @@ allowBuilds:
 
 catalog:
   '@types/node': ^25.6.0
-  eslint: ^9.39.4
+  eslint: ^10.4.0
   react: ^19.2.5
   socket.io-client: ^4.8.3
   typescript: ^5.9.3

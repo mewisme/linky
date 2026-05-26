@@ -13,7 +13,7 @@ allowBuilds:
   unrs-resolver: true
 
 catalog:
-  '@types/node': ^25.6.0
+  '@types/node': ^25.9.1
   eslint: ^9.39.4
   react: ^19.2.5
   socket.io-client: ^4.8.3

@@ -2,7 +2,7 @@ name: Build & Push Docker Images
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 permissions:
@@ -12,6 +12,7 @@ permissions:
 jobs:
   build-linky-images:
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
@@ -21,12 +22,24 @@ jobs:
             context: .
 
     env:
-      IMAGE_NAME: ${{ matrix.image }}
+      BASE_IMAGE_NAME: ${{ matrix.image }}
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set image name by branch
+        id: image
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "name=${BASE_IMAGE_NAME}" >> $GITHUB_OUTPUT
+          elif [ "${GITHUB_REF_NAME}" = "dev" ]; then
+            echo "name=${BASE_IMAGE_NAME}-dev" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported branch: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
 
       - name: Read version from package.json
         id: pkg
@@ -38,7 +51,8 @@ jobs:
         id: check
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}/tags/${{ steps.pkg.outputs.version }}")
+            "https://registry.hub.docker.com/v2/repositories/${{ env.DOCKERHUB_USERNAME }}/${{ steps.image.outputs.name }}/tags/${{ steps.pkg.outputs.version }}")
+
           if [ "$STATUS" = "200" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
@@ -47,7 +61,7 @@ jobs:
 
       - name: Skip build if exists
         if: steps.check.outputs.exists == 'true'
-        run: echo "Image ${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }} exists on Docker Hub — skipping build."
+        run: echo "Image ${{ steps.image.outputs.name }}:${{ steps.pkg.outputs.version }} exists on Docker Hub — skipping build."
 
       - name: Login to Docker Hub
         if: steps.check.outputs.exists != 'true'
@@ -63,7 +77,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
+          
       - name: Set up Docker Buildx
         if: steps.check.outputs.exists != 'true'
         uses: docker/setup-buildx-action@v3
@@ -77,9 +91,9 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.pkg.outputs.version }}
-          cache-from: type=gha,scope=${{ env.IMAGE_NAME }}
-          cache-to: type=gha,mode=max,scope=${{ env.IMAGE_NAME }}
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.image.outputs.name }}:latest
+            docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ steps.image.outputs.name }}:${{ steps.pkg.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/${{ steps.image.outputs.name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ steps.image.outputs.name }}:${{ steps.pkg.outputs.version }}
+          cache-from: type=gha,scope=${{ steps.image.outputs.name }}
+          cache-to: type=gha,mode=max,scope=${{ steps.image.outputs.name }}

@@ -30,6 +30,7 @@ function ConfigActionsCell({
   onUnset?: (key: string) => void;
 }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const actions: ActionItem[] = useMemo(() => {
     const items: ActionItem[] = [];
     if (onUpdate) {
@@ -51,7 +52,7 @@ function ConfigActionsCell({
     return items;
   }, [onUpdate, onUnset, row.original, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
+  return <ActionsButton actions={actions} title={tc('actions')} className="flex justify-end" />;
 }
 
 export function useAdminConfigColumns(callbacks?: RowCallbacks): ColumnDef<AdminAPI.Config.Item>[] {

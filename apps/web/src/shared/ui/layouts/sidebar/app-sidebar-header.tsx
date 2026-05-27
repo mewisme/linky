@@ -111,19 +111,19 @@ export function AppSidebarHeader() {
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconSun className='size-4 shrink-0' />
                       </div>
-                      <span>{t('sidebarHeader.themeLight')}</span>
+                      <span>{t('common.themeLight')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("dark")} data-track='set_theme_dark'>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconMoon className='size-4 shrink-0' />
                       </div>
-                      <span>{t('sidebarHeader.themeDark')}</span>
+                      <span>{t('common.themeDark')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("system")} data-track='set_theme_system'>
                       <div className="flex size-6 items-center justify-center rounded-sm border">
                         <IconDeviceDesktop className='size-4 shrink-0' />
                       </div>
-                      <span>{t('sidebarHeader.themeSystem')}</span>
+                      <span>{t('common.themeSystem')}</span>
                     </DropdownMenuItem>
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
@@ -138,7 +138,7 @@ export function AppSidebarHeader() {
                   <div className="flex size-6 items-center justify-center rounded-sm border">
                     <IconLogout className='size-4 shrink-0 dark:text-red-400 text-red-500' />
                   </div>
-                  <span className='dark:text-red-400'>{t('sidebarHeader.logout')}</span>
+                  <span className='dark:text-red-400'>{t('common.logout')}</span>
                   <DropdownMenuShortcut>
                     <Kbd>⇧⌘Q</Kbd>
                   </DropdownMenuShortcut>

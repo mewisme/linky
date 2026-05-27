@@ -75,6 +75,7 @@ export function ShaderSettings({
   disabled,
 }: Props) {
   const t = useTranslations('settings')
+  const tc = useTranslations('common')
   const presets = getShaderPresets(shaderType)
   const shaderTypeLabel = (() => {
     switch (shaderType) {
@@ -319,7 +320,7 @@ export function ShaderSettings({
                     onClick={() => void onSaveDetails()}
                     disabled={disabled || isSavingDetails}
                   >
-                    {t('appearancePage.save')}
+                    {tc('saveChanges')}
                   </Button>
                 </div>
               ) : null}

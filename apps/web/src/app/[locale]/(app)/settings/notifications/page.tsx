@@ -23,6 +23,7 @@ import { normalizeUserNotificationPreferences } from "@/entities/user/lib";
 
 export default function NotificationSettingsPage() {
   const ts = useTranslations("settings.notificationsPage");
+  const tc = useTranslations("common");
   const {
     user: { isLoaded, user },
     store: { userSettings },
@@ -218,7 +219,7 @@ export default function NotificationSettingsPage() {
             {isPending && (
               <IconLoader2 className="mr-2 size-4 animate-spin" />
             )}
-            {ts("saveChanges")}
+            {tc("saveChanges")}
           </Button>
         </div>
       </div>

@@ -123,7 +123,7 @@ export function PersonalInfoSection({
             onClick={handleStartEdit}
           >
             <IconEdit className="size-4" />
-            {tp("edit")}
+            {tc("edit")}
           </Button>
         )}
       </div>

@@ -713,7 +713,7 @@ export function VideoControls({
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="report-reason">{t("reportReasonLabel")}</Label>
+              <Label htmlFor="report-reason">{tCommon("reason")}</Label>
               <Textarea
                 id="report-reason"
                 placeholder={t("reportPlaceholder")}

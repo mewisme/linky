@@ -340,7 +340,7 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>{tc("cancel")}</Button>
               <Button type="submit" disabled={upsertMutation.isPending} className="min-w-[100px]">
-                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : t("expBonusModal.saveChanges")}
+                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : tc("saveChanges")}
               </Button>
             </DialogFooter>
           </form>

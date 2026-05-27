@@ -400,7 +400,7 @@ export function CommandMenu() {
           actions: [
             {
               id: 'logout',
-              label: t('commandMenu.commands.logout'),
+              label: t('common.logout'),
               icon: IconLogout,
               onSelect: async () => {
                 trackEvent({ name: "sign_out" });
@@ -460,7 +460,7 @@ export function CommandMenu() {
         <Command>
           <CommandInput placeholder={t('commandMenu.ui.commandInputPlaceholder')} />
           <CommandList>
-            <CommandEmpty>{t('commandMenu.ui.noResults')}</CommandEmpty>
+            <CommandEmpty>{t('common.noResults')}</CommandEmpty>
             {filteredGroups.map((group, groupIndex) => (
               <div key={group.id}>
                 <CommandGroup heading={group.heading}>

@@ -23,6 +23,7 @@ interface ProfilePageContentProps {
 
 function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
   const tp = useTranslations('user.profile')
+  const tc = useTranslations('common')
   const {
     user: { user },
     store: { user: userStore, userDetails: storeUserDetails },
@@ -59,7 +60,7 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
               onClick={() => setHeaderEditSignal((current) => current + 1)}
             >
               <IconEdit className="size-4" />
-              {tp('edit')}
+              {tc('edit')}
             </Button>
           )}
         </section>

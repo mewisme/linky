@@ -52,6 +52,7 @@ AvatarCell.displayName = 'AvatarCell'
 function UserActionsCell({ row, callbacks }: { row: { original: User }; callbacks?: RowCallbacks }) {
   const td = useTranslations('dataTable')
   const ta = useTranslations('admin')
+  const tc = useTranslations('common')
   const user = row.original;
   const isDeleted = user.deleted === true;
 
@@ -184,7 +185,7 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
             title: ta('setPasswordCompromisedTitle'),
             description: ta('setPasswordCompromisedDescription'),
             confirmLabel: ta('setPasswordCompromisedConfirm'),
-            cancelLabel: td('confirm.cancel'),
+            cancelLabel: tc('cancel'),
             variant: 'destructive',
           },
         });
@@ -200,7 +201,7 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
             title: ta('unsetPasswordCompromisedTitle'),
             description: ta('unsetPasswordCompromisedDescription'),
             confirmLabel: ta('unsetPasswordCompromisedConfirm'),
-            cancelLabel: td('confirm.cancel'),
+            cancelLabel: tc('cancel'),
             variant: 'default',
           },
         });
@@ -228,7 +229,7 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
             title: ta('softDeleteUserTitle'),
             description: ta('softDeleteUserDescription'),
             confirmLabel: ta('softDeleteUserConfirm'),
-            cancelLabel: td('confirm.cancel'),
+            cancelLabel: tc('cancel'),
             variant: 'default',
           },
         });
@@ -245,7 +246,7 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
             title: ta('hardDeleteUserTitle'),
             description: ta('hardDeleteUserDescription'),
             confirmLabel: ta('hardDeleteUserConfirm'),
-            cancelLabel: td('confirm.cancel'),
+            cancelLabel: tc('cancel'),
             variant: 'destructive',
           },
         });
@@ -255,12 +256,13 @@ function UserActionsCell({ row, callbacks }: { row: { original: User }; callback
     return items;
   }, [user, isDeleted, callbacks, td, ta]);
 
-  return <ActionsButton actions={actions} title={td('common.actions')} />;
+  return <ActionsButton actions={actions} title={tc('actions')} />;
 }
 
 export function useUsersColumns(callbacks?: RowCallbacks): ColumnDef<User>[] {
   const td = useTranslations('dataTable')
   const ta = useTranslations('admin')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -431,12 +433,12 @@ export function useUsersColumns(callbacks?: RowCallbacks): ColumnDef<User>[] {
     },
     {
       accessorKey: "created_at",
-      header: td('users.createdAt'),
+      header: tc('createdAt'),
       cell: ({ row }) => <div>{row.getValue("created_at")}</div>,
     },
     {
       accessorKey: "updated_at",
-      header: td('users.updatedAt'),
+      header: tc('updatedAt'),
       cell: ({ row }) => <div>{row.getValue("updated_at")}</div>,
     },
     {

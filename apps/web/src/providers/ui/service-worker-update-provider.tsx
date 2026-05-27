@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 export function ServiceWorkerUpdateProvider() {
   const t = useTranslations("serviceWorker");
+  const tc = useTranslations("common");
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
@@ -23,7 +24,7 @@ export function ServiceWorkerUpdateProvider() {
       toast.message(t("updateAvailable"), {
         duration: Number.POSITIVE_INFINITY,
         action: {
-          label: t("refresh"),
+          label: tc("refresh"),
           onClick: () => {
             window.location.reload();
           },
@@ -38,7 +39,7 @@ export function ServiceWorkerUpdateProvider() {
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
     };
-  }, [t]);
+  }, [t, tc]);
 
   return null;
 }

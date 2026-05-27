@@ -29,11 +29,11 @@ export function BulkActions({ bulkActions, selected }: BulkActionsProps) {
 
   return (
     <DropdownMenu>
-      <SimpleTooltip content={tc('actionsMenu')}>
+      <SimpleTooltip content={tc('actions')}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
             <IconDotsVertical className="w-4 h-4" />
-            <span className="hidden lg:inline-block">{tc('actionsMenu')}</span>
+            <span className="hidden lg:inline-block">{tc('actions')}</span>
           </Button>
         </DropdownMenuTrigger>
       </SimpleTooltip>

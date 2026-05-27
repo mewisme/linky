@@ -17,6 +17,7 @@ export type RowCallbacks = Record<string, unknown>;
 
 function CallHistoryActionsCell({ row }: { row: { original: CallHistoryRecord } }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const record = row.original;
 
   const actions: ActionItem[] = useMemo(() => [
@@ -31,11 +32,12 @@ function CallHistoryActionsCell({ row }: { row: { original: CallHistoryRecord } 
     },
   ], [record, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
+  return <ActionsButton actions={actions} title={tc('actions')} className="flex justify-end" />;
 }
 
 export function useCallHistoryColumns(_callbacks?: RowCallbacks): ColumnDef<CallHistoryRecord>[] {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -95,7 +97,7 @@ export function useCallHistoryColumns(_callbacks?: RowCallbacks): ColumnDef<Call
     },
     {
       accessorKey: "duration_seconds",
-      header: t('callHistory.duration'),
+      header: tc('duration'),
       cell: ({ row }) => {
         return (
           <span className="font-medium text-primary">{formatDuration(row.original.duration_seconds || 0)}</span>

@@ -43,6 +43,7 @@ interface DataTableProps<TData> {
 
 export function DataTable<TData>({ initialData, filterColumns, filterPlaceholder, initialColumnVisibility, columns, className, isLoading = false, loadingTitle, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null, bulkActionsContent, getRowClassName, selectionResetKey }: DataTableProps<TData>) {
   const t = useTranslations("dataTable.common")
+  const tc = useTranslations("common")
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -257,7 +258,7 @@ export function DataTable<TData>({ initialData, filterColumns, filterPlaceholder
                   colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
-                  {t("noResults")}
+                  {tc("noResults")}
                 </TableCell>
               </TableRow>
             )}

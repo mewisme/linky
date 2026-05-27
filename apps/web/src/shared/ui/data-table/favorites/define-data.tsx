@@ -17,6 +17,7 @@ export interface RowCallbacks {
 
 function FavoritesActionsCell({ row, callbacks }: { row: { original: ResourcesAPI.Favorites.FavoriteWithStats }; callbacks?: RowCallbacks }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const favorite = row.original;
 
   const actions: ActionItem[] = useMemo(() => [
@@ -29,11 +30,12 @@ function FavoritesActionsCell({ row, callbacks }: { row: { original: ResourcesAP
     },
   ], [favorite, callbacks, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
+  return <ActionsButton actions={actions} title={tc('actions')} className="flex justify-end" />;
 }
 
 export function useFavoritesColumns(callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Favorites.FavoriteWithStats>[] {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -59,7 +61,7 @@ export function useFavoritesColumns(callbacks?: RowCallbacks): ColumnDef<Resourc
       accessorKey: "favorite_user",
       header: t('favorites.user'),
       cell: ({ row }) => {
-        const name = `${row.original.first_name || ""} ${row.original.last_name || ""}`.trim() || t('common.unknownUser');
+        const name = `${row.original.first_name || ""} ${row.original.last_name || ""}`.trim() || tc('unknownUser');
         return (
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">

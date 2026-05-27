@@ -25,6 +25,7 @@ interface ReportsClientProps {
 
 export function ReportsClient({ initialData }: ReportsClientProps) {
   const t = useTranslations('admin.reportsList')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [data, setData] = useState<AdminAPI.Reports.Report[]>([])
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -64,7 +65,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg bg-card">
           <div className="flex-1 space-y-2">
-            <Label htmlFor="status-filter">{t('statusFilter')}</Label>
+            <Label htmlFor="status-filter">{tc('status')}</Label>
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as AdminAPI.Reports.ReportStatus)}>
               <SelectTrigger id="status-filter">
                 <SelectValue />

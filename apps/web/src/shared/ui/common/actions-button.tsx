@@ -329,7 +329,7 @@ export function ActionsButton({
   className,
 }: ActionsButtonProps) {
   const t = useTranslations('common')
-  const resolvedTitle = title ?? t('actionsMenu')
+  const resolvedTitle = title ?? t('actions')
   const isMobile = useIsMobile()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)

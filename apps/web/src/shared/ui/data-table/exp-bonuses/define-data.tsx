@@ -28,6 +28,7 @@ export interface RowCallbacks {
 
 function ExpBonusActionsCell({ row, callbacks }: { row: { original: ExpBonus }, callbacks?: RowCallbacks }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const bonus = row.original;
 
   const actions: ActionItem[] = useMemo(() => [
@@ -42,20 +43,20 @@ function ExpBonusActionsCell({ row, callbacks }: { row: { original: ExpBonus }, 
     },
     {
       type: 'item',
-      label: t('expBonuses.editDetails'),
+      label: tc('editDetails'),
       icon: <IconEdit className="size-4" />,
       onClick: () => callbacks?.onEdit(bonus),
     },
     { type: 'separator' },
     {
       type: 'item',
-      label: t('expBonuses.delete'),
+      label: tc('delete'),
       icon: <IconTrash className="size-4" />,
       onClick: () => callbacks?.onDelete(bonus),
       variant: 'destructive',
       confirmAction: {
         title: t('confirm.deleteTitle'),
-        description: t('expBonuses.deleteDescription'),
+        description: tc('cannotUndo'),
         confirmLabel: t('confirm.yesDelete'),
         cancelLabel: t('confirm.noGoBack'),
         variant: 'destructive',
@@ -63,7 +64,7 @@ function ExpBonusActionsCell({ row, callbacks }: { row: { original: ExpBonus }, 
     },
   ], [bonus, callbacks, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} />;
+  return <ActionsButton actions={actions} title={tc('actions')} />;
 }
 
 function ExpBonusTypeBadge({

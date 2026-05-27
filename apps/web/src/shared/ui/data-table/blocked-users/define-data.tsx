@@ -15,6 +15,7 @@ export interface RowCallbacks {
 
 function BlockedUserActionsCell({ row, callbacks }: { row: { original: BlockedUserWithDetails }; callbacks?: RowCallbacks }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const user = row.original;
   const displayName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
 
@@ -28,7 +29,7 @@ function BlockedUserActionsCell({ row, callbacks }: { row: { original: BlockedUs
       confirmAction: {
         title: t('blockedUsers.unblockTitle'),
         description: t('blockedUsers.unblockDescription', {
-          name: displayName || t('common.unknownUser'),
+          name: displayName || tc('unknownUser'),
         }),
         confirmLabel: t('blockedUsers.unblockConfirm'),
         variant: 'destructive',
@@ -36,11 +37,12 @@ function BlockedUserActionsCell({ row, callbacks }: { row: { original: BlockedUs
     },
   ], [user, callbacks, t, displayName]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
+  return <ActionsButton actions={actions} title={tc('actions')} className="flex justify-end" />;
 }
 
 export function useBlockedUsersColumns(callbacks?: RowCallbacks): ColumnDef<BlockedUserWithDetails>[] {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -66,7 +68,7 @@ export function useBlockedUsersColumns(callbacks?: RowCallbacks): ColumnDef<Bloc
       accessorKey: "blocked_user",
       header: t('blockedUsers.user'),
       cell: ({ row }) => {
-        const name = `${row.original.first_name || ""} ${row.original.last_name || ""}`.trim() || t('common.unknownUser');
+        const name = `${row.original.first_name || ""} ${row.original.last_name || ""}`.trim() || tc('unknownUser');
         return (
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">

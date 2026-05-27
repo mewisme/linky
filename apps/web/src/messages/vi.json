@@ -23,11 +23,34 @@
     "themeDark": "Tối",
     "themeSystem": "Hệ thống",
     "openMenu": "Mở menu",
-    "actionsMenu": "Thao tác",
     "confirmAction": "Xác nhận",
     "selectCountry": "Chọn quốc gia",
     "selectDate": "Chọn ngày",
     "unknownUser": "Không rõ",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "create": "Tạo",
+    "actions": "Thao tác",
+    "status": "Trạng thái",
+    "reason": "Lý do",
+    "createdAt": "Ngày tạo",
+    "updatedAt": "Ngày cập nhật",
+    "duration": "Thời lượng",
+    "refresh": "Tải lại",
+    "logout": "Đăng xuất",
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động",
+    "saveChanges": "Lưu thay đổi",
+    "editDetails": "Sửa chi tiết",
+    "noResults": "Không có kết quả",
+    "saving": "Đang lưu...",
+    "cannotUndo": "Không thể hoàn tác.",
+    "enable": "Bật",
+    "disable": "Tắt",
+    "description": "Mô tả",
+    "title": "Tiêu đề",
+    "message": "Nội dung",
+    "user": "Người dùng",
     "localeChangeGuard": {
       "title": "Kết thúc cuộc gọi để đổi ngôn ngữ",
       "description": "Đổi ngôn ngữ sẽ tải lại trang. Hãy kết thúc cuộc gọi hiện tại trước, sau đó ngôn ngữ sẽ được cập nhật.",
@@ -104,7 +127,6 @@
     "reportReasonRequired": "Vui lòng nhập lý do báo cáo",
     "reportSubmitted": "Đã gửi báo cáo",
     "reportFailed": "Gửi báo cáo thất bại",
-    "reportReasonLabel": "Lý do",
     "reportPlaceholder": "Mô tả vấn đề...",
     "submitReport": "Gửi báo cáo",
     "submittingReport": "Đang gửi...",
@@ -284,7 +306,6 @@
   "notifications": {
     "newChatMessage": "Tin nhắn mới",
     "gotUpdate": "Có bản cập nhật mới",
-    "refresh": "Tải lại",
     "pushNotSupported": "Trình duyệt này không hỗ trợ thông báo đẩy",
     "permissionDenied": "Quyền thông báo bị từ chối",
     "signInForPush": "Vui lòng đăng nhập lại để bật thông báo đẩy",
@@ -332,7 +353,6 @@
       "defaultMuteHint": "Mic sẽ tắt khi vào cuộc gọi video",
       "defaultCameraOff": "Tắt camera mặc định",
       "defaultCameraOffHint": "Camera sẽ tắt khi vào cuộc gọi video",
-      "save": "Lưu thay đổi",
       "updated": "Đã cập nhật cài đặt",
       "updateFailed": "Cập nhật cài đặt thất bại",
       "language": "Ngôn ngữ",
@@ -429,8 +449,7 @@
       "triggerStreak": "Cảnh báo hết hạn chuỗi",
       "triggerFavorites": "Khi ai đó thêm bạn vào yêu thích",
       "triggerLevelUp": "Thành tích lên cấp",
-      "triggerAnnouncements": "Thông báo quan trọng",
-      "saveChanges": "Lưu thay đổi"
+      "triggerAnnouncements": "Thông báo quan trọng"
     },
     "indexPage": {
       "label": "Cài đặt",
@@ -569,12 +588,8 @@
     "adminDashboard": "Bảng quản trị",
     "appearanceSection": "Giao diện",
     "theme": "Chủ đề",
-    "themeLight": "Sáng",
-    "themeDark": "Tối",
-    "themeSystem": "Hệ thống",
     "language": "Ngôn ngữ",
-    "preferences": "Tùy chọn",
-    "logout": "Đăng xuất"
+    "preferences": "Tùy chọn"
   },
   "commandMenu": {
     "groups": {
@@ -588,7 +603,6 @@
     "ui": {
       "searchPlaceholder": "Tìm kiếm...",
       "commandInputPlaceholder": "Tìm lệnh và trang...",
-      "noResults": "Không có kết quả.",
       "enterToOpen": "Enter để mở",
       "exit": "Thoát"
     },
@@ -603,7 +617,6 @@
       "myReports": "Báo cáo của tôi",
       "manageUsers": "Quản lý người dùng",
       "manageReports": "Quản lý báo cáo",
-      "logout": "Đăng xuất",
       "localeEnglish": "English",
       "localeVietnamese": "Tiếng Việt"
     },
@@ -1008,7 +1021,6 @@
       "profileIdentityAria": "Danh tính hồ sơ",
       "additionalInfoAria": "Thông tin bổ sung",
       "additionalInfoHeading": "Thông tin bổ sung",
-      "edit": "Sửa",
       "dateOfBirth": "Ngày sinh",
       "notProvided": "Chưa cung cấp",
       "genderMale": "Nam",
@@ -1130,8 +1142,7 @@
       "openDialog": "Mở dialog thử nghiệm",
       "resetPosition": "Đặt lại vị trí lớp phủ",
       "dialogTitle": "Dialog phát triển",
-      "dialogDescription": "Dialog này vẫn mở ngay cả khi popover đóng. Bạn có thể thay thế phần này bằng công cụ phát triển trong tương lai.",
-      "dialogClose": "Đóng"
+      "dialogDescription": "Dialog này vẫn mở ngay cả khi popover đóng. Bạn có thể thay thế phần này bằng công cụ phát triển trong tương lai."
     }
   },
   "admin": {
@@ -1177,13 +1188,21 @@
     "crudUpdated": "Cập nhật thành công!",
     "crudCreated": "Tạo thành công!",
     "crudDeleted": "Xóa thành công!",
-    "crudEdit": "Sửa",
-    "crudCreate": "Tạo",
-    "crudDelete": "Xóa",
+    "videoFilterPreview": {
+      "title": "Xem trước filter",
+      "description": "Cần quyền camera. Chọn preset để xem filter áp dụng trực tiếp lên video.",
+      "requestingCamera": "Đang yêu cầu quyền camera…",
+      "cameraRequired": "Cần quyền camera để xem trước",
+      "cameraErrorGeneric": "Không thể truy cập camera",
+      "retryCamera": "Thử lại",
+      "presetsLabel": "Preset",
+      "draftShader": "Shader hiện tại (chưa lưu)",
+      "previewShader": "Xem trước shader",
+      "backToPresets": "Quay lại presets",
+      "shaderCompileFailedHint": "Filter đã được đặt lại về không lọc. Kiểm tra cú pháp fragment shader và thử lại.",
+      "close": "Đóng"
+    },
     "confirmDelete": "Bạn có chắc muốn xóa?",
-    "actions": "Thao tác",
-    "noResults": "Không có kết quả",
-    "saving": "Đang lưu...",
     "genericError": "Đã xảy ra lỗi",
     "deleteError": "Xóa thất bại",
     "userUpdated": "Cập nhật người dùng thành công",
@@ -1258,16 +1277,12 @@
       "reportIdLabel": "ID báo cáo:",
       "reporterUserId": "ID người báo cáo",
       "reportedUserId": "ID người bị báo cáo",
-      "createdAt": "Ngày tạo",
-      "updatedAt": "Ngày cập nhật",
       "reviewedBy": "Người duyệt",
       "reviewedAt": "Ngày duyệt",
-      "reason": "Lý do",
       "contextSnapshotTitle": "Ảnh chụp ngữ cảnh",
       "contextSnapshotDescription": "Ngữ cảnh cuộc gọi và hành vi lúc báo cáo",
       "callId": "ID cuộc gọi",
       "roomId": "ID phòng",
-      "duration": "Thời lượng",
       "endedBy": "Kết thúc bởi",
       "reporterRole": "Vai trò người báo cáo",
       "reportedRole": "Vai trò người bị báo cáo",
@@ -1276,18 +1291,14 @@
       "behaviorFlags": "Cờ hành vi",
       "adminActionsTitle": "Thao tác quản trị",
       "adminActionsDescription": "Cập nhật trạng thái báo cáo và ghi chú",
-      "statusField": "Trạng thái",
       "adminNotes": "Ghi chú quản trị",
       "adminNotesPlaceholder": "Thêm ghi chú quản trị...",
-      "saveChanges": "Lưu thay đổi",
-      "saving": "Đang lưu...",
       "statusPending": "Chờ xử lý",
       "statusReviewed": "Đã xem",
       "statusResolved": "Đã xử lý",
       "statusDismissed": "Đã bỏ qua"
     },
     "reportsList": {
-      "statusFilter": "Trạng thái",
       "allStatuses": "Mọi trạng thái",
       "statusPending": "Chờ xử lý",
       "statusReviewed": "Đã xem",
@@ -1399,8 +1410,7 @@
       "updateTitle": "Cập nhật thẻ sở thích",
       "modalDescription": "Thẻ sở thích giúp hệ thống gợi ý nội dung phù hợp hơn cho người dùng.",
       "importJson": "Nhập JSON",
-      "addNewTag": "Thêm thẻ mới",
-      "saveChanges": "Lưu thay đổi"
+      "addNewTag": "Thêm thẻ mới"
     },
     "expBonusModal": {
       "createTitle": "Tạo EXP bonus",
@@ -1429,8 +1439,7 @@
       "relationMutual": "Hai bên yêu thích nhau",
       "relationOneWay": "Một chiều yêu thích",
       "relationRequired": "Chọn quan hệ yêu thích.",
-      "favoriteHint": "Áp dụng khi bạn gọi với người khớp quan hệ yêu thích này (hai bên cùng thêm, hoặc chỉ bạn thêm họ).",
-      "saveChanges": "Lưu thay đổi"
+      "favoriteHint": "Áp dụng khi bạn gọi với người khớp quan hệ yêu thích này (hai bên cùng thêm, hoặc chỉ bạn thêm họ)."
     },
     "embedding": {
       "compareTitle": "So sánh embedding",
@@ -1439,7 +1448,6 @@
       "modelLabel": "Mô hình:",
       "userAUpdated": "Người A cập nhật:",
       "userBUpdated": "Người B cập nhật:",
-      "close": "Đóng",
       "compare": "So sánh",
       "compareFailed": "Không thể so sánh embedding",
       "findSimilarTitle": "Tìm người dùng tương tự",
@@ -1460,10 +1468,8 @@
   "dataTable": {
     "common": {
       "loading": "Đang tải...",
-      "actions": "Thao tác",
       "selectAllAria": "Chọn tất cả",
       "selectRowAria": "Chọn dòng",
-      "unknownUser": "Không rõ",
       "emDash": "—",
       "customizeColumns": "Tùy chỉnh cột",
       "columnsShort": "Cột",
@@ -1474,24 +1480,19 @@
       "goToNextPage": "Trang sau",
       "goToLastPage": "Tới trang cuối",
       "filterColumnPlaceholder": "Lọc {column}...",
-      "noResults": "Không có kết quả.",
       "rowsSelected": "Đã chọn {selected} / {total} dòng.",
       "rowsPerPage": "Số dòng mỗi trang"
     },
     "confirm": {
       "deleteTitle": "Bạn có chắc không?",
       "yesDelete": "Có, xóa",
-      "noGoBack": "Không, quay lại",
-      "cancel": "Hủy"
+      "noGoBack": "Không, quay lại"
     },
     "reports": {
       "loadingTitle": "Đang tải báo cáo...",
       "copyReportId": "Sao chép ID báo cáo",
       "reportIdCopied": "Đã sao chép ID báo cáo",
-      "reportedUser": "Người bị báo cáo",
-      "reason": "Lý do",
-      "status": "Trạng thái",
-      "createdAt": "Ngày tạo"
+      "reportedUser": "Người bị báo cáo"
     },
     "adminReports": {
       "loadingTitle": "Đang tải báo cáo...",
@@ -1500,11 +1501,8 @@
       "reportIdCopied": "Đã sao chép ID báo cáo",
       "reporterUser": "Người báo cáo",
       "reportedUser": "Người bị báo cáo",
-      "reason": "Lý do",
-      "status": "Trạng thái",
       "aiSeverity": "Mức độ AI",
       "aiSummary": "Tóm tắt AI",
-      "createdAt": "Ngày tạo",
       "reviewedBy": "Người duyệt",
       "failed": "thất bại",
       "filterPlaceholder": "Lọc theo lý do..."
@@ -1546,9 +1544,7 @@
       "synced": "Đã đồng bộ",
       "none": "Không",
       "embeddingUpdated": "Cập nhật embedding",
-      "presence": "Trạng thái",
-      "createdAt": "Ngày tạo",
-      "updatedAt": "Ngày cập nhật"
+      "presence": "Trạng thái"
     },
     "callHistory": {
       "loadingTitle": "Đang tải lịch sử cuộc gọi...",
@@ -1558,7 +1554,6 @@
       "status": "Trạng thái",
       "outgoing": "Gọi đi",
       "incoming": "Gọi đến",
-      "duration": "Thời lượng",
       "dateTime": "Ngày giờ"
     },
     "blockedUsers": {
@@ -1584,9 +1579,6 @@
       "loadingTitle": "Đang tải EXP bonus...",
       "copyBonusId": "Sao chép ID thưởng",
       "bonusIdCopied": "Đã sao chép ID thưởng",
-      "editDetails": "Sửa chi tiết",
-      "delete": "Xóa",
-      "deleteDescription": "Không thể hoàn tác. Thao tác này xóa vĩnh viễn EXP bonus.",
       "type": "Loại",
       "typeStreak": "Chuỗi",
       "typeLevel": "Cấp",
@@ -1607,35 +1599,23 @@
       "loadingTitle": "Đang tải interest tags...",
       "copyTagId": "Sao chép ID thẻ",
       "tagIdCopied": "Đã sao chép ID thẻ",
-      "editDetails": "Sửa chi tiết",
       "activate": "Kích hoạt",
       "deactivate": "Vô hiệu hóa",
       "deletePermanently": "Xóa vĩnh viễn",
-      "deletePermanentDescription": "Không thể hoàn tác.",
       "tag": "Thẻ",
       "category": "Danh mục",
       "general": "Chung",
-      "description": "Mô tả",
       "noDescription": "Chưa có mô tả",
-      "status": "Trạng thái",
-      "active": "Hoạt động",
-      "inactive": "Không hoạt động",
       "filterPlaceholder": "Tìm thẻ..."
     },
     "videoFilterPresets": {
       "loadingTitle": "Đang tải video filter presets...",
       "copyPresetId": "Sao chép ID preset",
       "presetIdCopied": "Đã sao chép ID preset",
-      "editDetails": "Sửa chi tiết",
-      "deletePreset": "Xóa",
-      "deleteDescription": "Không thể hoàn tác.",
+      "preview": "Xem trước filter",
       "name": "Tên",
       "slug": "Slug",
-      "description": "Mô tả",
       "sortOrder": "Thứ tự",
-      "status": "Trạng thái",
-      "active": "Hoạt động",
-      "inactive": "Không hoạt động",
       "filterPlaceholder": "Tìm presets..."
     },
     "adminConfig": {
@@ -1670,8 +1650,7 @@
     }
   },
   "serviceWorker": {
-    "updateAvailable": "Có bản cập nhật mới",
-    "refresh": "Tải lại"
+    "updateAvailable": "Có bản cập nhật mới"
   },
   "api": {
     "actingUserNotFound": "Không tìm thấy người dùng thực hiện",

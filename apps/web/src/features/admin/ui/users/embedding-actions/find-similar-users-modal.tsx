@@ -48,6 +48,7 @@ export function FindSimilarUsersModal({
   users,
 }: FindSimilarUsersModalProps) {
   const te = useTranslations('admin.embedding');
+  const tc = useTranslations('common');
   const isMobile = useIsMobile();
   const [limit, setLimit] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -154,7 +155,7 @@ export function FindSimilarUsersModal({
         onClick={() => handleOpenChange(false)}
         disabled={isLoading}
       >
-        {te('close')}
+        {tc('close')}
       </Button>
       <Button
         type="button"

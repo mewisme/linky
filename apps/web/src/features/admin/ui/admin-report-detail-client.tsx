@@ -275,13 +275,13 @@ export function AdminReportDetailClient({ report }: Props) {
                 />
               </div>
               <div>
-                <Label className="text-muted-foreground">{t('reportDetail.createdAt')}</Label>
+                <Label className="text-muted-foreground">{tc('createdAt')}</Label>
                 <div className="text-sm mt-1">
                   {fmtDate(report.created_at)}
                 </div>
               </div>
               <div>
-                <Label className="text-muted-foreground">{t('reportDetail.updatedAt')}</Label>
+                <Label className="text-muted-foreground">{tc('updatedAt')}</Label>
                 <div className="text-sm mt-1">
                   {fmtDate(report.updated_at)}
                 </div>
@@ -309,7 +309,7 @@ export function AdminReportDetailClient({ report }: Props) {
             </div>
             <Separator />
             <div>
-              <Label className="text-muted-foreground">{t('reportDetail.reason')}</Label>
+              <Label className="text-muted-foreground">{tc('reason')}</Label>
               <div className="mt-2 p-3 bg-muted rounded-md text-sm">{report.reason}</div>
             </div>
           </CardContent>
@@ -337,7 +337,7 @@ export function AdminReportDetailClient({ report }: Props) {
                 )}
                 {context.duration_seconds !== null && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.duration')}</Label>
+                    <Label className="text-muted-foreground">{tc('duration')}</Label>
                     <div className="text-sm mt-1">{formatDuration(context.duration_seconds)}</div>
                   </div>
                 )}
@@ -400,7 +400,7 @@ export function AdminReportDetailClient({ report }: Props) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="status">{t('reportDetail.statusField')}</Label>
+              <Label htmlFor="status">{tc('status')}</Label>
               <Select value={status} onValueChange={(value) => setStatus(value as AdminAPI.Reports.ReportStatus)}>
                 <SelectTrigger id="status">
                   <SelectValue />
@@ -428,7 +428,7 @@ export function AdminReportDetailClient({ report }: Props) {
                 {tc('cancel')}
               </Button>
               <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? t('reportDetail.saving') : t('reportDetail.saveChanges')}
+                {updateMutation.isPending ? tc('saving') : tc('saveChanges')}
               </Button>
             </div>
           </CardContent>

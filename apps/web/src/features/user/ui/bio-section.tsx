@@ -62,7 +62,7 @@ export function BioSection({
             onClick={() => setEditingBio(true)}
           >
             <IconEdit className="size-4" />
-            {tp("edit")}
+            {tc("edit")}
           </Button>
         )}
       </div>

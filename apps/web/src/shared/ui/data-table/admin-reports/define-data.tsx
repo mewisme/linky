@@ -68,6 +68,7 @@ export interface RowCallbacks {
 
 function AdminReportsActionsCell({ row, callbacks }: { row: { original: AdminAPI.Reports.Report }; callbacks?: RowCallbacks }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const report = row.original;
 
   const actions: ActionItem[] = useMemo(() => {
@@ -92,11 +93,12 @@ function AdminReportsActionsCell({ row, callbacks }: { row: { original: AdminAPI
     return items;
   }, [report, callbacks, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
+  return <ActionsButton actions={actions} title={tc('actions')} className="flex justify-end" />;
 }
 
 export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<AdminAPI.Reports.Report>[] {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -127,7 +129,7 @@ export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<Admi
           lastName={row.original.reporter_last_name}
           avatarUrl={row.original.reporter_avatar_url}
           userId={row.original.reporter_user_id}
-          fallback={t('common.unknownUser')}
+          fallback={tc('unknownUser')}
         />
       ),
     },
@@ -140,13 +142,13 @@ export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<Admi
           lastName={row.original.reported_last_name}
           avatarUrl={row.original.reported_avatar_url}
           userId={row.original.reported_user_id}
-          fallback={t('common.unknownUser')}
+          fallback={tc('unknownUser')}
         />
       ),
     },
     {
       accessorKey: 'reason',
-      header: t('adminReports.reason'),
+      header: tc('reason'),
       cell: ({ row }) => {
         const reason = row.getValue('reason') as string
         return (
@@ -156,7 +158,7 @@ export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<Admi
     },
     {
       accessorKey: 'status',
-      header: t('adminReports.status'),
+      header: tc('status'),
       cell: ({ row }) => {
         const status = row.getValue('status') as AdminAPI.Reports.ReportStatus
         return (
@@ -201,7 +203,7 @@ export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<Admi
     },
     {
       accessorKey: 'created_at',
-      header: t('adminReports.createdAt'),
+      header: tc('createdAt'),
       cell: ({ row }) => {
         const date = new Date(row.getValue('created_at'))
         return (
@@ -229,7 +231,7 @@ export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<Admi
             lastName={row.original.reviewed_by_last_name}
             avatarUrl={row.original.reviewed_by_avatar_url}
             userId={reviewedBy}
-            fallback={t('common.unknownUser')}
+            fallback={tc('unknownUser')}
           />
         )
       },

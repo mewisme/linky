@@ -1,13 +1,15 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
-import { IconPlus } from "@tabler/icons-react";
+import { IconEye, IconPlus } from "@tabler/icons-react";
+import { VIDEO_FILTER_PREVIEW_DRAFT_STORAGE_KEY } from "@/features/admin/ui/video-filter-preview-client";
 import React, { useState } from "react";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
 import { AdminAPI } from "@/features/admin/types/admin.types";
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
+import { Link, useRouter } from "@/i18n/navigation";
 import { Button } from "@ws/ui/components/ui/button";
 import { Input } from "@ws/ui/components/ui/input";
 import { Label } from "@ws/ui/components/ui/label";
@@ -30,6 +32,8 @@ interface VideoFilterPresetsClientProps {
 export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClientProps) {
   const t = useTranslations("admin");
   const tc = useTranslations("common");
+  const tDataTable = useTranslations("dataTable");
+  const router = useRouter();
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
 
@@ -109,10 +113,15 @@ export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClie
     setIsModalOpen(true);
   };
 
+  const openFormShaderPreview = () => {
+    sessionStorage.setItem(VIDEO_FILTER_PREVIEW_DRAFT_STORAGE_KEY, formData.fragment_shader);
+    router.push("/admin/video-filter-presets/preview?draft=1");
+  };
+
   const rowCallbacks = {
     onEdit: (preset: AdminAPI.VideoFilterPresets.VideoFilterPreset) => openEdit(preset),
     onDelete: (preset: AdminAPI.VideoFilterPresets.VideoFilterPreset) => deleteMutation.mutate(preset.id),
-  }
+  };
 
   return (
     <AppLayout sidebarItem="adminVideoFilterPresets">
@@ -121,12 +130,20 @@ export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClie
         isLoading={isPending}
         callbacks={rowCallbacks}
         leftColumnVisibilityContent={
-          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          <>
+            <Button type="button" variant="outline" size="sm" asChild>
+              <Link href="/admin/video-filter-presets/preview">
+                <IconEye className="size-4" />
+                <span className="hidden lg:inline">{tDataTable("videoFilterPresets.preview")}</span>
+              </Link>
+            </Button>
+            <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          </>
         }
         rightColumnVisibilityContent={
           <Button onClick={openCreate} disabled={upsertMutation.isPending} size="sm">
             <IconPlus className="size-4" />
-            <span className="hidden lg:inline">{t("crudCreate")}</span>
+            <span className="hidden lg:inline">{tc("create")}</span>
           </Button>
         }
       />
@@ -134,7 +151,7 @@ export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClie
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingPreset ? t("crudEdit") : t("crudCreate")}</DialogTitle>
+            <DialogTitle>{editingPreset ? tc("edit") : tc("create")}</DialogTitle>
             <DialogDescription>{editingPreset ? "Edit video filter preset" : "Create a new video filter preset"}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -153,7 +170,19 @@ export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClie
               <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
             </div>
             <div className="space-y-1">
-              <Label>Fragment Shader</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label>Fragment Shader</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!formData.fragment_shader.trim()}
+                  onClick={openFormShaderPreview}
+                >
+                  <IconEye className="size-4" />
+                  {t("videoFilterPreview.previewShader")}
+                </Button>
+              </div>
               <Textarea
                 className="font-mono text-xs min-h-[200px]"
                 value={formData.fragment_shader}
@@ -182,7 +211,7 @@ export function VideoFilterPresetsClient({ initialData }: VideoFilterPresetsClie
               disabled={upsertMutation.isPending || !formData.slug || !formData.name || !formData.fragment_shader}
               onClick={() => upsertMutation.mutate({ ...formData, id: editingPreset?.id ?? "" })}
             >
-              {upsertMutation.isPending ? t("saving") : tc("save")}
+              {upsertMutation.isPending ? tc("saving") : tc("save")}
             </Button>
           </DialogFooter>
         </DialogContent>

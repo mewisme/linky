@@ -23,11 +23,34 @@
     "themeDark": "Dark",
     "themeSystem": "System",
     "openMenu": "Open menu",
-    "actionsMenu": "Actions",
     "confirmAction": "Confirm",
     "selectCountry": "Select country",
     "selectDate": "Select date",
     "unknownUser": "Unknown",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "actions": "Actions",
+    "status": "Status",
+    "reason": "Reason",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "duration": "Duration",
+    "refresh": "Refresh",
+    "logout": "Logout",
+    "active": "Active",
+    "inactive": "Inactive",
+    "saveChanges": "Save Changes",
+    "editDetails": "Edit Details",
+    "noResults": "No results",
+    "saving": "Saving...",
+    "cannotUndo": "This action cannot be undone.",
+    "enable": "Enable",
+    "disable": "Disable",
+    "description": "Description",
+    "title": "Title",
+    "message": "Message",
+    "user": "User",
     "localeChangeGuard": {
       "title": "End call to change language",
       "description": "Changing language reloads the page. End the current call first, then your language will update.",
@@ -104,7 +127,6 @@
     "reportReasonRequired": "Please provide a reason for the report",
     "reportSubmitted": "Report submitted successfully",
     "reportFailed": "Failed to submit report",
-    "reportReasonLabel": "Reason",
     "reportPlaceholder": "Please describe the issue...",
     "submitReport": "Submit Report",
     "submittingReport": "Submitting...",
@@ -284,7 +306,6 @@
   "notifications": {
     "newChatMessage": "New chat message",
     "gotUpdate": "Got new update",
-    "refresh": "Refresh",
     "pushNotSupported": "Push notifications are not supported in this browser",
     "permissionDenied": "Notification permission denied",
     "signInForPush": "Please sign in again to enable push notifications",
@@ -332,7 +353,6 @@
       "defaultMuteHint": "Microphone will be muted by default when joining a video chat",
       "defaultCameraOff": "Default Disable Camera",
       "defaultCameraOffHint": "Camera will be disabled by default when joining a video chat",
-      "save": "Save Changes",
       "updated": "Settings updated successfully",
       "updateFailed": "Failed to update settings",
       "language": "Language",
@@ -429,8 +449,7 @@
       "triggerStreak": "Streak expiry warnings",
       "triggerFavorites": "When someone adds you to favorites",
       "triggerLevelUp": "Level up achievements",
-      "triggerAnnouncements": "Important announcements",
-      "saveChanges": "Save Changes"
+      "triggerAnnouncements": "Important announcements"
     },
     "indexPage": {
       "label": "Settings",
@@ -569,12 +588,8 @@
     "adminDashboard": "Admin Dashboard",
     "appearanceSection": "Appearance",
     "theme": "Theme",
-    "themeLight": "Light",
-    "themeDark": "Dark",
-    "themeSystem": "System",
     "language": "Language",
-    "preferences": "Preferences",
-    "logout": "Logout"
+    "preferences": "Preferences"
   },
   "commandMenu": {
     "groups": {
@@ -588,7 +603,6 @@
     "ui": {
       "searchPlaceholder": "Search...",
       "commandInputPlaceholder": "Search commands and pages...",
-      "noResults": "No results found.",
       "enterToOpen": "Enter to open",
       "exit": "Exit"
     },
@@ -603,7 +617,6 @@
       "myReports": "My Reports",
       "manageUsers": "Manage Users",
       "manageReports": "Manage Reports",
-      "logout": "Logout",
       "localeEnglish": "English",
       "localeVietnamese": "Tiếng Việt"
     },
@@ -1008,7 +1021,6 @@
       "profileIdentityAria": "Profile identity",
       "additionalInfoAria": "Additional information",
       "additionalInfoHeading": "Additional information",
-      "edit": "Edit",
       "dateOfBirth": "Date of Birth",
       "notProvided": "Not provided",
       "genderMale": "Male",
@@ -1130,8 +1142,7 @@
       "openDialog": "Open test dialog",
       "resetPosition": "Reset overlay position",
       "dialogTitle": "Development Dialog",
-      "dialogDescription": "This dialog stays open even when the popover is closed. You can replace this with future development tools.",
-      "dialogClose": "Close"
+      "dialogDescription": "This dialog stays open even when the popover is closed. You can replace this with future development tools."
     }
   },
   "admin": {
@@ -1177,13 +1188,21 @@
     "crudUpdated": "Updated successfully!",
     "crudCreated": "Created successfully!",
     "crudDeleted": "Deleted successfully!",
-    "crudEdit": "Edit",
-    "crudCreate": "Create",
-    "crudDelete": "Delete",
+    "videoFilterPreview": {
+      "title": "Filter preview",
+      "description": "Camera access is required. Select a preset to see the live filter on your video.",
+      "requestingCamera": "Requesting camera access…",
+      "cameraRequired": "Camera access is required for preview",
+      "cameraErrorGeneric": "Could not access the camera",
+      "retryCamera": "Try again",
+      "presetsLabel": "Presets",
+      "draftShader": "Current shader (unsaved)",
+      "previewShader": "Preview shader",
+      "backToPresets": "Back to presets",
+      "shaderCompileFailedHint": "The filter was reset to no filter. Check the fragment shader syntax and try again.",
+      "close": "Close"
+    },
     "confirmDelete": "Are you sure you want to delete?",
-    "actions": "Actions",
-    "noResults": "No results",
-    "saving": "Saving...",
     "genericError": "An error occurred",
     "deleteError": "An error occurred during deletion",
     "userUpdated": "User updated successfully",
@@ -1258,16 +1277,12 @@
       "reportIdLabel": "Report ID:",
       "reporterUserId": "Reporter User ID",
       "reportedUserId": "Reported User ID",
-      "createdAt": "Created At",
-      "updatedAt": "Updated At",
       "reviewedBy": "Reviewed By",
       "reviewedAt": "Reviewed At",
-      "reason": "Reason",
       "contextSnapshotTitle": "Context Snapshot",
       "contextSnapshotDescription": "Call and behavior context at the time of report",
       "callId": "Call ID",
       "roomId": "Room ID",
-      "duration": "Duration",
       "endedBy": "Ended By",
       "reporterRole": "Reporter Role",
       "reportedRole": "Reported Role",
@@ -1276,18 +1291,14 @@
       "behaviorFlags": "Behavior Flags",
       "adminActionsTitle": "Admin Actions",
       "adminActionsDescription": "Update report status and add admin notes",
-      "statusField": "Status",
       "adminNotes": "Admin Notes",
       "adminNotesPlaceholder": "Add admin notes...",
-      "saveChanges": "Save Changes",
-      "saving": "Saving...",
       "statusPending": "Pending",
       "statusReviewed": "Reviewed",
       "statusResolved": "Resolved",
       "statusDismissed": "Dismissed"
     },
     "reportsList": {
-      "statusFilter": "Status",
       "allStatuses": "All Statuses",
       "statusPending": "Pending",
       "statusReviewed": "Reviewed",
@@ -1399,8 +1410,7 @@
       "updateTitle": "Update Interest Tag",
       "modalDescription": "Interest tags help the system recommend more accurate content to users.",
       "importJson": "Import JSON",
-      "addNewTag": "Add New Tag",
-      "saveChanges": "Save Changes"
+      "addNewTag": "Add New Tag"
     },
     "expBonusModal": {
       "createTitle": "Create EXP Bonus",
@@ -1429,8 +1439,7 @@
       "relationMutual": "Mutual favorites",
       "relationOneWay": "One-way favorite",
       "relationRequired": "Select a favorite relation.",
-      "favoriteHint": "Applies when you call a user who matches this favorite relationship (both added each other, or only you added them).",
-      "saveChanges": "Save Changes"
+      "favoriteHint": "Applies when you call a user who matches this favorite relationship (both added each other, or only you added them)."
     },
     "embedding": {
       "compareTitle": "Compare embeddings",
@@ -1439,7 +1448,6 @@
       "modelLabel": "Model:",
       "userAUpdated": "User A updated:",
       "userBUpdated": "User B updated:",
-      "close": "Close",
       "compare": "Compare",
       "compareFailed": "Failed to compare embeddings",
       "findSimilarTitle": "Find similar users",
@@ -1460,10 +1468,8 @@
   "dataTable": {
     "common": {
       "loading": "Loading...",
-      "actions": "Actions",
       "selectAllAria": "Select all",
       "selectRowAria": "Select row",
-      "unknownUser": "Unknown",
       "emDash": "—",
       "customizeColumns": "Customize Columns",
       "columnsShort": "Columns",
@@ -1474,24 +1480,19 @@
       "goToNextPage": "Go to next page",
       "goToLastPage": "Go to last page",
       "filterColumnPlaceholder": "Filter {column}...",
-      "noResults": "No results.",
       "rowsSelected": "{selected} of {total} rows selected.",
       "rowsPerPage": "Rows per page"
     },
     "confirm": {
       "deleteTitle": "Are you sure?",
       "yesDelete": "Yes, delete",
-      "noGoBack": "No, go back",
-      "cancel": "Cancel"
+      "noGoBack": "No, go back"
     },
     "reports": {
       "loadingTitle": "Loading reports...",
       "copyReportId": "Copy report ID",
       "reportIdCopied": "Report ID copied to clipboard",
-      "reportedUser": "Reported User",
-      "reason": "Reason",
-      "status": "Status",
-      "createdAt": "Created At"
+      "reportedUser": "Reported User"
     },
     "adminReports": {
       "loadingTitle": "Loading reports...",
@@ -1500,11 +1501,8 @@
       "reportIdCopied": "Report ID copied to clipboard",
       "reporterUser": "Reporter User",
       "reportedUser": "Reported User",
-      "reason": "Reason",
-      "status": "Status",
       "aiSeverity": "AI Severity",
       "aiSummary": "AI Summary",
-      "createdAt": "Created At",
       "reviewedBy": "Reviewed By",
       "failed": "failed",
       "filterPlaceholder": "Filter by reason..."
@@ -1546,9 +1544,7 @@
       "synced": "Synced",
       "none": "None",
       "embeddingUpdated": "Embedding Updated",
-      "presence": "Presence",
-      "createdAt": "Created At",
-      "updatedAt": "Updated At"
+      "presence": "Presence"
     },
     "callHistory": {
       "loadingTitle": "Loading call history...",
@@ -1558,7 +1554,6 @@
       "status": "Status",
       "outgoing": "Outgoing",
       "incoming": "Incoming",
-      "duration": "Duration",
       "dateTime": "Date & Time"
     },
     "blockedUsers": {
@@ -1584,9 +1579,6 @@
       "loadingTitle": "Loading EXP bonuses...",
       "copyBonusId": "Copy bonus ID",
       "bonusIdCopied": "Bonus ID copied to clipboard",
-      "editDetails": "Edit Details",
-      "delete": "Delete",
-      "deleteDescription": "This action cannot be undone. This will permanently delete the EXP bonus.",
       "type": "Type",
       "typeStreak": "Streak",
       "typeLevel": "Level",
@@ -1607,35 +1599,23 @@
       "loadingTitle": "Loading interest tags...",
       "copyTagId": "Copy tag ID",
       "tagIdCopied": "Tag ID copied to clipboard",
-      "editDetails": "Edit Details",
       "activate": "Activate",
       "deactivate": "Deactivate",
       "deletePermanently": "Delete Permanently",
-      "deletePermanentDescription": "This action cannot be undone.",
       "tag": "Tag",
       "category": "Category",
       "general": "General",
-      "description": "Description",
       "noDescription": "No description provided",
-      "status": "Status",
-      "active": "Active",
-      "inactive": "Inactive",
       "filterPlaceholder": "Search tags..."
     },
     "videoFilterPresets": {
       "loadingTitle": "Loading video filter presets...",
       "copyPresetId": "Copy preset ID",
       "presetIdCopied": "Preset ID copied to clipboard",
-      "editDetails": "Edit Details",
-      "deletePreset": "Delete",
-      "deleteDescription": "This action cannot be undone.",
+      "preview": "Preview filter",
       "name": "Name",
       "slug": "Slug",
-      "description": "Description",
       "sortOrder": "Sort Order",
-      "status": "Status",
-      "active": "Active",
-      "inactive": "Inactive",
       "filterPlaceholder": "Search presets..."
     },
     "adminConfig": {
@@ -1670,8 +1650,7 @@
     }
   },
   "serviceWorker": {
-    "updateAvailable": "Got new update",
-    "refresh": "Refresh"
+    "updateAvailable": "Got new update"
   },
   "api": {
     "actingUserNotFound": "Acting user not found",

@@ -169,7 +169,7 @@ export function InterestTagsSection({
               onClick={() => setEditingTags(true)}
             >
               <IconEdit className="size-4" />
-              {tp("edit")}
+              {tc("edit")}
             </Button>
           )}
           {showToggle && (

@@ -55,6 +55,7 @@ export type RowCallbacks = Record<string, unknown>;
 
 function ReportsActionsCell({ row }: { row: { original: ResourcesAPI.Reports.Report } }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const report = row.original;
 
   const actions: ActionItem[] = useMemo(() => [
@@ -69,11 +70,12 @@ function ReportsActionsCell({ row }: { row: { original: ResourcesAPI.Reports.Rep
     },
   ], [report, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
+  return <ActionsButton actions={actions} title={tc('actions')} className="flex justify-end" />;
 }
 
 export function useReportColumns(_callbacks?: RowCallbacks): ColumnDef<ResourcesAPI.Reports.Report>[] {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -104,13 +106,13 @@ export function useReportColumns(_callbacks?: RowCallbacks): ColumnDef<Resources
           lastName={row.original.reported_last_name}
           avatarUrl={row.original.reported_avatar_url}
           userId={row.original.reported_user_id}
-          fallback={t('common.unknownUser')}
+          fallback={tc('unknownUser')}
         />
       ),
     },
     {
       accessorKey: 'reason',
-      header: t('reports.reason'),
+      header: tc('reason'),
       cell: ({ row }) => {
         const reason = row.getValue('reason') as string
         return (
@@ -120,7 +122,7 @@ export function useReportColumns(_callbacks?: RowCallbacks): ColumnDef<Resources
     },
     {
       accessorKey: 'status',
-      header: t('reports.status'),
+      header: tc('status'),
       cell: ({ row }) => {
         const status = row.getValue('status') as ResourcesAPI.Reports.ReportStatus
         return (
@@ -135,7 +137,7 @@ export function useReportColumns(_callbacks?: RowCallbacks): ColumnDef<Resources
     },
     {
       accessorKey: 'created_at',
-      header: t('reports.createdAt'),
+      header: tc('createdAt'),
       cell: ({ row }) => {
         const date = new Date(row.getValue('created_at'))
         return (

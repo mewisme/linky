@@ -112,19 +112,19 @@ export function UserButton() {
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Sun className="size-4 shrink-0" />
                 </div>
-                <span>{t("themeLight")}</span>
+                <span>{tCommon("themeLight")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("dark")}>
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Moon className="size-4 shrink-0 " />
                 </div>
-                <span>{t("themeDark")}</span>
+                <span>{tCommon("themeDark")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("system")}>
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <IconDeviceDesktop className="size-4 shrink-0" />
                 </div>
-                <span>{t("themeSystem")}</span>
+                <span>{tCommon("themeSystem")}</span>
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
@@ -167,7 +167,7 @@ export function UserButton() {
             <div className="flex size-6 items-center justify-center rounded-sm border">
               <LogOutIcon className='size-4 shrink-0 dark:text-red-400 text-red-500' />
             </div>
-            <span className='dark:text-red-400'>{t("logout")}</span>
+            <span className='dark:text-red-400'>{tCommon("logout")}</span>
             <DropdownMenuShortcut>
               <Kbd>⇧⌘Q</Kbd>
             </DropdownMenuShortcut>

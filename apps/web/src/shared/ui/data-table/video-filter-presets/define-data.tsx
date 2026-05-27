@@ -26,6 +26,7 @@ export interface RowCallbacks {
 
 function VideoFilterPresetActionsCell({ row, callbacks }: { row: { original: VideoFilterPreset }, callbacks?: RowCallbacks }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const preset = row.original;
 
   const actions: ActionItem[] = useMemo(() => {
@@ -41,20 +42,20 @@ function VideoFilterPresetActionsCell({ row, callbacks }: { row: { original: Vid
       },
       {
         type: 'item',
-        label: t('videoFilterPresets.editDetails'),
+        label: tc('editDetails'),
         icon: <IconEdit className="size-4" />,
         onClick: () => callbacks?.onEdit(preset),
       },
       { type: 'separator' },
       {
         type: 'item',
-        label: t('videoFilterPresets.deletePreset'),
+        label: tc('delete'),
         icon: <IconTrash className="size-4" />,
         onClick: () => callbacks?.onDelete(preset),
         variant: 'destructive',
         confirmAction: {
           title: t('confirm.deleteTitle'),
-          description: t('videoFilterPresets.deleteDescription'),
+          description: tc('cannotUndo'),
           confirmLabel: t('confirm.yesDelete'),
           cancelLabel: t('confirm.noGoBack'),
           variant: 'destructive',
@@ -63,13 +64,14 @@ function VideoFilterPresetActionsCell({ row, callbacks }: { row: { original: Vid
     ];
 
     return items;
-  }, [preset, callbacks, t]);
+  }, [preset, callbacks, t, tc]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} />;
+  return <ActionsButton actions={actions} title={tc('actions')} />;
 }
 
 export function useVideoFilterPresetColumns(callbacks?: RowCallbacks): ColumnDef<VideoFilterPreset>[] {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -104,7 +106,7 @@ export function useVideoFilterPresetColumns(callbacks?: RowCallbacks): ColumnDef
     },
     {
       accessorKey: 'description',
-      header: t('videoFilterPresets.description'),
+      header: tc('description'),
       cell: ({ row }) => (
         <div className="max-w-[250px] truncate text-muted-foreground">{row.original.description || t('common.emDash')}</div>
       ),
@@ -115,7 +117,7 @@ export function useVideoFilterPresetColumns(callbacks?: RowCallbacks): ColumnDef
     },
     {
       accessorKey: 'is_active',
-      header: t('videoFilterPresets.status'),
+      header: tc('status'),
       cell: ({ row }) => (
         <Badge variant="outline" className="text-muted-foreground px-1.5">
           {row.original.is_active ? (
@@ -123,7 +125,7 @@ export function useVideoFilterPresetColumns(callbacks?: RowCallbacks): ColumnDef
           ) : (
             <IconCircleXFilled className="fill-red-500 dark:fill-red-400" />
           )}
-          {row.original.is_active ? t('videoFilterPresets.active') : t('videoFilterPresets.inactive')}
+          {row.original.is_active ? tc('active') : tc('inactive')}
         </Badge>
       ),
     },
@@ -133,5 +135,5 @@ export function useVideoFilterPresetColumns(callbacks?: RowCallbacks): ColumnDef
         <VideoFilterPresetActionsCell row={row} callbacks={callbacks} />
       ),
     }
-  ], [callbacks, t])
+  ], [callbacks, t, tc])
 }

@@ -46,6 +46,7 @@ function getDefaultPosition() {
 
 export function DevOverlay() {
   const t = useTranslations("development.devOverlay");
+  const tc = useTranslations("common");
   const overlayRef = useRef<HTMLButtonElement>(null);
   const draggingRef = useRef(false);
   const dragPositionRef = useRef<{ x: number; y: number } | null>(null);
@@ -266,7 +267,7 @@ export function DevOverlay() {
           </DialogHeader>
           <DialogFooter>
             <Button type="button" onClick={() => setIsDialogOpen(false)}>
-              {t("dialogClose")}
+              {tc("close")}
             </Button>
           </DialogFooter>
         </DialogContent>

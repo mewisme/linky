@@ -1,0 +1,54 @@
+---
+description: 
+alwaysApply: true
+---
+
+# i18n — Common / General Messages
+
+Before adding or wiring a next-intl key for copy that is **common or general** (reusable across features), **search existing `common` groups first**. Do not duplicate strings under feature-specific namespaces.
+
+## Where common keys live
+
+| Group | Path in messages | Use when |
+|----|---|----|
+| App-wide | `common.*` | Buttons, labels, status, actions, generic UI (Save, Cancel, Delete, Loading, Error, …) |
+| Data tables | `dataTable.common.*` | Pagination, column chrome, row selection, table loading — shared by `shared/ui/data-table` |
+
+Message files: `apps/web/src/messages/en.json` and `vi.json` (keep key-for-key parity).
+
+## Workflow
+
+1. **Decide scope** — Is the string feature-specific (e.g. “Video filter preset slug”) or generic (e.g. “Save”, “Cancel”, “No results”)?
+2. **If generic, search `common`** (and `dataTable.common` for table UI) in `en.json` before creating a new key.
+3. **Reuse** an existing key when the meaning matches; do not add `admin.foo.save` if `common.save` already exists.
+4. **If no match**, add the key to the appropriate `common` group — **not** under `admin`, `call`, `user`, etc.
+5. **Wire in code** with `useTranslations('common')` (or `dataTable.common`); alias as `tc` / `tCommon` when a feature namespace is also used.
+
+## Examples
+
+```tsx
+// BAD — duplicates app-wide copy in a feature namespace
+const t = useTranslations('admin.videoFilterPresets');
+<Button>{t('save')}</Button>
+
+// GOOD — reuse common
+const tc = useTranslations('common');
+<Button>{tc('save')}</Button>
+```
+
+```json
+// BAD — in en.json under a feature block
+"admin": { "videoFilterPresets": { "cancel": "Cancel" } }
+
+// GOOD — only if not already in common
+"common": { "cancel": "Cancel" }
+```
+
+## What counts as common/general
+
+- Action verbs: save, cancel, delete, edit, create, close, confirm
+- States: loading, error, success, active, inactive
+- Generic labels: title, description, status, actions, user, no results
+- Table chrome when used by shared data-table components
+
+Feature-only copy (domain terms, page titles, tooltips tied to one screen) stays in that feature’s namespace.

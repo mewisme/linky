@@ -30,6 +30,7 @@ export interface RowCallbacks {
 
 function InterestTagActionsCell({ row, callbacks }: { row: { original: InterestTag }, callbacks?: RowCallbacks }) {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   const tag = row.original;
 
   const actions: ActionItem[] = useMemo(() => {
@@ -45,7 +46,7 @@ function InterestTagActionsCell({ row, callbacks }: { row: { original: InterestT
       },
       {
         type: 'item',
-        label: t('interestTags.editDetails'),
+        label: tc('editDetails'),
         icon: <IconEdit className="size-4" />,
         onClick: () => callbacks?.onEdit(tag),
       },
@@ -80,7 +81,7 @@ function InterestTagActionsCell({ row, callbacks }: { row: { original: InterestT
       variant: 'destructive',
       confirmAction: {
         title: t('confirm.deleteTitle'),
-        description: t('interestTags.deletePermanentDescription'),
+        description: tc('cannotUndo'),
         confirmLabel: t('confirm.yesDelete'),
         cancelLabel: t('confirm.noGoBack'),
         variant: 'destructive',
@@ -90,11 +91,12 @@ function InterestTagActionsCell({ row, callbacks }: { row: { original: InterestT
     return items;
   }, [tag, callbacks, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} />;
+  return <ActionsButton actions={actions} title={tc('actions')} />;
 }
 
 export function useInterestTagColumns(callbacks?: RowCallbacks): ColumnDef<InterestTag>[] {
   const t = useTranslations('dataTable')
+  const tc = useTranslations('common')
   return useMemo(() => [
     {
       id: "select",
@@ -139,7 +141,7 @@ export function useInterestTagColumns(callbacks?: RowCallbacks): ColumnDef<Inter
     },
     {
       accessorKey: 'description',
-      header: t('interestTags.description'),
+      header: tc('description'),
       cell: ({ row }) => {
         return (
           <div className="max-w-[250px] truncate text-muted-foreground italic">{row.original.description || t('interestTags.noDescription')}</div>
@@ -148,7 +150,7 @@ export function useInterestTagColumns(callbacks?: RowCallbacks): ColumnDef<Inter
     },
     {
       accessorKey: 'is_active',
-      header: t('interestTags.status'),
+      header: tc('status'),
       cell: ({ row }) => {
         return (
           <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -157,7 +159,7 @@ export function useInterestTagColumns(callbacks?: RowCallbacks): ColumnDef<Inter
             ) : (
               <IconCircleXFilled className="fill-red-500 dark:fill-red-400" />
             )}
-            {row.original.is_active ? t('interestTags.active') : t('interestTags.inactive')}
+            {row.original.is_active ? tc('active') : tc('inactive')}
           </Badge>
         )
       }

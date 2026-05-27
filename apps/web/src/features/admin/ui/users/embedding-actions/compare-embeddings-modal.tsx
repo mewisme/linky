@@ -45,6 +45,7 @@ export function CompareEmbeddingsModal({
   users,
 }: CompareEmbeddingsModalProps) {
   const te = useTranslations('admin.embedding');
+  const tc = useTranslations('common');
   const isMobile = useIsMobile();
   const [secondUser, setSecondUser] = useState<AdminAPI.User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -124,7 +125,7 @@ export function CompareEmbeddingsModal({
           onClick={() => handleOpenChange(false)}
           disabled={isLoading}
         >
-          {te('close')}
+          {tc('close')}
         </Button>
         <Button
           type="button"

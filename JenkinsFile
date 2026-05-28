@@ -1,6 +1,11 @@
-def doPull = false;
-def localVersion = null;
-def remoteVersion = null;
+def doPull = false
+def localVersion = null
+def remoteVersion = null
+def branchName = null
+def linkyApiUrl = null
+def dockerImageApiUrl = null
+def dockerComposeFile = null
+def envCredentialsId = null
 
 pipeline {
   agent any
@@ -11,7 +16,9 @@ pipeline {
 
   environment {
     LINKY_API_URL = 'https://api.linkynow.site'
+    LINKY_API_DEV_URL = 'https://api-dev.linkynow.site'
     DOCKER_IMAGE_API_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky'
+    DOCKER_IMAGE_API_DEV_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-dev'
   }
 
   stages {
@@ -19,10 +26,33 @@ pipeline {
     stage('Checkout Code') {
       steps {
         checkout scm
+        script {
+          branchName = env.BRANCH_NAME ?: env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
+          echo "- Updated branch: ${branchName}"
+
+          if (branchName == 'main') {
+            linkyApiUrl = env.LINKY_API_URL
+            dockerImageApiUrl = env.DOCKER_IMAGE_API_URL
+            dockerComposeFile = 'docker-compose.yml'
+            envCredentialsId = 'linky-env-prod'
+          } else if (branchName == 'dev') {
+            linkyApiUrl = env.LINKY_API_DEV_URL
+            dockerImageApiUrl = env.DOCKER_IMAGE_API_DEV_URL
+            dockerComposeFile = 'docker-compose.dev.yml'
+            envCredentialsId = 'linky-env-dev'
+          } else {
+            error "Unsupported branch: ${branchName}"
+          }
+
+          echo "- API URL: ${linkyApiUrl}"
+          echo "- Docker API URL: ${dockerImageApiUrl}"
+          echo "- Docker Compose File: ${dockerComposeFile}"
+          echo "- Environment Credentials ID: ${envCredentialsId}"
+        }
       }
     }
 
-    stage('Live vs Repo Version') {
+     stage('Live vs Repo Version') {
       steps {
         script {
           echo '- Checking local & remote versions'
@@ -32,7 +62,7 @@ pipeline {
           echo "- Remote version: $remoteVersion"
 
           try {
-            def localVersionResponse = httpRequest url: "$LINKY_API_URL/healthz"
+            def localVersionResponse = httpRequest url: "${linkyApiUrl}/healthz"
             def localVersionJson = readJSON text: localVersionResponse.content
             localVersion = localVersionJson?.version ?: null
             echo "- Local version: $localVersion"
@@ -62,7 +92,7 @@ pipeline {
 
             echo '- Checking Docker Hub & Remote versions'
 
-            def tagsDockerHubResponse = httpRequest url: "$DOCKER_IMAGE_API_URL/tags"
+            def tagsDockerHubResponse = httpRequest url: "${dockerImageApiUrl}/tags"
             def tagsDockerHubJson = readJSON text: tagsDockerHubResponse.content
 
             def latestDigest = tagsDockerHubJson.results.find { tag -> tag.name == "latest" }?.images[0]?.digest
@@ -110,7 +140,7 @@ pipeline {
         expression { doPull }
       }
       steps {
-        withCredentials([file(credentialsId: 'linky-api-env-file', variable: 'ENV_FILE')]) {
+        withCredentials([file(credentialsId: envCredentialsId, variable: 'ENV_FILE')]) {
           sh '''
             cp "$ENV_FILE" .env
             chmod 600 .env
@@ -126,7 +156,7 @@ pipeline {
       }
       steps {
         sh '''
-          docker compose up -d --pull always --remove-orphans
+          docker compose -f ${dockerComposeFile} up -d --pull always --remove-orphans
         '''
       }
     }

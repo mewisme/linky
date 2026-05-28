@@ -1,4 +1,3 @@
-import { useOpenPanel } from "@openpanel/nextjs";
 import { z } from "zod";
 
 export const CLIENT_EVENT_NAMES = [
@@ -45,7 +44,5 @@ const eventSchema = z.object({
 export type Event = z.infer<typeof eventSchema>;
 
 export function trackEvent(input: Event): void {
-  const event = eventSchema.parse(input);
-  const { track } = useOpenPanel();
-  track(event.name, event.properties ?? {});
+  eventSchema.parse(input);
 }

@@ -1,27 +1,23 @@
-import { OpenPanel } from "@openpanel/nextjs";
-import { publicEnv } from "@/shared/env/public-env";
-import { serverEnv } from "@/shared/env/server-env";
+export type TelemetryValue = string | number | boolean | null;
 
-const OPENPANEL_ENABLED = false;
-
-const disabledOp = {
-  setGlobalProperties: () => {},
-  track: async () => {},
-  identify: async () => {},
-} as const satisfies Pick<OpenPanel, "track" | "identify" | "setGlobalProperties">;
-
-function createOpenPanel(): OpenPanel {
-  const client = new OpenPanel({
-    apiUrl: serverEnv.OPENPANEL_API_URL,
-    clientId: publicEnv.OPENPANEL_CLIENT_ID,
-    clientSecret: serverEnv.OPENPANEL_CLIENT_SECRET,
-  });
-  client.setGlobalProperties({
-    environment: serverEnv.isProd ? "production" : "development",
-  });
-  return client;
+export interface TelemetryClient {
+  setGlobalProperties: (properties: Record<string, TelemetryValue>) => void;
+  track: (
+    event: string,
+    properties?: Record<string, TelemetryValue>
+  ) => Promise<void>;
+  identify: (input: {
+    profileId: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    avatar?: string;
+    properties?: Record<string, TelemetryValue>;
+  }) => Promise<void>;
 }
 
-export const op: OpenPanel = OPENPANEL_ENABLED
-  ? createOpenPanel()
-  : (disabledOp as unknown as OpenPanel);
+export const op: TelemetryClient = {
+  setGlobalProperties: () => { },
+  track: async () => { },
+  identify: async () => { },
+};

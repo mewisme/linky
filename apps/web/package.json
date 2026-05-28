@@ -21,7 +21,6 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.2",
-    "@openpanel/nextjs": "^1.4.0",
     "@sentry/nextjs": "^10.49.0",
     "@tabler/icons-react": "^3.41.1",
     "@tanstack/react-hotkeys": "^0.7.0",

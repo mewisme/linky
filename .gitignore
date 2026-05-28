@@ -7,11 +7,8 @@ node_modules
 
 # Local env files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.production
+.env.*
+!.env.*.example
 
 # Testing
 coverage
@@ -62,7 +59,6 @@ e2e/pytest/.auth/
 /e2e/playwright/.auth/
 
 docker-compose.local.yml
-docker-compose.dev.yml
 
 .claude/
 # next-agents-md

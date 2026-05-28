@@ -4,7 +4,6 @@ import { Analytics } from "@vercel/analytics/next"
 import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata, Viewport } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { OpenPanelComponent } from "@openpanel/nextjs";
 import { beVietnamPro } from "@/shared/fonts/be-vietnam-pro";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
@@ -107,16 +106,6 @@ export default async function RootLayout({
             </ThemeProvider>
             <Analytics />
             <SpeedInsights />
-            <OpenPanelComponent
-              disabled={true}
-              apiUrl="/api/op"
-              scriptUrl="/api/op/op1.js"
-              clientId={publicEnv.OPENPANEL_CLIENT_ID}
-              trackAttributes={true}
-              trackScreenViews={true}
-              trackOutgoingLinks={true}
-              trackHashChanges={true}
-            />
           </RootNextIntlProvider>
         </body>
       </html>

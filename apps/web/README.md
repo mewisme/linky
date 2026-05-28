@@ -81,9 +81,9 @@ Validated modules — **do not read `process.env` directly in app code.**
 | `@/shared/env/public-env` | `publicEnv` | Client, shared code |
 | `@/shared/env/server-env` | `serverEnv` | Server Components, route handlers, actions |
 
-**Public (required):** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_OPENPANEL_CLIENT_ID`, `NEXT_PUBLIC_GIPHY_API_KEY` (optional: Sentry, dev origins).
+**Public (required):** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GIPHY_API_KEY` (optional: Sentry, dev origins).
 
-**Server:** `OPENPANEL_API_URL`, `OPENPANEL_CLIENT_SECRET`, optional Sentry build vars.
+**Server:** optional Sentry build vars.
 
 **Clerk** (standard `@clerk/nextjs`): `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — typically in the repo-root `.env` (merged dev file) or `apps/web/.env.local`.
 

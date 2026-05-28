@@ -519,7 +519,7 @@ export function useVideoChat(): UseVideoChatReturn {
         const text = resolveUserMessage(data.userMessage);
         if (data.queueSize !== undefined) {
           actionsRef.current.setError(null);
-          toast(text);
+          toast.info(text);
         } else {
           toast.error(text);
         }
@@ -535,7 +535,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
         actionsRef.current.setError(null);
-        toast(resolveUserMessage(data.userMessage));
+        toast.info(resolveUserMessage(data.userMessage));
       },
 
       onSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => {
@@ -547,7 +547,7 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.setPeerTyping(false);
         actionsRef.current.setRemoteMuted(false);
         actionsRef.current.setCallStartedAt(null);
-        toast(resolveUserMessage(data.userMessage));
+        toast.info(resolveUserMessage(data.userMessage));
       },
 
       onEndCall: (data: UserFacingSocketPayload) => {
@@ -558,7 +558,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
         isReconnectingRef.current = false;
         monitoring.stopMonitoring();
-        toast(resolveUserMessage(data.userMessage));
+        toast.info(resolveUserMessage(data.userMessage));
         play("leave_call");
         actionsRef.current.setConnectionStatus("ended");
         actionsRef.current.setCallStartedAt(null);
@@ -654,7 +654,7 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onFavoriteRemoved: (data: { from_user_id: string; from_user_name: string }) => {
-        toast(t("call.removedFromFavorites", { name: data.from_user_name }));
+        toast.info(t("call.removedFromFavorites", { name: data.from_user_name }));
       },
 
       onFavoriteRemovedSelf: () => {
@@ -768,7 +768,7 @@ export function useVideoChat(): UseVideoChatReturn {
     monitoring.stopMonitoring();
     socketSignaling.sendEndCall();
     trackEvent({ name: "call_ended" });
-    toast(t("call.youEndedCall"));
+    toast.info(t("call.youEndedCall"));
     actionsRef.current.setConnectionStatus("ended");
     actionsRef.current.setCallStartedAt(null);
     tabCoordination.releaseOwnership();

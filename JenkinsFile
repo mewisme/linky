@@ -155,9 +155,9 @@ pipeline {
         expression { doPull }
       }
       steps {
-        sh '''
-          docker compose -f ${dockerComposeFile} up -d --pull always --remove-orphans
-        '''
+        sh """
+          docker compose -f "${dockerComposeFile}" up -d --pull always --remove-orphans
+        """
       }
     }
   }

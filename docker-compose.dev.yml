@@ -43,7 +43,6 @@ services:
 
 volumes:
   redis-data:
-
 networks:
   linky-network-dev:
     driver: bridge

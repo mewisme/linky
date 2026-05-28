@@ -5,6 +5,7 @@ def branchName = null
 def linkyApiUrl = null
 def dockerImageApiUrl = null
 def dockerComposeFile = null
+def dockerProjectName = null
 def envCredentialsId = null
 
 pipeline {
@@ -34,11 +35,13 @@ pipeline {
             linkyApiUrl = env.LINKY_API_URL
             dockerImageApiUrl = env.DOCKER_IMAGE_API_URL
             dockerComposeFile = 'docker-compose.yml'
+            dockerProjectName = 'linky-prod'
             envCredentialsId = 'linky-env-prod'
           } else if (branchName == 'dev') {
             linkyApiUrl = env.LINKY_API_DEV_URL
             dockerImageApiUrl = env.DOCKER_IMAGE_API_DEV_URL
             dockerComposeFile = 'docker-compose.dev.yml'
+            dockerProjectName = 'linky-dev'
             envCredentialsId = 'linky-env-dev'
           } else {
             error "Unsupported branch: ${branchName}"
@@ -47,6 +50,7 @@ pipeline {
           echo "- API URL: ${linkyApiUrl}"
           echo "- Docker API URL: ${dockerImageApiUrl}"
           echo "- Docker Compose File: ${dockerComposeFile}"
+          echo "- Docker Project Name: ${dockerProjectName}"
           echo "- Environment Credentials ID: ${envCredentialsId}"
         }
       }
@@ -155,9 +159,9 @@ pipeline {
         expression { doPull }
       }
       steps {
-        sh '''
-          docker compose -f ${dockerComposeFile} up -d --pull always --remove-orphans
-        '''
+        sh """
+          docker compose -p "${dockerProjectName}" -f "${dockerComposeFile}" up -d --pull always --remove-orphans
+        """
       }
     }
   }
@@ -167,10 +171,10 @@ pipeline {
       cleanWs()
     }
     success {
-      echo 'Linky deployed successfully'
+      echo "Linky deployed successfully to ${dockerProjectName}"
     }
     failure {
-      echo 'Linky deployment failed'
+      echo "Linky deployment failed to ${dockerProjectName}"
     }
   }
 }

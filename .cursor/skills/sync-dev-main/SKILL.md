@@ -33,6 +33,8 @@ Rules:
    - `git push origin main`
 7. Verify status:
    - `git status`
+8. Switch back to `dev`:
+   - `git checkout dev`
 
 ## Output Format
 
@@ -41,3 +43,4 @@ After execution, report:
 - Whether merge created a commit or was already up to date
 - Push result
 - Final `git status` summary
+- Confirmation that branch is back on `dev`

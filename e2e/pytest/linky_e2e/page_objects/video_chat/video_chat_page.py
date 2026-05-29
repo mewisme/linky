@@ -43,6 +43,60 @@ class VideoChatPage:
     def wait_for_searching(self, timeout: float | None = None) -> None:
         wait_visible(self.driver, by_test_id("chat-searching-indicator"), timeout)
 
+    def wait_for_cancel_search_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-cancel-search-button"), timeout)
+    
+    def wait_for_start_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-start-button"), timeout)
+    
+    def wait_for_end_call_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-end-call-button"), timeout)
+    
+    def wait_for_skip_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-skip-button"), timeout)
+    
+    def wait_for_mute_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-mute-button"), timeout)
+    
+    def wait_for_video_toggle_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-video-toggle-button"), timeout)
+    
+    def wait_for_remote_video(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-remote-video"), timeout)
+    
+    def wait_for_local_video(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-local-video"), timeout)
+    
+    def wait_for_call_timer(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-call-timer"), timeout)
+    
+    def wait_for_camera_off_indicator(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-camera-off-indicator"), timeout)
+    
+    def wait_for_passive_video_container(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-video-container-passive"), timeout)
+    
+    def wait_for_video_container(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-video-container"), timeout)
+    
+    def wait_for_idle_container(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-idle-container"), timeout)
+    
+    def wait_for_searching_indicator(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-searching-indicator"), timeout)
+    
+    def wait_for_overflow_menu_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-overflow-menu-button"), timeout)
+    
+    def wait_for_chat_toggle_button(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-toggle-button"), timeout)
+    
+    def wait_for_chat_sidebar(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-sidebar"), timeout)
+    
+    def wait_for_chat_messages_container(self, timeout: float | None = None) -> None:
+        wait_visible(self.driver, by_test_id("chat-messages-container"), timeout)
+        
     def _visible_control(self, test_id: str) -> WebElement | None:
         for el in self.driver.find_elements(*by_test_id(test_id)):
             if el.is_displayed():

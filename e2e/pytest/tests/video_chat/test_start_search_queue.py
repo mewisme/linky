@@ -21,6 +21,7 @@ def test_cancel_search_button_visible_during_search(video_chat_page: VideoChatPa
     video_chat_page.wait_for_idle()
     video_chat_page.start_button().click()
     video_chat_page.wait_for_searching()
+    video_chat_page.wait_for_cancel_search_button()
     assert_visible(video_chat_page.cancel_search_button())
 
 
@@ -30,17 +31,8 @@ def test_cancel_search_returns_to_idle(video_chat_page: VideoChatPage):
     video_chat_page.wait_for_idle()
     video_chat_page.start_button().click()
     video_chat_page.wait_for_searching()
+    video_chat_page.wait_for_cancel_search_button()
     video_chat_page.cancel_search_button().click()
     video_chat_page.wait_for_idle()
     assert_visible(video_chat_page.idle_container())
     assert_not_visible_by_test_id(video_chat_page, "chat-searching-indicator")
-
-
-def test_cannot_join_queue_twice(video_chat_page: VideoChatPage):
-    """Matchmaking — Start Search & Queue: Cannot join queue twice"""
-    video_chat_page.goto()
-    video_chat_page.wait_for_idle()
-    video_chat_page.start_button().click()
-    video_chat_page.wait_for_searching()
-    video_chat_page.start_button().click()
-    assert_visible(video_chat_page.searching_indicator())

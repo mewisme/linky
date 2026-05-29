@@ -58,6 +58,7 @@ export interface UseSocketSignalingReturn {
   disconnectSocket: () => void;
   reloadSocket: () => Socket | null;
   ensureSocketConnected: (timeoutMs?: number) => Promise<boolean>;
+  resolveSocketId: (preferredId?: string | null, timeoutMs?: number) => Promise<string | null>;
   getSocket: () => Socket | null;
   getSocketId: () => string | null;
   isSocketHealthy: () => boolean;
@@ -79,9 +80,21 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   useEffect(() => {
     socketRef.current = globalSocket;
-    if (globalSocket) {
-      currentSocketIdRef.current = globalSocket.id || null;
+    if (!globalSocket) {
+      return;
     }
+
+    const syncSocketId = () => {
+      if (globalSocket.id) {
+        currentSocketIdRef.current = globalSocket.id;
+      }
+    };
+
+    syncSocketId();
+    globalSocket.on("connect", syncSocketId);
+    return () => {
+      globalSocket.off("connect", syncSocketId);
+    };
   }, [globalSocket]);
 
   const unregisterSocketListeners = useCallback((socket: Socket) => {
@@ -441,6 +454,46 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     return socketRef.current?.connected ?? false;
   }, []);
 
+  const readSocketId = useCallback((): string | null => {
+    const socket = socketRef.current;
+    const id = socket?.id ?? currentSocketIdRef.current;
+    if (id) {
+      currentSocketIdRef.current = id;
+    }
+    return id;
+  }, []);
+
+  const resolveSocketId = useCallback(
+    async (preferredId?: string | null, timeoutMs = 15_000): Promise<string | null> => {
+      if (preferredId) {
+        currentSocketIdRef.current = preferredId;
+        return preferredId;
+      }
+
+      const immediate = readSocketId();
+      if (immediate) {
+        return immediate;
+      }
+
+      const connected = await ensureSocketConnected(timeoutMs);
+      if (!connected) {
+        return readSocketId();
+      }
+
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        const id = readSocketId();
+        if (id) {
+          return id;
+        }
+        await new Promise((resolve) => setTimeout(resolve, Math.min(50, deadline - Date.now())));
+      }
+
+      return readSocketId();
+    },
+    [ensureSocketConnected, readSocketId],
+  );
+
   const getSocket = useCallback((): Socket | null => {
     return socketRef.current;
   }, []);
@@ -479,6 +532,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       disconnectSocket,
       reloadSocket,
       ensureSocketConnected,
+      resolveSocketId,
       getSocket,
       getSocketId,
       isSocketHealthy,
@@ -503,6 +557,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       disconnectSocket,
       reloadSocket,
       ensureSocketConnected,
+      resolveSocketId,
       getSocket,
       getSocketId,
       isSocketHealthy,

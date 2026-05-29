@@ -435,8 +435,7 @@ export function useVideoChat(): UseVideoChatReturn {
           return;
         }
 
-        const socketId =
-          data.socketId ?? socketSignaling.getSocket()?.id ?? socketSignaling.getSocketId();
+        const socketId = await socketSignaling.resolveSocketId(data.socketId);
         if (!socketId) {
           Sentry.logger.error("No socketId available for SFU match");
           actionsRef.current.setError(t("call.failedEstablishConnection"));

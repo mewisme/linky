@@ -435,45 +435,59 @@ export function useVideoChat(): UseVideoChatReturn {
           return;
         }
 
-        const socketId = await socketSignaling.resolveSocketId(data.socketId);
+        const matchedSocketId =
+          typeof data.socketId === "string" && data.socketId.length > 0 ? data.socketId : null;
+        let socketId = await socketSignaling.resolveSocketId(matchedSocketId);
         if (!socketId) {
-          Sentry.logger.error("No socketId available for SFU match");
+          const socketReady = await socketSignaling.ensureSocketConnected(15_000);
+          if (socketReady) {
+            socketId = await socketSignaling.resolveSocketId(null, 5_000);
+          }
+        }
+        if (!socketId) {
+          Sentry.logger.error("No socketId available for SFU match", {
+            matchedSocketId,
+            liveSocketId: socketSignaling.getSocket()?.id ?? null,
+          });
           actionsRef.current.setError(t("call.failedEstablishConnection"));
           return;
         }
-        socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
-        try {
+
+        const sfuCallbacks = {
+          onTrack: (stream: MediaStream) => {
+            actionsRef.current.setRemoteStream(stream);
+            tryEnterInCall();
+          },
+          onRemoteMediaUpdated: () => {
+            tryEnterInCall();
+          },
+          onConnectionStateChange: (connectionState: RTCPeerConnectionState) => {
+            if (connectionState === "connected") {
+              transportReadyRef.current = true;
+              if (hasEnteredInCallRef.current) {
+                actionsRef.current.setConnectionStatus("in_call");
+                if (isReconnectingRef.current) {
+                  completeReconnection();
+                }
+              } else {
+                tryEnterInCall();
+              }
+            } else if (connectionState === "failed" || connectionState === "disconnected") {
+              actionsRef.current.setConnectionStatus("reconnecting");
+              hasShownConnectedToastRef.current = false;
+              startReconnecting();
+            }
+          },
+        };
+
+        const runSfuConnect = async () => {
+          socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
           const pc = await sfuConnection.connect({
             roomId: data.roomId,
             socketId,
             localStream,
             realtimeSessionId: data.realtimeSessionId,
-            callbacks: {
-              onTrack: (stream) => {
-                actionsRef.current.setRemoteStream(stream);
-                tryEnterInCall();
-              },
-              onRemoteMediaUpdated: () => {
-                tryEnterInCall();
-              },
-              onConnectionStateChange: (connectionState) => {
-                if (connectionState === "connected") {
-                  transportReadyRef.current = true;
-                  if (hasEnteredInCallRef.current) {
-                    actionsRef.current.setConnectionStatus("in_call");
-                    if (isReconnectingRef.current) {
-                      completeReconnection();
-                    }
-                  } else {
-                    tryEnterInCall();
-                  }
-                } else if (connectionState === "failed" || connectionState === "disconnected") {
-                  actionsRef.current.setConnectionStatus("reconnecting");
-                  hasShownConnectedToastRef.current = false;
-                  startReconnecting();
-                }
-              },
-            },
+            callbacks: sfuCallbacks,
           });
           const callPrefs = normalizeUserCallPreferences(userSettings?.call);
           monitoring.initializeMonitoring(
@@ -497,7 +511,26 @@ export function useVideoChat(): UseVideoChatReturn {
           );
           transportReadyRef.current = true;
           tryEnterInCall();
+        };
+
+        try {
+          await runSfuConnect();
         } catch (err) {
+          const iceTimedOut =
+            err instanceof Error && err.message.includes("ICE connection timed out");
+          if (iceTimedOut) {
+            await sfuConnection.cleanup();
+            try {
+              await runSfuConnect();
+              return;
+            } catch (retryErr) {
+              Sentry.logger.error("Cloudflare SFU connect failed after ICE retry", { error: retryErr });
+              actionsRef.current.setError(t("call.failedEstablishConnection"));
+              actionsRef.current.setConnectionStatus("ended");
+              resetCallEntryGate();
+              return;
+            }
+          }
           Sentry.logger.error("Cloudflare SFU connect failed", { error: err });
           actionsRef.current.setError(t("call.failedEstablishConnection"));
           actionsRef.current.setConnectionStatus("ended");

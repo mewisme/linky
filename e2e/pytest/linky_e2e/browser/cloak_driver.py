@@ -105,6 +105,9 @@ def create_cloak_driver(
     prefs: dict[str, int] = {}
     if media_permissions:
         prefs.update(_MEDIA_PREFS)
+        options.add_argument("--use-fake-device-for-media-stream")
+        options.add_argument("--use-fake-ui-for-media-stream")
+        options.add_argument("--autoplay-policy=no-user-gesture-required")
     if prefs:
         options.add_experimental_option("prefs", prefs)
 

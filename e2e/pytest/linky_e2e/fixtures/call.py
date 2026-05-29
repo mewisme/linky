@@ -86,7 +86,7 @@ def teardown_two_user_call(setup: TwoUserCallSetup) -> None:
     quit_driver(setup.user2_driver)
 
 
-def establish_call(page1: VideoChatPage, page2: VideoChatPage) -> None:
+def establish_call(page1: VideoChatPage, page2: VideoChatPage, *, in_call_timeout: float = 90) -> None:
     page1.goto()
     page1.wait_for_idle()
     page2.goto()
@@ -94,8 +94,8 @@ def establish_call(page1: VideoChatPage, page2: VideoChatPage) -> None:
     page1.start_button().click()
     page1.wait_for_searching()
     page2.start_button().click()
-    page1.wait_for_in_call()
-    page2.wait_for_in_call()
+    page1.wait_for_in_call(timeout=in_call_timeout)
+    page2.wait_for_in_call(timeout=in_call_timeout)
 
 
 def end_call(page1: VideoChatPage, page2: VideoChatPage) -> None:

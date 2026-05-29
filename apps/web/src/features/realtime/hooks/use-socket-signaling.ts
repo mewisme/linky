@@ -455,19 +455,25 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
   }, []);
 
   const readSocketId = useCallback((): string | null => {
-    const socket = socketRef.current;
+    const socket = socketRef.current ?? globalSocket;
+    if (socket) {
+      socketRef.current = socket;
+    }
     const id = socket?.id ?? currentSocketIdRef.current;
     if (id) {
       currentSocketIdRef.current = id;
     }
     return id;
-  }, []);
+  }, [globalSocket]);
 
   const resolveSocketId = useCallback(
     async (preferredId?: string | null, timeoutMs = 15_000): Promise<string | null> => {
-      if (preferredId) {
-        currentSocketIdRef.current = preferredId;
-        return preferredId;
+      const normalizedPreferred =
+        typeof preferredId === "string" && preferredId.length > 0 ? preferredId : null;
+
+      if (normalizedPreferred) {
+        currentSocketIdRef.current = normalizedPreferred;
+        return normalizedPreferred;
       }
 
       const immediate = readSocketId();

@@ -17,7 +17,7 @@ import { ApiError } from "@/lib/http/api-error";
 import type { RealtimePeerTracksPayload } from "@/lib/realtime/socket";
 
 const CLOUDFLARE_STUN: RTCIceServer = { urls: "stun:stun.cloudflare.com:3478" };
-const ICE_CONNECTED_TIMEOUT_MS = 10_000;
+const ICE_CONNECTED_TIMEOUT_MS = 25_000;
 
 export interface CloudflareSfuConnectionCallbacks {
   onTrack: (stream: MediaStream) => void;

@@ -18,6 +18,19 @@ import type { RealtimePeerTracksPayload } from "@/lib/realtime/socket";
 
 const CLOUDFLARE_STUN: RTCIceServer = { urls: "stun:stun.cloudflare.com:3478" };
 const ICE_CONNECTED_TIMEOUT_MS = 25_000;
+const SUBSCRIBE_MAX_ATTEMPTS = 8;
+const SUBSCRIBE_RETRY_BASE_MS = 500;
+
+function isDeferredSubscribeError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) {
+    return false;
+  }
+  return error.status === 409 || error.status === 502 || error.status === 503 || error.status === 504;
+}
+
+function subscribeRetryDelayMs(attempt: number): number {
+  return SUBSCRIBE_RETRY_BASE_MS * (attempt + 1);
+}
 
 export interface CloudflareSfuConnectionCallbacks {
   onTrack: (stream: MediaStream) => void;
@@ -144,49 +157,65 @@ export function useCloudflareSfuConnection(
     }
 
     const promise = (async () => {
-      const token = await getTokenRef.current();
-      const response = await subscribeRealtimeTracks(token, { roomId, socketId, sessionId });
+      let lastError: unknown;
+      for (let attempt = 0; attempt < SUBSCRIBE_MAX_ATTEMPTS; attempt++) {
+        try {
+          const token = await getTokenRef.current();
+          const response = await subscribeRealtimeTracks(token, { roomId, socketId, sessionId });
 
-      const pendingMids = new Set(
-        (response.tracks ?? [])
-          .map((t) => t.mid)
-          .filter((mid): mid is string => typeof mid === "string"),
-      );
+          const pendingMids = new Set(
+            (response.tracks ?? [])
+              .map((t) => t.mid)
+              .filter((mid): mid is string => typeof mid === "string"),
+          );
 
-      const trackWaiters =
-        pendingMids.size > 0
-          ? Promise.all(
-              Array.from(pendingMids).map(
-                (mid) =>
-                  new Promise<void>((resolve, reject) => {
-                    const timeoutId = setTimeout(() => {
-                      pc.removeEventListener("track", onTrack);
-                      reject(new Error(`Timed out waiting for track mid=${mid}`));
-                    }, ICE_CONNECTED_TIMEOUT_MS);
+          const trackWaiters =
+            pendingMids.size > 0
+              ? Promise.all(
+                Array.from(pendingMids).map(
+                  (mid) =>
+                    new Promise<void>((resolve, reject) => {
+                      const timeoutId = setTimeout(() => {
+                        pc.removeEventListener("track", onTrack);
+                        reject(new Error(`Timed out waiting for track mid=${mid}`));
+                      }, ICE_CONNECTED_TIMEOUT_MS);
 
-                    const onTrack = (event: RTCTrackEvent) => {
-                      if (event.transceiver.mid !== mid) return;
-                      clearTimeout(timeoutId);
-                      pc.removeEventListener("track", onTrack);
-                      resolve();
-                    };
-                    pc.addEventListener("track", onTrack);
-                  }),
-              ),
-            )
-          : Promise.resolve();
+                      const onTrack = (event: RTCTrackEvent) => {
+                        if (event.transceiver.mid !== mid) return;
+                        clearTimeout(timeoutId);
+                        pc.removeEventListener("track", onTrack);
+                        resolve();
+                      };
+                      pc.addEventListener("track", onTrack);
+                    }),
+                ),
+              )
+              : Promise.resolve();
 
-      const renegotiate = (answer: CloudflareSdpDescription) =>
-        renegotiateRealtimeSession(token, { roomId, socketId, sessionId, sdp: answer });
+          const renegotiate = (answer: CloudflareSdpDescription) =>
+            renegotiateRealtimeSession(token, { roomId, socketId, sessionId, sdp: answer });
 
-      if (response.requiresImmediateRenegotiation && response.sessionDescription?.type === "offer") {
-        await applyRemoteOfferAndAnswer(pc, response.sessionDescription, renegotiate);
-      } else if (response.sessionDescription?.type === "offer") {
-        await pc.setRemoteDescription(response.sessionDescription);
+          if (response.requiresImmediateRenegotiation && response.sessionDescription?.type === "offer") {
+            await applyRemoteOfferAndAnswer(pc, response.sessionDescription, renegotiate);
+          } else if (response.sessionDescription?.type === "offer") {
+            await pc.setRemoteDescription(response.sessionDescription);
+          }
+
+          await trackWaiters;
+          await waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
+          return;
+        } catch (error) {
+          lastError = error;
+          if (error instanceof ApiError && error.status === 409) {
+            return;
+          }
+          if (!isDeferredSubscribeError(error) || attempt === SUBSCRIBE_MAX_ATTEMPTS - 1) {
+            throw error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, subscribeRetryDelayMs(attempt)));
+        }
       }
-
-      await trackWaiters;
-      await waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
+      throw lastError;
     })();
 
     subscribeInFlightRef.current = promise;
@@ -195,17 +224,10 @@ export function useCloudflareSfuConnection(
     } finally {
       subscribeInFlightRef.current = null;
     }
-  }, [wireRemoteTrack]);
+  }, []);
 
   const handlePeerTracks = useCallback(
     async (data: RealtimePeerTracksPayload) => {
-      // eslint-disable-next-line no-console
-      console.info("[debug] handlePeerTracks", {
-        peerSessionId: data?.peerSessionId,
-        trackCount: data?.tracks?.length ?? 0,
-        hasSession: Boolean(sessionIdRef.current),
-        hasPc: Boolean(pcRef.current),
-      });
       if (!data?.peerSessionId || data.tracks.length === 0) return;
       if (!sessionIdRef.current || !pcRef.current) {
         pendingPeerTracksRef.current = data;
@@ -217,8 +239,9 @@ export function useCloudflareSfuConnection(
         if (error instanceof ApiError && error.status === 409) {
           return;
         }
-        Sentry.logger.error("Failed to subscribe to peer tracks", { error });
-        throw error;
+        Sentry.logger.warn("Subscribe to peer tracks failed; will retry on next peer-tracks event", {
+          error,
+        });
       }
     },
     [subscribePeerTracks],
@@ -299,139 +322,151 @@ export function useCloudflareSfuConnection(
       connectInFlightRef.current = true;
 
       try {
-      const token = await getTokenRef.current();
-      const sessionResponse = await createRealtimeSession(token, { roomId, socketId });
+        const token = await getTokenRef.current();
+        const sessionResponse = await createRealtimeSession(token, { roomId, socketId });
 
-      if (!sessionResponse.sessionId) {
-        throw new Error("Realtime session API did not return a sessionId");
-      }
+        if (!sessionResponse.sessionId) {
+          throw new Error("Realtime session API did not return a sessionId");
+        }
 
-      if (realtimeSessionId && sessionResponse.sessionId !== realtimeSessionId) {
-        Sentry.logger.warn("Realtime sessionId mismatch after matched", {
-          expected: realtimeSessionId,
-          actual: sessionResponse.sessionId,
+        if (realtimeSessionId && sessionResponse.sessionId !== realtimeSessionId) {
+          Sentry.logger.warn("Realtime sessionId mismatch after matched", {
+            expected: realtimeSessionId,
+            actual: sessionResponse.sessionId,
+          });
+        }
+
+        sessionIdRef.current = sessionResponse.sessionId;
+        roomIdRef.current = roomId;
+        socketIdRef.current = socketId;
+        initialPeerSnapshotRef.current = sessionResponse.peer ?? null;
+        callbacksRef.current = callbacks;
+
+        const pc = new RTCPeerConnection({
+          iceServers: [CLOUDFLARE_STUN],
+          bundlePolicy: "max-bundle",
         });
-      }
+        pcRef.current = pc;
 
-      sessionIdRef.current = sessionResponse.sessionId;
-      roomIdRef.current = roomId;
-      socketIdRef.current = socketId;
-      initialPeerSnapshotRef.current = sessionResponse.peer ?? null;
-      callbacksRef.current = callbacks;
+        pc.addEventListener("track", (event) => wireRemoteTrack(event));
+        pc.addEventListener("connectionstatechange", () => {
+          callbacks.onConnectionStateChange(pc.connectionState);
+        });
 
-      const pc = new RTCPeerConnection({
-        iceServers: [CLOUDFLARE_STUN],
-        bundlePolicy: "max-bundle",
-      });
-      pcRef.current = pc;
+        const transceivers: RTCRtpTransceiver[] = [];
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+          transceivers.push(
+            pc.addTransceiver(audioTrack, {
+              direction: "sendonly",
+              streams: [localStream],
+            }),
+          );
+        }
 
-      pc.addEventListener("track", (event) => wireRemoteTrack(event));
-      pc.addEventListener("connectionstatechange", () => {
-        callbacks.onConnectionStateChange(pc.connectionState);
-      });
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+          transceivers.push(
+            pc.addTransceiver(videoTrack, {
+              direction: "sendonly",
+              streams: [localStream],
+              sendEncodings: [
+                { rid: "f", scaleResolutionDownBy: 1 },
+                { rid: "h", scaleResolutionDownBy: 2 },
+                { rid: "q", scaleResolutionDownBy: 4 },
+              ],
+            }),
+          );
+        }
 
-      const transceivers: RTCRtpTransceiver[] = [];
-      const audioTrack = localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        transceivers.push(
-          pc.addTransceiver(audioTrack, {
-            direction: "sendonly",
-            streams: [localStream],
-          }),
-        );
-      }
+        if (transceivers.length === 0) {
+          throw new Error("No local media tracks to publish");
+        }
 
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        transceivers.push(
-          pc.addTransceiver(videoTrack, {
-            direction: "sendonly",
-            streams: [localStream],
-            sendEncodings: [
-              { rid: "f", scaleResolutionDownBy: 1 },
-              { rid: "h", scaleResolutionDownBy: 2 },
-              { rid: "q", scaleResolutionDownBy: 4 },
-            ],
-          }),
-        );
-      }
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
 
-      if (transceivers.length === 0) {
-        throw new Error("No local media tracks to publish");
-      }
+        const publishTracks: RealtimePublishTrack[] = transceivers
+          .map((transceiver) => {
+            const track = transceiver.sender.track;
+            const mid = transceiver.mid;
+            if (!track || !mid) return null;
+            return {
+              mid,
+              trackName: track.id,
+              kind: track.kind === "audio" ? ("audio" as const) : ("video" as const),
+            };
+          })
+          .filter((entry): entry is RealtimePublishTrack => entry !== null);
 
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+        if (publishTracks.length === 0) {
+          throw new Error("Transceivers missing mid or track after setLocalDescription");
+        }
 
-      const publishTracks: RealtimePublishTrack[] = transceivers
-        .map((transceiver) => {
-          const track = transceiver.sender.track;
-          const mid = transceiver.mid;
-          if (!track || !mid) return null;
-          return {
-            mid,
-            trackName: track.id,
-            kind: track.kind === "audio" ? ("audio" as const) : ("video" as const),
-          };
-        })
-        .filter((entry): entry is RealtimePublishTrack => entry !== null);
+        const iceConnected = waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
 
-      if (publishTracks.length === 0) {
-        throw new Error("Transceivers missing mid or track after setLocalDescription");
-      }
-
-      const iceConnected = waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
-
-      const publishResponse = await publishRealtimeTracks(token, {
-        roomId,
-        socketId,
-        sessionId: sessionResponse.sessionId,
-        sdp: { type: "offer", sdp: pc.localDescription?.sdp ?? offer.sdp ?? "" },
-        tracks: publishTracks,
-      });
-
-      const publishRenegotiate = (answer: CloudflareSdpDescription) =>
-        renegotiateRealtimeSession(token, {
+        const publishResponse = await publishRealtimeTracks(token, {
           roomId,
           socketId,
           sessionId: sessionResponse.sessionId,
-          sdp: answer,
+          sdp: { type: "offer", sdp: pc.localDescription?.sdp ?? offer.sdp ?? "" },
+          tracks: publishTracks,
         });
 
-      if (publishResponse.sessionDescription?.type === "answer") {
-        await pc.setRemoteDescription(publishResponse.sessionDescription);
-      } else if (
-        publishResponse.requiresImmediateRenegotiation &&
-        publishResponse.sessionDescription?.type === "offer"
-      ) {
-        await applyRemoteOfferAndAnswer(pc, publishResponse.sessionDescription, publishRenegotiate);
-      } else {
-        throw new Error("Cloudflare publish did not return a session description");
-      }
+        const publishRenegotiate = (answer: CloudflareSdpDescription) =>
+          renegotiateRealtimeSession(token, {
+            roomId,
+            socketId,
+            sessionId: sessionResponse.sessionId,
+            sdp: answer,
+          });
 
-      await iceConnected;
+        if (publishResponse.sessionDescription?.type === "answer") {
+          await pc.setRemoteDescription(publishResponse.sessionDescription);
+        } else if (
+          publishResponse.requiresImmediateRenegotiation &&
+          publishResponse.sessionDescription?.type === "offer"
+        ) {
+          await applyRemoteOfferAndAnswer(pc, publishResponse.sessionDescription, publishRenegotiate);
+        } else {
+          throw new Error("Cloudflare publish did not return a session description");
+        }
 
-      const initialSnapshot = initialPeerSnapshotRef.current;
-      if (initialSnapshot?.peerSessionId && initialSnapshot.tracks.length > 0) {
-        const hasAnyTracks = initialSnapshot.tracks.some(
-          (t) => isVideoSource(t.source) || t.kind === "audio",
-        );
-        if (hasAnyTracks) {
-          try {
-            await subscribePeerTracks();
-          } catch (error) {
-            if (!(error instanceof ApiError && error.status === 409)) {
-              throw error;
+        await iceConnected;
+
+        const initialSnapshot = initialPeerSnapshotRef.current;
+        if (initialSnapshot?.peerSessionId && initialSnapshot.tracks.length > 0) {
+          const hasAnyTracks = initialSnapshot.tracks.some(
+            (t) => isVideoSource(t.source) || t.kind === "audio",
+          );
+          if (hasAnyTracks) {
+            try {
+              await subscribePeerTracks();
+            } catch (error) {
+              if (!isDeferredSubscribeError(error)) {
+                throw error;
+              }
+              Sentry.logger.warn("Initial peer subscribe deferred", {
+                status: error instanceof ApiError ? error.status : undefined,
+              });
             }
           }
         }
-      }
 
-      if (connectInFlightRef.current) {
-        await flushPendingPeerTracks();
-      }
+        if (connectInFlightRef.current) {
+          try {
+            await flushPendingPeerTracks();
+          } catch (error) {
+            if (!isDeferredSubscribeError(error)) {
+              throw error;
+            }
+            Sentry.logger.warn("Pending peer subscribe deferred", {
+              status: error instanceof ApiError ? error.status : undefined,
+            });
+          }
+        }
 
-      return pc;
+        return pc;
       } finally {
         connectInFlightRef.current = false;
       }

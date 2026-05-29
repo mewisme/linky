@@ -1,7 +1,6 @@
 import { publicEnv } from "@/shared/env/public-env";
 
 const V1 = `${publicEnv.API_URL}/api/v1`;
-const API = `${publicEnv.API_URL}/api`;
 
 function qs(params?: URLSearchParams): string {
   if (!params) return '';

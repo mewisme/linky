@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
 	"time"
@@ -16,72 +17,119 @@ import (
 	"linky-api/src/internal/logger"
 )
 
-const requestTimeout = 10 * time.Second
+const defaultRequestTimeout = 30 * time.Second
 
-var log = logger.New("infra:cloudflare-realtime")
+var (
+	log        = logger.New("infra:cloudflare-realtime")
+	httpClient = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        16,
+			IdleConnTimeout:     90 * time.Second,
+			TLSHandshakeTimeout: 10 * time.Second,
+		},
+	}
+)
 
-type SDPDescription struct {
-	SDP  string `json:"sdp"`
-	Type string `json:"type"`
+type SessionDescription struct {
+	SDP  string `json:"sdp,omitempty"`
+	Type string `json:"type,omitempty"`
 }
 
-type TrackRequest struct {
-	Location  string                 `json:"location,omitempty"`
-	MID       string                 `json:"mid,omitempty"`
-	TrackName string                 `json:"trackName,omitempty"`
-	SessionID string                 `json:"sessionId,omitempty"`
-	Simulcast map[string]interface{} `json:"simulcast,omitempty"`
+type SimulcastConfig struct {
+	PreferredRid     string `json:"preferredRid,omitempty"`
+	PriorityOrdering string `json:"priorityOrdering,omitempty"`
+	RidNotAvailable  string `json:"ridNotAvailable,omitempty"`
 }
 
-type TrackResponse struct {
-	TrackName        string `json:"trackName,omitempty"`
-	MID              string `json:"mid,omitempty"`
-	Kind             string `json:"kind,omitempty"`
-	ErrorCode        string `json:"errorCode,omitempty"`
-	ErrorDescription string `json:"errorDescription,omitempty"`
+type TrackObject struct {
+	Location                 string           `json:"location,omitempty"`
+	MID                      string           `json:"mid,omitempty"`
+	SessionID                string           `json:"sessionId,omitempty"`
+	TrackName                string           `json:"trackName,omitempty"`
+	BidirectionalMediaStream *bool            `json:"bidirectionalMediaStream,omitempty"`
+	Kind                     string           `json:"kind,omitempty"`
+	Simulcast                *SimulcastConfig `json:"simulcast,omitempty"`
+}
+
+type CloseTrackObject struct {
+	MID string `json:"mid,omitempty"`
 }
 
 type NewSessionRequest struct {
-	SessionDescription *SDPDescription `json:"sessionDescription,omitempty"`
+	SessionDescription *SessionDescription `json:"sessionDescription,omitempty"`
 }
 
 type NewSessionResponse struct {
-	SessionID          string          `json:"sessionId,omitempty"`
-	SessionDescription *SDPDescription `json:"sessionDescription,omitempty"`
-	ErrorCode          string          `json:"errorCode,omitempty"`
-	ErrorDescription   string          `json:"errorDescription,omitempty"`
+	SessionID          string              `json:"sessionId,omitempty"`
+	SessionDescription *SessionDescription `json:"sessionDescription,omitempty"`
+	ErrorCode          string              `json:"errorCode,omitempty"`
+	ErrorDescription   string              `json:"errorDescription,omitempty"`
 }
 
 type TracksRequest struct {
-	SessionDescription *SDPDescription `json:"sessionDescription,omitempty"`
-	Tracks             []TrackRequest  `json:"tracks"`
+	SessionDescription *SessionDescription `json:"sessionDescription,omitempty"`
+	Tracks             []TrackObject       `json:"tracks,omitempty"`
+	AutoDiscover       *bool               `json:"autoDiscover,omitempty"`
+}
+
+type TrackResult struct {
+	TrackObject
+	ErrorCode        string `json:"errorCode,omitempty"`
+	ErrorDescription string `json:"errorDescription,omitempty"`
 }
 
 type TracksResponse struct {
-	SessionDescription             *SDPDescription `json:"sessionDescription,omitempty"`
-	Tracks                         []TrackResponse `json:"tracks,omitempty"`
-	RequiresImmediateRenegotiation bool            `json:"requiresImmediateRenegotiation,omitempty"`
-	ErrorCode                      string          `json:"errorCode,omitempty"`
-	ErrorDescription               string          `json:"errorDescription,omitempty"`
+	ErrorCode                      string              `json:"errorCode,omitempty"`
+	ErrorDescription               string              `json:"errorDescription,omitempty"`
+	RequiresImmediateRenegotiation bool                `json:"requiresImmediateRenegotiation,omitempty"`
+	SessionDescription             *SessionDescription `json:"sessionDescription,omitempty"`
+	Tracks                         []TrackResult       `json:"tracks,omitempty"`
 }
 
 type RenegotiateRequest struct {
-	SessionDescription *SDPDescription `json:"sessionDescription"`
+	SessionDescription *SessionDescription `json:"sessionDescription,omitempty"`
 }
 
 type RenegotiateResponse struct {
-	ErrorCode        string `json:"errorCode,omitempty"`
-	ErrorDescription string `json:"errorDescription,omitempty"`
+	ErrorCode          string              `json:"errorCode,omitempty"`
+	ErrorDescription   string              `json:"errorDescription,omitempty"`
+	SessionDescription *SessionDescription `json:"sessionDescription,omitempty"`
 }
 
 type CloseTracksRequest struct {
-	Tracks []TrackRequest `json:"tracks"`
-	Force  bool           `json:"force,omitempty"`
+	SessionDescription *SessionDescription `json:"sessionDescription,omitempty"`
+	Tracks             []CloseTrackObject  `json:"tracks,omitempty"`
+	Force              bool                `json:"force,omitempty"`
+}
+
+type CloseTrackResult struct {
+	CloseTrackObject
+	ErrorCode        string `json:"errorCode,omitempty"`
+	ErrorDescription string `json:"errorDescription,omitempty"`
 }
 
 type CloseTracksResponse struct {
-	ErrorCode        string `json:"errorCode,omitempty"`
-	ErrorDescription string `json:"errorDescription,omitempty"`
+	ErrorCode                      string              `json:"errorCode,omitempty"`
+	ErrorDescription               string              `json:"errorDescription,omitempty"`
+	SessionDescription             *SessionDescription `json:"sessionDescription,omitempty"`
+	Tracks                         []CloseTrackResult  `json:"tracks,omitempty"`
+	RequiresImmediateRenegotiation bool                `json:"requiresImmediateRenegotiation,omitempty"`
+}
+
+type SessionTrackState struct {
+	TrackObject
+	Status string `json:"status,omitempty"`
+}
+
+type GetSessionStateResponse struct {
+	ErrorCode        string              `json:"errorCode,omitempty"`
+	ErrorDescription string              `json:"errorDescription,omitempty"`
+	Tracks           []SessionTrackState `json:"tracks,omitempty"`
+}
+
+type CreateSessionOptions struct {
+	ThirdParty    *bool
+	CorrelationID string
 }
 
 type Error struct {
@@ -101,6 +149,10 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("cloudflare realtime: %d %s %s", e.Status, e.StatusText, e.Message)
 }
 
+type SDPDescription = SessionDescription
+type TrackRequest = TrackObject
+type TrackResponse = TrackResult
+
 func IsStaleSession(err error) bool {
 	var e *Error
 	if errors.As(err, &e) {
@@ -113,6 +165,13 @@ var cfg *config.Config
 
 func Init(c *config.Config) {
 	cfg = c
+}
+
+func requestTimeout() time.Duration {
+	if cfg != nil && cfg.CloudflareRealtimeTimeoutMs > 0 {
+		return time.Duration(cfg.CloudflareRealtimeTimeoutMs) * time.Millisecond
+	}
+	return defaultRequestTimeout
 }
 
 func IsConfigured() bool {
@@ -133,20 +192,24 @@ func ensureConfigured() (string, string, string, error) {
 	return cfg.CloudflareRealtimeAppID, cfg.CloudflareRealtimeAppSecret, base, nil
 }
 
-func appPath(suffix string) (string, error) {
+func appPath(suffix string, query url.Values) (string, error) {
 	appID, _, base, err := ensureConfigured()
 	if err != nil {
 		return "", err
 	}
-	return base + "/apps/" + appID + suffix, nil
+	u := base + "/apps/" + appID + suffix
+	if len(query) > 0 {
+		u += "?" + query.Encode()
+	}
+	return u, nil
 }
 
-func call(ctx context.Context, method, path string, body interface{}, out interface{}) error {
+func call(ctx context.Context, method, path string, query url.Values, body interface{}, out interface{}) error {
 	_, secret, _, err := ensureConfigured()
 	if err != nil {
 		return err
 	}
-	url, err := appPath(path)
+	targetURL, err := appPath(path, query)
 	if err != nil {
 		return err
 	}
@@ -159,19 +222,27 @@ func call(ctx context.Context, method, path string, body interface{}, out interf
 		reader = bytes.NewReader(buf)
 	}
 
-	reqCtx, cancel := context.WithTimeout(ctx, requestTimeout)
+	timeout := requestTimeout()
+	reqCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(reqCtx, method, url, reader)
+	req, err := http.NewRequestWithContext(reqCtx, method, targetURL, reader)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+secret)
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	req.Header.Set("Accept", "application/json")
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		log.Error().Err(err).Str("method", method).Str("path", path).Msg("Cloudflare Realtime request failed")
-		return &Error{Status: 502, Code: "REALTIME_FETCH_FAILED", Message: err.Error()}
+		log.Error().Err(err).Str("method", method).Str("path", path).Dur("timeout", timeout).Msg("Cloudflare Realtime request failed")
+		status := 502
+		code := "REALTIME_FETCH_FAILED"
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(reqCtx.Err(), context.DeadlineExceeded) {
+			status = 504
+			code = "REALTIME_TIMEOUT"
+		}
+		return &Error{Status: status, Code: code, Message: err.Error()}
 	}
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(resp.Body)
@@ -185,7 +256,11 @@ func call(ctx context.Context, method, path string, body interface{}, out interf
 		if message == "" {
 			message = strings.TrimSpace(string(raw))
 		}
-		return &Error{Status: resp.StatusCode, StatusText: resp.Status, Code: parsed.ErrorCode, Message: message}
+		code := parsed.ErrorCode
+		if code == "" {
+			code = "REALTIME_ERROR"
+		}
+		return &Error{Status: resp.StatusCode, StatusText: resp.Status, Code: code, Message: message}
 	}
 	if out != nil && len(raw) > 0 {
 		if err := json.Unmarshal(raw, out); err != nil {
@@ -193,6 +268,17 @@ func call(ctx context.Context, method, path string, body interface{}, out interf
 		}
 	}
 	return nil
+}
+
+func responseError(code, description string) error {
+	if code == "" {
+		return nil
+	}
+	message := description
+	if message == "" {
+		message = code
+	}
+	return &Error{Status: 502, Code: code, Message: message}
 }
 
 func isNilBody(body interface{}) bool {
@@ -207,9 +293,21 @@ func isNilBody(body interface{}) bool {
 	return false
 }
 
-func CreateSession(ctx context.Context, body *NewSessionRequest) (*NewSessionResponse, error) {
+func CreateSession(ctx context.Context, body *NewSessionRequest, opts *CreateSessionOptions) (*NewSessionResponse, error) {
+	query := url.Values{}
+	if opts != nil {
+		if opts.ThirdParty != nil {
+			query.Set("thirdparty", fmt.Sprintf("%t", *opts.ThirdParty))
+		}
+		if opts.CorrelationID != "" {
+			query.Set("correlationId", opts.CorrelationID)
+		}
+	}
 	out := &NewSessionResponse{}
-	if err := call(ctx, http.MethodPost, "/sessions/new", body, out); err != nil {
+	if err := call(ctx, http.MethodPost, "/sessions/new", query, body, out); err != nil {
+		return nil, err
+	}
+	if err := responseError(out.ErrorCode, out.ErrorDescription); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -217,7 +315,10 @@ func CreateSession(ctx context.Context, body *NewSessionRequest) (*NewSessionRes
 
 func AddTracks(ctx context.Context, sessionID string, body *TracksRequest) (*TracksResponse, error) {
 	out := &TracksResponse{}
-	if err := call(ctx, http.MethodPost, "/sessions/"+sessionID+"/tracks/new", body, out); err != nil {
+	if err := call(ctx, http.MethodPost, "/sessions/"+sessionID+"/tracks/new", nil, body, out); err != nil {
+		return nil, err
+	}
+	if err := responseError(out.ErrorCode, out.ErrorDescription); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -225,7 +326,13 @@ func AddTracks(ctx context.Context, sessionID string, body *TracksRequest) (*Tra
 
 func Renegotiate(ctx context.Context, sessionID string, body *RenegotiateRequest) (*RenegotiateResponse, error) {
 	out := &RenegotiateResponse{}
-	if err := call(ctx, http.MethodPut, "/sessions/"+sessionID+"/renegotiate", body, out); err != nil {
+	if err := call(ctx, http.MethodPut, "/sessions/"+sessionID+"/renegotiate", nil, body, out); err != nil {
+		if IsStaleSession(err) {
+			return out, nil
+		}
+		return nil, err
+	}
+	if err := responseError(out.ErrorCode, out.ErrorDescription); err != nil {
 		if IsStaleSession(err) {
 			return out, nil
 		}
@@ -236,7 +343,13 @@ func Renegotiate(ctx context.Context, sessionID string, body *RenegotiateRequest
 
 func CloseTracks(ctx context.Context, sessionID string, body *CloseTracksRequest) (*CloseTracksResponse, error) {
 	out := &CloseTracksResponse{}
-	if err := call(ctx, http.MethodPut, "/sessions/"+sessionID+"/tracks/close", body, out); err != nil {
+	if err := call(ctx, http.MethodPut, "/sessions/"+sessionID+"/tracks/close", nil, body, out); err != nil {
+		if IsStaleSession(err) {
+			return out, nil
+		}
+		return nil, err
+	}
+	if err := responseError(out.ErrorCode, out.ErrorDescription); err != nil {
 		if IsStaleSession(err) {
 			return out, nil
 		}
@@ -245,6 +358,18 @@ func CloseTracks(ctx context.Context, sessionID string, body *CloseTracksRequest
 	return out, nil
 }
 
+func GetSessionState(ctx context.Context, sessionID string) (*GetSessionStateResponse, error) {
+	out := &GetSessionStateResponse{}
+	if err := call(ctx, http.MethodGet, "/sessions/"+sessionID, nil, nil, out); err != nil {
+		return nil, err
+	}
+	if err := responseError(out.ErrorCode, out.ErrorDescription); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func GetSession(ctx context.Context, sessionID string) error {
-	return call(ctx, http.MethodGet, "/sessions/"+sessionID, nil, nil)
+	_, err := GetSessionState(ctx, sessionID)
+	return err
 }

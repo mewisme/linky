@@ -25,7 +25,59 @@ function isDeferredSubscribeError(error: unknown): boolean {
   if (!(error instanceof ApiError)) {
     return false;
   }
-  return error.status === 409 || error.status === 502 || error.status === 503 || error.status === 504;
+  return (
+    error.status === 409 ||
+    error.status === 425 ||
+    error.status === 502 ||
+    error.status === 503 ||
+    error.status === 504
+  );
+}
+
+function isPeerConnectionReady(pc: RTCPeerConnection): boolean {
+  const iceReady =
+    pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed";
+  return iceReady && pc.connectionState === "connected";
+}
+
+function waitForPeerConnectionReady(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {
+  if (isPeerConnectionReady(pc)) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      cleanup();
+      reject(new Error("PeerConnection not ready before subscribe"));
+    }, timeoutMs);
+
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      pc.removeEventListener("iceconnectionstatechange", onStateChange);
+      pc.removeEventListener("connectionstatechange", onStateChange);
+    };
+
+    const onStateChange = () => {
+      if (isPeerConnectionReady(pc)) {
+        cleanup();
+        resolve();
+      } else if (
+        pc.iceConnectionState === "failed" ||
+        pc.iceConnectionState === "closed" ||
+        pc.connectionState === "failed" ||
+        pc.connectionState === "closed"
+      ) {
+        cleanup();
+        reject(
+          new Error(
+            `PeerConnection not ready (${pc.connectionState}/${pc.iceConnectionState})`,
+          ),
+        );
+      }
+    };
+
+    pc.addEventListener("iceconnectionstatechange", onStateChange);
+    pc.addEventListener("connectionstatechange", onStateChange);
+  });
 }
 
 function subscribeRetryDelayMs(attempt: number): number {
@@ -63,28 +115,7 @@ function isVideoSource(source: RealtimePeerSnapshot["tracks"][number]["source"])
 }
 
 function waitForIceConnected(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {
-  if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
-    return Promise.resolve();
-  }
-  return new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      pc.removeEventListener("iceconnectionstatechange", onStateChange);
-      reject(new Error("ICE connection timed out"));
-    }, timeoutMs);
-
-    const onStateChange = () => {
-      if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
-        clearTimeout(timeoutId);
-        pc.removeEventListener("iceconnectionstatechange", onStateChange);
-        resolve();
-      } else if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "closed") {
-        clearTimeout(timeoutId);
-        pc.removeEventListener("iceconnectionstatechange", onStateChange);
-        reject(new Error(`ICE connection ${pc.iceConnectionState}`));
-      }
-    };
-    pc.addEventListener("iceconnectionstatechange", onStateChange);
-  });
+  return waitForPeerConnectionReady(pc, timeoutMs);
 }
 
 async function applyRemoteOfferAndAnswer(
@@ -160,6 +191,8 @@ export function useCloudflareSfuConnection(
       let lastError: unknown;
       for (let attempt = 0; attempt < SUBSCRIBE_MAX_ATTEMPTS; attempt++) {
         try {
+          await waitForPeerConnectionReady(pc, ICE_CONNECTED_TIMEOUT_MS);
+
           const token = await getTokenRef.current();
           const response = await subscribeRealtimeTracks(token, { roomId, socketId, sessionId });
 
@@ -202,7 +235,7 @@ export function useCloudflareSfuConnection(
           }
 
           await trackWaiters;
-          await waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
+          await waitForPeerConnectionReady(pc, ICE_CONNECTED_TIMEOUT_MS);
           return;
         } catch (error) {
           lastError = error;
@@ -229,7 +262,7 @@ export function useCloudflareSfuConnection(
   const handlePeerTracks = useCallback(
     async (data: RealtimePeerTracksPayload) => {
       if (!data?.peerSessionId || data.tracks.length === 0) return;
-      if (!sessionIdRef.current || !pcRef.current) {
+      if (!sessionIdRef.current || !pcRef.current || connectInFlightRef.current) {
         pendingPeerTracksRef.current = data;
         return;
       }

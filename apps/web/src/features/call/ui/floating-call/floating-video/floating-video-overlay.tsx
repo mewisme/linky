@@ -39,6 +39,7 @@ export function FloatingVideoOverlay({
             onClick={handleExpandClick}
             aria-label={expandLabel}
             title={expandLabel}
+            data-testid="chat-floating-expand-button"
             className={
               isMobile
                 ? "size-11 shrink-0 shadow-lg pointer-events-auto bg-black/40 text-white hover:bg-black/55 border border-white/15"

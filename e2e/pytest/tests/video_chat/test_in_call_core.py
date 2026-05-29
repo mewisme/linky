@@ -13,7 +13,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_remote_video_stream_renders():
     """In-Call Core — Video & Audio: Remote video stream renders"""
-    """In-Call Core — Video & Audio: Remote video stream renders"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -25,7 +24,6 @@ def test_remote_video_stream_renders():
 
 def test_local_video_preview_renders():
     """In-Call Core — Video & Audio: Local video preview renders"""
-    """In-Call Core — Video & Audio: Local video preview renders"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -36,7 +34,6 @@ def test_local_video_preview_renders():
 
 
 def test_call_timer_increments_during_call():
-    """In-Call Core — Video & Audio: Call timer increments during call"""
     """In-Call Core — Video & Audio: Call timer increments during call"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
@@ -50,7 +47,6 @@ def test_call_timer_increments_during_call():
 
 
 def test_camera_off_indicator_shown_when_video_disabled():
-    """In-Call Core — Video & Audio: Camera off indicator shown when video disabled"""
     """In-Call Core — Video & Audio: Camera off indicator shown when video disabled"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

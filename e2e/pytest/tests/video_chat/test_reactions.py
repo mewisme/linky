@@ -13,7 +13,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_reaction_events_relayed_to_peer():
     """Reactions: Reaction events relayed to peer"""
-    """Reactions: Reaction events relayed to peer"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)

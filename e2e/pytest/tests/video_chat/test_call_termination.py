@@ -14,7 +14,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_both_users_return_to_idle_after_one_ends_call():
     """Call Termination: Both users return to idle after one ends call"""
-    """Call Termination: Both users return to idle after one ends call"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -29,7 +28,6 @@ def test_both_users_return_to_idle_after_one_ends_call():
 
 def test_peer_receives_end_call_notification_with_correct_message():
     """Call Termination: Peer receives end-call notification with correct message"""
-    """Call Termination: Peer receives end-call notification with correct message"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -41,7 +39,6 @@ def test_peer_receives_end_call_notification_with_correct_message():
 
 
 def test_call_history_recorded_after_call_ends():
-    """Call Termination: Call history recorded after call ends"""
     """Call Termination: Call history recorded after call ends"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

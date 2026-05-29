@@ -13,7 +13,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_two_users_match_successfully():
     """Matchmaking — Match Found: Two users match successfully"""
-    """Matchmaking — Match Found: Two users match successfully"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -27,7 +26,6 @@ def test_two_users_match_successfully():
 
 def test_match_delivers_peer_info():
     """Matchmaking — Match Found: Match delivers peer info"""
-    """Matchmaking — Match Found: Match delivers peer info"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -38,7 +36,6 @@ def test_match_delivers_peer_info():
 
 
 def test_one_user_is_designated_as_offerer():
-    """Matchmaking — Match Found: One user is designated as offerer"""
     """Matchmaking — Match Found: One user is designated as offerer"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

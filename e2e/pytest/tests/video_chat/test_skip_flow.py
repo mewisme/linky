@@ -13,7 +13,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_skip_during_call_re_queues_skipper():
     """Skip Flow: Skip during call re-queues skipper"""
-    """Skip Flow: Skip during call re-queues skipper"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -26,7 +25,6 @@ def test_skip_during_call_re_queues_skipper():
 
 def test_peer_receives_skip_notification():
     """Skip Flow: Peer receives skip notification"""
-    """Skip Flow: Peer receives skip notification"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -38,7 +36,6 @@ def test_peer_receives_skip_notification():
 
 
 def test_skip_records_mutual_skips_to_prevent_re_matching():
-    """Skip Flow: Skip records mutual skips to prevent re-matching"""
     """Skip Flow: Skip records mutual skips to prevent re-matching"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

@@ -58,6 +58,7 @@ export function ConnectionQualityIndicator({
 
   return (
     <div
+      data-testid="chat-connection-quality-indicator"
       className={`absolute z-20 ${positionClasses} pointer-events-none transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"
         }`}
     >

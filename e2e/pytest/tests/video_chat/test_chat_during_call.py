@@ -13,7 +13,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_chat_sidebar_opens_on_toggle():
     """Chat During Call: Chat sidebar opens on toggle"""
-    """Chat During Call: Chat sidebar opens on toggle"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -25,7 +24,6 @@ def test_chat_sidebar_opens_on_toggle():
 
 
 def test_send_text_message_and_peer_receives_it():
-    """Chat During Call: Send text message and peer receives it"""
     """Chat During Call: Send text message and peer receives it"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
@@ -40,7 +38,6 @@ def test_send_text_message_and_peer_receives_it():
 
 
 def test_typing_indicator_relayed_to_peer():
-    """Chat During Call: Typing indicator relayed to peer"""
     """Chat During Call: Typing indicator relayed to peer"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
@@ -57,7 +54,6 @@ def test_typing_indicator_relayed_to_peer():
 
 
 def test_empty_message_not_sent():
-    """Chat During Call: Empty message not sent"""
     """Chat During Call: Empty message not sent"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

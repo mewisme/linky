@@ -192,7 +192,9 @@ export function ChatInputBar({
             }
           }}
           disabled={!isInCall}
-          placeholder={t("placeholder")} />
+          placeholder={t("placeholder")}
+          data-testid="chat-input"
+        />
         <InputGroupAddon align="block-end">
           <InputGroupButton
             variant={'ghost'}
@@ -232,6 +234,7 @@ export function ChatInputBar({
             onClick={handleSend}
             disabled={!canSend || isPreparingAttachment}
             size="icon-xs"
+            data-testid="chat-send-button"
           >
             <IconArrowUp />
             <span className="sr-only">{t("sendMessageSrOnly")}</span>

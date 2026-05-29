@@ -14,7 +14,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_peer_disconnect_triggers_end_call_for_remaining_user():
     """Disconnect & Reconnection: Peer disconnect triggers end-call for remaining user"""
-    """Disconnect & Reconnection: Peer disconnect triggers end-call for remaining user"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -27,7 +26,6 @@ def test_peer_disconnect_triggers_end_call_for_remaining_user():
 
 
 def test_session_resync_after_reconnection():
-    """Disconnect & Reconnection: Session resync after reconnection"""
     """Disconnect & Reconnection: Session resync after reconnection"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

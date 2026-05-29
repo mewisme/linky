@@ -15,7 +15,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_mute_toggles_audio_and_notifies_peer():
     """Call Controls: Mute toggles audio and notifies peer"""
-    """Call Controls: Mute toggles audio and notifies peer"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -26,7 +25,6 @@ def test_mute_toggles_audio_and_notifies_peer():
 
 
 def test_unmute_restores_audio():
-    """Call Controls: Unmute restores audio"""
     """Call Controls: Unmute restores audio"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
@@ -40,7 +38,6 @@ def test_unmute_restores_audio():
 
 def test_video_toggle_notifies_peer():
     """Call Controls: Video toggle notifies peer"""
-    """Call Controls: Video toggle notifies peer"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -53,7 +50,6 @@ def test_video_toggle_notifies_peer():
 
 def test_swap_camera_cycles_camera_devices():
     """Call Controls: Swap camera cycles camera devices"""
-    """Call Controls: Swap camera cycles camera devices"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -64,7 +60,6 @@ def test_swap_camera_cycles_camera_devices():
 
 
 def test_end_call_via_button_returns_to_idle():
-    """Call Controls: End call via button returns to idle"""
     """Call Controls: End call via button returns to idle"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
@@ -81,7 +76,6 @@ def test_end_call_via_button_returns_to_idle():
 
 
 def test_end_call_via_keyboard_shortcut_mod_d():
-    """Call Controls: End call via keyboard shortcut (Mod+D)"""
     """Call Controls: End call via keyboard shortcut (Mod+D)"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

@@ -14,7 +14,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_beforeunload_sends_end_call_via_fetch_beacon():
     """Unload Behavior: beforeunload sends end-call via fetch/beacon"""
-    """Unload Behavior: beforeunload sends end-call via fetch/beacon"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)

@@ -1,11 +1,22 @@
 from __future__ import annotations
 
-import time
-
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
 
 from linky_e2e.helpers.locators import by_test_id, find_by_test_id
 from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_visible
+
+OVERFLOW_CONTROL_IDS = frozenset({
+    "chat-toggle-button",
+    "chat-add-favorite-button",
+    "chat-remove-favorite-button",
+    "chat-screen-share-button",
+    "chat-swap-camera-button",
+    "chat-pip-toggle-button",
+    "chat-block-user-button",
+    "chat-stream-quality-button",
+})
 
 
 class VideoChatPage:
@@ -28,77 +39,120 @@ class VideoChatPage:
     def wait_for_searching(self, timeout: float | None = None) -> None:
         wait_visible(self.driver, by_test_id("chat-searching-indicator"), timeout)
 
-    def start_button(self):
+    def _visible_control(self, test_id: str) -> WebElement | None:
+        for el in self.driver.find_elements(*by_test_id(test_id)):
+            if el.is_displayed():
+                return el
+        return None
+
+    def open_overflow_menu(self, timeout: float | None = None) -> None:
+        self.overflow_menu_button().click()
+        wait_visible(self.driver, by_test_id("chat-toggle-button"), timeout)
+
+    def _find_control(self, test_id: str, timeout: float | None = None) -> WebElement:
+        el = self._visible_control(test_id)
+        if el is not None:
+            return el
+        if test_id in OVERFLOW_CONTROL_IDS:
+            self.open_overflow_menu(timeout)
+            return wait_visible(self.driver, by_test_id(test_id), timeout)
+        return wait_visible(self.driver, by_test_id(test_id), timeout)
+
+    def click_control(self, test_id: str, timeout: float | None = None) -> None:
+        self._find_control(test_id, timeout).click()
+
+    def start_button(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-start-button")
 
-    def end_call_button(self):
+    def end_call_button(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-end-call-button")
 
-    def skip_button(self):
+    def skip_button(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-skip-button")
 
-    def mute_button(self):
+    def mute_button(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-mute-button")
 
-    def video_toggle_button(self):
+    def video_toggle_button(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-video-toggle-button")
 
-    def remote_video(self):
+    def remote_video(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-remote-video")
 
-    def local_video(self):
+    def local_video(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-local-video")
 
-    def call_timer(self):
+    def call_timer(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-call-timer")
 
-    def camera_off_indicator(self):
+    def camera_off_indicator(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-camera-off-indicator")
 
-    def passive_video_container(self):
+    def passive_video_container(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-video-container-passive")
 
-    def video_container(self):
+    def video_container(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-video-container")
 
-    def idle_container(self):
+    def idle_container(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-idle-container")
 
-    def searching_indicator(self):
+    def searching_indicator(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-searching-indicator")
 
-    def chat_toggle_button(self):
-        return find_by_test_id(self.driver, "chat-toggle-button")
+    def overflow_menu_button(self) -> WebElement:
+        return find_by_test_id(self.driver, "chat-overflow-menu-button")
 
-    def chat_sidebar(self):
+    def chat_toggle_button(self) -> WebElement:
+        return self._find_control("chat-toggle-button")
+
+    def chat_sidebar(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-sidebar")
 
-    def chat_messages_container(self):
+    def chat_messages_container(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-messages-container")
 
-    def chat_input(self):
+    def chat_input(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-input")
 
-    def chat_send_button(self):
+    def chat_send_button(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-send-button")
 
-    def screen_share_button(self):
-        return find_by_test_id(self.driver, "chat-screen-share-button")
+    def chat_message(self, message_id: str) -> WebElement:
+        return find_by_test_id(self.driver, f"chat-message-{message_id}")
 
-    def swap_camera_button(self):
-        return find_by_test_id(self.driver, "chat-swap-camera-button")
+    def screen_share_button(self) -> WebElement:
+        return self._find_control("chat-screen-share-button")
 
-    def add_favorite_button(self):
-        return find_by_test_id(self.driver, "chat-add-favorite-button")
+    def swap_camera_button(self) -> WebElement:
+        return self._find_control("chat-swap-camera-button")
 
-    def remove_favorite_button(self):
-        return find_by_test_id(self.driver, "chat-remove-favorite-button")
+    def add_favorite_button(self) -> WebElement:
+        return self._find_control("chat-add-favorite-button")
 
-    def cancel_search_button(self):
+    def remove_favorite_button(self) -> WebElement:
+        return self._find_control("chat-remove-favorite-button")
+
+    def cancel_search_button(self) -> WebElement:
         return find_by_test_id(self.driver, "chat-cancel-search-button")
 
-    def connection_quality_indicator(self):
-        return self.driver.find_element("css selector", ".connection-quality-indicator")
+    def pip_toggle_button(self) -> WebElement:
+        return self._find_control("chat-pip-toggle-button")
+
+    def block_user_button(self) -> WebElement:
+        return self._find_control("chat-block-user-button")
+
+    def stream_quality_button(self) -> WebElement:
+        return self._find_control("chat-stream-quality-button")
+
+    def floating_video_overlay(self) -> WebElement:
+        return find_by_test_id(self.driver, "chat-floating-video-overlay")
+
+    def floating_expand_button(self) -> WebElement:
+        return find_by_test_id(self.driver, "chat-floating-expand-button")
+
+    def connection_quality_indicator(self) -> WebElement:
+        return find_by_test_id(self.driver, "chat-connection-quality-indicator")
 
     def send_chat_message(self, text: str) -> None:
         inp = self.chat_input()
@@ -113,5 +167,5 @@ class VideoChatPage:
         try:
             wait_visible(self.driver, by_test_id(test_id), timeout)
             return True
-        except Exception:
+        except (NoSuchElementException, Exception):
             return False

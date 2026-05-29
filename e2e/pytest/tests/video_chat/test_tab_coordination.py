@@ -27,7 +27,6 @@ def _open_second_tab(driver):
 
 def test_second_tab_shows_passive_state_when_call_active_in_first_tab():
     """Tab Coordination: Second tab shows passive state when call is active in first tab"""
-    """Tab Coordination: Second tab shows passive state when call is active in first tab"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -42,7 +41,6 @@ def test_second_tab_shows_passive_state_when_call_active_in_first_tab():
 
 
 def test_ownership_transfers_when_active_tab_is_closed():
-    """Tab Coordination: Ownership transfers when active tab is closed"""
     """Tab Coordination: Ownership transfers when active tab is closed"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

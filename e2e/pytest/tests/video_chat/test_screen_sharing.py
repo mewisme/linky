@@ -13,7 +13,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_screen_share_starts_and_peer_receives_notification():
     """Screen Sharing: Screen share starts and peer receives notification"""
-    """Screen Sharing: Screen share starts and peer receives notification"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -25,7 +24,6 @@ def test_screen_share_starts_and_peer_receives_notification():
 
 
 def test_stop_screen_share_restores_camera():
-    """Screen Sharing: Stop screen share restores camera"""
     """Screen Sharing: Stop screen share restores camera"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

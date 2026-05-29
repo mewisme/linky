@@ -18,7 +18,6 @@ def _authenticated_page(*, media_permissions: bool = True) -> tuple:
 
 def test_media_permission_denial_shows_error():
     """Error States & Edge Cases: Media permission denial shows error"""
-    """Error States & Edge Cases: Media permission denial shows error"""
     driver, page = _authenticated_page(media_permissions=False)
     try:
         page.goto()
@@ -30,7 +29,6 @@ def test_media_permission_denial_shows_error():
 
 
 def test_no_camera_device_falls_back_to_audio_only():
-    """Error States & Edge Cases: No camera device falls back to audio-only"""
     """Error States & Edge Cases: No camera device falls back to audio-only"""
     driver, page = _authenticated_page()
     try:
@@ -45,7 +43,6 @@ def test_no_camera_device_falls_back_to_audio_only():
 
 def test_ice_server_fetch_failure_shows_error():
     """Error States & Edge Cases: ICE server fetch failure shows error"""
-    """Error States & Edge Cases: ICE server fetch failure shows error"""
     driver, page = _authenticated_page()
     try:
         page.goto()
@@ -57,7 +54,6 @@ def test_ice_server_fetch_failure_shows_error():
 
 @pytest.mark.slow
 def test_queue_timeout_shows_error():
-    """Error States & Edge Cases: Queue timeout shows error"""
     """Error States & Edge Cases: Queue timeout shows error"""
     driver, page = _authenticated_page()
     try:
@@ -72,7 +68,6 @@ def test_queue_timeout_shows_error():
 
 
 def test_socket_connection_error_shows_toast():
-    """Error States & Edge Cases: Socket connection error shows toast"""
     """Error States & Edge Cases: Socket connection error shows toast"""
     driver, page = _authenticated_page()
     try:

@@ -13,7 +13,6 @@ pytestmark = pytest.mark.video_chat
 
 def test_add_favorite_notifies_peer():
     """Favorites During Call: Add favorite notifies peer"""
-    """Favorites During Call: Add favorite notifies peer"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:
         establish_call(setup.user1_page, setup.user2_page)
@@ -24,7 +23,6 @@ def test_add_favorite_notifies_peer():
 
 
 def test_remove_favorite_notifies_peer():
-    """Favorites During Call: Remove favorite notifies peer"""
     """Favorites During Call: Remove favorite notifies peer"""
     setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
     try:

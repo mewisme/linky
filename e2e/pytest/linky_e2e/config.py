@@ -19,6 +19,7 @@ def _truthy(name: str) -> bool:
 
 class Settings:
     base_url: str
+    api_url: str
     headed: bool
     run_fast: bool
     ignore_https_errors: bool
@@ -33,6 +34,8 @@ class Settings:
         if not base:
             raise RuntimeError("BASE_TEST_URL is not set (repo root .env or e2e/pytest/.env)")
         self.base_url = base
+        api = os.environ.get("API_URL") or os.environ.get("NEXT_PUBLIC_API_URL") or "http://localhost:7270"
+        self.api_url = api.rstrip("/")
         self.headed = _truthy("HEADED") or _truthy("PWHEADED") or _truthy("PWDEBUG")
         self.run_fast = _truthy("RUN_FAST")
         self.ignore_https_errors = _truthy("IGNORE_HTTPS_ERRORS") or _truthy("E2E_IGNORE_HTTPS_ERRORS")

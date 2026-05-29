@@ -1,23 +1,18 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Literal
 
-from openpyxl import load_workbook
-
-from linky_e2e.config import settings
 from linky_e2e.storage.state import normalize_storage_state_path
-
-TEST_USER_KEYS = (
-    "user1",
-    "user2",
-    "user3",
-    "user4",
-    "user5",
-    "user6",
-    "user7",
+from linky_e2e.test_data.clerk_test_auth import (
+    CLERK_TEST_OTP,
+    DEFAULT_TEST_PASSWORD,
+    clerk_test_email,
 )
+
+REQUIRED_TEST_USER_KEYS = ("user1", "user2")
+OPTIONAL_TEST_USER_KEYS = ("user3", "user4", "user5", "user6", "user7")
+TEST_USER_KEYS = REQUIRED_TEST_USER_KEYS + OPTIONAL_TEST_USER_KEYS
 
 
 @dataclass(frozen=True)
@@ -31,51 +26,62 @@ class TestUser:
     last_name: str | None = None
 
 
-def _cell_str(value: object) -> str:
+def _env_str(name: str, default: str = "") -> str:
+    value = os.environ.get(name)
     if value is None:
-        return ""
-    return str(value)
+        return default
+    return value.strip()
 
 
-def _load_sheet_matrix(file_name: str) -> list[list[object | None]]:
-    file_path = settings.test_data_dir / file_name
-    if not file_path.exists():
-        raise FileNotFoundError(f"Missing test data file: {file_path}")
-    wb = load_workbook(file_path, read_only=True, data_only=True)
-    sheet = wb.active
-    return [list(row) for row in sheet.iter_rows(values_only=True)]
+def _user_env_prefix(user_id: str) -> str:
+    suffix = user_id.removeprefix("user")
+    return f"E2E_USER{suffix}_"
 
 
-def read_clerk_test_user_rows() -> list[TestUser]:
-    matrix = _load_sheet_matrix("data_test_users.xlsx")
-    out: list[TestUser] = []
-    for i in range(1, len(matrix)):
-        cols = matrix[i]
-        if not cols or cols[0] is None or _cell_str(cols[0]) == "":
-            continue
-        out.append(
-            TestUser(
-                id=_cell_str(cols[0]),
-                first_name=_cell_str(cols[1]) or None,
-                last_name=_cell_str(cols[2]) or None,
-                email=_cell_str(cols[3]),
-                password=_cell_str(cols[4]),
-                otp=_cell_str(cols[5]),
-                storage_state_path=normalize_storage_state_path(_cell_str(cols[6])),
-            )
-        )
-    return out
+def _load_test_user_from_env(user_id: str) -> TestUser | None:
+    prefix = _user_env_prefix(user_id)
+    email = _env_str(f"{prefix}EMAIL") or clerk_test_email(user_id)
+    password = (
+        _env_str(f"{prefix}PASSWORD")
+        or _env_str("E2E_TEST_PASSWORD")
+        or DEFAULT_TEST_PASSWORD
+    )
+    otp = _env_str(f"{prefix}OTP") or _env_str("E2E_TEST_OTP") or CLERK_TEST_OTP
+    storage = normalize_storage_state_path(
+        _env_str(f"{prefix}STORAGE", f".auth/{user_id}.json")
+    )
+    first_name = _env_str(f"{prefix}FIRST_NAME") or None
+    last_name = _env_str(f"{prefix}LAST_NAME") or None
+
+    if user_id in OPTIONAL_TEST_USER_KEYS and not _env_str(f"{prefix}EMAIL"):
+        return None
+
+    return TestUser(
+        id=user_id,
+        email=email,
+        password=password,
+        otp=otp,
+        storage_state_path=storage,
+        first_name=first_name,
+        last_name=last_name,
+    )
 
 
 def build_test_users_registry() -> dict[str, TestUser]:
-    rows = read_clerk_test_user_rows()
-    by_id = {r.id: r for r in rows}
     out: dict[str, TestUser] = {}
-    for key in TEST_USER_KEYS:
-        u = by_id.get(key)
-        if u is None:
-            raise RuntimeError(f'Missing row with id "{key}" in data_test_users.xlsx')
-        out[key] = u
+    for key in REQUIRED_TEST_USER_KEYS:
+        user = _load_test_user_from_env(key)
+        if user is None:
+            prefix = _user_env_prefix(key)
+            raise RuntimeError(
+                f"Missing required test user {key!r}. Set {prefix}EMAIL (and optionally "
+                f"{prefix}PASSWORD, {prefix}OTP, {prefix}STORAGE)."
+            )
+        out[key] = user
+    for key in OPTIONAL_TEST_USER_KEYS:
+        user = _load_test_user_from_env(key)
+        if user is not None:
+            out[key] = user
     return out
 
 
@@ -110,63 +116,3 @@ class _TestUsersProxy:
 
 
 TEST_USERS: _TestUsersProxy = _TestUsersProxy()
-
-
-@dataclass
-class LoginTestRow:
-    sheet_row_index: int
-    email: str
-    password: str
-    otp: str
-    message: str
-
-
-@dataclass
-class SignupTestRow:
-    sheet_row_index: int
-    first_name: str
-    last_name: str
-    email: str
-    password: str
-    otp: str
-    message: str
-
-
-def read_login_test_rows() -> list[LoginTestRow]:
-    matrix = _load_sheet_matrix("data_test_login.xlsx")
-    out: list[LoginTestRow] = []
-    for sheet_row in range(2, 14):
-        cols = matrix[sheet_row - 1] if sheet_row - 1 < len(matrix) else None
-        if not cols or all(c is None for c in cols[:3]):
-            continue
-        out.append(
-            LoginTestRow(
-                sheet_row_index=sheet_row,
-                email=_cell_str(cols[0]),
-                password=_cell_str(cols[1]),
-                otp=_cell_str(cols[2]),
-                message=_cell_str(cols[3]) if len(cols) > 3 else "",
-            )
-        )
-    return out
-
-
-def read_signup_test_rows() -> list[SignupTestRow]:
-    matrix = _load_sheet_matrix("data_test_signup.xlsx")
-    out: list[SignupTestRow] = []
-    for sheet_row in range(2, 36):
-        cols = matrix[sheet_row - 1] if sheet_row - 1 < len(matrix) else None
-        if not cols or all(c is None for c in cols[:5]):
-            continue
-        out.append(
-            SignupTestRow(
-                sheet_row_index=sheet_row,
-                first_name=_cell_str(cols[0]),
-                last_name=_cell_str(cols[1]),
-                email=_cell_str(cols[2]),
-                password=_cell_str(cols[3]),
-                otp=_cell_str(cols[4]),
-                message=_cell_str(cols[5]) if len(cols) > 5 else "",
-            )
-        )
-    return out

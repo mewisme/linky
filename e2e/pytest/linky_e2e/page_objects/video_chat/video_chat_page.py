@@ -29,6 +29,10 @@ class VideoChatPage:
         self.driver.get(f"{settings.base_url}/call")
         wait_for_clerk_ready(self.driver)
 
+    def reload(self) -> None:
+        self.driver.refresh()
+        wait_for_clerk_ready(self.driver)
+
     def wait_for_idle(self, timeout: float | None = None) -> None:
         wait_visible(self.driver, by_test_id("chat-idle-container"), timeout)
 

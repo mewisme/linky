@@ -1,44 +1,24 @@
 import pytest
 
-from linky_e2e.fixtures.call import (
-    establish_call,
-    setup_two_user_call,
-    teardown_two_user_call,
-)
-from linky_e2e.fixtures.users import TEST_USERS
+from linky_e2e.fixtures.call import TwoUserCallSetup
 from tests.video_chat._helpers import assert_visible, sleep
 
 pytestmark = pytest.mark.video_chat
 
 
-def test_streak_completed_event_emitted_during_long_call():
+def test_streak_completed_event_emitted_during_long_call(active_call: TwoUserCallSetup):
     """Progress & Streak Events: Streak completed event emitted during long call"""
-    setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
-    try:
-        establish_call(setup.user1_page, setup.user2_page)
-        sleep(10)
-        assert_visible(setup.user1_page.call_timer())
-    finally:
-        teardown_two_user_call(setup)
+    sleep(10)
+    assert_visible(active_call.user1_page.call_timer())
 
 
-def test_level_up_event_emitted_on_exp_threshold():
+def test_level_up_event_emitted_on_exp_threshold(active_call: TwoUserCallSetup):
     """Progress & Streak Events: Level up event emitted on exp threshold"""
-    setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
-    try:
-        establish_call(setup.user1_page, setup.user2_page)
-        sleep(10)
-        assert_visible(setup.user1_page.call_timer())
-    finally:
-        teardown_two_user_call(setup)
+    sleep(10)
+    assert_visible(active_call.user1_page.call_timer())
 
 
-def test_user_progress_updates_emitted_via_heartbeat():
+def test_user_progress_updates_emitted_via_heartbeat(active_call: TwoUserCallSetup):
     """Progress & Streak Events: User progress updates emitted via heartbeat"""
-    setup = setup_two_user_call(TEST_USERS["user1"], TEST_USERS["user2"])
-    try:
-        establish_call(setup.user1_page, setup.user2_page)
-        sleep(6)
-        assert_visible(setup.user1_page.call_timer())
-    finally:
-        teardown_two_user_call(setup)
+    sleep(6)
+    assert_visible(active_call.user1_page.call_timer())

@@ -5,22 +5,22 @@ description = "Linky E2E tests (Selenium + CloakBrowser), standalone from the mo
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "chromedriver-autoinstaller>=0.6.4",
-    "cloakbrowser>=0.3.30",
-    "openpyxl>=3.1.5",
-    "pytest>=9.0.3",
-    "pytest-html>=4.2.0",
-    "pytest-xdist>=3.8.0",
-    "python-dotenv>=1.2.2",
-    "requests>=2.34.2",
-    "selenium>=4.44.0",
-    "tenacity>=9.1.4",
+  "chromedriver-autoinstaller>=0.6.4",
+  "cloakbrowser>=0.3.30",
+  "pytest>=9.0.3",
+  "pytest-html>=4.2.0",
+  "pytest-xdist>=3.8.0",
+  "python-dotenv>=1.2.2",
+  "requests>=2.34.2",
+  "selenium>=4.44.0",
+  "tenacity>=9.1.4",
 ]
 
 [project.scripts]
 ensure-cloak = "linky_e2e.browser.ensure_cloak:main"
 clean-cloak = "linky_e2e.browser.clean_cloak:main"
 refresh-auth = "linky_e2e.browser.refresh_auth:main"
+test = "linky_e2e.run_test:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -33,11 +33,11 @@ packages = ["linky_e2e"]
 testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
-    "auth: authentication suite",
-    "user_profile: user profile suite",
-    "video_chat: video chat suite (run serially)",
-    "network_mock: tests that mock network via CDP",
-    "slow: flaky or long-running tests",
+  "auth: authentication suite",
+  "user_profile: user profile suite",
+  "video_chat: video chat suite (run serially)",
+  "network_mock: tests that mock network via CDP",
+  "slow: flaky or long-running tests",
 ]
 addopts = "-ra --strict-markers"
 filterwarnings = ["ignore::DeprecationWarning"]

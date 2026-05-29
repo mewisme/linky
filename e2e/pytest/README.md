@@ -5,84 +5,109 @@ Standalone Python E2E suite. Không phụ thuộc Playwright hay pnpm workspace.
 ## Prerequisites
 
 - [uv](https://docs.astral.sh/uv/)
-- `.env` với `BASE_TEST_URL` (repo root hoặc `pytest/.env`)
-- Test data: `linky_e2e/test_data/*.xlsx`
-- Auth storage: `pytest/.auth/user1.json`, `user2.json` (tự tạo khi test cần login lần đầu, hoặc `uv run refresh-auth`)
+- Env vars in repo-root `.env` or `e2e/pytest/.env` (see [`.env.e2e.example`](../../.env.e2e.example))
+- Clerk test accounts for `user1` / `user2` (see env vars below)
 
 ## Setup
 
 ```bash
-cd pytest
+cd e2e/pytest
 uv sync
-uv run ensure-cloak      # tải / xác minh CloakBrowser bin + ChromeDriver (~200MB lần đầu)
-uv run clean-cloak       # xóa cache CloakBrowser (~/.cloakbrowser) + ChromeDriver trong venv
-cp .env.example .env   # hoặc dùng ../.env
+uv run ensure-cloak
+cp ../../.env.e2e.example ../../.env   # merge E2E vars into root .env
 ```
 
-`ensure-cloak` gọi `cloakbrowser.ensure_binary()` và `chromedriver-autoinstaller` — chạy trước khi `pytest` lần đầu hoặc trên CI. Khi đang tải Chromium (~200MB), log hiển thị tiến độ theo % (mỗi 10%).
+Each test signs in through Clerk (`/sign-in` flow). Saved `.auth/*.json` cookies are **not** used during pytest runs.
 
-`clean-cloak` xóa cache để tải lại từ đầu; sau đó chạy lại `ensure-cloak`.
-
-`refresh-auth` tạo/cập nhật `.auth/*.json` bằng **một** browser (chạy tay trước CI, không dùng trong pytest).
-
-Browser lifecycle: pytest **không** mở browser session riêng. Mỗi test một driver (`driver`, `video_chat_page`, …); login/storage load trên cùng driver đó. Teardown: `quit()` + kill process tree; `pytest_sessionfinish` dọn driver sót. Tránh `-n auto` với `video_chat`.
+Optional: `uv run refresh-auth` exports session JSON to `.auth/` for debugging only.
 
 ## Run tests
 
 ```bash
-cd pytest
+cd e2e/pytest
 
-uv run pytest
-uv run pytest tests/auth -m auth
-uv run pytest tests/user_profile -m user_profile
-uv run pytest tests/video_chat -m video_chat   # serial, không xdist
-
-uv run pytest tests/auth tests/user_profile -n auto
-HEADED=1 uv run pytest tests/auth/test_sign_in.py -s
-RUN_FAST=1 uv run pytest tests/auth -q
-uv run pytest --html=reports/report.html --self-contained-html
+uv run test tests/video_chat/test_match_found.py
+uv run test tests/video_chat -m video_chat
 ```
+
+`uv run test` runs pytest with `-s -v` and writes `reports/report.html` (self-contained). Extra pytest args are passed through:
+
+```bash
+uv run test tests/auth -k sign_in
+HEADED=1 uv run test tests/video_chat/test_call_controls.py
+```
+
+Lower-level (no HTML report):
+
+```bash
+uv run python -m pytest tests/video_chat -m video_chat
+RUN_FAST=1 uv run python -m pytest tests/auth -q
+```
+
+On Windows, prefer `uv run python -m pytest` if `uv run pytest` fails with a trampoline error.
+
+## Video chat fixtures
+
+Pytest only spawns browsers a test actually requests:
+
+| Fixture | Browsers | Description |
+|---------|----------|-------------|
+| `video_chat_page` / `video_chat_driver` | **1** (user1) | Idle UI, search/queue, i18n, most error states |
+| `single_user_call` / `single_user_call_no_media` | **1** | Low-level single-user session |
+| `user1_page` / `user1_driver` | **1** | Same as `video_chat_*` |
+| `two_user_call` | **2** (parallel login) | Only when a test asks for `user2_*` or `active_call` |
+| `active_call` | **2** | Matchmaking connected (depends on `two_user_call`) |
+
+Example (one browser):
+
+```python
+def test_idle(video_chat_page: VideoChatPage):
+    video_chat_page.goto()
+```
+
+Example (two browsers):
+
+```python
+def test_mute(active_call: TwoUserCallSetup):
+    active_call.user1_page.mute_button().click()
+```
+
+`tests/video_chat/test_api_endpoints.py` has no browser fixtures (HTTP only).
 
 ## Environment
 
 | Variable | Description |
 |----------|-------------|
 | `BASE_TEST_URL` | App under test (required) |
-| `E2E_IGNORE_HTTPS_ERRORS` | `--ignore-certificate-errors` |
-| `HEADED` / `PWHEADED` | Headed browser |
-| `RUN_FAST=1` | Bỏ delay human-paced (mặc định: chậm, dễ theo dõi từng bước) |
-| `E2E_TIMEOUT_SEC` | WebDriverWait default (30) |
+| `API_URL` | Go API for direct HTTP tests |
+| `E2E_TEST_PASSWORD` / `E2E_TEST_OTP` | Defaults for all test users |
+| `E2E_USER1_*` / `E2E_USER2_*` | Required Clerk accounts (video_chat needs both) |
+| `E2E_USER3_*` … `E2E_USER7_*` | Optional extra accounts |
 | `CLERK_TEST_DOMAIN` | Clerk test email domain (`linky.now`) |
+| `HEADED` / `PWHEADED` / `PWDEBUG` | Headed browser |
+| `RUN_FAST=1` | Skip human-paced delays |
+| `E2E_TIMEOUT_SEC` | WebDriverWait default (30) |
 
-Sign-in / sign-up Clerk test:
+Per-user env pattern (`N` = 1–7):
 
-| | Value |
-|---|--------|
-| Email | `{name}+clerk_test@linky.now` |
-| OTP | `424242` |
-| Password (sign-up) | `ValidPass123!` |
-
-Helpers: `linky_e2e.test_data.clerk_test_auth`, `linky_e2e.page_objects.auth.clerk_auth_flow`.
-
-## Test data (Excel)
-
-| File | Nội dung |
-|------|----------|
-| `data_test_users.xlsx` | `user1`–`user7`, email, password, otp, `storage_state_path` → `.auth/userN.json` |
-| `data_test_login.xlsx` | Login matrix (rows cho auth parametrized khi cần) |
-| `data_test_signup.xlsx` | Signup matrix |
-
-`storage_state_path` trong Excel (cột 7): `.auth/user1.json` — legacy `playwright/.auth/...` vẫn được map tự động.
+| Variable | Default |
+|----------|---------|
+| `E2E_USER{N}_EMAIL` | `{userN}+clerk_test@{CLERK_TEST_DOMAIN}` |
+| `E2E_USER{N}_PASSWORD` | `E2E_TEST_PASSWORD` → `ValidPass123!` |
+| `E2E_USER{N}_OTP` | `E2E_TEST_OTP` → `424242` |
+| `E2E_USER{N}_STORAGE` | `.auth/userN.json` |
+| `E2E_USER{N}_FIRST_NAME` | — |
+| `E2E_USER{N}_LAST_NAME` | — |
 
 ## Layout
 
 ```
-pytest/
-  linky_e2e/          # driver, page objects, fixtures, storage
+e2e/pytest/
+  linky_e2e/          # driver, page objects, fixtures
   tests/
     auth/
     user_profile/
     video_chat/
   conftest.py
-  .auth/              # session JSON (gitignored)
+  .auth/              # optional session export (refresh-auth only; not used by pytest)
 ```

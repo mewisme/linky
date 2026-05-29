@@ -56,6 +56,7 @@ export interface UseSocketSignalingReturn {
   sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
   removeAllListeners: () => void;
   disconnectSocket: () => void;
+  reloadSocket: () => Socket | null;
   getSocket: () => Socket | null;
   getSocketId: () => string | null;
   isSocketHealthy: () => boolean;
@@ -110,7 +111,6 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     });
 
     register("realtime:peer-tracks", (data: RealtimePeerTracksPayload) => {
-      // eslint-disable-next-line no-console
       console.info("[debug] realtime:peer-tracks received", {
         peerSessionId: data?.peerSessionId,
         trackCount: data?.tracks?.length ?? 0,
@@ -382,6 +382,14 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     unregisterCallbacks('socket-signaling');
   }, [removeAllListeners, unregisterCallbacks]);
 
+  const reloadSocket = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current.connect();
+    }
+    return socketRef.current;
+  }, []);
+
   const getSocket = useCallback((): Socket | null => {
     return socketRef.current;
   }, []);
@@ -418,6 +426,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,
+      reloadSocket,
       getSocket,
       getSocketId,
       isSocketHealthy,
@@ -440,6 +449,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,
+      reloadSocket,
       getSocket,
       getSocketId,
       isSocketHealthy,

@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _PYTEST_ROOT = Path(__file__).resolve().parents[1]
 
-load_dotenv(_REPO_ROOT / ".env")
-load_dotenv(_PYTEST_ROOT / ".env")
+load_dotenv(_REPO_ROOT / ".env.e2e")
+load_dotenv(_PYTEST_ROOT / ".env.e2e")
 
 
 def _truthy(name: str) -> bool:

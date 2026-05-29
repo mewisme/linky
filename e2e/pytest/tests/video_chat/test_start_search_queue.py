@@ -9,6 +9,7 @@ pytestmark = pytest.mark.video_chat
 def test_start_search_transitions_to_searching_state(video_chat_page: VideoChatPage):
     """Matchmaking — Start Search & Queue: Start search transitions to searching state"""
     video_chat_page.goto()
+    video_chat_page.reload()
     video_chat_page.wait_for_idle()
     video_chat_page.start_button().click()
     video_chat_page.wait_for_searching()
@@ -18,6 +19,7 @@ def test_start_search_transitions_to_searching_state(video_chat_page: VideoChatP
 def test_cancel_search_button_visible_during_search(video_chat_page: VideoChatPage):
     """Matchmaking — Start Search & Queue: Cancel search button visible during search"""
     video_chat_page.goto()
+    video_chat_page.reload()
     video_chat_page.wait_for_idle()
     video_chat_page.start_button().click()
     video_chat_page.wait_for_searching()
@@ -27,6 +29,7 @@ def test_cancel_search_button_visible_during_search(video_chat_page: VideoChatPa
 def test_cancel_search_returns_to_idle(video_chat_page: VideoChatPage):
     """Matchmaking — Start Search & Queue: Cancel search returns to idle"""
     video_chat_page.goto()
+    video_chat_page.reload()
     video_chat_page.wait_for_idle()
     video_chat_page.start_button().click()
     video_chat_page.wait_for_searching()
@@ -39,6 +42,7 @@ def test_cancel_search_returns_to_idle(video_chat_page: VideoChatPage):
 def test_cannot_join_queue_twice(video_chat_page: VideoChatPage):
     """Matchmaking — Start Search & Queue: Cannot join queue twice"""
     video_chat_page.goto()
+    video_chat_page.reload()
     video_chat_page.wait_for_idle()
     video_chat_page.start_button().click()
     video_chat_page.wait_for_searching()

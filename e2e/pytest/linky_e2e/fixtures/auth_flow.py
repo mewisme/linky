@@ -9,12 +9,7 @@ from linky_e2e.test_data.clerk_test_auth import resolve_test_otp
 from linky_e2e.page_objects.auth.identifier_page import IdentifierPage
 from linky_e2e.page_objects.auth.otp_page import OTPPage
 from linky_e2e.page_objects.auth.password_page import PasswordPage
-from linky_e2e.storage.state import (
-    is_valid_storage_state,
-    load_storage_state,
-    resolve_storage_path,
-    save_storage_state,
-)
+from linky_e2e.storage.state import save_storage_state
 
 
 def authenticate_user(driver: WebDriver, user: TestUser) -> None:
@@ -47,12 +42,7 @@ def authenticate_user(driver: WebDriver, user: TestUser) -> None:
 
 
 def create_authenticated_driver(driver: WebDriver, user: TestUser) -> WebDriver:
-    path = resolve_storage_path(user.storage_state_path)
-    if path.exists() and is_valid_storage_state(path):
-        load_storage_state(driver, user.storage_state_path)
-        return driver
     authenticate_user(driver, user)
-    save_storage_state(driver, user.storage_state_path)
     return driver
 
 

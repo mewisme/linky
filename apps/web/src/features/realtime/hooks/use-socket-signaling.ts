@@ -57,6 +57,7 @@ export interface UseSocketSignalingReturn {
   removeAllListeners: () => void;
   disconnectSocket: () => void;
   reloadSocket: () => Socket | null;
+  ensureSocketConnected: (timeoutMs?: number) => Promise<boolean>;
   getSocket: () => Socket | null;
   getSocketId: () => string | null;
   isSocketHealthy: () => boolean;
@@ -390,6 +391,56 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     return socketRef.current;
   }, []);
 
+  const ensureSocketConnected = useCallback(async (timeoutMs = 15_000): Promise<boolean> => {
+    const deadline = Date.now() + timeoutMs;
+
+    const remainingMs = () => Math.max(0, deadline - Date.now());
+
+    while (remainingMs() > 0) {
+      const socket = socketRef.current;
+      if (!socket) {
+        await new Promise((resolve) => setTimeout(resolve, Math.min(100, remainingMs())));
+        continue;
+      }
+
+      if (socket.connected) {
+        return true;
+      }
+
+      if (!socket.active) {
+        socket.connect();
+      }
+
+      const connected = await new Promise<boolean>((resolve) => {
+        const waitMs = remainingMs();
+        if (waitMs === 0) {
+          resolve(socket.connected);
+          return;
+        }
+
+        const timer = setTimeout(() => {
+          socket.off("connect", onConnect);
+          resolve(socket.connected);
+        }, waitMs);
+
+        const onConnect = () => {
+          clearTimeout(timer);
+          resolve(true);
+        };
+
+        socket.once("connect", onConnect);
+      });
+
+      if (connected) {
+        return true;
+      }
+
+      return false;
+    }
+
+    return socketRef.current?.connected ?? false;
+  }, []);
+
   const getSocket = useCallback((): Socket | null => {
     return socketRef.current;
   }, []);
@@ -427,6 +478,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       removeAllListeners,
       disconnectSocket,
       reloadSocket,
+      ensureSocketConnected,
       getSocket,
       getSocketId,
       isSocketHealthy,
@@ -450,6 +502,7 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       removeAllListeners,
       disconnectSocket,
       reloadSocket,
+      ensureSocketConnected,
       getSocket,
       getSocketId,
       isSocketHealthy,

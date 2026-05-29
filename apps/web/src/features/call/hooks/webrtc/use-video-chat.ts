@@ -701,14 +701,11 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
-      const socket = socketSignaling.getSocket();
-      if (!socket?.connected) {
-        const newSocket = socketSignaling.reloadSocket();
-        if (!newSocket?.connected) {
-          actionsRef.current.setError(t("call.connectionNotReady"));
-          toast.error(t("call.connectionNotReadyToast"));
-          return;
-        }
+      const socketReady = await socketSignaling.ensureSocketConnected();
+      if (!socketReady) {
+        actionsRef.current.setError(t("call.connectionNotReady"));
+        toast.error(t("call.connectionNotReadyToast"));
+        return;
       }
 
       const claimed = tabCoordination.claimOwnership(null);

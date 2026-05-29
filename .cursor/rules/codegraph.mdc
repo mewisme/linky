@@ -1,7 +1,8 @@
 ---
-description: CodeGraph MCP usage guide — when to use which tool
+description: CodeGraph MCP usage guide — when to use which tool---
 alwaysApply: true
 ---
+
 <!-- CODEGRAPH_START -->
 ## CodeGraph
 
@@ -18,15 +19,44 @@ Use codegraph for **structural** questions — what calls what, what would break
 | "What does Y call?" | `codegraph_callees` |
 | "What would break if I changed Z?" | `codegraph_impact` |
 | "Show me Y's signature / source / docstring" | `codegraph_node` |
-| "Give me focused context for a task/area" | `codegraph_context` — pass **`task`**, not `query` |
+| "Give me focused context for a task/area" | `codegraph_context` |
 | "See several related symbols' source at once" | `codegraph_explore` |
 | "What files exist under path/" | `codegraph_files` |
 | "Is the index healthy?" | `codegraph_status` |
+| "How does A reach B in call flow?" | `codegraph_trace` |
+
+### Tool input parameters (authoritative call shapes)
+
+Always pass arguments using the exact field names below. If a required field is missing, the call is invalid.
+
+| Tool | Required input | Optional input |
+|---|---|---|
+| `codegraph_search` | `query: string` | `kind: "function" \| "method" \| "class" \| "interface" \| "type" \| "variable" \| "route" \| "component"`, `limit: number = 10`, `projectPath: string` |
+| `codegraph_context` | `task: string` | `maxNodes: number = 20`, `includeCode: boolean = true`, `projectPath: string` |
+| `codegraph_callers` | `symbol: string` | `limit: number = 20`, `projectPath: string` |
+| `codegraph_callees` | `symbol: string` | `limit: number = 20`, `projectPath: string` |
+| `codegraph_impact` | `symbol: string` | `depth: number = 2`, `projectPath: string` |
+| `codegraph_node` | `symbol: string` | `includeCode: boolean = false`, `projectPath: string` |
+| `codegraph_explore` | `query: string` | `maxFiles: number = 12`, `projectPath: string` |
+| `codegraph_status` | none | `projectPath: string` |
+| `codegraph_files` | none | `path: string`, `pattern: string`, `format: "tree" \| "flat" \| "grouped" = "tree"`, `includeMetadata: boolean = true`, `maxDepth: number`, `projectPath: string` |
+| `codegraph_trace` | `from: string`, `to: string` | `projectPath: string` |
+
+Minimal valid call examples:
+
+- `codegraph_search({ query: "AuthService" })`
+- `codegraph_context({ task: "how auth redirects work after sign-in" })`
+- `codegraph_callers({ symbol: "loginUser" })`
+- `codegraph_callees({ symbol: "handleRequest" })`
+- `codegraph_impact({ symbol: "UserService" })`
+- `codegraph_node({ symbol: "renderPage" })`
+- `codegraph_explore({ query: "AuthService loginUser session-manager" })`
+- `codegraph_status({})`
+- `codegraph_files({ path: "src/components", format: "tree" })`
+- `codegraph_trace({ from: "handleSubmit", to: "execute_sql" })`
 
 ### Rules of thumb
 
-- **`codegraph_context` uses `task`, not `query`.** Pass the task description as `task`:
-  `codegraph_context({ task: "how auth redirects work after sign-in" })`
 - **Answer directly — don't delegate exploration.** For "how does X work" / architecture / trace questions, answer with 2-3 codegraph calls: `codegraph_context` first, then ONE `codegraph_explore` for the source of the symbols it surfaces. Codegraph IS the pre-built index, so spawning a separate file-reading sub-task/agent — or running a grep + read loop — repeats work codegraph already did and costs more for the same answer.
 - **Trust codegraph results.** They come from a full AST parse. Do NOT re-verify them with grep — that's slower, less accurate, and wastes context.
 - **Don't grep first** when looking up a symbol by name. `codegraph_search` is faster and returns kind + location + signature in one call.

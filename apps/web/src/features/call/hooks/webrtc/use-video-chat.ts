@@ -427,7 +427,7 @@ export function useVideoChat(): UseVideoChatReturn {
         transportReadyRef.current = false;
         actionsRef.current.setConnectionStatus("matched");
         actionsRef.current.setPeerInfo(normalizePublicUserInfo(data.peerInfo));
-        actionsRef.current.setRemoteCameraEnabled(true);
+        actionsRef.current.setRemoteCameraEnabled(false);
         trackEvent({ name: "matchmaking_matched" });
 
         const localStream = mediaStream.getStream();
@@ -460,6 +460,10 @@ export function useVideoChat(): UseVideoChatReturn {
             tryEnterInCall();
           },
           onRemoteMediaUpdated: () => {
+            const stream = useVideoChatStore.getState().remoteStream;
+            if (stream?.getVideoTracks().some((track) => track.readyState === "live")) {
+              actionsRef.current.setRemoteCameraEnabled(true);
+            }
             tryEnterInCall();
           },
           onConnectionStateChange: (connectionState: RTCPeerConnectionState) => {
@@ -613,6 +617,7 @@ export function useVideoChat(): UseVideoChatReturn {
       onRealtimePeerTracks: async (data: RealtimePeerTracksPayload) => {
         try {
           await sfuConnection.handlePeerTracks(data);
+          tryEnterInCall();
         } catch (err) {
           Sentry.logger.error("Failed to handle peer tracks", { error: err });
         }
@@ -646,6 +651,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onVideoToggle: (data: { videoOff: boolean }) => {
         actionsRef.current.setRemoteCameraEnabled(!data.videoOff);
+        tryEnterInCall();
       },
 
       onScreenShareToggle: (data: { sharing: boolean; streamId?: string }) => {

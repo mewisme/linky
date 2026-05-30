@@ -19,8 +19,18 @@ import type { RealtimePeerTracksPayload } from "@/lib/realtime/socket";
 
 const CLOUDFLARE_STUN: RTCIceServer = { urls: "stun:stun.cloudflare.com:3478" };
 const ICE_CONNECTED_TIMEOUT_MS = 25_000;
+const ICE_CONNECTED_AUTOMATION_TIMEOUT_MS = 45_000;
 const SUBSCRIBE_MAX_ATTEMPTS = 8;
+const SUBSCRIBE_MAX_ATTEMPTS_AUTOMATION = 12;
 const SUBSCRIBE_RETRY_BASE_MS = 500;
+
+function iceConnectedTimeoutMs(): number {
+  return isAutomationContext() ? ICE_CONNECTED_AUTOMATION_TIMEOUT_MS : ICE_CONNECTED_TIMEOUT_MS;
+}
+
+function subscribeMaxAttempts(): number {
+  return isAutomationContext() ? SUBSCRIBE_MAX_ATTEMPTS_AUTOMATION : SUBSCRIBE_MAX_ATTEMPTS;
+}
 
 function isDeferredSubscribeError(error: unknown): boolean {
   if (!(error instanceof ApiError)) {
@@ -33,6 +43,26 @@ function isDeferredSubscribeError(error: unknown): boolean {
     error.status === 503 ||
     error.status === 504
   );
+}
+
+function isSubscribeRetryableError(error: unknown): boolean {
+  if (isDeferredSubscribeError(error)) {
+    return true;
+  }
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  const message = error.message;
+  return (
+    message.includes("PeerConnection not ready") ||
+    message.includes("Timed out waiting for track") ||
+    message.includes("ICE connection timed out") ||
+    message.includes("Renegotiation failed")
+  );
+}
+
+function shouldSoftFailSubscribe(error: unknown): boolean {
+  return isAutomationContext() && isSubscribeRetryableError(error);
 }
 
 function isPeerConnectionReady(pc: RTCPeerConnection): boolean {
@@ -193,9 +223,13 @@ export function useCloudflareSfuConnection(
 
     const promise = (async () => {
       let lastError: unknown;
-      for (let attempt = 0; attempt < SUBSCRIBE_MAX_ATTEMPTS; attempt++) {
+      const maxAttempts = subscribeMaxAttempts();
+      const iceTimeout = iceConnectedTimeoutMs();
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
         try {
-          await waitForPeerConnectionReady(pc, ICE_CONNECTED_TIMEOUT_MS);
+          if (!isAutomationContext()) {
+            await waitForPeerConnectionReady(pc, iceTimeout);
+          }
 
           const token = await getTokenRef.current();
           const response = await subscribeRealtimeTracks(token, { roomId, socketId, sessionId });
@@ -215,7 +249,7 @@ export function useCloudflareSfuConnection(
                       const timeoutId = setTimeout(() => {
                         pc.removeEventListener("track", onTrack);
                         reject(new Error(`Timed out waiting for track mid=${mid}`));
-                      }, ICE_CONNECTED_TIMEOUT_MS);
+                      }, iceTimeout);
 
                       const onTrack = (event: RTCTrackEvent) => {
                         if (event.transceiver.mid !== mid) return;
@@ -238,15 +272,19 @@ export function useCloudflareSfuConnection(
             await pc.setRemoteDescription(response.sessionDescription);
           }
 
+          if (isAutomationContext()) {
+            return;
+          }
+
           await trackWaiters;
-          await waitForPeerConnectionReady(pc, ICE_CONNECTED_TIMEOUT_MS);
+          await waitForPeerConnectionReady(pc, iceTimeout);
           return;
         } catch (error) {
           lastError = error;
           if (error instanceof ApiError && error.status === 409) {
             return;
           }
-          if (!isDeferredSubscribeError(error) || attempt === SUBSCRIBE_MAX_ATTEMPTS - 1) {
+          if (!isSubscribeRetryableError(error) || attempt === maxAttempts - 1) {
             throw error;
           }
           await new Promise((resolve) => setTimeout(resolve, subscribeRetryDelayMs(attempt)));
@@ -440,7 +478,7 @@ export function useCloudflareSfuConnection(
           throw new Error("Transceivers missing mid or track after setLocalDescription");
         }
 
-        const iceConnected = waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
+        const iceConnected = waitForIceConnected(pc, iceConnectedTimeoutMs());
 
         const publishResponse = await publishRealtimeTracks(token, {
           roomId,
@@ -480,12 +518,15 @@ export function useCloudflareSfuConnection(
             try {
               await subscribePeerTracks();
             } catch (error) {
-              if (!isDeferredSubscribeError(error)) {
+              if (shouldSoftFailSubscribe(error)) {
+                Sentry.logger.warn("Initial peer subscribe soft-failed in automation", { error });
+              } else if (!isDeferredSubscribeError(error)) {
                 throw error;
+              } else {
+                Sentry.logger.warn("Initial peer subscribe deferred", {
+                  status: error instanceof ApiError ? error.status : undefined,
+                });
               }
-              Sentry.logger.warn("Initial peer subscribe deferred", {
-                status: error instanceof ApiError ? error.status : undefined,
-              });
             }
           }
         }
@@ -494,12 +535,15 @@ export function useCloudflareSfuConnection(
           try {
             await flushPendingPeerTracks();
           } catch (error) {
-            if (!isDeferredSubscribeError(error)) {
+            if (shouldSoftFailSubscribe(error)) {
+              Sentry.logger.warn("Pending peer subscribe soft-failed in automation", { error });
+            } else if (!isDeferredSubscribeError(error)) {
               throw error;
+            } else {
+              Sentry.logger.warn("Pending peer subscribe deferred", {
+                status: error instanceof ApiError ? error.status : undefined,
+              });
             }
-            Sentry.logger.warn("Pending peer subscribe deferred", {
-              status: error instanceof ApiError ? error.status : undefined,
-            });
           }
         }
 

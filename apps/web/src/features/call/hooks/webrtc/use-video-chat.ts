@@ -39,6 +39,7 @@ import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settin
 import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
 import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
 import { isCallMediaReadyForInCall } from "@/features/call/lib/webrtc/call-media-readiness";
+import { isAutomationContext } from "@/shared/utils/automation-context";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -518,18 +519,28 @@ export function useVideoChat(): UseVideoChatReturn {
         } catch (err) {
           const iceTimedOut =
             err instanceof Error && err.message.includes("ICE connection timed out");
+          const maxIceRetries = isAutomationContext() ? 2 : 1;
           if (iceTimedOut) {
-            await sfuConnection.cleanup();
-            try {
-              await runSfuConnect();
-              return;
-            } catch (retryErr) {
-              Sentry.logger.error("Cloudflare SFU connect failed after ICE retry", { error: retryErr });
-              actionsRef.current.setError(t("call.failedEstablishConnection"));
-              actionsRef.current.setConnectionStatus("ended");
-              resetCallEntryGate();
-              return;
+            let lastRetryErr: unknown = err;
+            for (let attempt = 0; attempt < maxIceRetries; attempt++) {
+              await sfuConnection.cleanup();
+              try {
+                await runSfuConnect();
+                return;
+              } catch (retryErr) {
+                lastRetryErr = retryErr;
+                const retryIceTimedOut =
+                  retryErr instanceof Error && retryErr.message.includes("ICE connection timed out");
+                if (!retryIceTimedOut || attempt === maxIceRetries - 1) {
+                  break;
+                }
+              }
             }
+            Sentry.logger.error("Cloudflare SFU connect failed after ICE retries", { error: lastRetryErr });
+            actionsRef.current.setError(t("call.failedEstablishConnection"));
+            actionsRef.current.setConnectionStatus("ended");
+            resetCallEntryGate();
+            return;
           }
           Sentry.logger.error("Cloudflare SFU connect failed", { error: err });
           actionsRef.current.setError(t("call.failedEstablishConnection"));

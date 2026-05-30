@@ -16,6 +16,7 @@ from selenium.webdriver.chrome.service import Service
 
 from linky_e2e.browser.chromedriver import install_chromedriver
 from linky_e2e.config import settings
+from linky_e2e.helpers.automation_context import install_automation_init_script
 
 if TYPE_CHECKING:
     from selenium.webdriver.chrome.webdriver import WebDriver
@@ -113,6 +114,7 @@ def create_cloak_driver(
 
     service = Service()
     driver = webdriver.Chrome(service=service, options=options)
+    install_automation_init_script(driver)
     driver.set_window_size(settings.viewport_width, settings.viewport_height)
     driver.implicitly_wait(0)
     _active_drivers.add(driver)

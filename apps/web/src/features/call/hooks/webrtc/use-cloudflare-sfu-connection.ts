@@ -14,6 +14,7 @@ import {
   type RealtimePublishTrack,
 } from "@/features/call/lib/webrtc/cloudflare-sfu-client";
 import { ApiError } from "@/lib/http/api-error";
+import { isAutomationContext } from "@/shared/utils/automation-context";
 import type { RealtimePeerTracksPayload } from "@/lib/realtime/socket";
 
 const CLOUDFLARE_STUN: RTCIceServer = { urls: "stun:stun.cloudflare.com:3478" };
@@ -37,6 +38,9 @@ function isDeferredSubscribeError(error: unknown): boolean {
 function isPeerConnectionReady(pc: RTCPeerConnection): boolean {
   const iceReady =
     pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed";
+  if (isAutomationContext()) {
+    return iceReady;
+  }
   return iceReady && pc.connectionState === "connected";
 }
 

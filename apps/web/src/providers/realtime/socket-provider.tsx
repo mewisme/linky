@@ -12,6 +12,7 @@ import {
   setPresencePublisher,
 } from "@/lib/realtime/presence";
 import { getUserTimezone } from "@/shared/utils/timezone";
+import { isAutomationContext, pageVisibilityForSocket } from "@/shared/utils/automation-context";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 
 import { useUserContext } from "@/providers/user/user-provider";
@@ -132,7 +133,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
             }).catch(() => { });
           }
 
-          const visibility = document.visibilityState === "visible" ? "foreground" : "background";
+          const visibility = pageVisibilityForSocket();
           chatSocket.emit(`client:visibility:${visibility}`);
 
           const isBackendRestart = backendRestartDetector.recordConnect(chatSocket);
@@ -147,7 +148,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
             }
           });
           publishPresence('online');
-          if (document.visibilityState === "hidden") {
+          if (document.visibilityState === "hidden" && !isAutomationContext()) {
             publishPresence("idle");
           }
           socketHealthMonitor.markEventReceived();
@@ -229,7 +230,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
         if (!chatSocket || !chatSocket.connected) {
           return;
         }
-        const visibility = document.visibilityState === "visible" ? "foreground" : "background";
+        const visibility = pageVisibilityForSocket();
         chatSocket.emit(`client:visibility:${visibility}`);
         const currentPresence = getLastPresenceState();
         if (currentPresence === "online" || currentPresence === "idle") {

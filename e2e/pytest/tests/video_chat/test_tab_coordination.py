@@ -2,8 +2,9 @@ import pytest
 
 from linky_e2e.config import settings
 from linky_e2e.fixtures.call import TwoUserCallSetup
+from linky_e2e.helpers.automation_context import ensure_automation_context
 from linky_e2e.helpers.locators import by_test_id
-from linky_e2e.helpers.waits import wait_visible
+from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_visible
 from tests.video_chat._helpers import element_visible, sleep
 
 pytestmark = pytest.mark.video_chat
@@ -16,6 +17,8 @@ def _open_second_tab(driver):
     new_handle = [h for h in handles if h not in handles_before][0]
     driver.switch_to.window(new_handle)
     driver.get(f"{settings.base_url}/call")
+    wait_for_clerk_ready(driver)
+    ensure_automation_context(driver)
     sleep(2)
     return new_handle
 

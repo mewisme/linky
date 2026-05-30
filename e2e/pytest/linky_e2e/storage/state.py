@@ -6,6 +6,7 @@ from pathlib import Path
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from linky_e2e.config import settings
+from linky_e2e.helpers.automation_context import ensure_automation_context
 
 _PYTEST_ROOT = Path(__file__).resolve().parents[2]
 
@@ -77,6 +78,7 @@ def load_storage_state(driver: WebDriver, storage_path: str | Path) -> None:
                 )
 
     driver.get(base)
+    ensure_automation_context(driver)
 
 
 def save_storage_state(driver: WebDriver, storage_path: str | Path) -> None:

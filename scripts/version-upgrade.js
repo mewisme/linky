@@ -56,7 +56,7 @@ function findAllPackageJsonFiles(rootDir = process.cwd(), packageJsonFiles = [])
     const items = readdirSync(rootDir);
 
     for (const item of items) {
-      if (item === 'node_modules' || item === '.git' || item === 'dist' || item === 'build' || item === '.next') {
+      if (item === 'node_modules' || item === '.git' || item === 'dist' || item === 'build' || item === '.next' || item === 'e2e') {
         continue;
       }
 
@@ -431,7 +431,9 @@ function updateVersion() {
   return newVersion;
 }
 
-const changedFiles = getChangedFiles();
+const changedFiles = getChangedFiles().filter(
+  (file) => !file.replace(/\\/g, '/').startsWith('e2e/')
+);
 
 if (changedFiles.length === 0) {
   console.log('\nNo changed files detected, skipping version update...');

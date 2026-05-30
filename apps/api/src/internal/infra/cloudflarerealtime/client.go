@@ -548,14 +548,28 @@ func CreateSession(ctx context.Context, body *NewSessionRequest, opts *CreateSes
 }
 
 func AddTracks(ctx context.Context, sessionID string, body *TracksRequest) (*TracksResponse, error) {
-	out := &TracksResponse{}
-	if err := call(ctx, http.MethodPost, "/sessions/"+sessionID+"/tracks/new", nil, body, out); err != nil {
-		return nil, err
+	var lastErr error
+	for attempt := 1; attempt <= maxRetryAttempts; attempt++ {
+		out := &TracksResponse{}
+		if err := call(ctx, http.MethodPost, "/sessions/"+sessionID+"/tracks/new", nil, body, out); err != nil {
+			return nil, err
+		}
+		if err := responseError(out.ErrorCode, out.ErrorDescription); err != nil {
+			lastErr = err
+			if !isRetryableError(err) || attempt == maxRetryAttempts {
+				return nil, err
+			}
+			delay := retryBaseDelay * time.Duration(1<<(attempt-1))
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(delay):
+			}
+			continue
+		}
+		return out, nil
 	}
-	if err := responseError(out.ErrorCode, out.ErrorDescription); err != nil {
-		return nil, err
-	}
-	return out, nil
+	return nil, lastErr
 }
 
 func Renegotiate(ctx context.Context, sessionID string, body *RenegotiateRequest) (*RenegotiateResponse, error) {

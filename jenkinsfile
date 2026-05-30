@@ -29,7 +29,7 @@ pipeline {
         checkout scm
         script {
           branchName = env.BRANCH_NAME ?: env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
-          echo '- Updated branch: ${branchName}'
+          echo "- Updated branch: ${branchName}"
 
           if (branchName == 'main') {
             linkyApiUrl = env.LINKY_API_PRODUCTION
@@ -44,14 +44,14 @@ pipeline {
             dockerProjectName = 'linky-dev'
             envCredentialsId = 'linky-env-dev'
           } else {
-            error '> Unsupported branch: ${branchName}'
+            error "Unsupported branch: ${branchName}"
           }
 
-          echo '- API URL: ${linkyApiUrl}'
-          echo '- Docker API URL: ${dockerImageApiUrl}'
-          echo '- Docker Compose File: ${dockerComposeFile}'
-          echo '- Docker Project Name: ${dockerProjectName}'
-          echo '- Environment Credentials ID: ${envCredentialsId}'
+          echo "- API URL: ${linkyApiUrl}"
+          echo "- Docker API URL: ${dockerImageApiUrl}"
+          echo "- Docker Compose File: ${dockerComposeFile}"
+          echo "- Docker Project Name: ${dockerProjectName}"
+          echo "- Environment Credentials ID: ${envCredentialsId}"
         }
       }
     }
@@ -63,24 +63,25 @@ pipeline {
 
           def remoteVersionJson = readJSON file: 'package.json'
           remoteVersion = remoteVersionJson?.version ?: null
-          echo '- Remote version: $remoteVersion'
+          echo "- Remote version: ${remoteVersion}"
 
           try {
             def localVersionResponse = httpRequest url: "https://${linkyApiUrl}/healthz"
             def localVersionJson = readJSON text: localVersionResponse.content
             localVersion = localVersionJson?.version ?: null
-            echo '- Local version: $localVersion'
+            echo "- Local version: ${localVersion}"
 
             def compareResult = compareVersions v1: localVersion, v2: remoteVersion
             def compareResultMessage = compareResult == 0 ? 'matched' : compareResult == 1 ? 'newer' : 'older'
+            echo "- Compare result: ${compareResultMessage}"
 
             if (compareResult <= 0) {
               doPull = true
             }
-            echo '- Local & Remote versions compared: ${compareResultMessage}'
+            echo 'Local & Remote versions compared'
           } catch (Exception e) {
-            echo '- Healthz fetch failed (${e.message});'
-            echo '> Forcing pull...'
+            echo "- Healthz fetch failed (${e.message});"
+            echo 'Forcing pull...'
             doPull = true
           }
         }
@@ -107,9 +108,9 @@ pipeline {
 
             def dockerVersion = matchedTag?.name
 
-            echo 'Docker Hub version: ${dockerVersion}'
-            echo 'Remote version: ${remoteVersion}'
-            echo 'Local version: ${localVersion}'
+            echo "Docker Hub version: ${dockerVersion}"
+            echo "Remote version: ${remoteVersion}"
+            echo "Local version: ${localVersion}"
 
             def dockerMatchesRemote =
               dockerVersion &&
@@ -121,7 +122,7 @@ pipeline {
               def dockerMatchesLocal =
                 compareVersions(v1: localVersion, v2: dockerVersion) == 0
 
-              echo 'Docker matches local: ${dockerMatchesLocal}'
+              echo "Docker matches local: ${dockerMatchesLocal}"
 
               if (dockerMatchesLocal) {
                 echo 'Docker Hub & Local versions are the same'
@@ -160,7 +161,7 @@ pipeline {
         expression { doPull }
       }
       steps {
-        sh 'docker compose -p ${dockerProjectName} -f ${dockerComposeFile} up -d --pull always --remove-orphans'
+        sh "docker compose -p ${dockerProjectName} -f ${dockerComposeFile} up -d --pull always --remove-orphans"
       }
     }
   }
@@ -170,10 +171,10 @@ pipeline {
       cleanWs()
     }
     success {
-      echo 'Linky deployed successfully to ${dockerProjectName}'
+      echo "Linky deployed successfully to ${dockerProjectName}"
     }
     failure {
-      echo 'Linky deployment failed to ${dockerProjectName}'
+      echo "Linky deployment failed to ${dockerProjectName}"
     }
   }
 }

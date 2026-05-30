@@ -13,6 +13,7 @@ const serverEnvSchema = z
     SENTRY_PROJECT: z.string().optional(),
     SENTRY_AUTH_TOKEN: z.string().optional(),
     SENTRY_ENABLED: z.string().optional(),
+    LINKY_FORCE_DEV: z.string().optional(),
   })
   .strict();
 
@@ -22,6 +23,7 @@ const raw = {
   SENTRY_PROJECT: process.env.SENTRY_PROJECT,
   SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
   SENTRY_ENABLED: process.env.SENTRY_ENABLED,
+  LINKY_FORCE_DEV: process.env.LINKY_FORCE_DEV,
 };
 
 const parsed = serverEnvSchema.parse(raw);
@@ -32,7 +34,8 @@ export const serverEnv = {
   SENTRY_PROJECT: parsed.SENTRY_PROJECT,
   SENTRY_AUTH_TOKEN: parsed.SENTRY_AUTH_TOKEN,
   SENTRY_ENABLED: parsed.SENTRY_ENABLED === "true",
-  isDev: parsed.NODE_ENV === "development",
+  LINKY_FORCE_DEV: parsed.LINKY_FORCE_DEV === "true",
+  isDev: parsed.LINKY_FORCE_DEV === "true" || parsed.NODE_ENV === "development",
   isProd: parsed.NODE_ENV === "production",
   isTest: parsed.NODE_ENV === "test",
 } as const;

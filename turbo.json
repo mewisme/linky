@@ -19,7 +19,8 @@
         "SENTRY_ORG",
         "SENTRY_PROJECT",
         "SENTRY_AUTH_TOKEN",
-        "SENTRY_ENABLED"
+        "SENTRY_ENABLED",
+        "LINKY_FORCE_DEV"
       ],
       "dependsOn": [
         "^build"

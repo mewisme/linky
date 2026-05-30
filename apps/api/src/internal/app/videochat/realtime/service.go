@@ -222,7 +222,7 @@ func (s *Service) Subscribe(ctx context.Context, room *rooms.Room, socketID, ses
 		}
 		tracks = append(tracks, req)
 	}
-	resp, err := cloudflarerealtime.AddTracks(ctx, sessionID, &cloudflarerealtime.TracksRequest{Tracks: tracks})
+	resp, err := cloudflarerealtime.AddTracksWhenSessionReady(ctx, sessionID, &cloudflarerealtime.TracksRequest{Tracks: tracks})
 	if err != nil {
 		return nil, err
 	}

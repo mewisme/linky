@@ -17,7 +17,13 @@ import (
 	"linky-api/src/internal/logger"
 )
 
-const defaultRequestTimeout = 30 * time.Second
+const (
+	defaultRequestTimeout        = 30 * time.Second
+	sessionReadyPollInterval     = 400 * time.Millisecond
+	sessionReadyMaxWait          = 15 * time.Second
+	addTracksNotReadyMaxAttempts = 6
+	addTracksNotReadyRetryBase   = 400 * time.Millisecond
+)
 
 var (
 	log        = logger.New("infra:cloudflare-realtime")
@@ -159,6 +165,92 @@ func IsStaleSession(err error) bool {
 		return e.Status == 410 || e.Status == 404
 	}
 	return false
+}
+
+func IsSessionNotReady(err error) bool {
+	var e *Error
+	if errors.As(err, &e) {
+		if e.Status == 425 {
+			return true
+		}
+		return strings.EqualFold(e.Code, "session_error")
+	}
+	return false
+}
+
+func sessionReadyForRemoteTracks(state *GetSessionStateResponse) bool {
+	if state == nil {
+		return false
+	}
+	hasLocal := false
+	for _, t := range state.Tracks {
+		if t.Location != "local" {
+			continue
+		}
+		hasLocal = true
+		if t.Status != "active" {
+			return false
+		}
+	}
+	return hasLocal
+}
+
+func waitForSessionReady(ctx context.Context, sessionID string) error {
+	deadline := time.Now().Add(sessionReadyMaxWait)
+	for {
+		state, err := GetSessionState(ctx, sessionID)
+		if err == nil && sessionReadyForRemoteTracks(state) {
+			return nil
+		}
+		if err != nil && IsStaleSession(err) {
+			return err
+		}
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if time.Now().After(deadline) {
+			if err != nil {
+				return err
+			}
+			return &Error{
+				Status:  425,
+				Code:    "session_error",
+				Message: "Session is not ready yet. Please ensure the PeerConnection is connected before making this request",
+			}
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(sessionReadyPollInterval):
+		}
+	}
+}
+
+func AddTracksWhenSessionReady(ctx context.Context, sessionID string, body *TracksRequest) (*TracksResponse, error) {
+	if err := waitForSessionReady(ctx, sessionID); err != nil {
+		return nil, err
+	}
+	var lastErr error
+	for attempt := 0; attempt < addTracksNotReadyMaxAttempts; attempt++ {
+		resp, err := AddTracks(ctx, sessionID, body)
+		if err == nil {
+			return resp, nil
+		}
+		lastErr = err
+		if !IsSessionNotReady(err) {
+			return nil, err
+		}
+		if attempt == addTracksNotReadyMaxAttempts-1 {
+			break
+		}
+		delay := addTracksNotReadyRetryBase * time.Duration(attempt+1)
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(delay):
+		}
+	}
+	return nil, lastErr
 }
 
 var cfg *config.Config

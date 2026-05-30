@@ -122,6 +122,8 @@ pipeline {
               def dockerMatchesLocal =
                 compareVersions(v1: localVersion, v2: dockerVersion) == 0
 
+              echo "Docker matches local: ${dockerMatchesLocal}"
+
               if (dockerMatchesLocal) {
                 echo 'Docker Hub & Local versions are the same'
                 echo 'No need to deploy'

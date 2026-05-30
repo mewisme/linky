@@ -16,8 +16,6 @@ pipeline {
   }
 
   environment {
-    LINKY_API_URL = 'https://api.linkynow.site'
-    LINKY_API_DEV_URL = 'https://api-dev.linkynow.site'
     DOCKER_IMAGE_API_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky'
     DOCKER_IMAGE_API_DEV_URL = 'https://registry.hub.docker.com/v2/repositories/mewthedev/linky-dev'
   }
@@ -27,31 +25,34 @@ pipeline {
     stage('Checkout Code') {
       steps {
         checkout scm
-        script {
-          branchName = env.BRANCH_NAME ?: env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
-          echo "- Updated branch: ${branchName}"
+        withCredentials([string(credentialsId: 'linky-api-production', variable: 'LINKY_API_URL'), string(credentialsId: 'linky-api-development', variable: 'LINKY_API_DEV_URL')]) {
+          script {
+            
+            branchName = env.BRANCH_NAME ?: env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
+            echo "- Updated branch: ${branchName}"
 
-          if (branchName == 'main') {
-            linkyApiUrl = env.LINKY_API_URL
-            dockerImageApiUrl = env.DOCKER_IMAGE_API_URL
-            dockerComposeFile = 'docker-compose.yml'
-            dockerProjectName = 'linky-prod'
-            envCredentialsId = 'linky-env-prod'
-          } else if (branchName == 'dev') {
-            linkyApiUrl = env.LINKY_API_DEV_URL
-            dockerImageApiUrl = env.DOCKER_IMAGE_API_DEV_URL
-            dockerComposeFile = 'docker-compose.dev.yml'
-            dockerProjectName = 'linky-dev'
-            envCredentialsId = 'linky-env-dev'
-          } else {
-            error "Unsupported branch: ${branchName}"
+            if (branchName == 'main') {
+              linkyApiUrl = LINKY_API_URL
+              dockerImageApiUrl = env.DOCKER_IMAGE_API_URL
+              dockerComposeFile = 'docker-compose.yml'
+              dockerProjectName = 'linky-prod'
+              envCredentialsId = 'linky-env-prod'
+            } else if (branchName == 'dev') {
+              linkyApiUrl = LINKY_API_DEV_URL
+              dockerImageApiUrl = env.DOCKER_IMAGE_API_DEV_URL
+              dockerComposeFile = 'docker-compose.dev.yml'
+              dockerProjectName = 'linky-dev'
+              envCredentialsId = 'linky-env-dev'
+            } else {
+              error "Unsupported branch: ${branchName}"
+            }
+
+            echo "- API URL: ${linkyApiUrl}"
+            echo "- Docker API URL: ${dockerImageApiUrl}"
+            echo "- Docker Compose File: ${dockerComposeFile}"
+            echo "- Docker Project Name: ${dockerProjectName}"
+            echo "- Environment Credentials ID: ${envCredentialsId}"
           }
-
-          echo "- API URL: ${linkyApiUrl}"
-          echo "- Docker API URL: ${dockerImageApiUrl}"
-          echo "- Docker Compose File: ${dockerComposeFile}"
-          echo "- Docker Project Name: ${dockerProjectName}"
-          echo "- Environment Credentials ID: ${envCredentialsId}"
         }
       }
     }
@@ -66,7 +67,7 @@ pipeline {
           echo "- Remote version: $remoteVersion"
 
           try {
-            def localVersionResponse = httpRequest url: "${linkyApiUrl}/healthz"
+            def localVersionResponse = httpRequest url: "https://${linkyApiUrl}/healthz"
             def localVersionJson = readJSON text: localVersionResponse.content
             localVersion = localVersionJson?.version ?: null
             echo "- Local version: $localVersion"

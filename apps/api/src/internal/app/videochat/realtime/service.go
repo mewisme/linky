@@ -152,6 +152,7 @@ func (s *Service) Publish(ctx context.Context, room *rooms.Room, socketID, sessi
 	req := &cloudflarerealtime.TracksRequest{
 		SessionDescription: sdp,
 		Tracks:             make([]cloudflarerealtime.TrackRequest, 0, len(tracks)),
+		AutoDiscover:       boolPtr(true),
 	}
 	kindByName := map[string]string{}
 	for _, t := range tracks {
@@ -371,6 +372,10 @@ func mergeTracks(existing, incoming []rooms.RealtimeTrack) []rooms.RealtimeTrack
 		}
 	}
 	return existing
+}
+
+func boolPtr(v bool) *bool {
+	return &v
 }
 
 func uniqueStrings(in []string) []string {

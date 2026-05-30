@@ -13,16 +13,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog"
+
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/logger"
 )
 
 const (
-	defaultRequestTimeout        = 30 * time.Second
-	sessionReadyPollInterval     = 400 * time.Millisecond
-	sessionReadyMaxWait          = 15 * time.Second
-	addTracksNotReadyMaxAttempts = 6
-	addTracksNotReadyRetryBase   = 400 * time.Millisecond
+	defaultRequestTimeout    = 30 * time.Second
+	sessionReadyPollInterval = 400 * time.Millisecond
+	sessionReadyMaxWait      = 15 * time.Second
+	maxRetryAttempts         = 4
+	retryBaseDelay           = 500 * time.Millisecond
+	maxLoggedResponseBody    = 512
 )
 
 var (
@@ -230,27 +233,7 @@ func AddTracksWhenSessionReady(ctx context.Context, sessionID string, body *Trac
 	if err := waitForSessionReady(ctx, sessionID); err != nil {
 		return nil, err
 	}
-	var lastErr error
-	for attempt := 0; attempt < addTracksNotReadyMaxAttempts; attempt++ {
-		resp, err := AddTracks(ctx, sessionID, body)
-		if err == nil {
-			return resp, nil
-		}
-		lastErr = err
-		if !IsSessionNotReady(err) {
-			return nil, err
-		}
-		if attempt == addTracksNotReadyMaxAttempts-1 {
-			break
-		}
-		delay := addTracksNotReadyRetryBase * time.Duration(attempt+1)
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(delay):
-		}
-	}
-	return nil, lastErr
+	return AddTracks(ctx, sessionID, body)
 }
 
 var cfg *config.Config
@@ -296,20 +279,175 @@ func appPath(suffix string, query url.Values) (string, error) {
 	return u, nil
 }
 
+func isDeadlineExceeded(err error) bool {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	var e *Error
+	if errors.As(err, &e) {
+		if strings.EqualFold(e.Code, "REALTIME_TIMEOUT") {
+			return true
+		}
+		return strings.Contains(strings.ToLower(e.Message), "context deadline exceeded")
+	}
+	return strings.Contains(strings.ToLower(err.Error()), "context deadline exceeded")
+}
+
+func isRetryableError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, context.Canceled) && !isDeadlineExceeded(err) {
+		return false
+	}
+	var e *Error
+	if errors.As(err, &e) {
+		switch {
+		case e.Status == 401 || e.Status == 403:
+			return false
+		case e.Status == 404 || e.Status == 410:
+			return false
+		case e.Status == 400:
+			return false
+		case e.Status == 425 || IsSessionNotReady(err):
+			return true
+		case e.Status == 502 || e.Status == 503 || e.Status == 504:
+			return true
+		case strings.EqualFold(e.Code, "REALTIME_FETCH_FAILED"),
+			strings.EqualFold(e.Code, "REALTIME_TIMEOUT"):
+			return true
+		case e.Status >= 400 && e.Status < 500:
+			return false
+		}
+		return false
+	}
+	if isDeadlineExceeded(err) {
+		return true
+	}
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+	return true
+}
+
+func extractSessionIDFromPath(path string) string {
+	const prefix = "/sessions/"
+	if !strings.HasPrefix(path, prefix) {
+		return ""
+	}
+	rest := strings.TrimPrefix(path, prefix)
+	if rest == "new" {
+		return ""
+	}
+	if idx := strings.IndexByte(rest, '/'); idx >= 0 {
+		return rest[:idx]
+	}
+	return rest
+}
+
+func trackCountFromBody(body interface{}) int {
+	tr, ok := body.(*TracksRequest)
+	if !ok || tr == nil {
+		return -1
+	}
+	return len(tr.Tracks)
+}
+
+func truncateForLog(s string) string {
+	if len(s) <= maxLoggedResponseBody {
+		return s
+	}
+	return s[:maxLoggedResponseBody] + "..."
+}
+
+type callLogFields struct {
+	method       string
+	path         string
+	sessionID    string
+	attempt      int
+	duration     time.Duration
+	status       int
+	errorCode    string
+	responseBody string
+	trackCount   int
+}
+
+func (f callLogFields) apply(ev *zerolog.Event) *zerolog.Event {
+	ev = ev.Str("method", f.method).Str("path", f.path).Int("attempt", f.attempt).Dur("duration", f.duration)
+	if f.sessionID != "" {
+		ev = ev.Str("sessionId", f.sessionID)
+	}
+	if f.status > 0 {
+		ev = ev.Int("status", f.status)
+	}
+	if f.errorCode != "" {
+		ev = ev.Str("errorCode", f.errorCode)
+	}
+	if f.responseBody != "" {
+		ev = ev.Str("responseBody", f.responseBody)
+	}
+	if f.trackCount >= 0 {
+		ev = ev.Int("trackCount", f.trackCount)
+	}
+	return ev
+}
+
 func call(ctx context.Context, method, path string, query url.Values, body interface{}, out interface{}) error {
+	return callWithRetry(ctx, method, path, query, body, out)
+}
+
+func callWithRetry(ctx context.Context, method, path string, query url.Values, body interface{}, out interface{}) error {
+	sessionID := extractSessionIDFromPath(path)
+	trackCount := trackCountFromBody(body)
+	var lastErr error
+	for attempt := 1; attempt <= maxRetryAttempts; attempt++ {
+		fields, err := callOnce(ctx, method, path, query, body, out, attempt, sessionID, trackCount)
+		if err == nil {
+			fields.apply(log.Info()).Msg("Cloudflare Realtime request succeeded")
+			return nil
+		}
+		lastErr = err
+		if !isRetryableError(err) || attempt == maxRetryAttempts {
+			fields.apply(log.Warn()).Err(err).Msg("Cloudflare Realtime request failed")
+			return err
+		}
+		fields.apply(log.Warn()).Err(err).Msg("Cloudflare Realtime request failed; retrying")
+		delay := retryBaseDelay * time.Duration(1<<(attempt-1))
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(delay):
+		}
+	}
+	return lastErr
+}
+
+func callOnce(ctx context.Context, method, path string, query url.Values, body interface{}, out interface{}, attempt int, sessionID string, trackCount int) (callLogFields, error) {
+	fields := callLogFields{
+		method:     method,
+		path:       path,
+		sessionID:  sessionID,
+		attempt:    attempt,
+		trackCount: trackCount,
+	}
+	startedAt := time.Now()
+	defer func() {
+		fields.duration = time.Since(startedAt)
+	}()
+
 	_, secret, _, err := ensureConfigured()
 	if err != nil {
-		return err
+		return fields, err
 	}
 	targetURL, err := appPath(path, query)
 	if err != nil {
-		return err
+		return fields, err
 	}
 	var reader io.Reader
 	if !isNilBody(body) {
 		buf, err := json.Marshal(body)
 		if err != nil {
-			return err
+			return fields, err
 		}
 		reader = bytes.NewReader(buf)
 	}
@@ -320,24 +458,27 @@ func call(ctx context.Context, method, path string, query url.Values, body inter
 
 	req, err := http.NewRequestWithContext(reqCtx, method, targetURL, reader)
 	if err != nil {
-		return err
+		return fields, err
 	}
 	req.Header.Set("Authorization", "Bearer "+secret)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		log.Error().Err(err).Str("method", method).Str("path", path).Dur("timeout", timeout).Msg("Cloudflare Realtime request failed")
 		status := 502
 		code := "REALTIME_FETCH_FAILED"
-		if errors.Is(err, context.DeadlineExceeded) || errors.Is(reqCtx.Err(), context.DeadlineExceeded) {
+		if isDeadlineExceeded(err) || isDeadlineExceeded(reqCtx.Err()) {
 			status = 504
 			code = "REALTIME_TIMEOUT"
 		}
-		return &Error{Status: status, Code: code, Message: err.Error()}
+		fields.status = status
+		fields.errorCode = code
+		return fields, &Error{Status: status, Code: code, Message: err.Error()}
 	}
 	defer resp.Body.Close()
 	raw, _ := io.ReadAll(resp.Body)
+	fields.status = resp.StatusCode
+	fields.responseBody = truncateForLog(strings.TrimSpace(string(raw)))
 	if resp.StatusCode >= 400 {
 		var parsed struct {
 			ErrorCode        string `json:"errorCode"`
@@ -352,14 +493,15 @@ func call(ctx context.Context, method, path string, query url.Values, body inter
 		if code == "" {
 			code = "REALTIME_ERROR"
 		}
-		return &Error{Status: resp.StatusCode, StatusText: resp.Status, Code: code, Message: message}
+		fields.errorCode = code
+		return fields, &Error{Status: resp.StatusCode, StatusText: resp.Status, Code: code, Message: message}
 	}
 	if out != nil && len(raw) > 0 {
 		if err := json.Unmarshal(raw, out); err != nil {
-			return err
+			return fields, err
 		}
 	}
-	return nil
+	return fields, nil
 }
 
 func responseError(code, description string) error {

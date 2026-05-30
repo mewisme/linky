@@ -4,9 +4,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 
-from linky_e2e.helpers.automation_context import ensure_automation_context
 from linky_e2e.helpers.locators import by_test_id, find_by_test_id
-from linky_e2e.helpers.media_stream import warmup_fake_media
 from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_visible
 
 OVERFLOW_CONTROL_IDS = frozenset({
@@ -30,14 +28,10 @@ class VideoChatPage:
 
         self.driver.get(f"{settings.base_url}/call")
         wait_for_clerk_ready(self.driver)
-        ensure_automation_context(self.driver)
-        if getattr(self.driver, "_linky_media_permissions", False):
-            warmup_fake_media(self.driver)
 
     def reload(self) -> None:
         self.driver.refresh()
         wait_for_clerk_ready(self.driver)
-        ensure_automation_context(self.driver)
 
     def wait_for_idle(self, timeout: float | None = None) -> None:
         wait_visible(self.driver, by_test_id("chat-idle-container"), timeout)

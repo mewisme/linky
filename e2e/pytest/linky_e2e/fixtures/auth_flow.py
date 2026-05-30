@@ -3,7 +3,6 @@ from __future__ import annotations
 from selenium.webdriver.remote.webdriver import WebDriver
 
 from linky_e2e.fixtures.users import TestUser
-from linky_e2e.helpers.automation_context import ensure_automation_context
 from linky_e2e.helpers.pace import AUTH_STEP, pause
 from linky_e2e.helpers.waits import wait_for_clerk_ready, wait_for_redirect_to_home
 from linky_e2e.test_data.clerk_test_auth import resolve_test_otp
@@ -40,7 +39,6 @@ def authenticate_user(driver: WebDriver, user: TestUser) -> None:
 
     pause(AUTH_STEP)
     wait_for_redirect_to_home(driver, 20)
-    ensure_automation_context(driver)
 
 
 def create_authenticated_driver(driver: WebDriver, user: TestUser) -> WebDriver:

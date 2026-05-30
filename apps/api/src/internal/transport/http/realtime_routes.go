@@ -260,7 +260,6 @@ func realtimeError(c echo.Context, err error) error {
 		if status < 400 || status >= 600 {
 			status = http.StatusBadGateway
 		}
-		realtimeRouteLog.Warn().Err(err).Int("status", status).Msg("Cloudflare realtime error")
 		code := cre.Code
 		if code == "" {
 			code = "REALTIME_ERROR"
@@ -269,6 +268,12 @@ func realtimeError(c echo.Context, err error) error {
 		if message == "" {
 			message = "Realtime error"
 		}
+		realtimeRouteLog.Warn().
+			Err(err).
+			Int("status", status).
+			Str("errorCode", code).
+			Str("message", message).
+			Msg("Cloudflare realtime error")
 		return httpx.SendError(c, status, http.StatusText(status),
 			httpx.UM(code, "api.realtime.upstreamError", message))
 	}

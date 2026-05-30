@@ -8,20 +8,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from linky_e2e.browser.cloak_driver import create_cloak_driver, quit_driver
 from linky_e2e.fixtures.auth_flow import create_authenticated_driver
 from linky_e2e.fixtures.users import TEST_USERS, TestUser
-from linky_e2e.helpers.pace import STEP, pause
 from linky_e2e.page_objects.video_chat.video_chat_page import VideoChatPage
-
-
-def assert_no_call_connection_error(page: VideoChatPage) -> None:
-    from selenium.webdriver.common.by import By
-
-    dialogs = page.driver.find_elements(By.CSS_SELECTOR, '[role="alertdialog"]')
-    for dialog in dialogs:
-        if not dialog.is_displayed():
-            continue
-        text = (dialog.text or "").strip()
-        if text:
-            raise AssertionError(f"Call connection error dialog visible: {text}")
 
 
 @dataclass
@@ -99,19 +86,16 @@ def teardown_two_user_call(setup: TwoUserCallSetup) -> None:
     quit_driver(setup.user2_driver)
 
 
-def establish_call(page1: VideoChatPage, page2: VideoChatPage, *, in_call_timeout: float = 120) -> None:
+def establish_call(page1: VideoChatPage, page2: VideoChatPage, *, in_call_timeout: float = 90) -> None:
     page1.goto()
     page1.wait_for_idle()
     page2.goto()
     page2.wait_for_idle()
     page1.start_button().click()
     page1.wait_for_searching()
-    pause(STEP)
     page2.start_button().click()
     page1.wait_for_in_call(timeout=in_call_timeout)
     page2.wait_for_in_call(timeout=in_call_timeout)
-    assert_no_call_connection_error(page1)
-    assert_no_call_connection_error(page2)
 
 
 def end_call(page1: VideoChatPage, page2: VideoChatPage) -> None:

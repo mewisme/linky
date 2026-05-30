@@ -46,24 +46,6 @@ RUN_FAST=1 uv run python -m pytest tests/auth -q
 
 On Windows, prefer `uv run python -m pytest` if `uv run pytest` fails with a trampoline error.
 
-## Fake camera / microphone (two-browser video chat)
-
-Each Selenium Chrome instance gets its own temp `--user-data-dir` plus:
-
-- `--use-fake-device-for-media-stream`
-- `--use-fake-ui-for-media-stream`
-- `--use-fake-capture-for-media-stream`
-
-`VideoChatPage.goto()` warms up fake `getUserMedia` when the driver was created with `media_permissions=True`, so both browsers show the green test pattern (not a black/no-camera preview).
-
-## Automation / background tabs
-
-Every CloakBrowser session installs a CDP init script (`window.__LINKY_E2E__` + `localStorage['linky:e2e']`) so the web app treats pytest runs like foreground even when a window is blurred or a second tab/window is open. `VideoChatPage.goto()`, auth flows, and storage-state loads call `ensure_automation_context()` as a fallback if CDP injection fails.
-
-Two-user video chat uses **separate drivers**; you do not need to keep both windows focused while driving one side.
-
-Video chat requires the Go API with Cloudflare Realtime SFU configured (`CLOUDFLARE_REALTIME_*` in root `.env`). `establish_call` waits up to **120s** for both sides to reach in-call state. Use `HEADED=1` locally when debugging WebRTC failures.
-
 ## Video chat fixtures
 
 Pytest only spawns browsers a test actually requests:

@@ -1,6 +1,6 @@
 {
   "name": "linky",
-  "version": "2.4.3-beta.2",
+  "version": "2.4.3-beta.3",
   "private": true,
   "type": "module",
   "exports": {

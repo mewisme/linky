@@ -29,7 +29,7 @@ export function LandingPreview() {
         </MotionEffect>
 
         <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.1}>
-          <Card className="overflow-hidden border-border/50 bg-linear-to-br from-primary/10 to-transparent">
+          <Card className="overflow-hidden border-input bg-linear-to-br from-primary/10 to-transparent">
             <AspectRatio ratio={16 / 6}>
               <div className="relative w-full h-full flex items-center justify-center p-8 sm:p-12 md:p-16">
                 <div className="grid grid-cols-2 gap-4 sm:gap-6 w-full max-w-4xl">
@@ -48,7 +48,7 @@ export function LandingPreview() {
                 </div>
               </div>
             </AspectRatio>
-            <div className="p-4 sm:p-5 md:p-6 bg-muted/30 border-t border-border/50">
+            <div className="p-4 sm:p-5 md:p-6 bg-muted/30 border-t border-input">
               <div className="flex flex-wrap gap-2 justify-center">
                 {badges.map((label) => (
                   <Badge key={label} variant="secondary" className="text-xs sm:text-sm">

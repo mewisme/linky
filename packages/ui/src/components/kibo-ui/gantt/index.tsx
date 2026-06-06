@@ -341,7 +341,7 @@ export const GanttContentHeader: FC<GanttContentHeaderProps> = ({
       >
         {Array.from({ length: columns }).map((_, index) => (
           <div
-            className="shrink-0 border-border/50 border-b py-1 text-center text-xs"
+            className="shrink-0 border-input border-b py-1 text-center text-xs"
             key={`${id}-${index}`}
           >
             {renderHeaderItem(index)}
@@ -530,7 +530,7 @@ export const GanttSidebarItem: FC<GanttSidebarItemProps> = ({
 
 export const GanttSidebarHeader: FC = () => (
   <div
-    className="sticky top-0 z-10 flex shrink-0 items-end justify-between gap-2.5 border-border/50 border-b bg-backdrop/90 p-2.5 font-medium text-muted-foreground text-xs backdrop-blur-sm"
+    className="sticky top-0 z-10 flex shrink-0 items-end justify-between gap-2.5 border-input border-b bg-backdrop/90 p-2.5 font-medium text-muted-foreground text-xs backdrop-blur-sm"
     style={{ height: "var(--gantt-header-height)" }}
   >
     {/* <Checkbox className="shrink-0" /> */}
@@ -572,7 +572,7 @@ export const GanttSidebar: FC<GanttSidebarProps> = ({
 }) => (
   <div
     className={cn(
-      "sticky left-0 z-30 h-max min-h-full overflow-clip border-border/50 border-r bg-background/90 backdrop-blur-md",
+      "sticky left-0 z-30 h-max min-h-full overflow-clip border-input border-r bg-background/90 backdrop-blur-md",
       className
     )}
     data-roadmap-ui="gantt-sidebar"
@@ -742,7 +742,7 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
         >
           <PlusIcon className="text-muted-foreground" size={12} />
         </button>
-        <div className="whitespace-nowrap rounded-full border border-border/50 bg-background/90 px-2 py-1 text-foreground text-xs backdrop-blur-lg">
+        <div className="whitespace-nowrap rounded-full border border-input bg-background/90 px-2 py-1 text-foreground text-xs backdrop-blur-lg">
           {formatDate(date, "MMM dd, yyyy")}
         </div>
       </div>
@@ -793,7 +793,7 @@ export const GanttFeatureDragHelper: FC<GanttFeatureDragHelperProps> = ({
       {date && (
         <div
           className={cn(
-            "-translate-x-1/2 absolute top-10 hidden whitespace-nowrap rounded-lg border border-border/50 bg-background/90 px-2 py-1 text-foreground text-xs backdrop-blur-lg group-hover:block",
+            "-translate-x-1/2 absolute top-10 hidden whitespace-nowrap rounded-lg border border-input bg-background/90 px-2 py-1 text-foreground text-xs backdrop-blur-lg group-hover:block",
             isPressed && "block"
           )}
         >

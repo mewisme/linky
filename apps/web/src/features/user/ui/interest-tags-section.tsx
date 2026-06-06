@@ -298,7 +298,7 @@ export function InterestTagsSection({
         <>
           {displayTags.length > 0 ? (
             <div className="space-y-2">
-              <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-3 sm:px-4 sm:py-3">
+              <div className="rounded-xl border border-input bg-muted/30 px-3 py-3 sm:px-4 sm:py-3">
                 <div className="flex flex-wrap gap-2">
                     {(showAllTags
                       ? displayTags
@@ -333,7 +333,7 @@ export function InterestTagsSection({
               </div>
             </div>
           ) : (
-            <p className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm text-muted-foreground sm:px-5 sm:py-4">
+            <p className="rounded-xl border border-input bg-muted/30 px-4 py-3 text-sm text-muted-foreground sm:px-5 sm:py-4">
               {tp("noInterestsSelected")}
             </p>
           )}

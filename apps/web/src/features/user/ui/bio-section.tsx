@@ -48,7 +48,7 @@ export function BioSection({
   }
 
   return (
-    <div className="group/bio min-w-0 space-y-2 rounded-xl transition-colors hover:bg-muted/10">
+    <div className="group/bio min-w-0 space-y-2 rounded-xl transition-colors hover:bg-muted/10 ">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconInfoCircle className="size-4 shrink-0" aria-hidden />
@@ -72,7 +72,7 @@ export function BioSection({
             value={bio}
             onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
             placeholder={tp("tellAboutYourself")}
-            className="min-h-[100px] w-full resize-y rounded-lg"
+            className="min-h-[100px] w-full resize-y"
             maxLength={BIO_MAX_LENGTH}
             aria-label={tp("bioAria")}
           />
@@ -105,7 +105,7 @@ export function BioSection({
           </div>
         </div>
       ) : (
-        <div className="w-full min-w-0 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="w-full min-w-0 rounded-xl border border-input bg-muted/30 px-4 py-3 sm:px-5 sm:py-4">
           <p className="whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-muted-foreground">
             {userDetails?.bio || tp('notProvided')}
           </p>

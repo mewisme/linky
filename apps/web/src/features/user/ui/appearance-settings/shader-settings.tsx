@@ -288,7 +288,7 @@ export function ShaderSettings({
                 {sliderFields.map((field) => {
                   const currentValue = getSliderValue(field)
                   return (
-                    <div key={field.key} className="space-y-2 rounded-lg border border-border/50 p-3">
+                    <div key={field.key} className="space-y-2 rounded-lg border border-input p-3">
                       <div className="flex items-center justify-between">
                         <Label className="capitalize">{getSliderLabel(field.key)}</Label>
                         <span className="text-xs text-muted-foreground tabular-nums">
@@ -326,7 +326,7 @@ export function ShaderSettings({
             </div>
           )}
         </div>
-        <div className='h-56 w-full rounded-lg border border-border/50 p-1'>
+        <div className='h-56 w-full rounded-lg border border-input p-1'>
           <Shader
             {...previewShaderProps}
             props={shaderProps}

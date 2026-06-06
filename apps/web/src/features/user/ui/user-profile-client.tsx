@@ -40,7 +40,7 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
       <div className="flex flex-col">
         <section
           aria-label={tp('profileIdentityAria')}
-          className="group/profile-header relative flex flex-col items-center gap-6 border-b border-border/50 bg-muted/20 px-4 py-8 sm:flex-row sm:items-start sm:gap-8 sm:px-6 sm:py-10"
+          className="group/profile-header relative flex flex-col items-center gap-6 border-b border-input bg-muted/20 px-4 py-8 sm:flex-row sm:items-start sm:gap-8 sm:px-6 sm:py-10"
         >
           <ProfileAvatar user={user!} />
           <ProfileNameFields

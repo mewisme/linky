@@ -41,7 +41,7 @@ export function LandingDifferentiation() {
                 inView
                 delay={0.1 * index}
               >
-                <Card className="p-5 sm:p-6 h-full border-border/50 hover:border-border transition-colors bg-linear-to-br from-primary/5 to-transparent">
+                <Card className="p-5 sm:p-6 h-full border-input hover:border-border transition-colors bg-linear-to-br from-primary/5 to-transparent">
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className="rounded-lg bg-primary/10 p-2 sm:p-2.5 shrink-0">

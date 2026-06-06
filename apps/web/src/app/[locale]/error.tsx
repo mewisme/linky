@@ -67,7 +67,7 @@ export default function Error({
           </Button>
         </div>
 
-        <div className="mt-12 w-full rounded-xl border border-border/50 bg-muted/30 p-4 text-left">
+        <div className="mt-12 w-full rounded-xl border border-input bg-muted/30 p-4 text-left">
           <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-widest mb-2">
             <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
             {t("errorReference")}

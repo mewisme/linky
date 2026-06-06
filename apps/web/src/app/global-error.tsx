@@ -131,7 +131,7 @@ export default function GlobalError({
             </Button>
           </div>
 
-          <div className="mt-12 w-full rounded-xl border border-border/50 bg-muted/30 p-4 text-left">
+          <div className="mt-12 w-full rounded-xl border border-input bg-muted/30 p-4 text-left">
             <div className="mb-2 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-muted-foreground">
               <span className="h-2 w-2 animate-pulse rounded-full bg-destructive" />
               {m.errorReference}

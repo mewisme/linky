@@ -127,7 +127,7 @@ export function PersonalInfoSection({
           </Button>
         )}
       </div>
-      <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+      <div className="rounded-xl border border-input bg-muted/30 p-4">
         <div className="flex flex-wrap gap-4">
           <div className="min-w-56 flex-1">
             <div className="flex items-start gap-3">

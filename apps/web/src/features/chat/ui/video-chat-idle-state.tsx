@@ -133,7 +133,7 @@ export function VideoChatIdleState({
           ) : (
             <>
               <div className="flex flex-col items-center gap-3 text-center">
-                <ShaderAvatar className="h-14 w-14 rounded-full border-2 border-border/60 ring-2 ring-border/30 sm:h-16 sm:w-16 dark:border-white/15 dark:ring-white/5">
+                <ShaderAvatar className="h-14 w-14 rounded-full border-2 border-input ring-2 ring-border/30 sm:h-16 sm:w-16 dark:border-white/15 dark:ring-white/5">
                   <AvatarImage
                     src={user.user?.imageUrl ?? undefined}
                     alt={displayName}

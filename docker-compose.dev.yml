@@ -10,6 +10,7 @@ services:
     environment:
       NODE_ENV: development
       JOB_WORKER_CONCURRENCY: 4
+      REDIS_URL: redis://linky-redis-dev:6379
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${PORT:-7270}/healthz"]
@@ -24,6 +25,24 @@ services:
       - linky-network-dev
     env_file:
       - .env
+
+  redis:
+    image: redis:8-alpine
+    container_name: linky-redis-dev
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - linky-network-dev
+
+volumes:
+  redis-data:
 
 networks:
   linky-network-dev:

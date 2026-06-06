@@ -105,15 +105,11 @@ export function BioSection({
           </div>
         </div>
       ) : (
-        <button
-          type="button"
-          className="w-full min-w-0 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-left transition-colors hover:border-border sm:px-5 sm:py-4"
-          onClick={() => setEditingBio(true)}
-        >
+        <div className="w-full min-w-0 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 sm:px-5 sm:py-4">
           <p className="whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-muted-foreground">
             {userDetails?.bio || tp('notProvided')}
           </p>
-        </button>
+        </div>
       )}
     </div>
   )

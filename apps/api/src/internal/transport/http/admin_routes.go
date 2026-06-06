@@ -315,6 +315,13 @@ func handleAdminUserPatch(c echo.Context) error {
 	if body == nil {
 		body = map[string]any{}
 	}
+	if deleted, ok := body["deleted"].(bool); ok && deleted {
+		row, err := adminSoftDeleteUser(c.Request().Context(), httpx.MustClerkUserID(c), id, body)
+		if err != nil {
+			return sendAdminSoftDeleteError(c, err)
+		}
+		return c.JSON(http.StatusOK, row)
+	}
 	row, err := supax.PatchUser(c.Request().Context(), id, body)
 	if err != nil {
 		return httpx.SendError(c, 500, "Internal Server Error",
@@ -329,9 +336,8 @@ func handleAdminUserSoftDelete(c echo.Context) error {
 		"deleted":    true,
 		"deleted_at": supax.NowRFC3339(),
 	}
-	if _, err := supax.PatchUser(c.Request().Context(), id, body); err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_DELETE_USER", "failedDeleteUser", "Failed to delete user"))
+	if _, err := adminSoftDeleteUser(c.Request().Context(), httpx.MustClerkUserID(c), id, body); err != nil {
+		return sendAdminSoftDeleteError(c, err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

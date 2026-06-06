@@ -7,7 +7,7 @@ import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxGroup, ComboboxInput,
 import { IconChevronDown } from '@tabler/icons-react'
 import { cn } from '@ws/ui/lib/utils'
 import { useLocale, useTranslations } from 'next-intl'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 export function ComboboxCountry({
   country,
@@ -20,6 +20,7 @@ export function ComboboxCountry({
 }) {
   const t = useTranslations('common')
   const locale = useLocale()
+  const [search, setSearch] = useState('')
   const countriesData = useMemo(
     () =>
       countries
@@ -27,13 +28,25 @@ export function ComboboxCountry({
         .map((c) => ({ label: countryByIso(c, locale)?.country ?? c, value: c })),
     [locale],
   )
+  const filteredCountries = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return countriesData
+    return countriesData.filter(
+      (c) =>
+        c.label.toLowerCase().includes(query) ||
+        c.value.toLowerCase().includes(query),
+    )
+  }, [countriesData, search])
 
   return (
     <Combobox
       data={countriesData}
       value={country}
-      onValueChange={setCountry}
+      onValueChange={(value) => setCountry(value.toUpperCase())}
       type="country"
+      onOpenChange={(open) => {
+        if (!open) setSearch('')
+      }}
     >
       <ComboboxTrigger
         className={cn('w-full justify-between sm:w-48', triggerClassName)}
@@ -44,12 +57,12 @@ export function ComboboxCountry({
         </span>
         <IconChevronDown className="size-4 shrink-0" />
       </ComboboxTrigger>
-      <ComboboxContent>
-        <ComboboxInput />
+      <ComboboxContent shouldFilter={false}>
+        <ComboboxInput value={search} onValueChange={setSearch} />
         <ComboboxEmpty />
         <ComboboxList>
           <ComboboxGroup>
-            {countriesData.map((c) => (
+            {filteredCountries.map((c) => (
               <ComboboxItem key={c.value} value={c.value}>
                 <CountryFlag countryCode={c.value} className="size-4 shrink-0" />
                 <span className="text-sm font-medium">{c.label}</span>

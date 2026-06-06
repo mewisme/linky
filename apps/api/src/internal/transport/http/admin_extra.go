@@ -140,9 +140,19 @@ func handleAdminUserBatchPatch(c echo.Context) error {
 	if len(body) == 0 {
 		return c.JSON(http.StatusOK, map[string]any{"updated": 0})
 	}
+	ctx := c.Request().Context()
+	actor := httpx.MustClerkUserID(c)
 	updated := 0
+	if input.Deleted != nil && *input.Deleted {
+		for _, id := range input.IDs {
+			if _, err := adminSoftDeleteUser(ctx, actor, id, body); err == nil {
+				updated++
+			}
+		}
+		return c.JSON(http.StatusOK, map[string]any{"updated": updated})
+	}
 	for _, id := range input.IDs {
-		if _, err := supax.PatchUser(c.Request().Context(), id, body); err == nil {
+		if _, err := supax.PatchUser(ctx, id, body); err == nil {
 			updated++
 		}
 	}

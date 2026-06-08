@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import type { User, UserState } from "@/entities/user/model/user-store";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -14,7 +15,7 @@ const UserDataContext = createContext<UserDataContextValue | null>(null);
 
 export function UserDataProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
-  const t = useTranslations("errors");
+  const tRoot = useTranslations();
 
   const fetchUserDataFn = useCallback(async () => {
     if (!auth.isLoaded) return;
@@ -27,10 +28,10 @@ export function UserDataProvider({ children, store }: { children: ReactNode; sto
       const userData = await fetchFromActionRoute<User>("/api/users/me");
       store.setUser(userData);
     } catch (error) {
-      store.setError(error instanceof Error ? error.message : t("fetchUserData"));
+      store.setError(resolveActionErrorMessage(error, tRoot, "errors.fetchUserData"));
       store.setUser(null);
     }
-  }, [auth.isLoaded, auth.isSignedIn, store, t]);
+  }, [auth.isLoaded, auth.isSignedIn, store, tRoot]);
 
   const value = useMemo<UserDataContextValue>(() => {
     return { fetchUserData: fetchUserDataFn };

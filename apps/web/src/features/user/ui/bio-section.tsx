@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from 'react'
 import { Button } from '@ws/ui/components/ui/button'
 import { Textarea } from '@ws/ui/components/ui/textarea'
 import type { UserDetails } from '@/entities/user/model/user-store'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
@@ -22,6 +23,7 @@ export function BioSection({
   updateUserDetails,
 }: BioSectionProps) {
   const t = useTranslations("user");
+  const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
   const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings()
@@ -42,7 +44,7 @@ export function BioSection({
         toast.success(t('bioUpdated'))
         setEditingBio(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : t('updateFailed'))
+        toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
       }
     })
   }

@@ -34,6 +34,7 @@ import type { ResourcesAPI } from '@/shared/types/resources.types'
 import type { UserDetails } from '@/entities/user/model/user-store'
 import type { UsersAPI } from '@/entities/user/types/users.types'
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
@@ -53,6 +54,7 @@ export function InterestTagsSection({
   updateUserDetails,
 }: InterestTagsSectionProps) {
   const t = useTranslations("user");
+  const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
   const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings()
@@ -109,7 +111,7 @@ export function InterestTagsSection({
         toast.success(t('interestTagsUpdated'))
         setEditingTags(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : t('updateFailed'))
+        toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
       }
     })
   }

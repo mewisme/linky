@@ -21,6 +21,7 @@ import {
 import { IconBrain, IconPlus } from '@tabler/icons-react';
 import { Link } from '@/i18n/navigation';
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
@@ -76,6 +77,7 @@ function valueToFormString(value: AdminAPI.Config.Item['value']): string {
 
 export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
   const ta = useTranslations('admin');
+  const tRoot = useTranslations();
   const tc = useTranslations('common');
   const router = useRouter();
   const { user: userStore } = useUserStore();
@@ -119,8 +121,8 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       setFormValue('');
       setIsEditingKey(false);
     },
-    onError: (err: Error) => {
-      toast.error(err.message ?? ta('configSetFailed'));
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, 'admin.configSetFailed'));
     },
   });
 
@@ -134,8 +136,8 @@ export function AdminConfigClient({ initialData }: AdminConfigClientProps) {
       toast.success(ta('configUnset'));
       setUnsetKey(null);
     },
-    onError: (err: Error) => {
-      toast.error(err.message ?? ta('configUnsetFailed'));
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, 'admin.configUnsetFailed'));
     },
   });
 

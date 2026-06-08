@@ -36,6 +36,7 @@ import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordi
 import type { RealtimePeerTracksPayload, VideoMediaProvider } from "@/lib/realtime/socket";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
 import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
 import { isCallMediaReadyForInCall } from "@/features/call/lib/webrtc/call-media-readiness";
@@ -734,7 +735,7 @@ export function useVideoChat(): UseVideoChatReturn {
       await initialize();
     } catch (err) {
       Sentry.logger.error("Error starting video chat", { error: err instanceof Error ? err.message : "Unknown error" });
-      const message = err instanceof Error ? err.message : t("call.failedToStart");
+      const message = resolveActionErrorMessage(err, t, "call.failedToStart");
       actionsRef.current.setConnectionStatus("idle");
       tabCoordination.releaseOwnership();
       cleanup();

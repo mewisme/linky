@@ -2,6 +2,7 @@
 
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import type { UserDetails, UserState } from "@/entities/user/model/user-store";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
@@ -17,7 +18,7 @@ const UserDetailsContext = createContext<UserDetailsContextValue | null>(null);
 
 export function UserDetailsProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
-  const t = useTranslations("errors");
+  const tRoot = useTranslations();
 
   const fetchUserDetailsFn = useCallback(async () => {
     if (!auth.isLoaded || !auth.isSignedIn) return;
@@ -26,9 +27,9 @@ export function UserDetailsProvider({ children, store }: { children: ReactNode; 
       const details = await fetchFromActionRoute<UsersAPI.UserDetails.GetMe.Response>("/api/users/details");
       store.setUserDetails(details);
     } catch (error) {
-      store.setError(error instanceof Error ? error.message : t("fetchUserDetails"));
+      store.setError(resolveActionErrorMessage(error, tRoot, "errors.fetchUserDetails"));
     }
-  }, [auth.isLoaded, auth.isSignedIn, store, t]);
+  }, [auth.isLoaded, auth.isSignedIn, store, tRoot]);
 
   const updateUserDetailsFn = useCallback(
     async (data: UsersAPI.UserDetails.PatchMe.Body): Promise<UserDetails> => {

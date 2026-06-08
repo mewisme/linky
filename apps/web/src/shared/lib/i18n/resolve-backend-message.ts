@@ -1,6 +1,6 @@
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
-type TranslateFn = (key: string, values?: Record<string, unknown>) => string;
+export type TranslateFn = (key: string, values?: Record<string, unknown>) => string;
 
 export function resolveBackendMessage(
   message: ApiUserMessage | undefined,

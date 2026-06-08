@@ -18,6 +18,7 @@ import { formatDuration } from '@/entities/call-history/utils/call-history'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useLocale, useTranslations } from 'next-intl'
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 
 const DATE_FMT: Intl.DateTimeFormatOptions = {
@@ -97,6 +98,7 @@ interface Props {
 
 export function AdminReportDetailClient({ report }: Props) {
   const t = useTranslations('admin')
+  const tRoot = useTranslations()
   const tc = useTranslations('common')
   const locale = useLocale()
   const { play: playSound } = useSoundWithSettings()
@@ -127,8 +129,8 @@ export function AdminReportDetailClient({ report }: Props) {
       playSound('success')
       toast.success(t('reportUpdated'))
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('reportUpdateFailed'))
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, 'admin.reportUpdateFailed'))
     }
   })
 
@@ -144,8 +146,8 @@ export function AdminReportDetailClient({ report }: Props) {
       toast.success(t('aiSummaryStarted'))
       router.refresh()
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('aiSummaryFailed'))
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, 'admin.aiSummaryFailed'))
     }
   })
 

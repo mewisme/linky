@@ -18,6 +18,7 @@ import { Loader2 } from "@ws/ui/internal-lib/icons";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { useTranslations } from "next-intl";
 
 export interface ImportInterestTagsDialogProps {
@@ -32,6 +33,7 @@ export function ImportInterestTagsDialog({
   onSuccess,
 }: ImportInterestTagsDialogProps) {
   const t = useTranslations("dataTable");
+  const tRoot = useTranslations();
   const tc = useTranslations("common");
   const exampleJson = t.raw("importInterestTags.exampleJsonBlock") as string;
   const { play: playSound } = useSoundWithSettings();
@@ -101,7 +103,7 @@ export function ImportInterestTagsDialog({
       onOpenChange(false);
       reset();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("importInterestTags.importFailed"));
+      toast.error(resolveActionErrorMessage(err, tRoot, "dataTable.importInterestTags.importFailed"));
     } finally {
       setImporting(false);
     }

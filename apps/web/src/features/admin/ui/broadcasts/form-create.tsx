@@ -15,6 +15,7 @@ import {
 } from "@ws/ui/components/ui/card";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { useTranslations } from "next-intl";
@@ -30,6 +31,7 @@ interface FormCreateBroadcastProps {
 
 export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
   const t = useTranslations("admin");
+  const tRoot = useTranslations();
   const tbf = useTranslations("admin.broadcastForm");
   const { play: playSound } = useSoundWithSettings();
   const [aiDraft, setAiDraft] = useState<AdminAPI.Broadcasts.AiBroadcastDraft | null>(null);
@@ -92,9 +94,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       clearAiWriterState();
       onSuccess?.();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : t("broadcastSendFailed")
-      );
+      toast.error(resolveActionErrorMessage(error, tRoot, "admin.broadcastSendFailed"));
     }
   }
 
@@ -141,7 +141,7 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       setIsAiDialogOpen(false);
       toast.success(t("aiDraftGenerated"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("aiDraftFailed"));
+      toast.error(resolveActionErrorMessage(error, tRoot, "admin.aiDraftFailed"));
     } finally {
       setIsGenerating(false);
     }

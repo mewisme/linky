@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react'
 import { Button } from '@ws/ui/components/ui/button'
 import { DatePicker } from '@/shared/ui/common/date-picker'
 import type { UserDetails } from '@/entities/user/model/user-store'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useLocale, useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
@@ -30,6 +31,7 @@ export function PersonalInfoSection({
   updateUserDetails,
 }: PersonalInfoSectionProps) {
   const t = useTranslations("user");
+  const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -102,7 +104,7 @@ export function PersonalInfoSection({
         toast.success(t('personalInfoUpdated'))
         setIsEditing(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : t('updateFailed'))
+        toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
       }
     })
   }

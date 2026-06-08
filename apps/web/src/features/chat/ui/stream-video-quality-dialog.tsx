@@ -13,6 +13,7 @@ import {
 import { Button } from "@ws/ui/components/ui/button";
 import { Label } from "@ws/ui/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@ws/ui/components/ui/radio-group";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -32,6 +33,7 @@ interface StreamVideoQualityDialogProps {
 
 export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: StreamVideoQualityDialogProps) {
   const t = useTranslations("call.dialogs.streamQuality");
+  const tRoot = useTranslations();
   const tCommon = useTranslations("common");
   const {
     store: { userSettings },
@@ -68,7 +70,7 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
       onOpenChange(false);
     } catch (err) {
       Sentry.logger.error("Failed to update stream quality", { error: err });
-      toast.error(err instanceof Error ? err.message : t("updateFailed"));
+      toast.error(resolveActionErrorMessage(err, tRoot, "call.dialogs.streamQuality.updateFailed"));
     } finally {
       setIsSaving(false);
     }

@@ -11,6 +11,7 @@ import {
 } from "@ws/ui/components/animate-ui/components/radix/popover";
 import React, { useState } from "react";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
 import { AdminAPI } from "@/features/admin/types/admin.types";
@@ -56,6 +57,7 @@ interface InterestTagsClientProps {
 
 export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
   const t = useTranslations("admin");
+  const tRoot = useTranslations();
   const tif = useTranslations("admin.interestTagForm");
   const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings();
@@ -119,8 +121,8 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
         setFormData({ name: "", description: "", category: "", is_active: true, icon: "" });
       }
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t("genericError"));
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, "admin.genericError"));
     }
   });
 
@@ -145,8 +147,8 @@ export function InterestTagsClient({ initialData }: InterestTagsClientProps) {
       await refetch();
       toast.success(t("tagDeleted"));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t("deleteError"));
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, "admin.deleteError"));
     },
   });
 

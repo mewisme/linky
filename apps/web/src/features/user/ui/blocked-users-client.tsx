@@ -1,6 +1,7 @@
 'use client'
 
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { useState, useTransition } from 'react'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
@@ -27,6 +28,7 @@ interface Props {
 
 export function BlockedUsersClient({ initialData }: Props) {
   const t = useTranslations('user')
+  const tRoot = useTranslations()
   const [data, setData] = useState<BlockedUserWithDetails[]>(initialData)
   const [isFetching, startFetching] = useTransition()
 
@@ -35,8 +37,8 @@ export function BlockedUsersClient({ initialData }: Props) {
       try {
         const res = await fetchFromActionRoute<BlockedUsersResponse>('/api/users/blocks/me')
         setData(res.blocked_users)
-      } catch {
-        toast.error(t('blockedLoadFailed'))
+      } catch (error) {
+        toast.error(resolveActionErrorMessage(error, tRoot, 'user.blockedLoadFailed'))
       }
     })
   }
@@ -52,7 +54,7 @@ export function BlockedUsersClient({ initialData }: Props) {
       trackEvent({ name: 'user_unblocked' })
       toast.success(t('userUnblocked'))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('unblockFailed'))
+      toast.error(resolveActionErrorMessage(error, tRoot, 'user.unblockFailed'))
     }
   }
 

@@ -53,6 +53,7 @@ import { trackEvent } from "@/lib/telemetry/events/client";
 import { useLocale, useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
@@ -204,6 +205,7 @@ export function VideoControls({
   onApplyStreamQuality,
 }: VideoControlsProps) {
   const t = useTranslations("call");
+  const tRoot = useTranslations();
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const isMobile = useIsMobile();
@@ -301,7 +303,7 @@ export function VideoControls({
     } catch (error) {
       Sentry.metrics.count("failed_to_toggle_favorite", 1);
       Sentry.logger.error("Failed to toggle favorite", { error: error instanceof Error ? error.message : "Unknown error" });
-      toast.error(error instanceof Error ? error.message : t("favoriteUpdateFailed"));
+      toast.error(resolveActionErrorMessage(error, tRoot, "call.favoriteUpdateFailed"));
     } finally {
       setIsFavoriteLoading(false);
     }
@@ -724,7 +726,7 @@ export function VideoControls({
                     setIsReportOpen(false);
                     setReportReason("");
                   } catch (error) {
-                    toast.error(error instanceof Error ? error.message : t("reportFailed"));
+                    toast.error(resolveActionErrorMessage(error, tRoot, "call.reportFailed"));
                   } finally {
                     setIsSubmittingReport(false);
                   }

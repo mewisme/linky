@@ -3,6 +3,7 @@
 import { ShaderAvatar, AvatarFallback, AvatarImage } from '@ws/ui/components/mew-ui/shader'
 import { IconCamera } from '@tabler/icons-react'
 import type { useUser } from '@clerk/nextjs'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
@@ -73,6 +74,7 @@ interface ProfileAvatarProps {
 
 export function ProfileAvatar({ user }: ProfileAvatarProps) {
   const t = useTranslations("user");
+  const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
   const { play: playSound } = useSoundWithSettings()
   const [isPending, setIsPending] = useState(false)
@@ -100,7 +102,7 @@ export function ProfileAvatar({ user }: ProfileAvatarProps) {
     } catch (error: unknown) {
       revealAfterLoadRef.current = false
       setIsPending(false)
-      toast.error(error instanceof Error ? error.message : t('uploadFailed'))
+      toast.error(resolveActionErrorMessage(error, tRoot, 'user.uploadFailed'))
     }
   }
 

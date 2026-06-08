@@ -13,6 +13,7 @@ import {
 } from "@/lib/http/adapters/push-subscriptions";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { usePushSubscriptionStore } from "@/features/notifications/model/push-subscription-store";
@@ -20,6 +21,7 @@ import { useUserContext } from "@/providers/user/user-provider";
 
 export function usePushNotifications() {
   const t = useTranslations("notifications");
+  const tRoot = useTranslations();
   const { state: { getToken }, authReady } = useUserContext();
   const isSubscribed = usePushSubscriptionStore((s) => s.isSubscribed);
   const permissionState = usePushSubscriptionStore((s) => s.permissionState);
@@ -74,17 +76,11 @@ export function usePushNotifications() {
       setSubscribed(true);
       toast.success(t("pushEnabled"));
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : t("enableFailed");
+      const message = resolveActionErrorMessage(error, tRoot, "notifications.enableFailed");
       const isUnauthorized =
         typeof message === "string" &&
         (message.toLowerCase().includes("unauthorized") || message.includes("401"));
-      toast.error(
-        isUnauthorized
-          ? t("sessionExpiredPush")
-          : message
-      );
-
+      toast.error(isUnauthorized ? t("sessionExpiredPush") : message);
     } finally {
       setIsPending(false);
     }
@@ -110,11 +106,7 @@ export function usePushNotifications() {
       setSubscribed(false);
       toast.success(t("pushDisabled"));
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("disableFailed")
-      );
+      toast.error(resolveActionErrorMessage(error, tRoot, "notifications.disableFailed"));
     } finally {
       setIsPending(false);
     }

@@ -10,6 +10,7 @@ import React, { useTransition } from 'react'
 import { Button } from '@ws/ui/components/ui/button'
 import { Input } from '@ws/ui/components/ui/input'
 import type { useUser } from '@clerk/nextjs'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useLocale, useTranslations } from "next-intl";
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -34,6 +35,7 @@ export function ProfileNameFields({
   onEditingChange,
 }: ProfileNameFieldsProps) {
   const t = useTranslations("user");
+  const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
   const tc = useTranslations("common");
   const locale = useLocale();
@@ -90,7 +92,7 @@ export function ProfileNameFields({
         toast.success(t('profileUpdated'))
         setIsEditing(false)
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : t('updateFailed'))
+        toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
       }
     })
   }

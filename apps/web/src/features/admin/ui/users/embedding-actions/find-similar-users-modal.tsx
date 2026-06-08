@@ -21,6 +21,7 @@ import { IconLoader2 } from '@tabler/icons-react';
 import { Input } from '@ws/ui/components/ui/input';
 import { Label } from '@ws/ui/components/ui/label';
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -48,6 +49,7 @@ export function FindSimilarUsersModal({
   users,
 }: FindSimilarUsersModalProps) {
   const te = useTranslations('admin.embedding');
+  const tRoot = useTranslations();
   const isMobile = useIsMobile();
   const [limit, setLimit] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -83,7 +85,7 @@ export function FindSimilarUsersModal({
       });
       setResult(data as unknown as FindSimilarResponse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : te('findSimilarFailed'));
+      setError(resolveActionErrorMessage(err, tRoot, 'admin.embedding.findSimilarFailed'));
     } finally {
       setIsLoading(false);
     }

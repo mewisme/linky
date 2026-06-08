@@ -1,3 +1,5 @@
+import { ApiError, parseApiErrorBody } from "@/lib/http/api-error";
+
 export async function fetchFromActionRoute<T>(input: string, init?: RequestInit): Promise<T> {
   const res = await fetch(input, {
     cache: "no-store",
@@ -6,19 +8,12 @@ export async function fetchFromActionRoute<T>(input: string, init?: RequestInit)
   });
   const text = await res.text();
   if (!res.ok) {
-    let message = text || res.statusText;
-    try {
-      const parsed = JSON.parse(text) as { message?: string; error?: string };
-      message =
-        typeof parsed.message === "string"
-          ? parsed.message
-          : typeof parsed.error === "string"
-            ? parsed.error
-            : message;
-    } catch {
-      /* use text */
-    }
-    throw new Error(message);
+    const parsed = parseApiErrorBody(text || "");
+    throw new ApiError(parsed.message || res.statusText, {
+      status: res.status,
+      userMessage: parsed.userMessage,
+      rawBody: text || undefined,
+    });
   }
   if (!text) return undefined as T;
   return JSON.parse(text) as T;

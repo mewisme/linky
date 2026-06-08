@@ -13,6 +13,7 @@ import { Button } from "@ws/ui/components/ui/button";
 import { Label } from "@ws/ui/components/ui/label";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { Switch } from "@ws/ui/components/ui/switch";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
@@ -23,6 +24,7 @@ import { normalizeUserNotificationPreferences } from "@/entities/user/lib";
 
 export default function NotificationSettingsPage() {
   const ts = useTranslations("settings.notificationsPage");
+  const tRoot = useTranslations();
   const {
     user: { isLoaded, user },
     store: { userSettings },
@@ -69,9 +71,7 @@ export default function NotificationSettingsPage() {
         playSound("success");
         toast.success(ts("updated"));
       } catch (error: unknown) {
-        toast.error(
-          error instanceof Error ? error.message : ts("updateFailed")
-        );
+        toast.error(resolveActionErrorMessage(error, tRoot, "settings.notificationsPage.updateFailed"));
       }
     });
   };

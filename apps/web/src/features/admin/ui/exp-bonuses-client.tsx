@@ -6,6 +6,7 @@ import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
 import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
 import React, { useMemo, useState } from "react";
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
 import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
 import { buildExpBonusConfig } from "@/features/admin/lib/exp-bonus-config";
@@ -44,6 +45,7 @@ const DEFAULT_FORM: AdminAPI.ExpBonuses.Create.Body = {
 
 export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
   const t = useTranslations("admin");
+  const tRoot = useTranslations();
   const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings();
   const queryClient = useQueryClient();
@@ -123,8 +125,8 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
         setFormData(DEFAULT_FORM);
       }
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t("genericError"));
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, "admin.genericError"));
     }
   });
 
@@ -142,8 +144,8 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
       await refetch();
       toast.success(t("expBonusDeleted"));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t("deleteError"));
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, "admin.deleteError"));
     },
   });
 

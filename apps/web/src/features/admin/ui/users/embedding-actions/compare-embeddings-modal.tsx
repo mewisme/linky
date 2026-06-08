@@ -21,6 +21,7 @@ import { IconLoader2 } from '@tabler/icons-react';
 import { Label } from '@ws/ui/components/ui/label';
 import { UserSearchSelect } from './user-search-select';
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
 import { useIsMobile } from '@ws/ui/hooks/use-mobile';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -45,6 +46,7 @@ export function CompareEmbeddingsModal({
   users,
 }: CompareEmbeddingsModalProps) {
   const te = useTranslations('admin.embedding');
+  const tRoot = useTranslations();
   const isMobile = useIsMobile();
   const [secondUser, setSecondUser] = useState<AdminAPI.User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +82,7 @@ export function CompareEmbeddingsModal({
       });
       setResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : te('compareFailed'));
+      setError(resolveActionErrorMessage(err, tRoot, 'admin.embedding.compareFailed'));
     } finally {
       setIsLoading(false);
     }

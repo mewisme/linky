@@ -2,6 +2,7 @@
 
 import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
 import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
 
 import { toast } from '@ws/ui/components/ui/sonner';
@@ -27,8 +28,13 @@ export interface UnsetClerkPasswordCompromisedPayload {
 
 export function useUsersMutations() {
   const t = useTranslations('admin');
+  const tRoot = useTranslations();
   const queryClient = useQueryClient();
   const { play: playSound } = useSoundWithSettings();
+
+  const toastApiError = (error: unknown, fallbackKey: string) => {
+    toast.error(resolveActionErrorMessage(error, tRoot, `admin.${fallbackKey}`));
+  };
 
   const invalidateAndRefetch = async () => {
     await queryClient.invalidateQueries({ queryKey: ['users'], refetchType: 'active' });
@@ -46,8 +52,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('userUpdated'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringUpdate'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringUpdate');
     },
   });
 
@@ -69,8 +75,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('clerkPasswordUpdated'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringClerkPasswordUpdate'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringClerkPasswordUpdate');
     },
   });
 
@@ -90,8 +96,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('clerkPasswordCompromisedSet'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringClerkPasswordCompromised'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringClerkPasswordCompromised');
     },
   });
 
@@ -105,8 +111,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('clerkPasswordCompromisedUnset'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringClerkPasswordCompromisedUnset'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringClerkPasswordCompromisedUnset');
     },
   });
 
@@ -120,8 +126,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('userSoftDeleted'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringSoftDelete'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringSoftDelete');
     },
   });
 
@@ -140,8 +146,8 @@ export function useUsersMutations() {
         count === 1 ? t('userSoftDeleted') : t('usersSoftDeletedCount', { count })
       );
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringBulkSoftDelete'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringBulkSoftDelete');
     },
   });
 
@@ -159,8 +165,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('userPermDeleted'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringHardDelete'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringHardDelete');
     },
   });
 
@@ -174,8 +180,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('userRestored'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringRestore'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringRestore');
     },
   });
 
@@ -194,8 +200,8 @@ export function useUsersMutations() {
         count === 1 ? t('userRestored') : t('usersRestoredCount', { count })
       );
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringBulkRestore'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringBulkRestore');
     },
   });
 
@@ -214,8 +220,8 @@ export function useUsersMutations() {
       const enqueued = data.enqueued ?? 0;
       if (enqueued > 0) toast.success(t('embeddingSyncScheduled', { count: enqueued }));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringEmbeddingSync'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringEmbeddingSync');
     },
   });
 
@@ -226,8 +232,8 @@ export function useUsersMutations() {
       await invalidateAndRefetch();
       toast.success(t('embeddingSyncAllDefault'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('errorDuringEmbeddingSyncAll'));
+    onError: (error) => {
+      toastApiError(error, 'errorDuringEmbeddingSyncAll');
     },
   });
 

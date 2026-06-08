@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from '@ws/ui/components/ui/card';
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
 import { adminAIModelsQueryOptions } from '@/features/admin/model/admin-ai-models-query';
 import type { AdminAPI } from '@/features/admin/types/admin.types';
 import { AppLayout } from '@/shared/ui/layouts/app-layout';
@@ -153,6 +154,7 @@ function ModelCombobox({
 
 export function AdminAIConfigClient() {
   const t = useTranslations('admin.aiConfig');
+  const tRoot = useTranslations();
   const router = useRouter();
   const { user: userStore } = useUserStore();
   const { play: playSound } = useSoundWithSettings();
@@ -206,8 +208,8 @@ export function AdminAIConfigClient() {
       await queryClient.invalidateQueries({ queryKey: ['admin-ai-config'] });
       await queryClient.invalidateQueries({ queryKey: ['admin-config'] });
     },
-    onError: (error: Error) => {
-      toast.error(error.message || t('saveFailed'));
+    onError: (error) => {
+      toast.error(resolveActionErrorMessage(error, tRoot, 'admin.aiConfig.saveFailed'));
     },
   });
 

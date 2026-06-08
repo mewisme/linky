@@ -1,6 +1,7 @@
 'use client'
 
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
@@ -21,6 +22,7 @@ interface FavoritesClientProps {
 
 export function FavoritesClient({ initialData }: FavoritesClientProps) {
   const t = useTranslations('user')
+  const tRoot = useTranslations()
   const [data, setData] = useState<ResourcesAPI.Favorites.FavoriteWithStats[]>(initialData.data)
 
   const { data: favorites, isPending, isFetching, refetch } = useQuery({
@@ -56,7 +58,7 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
         toast.success(t('removedFavorite'))
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('removeFavoriteFailed'))
+      toast.error(resolveActionErrorMessage(error, tRoot, 'user.removeFavoriteFailed'))
     }
   }
 

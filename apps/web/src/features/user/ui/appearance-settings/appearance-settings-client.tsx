@@ -22,6 +22,7 @@ import { Label } from '@ws/ui/components/ui/label'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@ws/ui/components/ui/tabs'
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
+import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { useSidebarStore } from '@/shared/model/sidebar-store'
 import { useUserStore } from '@/entities/user/model/user-store'
 import { isVideoChatBlockingLocaleChange } from '@/features/call/lib/video-chat-locale-block'
@@ -48,6 +49,7 @@ const APPEARANCE_AUTOSAVE_DEBOUNCE_MS = 3000
 
 export function AppearanceSettingsClient({ initialSettings }: { initialSettings: UsersAPI.UserSettings.GetMe.Response }) {
   const t = useTranslations('settings')
+  const tRoot = useTranslations()
   const tc = useTranslations('common')
   const router = useRouter()
   const nextRouter = useNextRouter()
@@ -202,7 +204,7 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
           toast.success(t('appearancePage.updated'))
         })
         .catch((error: unknown) => {
-          toast.error(error instanceof Error ? error.message : t('appearancePage.updateFailed'))
+          toast.error(resolveActionErrorMessage(error, tRoot, 'settings.appearancePage.updateFailed'))
         })
         .finally(() => {
           if (inFlightPayloadKeyRef.current === payloadKey) {
@@ -287,7 +289,7 @@ export function AppearanceSettingsClient({ initialSettings }: { initialSettings:
       })
       toast.success(t('appearancePage.updated'))
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : t('appearancePage.updateFailed'))
+      toast.error(resolveActionErrorMessage(error, tRoot, 'settings.appearancePage.updateFailed'))
     } finally {
       setIsSavingShaderDetails(false)
     }

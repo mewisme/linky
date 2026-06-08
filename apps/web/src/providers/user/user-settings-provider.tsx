@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import type { UserSettings, UserState } from "@/entities/user/model/user-store";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
@@ -19,7 +20,7 @@ const UserSettingsContext = createContext<UserSettingsContextValue | null>(null)
 
 export function UserSettingsProvider({ children, store }: { children: ReactNode; store: UserState }) {
   const { auth } = useUserAuthContext();
-  const t = useTranslations("errors");
+  const tRoot = useTranslations();
 
   const applyClientPreferences = useCallback((settings: UsersAPI.UserSettings.GetMe.Response) => {
     const sidebar = normalizeUserSidebarPreferences(settings.sidebar);
@@ -37,9 +38,9 @@ export function UserSettingsProvider({ children, store }: { children: ReactNode;
       store.setUserSettings(settings);
       applyClientPreferences(settings);
     } catch (error) {
-      store.setError(error instanceof Error ? error.message : t("fetchUserSettings"));
+      store.setError(resolveActionErrorMessage(error, tRoot, "errors.fetchUserSettings"));
     }
-  }, [applyClientPreferences, auth.isLoaded, auth.isSignedIn, store, t]);
+  }, [applyClientPreferences, auth.isLoaded, auth.isSignedIn, store, tRoot]);
 
   const updateUserSettingsFn = useCallback(
     async (data: UsersAPI.UserSettings.PatchMe.Body): Promise<UserSettings> => {

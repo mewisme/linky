@@ -1,4 +1,4 @@
-import { getMessages, setRequestLocale } from "next-intl/server";
+import { getMessages, setRequestLocale, getTimeZone } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 
@@ -34,9 +34,9 @@ export default async function LocaleLayout({
   const locale = localeParam as AppLocale;
   setRequestLocale(locale);
   const messages = await getMessages();
-
+  const timeZone = await getTimeZone();
   return (
-    <NextIntlClientProvider key={locale} locale={locale} messages={messages}>
+    <NextIntlClientProvider key={locale} locale={locale} messages={messages} timeZone={timeZone}>
       <TooltipProvider>
         <LocaleClerkProvider >
           <LocaleSync />

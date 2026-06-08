@@ -40,5 +40,5 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   silent: !process.env.CI,
   widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
+  tunnelRoute: "/api/_sentry",
 });

@@ -13,6 +13,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   return {
     locale,
+    timeZone: "Asia/Ho_Chi_Minh",
     messages: (await import(`../messages/${locale}.json`)).default,
   };
 });

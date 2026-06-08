@@ -2,7 +2,8 @@ import * as Sentry from "@sentry/nextjs";
 
 import { User, UserDetails, UserSettings } from "@/entities/user/model/user-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
-import { ApiError, parseApiErrorBody } from "@/lib/http/api-error";
+import { readJsonOrThrowApiError } from "@/lib/http/api-error";
+import { resolveApiErrorDisplay } from "@/shared/lib/i18n/resolve-action-error-message";
 
 interface FetchUserDataParams {
   isLoaded: boolean;
@@ -28,12 +29,11 @@ export async function fetchUserData(params: FetchUserDataParams) {
     const res = await fetch("/api/users/me", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error(await res.text() || res.statusText);
-    const userData = (await res.json()) as User;
+    const userData = await readJsonOrThrowApiError<User>(res);
     setUser(userData);
   } catch (error) {
     Sentry.logger.error("Failed to fetch user data", { error });
-    setError(error instanceof Error ? error.message : "Failed to fetch user data");
+    setError(resolveApiErrorDisplay(error, "Failed to fetch user data"));
     setUser(null);
   }
 }
@@ -58,12 +58,11 @@ export async function fetchUserDetails(params: FetchUserDetailsParams) {
     const res = await fetch("/api/users/details", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error(await res.text() || res.statusText);
-    const userDetailsData = (await res.json()) as UserDetails;
+    const userDetailsData = await readJsonOrThrowApiError<UserDetails>(res);
     setUserDetails(userDetailsData);
   } catch (error) {
     Sentry.logger.error("Failed to fetch user details", { error });
-    setError(error instanceof Error ? error.message : "Failed to fetch user details");
+    setError(resolveApiErrorDisplay(error, "Failed to fetch user details"));
     setUserDetails(null);
   }
 }
@@ -89,12 +88,11 @@ export async function fetchUserSettings(params: FetchUserSettingsParams) {
     const res = await fetch("/api/users/settings", {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error(await res.text() || res.statusText);
-    const userSettingsData = (await res.json()) as UserSettings;
+    const userSettingsData = await readJsonOrThrowApiError<UserSettings>(res);
     setUserSettings(userSettingsData);
   } catch (error) {
     Sentry.logger.error("Failed to fetch user settings", { error });
-    setError(error instanceof Error ? error.message : "Failed to fetch user settings");
+    setError(resolveApiErrorDisplay(error, "Failed to fetch user settings"));
     setUserSettings(null);
   }
 }
@@ -121,8 +119,7 @@ export async function updateUserCountry(params: UpdateUserCountryParams) {
         clerk_user_id: params.clerk_user_id,
       }),
     });
-    if (!res.ok) throw new Error(await res.text() || res.statusText);
-    return (await res.json()) as UsersAPI.UpdateCountry.Response;
+    return await readJsonOrThrowApiError<UsersAPI.UpdateCountry.Response>(res);
   } catch (error) {
     Sentry.logger.error("Failed to update user country", { error });
     throw error;
@@ -147,16 +144,7 @@ export async function updateUserDetails(params: UpdateUserDetailsParams) {
       },
       body: JSON.stringify(params.data),
     });
-    if (!res.ok) {
-      const text = await res.text();
-      const parsed = parseApiErrorBody(text || "");
-      throw new ApiError(parsed.message || res.statusText, {
-        status: res.status,
-        userMessage: parsed.userMessage,
-        rawBody: text || undefined,
-      });
-    }
-    return (await res.json()) as UserDetails;
+    return await readJsonOrThrowApiError<UserDetails>(res);
   } catch (error) {
     Sentry.logger.error("Failed to update user details", { error });
     throw error;
@@ -181,8 +169,7 @@ export async function updateUserSettings(params: UpdateUserSettingsParams) {
       },
       body: JSON.stringify(params.data),
     });
-    if (!res.ok) throw new Error(await res.text() || res.statusText);
-    return (await res.json()) as UserSettings;
+    return await readJsonOrThrowApiError<UserSettings>(res);
   } catch (error) {
     Sentry.logger.error("Failed to update user settings", { error });
     throw error;

@@ -52,7 +52,7 @@ export async function uploadToS3(presignedUrl: string, file: File | Blob): Promi
     headers: { "Content-Type": file.type || "application/octet-stream" },
     body: file,
   });
-  if (!res.ok) throw new Error(await res.text() || res.statusText);
+  if (!res.ok) throw new Error("Upload failed");
 }
 
 export async function uploadToS3PostPolicy(
@@ -66,7 +66,7 @@ export async function uploadToS3PostPolicy(
   }
   form.append("file", file);
   const res = await fetch(url, { method: "POST", body: form });
-  if (!res.ok) throw new Error(await res.text() || res.statusText);
+  if (!res.ok) throw new Error("Upload failed");
 }
 
 export async function uploadFile(file: File | Blob, key: string, token: string): Promise<string> {

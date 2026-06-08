@@ -1,5 +1,5 @@
 import { apiUrl } from "./api-url";
-import { ApiError, parseApiErrorBody } from "@/lib/http/api-error";
+import { readJsonOrThrowApiError } from "@/lib/http/api-error";
 
 interface FetchOptions extends RequestInit {
   token?: string;
@@ -22,21 +22,12 @@ async function request<T>(
   };
   const body = options.body !== undefined ? JSON.stringify(options.body) : undefined;
   const response = await fetch(url, { ...options, method, headers, body });
-  if (!response.ok) {
-    const text = await response.text();
-    const parsed = parseApiErrorBody(text || "");
-    throw new ApiError(parsed.message || response.statusText, {
-      status: response.status,
-      userMessage: parsed.userMessage,
-      rawBody: text,
-    });
-  }
-  const text = await response.text();
-  if (!text) {
+  const data = await readJsonOrThrowApiError<T>(response);
+  if (data === undefined) {
     if (allowEmpty) return undefined as T;
     throw new Error("Unexpected empty response");
   }
-  return JSON.parse(text) as T;
+  return data;
 }
 
 export async function fetchData<T>(url: string, options: FetchOptions = {}): Promise<T> {

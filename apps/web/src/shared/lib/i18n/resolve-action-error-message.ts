@@ -1,7 +1,24 @@
-import { isApiError } from "@/lib/http/api-error";
+import { coerceApiError } from "@/lib/http/api-error";
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 import { resolveBackendMessage, type TranslateFn } from "./resolve-backend-message";
+
+function readableApiErrorText(
+  error: unknown,
+  fallback: string,
+): string | null {
+  const apiError = coerceApiError(error);
+  if (!apiError) {
+    return null;
+  }
+  if (apiError.userMessage?.fallbackMessage) {
+    return apiError.userMessage.fallbackMessage;
+  }
+  if (apiError.message && !apiError.message.trim().startsWith("{")) {
+    return apiError.message;
+  }
+  return fallback;
+}
 
 function hasResolvableUserMessage(message: ApiUserMessage | undefined): message is ApiUserMessage {
   return !!message?.i18n?.key || !!message?.fallbackMessage;
@@ -34,23 +51,29 @@ export function resolveActionSuccessMessage(
   return (t as TranslateFn)(fallbackKey);
 }
 
+export function resolveApiErrorDisplay(error: unknown, fallback: string): string {
+  const fromApi = readableApiErrorText(error, fallback);
+  if (fromApi) {
+    return fromApi;
+  }
+  if (error instanceof Error && error.message && !error.message.trim().startsWith("{")) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function resolveActionErrorMessage(
   error: unknown,
   t: unknown,
   fallbackKey: string,
 ): string {
   const translate = t as TranslateFn;
-  if (isApiError(error)) {
-    if (hasResolvableUserMessage(error.userMessage)) {
-      return resolveBackendMessage(error.userMessage, translate, fallbackKey);
-    }
-    if (error.message) {
-      return error.message;
-    }
-    return translate(fallbackKey);
+  const fallback = translate(fallbackKey);
+  const apiError = coerceApiError(error);
+
+  if (apiError?.userMessage && hasResolvableUserMessage(apiError.userMessage)) {
+    return resolveBackendMessage(apiError.userMessage, translate, fallbackKey);
   }
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-  return translate(fallbackKey);
+
+  return resolveApiErrorDisplay(error, fallback);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
-import { ApiError, parseApiErrorBody } from "@/lib/http/api-error";
+import { apiErrorFromResponseText, isApiError } from "@/lib/http/api-error";
 
 const REALTIME_PROXY = {
   session: "/api/video-chat/realtime/session",
@@ -61,12 +61,7 @@ async function send<T>(
 
   if (!response.ok) {
     const text = await response.text();
-    const parsed = parseApiErrorBody(text || "");
-    throw new ApiError(parsed.message || response.statusText, {
-      status: response.status,
-      userMessage: parsed.userMessage,
-      rawBody: text,
-    });
+    throw apiErrorFromResponseText(text, response.status, response.statusText);
   }
 
   const text = await response.text();
@@ -119,7 +114,7 @@ export async function renegotiateRealtimeSession(
       payload,
     );
   } catch (error) {
-    if (error instanceof ApiError && (error.status === 410 || error.status === 404)) {
+    if (isApiError(error) && (error.status === 410 || error.status === 404)) {
       return { ok: true };
     }
     throw error;
@@ -133,7 +128,7 @@ export async function cleanupRealtimeSession(
   try {
     return await send<{ ok: boolean }>("POST", REALTIME_PROXY.cleanup, token, payload);
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
+    if (isApiError(error) && error.status === 404) {
       return { ok: true };
     }
     throw error;

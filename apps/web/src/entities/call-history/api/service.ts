@@ -1,4 +1,5 @@
 import type { CallHistoryRecord, CallHistoryResponse } from "@/entities/call-history/types/call-history.types";
+import { readJsonOrThrowApiError } from "@/lib/http/api-error";
 
 export async function getCallHistory(
   token: string | null,
@@ -9,8 +10,7 @@ export async function getCallHistory(
     `/api/resources/call-history?limit=${limit}&offset=${offset}`,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  if (!res.ok) throw new Error(await res.text() || res.statusText);
-  return res.json() as Promise<CallHistoryResponse>;
+  return readJsonOrThrowApiError<CallHistoryResponse>(res);
 }
 
 export async function getCallHistoryById(
@@ -20,6 +20,5 @@ export async function getCallHistoryById(
   const res = await fetch(`/api/resources/call-history/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error(await res.text() || res.statusText);
-  return res.json() as Promise<CallHistoryRecord>;
+  return readJsonOrThrowApiError<CallHistoryRecord>(res);
 }

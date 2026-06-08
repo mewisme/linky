@@ -3,7 +3,7 @@
 import 'server-only';
 
 import { getToken } from '@/lib/auth/token';
-import { ApiError, parseApiErrorBody } from '@/lib/http/api-error';
+import { readJsonOrThrowApiError } from '@/lib/http/api-error';
 import { fetchWithApiFallback } from '@/lib/http/fetch-with-api-fallback';
 
 export async function serverFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
@@ -16,17 +16,10 @@ export async function serverFetch<T>(url: string, options: RequestInit = {}): Pr
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const response = await fetchWithApiFallback(url, { ...options, headers });
-  if (!response.ok) {
-    const text = await response.text().catch(() => response.statusText);
-    const parsed = parseApiErrorBody(text || "");
-    throw new ApiError(parsed.message || response.statusText, {
-      status: response.status,
-      userMessage: parsed.userMessage,
-      rawBody: text,
-    });
-  }
-
-  const text = await response.text();
-  if (!text) return undefined as T;
-  return JSON.parse(text) as T;
+  const text = await response.text().catch(() => "");
+  const replay = new Response(text, {
+    status: response.status,
+    statusText: response.statusText,
+  });
+  return readJsonOrThrowApiError<T>(replay);
 }

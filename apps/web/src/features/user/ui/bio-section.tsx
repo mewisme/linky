@@ -50,7 +50,7 @@ export function BioSection({
   }
 
   return (
-    <div className="group/bio min-w-0 space-y-2 rounded-xl transition-colors hover:bg-muted/10 ">
+    <div data-section="bio" className="group/bio min-w-0 space-y-2 rounded-xl transition-colors hover:bg-muted/10 ">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconInfoCircle className="size-4 shrink-0" aria-hidden />

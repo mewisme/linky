@@ -156,7 +156,7 @@ export function InterestTagsSection({
     displayTags.length > INITIAL_TAGS_VISIBLE
 
   return (
-    <div className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
+    <div data-section="interest-tags" className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
       <div className="flex items-center justify-between gap-2 py-0.5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconTags className="size-4 shrink-0" aria-hidden />
@@ -302,35 +302,35 @@ export function InterestTagsSection({
             <div className="space-y-2">
               <div className="rounded-xl border border-input bg-muted/30 px-3 py-3 sm:px-4 sm:py-3">
                 <div className="flex flex-wrap gap-2">
-                    {(showAllTags
-                      ? displayTags
-                      : displayTags.slice(0, INITIAL_TAGS_VISIBLE)
-                    ).map((tag) => (
-                      <Tooltip key={tag.id}>
-                        <TooltipTrigger asChild>
-                          <Badge
-                            variant="secondary"
-                            className="cursor-default px-2.5 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm"
-                          >
-                            <span className="mr-1.5 text-base leading-none" aria-hidden>
-                              {tag.icon || '🏷️'}
+                  {(showAllTags
+                    ? displayTags
+                    : displayTags.slice(0, INITIAL_TAGS_VISIBLE)
+                  ).map((tag) => (
+                    <Tooltip key={tag.id}>
+                      <TooltipTrigger asChild>
+                        <Badge
+                          variant="secondary"
+                          className="cursor-default px-2.5 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm"
+                        >
+                          <span className="mr-1.5 text-base leading-none" aria-hidden>
+                            {tag.icon || '🏷️'}
+                          </span>
+                          <span>{tag.name}</span>
+                          {tag.category && (
+                            <span className="ml-1 hidden text-muted-foreground sm:inline">
+                              ({tag.category})
                             </span>
-                            <span>{tag.name}</span>
-                            {tag.category && (
-                              <span className="ml-1 hidden text-muted-foreground sm:inline">
-                                ({tag.category})
-                              </span>
-                            )}
-                          </Badge>
-                        </TooltipTrigger>
+                          )}
+                        </Badge>
+                      </TooltipTrigger>
 
-                        {tag.description && (
-                          <TooltipContent>
-                            <p className="max-w-xs">{tag.description}</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    ))}
+                      {tag.description && (
+                        <TooltipContent>
+                          <p className="max-w-xs">{tag.description}</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  ))}
                 </div>
               </div>
             </div>

@@ -110,7 +110,7 @@ export function PersonalInfoSection({
   }
 
   return (
-    <div data-section="personal-info" className="group/personal space-y-3 rounded-xl transition-colors hover:bg-muted/10">
+    <div data-section="personal" className="group/personal space-y-3 rounded-xl transition-colors hover:bg-muted/10">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconUser className="size-4 shrink-0" aria-hidden />

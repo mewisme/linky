@@ -156,7 +156,7 @@ export function InterestTagsSection({
     displayTags.length > INITIAL_TAGS_VISIBLE
 
   return (
-    <div data-section="interest-tags" className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
+    <div data-section="interests" className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
       <div className="flex items-center justify-between gap-2 py-0.5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconTags className="size-4 shrink-0" aria-hidden />

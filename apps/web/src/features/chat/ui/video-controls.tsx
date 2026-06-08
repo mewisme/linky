@@ -53,7 +53,10 @@ import { trackEvent } from "@/lib/telemetry/events/client";
 import { useLocale, useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
-import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
+import {
+  resolveActionErrorMessage,
+  resolveActionSuccessMessage,
+} from "@/shared/lib/i18n/resolve-action-error-message";
 
 type ControlPriority = "primary" | "secondary" | "overflow";
 
@@ -275,7 +278,7 @@ export function VideoControls({
 
     try {
       if (isAdding) {
-        await fetchFromActionRoute<ResourcesAPI.Favorites.Create.Response>("/api/resources/favorites", {
+        const created = await fetchFromActionRoute<ResourcesAPI.Favorites.Create.Response>("/api/resources/favorites", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ favorite_user_id: peerInfo.id }),
@@ -283,19 +286,19 @@ export function VideoControls({
 
         setIsFavorite(true);
         trackEvent({ name: "favorite_added" });
-        toast.success(t("favoriteAdded"));
+        toast.success(resolveActionSuccessMessage(created, tRoot, "api.userAddedToFavorites"));
 
         const userName = user.user?.fullName || user.user?.firstName || t("someoneFallback");
         sendFavoriteNotification("added", peerInfo.id, userName || t("someoneFallback"));
       } else {
-        await fetchFromActionRoute<ResourcesAPI.Favorites.Delete.Response>(
+        const removed = await fetchFromActionRoute<ResourcesAPI.Favorites.Delete.Response>(
           `/api/resources/favorites/${encodeURIComponent(peerInfo.id)}`,
           { method: "DELETE" },
         );
 
         setIsFavorite(false);
         trackEvent({ name: "favorite_removed" });
-        toast.success(t("favoriteRemoved"));
+        toast.success(resolveActionSuccessMessage(removed, tRoot, "api.favoriteRemovedSuccess"));
 
         const userName = user.user?.fullName || user.user?.firstName || t("someoneFallback");
         sendFavoriteNotification("removed", peerInfo.id, userName || t("someoneFallback"));

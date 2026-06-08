@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-namespace */
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 import type { CallHistoryRecord, CallHistoryResponse } from "@/entities/call-history/types/call-history.types";
 
@@ -182,6 +183,7 @@ export namespace ResourcesAPI {
           created_at: string;
         };
         message: string;
+        userMessage?: ApiUserMessage;
       }
     }
 
@@ -193,6 +195,7 @@ export namespace ResourcesAPI {
       export interface Response {
         message: string;
         refunded: boolean;
+        userMessage?: ApiUserMessage;
       }
     }
   }

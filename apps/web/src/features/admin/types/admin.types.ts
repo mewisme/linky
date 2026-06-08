@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
+import type { ApiUserMessage } from "@/shared/types/api-message.types";
+
 export namespace AdminAPI {
   export type UserRole = "admin" | "member" | "superadmin";
   export type PresenceState = "offline" | "online" | "available" | "matching" | "in_call" | "idle";
@@ -362,6 +364,7 @@ export namespace AdminAPI {
       export interface Response {
         message: string;
         sent: number;
+        userMessage?: ApiUserMessage;
       }
     }
   }

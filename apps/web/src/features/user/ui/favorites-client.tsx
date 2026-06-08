@@ -1,7 +1,10 @@
 'use client'
 
 import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
-import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
+import {
+  resolveActionErrorMessage,
+  resolveActionSuccessMessage,
+} from '@/shared/lib/i18n/resolve-action-error-message'
 import { useEffect, useState } from 'react'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
@@ -52,11 +55,9 @@ export function FavoritesClient({ initialData }: FavoritesClientProps) {
 
       setData((prev) => prev.filter((f) => f.favorite_user_id !== favorite.favorite_user_id))
 
-      if (result.refunded) {
-        toast.success(t('removedFavoriteRefunded'))
-      } else {
-        toast.success(t('removedFavorite'))
-      }
+      toast.success(
+        resolveActionSuccessMessage(result, tRoot, 'api.favoriteRemovedSuccess'),
+      )
     } catch (error) {
       toast.error(resolveActionErrorMessage(error, tRoot, 'user.removeFavoriteFailed'))
     }

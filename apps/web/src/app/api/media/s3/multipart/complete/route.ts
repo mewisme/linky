@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/shared/types/api.types";
 import type { MediaAPI } from "@/shared/types/media.types";
+import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -11,10 +12,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("authorization");
 
     if (!authHeader) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
-      );
+      return bffMissingAuthResponse();
     }
 
     const body = await request.json() as MediaAPI.S3.CompleteMultipart.Body;
@@ -36,9 +34,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     Sentry.logger.error("Error in /api/media/s3/multipart/complete", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to complete multipart upload" },
-      { status: 500 }
-    );
+    return bffInternalErrorResponse("failedCompleteMultipart", "Failed to complete multipart upload");
   }
 }

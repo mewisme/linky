@@ -1,10 +1,11 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 
-import { ApiError } from "@/lib/http/api-error";
+import { bffInternalErrorResponse, bffUnauthorizedResponse } from "@/lib/http/bff-response";
+import { isApiError } from "@/lib/http/api-error";
 
 export function nextResponseFromActionError(error: unknown, logLabel: string): NextResponse {
-  if (error instanceof ApiError) {
+  if (isApiError(error)) {
     return NextResponse.json(
       {
         error: error.message,
@@ -15,14 +16,8 @@ export function nextResponseFromActionError(error: unknown, logLabel: string): N
     );
   }
   if (error instanceof Error && error.message === "Unauthorized") {
-    return NextResponse.json(
-      { error: "Unauthorized", message: "No authentication token found" },
-      { status: 401 },
-    );
+    return bffUnauthorizedResponse();
   }
   Sentry.logger.error(logLabel, { error });
-  return NextResponse.json(
-    { error: "Internal Server Error", message: "Unexpected error" },
-    { status: 500 },
-  );
+  return bffInternalErrorResponse("unexpectedError", "An unexpected error occurred");
 }

@@ -15,7 +15,10 @@ import {
 } from "@ws/ui/components/ui/card";
 import { Separator } from "@ws/ui/components/ui/separator";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
-import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
+import {
+  resolveActionErrorMessage,
+  resolveActionSuccessMessage,
+} from "@/shared/lib/i18n/resolve-action-error-message";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { useTranslations } from "next-intl";
@@ -89,7 +92,11 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       });
 
       playSound("success");
-      toast.success(res.message ?? t("broadcastSent", { count: res.sent }));
+      toast.success(
+        res.userMessage
+          ? resolveActionSuccessMessage(res, tRoot, "admin.broadcastSent")
+          : t("broadcastSent", { count: res.sent }),
+      );
       form.reset();
       clearAiWriterState();
       onSuccess?.();

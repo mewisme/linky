@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
+import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -9,10 +10,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("authorization");
 
     if (!authHeader) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
-      );
+      return bffMissingAuthResponse();
     }
 
     const body = await request.json();
@@ -39,9 +37,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     Sentry.logger.error("Error in POST /api/push/subscribe", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to subscribe to push" },
-      { status: 500 }
-    );
+    return bffInternalErrorResponse("failedSubscribePush", "Failed to subscribe to push notifications");
   }
 }

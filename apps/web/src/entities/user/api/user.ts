@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import { User, UserDetails, UserSettings } from "@/entities/user/model/user-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
+import { ApiError, parseApiErrorBody } from "@/lib/http/api-error";
 
 interface FetchUserDataParams {
   isLoaded: boolean;
@@ -148,14 +149,12 @@ export async function updateUserDetails(params: UpdateUserDetailsParams) {
     });
     if (!res.ok) {
       const text = await res.text();
-      let msg = text || res.statusText;
-      try {
-        const data = JSON.parse(text) as { message?: string };
-        if (data.message) msg = data.message;
-      } catch {
-        /* use msg as-is */
-      }
-      throw new Error(msg);
+      const parsed = parseApiErrorBody(text || "");
+      throw new ApiError(parsed.message || res.statusText, {
+        status: res.status,
+        userMessage: parsed.userMessage,
+        rawBody: text || undefined,
+      });
     }
     return (await res.json()) as UserDetails;
   } catch (error) {

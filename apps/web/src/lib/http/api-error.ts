@@ -19,6 +19,26 @@ export class ApiError extends Error {
   }
 }
 
+export function isApiError(error: unknown): error is ApiError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as ApiError).name === "ApiError" &&
+    typeof (error as ApiError).status === "number"
+  );
+}
+
+function normalizeUserMessage(raw: unknown): ApiUserMessage | undefined {
+  if (!raw || typeof raw !== "object") {
+    return undefined;
+  }
+  const candidate = raw as ApiUserMessage;
+  if (typeof candidate.code !== "string") {
+    return undefined;
+  }
+  return candidate;
+}
+
 export function parseApiErrorBody(text: string): {
   message: string;
   userMessage?: ApiUserMessage;
@@ -27,7 +47,7 @@ export function parseApiErrorBody(text: string): {
     const parsed = JSON.parse(text) as {
       message?: string;
       error?: string;
-      userMessage?: ApiUserMessage;
+      userMessage?: unknown;
     };
     const message =
       typeof parsed.message === "string"
@@ -37,7 +57,7 @@ export function parseApiErrorBody(text: string): {
           : text;
     return {
       message,
-      userMessage: parsed.userMessage,
+      userMessage: normalizeUserMessage(parsed.userMessage),
     };
   } catch {
     return { message: text };

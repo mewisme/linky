@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
+import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -9,10 +10,7 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get("authorization");
 
     if (!authHeader) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "No authentication token found" },
-        { status: 401 }
-      );
+      return bffMissingAuthResponse();
     }
 
     const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/push/vapid-public-key`, {
@@ -32,9 +30,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     Sentry.logger.error("Error in GET /api/push/vapid-public-key", { error });
-    return NextResponse.json(
-      { error: "Internal Server Error", message: "Failed to fetch VAPID public key" },
-      { status: 500 }
-    );
+    return bffInternalErrorResponse("failedFetchVapidKey", "Failed to fetch VAPID public key");
   }
 }

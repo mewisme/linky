@@ -1,20 +1,15 @@
 'use client'
 
-import { Card, CardContent } from '@ws/ui/components/ui/card'
-import {
-  IconEdit,
-} from '@tabler/icons-react'
+import { CardContent } from '@ws/ui/components/ui/card'
 
 import { AppLayout } from '@/shared/ui/layouts/app-layout'
 import { BioSection } from "./bio-section";
 import { InterestTagsSection } from "./interest-tags-section";
 import { PersonalInfoSection } from "./personal-info-section";
-import { ProfileAvatar } from "./profile-avatar";
-import { ProfileNameFields } from "./profile-name-fields";
+import { ProfileHeaderSection } from "./profile-header-section";
 import type { UsersAPI } from '@/entities/user/types/users.types'
 import { useUserContext } from '@/providers/user/user-provider'
-import { useMemo, useState } from 'react'
-import { Button } from '@ws/ui/components/ui/button'
+import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 
 interface ProfilePageContentProps {
@@ -28,9 +23,6 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
     store: { user: userStore, userDetails: storeUserDetails },
     state: { updateUserCountry, updateUserDetails },
   } = useUserContext()
-  const [headerEditSignal, setHeaderEditSignal] = useState(0)
-  const [isHeaderEditing, setIsHeaderEditing] = useState(false)
-
   const userDetails = useMemo(() => {
     return storeUserDetails ?? initialUserDetails ?? null
   }, [storeUserDetails, initialUserDetails])
@@ -38,32 +30,11 @@ function ProfilePageContent({ initialUserDetails }: ProfilePageContentProps) {
   return (
     <CardContent className="p-0">
       <div className="flex flex-col">
-        <section
-          data-section="profile-header"
-          aria-label={tp('profileIdentityAria')}
-          className="group/profile-header relative flex flex-col items-center gap-6 border-b border-input bg-muted/20 px-4 py-8 sm:flex-row sm:items-start sm:gap-8 sm:px-6 sm:py-10"
-        >
-          <ProfileAvatar user={user!} />
-          <ProfileNameFields
-            user={user!}
-            userStore={userStore}
-            updateUserCountry={updateUserCountry}
-            startEditingSignal={headerEditSignal}
-            onEditingChange={setIsHeaderEditing}
-          />
-          {!isHeaderEditing && (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="absolute right-4 top-4 gap-1 text-muted-foreground sm:right-6 sm:top-6 sm:opacity-0 sm:transition-opacity sm:group-hover/profile-header:opacity-100"
-              onClick={() => setHeaderEditSignal((current) => current + 1)}
-            >
-              <IconEdit className="size-4" />
-              {tp('edit')}
-            </Button>
-          )}
-        </section>
+        <ProfileHeaderSection
+          user={user!}
+          userStore={userStore}
+          updateUserCountry={updateUserCountry}
+        />
 
         <section
           aria-label={tp('additionalInfoAria')}

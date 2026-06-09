@@ -156,7 +156,7 @@ export function InterestTagsSection({
     displayTags.length > INITIAL_TAGS_VISIBLE
 
   return (
-    <div data-section="interests" className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
+    <div className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
       <div className="flex items-center justify-between gap-2 py-0.5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconTags className="size-4 shrink-0" aria-hidden />
@@ -165,6 +165,7 @@ export function InterestTagsSection({
         <div className="flex items-center gap-1">
           {!editingTags && (
             <Button
+              name="edit-interests"
               variant="ghost"
               size="sm"
               className="gap-1 text-muted-foreground sm:opacity-0 sm:transition-opacity sm:group-hover/interests:opacity-100"
@@ -176,6 +177,7 @@ export function InterestTagsSection({
           )}
           {showToggle && (
             <Button
+              name="toggle-interests"
               variant="ghost"
               size="sm"
               className="h-7 shrink-0 px-1.5 text-muted-foreground"
@@ -271,6 +273,7 @@ export function InterestTagsSection({
 
           <div className="flex justify-end gap-2">
             <Button
+              name="cancel-interests"
               size="sm"
               variant="ghost"
               onClick={() => {
@@ -285,6 +288,7 @@ export function InterestTagsSection({
               {tc("cancel")}
             </Button>
             <Button
+              name="save-interests"
               size="sm"
               onClick={handleUpdateTags}
               disabled={isPending || catalogLoading}

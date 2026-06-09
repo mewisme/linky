@@ -1,4 +1,4 @@
-import { UserProfileClient } from "@/features/user/ui/user-profile-client";
+import { UserProfileClient } from "@/features/user/ui/profile";
 import { getUserDetails } from "@/features/user/api/profile";
 
 export default async function UserProfilePage() {

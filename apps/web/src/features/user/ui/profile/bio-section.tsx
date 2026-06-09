@@ -58,6 +58,7 @@ export function BioSection({
         </div>
         {!editingBio && (
           <Button
+            name="edit-bio"
             size="sm"
             variant="ghost"
             className="gap-1 text-muted-foreground sm:opacity-0 sm:transition-opacity sm:group-hover/bio:opacity-100"
@@ -84,6 +85,7 @@ export function BioSection({
             </p>
             <div className="flex gap-2">
               <Button
+                name="cancel-bio"
                 size="sm"
                 variant="ghost"
                 onClick={() => {
@@ -94,6 +96,7 @@ export function BioSection({
                 {tc("cancel")}
               </Button>
               <Button
+                name="save-bio"
                 size="sm"
                 onClick={handleUpdateBio}
                 disabled={isPending}

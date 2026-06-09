@@ -118,6 +118,7 @@ export function PersonalInfoSection({
         </div>
         {!isEditing && (
           <Button
+            name="edit-personal"
             type="button"
             size="sm"
             variant="ghost"
@@ -200,10 +201,10 @@ export function PersonalInfoSection({
       </div>
       {isEditing && (
         <div className="flex justify-end gap-2">
-          <Button size="sm" variant="ghost" onClick={handleCancel}>
+          <Button name="cancel-personal" size="sm" variant="ghost" onClick={handleCancel}>
             {tc("cancel")}
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={isPending}>
+          <Button name="save-personal" size="sm" onClick={handleSave} disabled={isPending}>
             {isPending && (
               <IconLoader2 className="mr-2 size-4 animate-spin" />
             )}

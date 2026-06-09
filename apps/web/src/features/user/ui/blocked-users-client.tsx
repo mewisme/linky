@@ -9,7 +9,6 @@ import type {
   BlockedUserWithDetails,
   BlockedUsersResponse,
 } from '@/entities/notification/types/notifications.types'
-import { Button } from '@ws/ui/components/ui/button'
 import dynamic from 'next/dynamic'
 import { toast } from '@ws/ui/components/ui/sonner'
 import { useTranslations } from 'next-intl'

@@ -11,6 +11,7 @@ const PLAIN_TEXT_OPTIONS: sanitizeHtml.IOptions = {
 const DANGEROUS_MARKUP_RE = /[<>]|javascript:|data:text\/html|on\w+\s*=|\0/u
 
 export const PROFILE_NAME_MAX_LENGTH = 256
+export const PROFILE_BIO_MAX_LENGTH = 300
 
 export function containsDangerousMarkup(value: string): boolean {
   return DANGEROUS_MARKUP_RE.test(value)
@@ -50,9 +51,14 @@ export function validateOptionalProfileName(value: string): ProfileNameIssue | n
   return null
 }
 
-export function validateProfileBio(value: string): string | null {
+export type ProfileBioIssue = 'invalidCharacters' | 'tooLong'
+
+export function validateProfileBio(value: string): ProfileBioIssue | null {
   if (containsDangerousMarkup(value)) {
     return 'invalidCharacters'
+  }
+  if (value.length > PROFILE_BIO_MAX_LENGTH) {
+    return 'tooLong'
   }
   return null
 }

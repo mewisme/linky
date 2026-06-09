@@ -13,11 +13,18 @@ import { serverFetch } from '@/lib/http/server-api';
 import {
   containsDangerousMarkup,
   sanitizeProfileDetailsBody,
+  validateProfileBio,
 } from '@/shared/lib/sanitize-plain-text';
 
 function assertSafeProfileDetails(data: UsersAPI.UserDetails.PatchMe.Body) {
-  if (typeof data.bio === 'string' && containsDangerousMarkup(data.bio)) {
-    throw new Error('PROFILE_INVALID_CHARACTERS');
+  if (typeof data.bio === 'string') {
+    const bioIssue = validateProfileBio(data.bio);
+    if (bioIssue === 'invalidCharacters') {
+      throw new Error('PROFILE_INVALID_CHARACTERS');
+    }
+    if (bioIssue === 'tooLong') {
+      throw new Error('PROFILE_BIO_TOO_LONG');
+    }
   }
 
   if (Array.isArray(data.languages)) {

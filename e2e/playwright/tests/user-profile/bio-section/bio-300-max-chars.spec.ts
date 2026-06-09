@@ -9,7 +9,7 @@ test.describe('Profile — Bio Section', () => {
     await authenticateUser(page, TEST_USERS.user1);
   });
 
-  test('Bio enforces 300 character maximum', async ({ page }) => {
+  test('Bio rejects save when over 300 characters', async ({ page }) => {
     await page.goto('/user/profile');
     await page.waitForLoadState('networkidle');
     await page.setViewportSize({ width: 1280, height: 720 });
@@ -23,7 +23,11 @@ test.describe('Profile — Bio Section', () => {
     await textarea.fill(longText);
 
     const value = await textarea.inputValue();
-    expect(value.length).toBeLessThanOrEqual(300);
-    await expect(bioSection.getByText(/300\/300/)).toBeVisible();
+    expect(value.length).toBe(400);
+    await expect(bioSection.getByText(/400\/300/)).toBeVisible();
+
+    await bioSection.getByRole('button', { name: /^save$/i }).click();
+    await expect(bioSection.getByText(/bio must be 300 characters or fewer/i)).toBeVisible();
+    await expect(bioSection.getByRole('button', { name: /^save$/i })).toBeVisible();
   });
 });

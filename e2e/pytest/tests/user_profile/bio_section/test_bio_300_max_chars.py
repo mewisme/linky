@@ -41,9 +41,8 @@ from linky_e2e.page_objects.user_profile import (
 pytestmark = pytest.mark.user_profile
 
 
-def test_bio_enforces_300_character_maximum(driver):
-    """Profile — Bio Section: Bio enforces 300 character maximum"""
-    """Profile — Bio Section: Bio enforces 300 character maximum"""
+def test_bio_rejects_save_when_over_300_characters(driver):
+    """Profile — Bio Section: Bio rejects save when over 300 characters"""
     authenticate_user(driver, TEST_USERS['user1'])
     driver.get(settings.base_url + '/user/profile')
     wait_page_loaded(driver)
@@ -54,5 +53,8 @@ def test_bio_enforces_300_character_maximum(driver):
     textarea.clear()
     textarea.send_keys("a" * 400)
     value = textarea.get_attribute("value") or ""
-    assert len(value) <= 300
-    wait_for_text(driver, r"300/300")
+    assert len(value) == 400
+    wait_for_text(driver, r"400/300")
+    save_button_in(sec).click()
+    wait_for_text(driver, r"Bio must be 300 characters or fewer")
+    assert save_button_in(sec).is_displayed()

@@ -17,7 +17,7 @@ import (
 	"linky-api/src/internal/lib/plaintext"
 )
 
-const bioMaxLength = 500
+const bioMaxLength = 300
 
 func registerUserDetailsRoutes(g *echo.Group) {
 	g.GET("/me", handleUserDetailsGet)
@@ -117,7 +117,7 @@ func validateAndApplyDetails(c echo.Context, body map[string]any) error {
 		s = plaintext.SanitizePlainText(s, true)
 		if len(s) > bioMaxLength {
 			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UMDetail("PUT_DETAILS_BIO", "Bio must be 500 characters or less"))
+				httpx.UMDetail("PUT_DETAILS_BIO", "Bio must be 300 characters or less"))
 		}
 		if s == "" {
 			body["bio"] = nil

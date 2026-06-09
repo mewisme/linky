@@ -6,7 +6,9 @@ import { useEffect, useState } from 'react'
 import { Button } from '@ws/ui/components/ui/button'
 import { FieldError } from '@ws/ui/components/ui/field'
 import { Textarea } from '@ws/ui/components/ui/textarea'
+import { cn } from '@ws/ui/lib/utils'
 import {
+  PROFILE_BIO_MAX_LENGTH,
   sanitizePlainText,
   validateProfileBio,
 } from '@/shared/lib/sanitize-plain-text'
@@ -17,8 +19,6 @@ import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { ProfileSectionSaveActions } from './profile-section-save-actions'
 import { useProfileSectionSave } from './use-profile-section-save'
-
-const BIO_MAX_LENGTH = 300
 
 interface BioSectionProps {
   userDetails: UserDetails | null
@@ -42,9 +42,16 @@ export function BioSection({
     setBio(userDetails?.bio ?? '')
   }, [userDetails])
 
+  const isOverLimit = bio.length > PROFILE_BIO_MAX_LENGTH
+
   const handleUpdateBio = () => {
-    if (validateProfileBio(bio)) {
+    const bioIssue = validateProfileBio(bio)
+    if (bioIssue === 'invalidCharacters') {
       setBioError(tp('invalidCharacters'))
+      return
+    }
+    if (bioIssue === 'tooLong') {
+      setBioError(tp('bioTooLong', { max: PROFILE_BIO_MAX_LENGTH }))
       return
     }
 
@@ -88,20 +95,25 @@ export function BioSection({
             <Textarea
               value={bio}
               onChange={(e) => {
-                setBio(e.target.value.slice(0, BIO_MAX_LENGTH))
+                setBio(e.target.value)
                 if (bioError) setBioError(null)
               }}
               placeholder={tp("tellAboutYourself")}
               className="min-h-[100px] w-full resize-y"
-              maxLength={BIO_MAX_LENGTH}
               aria-label={tp("bioAria")}
-              aria-invalid={Boolean(bioError)}
+              aria-invalid={Boolean(bioError) || isOverLimit}
             />
             <FieldError errors={bioError ? [{ message: bioError }] : undefined} />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-muted-foreground" aria-live="polite">
-              {bio.length}/{BIO_MAX_LENGTH}
+            <p
+              className={cn(
+                'text-xs',
+                isOverLimit ? 'font-medium text-destructive' : 'text-muted-foreground',
+              )}
+              aria-live="polite"
+            >
+              {bio.length}/{PROFILE_BIO_MAX_LENGTH}
             </p>
             <ProfileSectionSaveActions
               cancelName="cancel-bio"

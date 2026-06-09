@@ -996,6 +996,7 @@
       "firstNameAria": "Tên",
       "firstNameRequired": "Tên không được để trống.",
       "invalidCharacters": "Ký tự không hợp lệ trong dữ liệu nhập.",
+      "bioTooLong": "Tiểu sử không được vượt quá {max} ký tự.",
       "nameTooLong": "Tên không được vượt quá {max} ký tự.",
       "lastNameAria": "Họ",
       "selectGender": "Chọn giới tính",

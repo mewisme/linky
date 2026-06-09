@@ -996,6 +996,7 @@
       "firstNameAria": "First name",
       "firstNameRequired": "First name cannot be empty.",
       "invalidCharacters": "Invalid characters in input.",
+      "bioTooLong": "Bio must be {max} characters or fewer.",
       "nameTooLong": "Name must be {max} characters or fewer.",
       "lastNameAria": "Last name",
       "selectGender": "Select gender",

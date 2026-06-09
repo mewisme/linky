@@ -1,6 +1,6 @@
 'use client'
 
-import { IconCalendar, IconEdit, IconLoader2, IconUser } from '@tabler/icons-react'
+import { IconCalendar, IconEdit, IconUser } from '@tabler/icons-react'
 import {
   Select,
   SelectContent,
@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@ws/ui/components/ui/select'
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
 import { DatePicker } from '@/shared/ui/common/date-picker'
@@ -17,6 +17,8 @@ import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-erro
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useLocale, useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
+import { ProfileSectionSaveActions } from './profile-section-save-actions'
+import { useProfileSectionSave } from './use-profile-section-save'
 
 interface PersonalInfoSectionProps {
   userDetails: UserDetails | null
@@ -33,10 +35,9 @@ export function PersonalInfoSection({
   const t = useTranslations("user");
   const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
-  const tc = useTranslations("common");
   const locale = useLocale();
   const { play: playSound } = useSoundWithSettings()
-  const [isPending, startTransition] = useTransition()
+  const { isPending, isDone, runSave } = useProfileSectionSave()
   const [isEditing, setIsEditing] = useState(false)
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
   const [gender, setGender] = useState('')
@@ -93,7 +94,7 @@ export function PersonalInfoSection({
   }
 
   const handleSave = () => {
-    startTransition(async () => {
+    runSave(async () => {
       try {
         const dateString = dateOfBirth ? formatDateString(dateOfBirth) : null
         await updateUserDetails({
@@ -102,11 +103,12 @@ export function PersonalInfoSection({
         })
         playSound('success')
         toast.success(t('personalInfoUpdated'))
-        setIsEditing(false)
+        return true
       } catch (error: unknown) {
         toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
+        return false
       }
-    })
+    }, () => setIsEditing(false))
   }
 
   return (
@@ -200,17 +202,14 @@ export function PersonalInfoSection({
         </div>
       </div>
       {isEditing && (
-        <div className="flex justify-end gap-2">
-          <Button name="cancel-personal" size="sm" variant="ghost" onClick={handleCancel}>
-            {tc("cancel")}
-          </Button>
-          <Button name="save-personal" size="sm" onClick={handleSave} disabled={isPending}>
-            {isPending && (
-              <IconLoader2 className="mr-2 size-4 animate-spin" />
-            )}
-            {tc("save")}
-          </Button>
-        </div>
+        <ProfileSectionSaveActions
+          cancelName="cancel-personal"
+          saveName="save-personal"
+          isPending={isPending}
+          isDone={isDone}
+          onCancel={handleCancel}
+          onSave={handleSave}
+        />
       )}
     </div>
   )

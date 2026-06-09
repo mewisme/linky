@@ -1,7 +1,7 @@
 'use client'
 
-import { IconEdit, IconInfoCircle, IconLoader2 } from '@tabler/icons-react'
-import { useEffect, useState, useTransition } from 'react'
+import { IconEdit, IconInfoCircle } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
 import { Textarea } from '@ws/ui/components/ui/textarea'
@@ -10,6 +10,8 @@ import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-erro
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
+import { ProfileSectionSaveActions } from './profile-section-save-actions'
+import { useProfileSectionSave } from './use-profile-section-save'
 
 const BIO_MAX_LENGTH = 300
 
@@ -25,9 +27,8 @@ export function BioSection({
   const t = useTranslations("user");
   const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
-  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings()
-  const [isPending, startTransition] = useTransition()
+  const { isPending, isDone, runSave } = useProfileSectionSave()
   const [editingBio, setEditingBio] = useState(false)
   const [bio, setBio] = useState('')
 
@@ -37,16 +38,17 @@ export function BioSection({
 
   const handleUpdateBio = () => {
     const value = bio.trim() || null
-    startTransition(async () => {
+    runSave(async () => {
       try {
         await updateUserDetails({ bio: value })
         playSound('success')
         toast.success(t('bioUpdated'))
-        setEditingBio(false)
+        return true
       } catch (error: unknown) {
         toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
+        return false
       }
-    })
+    }, () => setEditingBio(false))
   }
 
   return (
@@ -83,30 +85,18 @@ export function BioSection({
             <p className="text-xs text-muted-foreground" aria-live="polite">
               {bio.length}/{BIO_MAX_LENGTH}
             </p>
-            <div className="flex gap-2">
-              <Button
-                name="cancel-bio"
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setBio(userDetails?.bio ?? '')
-                  setEditingBio(false)
-                }}
-              >
-                {tc("cancel")}
-              </Button>
-              <Button
-                name="save-bio"
-                size="sm"
-                onClick={handleUpdateBio}
-                disabled={isPending}
-              >
-                {isPending && (
-                  <IconLoader2 className="mr-2 size-4 animate-spin" />
-                )}
-                {tc("save")}
-              </Button>
-            </div>
+            <ProfileSectionSaveActions
+              cancelName="cancel-bio"
+              saveName="save-bio"
+              isPending={isPending}
+              isDone={isDone}
+              onCancel={() => {
+                setBio(userDetails?.bio ?? '')
+                setEditingBio(false)
+              }}
+              onSave={handleUpdateBio}
+              className="flex gap-2"
+            />
           </div>
         </div>
       ) : (

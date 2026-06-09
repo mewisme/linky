@@ -2,10 +2,11 @@
 
 import { CountryFlag } from '@/shared/ui/common/country-flag'
 import { countryByIso } from '@/shared/lib/country-by-iso'
-import { IconEdit, IconLoader2 } from '@tabler/icons-react'
-import { useEffect, useState, useTransition } from 'react'
+import { IconEdit } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
+import { FieldError } from '@ws/ui/components/ui/field'
 import { Input } from '@ws/ui/components/ui/input'
 import type { useUser } from '@clerk/nextjs'
 import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
@@ -15,6 +16,8 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { ComboboxCountry } from '@/shared/ui/common/combobox-country'
 import { ProfileAvatar } from './profile-avatar'
+import { ProfileSectionSaveActions } from './profile-section-save-actions'
+import { useProfileSectionSave } from './use-profile-section-save'
 
 type ClerkUser = NonNullable<ReturnType<typeof useUser>['user']>
 
@@ -32,14 +35,14 @@ export function ProfileHeaderSection({
   const t = useTranslations('user')
   const tRoot = useTranslations()
   const tp = useTranslations('user.profile')
-  const tc = useTranslations('common')
   const locale = useLocale()
   const { play: playSound } = useSoundWithSettings()
-  const [isPending, startTransition] = useTransition()
+  const { isPending, isDone, runSave } = useProfileSectionSave()
   const [isEditing, setIsEditing] = useState(false)
   const [firstName, setFirstName] = useState(user.firstName ?? '')
   const [lastName, setLastName] = useState(user.lastName ?? '')
   const [country, setCountry] = useState(userStore?.country ?? '')
+  const [firstNameError, setFirstNameError] = useState<string | null>(null)
 
   useEffect(() => {
     setFirstName(user.firstName ?? '')
@@ -53,6 +56,7 @@ export function ProfileHeaderSection({
       setFirstName(user.firstName ?? '')
       setLastName(user.lastName ?? '')
       setCountry(userStore?.country ?? '')
+      setFirstNameError(null)
       setIsEditing(false)
     },
     { enabled: isEditing }
@@ -64,23 +68,30 @@ export function ProfileHeaderSection({
     setFirstName(user.firstName ?? '')
     setLastName(user.lastName ?? '')
     setCountry(userStore?.country ?? '')
+    setFirstNameError(null)
     setIsEditing(false)
   }
 
   const handleSave = () => {
-    startTransition(async () => {
+    if (!firstName.trim()) {
+      setFirstNameError(tp('firstNameRequired'))
+      return
+    }
+
+    runSave(async () => {
       try {
         await Promise.all([
-          user.update({ firstName, lastName }),
+          user.update({ firstName: firstName.trim(), lastName }),
           updateUserCountry(country),
         ])
         playSound('success')
         toast.success(t('profileUpdated'))
-        setIsEditing(false)
+        return true
       } catch (error: unknown) {
         toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
+        return false
       }
-    })
+    }, () => setIsEditing(false))
   }
 
   return (
@@ -94,13 +105,21 @@ export function ProfileHeaderSection({
         {isEditing ? (
           <div className="w-full space-y-3">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-              <Input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="min-w-0"
-                placeholder={tp('firstNamePlaceholder')}
-                aria-label={tp('firstNameAria')}
-              />
+              <div className="space-y-1">
+                <Input
+                  value={firstName}
+                  onChange={(e) => {
+                    setFirstName(e.target.value)
+                    if (firstNameError) setFirstNameError(null)
+                  }}
+                  className="min-w-0"
+                  placeholder={tp('firstNamePlaceholder')}
+                  aria-label={tp('firstNameAria')}
+                  aria-invalid={Boolean(firstNameError)}
+                  required
+                />
+                <FieldError errors={firstNameError ? [{ message: firstNameError }] : undefined} />
+              </div>
               <Input
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -114,17 +133,14 @@ export function ProfileHeaderSection({
                 triggerClassName="sm:w-56"
               />
             </div>
-            <div className="flex justify-end gap-2">
-              <Button name="cancel-profile-header" size="sm" variant="ghost" onClick={handleCancel}>
-                {tc('cancel')}
-              </Button>
-              <Button name="save-profile-header" size="sm" onClick={handleSave} disabled={isPending}>
-                {isPending && (
-                  <IconLoader2 className="mr-2 size-4 animate-spin" />
-                )}
-                {tc('save')}
-              </Button>
-            </div>
+            <ProfileSectionSaveActions
+              cancelName="cancel-profile-header"
+              saveName="save-profile-header"
+              isPending={isPending}
+              isDone={isDone}
+              onCancel={handleCancel}
+              onSave={handleSave}
+            />
           </div>
         ) : (
           <div className="w-full">

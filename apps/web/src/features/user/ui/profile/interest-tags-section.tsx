@@ -26,7 +26,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@ws/ui/components/ui/tooltip'
-import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Badge } from '@ws/ui/components/ui/badge'
 import { Button } from '@ws/ui/components/ui/button'
@@ -39,6 +39,8 @@ import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
+import { ProfileSectionSaveActions } from './profile-section-save-actions'
+import { useProfileSectionSave } from './use-profile-section-save'
 
 const INITIAL_TAGS_VISIBLE = 6
 
@@ -56,9 +58,8 @@ export function InterestTagsSection({
   const t = useTranslations("user");
   const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
-  const tc = useTranslations("common");
   const { play: playSound } = useSoundWithSettings()
-  const [isPending, startTransition] = useTransition()
+  const { isPending, isDone, runSave } = useProfileSectionSave()
   const [editingTags, setEditingTags] = useState(false)
   const [availableTags, setAvailableTags] = useState<ResourcesAPI.InterestTags.InterestTag[]>([])
   const [catalogLoading, setCatalogLoading] = useState(false)
@@ -103,17 +104,18 @@ export function InterestTagsSection({
   }, [userDetails])
 
   const handleUpdateTags = () => {
-    startTransition(async () => {
+    runSave(async () => {
       try {
         await updateUserDetails({ interest_tags: selectedTagIds })
         trackEvent({ name: "interest_tags_updated" })
         playSound('success')
         toast.success(t('interestTagsUpdated'))
-        setEditingTags(false)
+        return true
       } catch (error: unknown) {
         toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
+        return false
       }
-    })
+    }, () => setEditingTags(false))
   }
 
   const toggleTag = (tagId: string) => {
@@ -271,34 +273,22 @@ export function InterestTagsSection({
             </TagsContent>
           </Tags>
 
-          <div className="flex justify-end gap-2">
-            <Button
-              name="cancel-interests"
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setSelectedTagIds(
-                  userDetails?.interest_tags
-                    ?.filter((tag) => tag.is_active)
-                    .map((tag) => tag.id) || []
-                )
-                setEditingTags(false)
-              }}
-            >
-              {tc("cancel")}
-            </Button>
-            <Button
-              name="save-interests"
-              size="sm"
-              onClick={handleUpdateTags}
-              disabled={isPending || catalogLoading}
-            >
-              {isPending && (
-                <IconLoader2 className="mr-2 size-4 animate-spin" />
-              )}
-              {tc("save")}
-            </Button>
-          </div>
+          <ProfileSectionSaveActions
+            cancelName="cancel-interests"
+            saveName="save-interests"
+            isPending={isPending}
+            isDone={isDone}
+            onCancel={() => {
+              setSelectedTagIds(
+                userDetails?.interest_tags
+                  ?.filter((tag) => tag.is_active)
+                  .map((tag) => tag.id) || []
+              )
+              setEditingTags(false)
+            }}
+            onSave={handleUpdateTags}
+            saveDisabled={catalogLoading}
+          />
         </div>
       ) : (
         <>

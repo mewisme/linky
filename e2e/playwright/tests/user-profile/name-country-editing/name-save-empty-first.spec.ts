@@ -25,6 +25,6 @@ test.describe('Profile — Name & Country Editing', () => {
 
     await expect(page.getByText(/first name cannot be empty/i)).toBeVisible();
     await expect(page.getByText(/profile updated/i)).not.toBeVisible();
-    await expect(page.getByRole('button', { name: /save/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^save$/i })).toBeVisible();
   });
 });

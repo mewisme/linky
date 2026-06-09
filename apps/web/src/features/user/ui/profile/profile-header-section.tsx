@@ -15,7 +15,13 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
 import { ComboboxCountry } from '@/shared/ui/common/combobox-country'
+import {
+  sanitizePlainText,
+  validateOptionalProfileName,
+  validateProfileName,
+} from '@/shared/lib/sanitize-plain-text'
 import { ProfileAvatar } from './profile-avatar'
+import { resolveProfileNameErrorMessage } from './profile-field-errors'
 import { ProfileSectionSaveActions } from './profile-section-save-actions'
 import { useProfileSectionSave } from './use-profile-section-save'
 
@@ -43,6 +49,7 @@ export function ProfileHeaderSection({
   const [lastName, setLastName] = useState(user.lastName ?? '')
   const [country, setCountry] = useState(userStore?.country ?? '')
   const [firstNameError, setFirstNameError] = useState<string | null>(null)
+  const [lastNameError, setLastNameError] = useState<string | null>(null)
 
   useEffect(() => {
     setFirstName(user.firstName ?? '')
@@ -57,6 +64,7 @@ export function ProfileHeaderSection({
       setLastName(user.lastName ?? '')
       setCountry(userStore?.country ?? '')
       setFirstNameError(null)
+      setLastNameError(null)
       setIsEditing(false)
     },
     { enabled: isEditing }
@@ -69,19 +77,27 @@ export function ProfileHeaderSection({
     setLastName(user.lastName ?? '')
     setCountry(userStore?.country ?? '')
     setFirstNameError(null)
+    setLastNameError(null)
     setIsEditing(false)
   }
 
   const handleSave = () => {
-    if (!firstName.trim()) {
-      setFirstNameError(tp('firstNameRequired'))
+    const nextFirstNameError = resolveProfileNameErrorMessage(tp, validateProfileName(firstName))
+    const nextLastNameError = resolveProfileNameErrorMessage(tp, validateOptionalProfileName(lastName))
+
+    setFirstNameError(nextFirstNameError)
+    setLastNameError(nextLastNameError)
+    if (nextFirstNameError || nextLastNameError) {
       return
     }
+
+    const safeFirstName = sanitizePlainText(firstName)
+    const safeLastName = sanitizePlainText(lastName)
 
     runSave(async () => {
       try {
         await Promise.all([
-          user.update({ firstName: firstName.trim(), lastName }),
+          user.update({ firstName: safeFirstName, lastName: safeLastName }),
           updateUserCountry(country),
         ])
         playSound('success')
@@ -120,13 +136,20 @@ export function ProfileHeaderSection({
                 />
                 <FieldError errors={firstNameError ? [{ message: firstNameError }] : undefined} />
               </div>
-              <Input
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="min-w-0"
-                placeholder={tp('lastNamePlaceholder')}
-                aria-label={tp('lastNameAria')}
-              />
+              <div className="space-y-1">
+                <Input
+                  value={lastName}
+                  onChange={(e) => {
+                    setLastName(e.target.value)
+                    if (lastNameError) setLastNameError(null)
+                  }}
+                  className="min-w-0"
+                  placeholder={tp('lastNamePlaceholder')}
+                  aria-label={tp('lastNameAria')}
+                  aria-invalid={Boolean(lastNameError)}
+                />
+                <FieldError errors={lastNameError ? [{ message: lastNameError }] : undefined} />
+              </div>
               <ComboboxCountry
                 country={country}
                 setCountry={setCountry}

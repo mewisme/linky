@@ -995,6 +995,8 @@
       "lastNamePlaceholder": "Họ",
       "firstNameAria": "Tên",
       "firstNameRequired": "Tên không được để trống.",
+      "invalidCharacters": "Ký tự không hợp lệ trong dữ liệu nhập.",
+      "nameTooLong": "Tên không được vượt quá {max} ký tự.",
       "lastNameAria": "Họ",
       "selectGender": "Chọn giới tính",
       "tellAboutYourself": "Giới thiệu về bạn...",

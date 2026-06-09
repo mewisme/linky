@@ -4,7 +4,12 @@ import { IconEdit, IconInfoCircle } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@ws/ui/components/ui/button'
+import { FieldError } from '@ws/ui/components/ui/field'
 import { Textarea } from '@ws/ui/components/ui/textarea'
+import {
+  sanitizePlainText,
+  validateProfileBio,
+} from '@/shared/lib/sanitize-plain-text'
 import type { UserDetails } from '@/entities/user/model/user-store'
 import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
 import { toast } from "@ws/ui/components/ui/sonner";
@@ -31,13 +36,19 @@ export function BioSection({
   const { isPending, isDone, runSave } = useProfileSectionSave()
   const [editingBio, setEditingBio] = useState(false)
   const [bio, setBio] = useState('')
+  const [bioError, setBioError] = useState<string | null>(null)
 
   useEffect(() => {
     setBio(userDetails?.bio ?? '')
   }, [userDetails])
 
   const handleUpdateBio = () => {
-    const value = bio.trim() || null
+    if (validateProfileBio(bio)) {
+      setBioError(tp('invalidCharacters'))
+      return
+    }
+
+    const value = sanitizePlainText(bio, true) || null
     runSave(async () => {
       try {
         await updateUserDetails({ bio: value })
@@ -73,14 +84,21 @@ export function BioSection({
       </div>
       {editingBio ? (
         <div className="space-y-3">
-          <Textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
-            placeholder={tp("tellAboutYourself")}
-            className="min-h-[100px] w-full resize-y"
-            maxLength={BIO_MAX_LENGTH}
-            aria-label={tp("bioAria")}
-          />
+          <div className="space-y-1">
+            <Textarea
+              value={bio}
+              onChange={(e) => {
+                setBio(e.target.value.slice(0, BIO_MAX_LENGTH))
+                if (bioError) setBioError(null)
+              }}
+              placeholder={tp("tellAboutYourself")}
+              className="min-h-[100px] w-full resize-y"
+              maxLength={BIO_MAX_LENGTH}
+              aria-label={tp("bioAria")}
+              aria-invalid={Boolean(bioError)}
+            />
+            <FieldError errors={bioError ? [{ message: bioError }] : undefined} />
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground" aria-live="polite">
               {bio.length}/{BIO_MAX_LENGTH}
@@ -92,6 +110,7 @@ export function BioSection({
               isDone={isDone}
               onCancel={() => {
                 setBio(userDetails?.bio ?? '')
+                setBioError(null)
                 setEditingBio(false)
               }}
               onSave={handleUpdateBio}

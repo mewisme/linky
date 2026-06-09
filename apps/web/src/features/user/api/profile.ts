@@ -10,25 +10,49 @@ import type { UsersAPI } from '@/entities/user/types/users.types';
 import { auth } from '@clerk/nextjs/server';
 import { backendUrl } from '@/lib/http/backend-url';
 import { serverFetch } from '@/lib/http/server-api';
+import {
+  containsDangerousMarkup,
+  sanitizeProfileDetailsBody,
+} from '@/shared/lib/sanitize-plain-text';
+
+function assertSafeProfileDetails(data: UsersAPI.UserDetails.PatchMe.Body) {
+  if (typeof data.bio === 'string' && containsDangerousMarkup(data.bio)) {
+    throw new Error('PROFILE_INVALID_CHARACTERS');
+  }
+
+  if (Array.isArray(data.languages)) {
+    for (const language of data.languages) {
+      if (typeof language === 'string' && containsDangerousMarkup(language)) {
+        throw new Error('PROFILE_INVALID_CHARACTERS');
+      }
+    }
+  }
+}
 
 export async function updateUserDetails(
   data: UsersAPI.UserDetails.PatchMe.Body
 ): Promise<UsersAPI.UserDetails.PatchMe.Response> {
-  return withSentryAction("updateUserDetails", async () =>
-    serverFetch<UsersAPI.UserDetails.PatchMe.Response>(
+  return withSentryAction("updateUserDetails", async () => {
+    assertSafeProfileDetails(data);
+    const sanitized = sanitizeProfileDetailsBody(data);
+    return serverFetch<UsersAPI.UserDetails.PatchMe.Response>(
       backendUrl.users.details(),
-      { method: 'PATCH', body: JSON.stringify(data) }
-    ));
+      { method: 'PATCH', body: JSON.stringify(sanitized) }
+    );
+  });
 }
 
 export async function replaceUserDetails(
   data: UsersAPI.UserDetails.UpdateMe.Body
 ): Promise<UsersAPI.UserDetails.UpdateMe.Response> {
-  return withSentryAction("replaceUserDetails", async () =>
-    serverFetch<UsersAPI.UserDetails.UpdateMe.Response>(
+  return withSentryAction("replaceUserDetails", async () => {
+    assertSafeProfileDetails(data);
+    const sanitized = sanitizeProfileDetailsBody(data);
+    return serverFetch<UsersAPI.UserDetails.UpdateMe.Response>(
       backendUrl.users.details(),
-      { method: 'PUT', body: JSON.stringify(data) }
-    ));
+      { method: 'PUT', body: JSON.stringify(sanitized) }
+    );
+  });
 }
 
 export async function getUserDetails(): Promise<UsersAPI.UserDetails.GetMe.Response> {

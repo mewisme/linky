@@ -995,6 +995,8 @@
       "lastNamePlaceholder": "Last name",
       "firstNameAria": "First name",
       "firstNameRequired": "First name cannot be empty.",
+      "invalidCharacters": "Invalid characters in input.",
+      "nameTooLong": "Name must be {max} characters or fewer.",
       "lastNameAria": "Last name",
       "selectGender": "Select gender",
       "tellAboutYourself": "Tell us about yourself...",

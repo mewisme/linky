@@ -14,6 +14,7 @@ import (
 	"linky-api/src/internal/app/report"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/lib/plaintext"
 )
 
 const bioMaxLength = 500
@@ -109,9 +110,43 @@ func validateAndApplyDetails(c echo.Context, body map[string]any) error {
 	}
 	if bio, ok := body["bio"]; ok && bio != nil {
 		s, _ := bio.(string)
+		if plaintext.ContainsDangerousMarkup(s) {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UMDetail("PUT_DETAILS_BIO", "Bio contains invalid characters"))
+		}
+		s = plaintext.SanitizePlainText(s, true)
 		if len(s) > bioMaxLength {
 			return httpx.SendError(c, 400, "Bad Request",
 				httpx.UMDetail("PUT_DETAILS_BIO", "Bio must be 500 characters or less"))
+		}
+		if s == "" {
+			body["bio"] = nil
+		} else {
+			body["bio"] = s
+		}
+	}
+	if languages, ok := body["languages"]; ok && languages != nil {
+		arr, ok := languages.([]any)
+		if !ok {
+			return httpx.SendError(c, 400, "Bad Request",
+				httpx.UMDetail("PUT_DETAILS_VALIDATION", "languages must be an array"))
+		}
+		sanitized := make([]string, 0, len(arr))
+		for _, v := range arr {
+			s, _ := v.(string)
+			if s == "" {
+				continue
+			}
+			if plaintext.ContainsDangerousMarkup(s) {
+				return httpx.SendError(c, 400, "Bad Request",
+					httpx.UMDetail("PUT_DETAILS_VALIDATION", "languages contain invalid characters"))
+			}
+			sanitized = append(sanitized, plaintext.SanitizePlainText(s, false))
+		}
+		if len(sanitized) == 0 {
+			body["languages"] = nil
+		} else {
+			body["languages"] = sanitized
 		}
 	}
 	return nil

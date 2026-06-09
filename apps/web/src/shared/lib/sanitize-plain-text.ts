@@ -10,7 +10,7 @@ const PLAIN_TEXT_OPTIONS: sanitizeHtml.IOptions = {
 
 const DANGEROUS_MARKUP_RE = /[<>]|javascript:|data:text\/html|on\w+\s*=|\0/u
 
-export const PROFILE_NAME_MAX_LENGTH = 255
+export const PROFILE_NAME_MAX_LENGTH = 256
 
 export function containsDangerousMarkup(value: string): boolean {
   return DANGEROUS_MARKUP_RE.test(value)

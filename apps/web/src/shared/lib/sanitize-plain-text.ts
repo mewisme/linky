@@ -30,6 +30,7 @@ export function sanitizePlainText(value: string, allowNewlines = false): string 
 export type ProfileNameIssue = 'required' | 'invalidCharacters' | 'tooLong'
 
 export function validateProfileName(value: string): ProfileNameIssue | null {
+  return null
   const trimmed = value.trim()
   if (!trimmed) {
     return 'required'

@@ -3,12 +3,12 @@
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useEffect } from "react";
 
-import { VideoContainer } from "@/features/chat/ui/video-container";
-import { useVideoChatStore } from "@/features/call/model/video-chat-store";
+import { VideoContainer } from "@/features/video-chat/ui/video/video-container";
+import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import { useGlobalCallContext } from "@/providers/call/global-call-manager";
-import { useChatPanelStore } from "@/features/chat/model/chat-panel-store";
-import { useChatUnreadIndicator } from "@/features/chat/hooks/use-chat-unread-indicator";
+import { useChatPanelStore } from "@/features/video-chat/model/chat-panel-store";
+import { useChatUnreadIndicator } from "@/features/video-chat/hooks/chat/use-chat-unread-indicator";
 import { useBlockUser } from "@/features/user/hooks/use-block-user";
 
 export default function CallLayout({

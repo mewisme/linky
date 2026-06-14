@@ -19,7 +19,7 @@ fully usable for rollback.
 
 ## Old architecture summary
 
-- Frontend orchestrator: [`apps/web/src/features/call/hooks/webrtc/use-video-chat.ts`](../apps/web/src/features/call/hooks/webrtc/use-video-chat.ts)
+- Frontend orchestrator: [`apps/web/src/features/video-chat/hooks/webrtc/use-video-chat.ts`](../apps/web/src/features/video-chat/hooks/webrtc/use-video-chat.ts)
   composes `useMediaStream`, `usePeerConnection`, and `useSocketSignaling`.
 - Backend matchmaking emits `matched` to both sockets; the lower `socketId`
   becomes the offerer.

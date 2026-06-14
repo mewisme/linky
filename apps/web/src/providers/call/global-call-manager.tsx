@@ -12,10 +12,10 @@ import {
   AlertDialogTitle,
 } from "@ws/ui/components/ui/alert-dialog";
 
-import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "@/features/call/lib/webrtc/video-chat-media-errors";
-import { useVideoChat } from "@/features/call/hooks/webrtc/use-video-chat";
-import { useVideoChatStore } from "@/features/call/model/video-chat-store";
-import type { ChatMessageDraft } from "@/features/chat/types/chat-message.types";
+import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "@/features/video-chat/lib/webrtc/video-chat-media-errors";
+import { useVideoChat } from "@/features/video-chat/hooks/webrtc/use-video-chat";
+import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
+import type { ChatMessageDraft } from "@/features/video-chat/types/chat-message.types";
 import { useTranslations } from "next-intl";
 import { useLocaleChangeGuardStore } from "@/shared/model/locale-change-guard-store";
 

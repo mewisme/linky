@@ -5,4 +5,4 @@ export * from "@/entities/user/types/users.types";
 export * from "@/entities/notification/types/notifications.types";
 export * from "@/entities/call-history/types/call-history.types";
 export * from "@/features/admin/types/admin.types";
-export * from "@/features/chat/types/chat-message.types";
+export * from "@/features/video-chat/types/chat-message.types";

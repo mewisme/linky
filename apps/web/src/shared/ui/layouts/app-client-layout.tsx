@@ -4,9 +4,9 @@ import { SidebarInset, SidebarProvider } from "@ws/ui/components/animate-ui/comp
 
 import { AppHeader } from "@/shared/ui/layouts/header/app/app-header";
 import { AppSidebar } from "@/shared/ui/layouts/sidebar/app-sidebar";
-import { ChatPanelHost } from "@/features/chat/ui/chat-panel-host";
-import { FloatingCallProvider } from "@/features/call/ui/floating-call/floating-call-provider";
-import { ReactionOverlay } from "@/features/chat/ui/overlays/reaction-overlay";
+import { ChatPanelHost } from "@/features/video-chat/ui/messaging/chat-panel-host";
+import { FloatingCallProvider } from "@/features/video-chat/ui/floating-call/floating-call-provider";
+import { ReactionOverlay } from "@/features/video-chat/ui/overlays/reaction-overlay";
 import { DevOverlay } from "@/features/development/ui/dev-overlay";
 import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import { useCommandMenuStore } from "@/shared/model/command-menu-store";

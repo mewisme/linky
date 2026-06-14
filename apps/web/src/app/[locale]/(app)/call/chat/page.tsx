@@ -1,4 +1,4 @@
-import { FullChatPageClient } from "@/features/chat/ui/full-chat-page-client";
+import { FullChatPageClient } from "@/features/video-chat/ui/messaging/full-chat-page-client";
 
 export default function CallChatPage() {
   return (

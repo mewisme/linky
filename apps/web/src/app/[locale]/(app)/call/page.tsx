@@ -1,5 +1,5 @@
-import { CallPageHydrate } from "@/features/chat/ui/call-page-hydrate";
-import { ChatPageContent } from "@/features/chat/ui/chat-page-content";
+import { CallPageHydrate } from "@/features/video-chat/ui/page/call-page-hydrate";
+import { ChatPageContent } from "@/features/video-chat/ui/page/chat-page-content";
 import { Suspense } from "react";
 import { getFavorites } from "@/actions/resources/favorites";
 import { getUserProgress } from "@/features/user/api/profile";

@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
-import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/features/chat/types/chat-message.types";
+import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/features/video-chat/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
 
 import type { UsersAPI } from "@/entities/user/types/users.types";

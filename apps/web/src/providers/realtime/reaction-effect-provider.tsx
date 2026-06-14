@@ -8,7 +8,7 @@ import { useSocket } from "@/features/realtime/hooks/use-socket";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
-import { useVideoChatStore } from "@/features/call/model/video-chat-store";
+import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { LEVEL_UP_BURST_REACTIONS, STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
 import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";

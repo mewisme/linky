@@ -16,7 +16,7 @@ import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 
 import { useUserContext } from "@/providers/user/user-provider";
 import { useSocketStore } from "@/features/realtime/model/socket-store";
-import { useVideoChatStore } from "@/features/call/model/video-chat-store";
+import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 
 let lastSyncedTimezone: string | null = null;
 

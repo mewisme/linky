@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { useRef, useCallback, useEffect, useMemo, type RefObject } from "react";
 import { publishPresence } from "@/lib/realtime/presence";
 import { type RealtimePeerTracksPayload, type VideoMediaProvider } from "@/lib/realtime/socket";
-import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/features/chat/types/chat-message.types";
+import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload, ChatMessageInputPayload, ChatSendAck } from "@/features/video-chat/types/chat-message.types";
 import { socketHealthMonitor } from "@/lib/realtime/socket-health";
 import type { Socket } from "socket.io-client";
 import type { UsersAPI } from "@/entities/user/types/users.types";

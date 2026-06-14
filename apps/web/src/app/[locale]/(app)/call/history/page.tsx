@@ -1,4 +1,4 @@
-import { CallHistoryClient } from "@/features/chat/ui/call-history-client";
+import { CallHistoryClient } from "@/features/video-chat/ui/page/call-history-client";
 import { getCallHistory } from "@/actions/resources/call-history";
 
 export default async function CallHistoryPage() {

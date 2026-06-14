@@ -4,8 +4,8 @@ import { isAppLocale, type AppLocale } from "@/shared/types/app-locale.types";
 import { useLocale } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
-import { isVideoChatBlockingLocaleChange } from "@/features/call/lib/video-chat-locale-block";
-import { useVideoChatStore } from "@/features/call/model/video-chat-store";
+import { isVideoChatBlockingLocaleChange } from "@/features/video-chat/lib/video-chat-locale-block";
+import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 import { useRouter, usePathname } from "@/i18n/navigation";
 
 import { useLocalePreferenceStore } from "@/shared/model/locale-preference-store";

@@ -97,8 +97,7 @@ Clerk dashboard tips:
 
 | Feature | Path / notes |
 | --- | --- |
-| `call` | WebRTC (`features/call/hooks/webrtc/`), floating PiP (`features/call/ui/floating-call/`) |
-| `chat` | In-call UI, controls, message list |
+| `video-chat` | WebRTC (`features/video-chat/hooks/webrtc/`), in-call messaging (`ui/messaging/`), video surface (`ui/video/`), floating PiP (`ui/floating-call/`) |
 | `realtime` | Socket store, `use-socket`, signaling integration |
 | `user` | Profile, settings, progress, security, appearance |
 | `admin` | Dashboard, users, reports, broadcasts, interest tags, rewards |

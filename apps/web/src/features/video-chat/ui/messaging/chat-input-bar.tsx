@@ -177,6 +177,7 @@ export function ChatInputBar({
         accept="image/*"
         onChange={handleFileChange}
         className="hidden"
+        data-testid="chat-file-input"
       />
 
       <InputGroup>
@@ -192,7 +193,9 @@ export function ChatInputBar({
             }
           }}
           disabled={!isInCall}
-          placeholder={t("placeholder")} />
+          placeholder={t("placeholder")}
+          data-testid="chat-input"
+        />
         <InputGroupAddon align="block-end">
           <InputGroupButton
             variant={'ghost'}
@@ -201,6 +204,7 @@ export function ChatInputBar({
             aria-label={t("sendImageAria")}
             disabled={!isInCall}
             onClick={() => fileInputRef.current?.click()}
+            data-testid="chat-send-image-button"
           >
             <IconPhoto />
           </InputGroupButton>
@@ -222,6 +226,7 @@ export function ChatInputBar({
               className="rounded-full"
               size="icon-sm"
               aria-label={t("sendGifAria")}
+              data-testid="chat-giphy-button"
             >
               <IconMoodSmile />
             </InputGroupButton>
@@ -232,6 +237,7 @@ export function ChatInputBar({
             onClick={handleSend}
             disabled={!canSend || isPreparingAttachment}
             size="icon-xs"
+            data-testid="chat-send-button"
           >
             <IconArrowUp />
             <span className="sr-only">{t("sendMessageSrOnly")}</span>

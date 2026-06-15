@@ -78,7 +78,7 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" data-testid="chat-stream-quality-dialog">
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
@@ -87,6 +87,7 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
           value={draft}
           onValueChange={(value) => setDraft(value as StreamVideoQuality)}
           className="gap-3 py-2"
+          data-testid="chat-stream-quality-options"
         >
           {STREAM_VIDEO_QUALITY_VALUES.map((quality) => {
             const id = `stream-quality-${quality}`;
@@ -95,6 +96,7 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
                 key={quality}
                 htmlFor={id}
                 className="flex cursor-pointer items-start gap-3 rounded-md border bg-card p-3 text-card-foreground transition-colors hover:bg-accent has-[[data-state=checked]]:border-primary"
+                data-testid={`chat-stream-quality-option-${quality}`}
               >
                 <RadioGroupItem id={id} value={quality} className="mt-1" />
                 <div className="flex flex-col">
@@ -108,10 +110,15 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
           })}
         </RadioGroup>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+            data-testid="chat-stream-quality-cancel-button"
+          >
             {tCommon("cancel")}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving} data-testid="chat-stream-quality-save-button">
             {isSaving ? t("saving") : tCommon("save")}
           </Button>
         </DialogFooter>

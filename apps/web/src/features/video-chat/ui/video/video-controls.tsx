@@ -424,6 +424,7 @@ export function VideoControls({
         variant: "outline",
         onClick: () => { },
         visible: isInActiveCall && !!peerInfo,
+        testId: "chat-peer-info-button",
       },
       {
         id: "favorite",
@@ -446,6 +447,7 @@ export function VideoControls({
         variant: "outline",
         onClick: () => { },
         visible: isInActiveCall && !!peerInfo,
+        testId: "chat-report-button",
       },
       {
         id: "screen-share",
@@ -555,6 +557,7 @@ export function VideoControls({
           }
           : undefined
       }
+      data-testid="chat-controls-bar"
     >
       {primaryControls.map((control) => (
         <ControlButton
@@ -589,7 +592,7 @@ export function VideoControls({
       />
 
       <Dialog open={isPeerInfoOpen} onOpenChange={setIsPeerInfoOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" data-testid="chat-peer-info-dialog">
           <DialogHeader>
             <DialogTitle>{t("dialogs.peerInfo.title")}</DialogTitle>
             <DialogDescription>
@@ -599,7 +602,7 @@ export function VideoControls({
           {peerInfo && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
+                <Avatar className="h-20 w-20" data-testid="chat-peer-info-avatar">
                   <AvatarImage src={peerInfo.avatar_url || undefined} alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()} />
                   <AvatarFallback>
                     {peerInfo.first_name?.[0] || ""}
@@ -607,7 +610,7 @@ export function VideoControls({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold">
+                  <h3 className="text-lg font-semibold" data-testid="chat-peer-info-name">
                     {peerInfo.first_name || ""} {peerInfo.last_name || ""}
                   </h3>
                   {peerInfo.gender && (
@@ -656,7 +659,7 @@ export function VideoControls({
       </Dialog>
 
       <Dialog open={isReportOpen} onOpenChange={setIsReportOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" data-testid="chat-report-dialog">
           <DialogHeader>
             <DialogTitle>{t("dialogs.report.title")}</DialogTitle>
             <DialogDescription>
@@ -665,7 +668,7 @@ export function VideoControls({
           </DialogHeader>
           <div className="space-y-4">
             {peerInfo && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3" data-testid="chat-report-peer-summary">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={peerInfo.avatar_url || undefined} alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()} />
                   <AvatarFallback>
@@ -689,6 +692,7 @@ export function VideoControls({
                 onChange={(e) => setReportReason(e.target.value)}
                 rows={4}
                 className="resize-none"
+                data-testid="chat-report-reason-input"
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -699,6 +703,7 @@ export function VideoControls({
                   setReportReason("");
                 }}
                 disabled={isSubmittingReport}
+                data-testid="chat-report-cancel-button"
               >
                 {tCommon("cancel")}
               </Button>
@@ -735,6 +740,7 @@ export function VideoControls({
                   }
                 }}
                 disabled={isSubmittingReport || !reportReason.trim()}
+                data-testid="chat-report-submit-button"
               >
                 {isSubmittingReport ? t("submittingReport") : t("submitReport")}
               </Button>

@@ -97,6 +97,7 @@ export function ChatSidebar({
       <SheetContent
         side="right"
         className="p-0 [&>button]:hidden z-110"
+        data-testid="chat-sidebar-sheet"
       >
         <SheetHeader className="flex flex-row items-center justify-between border-t border-b p-4">
           <SheetTitle>{t("sheetTitle")}</SheetTitle>
@@ -106,6 +107,7 @@ export function ChatSidebar({
               size="sm"
               onClick={() => router.push("/call/chat")}
               className="gap-1.5 shrink-0"
+              data-testid="chat-open-full-page-button"
             >
               <IconMaximize className="size-4" />
               {t("openFullChat")}

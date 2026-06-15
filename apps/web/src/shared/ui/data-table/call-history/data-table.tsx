@@ -19,14 +19,16 @@ export function CallHistoryDataTable({ initialData, isLoading = false, className
   const tableColumns = useCallHistoryColumns(callbacks)
 
   return (
-    <DataTable
-      initialData={initialData}
-      isLoading={isLoading}
-      loadingTitle={t('callHistory.loadingTitle')}
-      initialColumnVisibility={{ id: false }}
-      columns={tableColumns}
-      className={cn(className)}
-      leftColumnVisibilityContent={leftColumnVisibilityContent}
-    />
+    <div data-testid="call-history-table">
+      <DataTable
+        initialData={initialData}
+        isLoading={isLoading}
+        loadingTitle={t('callHistory.loadingTitle')}
+        initialColumnVisibility={{ id: false }}
+        columns={tableColumns}
+        className={cn(className)}
+        leftColumnVisibilityContent={leftColumnVisibilityContent}
+      />
+    </div>
   )
 }

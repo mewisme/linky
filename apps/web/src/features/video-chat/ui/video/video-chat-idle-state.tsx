@@ -105,7 +105,7 @@ export function VideoChatIdleState({
           className="flex w-full flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
           style={{ animationFillMode: "backwards" }}
           aria-busy={showFullCardSkeleton}
-          data-name="video-chat-idle-state"
+          data-testid="chat-idle-progress-card"
         >
           {showFullCardSkeleton ? (
             <div

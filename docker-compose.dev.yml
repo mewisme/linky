@@ -3,14 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: mewthedev/linky-dev:latest
-    container_name: linky-api-dev
+    image: mewthedev/linky:latest
+    container_name: linky-api
     ports:
       - "${PORT:-7270}:${PORT:-7270}"
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       JOB_WORKER_CONCURRENCY: 4
-      REDIS_URL: redis://linky-redis-dev:6379
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/postgres}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${PORT:-7270}/healthz"]
@@ -21,14 +22,37 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      db:
+        condition: service_healthy
     networks:
-      - linky-network-dev
+      - linky-network
     env_file:
       - .env
 
+  db:
+    image: postgres:17-alpine
+    container_name: linky-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - linky-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
   redis:
     image: redis:8-alpine
-    container_name: linky-redis-dev
+    container_name: linky-redis
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       interval: 1m30s
@@ -39,11 +63,13 @@ services:
       - redis-data:/data
     restart: unless-stopped
     networks:
-      - linky-network-dev
+      - linky-network
+      
 
 volumes:
   redis-data:
+  db-data:
 
 networks:
-  linky-network-dev:
+  linky-network:
     driver: bridge

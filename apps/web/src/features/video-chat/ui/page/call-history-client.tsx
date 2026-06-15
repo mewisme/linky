@@ -27,13 +27,19 @@ export function CallHistoryClient({ initialData }: Props) {
 
   return (
     <AppLayout sidebarItem="callHistory">
-      <CallHistoryDataTable
-        initialData={data?.data || []}
-        isLoading={isPending}
-        leftColumnVisibilityContent={
-          <DataTableRefreshButton onClick={() => void refetch()} isFetching={isFetching} />
-        }
-      />
+      <div data-testid="call-history-page">
+        <CallHistoryDataTable
+          initialData={data?.data || []}
+          isLoading={isPending}
+          leftColumnVisibilityContent={
+            <DataTableRefreshButton
+              onClick={() => void refetch()}
+              isFetching={isFetching}
+              testId="call-history-refresh-button"
+            />
+          }
+        />
+      </div>
     </AppLayout>
   )
 }

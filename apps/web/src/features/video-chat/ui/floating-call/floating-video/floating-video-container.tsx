@@ -376,6 +376,7 @@ export function FloatingVideoContainer({
         ...(maxHeightVh ? { maxHeight: `${maxHeightVh}vh` } : {}),
         ...(isDragging ? { willChange: "transform" } : {}),
       }}
+      data-testid="chat-floating-video-overlay"
       animate={
         dragPosition || position
           ? {

@@ -31,13 +31,14 @@ export function FullChatPageClient() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" data-testid="chat-full-page-client">
       <header className="flex shrink-0 items-center justify-between bg-background px-4 py-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => router.push("/call")}
           className="gap-2"
+          data-testid="chat-back-to-call-button"
         >
           <IconArrowLeft className="size-4" />
           {t("backToCall")}

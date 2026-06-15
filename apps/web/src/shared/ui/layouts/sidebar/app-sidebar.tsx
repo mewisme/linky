@@ -144,7 +144,7 @@ export function AppSidebar() {
                                 isActive={isHrefActive(subItem.href)}
                                 asChild
                               >
-                                <Link href={subItem.href || '#'}>
+                                <Link href={subItem.href || '#'} data-testid={`sidebar-nav-${subItem.id}`}>
                                   <div className={menuIconFrameClassName}>
                                     <subItem.icon className={menuIconGlyphClassName} />
                                   </div>
@@ -169,7 +169,7 @@ export function AppSidebar() {
                       isActive={isHrefActive(item.href)}
                       asChild
                     >
-                      <Link href={item.href || '#'}>
+                      <Link href={item.href || '#'} data-testid={`sidebar-nav-${item.id}`}>
                         <div className={menuIconFrameClassName}>
                           <item.icon className={menuIconGlyphClassName} />
                         </div>

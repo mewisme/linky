@@ -270,6 +270,7 @@
     "connectionUnstable": "Kết nối không ổn định",
     "failedToSend": "Gửi thất bại",
     "sending": "Đang gửi...",
+    "peerTyping": "Đang nhập...",
     "loadingGiphy": "Đang tải GIF…",
     "searchGifsPlaceholder": "Tìm GIF",
     "attachmentAlt": "Tệp đính kèm chat",

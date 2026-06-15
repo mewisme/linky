@@ -162,7 +162,7 @@ export function ChatMessageList({
         );
       })}
       {isPeerTyping && (
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex gap-2" data-testid="chat-typing-indicator">
           <Avatar className="size-8 shrink-0">
             <AvatarImage
               src={peerInfo?.avatarUrl ?? undefined}
@@ -179,7 +179,7 @@ export function ChatMessageList({
                 "bg-background/60 text-foreground"
               )}
             >
-              Peer is typing...
+              {t("peerTyping")}
             </div>
           </div>
         </div>

@@ -299,6 +299,7 @@ export function VideoContainer({
         className="relative w-full overflow-hidden bg-transparent"
         style={{ height: `${containerHeight}px` }}
         data-testid="chat-video-container-passive"
+        data-connection-status={connectionStatus}
       >
         <PassiveTabBanner />
       </div>
@@ -311,6 +312,7 @@ export function VideoContainer({
       className="relative w-full overflow-hidden bg-transparent"
       style={{ height: `${containerHeight}px` }}
       data-testid="chat-video-container"
+      data-connection-status={connectionStatus}
     >
       {hasPeer ? (
         <>
@@ -368,6 +370,7 @@ export function VideoContainer({
             {remoteMuted && (
               <div
                 className={`absolute z-10 flex items-center justify-center rounded-full bg-black/60 p-2 ${isMobile ? "top-4 left-4" : "top-4 right-4"}`}
+                data-testid="chat-remote-muted-indicator"
               >
                 <IconMicrophoneOff className="size-5 text-white" />
               </div>
@@ -408,7 +411,7 @@ export function VideoContainer({
                   )}
                 </>
               ) : null}
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 pointer-events-none">
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 pointer-events-none" data-testid="chat-matched-connecting">
                 <span className="rounded-full bg-black/60 px-4 py-2 text-sm font-medium text-white">
                   {tCall("connectingToPeer")}
                 </span>

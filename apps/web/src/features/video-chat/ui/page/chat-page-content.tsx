@@ -42,9 +42,9 @@ export function ChatPageContent() {
   return (
     <>
       {isFloatingMode && isInActiveCall && (
-        <div className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4">
+        <div className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4" data-testid="chat-minimized-state">
           <p className="text-lg text-muted-foreground">{t("callMinimized")}</p>
-          <Button onClick={handleRestoreFullUI} size="lg">
+          <Button onClick={handleRestoreFullUI} size="lg" data-testid="chat-restore-full-view-button">
             {t("restoreFullView")}
           </Button>
         </div>

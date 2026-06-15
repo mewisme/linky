@@ -118,7 +118,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
         <CardContent
           className="flex w-full flex-col items-center gap-5 px-6 py-6 sm:px-8 sm:py-7"
           style={{ animationFillMode: "backwards" }}
-          data-name="video-chat-searching-state"
+          data-testid="chat-searching-card"
         >
           <div className="flex min-h-34 flex-col items-center gap-5 text-center">
             <h2 className="text-lg font-semibold text-foreground sm:text-xl">
@@ -147,6 +147,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                   className="text-xs text-muted-foreground"
+                  data-testid="chat-search-queue-status"
                 >
                   {motivationalStat}
                 </motion.p>
@@ -164,6 +165,7 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.3 }}
                   className="w-full text-center text-xs leading-5 text-muted-foreground"
+                  data-testid="chat-search-hint"
                 >
                   {hints[hintIndex]}
                 </motion.p>

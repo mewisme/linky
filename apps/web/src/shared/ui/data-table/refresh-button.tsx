@@ -9,11 +9,8 @@ import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
 interface DataTableRefreshButtonProps {
   onClick: () => void;
   isFetching?: boolean;
-  /**
-   * Optional override for the tooltip text. Defaults to the generic
-   * `dataTable.common.refreshTooltip` string.
-   */
   tooltip?: string;
+  testId?: string;
 }
 
 /**
@@ -24,6 +21,7 @@ export function DataTableRefreshButton({
   onClick,
   isFetching = false,
   tooltip,
+  testId = "data-table-refresh-button",
 }: DataTableRefreshButtonProps) {
   const t = useTranslations("dataTable.common");
   return (
@@ -34,6 +32,7 @@ export function DataTableRefreshButton({
         onClick={onClick}
         disabled={isFetching}
         aria-label={tooltip ?? t("refreshTooltip")}
+        data-testid={testId}
       >
         <IconRefresh className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
       </Button>

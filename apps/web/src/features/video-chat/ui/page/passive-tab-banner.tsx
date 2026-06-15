@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 export function PassiveTabBanner() {
   const t = useTranslations("call.passiveTab");
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-muted/50 p-8">
+    <div className="flex h-full w-full flex-col items-center justify-center bg-muted/50 p-8" data-testid="chat-passive-tab-banner">
       <div className="max-w-md space-y-6 text-center">
         <div className="flex justify-center">
           <div className="rounded-full bg-primary/10 p-4">

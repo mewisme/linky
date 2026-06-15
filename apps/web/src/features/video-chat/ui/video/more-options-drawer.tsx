@@ -67,7 +67,7 @@ export function MoreOptionsDrawer({
             >
               <IconDotsVertical className="size-5" />
               {hasUnreadIndicator && (
-                <span className="absolute right-1 top-1 flex h-3 w-3">
+                <span className="absolute right-1 top-1 flex h-3 w-3" data-testid="chat-unread-indicator">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
                   <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
                 </span>

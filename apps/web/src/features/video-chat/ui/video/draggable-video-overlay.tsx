@@ -256,6 +256,7 @@ export function DraggableVideoOverlay({
     <motion.div
       ref={overlayRef}
       data-reaction-exclude
+      data-testid="chat-local-video-overlay"
       className={`absolute left-0 top-0 z-10 ${isMobile ? "aspect-square" : "w-[200px] aspect-4/3"} cursor-move overflow-hidden rounded-lg border-2 border-background bg-black outline-none ring-0 touch-none select-none ${position === null ? "invisible" : ""
         }`}
       style={

@@ -270,6 +270,7 @@
     "connectionUnstable": "Unstable connection",
     "failedToSend": "Failed to send",
     "sending": "Sending...",
+    "peerTyping": "Peer is typing...",
     "loadingGiphy": "Loading GIFs…",
     "searchGifsPlaceholder": "Search GIFs",
     "attachmentAlt": "Chat attachment",

@@ -35,7 +35,7 @@ export function FullPageChatContent({
   }, [chatMessages, isPeerTyping]);
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-hidden text-base">
+    <div className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-hidden text-base" data-testid="chat-full-page">
       <ScrollArea
         ref={scrollAreaRef}
         className="min-h-0 flex-1 bg-muted/30 px-4 py-3 border mx-2 rounded-md h-full"

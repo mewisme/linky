@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import { publicEnv } from "@/shared/env/public-env";
 import {
   E2E_INJECT_STORAGE_KEY,
   E2E_REQUEST_HEADER,
@@ -12,10 +11,6 @@ export function useE2eRelaxedCall(): boolean {
   const [relaxedCall, setRelaxedCall] = useState(false);
 
   useEffect(() => {
-    if (!publicEnv.isDev) {
-      return;
-    }
-
     const key = localStorage.getItem(E2E_INJECT_STORAGE_KEY);
     if (!key) {
       return;

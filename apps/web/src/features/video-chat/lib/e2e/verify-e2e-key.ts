@@ -1,7 +1,7 @@
 import { serverEnv } from "@/shared/env/server-env";
 
 export function isE2eRelaxedCallConfigured(): boolean {
-  return serverEnv.isDev && !!serverEnv.E2E_SECRET_KEY;
+  return !!serverEnv.E2E_SECRET_KEY;
 }
 
 export function isValidE2eKey(key: string | null | undefined): boolean {

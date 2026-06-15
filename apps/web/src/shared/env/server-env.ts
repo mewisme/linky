@@ -13,6 +13,7 @@ const serverEnvSchema = z
     SENTRY_PROJECT: z.string().optional(),
     SENTRY_AUTH_TOKEN: z.string().optional(),
     SENTRY_ENABLED: z.string().optional(),
+    E2E_SECRET_KEY: z.string().optional(),
   })
   .strict();
 
@@ -22,6 +23,7 @@ const raw = {
   SENTRY_PROJECT: process.env.SENTRY_PROJECT,
   SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
   SENTRY_ENABLED: process.env.SENTRY_ENABLED,
+  E2E_SECRET_KEY: process.env.E2E_SECRET_KEY,
 };
 
 const parsed = serverEnvSchema.parse(raw);
@@ -32,6 +34,7 @@ export const serverEnv = {
   SENTRY_PROJECT: parsed.SENTRY_PROJECT,
   SENTRY_AUTH_TOKEN: parsed.SENTRY_AUTH_TOKEN,
   SENTRY_ENABLED: parsed.SENTRY_ENABLED === "true",
+  E2E_SECRET_KEY: parsed.E2E_SECRET_KEY,
   isDev: parsed.NODE_ENV === "development",
   isProd: parsed.NODE_ENV === "production",
   isTest: parsed.NODE_ENV === "test",

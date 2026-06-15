@@ -23,6 +23,9 @@ import { useReactionTrigger } from "@/features/video-chat/hooks/webrtc/use-react
 import { useStreamAspectRatio } from "@/features/video-chat/hooks/webrtc/use-stream-aspect-ratio";
 import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 import { useViewportHeight } from "@/shared/hooks/ui/use-viewport-height";
+import { useUserStore } from "@/entities/user/model/user-store";
+import { buildE2eUserSettingsAttribute } from "@/features/video-chat/lib/e2e-user-settings";
+import { useE2eRelaxedCall } from "@/features/video-chat/hooks/use-e2e-relaxed-call";
 
 interface VideoContainerProps {
   localStream: MediaStream | null;
@@ -129,6 +132,9 @@ export function VideoContainer({
   const networkQuality = useVideoChatStore((s) => s.networkQuality);
   const isVideoStalled = useVideoChatStore((s) => s.isVideoStalled);
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
+  const userSettings = useUserStore((s) => s.userSettings);
+  const e2eRelaxedCall = useE2eRelaxedCall();
+  const e2eUserSettings = buildE2eUserSettingsAttribute(userSettings, e2eRelaxedCall);
   const mirrorLocalPreview = useMirrorLocalPreview(localStream, !!isSharingScreen);
 
   const [isMounted, setIsMounted] = useState(false);
@@ -300,6 +306,7 @@ export function VideoContainer({
         style={{ height: `${containerHeight}px` }}
         data-testid="chat-video-container-passive"
         data-connection-status={connectionStatus}
+        data-user-settings={e2eUserSettings}
       >
         <PassiveTabBanner />
       </div>
@@ -313,6 +320,7 @@ export function VideoContainer({
       style={{ height: `${containerHeight}px` }}
       data-testid="chat-video-container"
       data-connection-status={connectionStatus}
+      data-user-settings={e2eUserSettings}
     >
       {hasPeer ? (
         <>

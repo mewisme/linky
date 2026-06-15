@@ -41,7 +41,7 @@ import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message
 import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
 import { isCallMediaReadyForInCall } from "@/features/video-chat/lib/webrtc/call-media-readiness";
 import { createSyntheticRemoteStream } from "@/features/video-chat/lib/webrtc/synthetic-remote-stream";
-import { publicEnv } from "@/shared/env/public-env";
+import { useE2eRelaxedCall } from "@/features/video-chat/hooks/use-e2e-relaxed-call";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -85,6 +85,9 @@ export function useVideoChat(): UseVideoChatReturn {
   const { isHealthy: isSocketHealthy } = useSocket();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const e2eRelaxedCall = useE2eRelaxedCall();
+  const e2eRelaxedCallRef = useRef(e2eRelaxedCall);
+  e2eRelaxedCallRef.current = e2eRelaxedCall;
   const { play } = useSoundWithSettings();
   const t = useTranslations();
   const resolveUserMessage = useCallback(
@@ -447,7 +450,7 @@ export function useVideoChat(): UseVideoChatReturn {
         }
         socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
 
-        if (publicEnv.E2E_RELAXED_CALL && publicEnv.isDev) {
+        if (e2eRelaxedCallRef.current) {
           actionsRef.current.setRemoteStream(createSyntheticRemoteStream(localStream));
           transportReadyRef.current = true;
           hasEnteredInCallRef.current = true;

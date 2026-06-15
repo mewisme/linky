@@ -75,6 +75,8 @@ func (s *Service) EnsureSession(ctx context.Context, room *rooms.Room, socketID 
 	if existing != nil {
 		if err := cloudflarerealtime.GetSession(ctx, existing.SessionID); err == nil {
 			return existing, nil
+		} else if cloudflarerealtime.IsSessionNotReady(err) {
+			return existing, nil
 		} else if cloudflarerealtime.IsStaleSession(err) {
 			s.cleanupParticipantSession(ctx, existing)
 			s.mu.Lock()

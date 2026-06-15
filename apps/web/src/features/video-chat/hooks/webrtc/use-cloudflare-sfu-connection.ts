@@ -49,27 +49,50 @@ function isVideoSource(source: RealtimePeerSnapshot["tracks"][number]["source"])
   return source === "camera" || source === "screen" || source === "unknown";
 }
 
-function waitForIceConnected(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {
-  if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+function isPeerReady(pc: RTCPeerConnection): boolean {
+  return (
+    pc.connectionState === "connected" ||
+    pc.iceConnectionState === "connected" ||
+    pc.iceConnectionState === "completed"
+  );
+}
+
+function waitForPeerReady(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {
+  if (isPeerReady(pc)) {
     return Promise.resolve();
   }
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
-      pc.removeEventListener("iceconnectionstatechange", onStateChange);
-      reject(new Error("ICE connection timed out"));
+      cleanup();
+      reject(new Error("Peer connection timed out"));
     }, timeoutMs);
 
     const onStateChange = () => {
-      if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
-        clearTimeout(timeoutId);
-        pc.removeEventListener("iceconnectionstatechange", onStateChange);
+      if (isPeerReady(pc)) {
+        cleanup();
         resolve();
-      } else if (pc.iceConnectionState === "failed" || pc.iceConnectionState === "closed") {
-        clearTimeout(timeoutId);
-        pc.removeEventListener("iceconnectionstatechange", onStateChange);
-        reject(new Error(`ICE connection ${pc.iceConnectionState}`));
+      } else if (
+        pc.connectionState === "failed" ||
+        pc.connectionState === "closed" ||
+        pc.iceConnectionState === "failed" ||
+        pc.iceConnectionState === "closed"
+      ) {
+        cleanup();
+        reject(
+          new Error(
+            `Peer connection ${pc.connectionState} (ice=${pc.iceConnectionState})`,
+          ),
+        );
       }
     };
+
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      pc.removeEventListener("connectionstatechange", onStateChange);
+      pc.removeEventListener("iceconnectionstatechange", onStateChange);
+    };
+
+    pc.addEventListener("connectionstatechange", onStateChange);
     pc.addEventListener("iceconnectionstatechange", onStateChange);
   });
 }
@@ -144,6 +167,8 @@ export function useCloudflareSfuConnection(
     }
 
     const promise = (async () => {
+      await waitForPeerReady(pc, ICE_CONNECTED_TIMEOUT_MS);
+
       const token = await getTokenRef.current();
       const response = await subscribeRealtimeTracks(token, { roomId, socketId, sessionId });
 
@@ -186,7 +211,6 @@ export function useCloudflareSfuConnection(
       }
 
       await trackWaiters;
-      await waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
     })();
 
     subscribeInFlightRef.current = promise;
@@ -380,7 +404,7 @@ export function useCloudflareSfuConnection(
           throw new Error("Transceivers missing mid or track after setLocalDescription");
         }
 
-        const iceConnected = waitForIceConnected(pc, ICE_CONNECTED_TIMEOUT_MS);
+        const peerReady = waitForPeerReady(pc, ICE_CONNECTED_TIMEOUT_MS);
 
         const publishResponse = await publishRealtimeTracks(token, {
           roomId,
@@ -409,7 +433,7 @@ export function useCloudflareSfuConnection(
           throw new Error("Cloudflare publish did not return a session description");
         }
 
-        await iceConnected;
+        await peerReady;
 
         const initialSnapshot = initialPeerSnapshotRef.current;
         if (initialSnapshot?.peerSessionId && initialSnapshot.tracks.length > 0) {

@@ -20,7 +20,7 @@ import (
 
 const (
 	requestTimeout         = 30 * time.Second
-	maxRetries             = 3
+	maxRetries             = 4
 	initialBackoff         = 500 * time.Millisecond
 	maxBackoff             = 4 * time.Second
 	statusCheckThreshold   = 5
@@ -121,6 +121,14 @@ func IsStaleSession(err error) bool {
 	var e *Error
 	if errors.As(err, &e) {
 		return e.Status == 410 || e.Status == 404
+	}
+	return false
+}
+
+func IsSessionNotReady(err error) bool {
+	var e *Error
+	if errors.As(err, &e) {
+		return e.Status == 425 || e.Code == "session_error"
 	}
 	return false
 }
@@ -311,8 +319,11 @@ func isRetryable(err error) bool {
 				strings.Contains(msg, "connection refused") ||
 				strings.Contains(msg, "eof")
 		}
+		if e.Code == "session_error" {
+			return true
+		}
 		switch e.Status {
-		case http.StatusRequestTimeout, http.StatusTooManyRequests,
+		case http.StatusRequestTimeout, http.StatusTooEarly, http.StatusTooManyRequests,
 			http.StatusInternalServerError, http.StatusBadGateway,
 			http.StatusServiceUnavailable, http.StatusGatewayTimeout:
 			return true
@@ -403,9 +414,6 @@ func CreateSession(ctx context.Context, body *NewSessionRequest) (*NewSessionRes
 }
 
 func AddTracks(ctx context.Context, sessionID string, body *TracksRequest) (*TracksResponse, error) {
-	if err := GetSession(ctx, sessionID); err != nil {
-		return nil, err
-	}
 	out := &TracksResponse{}
 	if err := call(ctx, http.MethodPost, "/sessions/"+sessionID+"/tracks/new", body, out); err != nil {
 		return nil, err

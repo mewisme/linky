@@ -111,7 +111,9 @@ export function AppSidebar() {
                       state === 'collapsed' && 'cursor-pointer transition-colors duration-300',
                     )}>
                       <CollapsibleTrigger asChild>
-                        <SidebarMenuButton className={cn(
+                        <SidebarMenuButton
+                          data-testid={`sidebar-nav-${item.id}`}
+                          className={cn(
                           menuButtonIconRailClassName,
                           isSubItemActive
                             ? 'text-primary'

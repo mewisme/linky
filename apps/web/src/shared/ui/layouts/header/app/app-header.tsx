@@ -22,7 +22,7 @@ export function AppHeader() {
 
         <div className="flex items-center space-x-4">
           <Button variant="outline" size="icon" asChild>
-            <SidebarTrigger />
+            <SidebarTrigger data-testid="sidebar-trigger" />
           </Button>
 
           {!isMobile && (

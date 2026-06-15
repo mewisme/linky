@@ -389,7 +389,30 @@ export function VideoContainer({
       ) : (
         <>
           {connectionStatus === "searching" ? (
-            <VideoChatSearchingState progress={initialProgress} onEndCall={onEndCall} />
+            <>
+              {localStream ? (
+                <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
+                  <VideoPlayer
+                    stream={localStream}
+                    muted
+                    playsInline
+                    aspectRatio={displayAspectRatio ?? undefined}
+                    className="max-h-full max-w-full"
+                    objectFit="contain"
+                    isMobile={isMobile}
+                    mirrored={mirrorLocalPreview}
+                  />
+                  {isVideoOff && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted" data-testid="chat-camera-off-indicator">
+                      <IconVideoOff className="size-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              ) : null}
+              <div className="absolute inset-0 z-10">
+                <VideoChatSearchingState progress={initialProgress} onEndCall={onEndCall} />
+              </div>
+            </>
           ) : connectionStatus === "matched" ? (
             <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
               {localStream ? (

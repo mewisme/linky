@@ -7,18 +7,34 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/logger"
 )
 
-const requestTimeout = 10 * time.Second
+const (
+	requestTimeout         = 30 * time.Second
+	maxRetries             = 3
+	initialBackoff         = 500 * time.Millisecond
+	maxBackoff             = 4 * time.Second
+	statusCheckThreshold   = 5
+	statusCheckCooldown    = 5 * time.Minute
+	cloudflareStatusAPIURL = "https://www.cloudflarestatus.com/api/v2/status.json"
+)
 
-var log = logger.New("infra:cloudflare-realtime")
+var (
+	log        = logger.New("infra:cloudflare-realtime")
+	httpClient = &http.Client{Timeout: requestTimeout}
+
+	consecutiveFailures atomic.Int64
+	lastStatusCheck     atomic.Int64
+)
 
 type SDPDescription struct {
 	SDP  string `json:"sdp"`
@@ -142,6 +158,52 @@ func appPath(suffix string) (string, error) {
 }
 
 func call(ctx context.Context, method, path string, body interface{}, out interface{}) error {
+	var payload []byte
+	if !isNilBody(body) {
+		var err error
+		payload, err = json.Marshal(body)
+		if err != nil {
+			return err
+		}
+	}
+
+	var lastErr error
+	backoff := initialBackoff
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			if !isRetryable(lastErr) {
+				break
+			}
+			log.Warn().
+				Str("method", method).
+				Str("path", path).
+				Int("attempt", attempt+1).
+				Dur("backoff", backoff).
+				Err(lastErr).
+				Msg("Retrying Cloudflare Realtime request")
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+			}
+			backoff = min(backoff*2, maxBackoff)
+		}
+
+		lastErr = doRequest(ctx, method, path, payload, out, attempt+1)
+		if lastErr == nil {
+			recordSuccess()
+			return nil
+		}
+		if !isRetryable(lastErr) {
+			break
+		}
+	}
+
+	recordFailure()
+	return lastErr
+}
+
+func doRequest(ctx context.Context, method, path string, payload []byte, out interface{}, attempt int) error {
 	_, secret, _, err := ensureConfigured()
 	if err != nil {
 		return err
@@ -150,31 +212,45 @@ func call(ctx context.Context, method, path string, body interface{}, out interf
 	if err != nil {
 		return err
 	}
+
 	var reader io.Reader
-	if !isNilBody(body) {
-		buf, err := json.Marshal(body)
-		if err != nil {
-			return err
-		}
-		reader = bytes.NewReader(buf)
+	if len(payload) > 0 {
+		reader = bytes.NewReader(payload)
 	}
 
 	reqCtx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()
 
+	start := time.Now()
 	req, err := http.NewRequestWithContext(reqCtx, method, url, reader)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", "Bearer "+secret)
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+
+	resp, err := httpClient.Do(req)
+	duration := time.Since(start)
 	if err != nil {
-		log.Error().Err(err).Str("method", method).Str("path", path).Msg("Cloudflare Realtime request failed")
+		logEvent := log.Error().
+			Err(err).
+			Str("method", method).
+			Str("path", path).
+			Int("attempt", attempt).
+			Dur("duration", duration)
+		logEvent.Msg("Cloudflare Realtime request failed")
 		return &Error{Status: 502, Code: "REALTIME_FETCH_FAILED", Message: err.Error()}
 	}
 	defer resp.Body.Close()
+
 	raw, _ := io.ReadAll(resp.Body)
+	cfRay := resp.Header.Get("Cf-Ray")
+	cfRequestID := resp.Header.Get("Cf-Request-Id")
+	requestID := cfRay
+	if requestID == "" {
+		requestID = cfRequestID
+	}
+
 	if resp.StatusCode >= 400 {
 		var parsed struct {
 			ErrorCode        string `json:"errorCode"`
@@ -185,14 +261,125 @@ func call(ctx context.Context, method, path string, body interface{}, out interf
 		if message == "" {
 			message = strings.TrimSpace(string(raw))
 		}
+		log.Warn().
+			Str("method", method).
+			Str("path", path).
+			Int("status", resp.StatusCode).
+			Int("attempt", attempt).
+			Dur("duration", duration).
+			Str("requestId", requestID).
+			Str("errorCode", parsed.ErrorCode).
+			Msg("Cloudflare Realtime upstream error")
 		return &Error{Status: resp.StatusCode, StatusText: resp.Status, Code: parsed.ErrorCode, Message: message}
 	}
+
+	log.Debug().
+		Str("method", method).
+		Str("path", path).
+		Int("status", resp.StatusCode).
+		Int("attempt", attempt).
+		Dur("duration", duration).
+		Str("requestId", requestID).
+		Msg("Cloudflare Realtime request succeeded")
+
 	if out != nil && len(raw) > 0 {
 		if err := json.Unmarshal(raw, out); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func isRetryable(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+		return errors.Is(err, context.DeadlineExceeded)
+	}
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
+		return true
+	}
+	var e *Error
+	if errors.As(err, &e) {
+		if e.Code == "REALTIME_FETCH_FAILED" {
+			msg := strings.ToLower(e.Message)
+			return strings.Contains(msg, "timeout") ||
+				strings.Contains(msg, "deadline exceeded") ||
+				strings.Contains(msg, "connection reset") ||
+				strings.Contains(msg, "connection refused") ||
+				strings.Contains(msg, "eof")
+		}
+		switch e.Status {
+		case http.StatusRequestTimeout, http.StatusTooManyRequests,
+			http.StatusInternalServerError, http.StatusBadGateway,
+			http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+			return true
+		}
+	}
+	return false
+}
+
+func recordSuccess() {
+	consecutiveFailures.Store(0)
+}
+
+func recordFailure() {
+	if consecutiveFailures.Add(1) >= statusCheckThreshold {
+		maybeCheckCloudflareStatus()
+	}
+}
+
+func maybeCheckCloudflareStatus() {
+	now := time.Now().UnixNano()
+	last := lastStatusCheck.Load()
+	if now-last < int64(statusCheckCooldown) {
+		return
+	}
+	if !lastStatusCheck.CompareAndSwap(last, now) {
+		return
+	}
+	go checkCloudflareStatus()
+}
+
+func checkCloudflareStatus() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, cloudflareStatusAPIURL, nil)
+	if err != nil {
+		return
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Warn().Err(err).Msg("Failed to fetch Cloudflare status page")
+		return
+	}
+	defer resp.Body.Close()
+
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+	if err != nil {
+		log.Warn().Err(err).Msg("Failed to read Cloudflare status page")
+		return
+	}
+
+	var status struct {
+		Status struct {
+			Indicator   string `json:"indicator"`
+			Description string `json:"description"`
+		} `json:"status"`
+	}
+	if err := json.Unmarshal(raw, &status); err != nil {
+		log.Warn().Err(err).Msg("Failed to parse Cloudflare status page")
+		return
+	}
+
+	log.Warn().
+		Str("indicator", status.Status.Indicator).
+		Str("description", status.Status.Description).
+		Int64("consecutiveFailures", consecutiveFailures.Load()).
+		Msg("Cloudflare Realtime: repeated failures — Cloudflare platform status")
 }
 
 func isNilBody(body interface{}) bool {
@@ -216,6 +403,9 @@ func CreateSession(ctx context.Context, body *NewSessionRequest) (*NewSessionRes
 }
 
 func AddTracks(ctx context.Context, sessionID string, body *TracksRequest) (*TracksResponse, error) {
+	if err := GetSession(ctx, sessionID); err != nil {
+		return nil, err
+	}
 	out := &TracksResponse{}
 	if err := call(ctx, http.MethodPost, "/sessions/"+sessionID+"/tracks/new", body, out); err != nil {
 		return nil, err

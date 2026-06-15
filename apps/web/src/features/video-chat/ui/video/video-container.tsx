@@ -376,7 +376,7 @@ export function VideoContainer({
               </div>
             )}
           </div>
-          {isLocalCameraOn && (
+          {localStream && (
             <DraggableVideoOverlay
               localStream={localStream}
               isVideoOff={isVideoOff}

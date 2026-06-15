@@ -40,6 +40,8 @@ import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-erro
 import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
 import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
 import { isCallMediaReadyForInCall } from "@/features/video-chat/lib/webrtc/call-media-readiness";
+import { createSyntheticRemoteStream } from "@/features/video-chat/lib/webrtc/synthetic-remote-stream";
+import { publicEnv } from "@/shared/env/public-env";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -444,6 +446,16 @@ export function useVideoChat(): UseVideoChatReturn {
           return;
         }
         socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
+
+        if (publicEnv.E2E_RELAXED_CALL && publicEnv.isDev) {
+          actionsRef.current.setRemoteStream(createSyntheticRemoteStream(localStream));
+          transportReadyRef.current = true;
+          hasEnteredInCallRef.current = true;
+          actionsRef.current.setCallStartedAt(Date.now());
+          actionsRef.current.setConnectionStatus("in_call");
+          return;
+        }
+
         try {
           const pc = await sfuConnection.connect({
             roomId: data.roomId,

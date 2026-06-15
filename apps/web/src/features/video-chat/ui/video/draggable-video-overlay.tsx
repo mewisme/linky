@@ -290,7 +290,10 @@ export function DraggableVideoOverlay({
           mirrored={mirrored}
         />
         {isVideoOff && (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-muted"
+            data-testid="chat-camera-off-indicator"
+          >
             <IconVideoOff className="size-8 text-muted-foreground" />
           </div>
         )}

@@ -264,12 +264,22 @@ export function useCloudflareSfuConnection(
           return;
         }
         if (isCloudflareSessionNotReady(error)) {
+          console.error("[realtime-sfu] subscribe failed after session-ready retries", {
+            error,
+            peerSessionId: data.peerSessionId,
+            localSessionId: sessionIdRef.current,
+          });
           Sentry.logger.warn("Subscribe failed after session-ready retries", {
             peerSessionId: data.peerSessionId,
             localSessionId: sessionIdRef.current,
             error,
           });
         } else {
+          console.error("[realtime-sfu] failed to subscribe to peer tracks", {
+            error,
+            peerSessionId: data.peerSessionId,
+            localSessionId: sessionIdRef.current,
+          });
           Sentry.logger.error("Failed to subscribe to peer tracks", { error });
         }
         throw error;
@@ -494,6 +504,16 @@ export function useCloudflareSfuConnection(
         }
 
         return pc;
+      } catch (error) {
+        const pc = pcRef.current;
+        console.error("[realtime-sfu] connect failed", {
+          error,
+          roomId,
+          socketId,
+          sessionId: sessionIdRef.current,
+          ...(pc ? snapshotPeerConnectionState(pc) : {}),
+        });
+        throw error;
       } finally {
         connectInFlightRef.current = false;
       }

@@ -444,6 +444,7 @@ export function useVideoChat(): UseVideoChatReturn {
         const socketId =
           data.socketId ?? socketSignaling.getSocket()?.id ?? socketSignaling.getSocketId();
         if (!socketId) {
+          console.error("[video-chat] No socketId available for SFU match", { roomId: data.roomId });
           Sentry.logger.error("No socketId available for SFU match");
           actionsRef.current.setError(t("call.failedEstablishConnection"));
           return;
@@ -515,6 +516,7 @@ export function useVideoChat(): UseVideoChatReturn {
           transportReadyRef.current = true;
           tryEnterInCall();
         } catch (err) {
+          console.error("[video-chat] Cloudflare SFU connect failed", err);
           Sentry.logger.error("Cloudflare SFU connect failed", { error: err });
           actionsRef.current.setError(t("call.failedEstablishConnection"));
           actionsRef.current.setConnectionStatus("ended");

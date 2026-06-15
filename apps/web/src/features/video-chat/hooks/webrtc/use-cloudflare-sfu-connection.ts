@@ -13,6 +13,12 @@ import {
   type RealtimePeerSnapshot,
   type RealtimePublishTrack,
 } from "@/features/video-chat/lib/webrtc/cloudflare-sfu-client";
+import {
+  PeerSubscribeGuard,
+  isCloudflareSessionNotReady,
+  snapshotPeerConnectionState,
+  subscribeWithSessionReadyRetry,
+} from "@/features/video-chat/lib/webrtc/cloudflare-sfu-subscribe";
 import { isApiError } from "@/lib/http/api-error";
 import type { RealtimePeerTracksPayload } from "@/lib/realtime/socket";
 
@@ -120,7 +126,7 @@ export function useCloudflareSfuConnection(
   const socketIdRef = useRef<string | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const callbacksRef = useRef<CloudflareSfuConnectionCallbacks | null>(null);
-  const subscribeInFlightRef = useRef<Promise<void> | null>(null);
+  const subscribeGuardRef = useRef(new PeerSubscribeGuard());
   const connectInFlightRef = useRef(false);
   const initialPeerSnapshotRef = useRef<RealtimePeerSnapshot | null>(null);
   const pendingPeerTracksRef = useRef<RealtimePeerTracksPayload | null>(null);
@@ -154,33 +160,60 @@ export function useCloudflareSfuConnection(
     [ensureRemoteStream],
   );
 
-  const subscribePeerTracks = useCallback(async () => {
-    const pc = pcRef.current;
-    const sessionId = sessionIdRef.current;
-    const roomId = roomIdRef.current;
-    const socketId = socketIdRef.current;
-    if (!pc || !sessionId || !roomId || !socketId) return;
+  const logRealtime = useCallback((event: string, data: Record<string, unknown>) => {
+    Sentry.logger.info(`realtime.sfu.${event}`, data);
+  }, []);
 
-    if (subscribeInFlightRef.current) {
-      await subscribeInFlightRef.current;
-      return;
-    }
+  const subscribePeerTracks = useCallback(
+    async (peerSessionId: string) => {
+      const pc = pcRef.current;
+      const sessionId = sessionIdRef.current;
+      const roomId = roomIdRef.current;
+      const socketId = socketIdRef.current;
+      if (!pc || !sessionId || !roomId || !socketId || !peerSessionId) return;
 
-    const promise = (async () => {
-      await waitForPeerReady(pc, PEER_READY_TIMEOUT_MS);
+      await subscribeGuardRef.current.run(peerSessionId, async () => {
+        const token = await getTokenRef.current();
 
-      const token = await getTokenRef.current();
-      const response = await subscribeRealtimeTracks(token, { roomId, socketId, sessionId });
+        const response = await subscribeWithSessionReadyRetry(
+          {
+            waitForPeerReady: () => waitForPeerReady(pc, PEER_READY_TIMEOUT_MS),
+            subscribe: () => subscribeRealtimeTracks(token, { roomId, socketId, sessionId }),
+            applySubscribeOffer: async (offer) => {
+              const renegotiate = (answer: CloudflareSdpDescription) =>
+                renegotiateRealtimeSession(token, { roomId, socketId, sessionId, sdp: answer });
+              await applyRemoteOfferAndAnswer(pc, offer, renegotiate);
+            },
+            onAttempt: ({ attempt }) => {
+              logRealtime("subscribe_attempt", {
+                attempt,
+                localSessionId: sessionId,
+                peerSessionId,
+                ...snapshotPeerConnectionState(pc),
+              });
+            },
+            onSuccess: ({ attempt, hasSessionDescription, renegotiated }) => {
+              logRealtime("subscribe_success", {
+                attempt,
+                localSessionId: sessionId,
+                peerSessionId,
+                hasSessionDescription,
+                renegotiated,
+                ...snapshotPeerConnectionState(pc),
+              });
+            },
+          },
+          { sessionId, peerSessionId },
+        );
 
-      const pendingMids = new Set(
-        (response.tracks ?? [])
-          .map((t) => t.mid)
-          .filter((mid): mid is string => typeof mid === "string"),
-      );
+        const pendingMids = new Set(
+          (response.tracks ?? [])
+            .map((t) => t.mid)
+            .filter((mid): mid is string => typeof mid === "string"),
+        );
 
-      const trackWaiters =
-        pendingMids.size > 0
-          ? Promise.all(
+        if (pendingMids.size > 0) {
+          await Promise.all(
             Array.from(pendingMids).map(
               (mid) =>
                 new Promise<void>((resolve, reject) => {
@@ -198,39 +231,24 @@ export function useCloudflareSfuConnection(
                   pc.addEventListener("track", onTrack);
                 }),
             ),
-          )
-          : Promise.resolve();
-
-      const renegotiate = (answer: CloudflareSdpDescription) =>
-        renegotiateRealtimeSession(token, { roomId, socketId, sessionId, sdp: answer });
-
-      if (response.requiresImmediateRenegotiation && response.sessionDescription?.type === "offer") {
-        await applyRemoteOfferAndAnswer(pc, response.sessionDescription, renegotiate);
-      } else if (response.sessionDescription?.type === "offer") {
-        await pc.setRemoteDescription(response.sessionDescription);
-      }
-
-      await trackWaiters;
-    })();
-
-    subscribeInFlightRef.current = promise;
-    try {
-      await promise;
-    } finally {
-      subscribeInFlightRef.current = null;
-    }
-  }, [wireRemoteTrack]);
+          );
+        }
+      });
+    },
+    [logRealtime],
+  );
 
   const handlePeerTracks = useCallback(
     async (data: RealtimePeerTracksPayload) => {
-
-      console.info("[debug] handlePeerTracks", {
-        peerSessionId: data?.peerSessionId,
-        trackCount: data?.tracks?.length ?? 0,
-        hasSession: Boolean(sessionIdRef.current),
-        hasPc: Boolean(pcRef.current),
-      });
       if (!data?.peerSessionId || data.tracks.length === 0) return;
+
+      logRealtime("peer_tracks_received", {
+        peerSessionId: data.peerSessionId,
+        trackCount: data.tracks.length,
+        localSessionId: sessionIdRef.current,
+        connectInFlight: connectInFlightRef.current,
+      });
+
       if (
         connectInFlightRef.current ||
         !sessionIdRef.current ||
@@ -240,16 +258,24 @@ export function useCloudflareSfuConnection(
         return;
       }
       try {
-        await subscribePeerTracks();
+        await subscribePeerTracks(data.peerSessionId);
       } catch (error) {
         if (isApiError(error) && error.status === 409) {
           return;
         }
-        Sentry.logger.error("Failed to subscribe to peer tracks", { error });
+        if (isCloudflareSessionNotReady(error)) {
+          Sentry.logger.warn("Subscribe failed after session-ready retries", {
+            peerSessionId: data.peerSessionId,
+            localSessionId: sessionIdRef.current,
+            error,
+          });
+        } else {
+          Sentry.logger.error("Failed to subscribe to peer tracks", { error });
+        }
         throw error;
       }
     },
-    [subscribePeerTracks],
+    [subscribePeerTracks, logRealtime],
   );
 
   const flushPendingPeerTracks = useCallback(async () => {
@@ -292,6 +318,7 @@ export function useCloudflareSfuConnection(
     roomIdRef.current = null;
     socketIdRef.current = null;
     callbacksRef.current = null;
+    subscribeGuardRef.current.reset();
     initialPeerSnapshotRef.current = null;
     pendingPeerTracksRef.current = null;
 
@@ -416,6 +443,13 @@ export function useCloudflareSfuConnection(
           tracks: publishTracks,
         });
 
+        logRealtime("publish_response", {
+          localSessionId: sessionResponse.sessionId,
+          hasSessionDescription: Boolean(publishResponse.sessionDescription),
+          requiresImmediateRenegotiation: publishResponse.requiresImmediateRenegotiation ?? false,
+          ...snapshotPeerConnectionState(pc),
+        });
+
         const iceConnected = waitForPeerReady(pc, PEER_READY_TIMEOUT_MS);
 
         const publishRenegotiate = (answer: CloudflareSdpDescription) =>
@@ -444,9 +478,9 @@ export function useCloudflareSfuConnection(
           const hasAnyTracks = initialSnapshot.tracks.some(
             (t) => isVideoSource(t.source) || t.kind === "audio",
           );
-          if (hasAnyTracks) {
+          if (hasAnyTracks && initialSnapshot.peerSessionId) {
             try {
-              await subscribePeerTracks();
+              await subscribePeerTracks(initialSnapshot.peerSessionId);
             } catch (error) {
               if (!(isApiError(error) && error.status === 409)) {
                 throw error;
@@ -464,7 +498,7 @@ export function useCloudflareSfuConnection(
         connectInFlightRef.current = false;
       }
     },
-    [cleanup, subscribePeerTracks, wireRemoteTrack, flushPendingPeerTracks],
+    [cleanup, subscribePeerTracks, wireRemoteTrack, flushPendingPeerTracks, logRealtime],
   );
 
   const getPeerConnection = useCallback(() => pcRef.current, []);

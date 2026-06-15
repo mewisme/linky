@@ -260,7 +260,6 @@ func realtimeError(c echo.Context, err error) error {
 		if status < 400 || status >= 600 {
 			status = http.StatusBadGateway
 		}
-		realtimeRouteLog.Warn().Err(err).Int("status", status).Msg("Cloudflare realtime error")
 		code := cre.Code
 		if code == "" {
 			code = "REALTIME_ERROR"
@@ -269,6 +268,26 @@ func realtimeError(c echo.Context, err error) error {
 		if message == "" {
 			message = "Realtime error"
 		}
+		if cloudflarerealtime.IsSessionNotReady(err) {
+			code = "REALTIME_SESSION_NOT_READY"
+			if message == "" || message == "Realtime error" {
+				message = "Cloudflare session is not ready yet. Retry after peer connection is connected."
+			}
+			status = http.StatusTooEarly
+			realtimeRouteLog.Warn().
+				Err(err).
+				Int("status", status).
+				Str("code", code).
+				Bool("retryable", true).
+				Msg("Cloudflare realtime session not ready")
+			return httpx.SendErrorExtra(c, status, http.StatusText(status),
+				httpx.UM(code, "api.realtime.sessionNotReady", message),
+				map[string]interface{}{
+					"code":      code,
+					"retryable": true,
+				})
+		}
+		realtimeRouteLog.Warn().Err(err).Int("status", status).Str("code", code).Msg("Cloudflare realtime error")
 		return httpx.SendError(c, status, http.StatusText(status),
 			httpx.UM(code, "api.realtime.upstreamError", message))
 	}

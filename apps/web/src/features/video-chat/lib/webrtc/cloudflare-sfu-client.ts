@@ -44,12 +44,6 @@ export interface RealtimeSessionResponse {
   peer: RealtimePeerSnapshot;
 }
 
-const SESSION_NOT_READY_RETRY_DELAYS_MS = [500, 1000, 2000, 4000] as const;
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function send<T>(
   method: "POST" | "PUT",
   url: string,
@@ -73,27 +67,6 @@ async function send<T>(
   const text = await response.text();
   if (!text) return undefined as T;
   return JSON.parse(text) as T;
-}
-
-async function sendWithSessionReadyRetry<T>(
-  method: "POST" | "PUT",
-  url: string,
-  token: string | null,
-  body: unknown,
-): Promise<T> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt <= SESSION_NOT_READY_RETRY_DELAYS_MS.length; attempt++) {
-    try {
-      return await send<T>(method, url, token, body);
-    } catch (error) {
-      if (!isApiError(error) || error.status !== 425 || attempt === SESSION_NOT_READY_RETRY_DELAYS_MS.length) {
-        throw error;
-      }
-      lastError = error;
-      await sleep(SESSION_NOT_READY_RETRY_DELAYS_MS[attempt]!);
-    }
-  }
-  throw lastError;
 }
 
 export async function createRealtimeSession(
@@ -126,12 +99,7 @@ export async function subscribeRealtimeTracks(
   token: string | null,
   payload: { roomId: string; socketId: string; sessionId: string },
 ): Promise<RealtimeNegotiateResponse> {
-  return sendWithSessionReadyRetry<RealtimeNegotiateResponse>(
-    "POST",
-    REALTIME_PROXY.subscribe,
-    token,
-    payload,
-  );
+  return send<RealtimeNegotiateResponse>("POST", REALTIME_PROXY.subscribe, token, payload);
 }
 
 export async function renegotiateRealtimeSession(

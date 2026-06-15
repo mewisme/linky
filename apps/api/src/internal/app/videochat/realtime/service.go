@@ -164,9 +164,20 @@ func (s *Service) Publish(ctx context.Context, room *rooms.Room, socketID, sessi
 			TrackName: t.TrackName,
 		})
 	}
-	resp, err := cloudflarerealtime.AddTracks(ctx, sessionID, req)
+	log.Info().
+		Str("operation", cloudflarerealtime.OperationPublish).
+		Str("roomId", room.ID).
+		Str("socketId", socketID).
+		Str("sessionId", sessionID).
+		Int("trackCount", len(tracks)).
+		Msg("Cloudflare tracks/new")
+	resp, err := cloudflarerealtime.AddTracks(
+		cloudflarerealtime.ContextWithOperation(ctx, cloudflarerealtime.OperationPublish),
+		sessionID,
+		req,
+	)
 	if err != nil {
-		return nil, err
+		return nil, cloudflarerealtime.NormalizeSessionNotReady(err)
 	}
 	newTracks := make([]rooms.RealtimeTrack, 0, len(resp.Tracks))
 	for _, t := range resp.Tracks {
@@ -224,9 +235,21 @@ func (s *Service) Subscribe(ctx context.Context, room *rooms.Room, socketID, ses
 		}
 		tracks = append(tracks, req)
 	}
-	resp, err := cloudflarerealtime.AddTracks(ctx, sessionID, &cloudflarerealtime.TracksRequest{Tracks: tracks})
+	log.Info().
+		Str("operation", cloudflarerealtime.OperationSubscribe).
+		Str("roomId", room.ID).
+		Str("socketId", socketID).
+		Str("sessionId", sessionID).
+		Str("peerSessionId", peer.SessionID).
+		Int("trackCount", len(tracks)).
+		Msg("Cloudflare tracks/new")
+	resp, err := cloudflarerealtime.AddTracks(
+		cloudflarerealtime.ContextWithOperation(ctx, cloudflarerealtime.OperationSubscribe),
+		sessionID,
+		&cloudflarerealtime.TracksRequest{Tracks: tracks},
+	)
 	if err != nil {
-		return nil, err
+		return nil, cloudflarerealtime.NormalizeSessionNotReady(err)
 	}
 	mids := make([]string, 0, len(resp.Tracks))
 	for _, t := range resp.Tracks {
@@ -247,7 +270,17 @@ func (s *Service) Renegotiate(ctx context.Context, room *rooms.Room, socketID, s
 	if participant == nil || participant.SessionID != sessionID {
 		return nil, &cloudflarerealtime.Error{Status: 403, Code: "REALTIME_SESSION_MISMATCH", Message: "Session does not belong to participant"}
 	}
-	resp, err := cloudflarerealtime.Renegotiate(ctx, sessionID, &cloudflarerealtime.RenegotiateRequest{SessionDescription: sdp})
+	log.Info().
+		Str("operation", cloudflarerealtime.OperationRenegotiate).
+		Str("roomId", room.ID).
+		Str("socketId", socketID).
+		Str("sessionId", sessionID).
+		Msg("Cloudflare renegotiate")
+	resp, err := cloudflarerealtime.Renegotiate(
+		cloudflarerealtime.ContextWithOperation(ctx, cloudflarerealtime.OperationRenegotiate),
+		sessionID,
+		&cloudflarerealtime.RenegotiateRequest{SessionDescription: sdp},
+	)
 	if err != nil {
 		if cloudflarerealtime.IsStaleSession(err) {
 			return &cloudflarerealtime.RenegotiateResponse{}, nil
@@ -293,6 +326,9 @@ func (s *Service) cleanupParticipantSession(ctx context.Context, p *rooms.Realti
 	if p == nil {
 		return
 	}
+	if len(p.SubscribedMids) == 0 {
+		return
+	}
 	tracks := make([]cloudflarerealtime.TrackRequest, 0, len(p.SubscribedMids)+len(p.PublishedTracks))
 	for _, mid := range p.SubscribedMids {
 		tracks = append(tracks, cloudflarerealtime.TrackRequest{MID: mid})
@@ -308,7 +344,7 @@ func (s *Service) cleanupParticipantSession(ctx context.Context, p *rooms.Realti
 	cctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	if _, err := cloudflarerealtime.CloseTracks(cctx, p.SessionID, &cloudflarerealtime.CloseTracksRequest{Tracks: tracks, Force: true}); err != nil {
-		if cloudflarerealtime.IsStaleSession(err) {
+		if cloudflarerealtime.IsBenignCloseError(err) {
 			return
 		}
 		log.Debug().Err(err).Str("sessionId", p.SessionID).Msg("Failed to close Cloudflare tracks (best-effort)")

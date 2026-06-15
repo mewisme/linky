@@ -18,6 +18,16 @@ import (
 	"linky-api/src/internal/logger"
 )
 
+type operationContextKey struct{}
+
+const (
+	OperationPublish     = "publish"
+	OperationSubscribe   = "subscribe"
+	OperationRenegotiate = "renegotiate"
+	OperationCleanup     = "cleanup"
+	OperationSession     = "session"
+)
+
 const (
 	requestTimeout         = 30 * time.Second
 	maxRetries             = 4
@@ -128,9 +138,49 @@ func IsStaleSession(err error) bool {
 func IsSessionNotReady(err error) bool {
 	var e *Error
 	if errors.As(err, &e) {
-		return e.Status == 425 || e.Code == "session_error"
+		return e.Status == 425 || e.Code == "session_error" || e.Code == "REALTIME_SESSION_NOT_READY"
 	}
 	return false
+}
+
+func ClientSessionNotReadyError(message string) *Error {
+	if message == "" {
+		message = "Cloudflare session is not ready yet. Retry after peer connection is connected."
+	}
+	return &Error{
+		Status:     http.StatusTooEarly,
+		StatusText: http.StatusText(http.StatusTooEarly),
+		Code:       "REALTIME_SESSION_NOT_READY",
+		Message:    message,
+	}
+}
+
+func NormalizeSessionNotReady(err error) error {
+	if !IsSessionNotReady(err) {
+		return err
+	}
+	var e *Error
+	if errors.As(err, &e) && e.Message != "" {
+		return ClientSessionNotReadyError(e.Message)
+	}
+	return ClientSessionNotReadyError("")
+}
+
+func ContextWithOperation(ctx context.Context, operation string) context.Context {
+	if operation == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, operationContextKey{}, operation)
+}
+
+func operationFromContext(ctx context.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	if v, ok := ctx.Value(operationContextKey{}).(string); ok {
+		return v
+	}
+	return ""
 }
 
 var cfg *config.Config
@@ -166,6 +216,14 @@ func appPath(suffix string) (string, error) {
 }
 
 func call(ctx context.Context, method, path string, body interface{}, out interface{}) error {
+	return callWithRetries(ctx, method, path, body, out, maxRetries)
+}
+
+func callOnce(ctx context.Context, method, path string, body interface{}, out interface{}) error {
+	return callWithRetries(ctx, method, path, body, out, 0)
+}
+
+func callWithRetries(ctx context.Context, method, path string, body interface{}, out interface{}, retries int) error {
 	var payload []byte
 	if !isNilBody(body) {
 		var err error
@@ -177,7 +235,7 @@ func call(ctx context.Context, method, path string, body interface{}, out interf
 
 	var lastErr error
 	backoff := initialBackoff
-	for attempt := 0; attempt <= maxRetries; attempt++ {
+	for attempt := 0; attempt <= retries; attempt++ {
 		if attempt > 0 {
 			if !isRetryable(lastErr) {
 				break
@@ -269,21 +327,26 @@ func doRequest(ctx context.Context, method, path string, payload []byte, out int
 		if message == "" {
 			message = strings.TrimSpace(string(raw))
 		}
-		log.Warn().
+		logEvent := log.Warn().
 			Str("method", method).
 			Str("path", path).
+			Str("operation", operationFromContext(ctx)).
 			Int("status", resp.StatusCode).
 			Int("attempt", attempt).
 			Dur("duration", duration).
 			Str("requestId", requestID).
-			Str("errorCode", parsed.ErrorCode).
-			Msg("Cloudflare Realtime upstream error")
+			Str("errorCode", parsed.ErrorCode)
+		if resp.StatusCode == http.StatusTooEarly && strings.Contains(path, "/tracks/close") {
+			logEvent = log.Debug()
+		}
+		logEvent.Msg("Cloudflare Realtime upstream error")
 		return &Error{Status: resp.StatusCode, StatusText: resp.Status, Code: parsed.ErrorCode, Message: message}
 	}
 
 	log.Debug().
 		Str("method", method).
 		Str("path", path).
+		Str("operation", operationFromContext(ctx)).
 		Int("status", resp.StatusCode).
 		Int("attempt", attempt).
 		Dur("duration", duration).
@@ -407,7 +470,7 @@ func isNilBody(body interface{}) bool {
 
 func CreateSession(ctx context.Context, body *NewSessionRequest) (*NewSessionResponse, error) {
 	out := &NewSessionResponse{}
-	if err := call(ctx, http.MethodPost, "/sessions/new", body, out); err != nil {
+	if err := call(ContextWithOperation(ctx, OperationSession), http.MethodPost, "/sessions/new", body, out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -423,7 +486,7 @@ func AddTracks(ctx context.Context, sessionID string, body *TracksRequest) (*Tra
 
 func Renegotiate(ctx context.Context, sessionID string, body *RenegotiateRequest) (*RenegotiateResponse, error) {
 	out := &RenegotiateResponse{}
-	if err := call(ctx, http.MethodPut, "/sessions/"+sessionID+"/renegotiate", body, out); err != nil {
+	if err := call(ContextWithOperation(ctx, OperationRenegotiate), http.MethodPut, "/sessions/"+sessionID+"/renegotiate", body, out); err != nil {
 		if IsStaleSession(err) {
 			return out, nil
 		}
@@ -432,10 +495,14 @@ func Renegotiate(ctx context.Context, sessionID string, body *RenegotiateRequest
 	return out, nil
 }
 
+func IsBenignCloseError(err error) bool {
+	return IsStaleSession(err) || IsSessionNotReady(err)
+}
+
 func CloseTracks(ctx context.Context, sessionID string, body *CloseTracksRequest) (*CloseTracksResponse, error) {
 	out := &CloseTracksResponse{}
-	if err := call(ctx, http.MethodPut, "/sessions/"+sessionID+"/tracks/close", body, out); err != nil {
-		if IsStaleSession(err) {
+	if err := callOnce(ContextWithOperation(ctx, OperationCleanup), http.MethodPut, "/sessions/"+sessionID+"/tracks/close", body, out); err != nil {
+		if IsBenignCloseError(err) {
 			return out, nil
 		}
 		return nil, err

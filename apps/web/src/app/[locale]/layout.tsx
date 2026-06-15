@@ -7,6 +7,7 @@ import { ClerkReadyIndicator } from "@/shared/ui/clerk/clerk-ready-indicator";
 import { LocaleSync } from "@/providers/i18n/locale-sync";
 import ProgressBarProvider from "@/providers/ui/progress-bar-provider";
 import { SocketProvider } from "@/providers/realtime/socket-provider";
+import { SocketReadyIndicator } from "@/shared/ui/realtime/socket-ready-indicator";
 import { ServiceWorkerUpdateProvider } from "@/providers/ui/service-worker-update-provider";
 import { AppShaderConfigProvider } from "@/providers/ui/shader-config-provider";
 import { LocaleQueryCallShell } from "@/providers/call/locale-query-call-shell";
@@ -44,6 +45,7 @@ export default async function LocaleLayout({
             <UserProvider>
               <ClerkReadyIndicator />
               <SocketProvider>
+                <SocketReadyIndicator />
                 <LocaleQueryCallShell>
                   <ProgressBarProvider>{children}</ProgressBarProvider>
                 </LocaleQueryCallShell>

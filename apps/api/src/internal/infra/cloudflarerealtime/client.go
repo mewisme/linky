@@ -319,11 +319,11 @@ func isRetryable(err error) bool {
 				strings.Contains(msg, "connection refused") ||
 				strings.Contains(msg, "eof")
 		}
-		if e.Code == "session_error" {
-			return true
+		if IsSessionNotReady(err) {
+			return false
 		}
 		switch e.Status {
-		case http.StatusRequestTimeout, http.StatusTooEarly, http.StatusTooManyRequests,
+		case http.StatusRequestTimeout, http.StatusTooManyRequests,
 			http.StatusInternalServerError, http.StatusBadGateway,
 			http.StatusServiceUnavailable, http.StatusGatewayTimeout:
 			return true

@@ -17,7 +17,7 @@ import { isApiError } from "@/lib/http/api-error";
 import type { RealtimePeerTracksPayload } from "@/lib/realtime/socket";
 
 const CLOUDFLARE_STUN: RTCIceServer = { urls: "stun:stun.cloudflare.com:3478" };
-const ICE_CONNECTED_TIMEOUT_MS = 10_000;
+const PEER_READY_TIMEOUT_MS = 20_000;
 
 export interface CloudflareSfuConnectionCallbacks {
   onTrack: (stream: MediaStream) => void;
@@ -167,7 +167,7 @@ export function useCloudflareSfuConnection(
     }
 
     const promise = (async () => {
-      await waitForPeerReady(pc, ICE_CONNECTED_TIMEOUT_MS);
+      await waitForPeerReady(pc, PEER_READY_TIMEOUT_MS);
 
       const token = await getTokenRef.current();
       const response = await subscribeRealtimeTracks(token, { roomId, socketId, sessionId });
@@ -187,7 +187,7 @@ export function useCloudflareSfuConnection(
                   const timeoutId = setTimeout(() => {
                     pc.removeEventListener("track", onTrack);
                     reject(new Error(`Timed out waiting for track mid=${mid}`));
-                  }, ICE_CONNECTED_TIMEOUT_MS);
+                  }, PEER_READY_TIMEOUT_MS);
 
                   const onTrack = (event: RTCTrackEvent) => {
                     if (event.transceiver.mid !== mid) return;
@@ -231,7 +231,11 @@ export function useCloudflareSfuConnection(
         hasPc: Boolean(pcRef.current),
       });
       if (!data?.peerSessionId || data.tracks.length === 0) return;
-      if (!sessionIdRef.current || !pcRef.current) {
+      if (
+        connectInFlightRef.current ||
+        !sessionIdRef.current ||
+        !pcRef.current
+      ) {
         pendingPeerTracksRef.current = data;
         return;
       }
@@ -404,8 +408,6 @@ export function useCloudflareSfuConnection(
           throw new Error("Transceivers missing mid or track after setLocalDescription");
         }
 
-        const peerReady = waitForPeerReady(pc, ICE_CONNECTED_TIMEOUT_MS);
-
         const publishResponse = await publishRealtimeTracks(token, {
           roomId,
           socketId,
@@ -413,6 +415,8 @@ export function useCloudflareSfuConnection(
           sdp: { type: "offer", sdp: pc.localDescription?.sdp ?? offer.sdp ?? "" },
           tracks: publishTracks,
         });
+
+        const iceConnected = waitForPeerReady(pc, PEER_READY_TIMEOUT_MS);
 
         const publishRenegotiate = (answer: CloudflareSdpDescription) =>
           renegotiateRealtimeSession(token, {
@@ -433,7 +437,7 @@ export function useCloudflareSfuConnection(
           throw new Error("Cloudflare publish did not return a session description");
         }
 
-        await peerReady;
+        await iceConnected;
 
         const initialSnapshot = initialPeerSnapshotRef.current;
         if (initialSnapshot?.peerSessionId && initialSnapshot.tracks.length > 0) {

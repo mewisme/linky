@@ -33,8 +33,8 @@ func TestIsSessionNotReady(t *testing.T) {
 func TestIsRetryable_sessionNotReady(t *testing.T) {
 	t.Parallel()
 	err := &Error{Status: http.StatusTooEarly, Code: "session_error", Message: "Session is not ready yet"}
-	if !isRetryable(err) {
-		t.Fatal("expected 425 session_error to be retryable")
+	if isRetryable(err) {
+		t.Fatal("expected 425 session_error to be non-retryable (client must wait for PeerConnection)")
 	}
 }
 

@@ -102,7 +102,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
   for (let i = 0; i < firstDay; i++) {
     const day =
       prevMonthData.prevMonthDaysArray[
-        prevMonthData.prevMonthDays - firstDay + i
+      prevMonthData.prevMonthDays - firstDay + i
       ];
 
     if (day) {
@@ -187,9 +187,8 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
         {isLoading ? (
           <div className="col-span-7 p-8">
             <Loading
-              height={"full"}
-              width={"full"}
-              title={t("streakCalendarLoading")}
+              variant="full"
+              size={60}
             />
           </div>
         ) : (

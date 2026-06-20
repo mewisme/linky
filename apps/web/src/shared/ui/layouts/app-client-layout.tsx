@@ -14,6 +14,7 @@ import { DevOverlay } from "@/features/development/ui/dev-overlay";
 import { ReactionEffectProvider } from "@/providers/realtime/reaction-effect-provider";
 import { useCommandMenuStore } from "@/shared/model/command-menu-store";
 import { useHotkeys } from "react-hotkeys-hook";
+import { ScrollArea } from "@ws/ui/components/ui/scroll-area";
 
 export function AppClientLayout({ children }: { children: React.ReactNode }) {
   const { open } = useCommandMenuStore();
@@ -33,12 +34,18 @@ export function AppClientLayout({ children }: { children: React.ReactNode }) {
             } as React.CSSProperties
           }
           defaultOpen={false}
+          className="h-screen overflow-hidden"
         >
           <AppSidebar />
           <div className="w-full flex flex-col h-full">
-            <SidebarInset className="container mx-auto">
+            <SidebarInset className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <AppHeader />
-              {children}
+
+              <main className="min-h-0 flex-1">
+                <ScrollArea className="h-full">
+                  {children}
+                </ScrollArea>
+              </main>
             </SidebarInset>
           </div>
         </SidebarProvider>

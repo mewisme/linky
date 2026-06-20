@@ -57,8 +57,8 @@ import { cn } from "@ws/ui/lib/utils";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SimpleTooltip } from "../common/simple-tooltip";
-import { Loader } from "@/shared/ui/loader";
 import { useTextHighlight } from "./use-text-highlight";
+import { Loading } from "../common/loading";
 
 type DataTableProps<TData> =
   | DataTableWithExternalTableProps<TData>
@@ -97,7 +97,6 @@ export function DataTable<TData>(props: DataTableProps<TData>) {
     columns,
     className,
     isLoading = false,
-    loadingTitle,
     leftColumnVisibilityContent = null,
     rightColumnVisibilityContent = null,
     bulkActionsContent,
@@ -322,10 +321,9 @@ export function DataTable<TData>(props: DataTableProps<TData>) {
                   colSpan={table.getAllColumns().length}
                   className="h-48 p-0"
                 >
-                  <Loader
-                    title={loadingTitle ?? t("loading")}
-                    size="md"
-                    className="w-full py-12"
+                  <Loading
+                    variant="full"
+                    size={40}
                   />
                 </TableCell>
               </TableRow>

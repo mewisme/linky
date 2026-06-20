@@ -1,42 +1,25 @@
 "use client";
 
-import { Loader } from "@/shared/ui/loader";
+import { RandomSpinner } from "@ws/ui/components/mew-ui/spinner";
 import { cn } from "@ws/ui/lib/utils";
 
 interface LoadingProps {
-  title: string;
-  size?: "sm" | "md" | "lg";
-  height?: "screen" | "full" | number;
-  width?: "screen" | "full" | number;
+  size?: number;
+  variant?: "screen" | "full";
 }
 
 export function Loading({
-  title,
-  size = "md",
-  height = "screen",
-  width = "screen",
+  size = 100,
+  variant = "screen"
 }: LoadingProps) {
   return (
     <div
       className={cn(
         "flex items-center justify-center",
-        height === "screen"
-          ? "h-screen"
-          : height === "full"
-            ? "h-full"
-            : height
-              ? `h-[${height}px]`
-              : "",
-        width === "screen"
-          ? "w-screen"
-          : width === "full"
-            ? "w-full"
-            : width
-              ? `w-[${width}px]`
-              : "",
+        variant === "screen" ? "h-screen w-screen" : "h-full w-full",
       )}
     >
-      <Loader title={title} size={size} />
+      <RandomSpinner size={size} />
     </div>
   );
 }

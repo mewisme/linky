@@ -71,7 +71,7 @@ const defaultCallPreferences: UserCallPreferences = {
 };
 
 const defaultNotificationPreferences: UserNotificationPreferences = {
-  sound_enabled: true,
+  sound_enabled: false,
   preferences: {},
 };
 
@@ -190,15 +190,15 @@ export function normalizeUserShaderPreferences(
   const candidate = value as Record<string, unknown>;
   const type =
     candidate.type === "liquid-metal" ||
-    candidate.type === "gem-smoke" ||
-    candidate.type === "heatmap" ||
-    candidate.type === "mesh-gradient" ||
-    candidate.type === "warp" ||
-    candidate.type === "spiral" ||
-    candidate.type === "swirl" ||
-    candidate.type === "neuro-noise" ||
-    candidate.type === "perlin-noise" ||
-    candidate.type === "god-rays"
+      candidate.type === "gem-smoke" ||
+      candidate.type === "heatmap" ||
+      candidate.type === "mesh-gradient" ||
+      candidate.type === "warp" ||
+      candidate.type === "spiral" ||
+      candidate.type === "swirl" ||
+      candidate.type === "neuro-noise" ||
+      candidate.type === "perlin-noise" ||
+      candidate.type === "god-rays"
       ? candidate.type
       : defaultShaderPreferences.type;
   const presetCandidate =

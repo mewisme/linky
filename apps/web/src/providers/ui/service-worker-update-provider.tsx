@@ -31,12 +31,18 @@ export function ServiceWorkerUpdateProvider() {
       });
     };
 
-    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      onControllerChange,
+    );
 
     void ensureServiceWorkerRegistered();
 
     return () => {
-      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        onControllerChange,
+      );
     };
   }, [t]);
 

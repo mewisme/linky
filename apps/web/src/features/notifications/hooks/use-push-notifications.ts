@@ -22,11 +22,16 @@ import { useUserContext } from "@/providers/user/user-provider";
 export function usePushNotifications() {
   const t = useTranslations("notifications");
   const tRoot = useTranslations();
-  const { state: { getToken }, authReady } = useUserContext();
+  const {
+    state: { getToken },
+    authReady,
+  } = useUserContext();
   const isSubscribed = usePushSubscriptionStore((s) => s.isSubscribed);
   const permissionState = usePushSubscriptionStore((s) => s.permissionState);
   const setSubscribed = usePushSubscriptionStore((s) => s.setSubscribed);
-  const setPermissionState = usePushSubscriptionStore((s) => s.setPermissionState);
+  const setPermissionState = usePushSubscriptionStore(
+    (s) => s.setPermissionState,
+  );
   const initRef = useRef(false);
   const [isPending, setIsPending] = useState(false);
 
@@ -69,17 +74,22 @@ export function usePushNotifications() {
       const { publicKey } = await getVapidPublicKeyAPI(token);
       const subscription = await subscribeToPushNotifications(
         registration,
-        publicKey
+        publicKey,
       );
 
       await subscribeToPushAPI(subscription.toJSON(), token);
       setSubscribed(true);
       toast.success(t("pushEnabled"));
     } catch (error) {
-      const message = resolveActionErrorMessage(error, tRoot, "notifications.enableFailed");
+      const message = resolveActionErrorMessage(
+        error,
+        tRoot,
+        "notifications.enableFailed",
+      );
       const isUnauthorized =
         typeof message === "string" &&
-        (message.toLowerCase().includes("unauthorized") || message.includes("401"));
+        (message.toLowerCase().includes("unauthorized") ||
+          message.includes("401"));
       toast.error(isUnauthorized ? t("sessionExpiredPush") : message);
     } finally {
       setIsPending(false);
@@ -106,7 +116,9 @@ export function usePushNotifications() {
       setSubscribed(false);
       toast.success(t("pushDisabled"));
     } catch (error) {
-      toast.error(resolveActionErrorMessage(error, tRoot, "notifications.disableFailed"));
+      toast.error(
+        resolveActionErrorMessage(error, tRoot, "notifications.disableFailed"),
+      );
     } finally {
       setIsPending(false);
     }

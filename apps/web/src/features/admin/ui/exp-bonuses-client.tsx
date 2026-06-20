@@ -1,13 +1,24 @@
 "use client";
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@ws/ui/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@ws/ui/components/ui/dialog";
 import { IconPlus } from "@tabler/icons-react";
 import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
 import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
 import React, { useMemo, useState } from "react";
-import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
-import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
-import { useMutation, useQuery, useQueryClient } from "@ws/ui/internal-lib/react-query";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@ws/ui/internal-lib/react-query";
 
 import { buildExpBonusConfig } from "@/features/admin/lib/exp-bonus-config";
 import { AdminAPI } from "@/features/admin/types/admin.types";
@@ -26,11 +37,14 @@ import { Loader2 } from "@ws/ui/internal-lib/icons";
 import dynamic from "next/dynamic";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
-import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 
 const ExpBonusesDataTable = dynamic(
-  () => import('@/shared/ui/data-table/exp-bonuses/data-table').then(mod => ({ default: mod.ExpBonusesDataTable })),
-  { ssr: false }
+  () =>
+    import("@/shared/ui/data-table/exp-bonuses/data-table").then((mod) => ({
+      default: mod.ExpBonusesDataTable,
+    })),
+  { ssr: false },
 );
 
 interface ExpBonusesClientProps {
@@ -51,8 +65,10 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
   const queryClient = useQueryClient();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBonus, setEditingBonus] = useState<AdminAPI.ExpBonuses.ExpBonus | null>(null);
-  const [formData, setFormData] = useState<AdminAPI.ExpBonuses.Create.Body>(DEFAULT_FORM);
+  const [editingBonus, setEditingBonus] =
+    useState<AdminAPI.ExpBonuses.ExpBonus | null>(null);
+  const [formData, setFormData] =
+    useState<AdminAPI.ExpBonuses.Create.Body>(DEFAULT_FORM);
 
   const rangeLabels = useMemo(() => {
     if (formData.type === "level") {
@@ -74,18 +90,22 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
   const { data, isPending, isFetching, refetch } = useQuery({
     queryKey: ["exp-bonuses"],
     queryFn: () =>
-      fetchFromActionRoute<AdminAPI.ExpBonuses.Get.Response>('/api/admin/exp-bonuses'),
+      fetchFromActionRoute<AdminAPI.ExpBonuses.Get.Response>(
+        "/api/admin/exp-bonuses",
+      ),
     initialData,
     staleTime: Infinity,
   });
 
   const upsertMutation = useMutation({
-    mutationFn: async (payload: Partial<AdminAPI.ExpBonuses.Create.Body> & { id?: string }) => {
+    mutationFn: async (
+      payload: Partial<AdminAPI.ExpBonuses.Create.Body> & { id?: string },
+    ) => {
       const bonusId = payload.id || editingBonus?.id;
       const isUpdate = !!bonusId;
 
       const requestPayload = { ...payload };
-      if ('id' in requestPayload) {
+      if ("id" in requestPayload) {
         delete requestPayload.id;
       }
 
@@ -93,30 +113,34 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
         return fetchFromActionRoute<AdminAPI.ExpBonuses.Update.Response>(
           `/api/admin/exp-bonuses/${encodeURIComponent(bonusId)}`,
           {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestPayload as AdminAPI.ExpBonuses.Update.Body),
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(
+              requestPayload as AdminAPI.ExpBonuses.Update.Body,
+            ),
           },
         );
       }
       return fetchFromActionRoute<AdminAPI.ExpBonuses.Create.Response>(
-        '/api/admin/exp-bonuses',
+        "/api/admin/exp-bonuses",
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestPayload as AdminAPI.ExpBonuses.Create.Body),
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            requestPayload as AdminAPI.ExpBonuses.Create.Body,
+          ),
         },
       );
     },
     onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({
         queryKey: ["exp-bonuses"],
-        refetchType: 'active'
+        refetchType: "active",
       });
       await refetch();
 
       const isUpdate = !!variables.id || !!editingBonus?.id;
-      playSound('success');
+      playSound("success");
       toast.success(isUpdate ? t("crudUpdated") : t("crudCreated"));
 
       if (isModalOpen) {
@@ -126,20 +150,22 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
       }
     },
     onError: (error) => {
-      toast.error(resolveActionErrorMessage(error, tRoot, "admin.genericError"));
-    }
+      toast.error(
+        resolveActionErrorMessage(error, tRoot, "admin.genericError"),
+      );
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
       fetchFromActionRoute<AdminAPI.ExpBonuses.Delete.Response>(
         `/api/admin/exp-bonuses/${encodeURIComponent(id)}`,
-        { method: 'DELETE' },
+        { method: "DELETE" },
       ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["exp-bonuses"],
-        refetchType: 'active'
+        refetchType: "active",
       });
       await refetch();
       toast.success(t("expBonusDeleted"));
@@ -160,11 +186,15 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
     setFormData({
       type: bonus.type,
       config:
-        bonus.type === 'favorite'
+        bonus.type === "favorite"
           ? { relation: bonus.config.relation }
           : {
-              ...(bonus.config.min !== undefined ? { min: bonus.config.min } : {}),
-              ...(bonus.config.max !== undefined ? { max: bonus.config.max } : {}),
+              ...(bonus.config.min !== undefined
+                ? { min: bonus.config.min }
+                : {}),
+              ...(bonus.config.max !== undefined
+                ? { max: bonus.config.max }
+                : {}),
             },
       bonus_multiplier: bonus.bonus_multiplier,
     });
@@ -176,21 +206,22 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
     const config = buildExpBonusConfig(formData.type, formData.config);
     if (!config) {
       toast.error(
-        formData.type === 'favorite'
-          ? t('expBonusModal.relationRequired')
-          : t('expBonusModal.rangeRequired'),
+        formData.type === "favorite"
+          ? t("expBonusModal.relationRequired")
+          : t("expBonusModal.rangeRequired"),
       );
       return;
     }
     upsertMutation.mutate({ ...formData, config });
   };
 
-  const isFavoriteType = formData.type === 'favorite';
+  const isFavoriteType = formData.type === "favorite";
 
   const rowCallbacks = {
     onEdit: (bonus: AdminAPI.ExpBonuses.ExpBonus) => handleOpenEdit(bonus),
-    onDelete: (bonus: AdminAPI.ExpBonuses.ExpBonus) => deleteMutation.mutate(bonus.id),
-  }
+    onDelete: (bonus: AdminAPI.ExpBonuses.ExpBonus) =>
+      deleteMutation.mutate(bonus.id),
+  };
 
   return (
     <AppLayout sidebarItem="adminExpBonuses">
@@ -199,13 +230,22 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
         isLoading={isPending}
         callbacks={rowCallbacks}
         leftColumnVisibilityContent={
-          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          <DataTableRefreshButton
+            onClick={() => refetch()}
+            isFetching={isFetching}
+          />
         }
         rightColumnVisibilityContent={
           <SimpleTooltip content={t("expBonusModal.addNew")}>
-            <Button onClick={handleOpenCreate} className="bg-primary hover:opacity-90 shadow-md" size="sm">
+            <Button
+              onClick={handleOpenCreate}
+              className="bg-primary hover:opacity-90 shadow-md"
+              size="sm"
+            >
               <IconPlus className="w-4 h-4" />
-              <span className="hidden lg:inline">{t("expBonusModal.addNew")}</span>
+              <span className="hidden lg:inline">
+                {t("expBonusModal.addNew")}
+              </span>
             </Button>
           </SimpleTooltip>
         }
@@ -215,7 +255,9 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
           <form onSubmit={onFormSubmit}>
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">
-                {editingBonus ? t("expBonusModal.updateTitle") : t("expBonusModal.createTitle")}
+                {editingBonus
+                  ? t("expBonusModal.updateTitle")
+                  : t("expBonusModal.createTitle")}
               </DialogTitle>
               <DialogDescription>
                 {t("expBonusModal.description")}
@@ -223,13 +265,16 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
             </DialogHeader>
             <div className="grid gap-6 py-6">
               <div className="space-y-2">
-                <Label htmlFor="type">{t("expBonusModal.type")} <span className="text-destructive">*</span></Label>
+                <Label htmlFor="type">
+                  {t("expBonusModal.type")}{" "}
+                  <span className="text-destructive">*</span>
+                </Label>
                 <Select
                   value={formData.type}
                   onValueChange={(value: AdminAPI.ExpBonuses.ExpBonusType) =>
                     setFormData({
                       type: value,
-                      config: value === 'favorite' ? {} : {},
+                      config: value === "favorite" ? {} : {},
                       bonus_multiplier: formData.bonus_multiplier,
                     })
                   }
@@ -238,92 +283,110 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="w-full">
-                    <SelectItem value="streak">{t("expBonusModal.typeStreak")}</SelectItem>
-                    <SelectItem value="level">{t("expBonusModal.typeLevel")}</SelectItem>
-                    <SelectItem value="favorite">{t("expBonusModal.typeFavorite")}</SelectItem>
+                    <SelectItem value="streak">
+                      {t("expBonusModal.typeStreak")}
+                    </SelectItem>
+                    <SelectItem value="level">
+                      {t("expBonusModal.typeLevel")}
+                    </SelectItem>
+                    <SelectItem value="favorite">
+                      {t("expBonusModal.typeFavorite")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {isFavoriteType ? (
                 <div className="space-y-2">
                   <Label htmlFor="config_relation">
-                    {t('expBonusModal.relation')} <span className="text-destructive">*</span>
+                    {t("expBonusModal.relation")}{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Select
-                    value={formData.config.relation ?? ''}
-                    onValueChange={(value: AdminAPI.ExpBonuses.ExpBonusRelation) =>
+                    value={formData.config.relation ?? ""}
+                    onValueChange={(
+                      value: AdminAPI.ExpBonuses.ExpBonusRelation,
+                    ) =>
                       setFormData({ ...formData, config: { relation: value } })
                     }
                   >
                     <SelectTrigger id="config_relation" className="w-full">
-                      <SelectValue placeholder={t('expBonusModal.relationPlaceholder')} />
+                      <SelectValue
+                        placeholder={t("expBonusModal.relationPlaceholder")}
+                      />
                     </SelectTrigger>
                     <SelectContent className="w-full">
-                      <SelectItem value="mutual">{t('expBonusModal.relationMutual')}</SelectItem>
-                      <SelectItem value="one_way">{t('expBonusModal.relationOneWay')}</SelectItem>
+                      <SelectItem value="mutual">
+                        {t("expBonusModal.relationMutual")}
+                      </SelectItem>
+                      <SelectItem value="one_way">
+                        {t("expBonusModal.relationOneWay")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    {t('expBonusModal.favoriteHint')}
+                    {t("expBonusModal.favoriteHint")}
                   </p>
                 </div>
               ) : (
-              <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="config_min">{rangeLabels.min}</Label>
-                  <Input
-                    id="config_min"
-                    type="number"
-                    min="0"
-                    placeholder={rangeLabels.minPlaceholder}
-                    value={formData.config.min ?? ''}
-                    onChange={e => {
-                      const raw = e.target.value;
-                      const next = { ...formData.config };
-                      if (raw === '') {
-                        delete next.min;
-                      } else {
-                        const parsed = parseInt(raw, 10);
-                        if (!Number.isNaN(parsed)) {
-                          next.min = parsed;
-                        }
-                      }
-                      setFormData({ ...formData, config: next });
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="config_max">{rangeLabels.max}</Label>
-                  <Input
-                    id="config_max"
-                    type="number"
-                    min={formData.config.min ?? 0}
-                    placeholder={rangeLabels.maxPlaceholder}
-                    value={formData.config.max ?? ''}
-                    onChange={e => {
-                      const raw = e.target.value;
-                      const next = { ...formData.config };
-                      if (raw === '') {
-                        delete next.max;
-                      } else {
-                        const parsed = parseInt(raw, 10);
-                        if (!Number.isNaN(parsed)) {
-                          next.max = parsed;
-                        }
-                      }
-                      setFormData({ ...formData, config: next });
-                    }}
-                  />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground -mt-2">
-                {t("expBonusModal.rangeOptionalHint")}
-              </p>
-              </>
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="config_min">{rangeLabels.min}</Label>
+                      <Input
+                        id="config_min"
+                        type="number"
+                        min="0"
+                        placeholder={rangeLabels.minPlaceholder}
+                        value={formData.config.min ?? ""}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const next = { ...formData.config };
+                          if (raw === "") {
+                            delete next.min;
+                          } else {
+                            const parsed = parseInt(raw, 10);
+                            if (!Number.isNaN(parsed)) {
+                              next.min = parsed;
+                            }
+                          }
+                          setFormData({ ...formData, config: next });
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="config_max">{rangeLabels.max}</Label>
+                      <Input
+                        id="config_max"
+                        type="number"
+                        min={formData.config.min ?? 0}
+                        placeholder={rangeLabels.maxPlaceholder}
+                        value={formData.config.max ?? ""}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const next = { ...formData.config };
+                          if (raw === "") {
+                            delete next.max;
+                          } else {
+                            const parsed = parseInt(raw, 10);
+                            if (!Number.isNaN(parsed)) {
+                              next.max = parsed;
+                            }
+                          }
+                          setFormData({ ...formData, config: next });
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground -mt-2">
+                    {t("expBonusModal.rangeOptionalHint")}
+                  </p>
+                </>
               )}
               <div className="space-y-2">
-                <Label htmlFor="bonus_multiplier">{t("expBonusModal.bonusMultiplier")} <span className="text-destructive">*</span></Label>
+                <Label htmlFor="bonus_multiplier">
+                  {t("expBonusModal.bonusMultiplier")}{" "}
+                  <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="bonus_multiplier"
                   type="number"
@@ -332,7 +395,12 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
                   placeholder={t("expBonusModal.bonusPlaceholder")}
                   value={formData.bonus_multiplier}
                   required
-                  onChange={e => setFormData({ ...formData, bonus_multiplier: parseFloat(e.target.value) || 1.0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      bonus_multiplier: parseFloat(e.target.value) || 1.0,
+                    })
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("expBonusModal.multiplierHint")}
@@ -340,14 +408,28 @@ export function ExpBonusesClient({ initialData }: ExpBonusesClientProps) {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>{tc("cancel")}</Button>
-              <Button type="submit" disabled={upsertMutation.isPending} className="min-w-[100px]">
-                {upsertMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : t("expBonusModal.saveChanges")}
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsModalOpen(false)}
+              >
+                {tc("cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={upsertMutation.isPending}
+                className="min-w-[100px]"
+              >
+                {upsertMutation.isPending ? (
+                  <Loader2 className="animate-spin h-4 w-4" />
+                ) : (
+                  t("expBonusModal.saveChanges")
+                )}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
     </AppLayout>
-  )
+  );
 }

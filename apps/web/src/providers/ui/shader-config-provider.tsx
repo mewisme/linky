@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, type ReactNode } from 'react';
-import { ShaderConfigProvider } from '@ws/ui/components/mew-ui/shader';
-import { useShaderPreferenceStore } from '@/shared/model/shader-preference-store';
+import { useEffect, type ReactNode } from "react";
+import { ShaderConfigProvider } from "@ws/ui/components/mew-ui/shader";
+import { useShaderPreferenceStore } from "@/shared/model/shader-preference-store";
 
 type Props = {
   children: ReactNode;

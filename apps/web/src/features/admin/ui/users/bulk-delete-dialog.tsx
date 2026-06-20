@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   AlertDialog,
@@ -9,10 +9,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@ws/ui/components/animate-ui/components/radix/alert-dialog';
+} from "@ws/ui/components/animate-ui/components/radix/alert-dialog";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { useTranslations } from 'next-intl';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { useTranslations } from "next-intl";
 
 interface BulkDeleteDialogProps {
   open: boolean;
@@ -27,25 +27,23 @@ export function BulkDeleteDialog({
   pendingUsers,
   onConfirm,
 }: BulkDeleteDialogProps) {
-  const t = useTranslations('admin');
-  const tc = useTranslations('common');
+  const t = useTranslations("admin");
+  const tc = useTranslations("common");
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {t('bulkDeleteUsersTitle', { count: pendingUsers.length })}
+            {t("bulkDeleteUsersTitle", { count: pendingUsers.length })}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {t('bulkDeleteUsersDescription')}
+            {t("bulkDeleteUsersDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-          >
-            {t('bulkActionDelete')}
+          <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm}>
+            {t("bulkActionDelete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

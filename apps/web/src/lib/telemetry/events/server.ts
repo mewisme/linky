@@ -1,5 +1,5 @@
 import { op } from "../op";
-import { waitUntil } from '@vercel/functions';
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 
 export const SERVER_EVENT_NAMES = [
@@ -87,7 +87,7 @@ const eventSchema = z.object({
   properties: z
     .record(
       z.string(),
-      z.union([z.string(), z.number(), z.boolean(), z.null()])
+      z.union([z.string(), z.number(), z.boolean(), z.null()]),
     )
     .optional(),
 });

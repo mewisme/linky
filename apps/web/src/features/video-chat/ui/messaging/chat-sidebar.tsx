@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { ChatMessage, ChatMessageDraft } from "@/features/video-chat/types/chat-message.types";
+import type {
+  ChatMessage,
+  ChatMessageDraft,
+} from "@/features/video-chat/types/chat-message.types";
 import {
   Sheet,
   SheetContent,
@@ -37,13 +40,16 @@ export function ChatContent({
 }) {
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector(
-      '[data-slot="scroll-area-viewport"]'
+      '[data-slot="scroll-area-viewport"]',
     );
     if (viewport) viewport.scrollTop = viewport.scrollHeight;
   }, [chatMessages, isPeerTyping, scrollAreaRef]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col text-base" data-testid="chat-sidebar">
+    <div
+      className="flex h-full min-h-0 flex-col text-base"
+      data-testid="chat-sidebar"
+    >
       <ScrollArea
         ref={scrollAreaRef}
         className="min-h-0 flex-1 bg-muted/30 px-4 py-3 h-96"

@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     const data = await softDeleteAdminUsers(body.ids);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/users/batch/soft-delete");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/users/batch/soft-delete",
+    );
   }
 }

@@ -1,12 +1,8 @@
-'use client';
+"use client";
 
 import * as Sentry from "@sentry/nextjs";
 
-import {
-  IconAlertTriangle,
-  IconHome,
-  IconRefresh,
-} from "@tabler/icons-react";
+import { IconAlertTriangle, IconHome, IconRefresh } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import Link from "next/link";
@@ -101,9 +97,7 @@ export default function GlobalError({
           <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
             {m.title}
           </h1>
-          <p className="mb-10 text-lg text-muted-foreground">
-            {m.description}
-          </p>
+          <p className="mb-10 text-lg text-muted-foreground">{m.description}</p>
 
           <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-center sm:gap-4">
             <Button
@@ -123,7 +117,8 @@ export default function GlobalError({
               variant="default"
               size="lg"
               className="px-8 font-medium shadow-lg shadow-primary/20"
-              asChild>
+              asChild
+            >
               <Link href="/">
                 <IconHome size={18} className="mr-2" />
                 {m.goHome}

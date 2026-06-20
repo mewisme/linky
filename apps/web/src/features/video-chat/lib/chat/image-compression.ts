@@ -22,7 +22,7 @@ export interface CompressedImageResult {
 
 export async function compressImageFile(
   file: File,
-  options?: { quality?: number; maxDimension?: number }
+  options?: { quality?: number; maxDimension?: number },
 ): Promise<CompressedImageResult> {
   const quality = options?.quality ?? defaultImageQuality;
   const maxDimension = options?.maxDimension ?? maxImageDimension;
@@ -53,7 +53,7 @@ export async function compressImageFile(
         }
       },
       mimeType,
-      mimeType === "image/png" ? undefined : quality
+      mimeType === "image/png" ? undefined : quality,
     );
   });
 

@@ -12,6 +12,9 @@ export async function DELETE(
     const data = await hardDeleteInterestTag(id);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "DELETE /api/admin/interest-tags/[id]/hard");
+    return nextResponseFromActionError(
+      error,
+      "DELETE /api/admin/interest-tags/[id]/hard",
+    );
   }
 }

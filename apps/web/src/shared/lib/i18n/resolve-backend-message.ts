@@ -1,9 +1,16 @@
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
-export type TranslateFn = (key: string, values?: Record<string, unknown>) => string;
+export type TranslateFn = (
+  key: string,
+  values?: Record<string, unknown>,
+) => string;
 
-function hasI18nValues(values: Record<string, unknown> | undefined): values is Record<string, unknown> {
-  return !!values && typeof values === "object" && Object.keys(values).length > 0;
+function hasI18nValues(
+  values: Record<string, unknown> | undefined,
+): values is Record<string, unknown> {
+  return (
+    !!values && typeof values === "object" && Object.keys(values).length > 0
+  );
 }
 
 export function resolveBackendMessage(

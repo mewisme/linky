@@ -28,11 +28,27 @@ const HEARTBEAT_INTERVAL_MS = 3000;
 const HEARTBEAT_TIMEOUT_MS = 6000;
 
 export type CallCoordinationMessage =
-  | { type: "HEARTBEAT"; scopeId: string; tabId: string; roomId: string | null; timestamp: number }
+  | {
+      type: "HEARTBEAT";
+      scopeId: string;
+      tabId: string;
+      roomId: string | null;
+      timestamp: number;
+    }
   | { type: "SWITCH_REQUEST"; scopeId: string; requestingTabId: string }
-  | { type: "SWITCH_APPROVED"; scopeId: string; oldTabId: string; newTabId: string }
+  | {
+      type: "SWITCH_APPROVED";
+      scopeId: string;
+      oldTabId: string;
+      newTabId: string;
+    }
   | { type: "OWNER_RELEASED"; scopeId: string; tabId: string }
-  | { type: "CLAIM_OWNERSHIP"; scopeId: string; tabId: string; roomId: string | null };
+  | {
+      type: "CLAIM_OWNERSHIP";
+      scopeId: string;
+      tabId: string;
+      roomId: string | null;
+    };
 
 export interface CallTabState {
   tabId: string;
@@ -54,7 +70,7 @@ class CallTabCoordinator {
   private stateChangeCallbacks: Set<StateChangeCallback> = new Set();
   private isInitialized = false;
 
-  constructor() { }
+  constructor() {}
 
   private getStorageKeys() {
     const prefix = `${STORAGE_KEY_PREFIX}:${this.scopeId}`;
@@ -94,7 +110,11 @@ class CallTabCoordinator {
     }
 
     const keys = this.getStorageKeys();
-    return key === keys.activeTab || key === keys.activeRoom || key === keys.callStartedAt;
+    return (
+      key === keys.activeTab ||
+      key === keys.activeRoom ||
+      key === keys.callStartedAt
+    );
   }
 
   private ensureTabId(): string {
@@ -102,7 +122,10 @@ class CallTabCoordinator {
       return this.tabId;
     }
 
-    if (typeof window === "undefined" || typeof sessionStorage === "undefined") {
+    if (
+      typeof window === "undefined" ||
+      typeof sessionStorage === "undefined"
+    ) {
       this.tabId = `ssr_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       return this.tabId;
     }
@@ -125,7 +148,10 @@ class CallTabCoordinator {
     }
 
     if (this.isInitialized) {
-      logger.debug({ tabId: this.ensureTabId() }, "CallTabCoordinator already initialized");
+      logger.debug(
+        { tabId: this.ensureTabId() },
+        "CallTabCoordinator already initialized",
+      );
       return;
     }
 
@@ -135,7 +161,10 @@ class CallTabCoordinator {
     this.startHeartbeatMonitoring();
     this.isInitialized = true;
 
-    logger.info({ tabId: this.ensureTabId() }, "CallTabCoordinator initialized");
+    logger.info(
+      { tabId: this.ensureTabId() },
+      "CallTabCoordinator initialized",
+    );
   }
 
   destroy(): void {
@@ -157,7 +186,9 @@ class CallTabCoordinator {
 
   private setupBroadcastChannel(): void {
     if (typeof BroadcastChannel === "undefined") {
-      logger.warn("BroadcastChannel not available, using localStorage fallback only");
+      logger.warn(
+        "BroadcastChannel not available, using localStorage fallback only",
+      );
       return;
     }
 
@@ -239,7 +270,7 @@ class CallTabCoordinator {
     const tabId = this.ensureTabId();
     logger.info(
       { requestingTabId, currentOwner: tabId },
-      "Handling switch request from another tab"
+      "Handling switch request from another tab",
     );
 
     this.releaseOwnership();
@@ -269,7 +300,9 @@ class CallTabCoordinator {
     const activeCallTabId = localStorage.getItem(keys.activeTab);
     const activeCallRoomId = localStorage.getItem(keys.activeRoom);
     const callStartedAtStr = localStorage.getItem(keys.callStartedAt);
-    const activeCallStartedAt = callStartedAtStr ? parseInt(callStartedAtStr, 10) : null;
+    const activeCallStartedAt = callStartedAtStr
+      ? parseInt(callStartedAtStr, 10)
+      : null;
 
     return {
       tabId,
@@ -284,7 +317,10 @@ class CallTabCoordinator {
     return this.getState().isCallOwner;
   }
 
-  claimOwnership(roomId: string | null = null, callStartedAt?: number): boolean {
+  claimOwnership(
+    roomId: string | null = null,
+    callStartedAt?: number,
+  ): boolean {
     if (typeof window === "undefined" || typeof localStorage === "undefined") {
       return false;
     }
@@ -296,7 +332,7 @@ class CallTabCoordinator {
     if (currentOwner && currentOwner !== tabId) {
       logger.warn(
         { currentOwner, attemptingTabId: tabId },
-        "Cannot claim ownership, another tab owns the call"
+        "Cannot claim ownership, another tab owns the call",
       );
       return false;
     }
@@ -305,7 +341,10 @@ class CallTabCoordinator {
     if (roomId) {
       localStorage.setItem(keys.activeRoom, roomId);
     }
-    localStorage.setItem(keys.callStartedAt, String(callStartedAt ?? Date.now()));
+    localStorage.setItem(
+      keys.callStartedAt,
+      String(callStartedAt ?? Date.now()),
+    );
 
     this.broadcastMessage({
       type: "CLAIM_OWNERSHIP",
@@ -378,7 +417,10 @@ class CallTabCoordinator {
     };
 
     sendHeartbeat();
-    this.heartbeatIntervalId = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+    this.heartbeatIntervalId = setInterval(
+      sendHeartbeat,
+      HEARTBEAT_INTERVAL_MS,
+    );
   }
 
   private stopHeartbeat(): void {
@@ -390,7 +432,10 @@ class CallTabCoordinator {
 
   private startHeartbeatMonitoring(): void {
     this.heartbeatCheckIntervalId = setInterval(() => {
-      if (typeof window === "undefined" || typeof localStorage === "undefined") {
+      if (
+        typeof window === "undefined" ||
+        typeof localStorage === "undefined"
+      ) {
         return;
       }
 
@@ -409,7 +454,7 @@ class CallTabCoordinator {
         const keys = this.getStorageKeys();
         logger.warn(
           { activeCallTabId: state.activeCallTabId, tabId },
-          "Owner tab heartbeat timeout detected, clearing stale ownership"
+          "Owner tab heartbeat timeout detected, clearing stale ownership",
         );
 
         localStorage.removeItem(keys.activeTab);

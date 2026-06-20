@@ -14,7 +14,7 @@ export function LandingVision() {
 
   return (
     <section className="w-full py-12 sm:py-16 md:py-20">
-      <MotionEffect slide={{ direction: 'up' }} fade inView>
+      <MotionEffect slide={{ direction: "up" }} fade inView>
         <Card className="border-input bg-linear-to-br from-primary/5 to-transparent">
           <CardContent className="p-6 sm:p-8 md:p-10 space-y-8 sm:space-y-10">
             <div className="text-center space-y-3 sm:space-y-4">
@@ -33,7 +33,7 @@ export function LandingVision() {
                 return (
                   <MotionEffect
                     key={point.title}
-                    slide={{ direction: 'up' }}
+                    slide={{ direction: "up" }}
                     fade
                     inView
                     delay={0.1 * index}

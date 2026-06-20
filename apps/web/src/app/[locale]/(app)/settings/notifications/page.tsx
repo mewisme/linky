@@ -41,11 +41,14 @@ export default function NotificationSettingsPage() {
   } = usePushNotifications();
 
   const [isPending, startTransition] = useTransition();
-  const [notificationSoundEnabled, setNotificationSoundEnabled] = useState(false);
+  const [notificationSoundEnabled, setNotificationSoundEnabled] =
+    useState(false);
 
   useEffect(() => {
     if (userSettings) {
-      const prefs = normalizeUserNotificationPreferences(userSettings.notification);
+      const prefs = normalizeUserNotificationPreferences(
+        userSettings.notification,
+      );
       setNotificationSoundEnabled(prefs.sound_enabled);
     }
   }, [userSettings]);
@@ -60,18 +63,29 @@ export default function NotificationSettingsPage() {
   const handleSave = () => {
     startTransition(async () => {
       try {
-        const current = normalizeUserNotificationPreferences(userSettings?.notification);
+        const current = normalizeUserNotificationPreferences(
+          userSettings?.notification,
+        );
         await updateUserSettings({
           notification: {
             ...current,
             sound_enabled: notificationSoundEnabled,
           },
         });
-        trackEvent({ name: "settings_updated", properties: { section: "notifications" } });
+        trackEvent({
+          name: "settings_updated",
+          properties: { section: "notifications" },
+        });
         playSound("success");
         toast.success(ts("updated"));
       } catch (error: unknown) {
-        toast.error(resolveActionErrorMessage(error, tRoot, "settings.notificationsPage.updateFailed"));
+        toast.error(
+          resolveActionErrorMessage(
+            error,
+            tRoot,
+            "settings.notificationsPage.updateFailed",
+          ),
+        );
       }
     });
   };
@@ -79,13 +93,11 @@ export default function NotificationSettingsPage() {
   const hasChanges =
     userSettings &&
     notificationSoundEnabled !==
-      normalizeUserNotificationPreferences(userSettings.notification).sound_enabled;
+      normalizeUserNotificationPreferences(userSettings.notification)
+        .sound_enabled;
 
   return (
-    <AppLayout
-      label={ts("label")}
-      description={ts("description")}
-    >
+    <AppLayout label={ts("label")} description={ts("description")}>
       <div className="space-y-6">
         <section className="space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -215,9 +227,7 @@ export default function NotificationSettingsPage() {
 
         <div className="flex justify-end pt-2">
           <Button onClick={handleSave} disabled={isPending || !hasChanges}>
-            {isPending && (
-              <IconLoader2 className="mr-2 size-4 animate-spin" />
-            )}
+            {isPending && <IconLoader2 className="mr-2 size-4 animate-spin" />}
             {ts("saveChanges")}
           </Button>
         </div>

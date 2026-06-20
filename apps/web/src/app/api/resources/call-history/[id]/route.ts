@@ -18,6 +18,9 @@ export async function GET(
     const data = await getCallHistoryById(id.trim());
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "GET /api/resources/call-history/[id]");
+    return nextResponseFromActionError(
+      error,
+      "GET /api/resources/call-history/[id]",
+    );
   }
 }

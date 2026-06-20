@@ -8,6 +8,9 @@ export async function GET() {
     const data = await getQueueStatus();
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "GET /api/matchmaking/queue-status");
+    return nextResponseFromActionError(
+      error,
+      "GET /api/matchmaking/queue-status",
+    );
   }
 }

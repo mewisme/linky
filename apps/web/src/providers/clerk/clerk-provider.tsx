@@ -5,11 +5,18 @@ import { shadcn } from "@clerk/themes";
 import { useLocale } from "next-intl";
 import { enUS, viVN } from "@clerk/localizations";
 
-import { absoluteLocalePrefixedUrl, localePrefixedPath } from "@/i18n/locale-path";
+import {
+  absoluteLocalePrefixedUrl,
+  localePrefixedPath,
+} from "@/i18n/locale-path";
 
 import { GoogleOneTapClient } from "./google-one-tap-client";
 
-export function LocaleClerkProvider({ children }: { children: React.ReactNode }) {
+export function LocaleClerkProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const locale = useLocale();
   const localization = locale === "vi" ? viVN : enUS;
   const signInUrl = localePrefixedPath(locale, "/sign-in");

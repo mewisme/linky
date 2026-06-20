@@ -1,32 +1,39 @@
-'use client'
+"use client";
 
-import { AdminAPI } from '@/features/admin/types/admin.types'
-import { useInterestTagColumns, type RowCallbacks } from './define-data'
-import { DataTable } from '../data-table'
-import { cn } from '@ws/ui/lib/utils'
-import { useTranslations } from 'next-intl'
+import { AdminAPI } from "@/features/admin/types/admin.types";
+import { useInterestTagColumns, type RowCallbacks } from "./define-data";
+import { DataTable } from "../data-table";
+import { cn } from "@ws/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface InterestTagsDataTableProps {
-  initialData: AdminAPI.InterestTags.InterestTag[]
-  isLoading?: boolean
-  className?: string
-  callbacks?: RowCallbacks
-  leftColumnVisibilityContent?: React.ReactNode
-  rightColumnVisibilityContent?: React.ReactNode
+  initialData: AdminAPI.InterestTags.InterestTag[];
+  isLoading?: boolean;
+  className?: string;
+  callbacks?: RowCallbacks;
+  leftColumnVisibilityContent?: React.ReactNode;
+  rightColumnVisibilityContent?: React.ReactNode;
 }
 
-export function InterestTagsDataTable({ initialData, isLoading = false, className, callbacks, leftColumnVisibilityContent = null, rightColumnVisibilityContent = null }: InterestTagsDataTableProps) {
-  const t = useTranslations('dataTable')
-  const tableColumns = useInterestTagColumns(callbacks)
+export function InterestTagsDataTable({
+  initialData,
+  isLoading = false,
+  className,
+  callbacks,
+  leftColumnVisibilityContent = null,
+  rightColumnVisibilityContent = null,
+}: InterestTagsDataTableProps) {
+  const t = useTranslations("dataTable");
+  const tableColumns = useInterestTagColumns(callbacks);
 
   return (
     <div data-testid="admin-interest-tags-table">
       <DataTable
         initialData={initialData}
         isLoading={isLoading}
-        loadingTitle={t('interestTags.loadingTitle')}
+        loadingTitle={t("interestTags.loadingTitle")}
         filterColumns="name"
-        filterPlaceholder={t('interestTags.filterPlaceholder')}
+        filterPlaceholder={t("interestTags.filterPlaceholder")}
         initialColumnVisibility={{ id: false }}
         columns={tableColumns}
         className={cn(className)}
@@ -34,5 +41,5 @@ export function InterestTagsDataTable({ initialData, isLoading = false, classNam
         rightColumnVisibilityContent={rightColumnVisibilityContent}
       />
     </div>
-  )
+  );
 }

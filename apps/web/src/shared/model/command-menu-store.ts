@@ -1,4 +1,4 @@
-import { create } from "zustand"
+import { create } from "zustand";
 
 interface CommandMenuState {
   isOpen: boolean;
@@ -12,4 +12,4 @@ export const useCommandMenuStore = create<CommandMenuState>((set) => ({
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
   setOpen: (open: boolean) => set({ isOpen: open }),
-}))
+}));

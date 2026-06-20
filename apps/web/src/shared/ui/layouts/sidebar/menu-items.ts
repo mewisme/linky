@@ -79,10 +79,7 @@ export interface MenuItem {
   subItems?: MenuItem[];
 }
 
-function mapDef(
-  def: MenuItemDef,
-  tRoot: (key: string) => string,
-): MenuItem {
+function mapDef(def: MenuItemDef, tRoot: (key: string) => string): MenuItem {
   const description = tRoot(`sidebar.items.${def.id}.description`);
   return {
     id: def.id,

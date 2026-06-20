@@ -25,7 +25,7 @@ export function useE2eRelaxedCall(): boolean {
           setRelaxedCall(true);
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   return relaxedCall;

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-import type { ShaderRenderMap, ShaderType } from "@ws/ui/components/mew-ui/shader";
+import type {
+  ShaderRenderMap,
+  ShaderType,
+} from "@ws/ui/components/mew-ui/shader";
 
 export type UserRole = "admin" | "member" | "superadmin";
 
@@ -191,11 +194,11 @@ export namespace UsersAPI {
 
     export namespace GetMe {
       export interface ExpBonusActive {
-        type: 'streak' | 'level' | 'favorite';
+        type: "streak" | "level" | "favorite";
         multiplier: number;
         min?: number;
         max?: number;
-        relation?: 'mutual' | 'one_way';
+        relation?: "mutual" | "one_way";
       }
 
       export interface Response {

@@ -35,7 +35,9 @@ interface AiWriterSectionProps {
   selectedTone: "primary" | AdminAPI.Broadcasts.AiBroadcastTone;
   isGenerating: boolean;
   isAiDialogOpen: boolean;
-  setSelectedTone: (tone: "primary" | AdminAPI.Broadcasts.AiBroadcastTone) => void;
+  setSelectedTone: (
+    tone: "primary" | AdminAPI.Broadcasts.AiBroadcastTone,
+  ) => void;
   setIsAiDialogOpen: (open: boolean) => void;
   onGenerateAiDraft: () => Promise<void>;
   onUseAiDraft: () => void;
@@ -62,7 +64,9 @@ export function AiWriterSection({
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-medium">{tbf("aiWriterTitle")}</div>
-          <div className="text-xs text-muted-foreground">{tbf("aiWriterDescription")}</div>
+          <div className="text-xs text-muted-foreground">
+            {tbf("aiWriterDescription")}
+          </div>
         </div>
         <Button
           type="button"
@@ -94,7 +98,9 @@ export function AiWriterSection({
           <FieldGroup>
             <div className="w-full space-y-4">
               <Field data-invalid={Boolean(audienceError)}>
-                <FieldLabel htmlFor="broadcast-audience">{tbf("targetAudience")}</FieldLabel>
+                <FieldLabel htmlFor="broadcast-audience">
+                  {tbf("targetAudience")}
+                </FieldLabel>
                 <Input
                   id="broadcast-audience"
                   placeholder={tbf("audiencePlaceholder")}
@@ -106,7 +112,9 @@ export function AiWriterSection({
               </Field>
 
               <Field data-invalid={Boolean(keyPointsError)}>
-                <FieldLabel htmlFor="broadcast-key-points">{tbf("keyPoints")}</FieldLabel>
+                <FieldLabel htmlFor="broadcast-key-points">
+                  {tbf("keyPoints")}
+                </FieldLabel>
                 <Textarea
                   id="broadcast-key-points"
                   placeholder={tbf("keyPointsPlaceholder")}
@@ -150,7 +158,9 @@ interface AiDraftPreviewProps {
   tbf: BroadcastFormTranslationFn;
   selectedDraft: NonNullable<SelectedAiDraft>;
   selectedTone: "primary" | AdminAPI.Broadcasts.AiBroadcastTone;
-  setSelectedTone: (tone: "primary" | AdminAPI.Broadcasts.AiBroadcastTone) => void;
+  setSelectedTone: (
+    tone: "primary" | AdminAPI.Broadcasts.AiBroadcastTone,
+  ) => void;
   onUseAiDraft: () => void;
 }
 
@@ -172,30 +182,46 @@ function AiDraftPreview({
         >
           <div className="flex items-center gap-2">
             <RadioGroupItem value="primary" id="tone-primary" />
-            <Label htmlFor="tone-primary" className="cursor-pointer font-normal">
+            <Label
+              htmlFor="tone-primary"
+              className="cursor-pointer font-normal"
+            >
               {tbf("recommended")}
             </Label>
           </div>
-          {(["friendly", "professional", "direct"] as AdminAPI.Broadcasts.AiBroadcastTone[]).map(
-            (tone) => (
-              <div key={tone} className="flex items-center gap-2">
-                <RadioGroupItem value={tone} id={`tone-${tone}`} />
-                <Label htmlFor={`tone-${tone}`} className="cursor-pointer font-normal capitalize">
-                  {tone}
-                </Label>
-              </div>
-            ),
-          )}
+          {(
+            [
+              "friendly",
+              "professional",
+              "direct",
+            ] as AdminAPI.Broadcasts.AiBroadcastTone[]
+          ).map((tone) => (
+            <div key={tone} className="flex items-center gap-2">
+              <RadioGroupItem value={tone} id={`tone-${tone}`} />
+              <Label
+                htmlFor={`tone-${tone}`}
+                className="cursor-pointer font-normal capitalize"
+              >
+                {tone}
+              </Label>
+            </div>
+          ))}
         </RadioGroup>
       </div>
 
       <div className="flex min-w-0 flex-col gap-2">
         <div className="min-w-0">
-          <div className="text-xs font-medium text-muted-foreground">{tbf("titleLabel")}</div>
-          <div className="mt-1 break-words rounded-md bg-muted p-3 text-sm">{selectedDraft.title}</div>
+          <div className="text-xs font-medium text-muted-foreground">
+            {tbf("titleLabel")}
+          </div>
+          <div className="mt-1 break-words rounded-md bg-muted p-3 text-sm">
+            {selectedDraft.title}
+          </div>
         </div>
         <div className="min-w-0">
-          <div className="text-xs font-medium text-muted-foreground">{tbf("messageLabel")}</div>
+          <div className="text-xs font-medium text-muted-foreground">
+            {tbf("messageLabel")}
+          </div>
           <div className="mt-1 break-words rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">
             {`${selectedDraft.body}\n\n${selectedDraft.cta}`}
           </div>

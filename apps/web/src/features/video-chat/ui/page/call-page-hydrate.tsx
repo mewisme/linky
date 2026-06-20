@@ -25,7 +25,10 @@ export function CallPageHydrate({
 
   const { data: progress } = useQuery({
     queryKey: ["user-progress"],
-    queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
+    queryFn: () =>
+      fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>(
+        "/api/users/progress",
+      ),
     initialData: initialProgress ?? undefined,
     staleTime: Infinity,
     refetchOnMount: false,
@@ -34,16 +37,17 @@ export function CallPageHydrate({
   const { data: favorites, refetch: refetchFavorites } = useQuery({
     queryKey: ["user-favorites"],
     queryFn: () =>
-      fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>("/api/resources/favorites"),
+      fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>(
+        "/api/resources/favorites",
+      ),
     initialData: initialFavorites ?? undefined,
     staleTime: Infinity,
   });
 
   useEffect(() => {
-    useVideoChatStore.getState().setCallInitialData(
-      progress ?? null,
-      favorites ?? null
-    );
+    useVideoChatStore
+      .getState()
+      .setCallInitialData(progress ?? null, favorites ?? null);
   }, [progress, favorites]);
 
   useEffect(() => {

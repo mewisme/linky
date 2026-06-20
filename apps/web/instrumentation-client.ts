@@ -15,12 +15,12 @@ Sentry.init({
   enableMetrics: false,
   integrations: isEnabled
     ? [
-      Sentry.feedbackIntegration({
-        colorScheme: "system",
-        showBranding: false,
-        autoInject: false
-      }),
-    ]
+        Sentry.feedbackIntegration({
+          colorScheme: "system",
+          showBranding: false,
+          autoInject: false,
+        }),
+      ]
     : [],
 });
 

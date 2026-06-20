@@ -1,11 +1,11 @@
-import type { AdminAPI } from '@/features/admin/types/admin.types';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
 
 export function buildExpBonusConfig(
   type: AdminAPI.ExpBonuses.ExpBonusType,
   config: AdminAPI.ExpBonuses.ExpBonusConfig,
 ): AdminAPI.ExpBonuses.ExpBonusConfig | null {
-  if (type === 'favorite') {
-    if (config.relation !== 'mutual' && config.relation !== 'one_way') {
+  if (type === "favorite") {
+    if (config.relation !== "mutual" && config.relation !== "one_way") {
       return null;
     }
     return { relation: config.relation };
@@ -20,11 +20,7 @@ export function buildExpBonusConfig(
   if (out.min === undefined && out.max === undefined) {
     return null;
   }
-  if (
-    out.min !== undefined &&
-    out.max !== undefined &&
-    out.max < out.min
-  ) {
+  if (out.min !== undefined && out.max !== undefined && out.max < out.min) {
     return null;
   }
   return out;

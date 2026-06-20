@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Dialog,
@@ -6,25 +6,25 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@ws/ui/components/ui/dialog';
+} from "@ws/ui/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-} from '@ws/ui/components/ui/drawer';
+} from "@ws/ui/components/ui/drawer";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { Button } from '@ws/ui/components/ui/button';
-import { IconLoader2 } from '@tabler/icons-react';
-import { Input } from '@ws/ui/components/ui/input';
-import { Label } from '@ws/ui/components/ui/label';
-import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
-import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
-import { useIsMobile } from '@ws/ui/hooks/use-mobile';
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { Button } from "@ws/ui/components/ui/button";
+import { IconLoader2 } from "@tabler/icons-react";
+import { Input } from "@ws/ui/components/ui/input";
+import { Label } from "@ws/ui/components/ui/label";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 interface SimilarResult {
   user_id: string;
@@ -48,17 +48,19 @@ export function FindSimilarUsersModal({
   user,
   users,
 }: FindSimilarUsersModalProps) {
-  const te = useTranslations('admin.embedding');
+  const te = useTranslations("admin.embedding");
   const tRoot = useTranslations();
   const isMobile = useIsMobile();
-  const [limit, setLimit] = useState('');
+  const [limit, setLimit] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<FindSimilarResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const formatUserLabel = (u: AdminAPI.User): string => {
-    const email = u.email ?? te('noEmail');
-    const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || te('unknownName');
+    const email = u.email ?? te("noEmail");
+    const name =
+      [u.first_name, u.last_name].filter(Boolean).join(" ") ||
+      te("unknownName");
     return `${name} (${email})`;
   };
 
@@ -72,20 +74,32 @@ export function FindSimilarUsersModal({
   };
 
   const handleSubmit = async () => {
-    const parsed = limit.trim() === '' ? null : Number(limit);
-    const effectiveLimit = parsed === null || isNaN(parsed) ? 10 : Math.min(100, Math.max(1, parsed));
+    const parsed = limit.trim() === "" ? null : Number(limit);
+    const effectiveLimit =
+      parsed === null || isNaN(parsed)
+        ? 10
+        : Math.min(100, Math.max(1, parsed));
     setIsLoading(true);
     setError(null);
     setResult(null);
     try {
-      const data = await fetchFromActionRoute<FindSimilarResponse>('/api/admin/embeddings/similar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id, limit: effectiveLimit }),
-      });
+      const data = await fetchFromActionRoute<FindSimilarResponse>(
+        "/api/admin/embeddings/similar",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, limit: effectiveLimit }),
+        },
+      );
       setResult(data as unknown as FindSimilarResponse);
     } catch (err) {
-      setError(resolveActionErrorMessage(err, tRoot, 'admin.embedding.findSimilarFailed'));
+      setError(
+        resolveActionErrorMessage(
+          err,
+          tRoot,
+          "admin.embedding.findSimilarFailed",
+        ),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -96,13 +110,13 @@ export function FindSimilarUsersModal({
   const formSection = (
     <>
       <div className="space-y-2">
-        <Label>{te('baseUserFromRow')}</Label>
+        <Label>{te("baseUserFromRow")}</Label>
         <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm">
           {formatUserLabel(user)}
         </div>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="limit">{te('resultLimit')}</Label>
+        <Label htmlFor="limit">{te("resultLimit")}</Label>
         <Input
           id="limit"
           type="number"
@@ -123,7 +137,7 @@ export function FindSimilarUsersModal({
 
   const resultSection = result && (
     <div className="space-y-2">
-      <p className="text-sm font-medium">{te('similarUsersRanked')}</p>
+      <p className="text-sm font-medium">{te("similarUsersRanked")}</p>
       <div className="max-h-[200px] overflow-y-auto rounded-md border">
         <div className="space-y-1 p-2">
           {result.results.map((r, i) => {
@@ -156,15 +170,11 @@ export function FindSimilarUsersModal({
         onClick={() => handleOpenChange(false)}
         disabled={isLoading}
       >
-        {te('close')}
+        {te("close")}
       </Button>
-      <Button
-        type="button"
-        onClick={handleSubmit}
-        disabled={isLoading}
-      >
+      <Button type="button" onClick={handleSubmit} disabled={isLoading}>
         {isLoading && <IconLoader2 className="mr-2 size-4 animate-spin" />}
-        {te('findSimilar')}
+        {te("findSimilar")}
       </Button>
     </div>
   );
@@ -174,9 +184,9 @@ export function FindSimilarUsersModal({
       <Drawer open={open} onOpenChange={handleOpenChange} dismissible={false}>
         <DrawerContent className="flex max-h-[90vh] flex-col sm:max-w-md">
           <DrawerHeader className="shrink-0">
-            <DrawerTitle>{te('findSimilarTitle')}</DrawerTitle>
+            <DrawerTitle>{te("findSimilarTitle")}</DrawerTitle>
             <DrawerDescription>
-              {te('findSimilarDescription')}
+              {te("findSimilarDescription")}
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4">
@@ -191,14 +201,10 @@ export function FindSimilarUsersModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent
-        className="flex max-h-[90vh] flex-col sm:max-w-md"
-      >
+      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-md">
         <DialogHeader className="shrink-0">
-          <DialogTitle>{te('findSimilarTitle')}</DialogTitle>
-          <DialogDescription>
-            {te('findSimilarDescription')}
-          </DialogDescription>
+          <DialogTitle>{te("findSimilarTitle")}</DialogTitle>
+          <DialogDescription>{te("findSimilarDescription")}</DialogDescription>
         </DialogHeader>
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
           {formSection}

@@ -41,7 +41,7 @@ export function Loader({
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-8 p-8",
-        className
+        className,
       )}
       {...props}
     >
@@ -217,7 +217,7 @@ export function Loader({
         <motion.h1
           className={cn(
             config.titleClass,
-            "text-black/90 dark:text-white/90 font-medium tracking-[-0.02em] leading-[1.15] antialiased"
+            "text-black/90 dark:text-white/90 font-medium tracking-[-0.02em] leading-[1.15] antialiased",
           )}
           initial={{ opacity: 0, y: 12 }}
           animate={{

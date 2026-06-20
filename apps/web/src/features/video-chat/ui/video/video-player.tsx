@@ -19,11 +19,13 @@ interface VideoPlayerProps {
 
 export function shouldMirrorLocalPreview(
   localStream: MediaStream | null,
-  isSharingScreen: boolean
+  isSharingScreen: boolean,
 ): boolean {
   if (isSharingScreen) return false;
   const facing = (
-    localStream?.getVideoTracks()[0]?.getSettings() as { facingMode?: string } | undefined
+    localStream?.getVideoTracks()[0]?.getSettings() as
+      | { facingMode?: string }
+      | undefined
   )?.facingMode;
   if (facing === "environment") return false;
   return true;
@@ -31,10 +33,10 @@ export function shouldMirrorLocalPreview(
 
 export function useMirrorLocalPreview(
   localStream: MediaStream | null,
-  isSharingScreen: boolean
+  isSharingScreen: boolean,
 ): boolean {
   const [mirror, setMirror] = useState(() =>
-    shouldMirrorLocalPreview(localStream, isSharingScreen)
+    shouldMirrorLocalPreview(localStream, isSharingScreen),
   );
 
   useEffect(() => {
@@ -89,12 +91,15 @@ export function VideoPlayer({
                 onError(error);
               } else {
                 Sentry.metrics.count("error_playing_video", 1);
-                Sentry.logger.error("Error playing video", { error: error instanceof Error ? error.message : "Unknown error" });
+                Sentry.logger.error("Error playing video", {
+                  error:
+                    error instanceof Error ? error.message : "Unknown error",
+                });
               }
 
               if (isMobile) {
                 setTimeout(() => {
-                  video.play().catch(() => { });
+                  video.play().catch(() => {});
                 }, 100);
               }
             });
@@ -111,7 +116,10 @@ export function VideoPlayer({
   }, [stream, isMobile, onError]);
 
   const aspectRatioStyle = aspectRatio
-    ? { aspectRatio: typeof aspectRatio === "number" ? `${aspectRatio}` : aspectRatio }
+    ? {
+        aspectRatio:
+          typeof aspectRatio === "number" ? `${aspectRatio}` : aspectRatio,
+      }
     : {};
 
   return (
@@ -125,15 +133,14 @@ export function VideoPlayer({
         ...aspectRatioStyle,
         objectFit,
         ...(objectPosition && { objectPosition }),
-        width: '100%',
-        height: '100%',
-        display: 'block',
+        width: "100%",
+        height: "100%",
+        display: "block",
         ...(mirrored && {
-          transform: 'scaleX(-1)',
-          transformOrigin: 'center center',
+          transform: "scaleX(-1)",
+          transformOrigin: "center center",
         }),
       }}
     />
   );
 }
-

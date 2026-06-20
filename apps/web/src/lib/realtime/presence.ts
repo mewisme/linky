@@ -47,4 +47,3 @@ export function publishPresence(state: PresenceState): void {
     });
   }
 }
-

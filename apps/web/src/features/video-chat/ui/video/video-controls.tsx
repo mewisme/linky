@@ -3,7 +3,11 @@
 
 import * as Sentry from "@sentry/nextjs";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@ws/ui/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +51,13 @@ import type { ConnectionStatus } from "@/features/video-chat/hooks/webrtc/use-vi
 import type { UsersAPI } from "@/entities/user/types/users.types";
 import type { ResourcesAPI } from "@/shared/types/resources.types";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
-import React, { useState, useMemo, useEffect, type ReactNode, Activity } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  type ReactNode,
+  Activity,
+} from "react";
 
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useLocale, useTranslations } from "next-intl";
@@ -72,7 +82,9 @@ export interface ControlConfig {
   badge?: ReactNode;
   dynamicIcon?: (props: ControlContext) => React.ElementType;
   dynamicLabel?: (props: ControlContext) => string;
-  dynamicVariant?: (props: ControlContext) => "default" | "destructive" | "outline";
+  dynamicVariant?: (
+    props: ControlContext,
+  ) => "default" | "destructive" | "outline";
   testId?: string | ((props: ControlContext) => string);
 }
 
@@ -109,10 +121,16 @@ interface VideoControlsProps {
   isPictureInPictureActive?: boolean;
   onTogglePictureInPicture?: () => void;
   onBlockUser?: (userId: string) => void;
-  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  sendFavoriteNotification: (
+    action: "added" | "removed",
+    peerUserId: string,
+    userName: string,
+  ) => void;
   initialFavorites?: ResourcesAPI.Favorites.Get.Response | null;
   hideChatToggle?: boolean;
-  onApplyStreamQuality?: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void> | void;
+  onApplyStreamQuality?: (
+    quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality,
+  ) => Promise<void> | void;
 }
 
 interface ControlButtonProps {
@@ -123,7 +141,13 @@ interface ControlButtonProps {
   onStreamQualityOpen: () => void;
 }
 
-function ControlButton({ config, context, onPeerInfoOpen, onReportOpen, onStreamQualityOpen }: ControlButtonProps) {
+function ControlButton({
+  config,
+  context,
+  onPeerInfoOpen,
+  onReportOpen,
+  onStreamQualityOpen,
+}: ControlButtonProps) {
   const isVisible =
     config.visible === undefined
       ? true
@@ -138,13 +162,16 @@ function ControlButton({ config, context, onPeerInfoOpen, onReportOpen, onStream
   const isDisabled =
     typeof config.disabled === "boolean"
       ? config.disabled
-      : config.disabled?.(context) ?? false;
+      : (config.disabled?.(context) ?? false);
 
   const Icon = config.dynamicIcon?.(context) ?? config.icon;
   const label = config.dynamicLabel?.(context) ?? config.label;
   const variant =
     config.dynamicVariant?.(context) ?? config.variant ?? "outline";
-  const testId = typeof config.testId === "function" ? config.testId(context) : config.testId;
+  const testId =
+    typeof config.testId === "function"
+      ? config.testId(context)
+      : config.testId;
 
   const handleClick = () => {
     if (config.id === "peer-info") {
@@ -229,7 +256,7 @@ export function VideoControls({
 
     if (initialFavorites?.data) {
       const isFavorited = initialFavorites.data.some(
-        (fav) => fav.favorite_user_id === peerInfo.id
+        (fav) => fav.favorite_user_id === peerInfo.id,
       );
       setIsFavorite(isFavorited);
       return;
@@ -241,15 +268,17 @@ export function VideoControls({
       if (!mounted) return;
 
       try {
-        const data = await fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>(
-          "/api/resources/favorites",
-        );
+        const data =
+          await fetchFromActionRoute<ResourcesAPI.Favorites.Get.Response>(
+            "/api/resources/favorites",
+          );
 
         if (!mounted) return;
 
         const favorites = data.data || [];
         const isFavorited = favorites.some(
-          (fav: { favorite_user_id: string }) => fav.favorite_user_id === peerInfo.id
+          (fav: { favorite_user_id: string }) =>
+            fav.favorite_user_id === peerInfo.id,
         );
 
         if (mounted) {
@@ -257,7 +286,9 @@ export function VideoControls({
         }
       } catch (error) {
         Sentry.metrics.count("failed_to_check_favorite_status", 1);
-        Sentry.logger.error("Failed to check favorite status", { error: error instanceof Error ? error.message : "Unknown error" });
+        Sentry.logger.error("Failed to check favorite status", {
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       }
     };
 
@@ -278,35 +309,66 @@ export function VideoControls({
 
     try {
       if (isAdding) {
-        const created = await fetchFromActionRoute<ResourcesAPI.Favorites.Create.Response>("/api/resources/favorites", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ favorite_user_id: peerInfo.id }),
-        });
+        const created =
+          await fetchFromActionRoute<ResourcesAPI.Favorites.Create.Response>(
+            "/api/resources/favorites",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ favorite_user_id: peerInfo.id }),
+            },
+          );
 
         setIsFavorite(true);
         trackEvent({ name: "favorite_added" });
-        toast.success(resolveActionSuccessMessage(created, tRoot, "api.userAddedToFavorites"));
-
-        const userName = user.user?.fullName || user.user?.firstName || t("someoneFallback");
-        sendFavoriteNotification("added", peerInfo.id, userName || t("someoneFallback"));
-      } else {
-        const removed = await fetchFromActionRoute<ResourcesAPI.Favorites.Delete.Response>(
-          `/api/resources/favorites/${encodeURIComponent(peerInfo.id)}`,
-          { method: "DELETE" },
+        toast.success(
+          resolveActionSuccessMessage(
+            created,
+            tRoot,
+            "api.userAddedToFavorites",
+          ),
         );
+
+        const userName =
+          user.user?.fullName || user.user?.firstName || t("someoneFallback");
+        sendFavoriteNotification(
+          "added",
+          peerInfo.id,
+          userName || t("someoneFallback"),
+        );
+      } else {
+        const removed =
+          await fetchFromActionRoute<ResourcesAPI.Favorites.Delete.Response>(
+            `/api/resources/favorites/${encodeURIComponent(peerInfo.id)}`,
+            { method: "DELETE" },
+          );
 
         setIsFavorite(false);
         trackEvent({ name: "favorite_removed" });
-        toast.success(resolveActionSuccessMessage(removed, tRoot, "api.favoriteRemovedSuccess"));
+        toast.success(
+          resolveActionSuccessMessage(
+            removed,
+            tRoot,
+            "api.favoriteRemovedSuccess",
+          ),
+        );
 
-        const userName = user.user?.fullName || user.user?.firstName || t("someoneFallback");
-        sendFavoriteNotification("removed", peerInfo.id, userName || t("someoneFallback"));
+        const userName =
+          user.user?.fullName || user.user?.firstName || t("someoneFallback");
+        sendFavoriteNotification(
+          "removed",
+          peerInfo.id,
+          userName || t("someoneFallback"),
+        );
       }
     } catch (error) {
       Sentry.metrics.count("failed_to_toggle_favorite", 1);
-      Sentry.logger.error("Failed to toggle favorite", { error: error instanceof Error ? error.message : "Unknown error" });
-      toast.error(resolveActionErrorMessage(error, tRoot, "call.favoriteUpdateFailed"));
+      Sentry.logger.error("Failed to toggle favorite", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      toast.error(
+        resolveActionErrorMessage(error, tRoot, "call.favoriteUpdateFailed"),
+      );
     } finally {
       setIsFavoriteLoading(false);
     }
@@ -341,8 +403,10 @@ export function VideoControls({
         label: t("controls.mute"),
         onClick: onToggleMute,
         disabled: !hasLocalStream,
-        dynamicIcon: (ctx) => (ctx.isMuted ? IconMicrophoneOff : IconMicrophone),
-        dynamicLabel: (ctx) => (ctx.isMuted ? t("controls.unmute") : t("controls.mute")),
+        dynamicIcon: (ctx) =>
+          ctx.isMuted ? IconMicrophoneOff : IconMicrophone,
+        dynamicLabel: (ctx) =>
+          ctx.isMuted ? t("controls.unmute") : t("controls.mute"),
         dynamicVariant: (ctx) => (ctx.isMuted ? "destructive" : "outline"),
         testId: "chat-mute-button",
       },
@@ -365,10 +429,12 @@ export function VideoControls({
         onClick: onToggleVideo,
         disabled: !hasLocalStream,
         dynamicIcon: (ctx) => (ctx.isVideoOff ? IconVideoOff : IconVideo),
-        dynamicLabel: (ctx) => (ctx.isVideoOff ? t("controls.cameraOn") : t("controls.cameraOff")),
+        dynamicLabel: (ctx) =>
+          ctx.isVideoOff ? t("controls.cameraOn") : t("controls.cameraOff"),
         dynamicVariant: (ctx) => (ctx.isVideoOff ? "destructive" : "outline"),
         visible:
-          (connectionStatus === "in_call" || connectionStatus === "reconnecting") &&
+          (connectionStatus === "in_call" ||
+            connectionStatus === "reconnecting") &&
           hasLocalStream,
         testId: "chat-video-toggle-button",
       },
@@ -380,16 +446,19 @@ export function VideoControls({
         variant: "destructive",
         onClick: onEndCall,
         dynamicLabel: (ctx) =>
-          ctx.connectionStatus === "searching" ? t("controls.endSearch") : t("controls.endCall"),
+          ctx.connectionStatus === "searching"
+            ? t("controls.endSearch")
+            : t("controls.endCall"),
         visible:
           connectionStatus === "in_call" ||
           connectionStatus === "reconnecting" ||
           connectionStatus === "searching" ||
           connectionStatus === "matched" ||
           hasLocalStream,
-        testId: (ctx) => ctx.connectionStatus === "searching"
-          ? "chat-cancel-search-button"
-          : "chat-end-call-button",
+        testId: (ctx) =>
+          ctx.connectionStatus === "searching"
+            ? "chat-cancel-search-button"
+            : "chat-end-call-button",
       },
       {
         id: "swap-camera",
@@ -400,7 +469,8 @@ export function VideoControls({
         onClick: () => onSwapCamera?.(),
         visible:
           !!onSwapCamera &&
-          (connectionStatus === "in_call" || connectionStatus === "reconnecting") &&
+          (connectionStatus === "in_call" ||
+            connectionStatus === "reconnecting") &&
           hasLocalStream,
         disabled: !hasLocalStream,
         testId: "chat-swap-camera-button",
@@ -413,7 +483,8 @@ export function VideoControls({
         variant: "outline",
         onClick: onToggleChat,
         visible: !hideChatToggle,
-        dynamicLabel: (ctx) => (ctx.isChatOpen ? t("controls.hideChat") : t("controls.showChat")),
+        dynamicLabel: (ctx) =>
+          ctx.isChatOpen ? t("controls.hideChat") : t("controls.showChat"),
         testId: "chat-toggle-button",
       },
       {
@@ -422,7 +493,7 @@ export function VideoControls({
         icon: IconUser,
         label: t("controls.peerInfo"),
         variant: "outline",
-        onClick: () => { },
+        onClick: () => {},
         visible: isInActiveCall && !!peerInfo,
         testId: "chat-peer-info-button",
       },
@@ -436,8 +507,13 @@ export function VideoControls({
         visible: isInActiveCall && !!peerInfo,
         disabled: isFavoriteLoading,
         dynamicLabel: (ctx) =>
-          ctx.isFavoriteAdded ? t("controls.removeFromFavorites") : t("controls.addToFavorites"),
-        testId: (ctx) => ctx.isFavoriteAdded ? "chat-remove-favorite-button" : "chat-add-favorite-button",
+          ctx.isFavoriteAdded
+            ? t("controls.removeFromFavorites")
+            : t("controls.addToFavorites"),
+        testId: (ctx) =>
+          ctx.isFavoriteAdded
+            ? "chat-remove-favorite-button"
+            : "chat-add-favorite-button",
       },
       {
         id: "report",
@@ -445,7 +521,7 @@ export function VideoControls({
         icon: IconFlag,
         label: t("controls.report"),
         variant: "outline",
-        onClick: () => { },
+        onClick: () => {},
         visible: isInActiveCall && !!peerInfo,
         testId: "chat-report-button",
       },
@@ -458,8 +534,12 @@ export function VideoControls({
         onClick: () => onToggleScreenShare?.(),
         visible: isInActiveCall && !isMobile && !!onToggleScreenShare,
         disabled: !isInActiveCall,
-        dynamicIcon: () => (isSharingScreen ? IconScreenShareOff : IconScreenShare),
-        dynamicLabel: () => (isSharingScreen ? t("controls.stopSharing") : t("controls.shareScreen")),
+        dynamicIcon: () =>
+          isSharingScreen ? IconScreenShareOff : IconScreenShare,
+        dynamicLabel: () =>
+          isSharingScreen
+            ? t("controls.stopSharing")
+            : t("controls.shareScreen"),
         dynamicVariant: () => (isSharingScreen ? "destructive" : "outline"),
         testId: "chat-screen-share-button",
       },
@@ -473,7 +553,9 @@ export function VideoControls({
         visible: isInActiveCall,
         disabled: !canTogglePictureInPicture || !onTogglePictureInPicture,
         dynamicLabel: () =>
-          isPictureInPictureActive ? t("controls.exitPictureInPicture") : t("controls.pictureInPicture"),
+          isPictureInPictureActive
+            ? t("controls.exitPictureInPicture")
+            : t("controls.pictureInPicture"),
         testId: "chat-pip-toggle-button",
       },
       {
@@ -496,7 +578,7 @@ export function VideoControls({
         icon: IconAdjustmentsHorizontal,
         label: t("controls.streamQuality"),
         variant: "outline",
-        onClick: () => { },
+        onClick: () => {},
         visible: hasLocalStream,
         testId: "chat-stream-quality-button",
       },
@@ -525,7 +607,7 @@ export function VideoControls({
       isPictureInPictureActive,
       onTogglePictureInPicture,
       hideChatToggle,
-    ]
+    ],
   );
 
   const primaryControls = controls.filter((c) => c.priority === "primary");
@@ -546,15 +628,14 @@ export function VideoControls({
 
   return (
     <div
-      className={`left-1/2 flex -translate-x-1/2 gap-2 ${isMobile
-        ? "fixed bottom-4"
-        : "absolute bottom-4"
-        }`}
+      className={`left-1/2 flex -translate-x-1/2 gap-2 ${
+        isMobile ? "fixed bottom-4" : "absolute bottom-4"
+      }`}
       style={
         isMobile
           ? {
-            bottom: `calc(1rem + env(safe-area-inset-bottom, 0px))`,
-          }
+              bottom: `calc(1rem + env(safe-area-inset-bottom, 0px))`,
+            }
           : undefined
       }
       data-testid="chat-controls-bar"
@@ -602,15 +683,24 @@ export function VideoControls({
           {peerInfo && (
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20" data-testid="chat-peer-info-avatar">
-                  <AvatarImage src={peerInfo.avatar_url || undefined} alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()} />
+                <Avatar
+                  className="h-20 w-20"
+                  data-testid="chat-peer-info-avatar"
+                >
+                  <AvatarImage
+                    src={peerInfo.avatar_url || undefined}
+                    alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()}
+                  />
                   <AvatarFallback>
                     {peerInfo.first_name?.[0] || ""}
                     {peerInfo.last_name?.[0] || ""}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold" data-testid="chat-peer-info-name">
+                  <h3
+                    className="text-lg font-semibold"
+                    data-testid="chat-peer-info-name"
+                  >
                     {peerInfo.first_name || ""} {peerInfo.last_name || ""}
                   </h3>
                   {peerInfo.gender && (
@@ -621,11 +711,14 @@ export function VideoControls({
                   {peerInfo.date_of_birth && (
                     <p className="text-sm text-muted-foreground">
                       {t("dialogs.peerInfo.bornPrefix")}{" "}
-                      {new Date(peerInfo.date_of_birth).toLocaleDateString(locale, {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      {new Date(peerInfo.date_of_birth).toLocaleDateString(
+                        locale,
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        },
+                      )}
                     </p>
                   )}
                 </div>
@@ -633,18 +726,24 @@ export function VideoControls({
 
               {peerInfo.bio && (
                 <div>
-                  <h4 className="text-sm font-medium mb-2">{t("dialogs.peerInfo.bioHeading")}</h4>
-                  <p className="text-sm text-muted-foreground">{peerInfo.bio}</p>
+                  <h4 className="text-sm font-medium mb-2">
+                    {t("dialogs.peerInfo.bioHeading")}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {peerInfo.bio}
+                  </p>
                 </div>
               )}
 
               {peerInfo.interest_tags && peerInfo.interest_tags.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium mb-2">{t("dialogs.peerInfo.interestsHeading")}</h4>
+                  <h4 className="text-sm font-medium mb-2">
+                    {t("dialogs.peerInfo.interestsHeading")}
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {peerInfo.interest_tags.map((tag) => (
                       <Badge key={tag.id} variant="secondary">
-                        <Activity mode={tag.icon ? 'visible' : 'hidden'}>
+                        <Activity mode={tag.icon ? "visible" : "hidden"}>
                           <span className="mr-1">{tag.icon}</span>
                         </Activity>
                         {tag.name}
@@ -668,9 +767,15 @@ export function VideoControls({
           </DialogHeader>
           <div className="space-y-4">
             {peerInfo && (
-              <div className="flex items-center gap-3" data-testid="chat-report-peer-summary">
+              <div
+                className="flex items-center gap-3"
+                data-testid="chat-report-peer-summary"
+              >
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={peerInfo.avatar_url || undefined} alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()} />
+                  <AvatarImage
+                    src={peerInfo.avatar_url || undefined}
+                    alt={`${peerInfo.first_name || ""} ${peerInfo.last_name || ""}`.trim()}
+                  />
                   <AvatarFallback>
                     {peerInfo.first_name?.[0] || ""}
                     {peerInfo.last_name?.[0] || ""}
@@ -734,7 +839,13 @@ export function VideoControls({
                     setIsReportOpen(false);
                     setReportReason("");
                   } catch (error) {
-                    toast.error(resolveActionErrorMessage(error, tRoot, "call.reportFailed"));
+                    toast.error(
+                      resolveActionErrorMessage(
+                        error,
+                        tRoot,
+                        "call.reportFailed",
+                      ),
+                    );
                   } finally {
                     setIsSubmittingReport(false);
                   }
@@ -751,4 +862,3 @@ export function VideoControls({
     </div>
   );
 }
-

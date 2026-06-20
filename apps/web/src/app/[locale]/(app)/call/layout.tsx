@@ -58,14 +58,16 @@ export default function CallLayout({
   const { blockUser: handleBlockUser } = useBlockUser();
   const isChatOpen = useChatPanelStore((s) => s.isChatPanelOpen);
   const toggleChatPanel = useChatPanelStore((s) => s.toggleChatPanel);
-  const { hasUnreadMessages } = useChatUnreadIndicator(chatMessages, isChatOpen);
+  const { hasUnreadMessages } = useChatUnreadIndicator(
+    chatMessages,
+    isChatOpen,
+  );
 
   const handleToggleChat = isMobile
     ? () => router.push("/call/chat")
     : toggleChatPanel;
 
-  const showInlineVideo =
-    pathname === "/call" && !isFloatingMode;
+  const showInlineVideo = pathname === "/call" && !isFloatingMode;
 
   return (
     <main className="relative flex flex-1 flex-col overflow-hidden h-full">

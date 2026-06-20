@@ -14,7 +14,10 @@ export default function AdminLayout({
 }) {
   const t = useTranslations("common");
   const router = useRouter();
-  const { auth: { isSignedIn, isLoaded: clerkLoaded }, store: { user: userStore } } = useUserContext();
+  const {
+    auth: { isSignedIn, isLoaded: clerkLoaded },
+    store: { user: userStore },
+  } = useUserContext();
 
   useEffect(() => {
     if (!clerkLoaded) {
@@ -34,7 +37,12 @@ export default function AdminLayout({
 
   if (!clerkLoaded || !userStore) {
     return (
-      <Loading height={'full'} width={'full'} size="lg" title={t("loadingAdminResources")} />
+      <Loading
+        height={"full"}
+        width={"full"}
+        size="lg"
+        title={t("loadingAdminResources")}
+      />
     );
   }
 

@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
@@ -10,7 +17,10 @@ import { useUserContext } from "@/providers/user/user-provider";
 import { useQueryClient } from "@ws/ui/internal-lib/react-query";
 import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
-import { LEVEL_UP_BURST_REACTIONS, STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
+import {
+  LEVEL_UP_BURST_REACTIONS,
+  STREAK_BURST_REACTION,
+} from "@/shared/lib/reaction-display-type";
 import { calculateLevelFromExp } from "@/shared/lib/level-from-exp";
 
 type ReactionInputType = string | string[];
@@ -25,19 +35,35 @@ interface FloatingReaction {
 }
 
 interface ReactionEffectContextValue {
-  triggerLocalReaction: (tapPosition: { x: number; y: number }, type?: ReactionInputType, mode?: ReactionMode) => void;
-  emitReaction: (count: number, type?: ReactionInputType, mode?: ReactionMode) => void;
-  triggerRemoteReactions: (count: number, type?: ReactionInputType, mode?: ReactionMode) => void;
+  triggerLocalReaction: (
+    tapPosition: { x: number; y: number },
+    type?: ReactionInputType,
+    mode?: ReactionMode,
+  ) => void;
+  emitReaction: (
+    count: number,
+    type?: ReactionInputType,
+    mode?: ReactionMode,
+  ) => void;
+  triggerRemoteReactions: (
+    count: number,
+    type?: ReactionInputType,
+    mode?: ReactionMode,
+  ) => void;
   reactions: FloatingReaction[];
   removeReaction: (id: string) => void;
 }
 
-const ReactionEffectContext = createContext<ReactionEffectContextValue | null>(null);
+const ReactionEffectContext = createContext<ReactionEffectContextValue | null>(
+  null,
+);
 
 export function useReactionEffectContext() {
   const context = useContext(ReactionEffectContext);
   if (!context) {
-    throw new Error("useReactionEffectContext must be used within ReactionEffectProvider");
+    throw new Error(
+      "useReactionEffectContext must be used within ReactionEffectProvider",
+    );
   }
   return context;
 }
@@ -55,9 +81,13 @@ const STREAK_EVENT_DEDUP_WINDOW_MS = 30000;
 const LEVEL_TOAST_DEBOUNCE_MS = 2000;
 const LEVEL_EVENT_DEDUP_WINDOW_MS = 30000;
 
-function normalizeReactionDisplayTypes(input: ReactionInputType | undefined): string[] {
+function normalizeReactionDisplayTypes(
+  input: ReactionInputType | undefined,
+): string[] {
   const rawTypes = Array.isArray(input) ? input : [input ?? "heart"];
-  const normalizedTypes = rawTypes.filter((type): type is string => typeof type === "string" && type.length > 0);
+  const normalizedTypes = rawTypes.filter(
+    (type): type is string => typeof type === "string" && type.length > 0,
+  );
 
   if (normalizedTypes.length === 0) {
     return ["heart"];
@@ -66,7 +96,9 @@ function normalizeReactionDisplayTypes(input: ReactionInputType | undefined): st
   return normalizedTypes;
 }
 
-export function ReactionEffectProvider({ children }: ReactionEffectProviderProps) {
+export function ReactionEffectProvider({
+  children,
+}: ReactionEffectProviderProps) {
   const t = useTranslations("call");
   const [reactions, setReactions] = useState<FloatingReaction[]>([]);
   const { socket } = useSocket();
@@ -81,43 +113,68 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   // eslint-disable-next-line react-hooks/refs
   currentUserIdRef.current = store.user?.id ?? null;
 
-  const triggerLocalReaction = useCallback((
-    tapPosition: { x: number; y: number },
-    type: ReactionInputType = "heart",
-    mode: ReactionMode = "single"
-  ) => {
-    const id = `local-${Date.now()}-${Math.random()}`;
-    const normalizedTypes = normalizeReactionDisplayTypes(type);
-    setReactions((prev) => [
-      ...prev,
-      {
-        id,
-        type: Array.isArray(type) ? normalizedTypes : normalizedTypes[0]!,
+  const triggerLocalReaction = useCallback(
+    (
+      tapPosition: { x: number; y: number },
+      type: ReactionInputType = "heart",
+      mode: ReactionMode = "single",
+    ) => {
+      const id = `local-${Date.now()}-${Math.random()}`;
+      const normalizedTypes = normalizeReactionDisplayTypes(type);
+      setReactions((prev) => [
+        ...prev,
+        {
+          id,
+          type: Array.isArray(type) ? normalizedTypes : normalizedTypes[0]!,
+          mode,
+          tapPosition,
+          isLocal: true,
+        },
+      ]);
+    },
+    [],
+  );
+
+  const emitReaction = useCallback(
+    (
+      count: number,
+      type: ReactionInputType = "heart",
+      mode: ReactionMode = "single",
+    ) => {
+      if (count <= 0) return;
+      if (!socket?.connected) return;
+      const normalizedTypes = normalizeReactionDisplayTypes(type);
+      socket.emit("reaction:triggered", {
+        count,
+        type: normalizedTypes[0]!,
         mode,
-        tapPosition,
-        isLocal: true,
-      },
-    ]);
-  }, []);
+        timestamp: Date.now(),
+      });
+    },
+    [socket],
+  );
 
-  const emitReaction = useCallback((count: number, type: ReactionInputType = "heart", mode: ReactionMode = "single") => {
-    if (count <= 0) return;
-    if (!socket?.connected) return;
-    const normalizedTypes = normalizeReactionDisplayTypes(type);
-    socket.emit("reaction:triggered", { count, type: normalizedTypes[0]!, mode, timestamp: Date.now() });
-  }, [socket]);
-
-  const triggerRemoteReactions = useCallback((count: number, type: ReactionInputType = "heart", mode: ReactionMode = "single") => {
-    const baseTime = Date.now();
-    const normalizedTypes = normalizeReactionDisplayTypes(type);
-    const newReactions: FloatingReaction[] = Array.from({ length: count }, (_, i) => ({
-      id: `remote-${baseTime}-${i}-${Math.random()}`,
-      type: Array.isArray(type) ? normalizedTypes : normalizedTypes[0]!,
-      mode,
-      isLocal: false,
-    }));
-    setReactions((prev) => [...prev, ...newReactions]);
-  }, []);
+  const triggerRemoteReactions = useCallback(
+    (
+      count: number,
+      type: ReactionInputType = "heart",
+      mode: ReactionMode = "single",
+    ) => {
+      const baseTime = Date.now();
+      const normalizedTypes = normalizeReactionDisplayTypes(type);
+      const newReactions: FloatingReaction[] = Array.from(
+        { length: count },
+        (_, i) => ({
+          id: `remote-${baseTime}-${i}-${Math.random()}`,
+          type: Array.isArray(type) ? normalizedTypes : normalizedTypes[0]!,
+          mode,
+          isLocal: false,
+        }),
+      );
+      setReactions((prev) => [...prev, ...newReactions]);
+    },
+    [],
+  );
 
   const removeReaction = useCallback((id: string) => {
     setReactions((prev) => prev.filter((r) => r.id !== id));
@@ -125,8 +182,17 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
 
   useEffect(() => {
     if (!socket) return;
-    const handleReaction = (data: { count: number; type?: string; mode?: ReactionMode; timestamp: number }) => {
-      triggerRemoteReactions(data.count, data.type || "heart", data.mode ?? "single");
+    const handleReaction = (data: {
+      count: number;
+      type?: string;
+      mode?: ReactionMode;
+      timestamp: number;
+    }) => {
+      triggerRemoteReactions(
+        data.count,
+        data.type || "heart",
+        data.mode ?? "single",
+      );
     };
     socket.on("reaction:triggered", handleReaction);
     return () => {
@@ -137,10 +203,14 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
   useEffect(() => {
     if (!socket) return;
     const handleProgressUpdate = (data: UsersAPI.Progress.GetMe.Response) => {
-      const normalizedLevel = data.expProgress?.totalExpSeconds != null
-        ? calculateLevelFromExp(data.expProgress.totalExpSeconds).level
-        : data.currentLevel;
-      queryClient.setQueryData(["user-progress"], { ...data, currentLevel: normalizedLevel });
+      const normalizedLevel =
+        data.expProgress?.totalExpSeconds != null
+          ? calculateLevelFromExp(data.expProgress.totalExpSeconds).level
+          : data.currentLevel;
+      queryClient.setQueryData(["user-progress"], {
+        ...data,
+        currentLevel: normalizedLevel,
+      });
     };
     socket.on(USER_PROGRESS_UPDATE_EVENT, handleProgressUpdate);
     return () => {
@@ -169,7 +239,9 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
           seenStreakEventKeysRef.current.delete(key);
         }
       }
-      const dedupeKey = data.eventKey ?? `${actorUserId}:${data.date}:${data.streakCount}:${data.freezeUsed ? "freeze" : "normal"}`;
+      const dedupeKey =
+        data.eventKey ??
+        `${actorUserId}:${data.date}:${data.streakCount}:${data.freezeUsed ? "freeze" : "normal"}`;
       if (seenStreakEventKeysRef.current.has(dedupeKey)) return;
       seenStreakEventKeysRef.current.set(dedupeKey, now);
       if (now - lastStreakToastAtRef.current < STREAK_TOAST_DEBOUNCE_MS) return;
@@ -208,7 +280,9 @@ export function ReactionEffectProvider({ children }: ReactionEffectProviderProps
           seenLevelEventKeysRef.current.delete(key);
         }
       }
-      const dedupeKey = data.eventKey ?? `${actorUserId}:${data.previousLevel}:${data.newLevel}`;
+      const dedupeKey =
+        data.eventKey ??
+        `${actorUserId}:${data.previousLevel}:${data.newLevel}`;
       if (seenLevelEventKeysRef.current.has(dedupeKey)) return;
       seenLevelEventKeysRef.current.set(dedupeKey, now);
       if (now - lastLevelToastAtRef.current < LEVEL_TOAST_DEBOUNCE_MS) return;

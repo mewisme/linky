@@ -28,7 +28,9 @@ export const publicEnv = {
   API_URL: parsed.NEXT_PUBLIC_API_URL,
   APP_URL: parsed.NEXT_PUBLIC_APP_URL,
   GIPHY_API_KEY: parsed.NEXT_PUBLIC_GIPHY_API_KEY,
-  ALLOWED_DEV_ORIGINS: parsed.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS?.split(",") ?? ["*"],
+  ALLOWED_DEV_ORIGINS: parsed.NEXT_PUBLIC_ALLOWED_DEV_ORIGINS?.split(",") ?? [
+    "*",
+  ],
   SENTRY_DSN: parsed.NEXT_PUBLIC_SENTRY_DSN,
   SENTRY_ENABLED: parsed.NEXT_PUBLIC_SENTRY_ENABLED === "true",
   isDev: process.env.NODE_ENV === "development",

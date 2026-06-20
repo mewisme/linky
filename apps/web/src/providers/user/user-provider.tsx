@@ -1,21 +1,44 @@
 "use client";
 
-import { UserDetails, UserSettings, UserState, useUserStore } from "@/entities/user/model/user-store";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
+import {
+  UserDetails,
+  UserSettings,
+  UserState,
+  useUserStore,
+} from "@/entities/user/model/user-store";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { UserAuthProvider, useUserAuthContext } from "./user-auth-provider";
 import { UserTokenProvider, useUserTokenContext } from "./user-token-provider";
 import { UserDataProvider, useUserDataContext } from "./user-data-provider";
-import { UserDetailsProvider, useUserDetailsContext } from "./user-details-provider";
-import { UserSettingsProvider, useUserSettingsContext } from "./user-settings-provider";
+import {
+  UserDetailsProvider,
+  useUserDetailsContext,
+} from "./user-details-provider";
+import {
+  UserSettingsProvider,
+  useUserSettingsContext,
+} from "./user-settings-provider";
 
 let lastBootstrappedUserId: string | null = null;
 let bootstrapInFlight: Promise<void> | null = null;
 interface State {
   updateUserCountry: (country: string) => Promise<UsersAPI.GetMe.Response>;
-  updateUserDetails: (data: UsersAPI.UserDetails.PatchMe.Body) => Promise<UserDetails>;
-  updateUserSettings: (data: UsersAPI.UserSettings.PatchMe.Body) => Promise<UserSettings>;
+  updateUserDetails: (
+    data: UsersAPI.UserDetails.PatchMe.Body,
+  ) => Promise<UserDetails>;
+  updateUserSettings: (
+    data: UsersAPI.UserSettings.PatchMe.Body,
+  ) => Promise<UserSettings>;
   fetchUserDetails: () => Promise<void>;
   fetchUserData: () => Promise<void>;
   fetchUserSettings: () => Promise<void>;
@@ -33,7 +56,13 @@ interface UserContextData {
 
 const UserContext = createContext<UserContextData | null>(null);
 
-function UserComposedProvider({ children, store }: { children: ReactNode; store: UserState }) {
+function UserComposedProvider({
+  children,
+  store,
+}: {
+  children: ReactNode;
+  store: UserState;
+}) {
   const { auth, user } = useUserAuthContext();
   const { getToken } = useUserTokenContext();
   const { fetchUserData } = useUserDataContext();
@@ -50,11 +79,15 @@ function UserComposedProvider({ children, store }: { children: ReactNode; store:
 
   const updateUserCountryAndSyncStore = useCallback(
     async (country: string) => {
-      const result = await fetchFromActionRoute<UsersAPI.UpdateCountry.Response>("/api/users/me/country", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ country }),
-      });
+      const result =
+        await fetchFromActionRoute<UsersAPI.UpdateCountry.Response>(
+          "/api/users/me/country",
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ country }),
+          },
+        );
       store.setUser(result);
       return result;
     },
@@ -127,7 +160,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
         <UserDataProvider store={store}>
           <UserDetailsProvider store={store}>
             <UserSettingsProvider store={store}>
-              <UserComposedProvider store={store}>{children}</UserComposedProvider>
+              <UserComposedProvider store={store}>
+                {children}
+              </UserComposedProvider>
             </UserSettingsProvider>
           </UserDetailsProvider>
         </UserDataProvider>

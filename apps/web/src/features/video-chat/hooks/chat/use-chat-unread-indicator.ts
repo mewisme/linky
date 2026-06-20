@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 import type { ChatMessage } from "@/features/video-chat/types/chat-message.types";
 
-export function useChatUnreadIndicator(chatMessages: ChatMessage[], isChatOpen: boolean) {
+export function useChatUnreadIndicator(
+  chatMessages: ChatMessage[],
+  isChatOpen: boolean,
+) {
   const lastReadMessageCountRef = useRef(0);
   const isInitialMountRef = useRef(true);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
@@ -31,7 +34,10 @@ export function useChatUnreadIndicator(chatMessages: ChatMessage[], isChatOpen: 
     const unreadCount = chatMessages.length - lastReadMessageCountRef.current;
     const newMessages = chatMessages.slice(lastReadMessageCountRef.current);
     const hasNewMessagesFromOthers = newMessages.some((msg) => !msg.isOwn);
-    Sentry.metrics.count("use_chat_unread_indicator_set_has_unread_messages", 1);
+    Sentry.metrics.count(
+      "use_chat_unread_indicator_set_has_unread_messages",
+      1,
+    );
     setHasUnreadMessages(unreadCount > 0 && hasNewMessagesFromOthers);
   }, [isChatOpen, chatMessages]);
 
@@ -46,4 +52,3 @@ export function useChatUnreadIndicator(chatMessages: ChatMessage[], isChatOpen: 
   Sentry.metrics.count("use_chat_unread_indicator_return", 1);
   return { hasUnreadMessages };
 }
-

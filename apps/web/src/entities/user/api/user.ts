@@ -1,6 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { User, UserDetails, UserSettings } from "@/entities/user/model/user-store";
+import {
+  User,
+  UserDetails,
+  UserSettings,
+} from "@/entities/user/model/user-store";
 import { UsersAPI } from "@/entities/user/types/users.types";
 import { readJsonOrThrowApiError } from "@/lib/http/api-error";
 import { resolveApiErrorDisplay } from "@/shared/lib/i18n/resolve-action-error-message";

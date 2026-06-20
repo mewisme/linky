@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Shader } from "@ws/ui/components/mew-ui/shader";
 
@@ -6,10 +6,10 @@ export default function TestPage() {
   return (
     <div className="w-full h-full">
       <Shader
-        type='heatmap'
-        preset='sepia'
+        type="heatmap"
+        preset="sepia"
         className="w-96 h-96"
-        props={{ fit: 'contain' }}
+        props={{ fit: "contain" }}
       />
     </div>
   );

@@ -10,10 +10,9 @@ const BACKGROUND_VARIANTS: Variants = {
   },
   visible: {
     opacity: 1,
-    transition: { type: 'spring', stiffness: 100, damping: 30, delay: 0.75 },
+    transition: { type: "spring", stiffness: 100, damping: 30, delay: 0.75 },
   },
 };
-
 
 function ElegantShape({
   className,
@@ -77,7 +76,7 @@ function ElegantShape({
             "shadow-[0_2px_16px_-2px_rgba(255,255,255,0.04)]",
             "after:absolute after:inset-0",
             "after:bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.12),transparent_70%)]",
-            "after:rounded-[inherit]"
+            "after:rounded-[inherit]",
           )}
           style={{ borderRadius }}
         />
@@ -97,8 +96,12 @@ export function ShapeBackground({
     <motion.div
       variants={BACKGROUND_VARIANTS}
       initial="hidden"
-      animate={transition ? 'visible' : 'hidden'}
-      className={cn("pointer-events-none fixed inset-0 overflow-hidden", className)}>
+      animate={transition ? "visible" : "hidden"}
+      className={cn(
+        "pointer-events-none fixed inset-0 overflow-hidden",
+        className,
+      )}
+    >
       <div className="absolute inset-0 bg-linear-to-br from-indigo-500/2 via-transparent to-rose-500/2 blur-3xl dark:from-indigo-500/5 dark:via-transparent dark:to-rose-500/5" />
 
       <div className="absolute inset-0 overflow-hidden">

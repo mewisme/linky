@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   ContextMenuContent,
@@ -12,49 +12,52 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
-} from '@ws/ui/components/ui/context-menu'
+} from "@ws/ui/components/ui/context-menu";
 
-import { Fragment, Children, isValidElement } from 'react'
+import { Fragment, Children, isValidElement } from "react";
 
 export type ContextMenuItemType =
   | ContextMenuItemSimple
   | ContextMenuItemSub
   | ContextMenuItemLabel
-  | ContextMenuItemSeparator
+  | ContextMenuItemSeparator;
 
 export interface ContextMenuItemSimple {
-  type?: 'item'
-  label: string
-  shortcut?: string | React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-  variant?: 'default' | 'destructive'
+  type?: "item";
+  label: string;
+  shortcut?: string | React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: "default" | "destructive";
 }
 
 export interface ContextMenuItemSub {
-  type: 'sub'
-  label: string
-  children: ContextMenuItemType[]
-  disabled?: boolean
+  type: "sub";
+  label: string;
+  children: ContextMenuItemType[];
+  disabled?: boolean;
 }
 
 export interface ContextMenuItemLabel {
-  type: 'label'
-  label: string
+  type: "label";
+  label: string;
 }
 
 export interface ContextMenuItemSeparator {
-  type: 'separator'
+  type: "separator";
 }
 
-function renderContextMenuItem(item: ContextMenuItemType, key: React.Key): React.ReactNode {
-  if (item.type === 'separator') {
-    return <ContextMenuSeparator key={key} />
+function renderContextMenuItem(
+  item: ContextMenuItemType,
+  key: React.Key,
+): React.ReactNode {
+  if (item.type === "separator") {
+    return <ContextMenuSeparator key={key} />;
   }
-  if (item.type === 'label') {
-    return <ContextMenuLabel key={key}>{item.label}</ContextMenuLabel>
+  if (item.type === "label") {
+    return <ContextMenuLabel key={key}>{item.label}</ContextMenuLabel>;
   }
-  if (item.type === 'sub') {
+  if (item.type === "sub") {
     return (
       <ContextMenuSub key={key}>
         <ContextMenuSubTrigger disabled={item.disabled}>
@@ -62,13 +65,15 @@ function renderContextMenuItem(item: ContextMenuItemType, key: React.Key): React
         </ContextMenuSubTrigger>
         <ContextMenuSubContent>
           {item.children.map((child, i) => (
-            <Fragment key={i}>{renderContextMenuItem(child, `${String(key)}-${i}`)}</Fragment>
+            <Fragment key={i}>
+              {renderContextMenuItem(child, `${String(key)}-${i}`)}
+            </Fragment>
           ))}
         </ContextMenuSubContent>
       </ContextMenuSub>
-    )
+    );
   }
-  const simple = item as ContextMenuItemSimple
+  const simple = item as ContextMenuItemSimple;
   return (
     <ContextMenuItem
       key={key}
@@ -79,41 +84,50 @@ function renderContextMenuItem(item: ContextMenuItemType, key: React.Key): React
       {simple.label}
       {simple.shortcut != null && (
         <ContextMenuShortcut>
-          {typeof simple.shortcut === 'string' ? simple.shortcut : simple.shortcut}
+          {typeof simple.shortcut === "string"
+            ? simple.shortcut
+            : simple.shortcut}
         </ContextMenuShortcut>
       )}
     </ContextMenuItem>
-  )
+  );
 }
 
-function splitIntoGroups(items: ContextMenuItemType[]): ContextMenuItemType[][] {
-  const groups: ContextMenuItemType[][] = []
-  let current: ContextMenuItemType[] = []
+function splitIntoGroups(
+  items: ContextMenuItemType[],
+): ContextMenuItemType[][] {
+  const groups: ContextMenuItemType[][] = [];
+  let current: ContextMenuItemType[] = [];
   for (const item of items) {
-    if (item.type === 'separator') {
+    if (item.type === "separator") {
       if (current.length > 0) {
-        groups.push(current)
-        current = []
+        groups.push(current);
+        current = [];
       }
     } else {
-      current.push(item)
+      current.push(item);
     }
   }
-  if (current.length > 0) groups.push(current)
-  return groups
+  if (current.length > 0) groups.push(current);
+  return groups;
 }
 
-export interface ContextMenuProps extends Omit<React.ComponentProps<typeof ContextMenuPrimitive>, 'children'> {
-  children: React.ReactNode
-  items: ContextMenuItemType[]
+export interface ContextMenuProps extends Omit<
+  React.ComponentProps<typeof ContextMenuPrimitive>,
+  "children"
+> {
+  children: React.ReactNode;
+  items: ContextMenuItemType[];
 }
 
 export function ContextMenu({ children, items, ...props }: ContextMenuProps) {
-  const groups = splitIntoGroups(items)
+  const groups = splitIntoGroups(items);
   const triggerChild =
-    Children.count(children) === 1 && isValidElement(children)
-      ? children
-      : <span className="contents">{children}</span>
+    Children.count(children) === 1 && isValidElement(children) ? (
+      children
+    ) : (
+      <span className="contents">{children}</span>
+    );
   return (
     <ContextMenuPrimitive {...props}>
       <ContextMenuTrigger asChild>{triggerChild}</ContextMenuTrigger>
@@ -122,11 +136,13 @@ export function ContextMenu({ children, items, ...props }: ContextMenuProps) {
           <Fragment key={groupIndex}>
             {groupIndex > 0 && <ContextMenuSeparator />}
             <ContextMenuGroup>
-              {group.map((item, i) => renderContextMenuItem(item, `${groupIndex}-${i}`))}
+              {group.map((item, i) =>
+                renderContextMenuItem(item, `${groupIndex}-${i}`),
+              )}
             </ContextMenuGroup>
           </Fragment>
         ))}
       </ContextMenuContent>
     </ContextMenuPrimitive>
-  )
+  );
 }

@@ -144,4 +144,3 @@ export interface ApiRequestConfig {
   params?: Record<string, string>;
   query?: Record<string, string | number | boolean | undefined>;
 }
-

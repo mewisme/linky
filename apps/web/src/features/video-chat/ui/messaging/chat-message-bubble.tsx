@@ -33,7 +33,7 @@ export function ChatMessageBubble({
       className={cn(
         message.type === "text" && "px-4 py-2 text-base shadow-sm max-w-full",
         "whitespace-pre-wrap break-all",
-        className
+        className,
       )}
     >
       {message.type === "text" && message.message}
@@ -52,17 +52,17 @@ export function ChatMessageBubble({
       {(message.type === "gif" || message.type === "sticker") &&
         attachmentUrl &&
         remoteImageAllowed && (
-        <ImageZoom>
-          <Image
-            src={attachmentUrl}
-            alt={t("mediaAlt")}
-            width={attachment?.width || 320}
-            height={attachment?.height || 240}
-            className="max-h-64 w-auto rounded-lg"
-            unoptimized
-          />
-        </ImageZoom>
-      )}
+          <ImageZoom>
+            <Image
+              src={attachmentUrl}
+              alt={t("mediaAlt")}
+              width={attachment?.width || 320}
+              height={attachment?.height || 240}
+              className="max-h-64 w-auto rounded-lg"
+              unoptimized
+            />
+          </ImageZoom>
+        )}
       {message.type !== "text" && message.message && (
         <p className="mt-2">{message.message}</p>
       )}

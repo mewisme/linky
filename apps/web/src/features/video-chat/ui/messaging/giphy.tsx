@@ -92,9 +92,7 @@ function GiphyPickerContent({
 
       <ScrollArea className="h-40" data-slot="giphy-picker-grid">
         <div className="grid grid-cols-3 gap-2 pr-2">
-          {loading && (
-            <Loading title={t("loadingGiphy")} />
-          )}
+          {loading && <Loading title={t("loadingGiphy")} />}
 
           {!loading &&
             results.map((item) =>
@@ -237,7 +235,7 @@ export function useGiphyPicker({ onSelect }: UseGiphyPickerOptions) {
       onSelect({ item, type: messageType });
       setOpen(false);
     },
-    [onSelect, type]
+    [onSelect, type],
   );
 
   return {

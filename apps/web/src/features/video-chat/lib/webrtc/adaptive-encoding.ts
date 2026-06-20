@@ -75,14 +75,14 @@ export function getInitialEncodingParams(isMobile: boolean): EncodingProfile {
 
 export function getEncodingParamsForTier(
   tier: QualityTier,
-  isMobile: boolean
+  isMobile: boolean,
 ): EncodingProfile {
   const profile = getDeviceProfile(isMobile);
   return profile[tier];
 }
 
 export function getEncodingParamsForStreamQuality(
-  quality: StreamVideoQuality
+  quality: StreamVideoQuality,
 ): EncodingProfile {
   const target = getStreamVideoQualityProfile(quality);
   return {
@@ -94,7 +94,7 @@ export function getEncodingParamsForStreamQuality(
 
 export async function applyEncodingToSender(
   sender: RTCRtpSender,
-  params: EncodingProfile
+  params: EncodingProfile,
 ): Promise<boolean> {
   try {
     const currentParams = sender.getParameters();
@@ -106,7 +106,8 @@ export async function applyEncodingToSender(
 
     currentParams.encodings[0]!.maxBitrate = params.maxBitrate;
     currentParams.encodings[0]!.maxFramerate = params.maxFramerate;
-    currentParams.encodings[0]!.scaleResolutionDownBy = params.scaleResolutionDownBy;
+    currentParams.encodings[0]!.scaleResolutionDownBy =
+      params.scaleResolutionDownBy;
 
     await sender.setParameters(currentParams);
     Sentry.logger.info("Applied encoding parameters", { params });
@@ -142,7 +143,7 @@ export function restoreQuality(currentTier: QualityTier): QualityTier {
 export async function applyInitialEncoding(
   pc: RTCPeerConnection,
   _isMobile: boolean,
-  quality: StreamVideoQuality = "sd"
+  quality: StreamVideoQuality = "sd",
 ): Promise<void> {
   const params = getEncodingParamsForStreamQuality(quality);
   const senders = pc.getSenders();

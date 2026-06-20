@@ -8,9 +8,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const yearRaw = searchParams.get("year");
     const monthRaw = searchParams.get("month");
-    if (yearRaw == null || monthRaw == null || yearRaw === "" || monthRaw === "") {
+    if (
+      yearRaw == null ||
+      monthRaw == null ||
+      yearRaw === "" ||
+      monthRaw === ""
+    ) {
       return NextResponse.json(
-        { error: "Bad Request", message: "year and month query parameters are required" },
+        {
+          error: "Bad Request",
+          message: "year and month query parameters are required",
+        },
         { status: 400 },
       );
     }

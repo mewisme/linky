@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@ws/ui/components/animate-ui/components/radix/dropdown-menu';
+} from "@ws/ui/components/animate-ui/components/radix/dropdown-menu";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { Button } from '@ws/ui/components/ui/button';
-import { IconProps, IconDotsVertical } from '@tabler/icons-react';
-import { useTranslations } from 'next-intl';
-import { SimpleTooltip } from '@/shared/ui/common/simple-tooltip';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { Button } from "@ws/ui/components/ui/button";
+import { IconProps, IconDotsVertical } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
+import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
 
 export interface BulkAction {
   label: string;
@@ -25,15 +25,15 @@ interface BulkActionsProps {
 }
 
 export function BulkActions({ bulkActions, selected }: BulkActionsProps) {
-  const tc = useTranslations('common');
+  const tc = useTranslations("common");
 
   return (
     <DropdownMenu>
-      <SimpleTooltip content={tc('actionsMenu')}>
+      <SimpleTooltip content={tc("actionsMenu")}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
             <IconDotsVertical className="w-4 h-4" />
-            <span className="hidden lg:inline-block">{tc('actionsMenu')}</span>
+            <span className="hidden lg:inline-block">{tc("actionsMenu")}</span>
           </Button>
         </DropdownMenuTrigger>
       </SimpleTooltip>

@@ -25,7 +25,9 @@ export function StreakMiniCalendar({
   progressData,
   className,
 }: StreakMiniCalendarProps) {
-  const [totalDaysToShow, setTotalDaysToShow] = useState(() => getTotalDaysToShow());
+  const [totalDaysToShow, setTotalDaysToShow] = useState(() =>
+    getTotalDaysToShow(),
+  );
   const todayDate = useMemo(() => {
     if (progressData.todayDate) {
       return getLocalDate(new Date(`${progressData.todayDate}T00:00:00`));
@@ -43,7 +45,9 @@ export function StreakMiniCalendar({
       return next;
     }
 
-    const historicalStreakLength = isTodayStreakComplete ? currentStreak - 1 : currentStreak;
+    const historicalStreakLength = isTodayStreakComplete
+      ? currentStreak - 1
+      : currentStreak;
     for (let i = 1; i <= historicalStreakLength; i++) {
       next.add(format(subDays(todayDate, i), "yyyy-MM-dd"));
     }
@@ -74,7 +78,9 @@ export function StreakMiniCalendar({
     const dateToCheck = getLocalDate(date);
     const dateStr = format(dateToCheck, "yyyy-MM-dd");
     const isTodayDate = dateStr === todayStr;
-    const isValid = isTodayDate ? isTodayStreakComplete : validStreakDateSet.has(dateStr);
+    const isValid = isTodayDate
+      ? isTodayStreakComplete
+      : validStreakDateSet.has(dateStr);
     return { isValid, isToday: isTodayDate };
   };
 

@@ -4,7 +4,7 @@ import {
   PushApi,
   ResourcesApi,
   UserApi,
-} from './urls';
+} from "./urls";
 
 import { publicEnv } from "@/shared/env/public-env";
 

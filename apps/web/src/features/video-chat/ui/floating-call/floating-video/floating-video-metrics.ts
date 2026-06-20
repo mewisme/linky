@@ -38,4 +38,3 @@ export function getFloatingVideoMetrics(args: {
     isMobile,
   };
 }
-

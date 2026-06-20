@@ -1,6 +1,10 @@
-'use client';
+"use client";
 
-export function HideDevelopmentMode({ children }: { children: React.ReactNode }) {
+export function HideDevelopmentMode({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <>
       {/* eslint-disable-next-line react/no-unknown-property */}
@@ -11,5 +15,5 @@ export function HideDevelopmentMode({ children }: { children: React.ReactNode })
       `}</style>
       {children}
     </>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-import { unsetClerkAdminPasswordCompromised } from '@/features/admin/api/clerk-users';
-import { nextResponseFromActionError } from '@/lib/http/action-route-response';
+import { unsetClerkAdminPasswordCompromised } from "@/features/admin/api/clerk-users";
+import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
 export async function POST(
   _request: NextRequest,
@@ -14,7 +14,7 @@ export async function POST(
   } catch (error) {
     return nextResponseFromActionError(
       error,
-      'POST /api/admin/users/clerk/[id]/password/unset-compromised',
+      "POST /api/admin/users/clerk/[id]/password/unset-compromised",
     );
   }
 }

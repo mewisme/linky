@@ -2,7 +2,10 @@
 
 import { AnimatePresence, motion } from "@ws/ui/internal-lib/motion";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CardContent, ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
+import {
+  CardContent,
+  ShaderCard,
+} from "@ws/ui/components/mew-ui/shader/shader-card";
 
 import { Link } from "@/i18n/navigation";
 import type { UsersAPI } from "@/entities/user/types/users.types";
@@ -39,7 +42,10 @@ interface VideoChatSearchingStateProps {
   onEndCall?: () => void;
 }
 
-export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearchingStateProps) {
+export function VideoChatSearchingState({
+  progress,
+  onEndCall,
+}: VideoChatSearchingStateProps) {
   const t = useTranslations("call.searching");
   const tControls = useTranslations("call.controls");
   const hints = useMemo(() => HINT_KEYS.map((key) => t(key)), [t]);
@@ -79,10 +85,13 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
   useEffect(() => {
     if (elapsedMs >= STILL_SEARCHING_THRESHOLD_MS && !hasFetchedQueue.current) {
       hasFetchedQueue.current = true;
-      trackEvent({ name: "matchmaking_still_searching", properties: { elapsed_ms: elapsedMs } });
+      trackEvent({
+        name: "matchmaking_still_searching",
+        properties: { elapsed_ms: elapsedMs },
+      });
       fetchFromActionRoute<QueueStatus>("/api/matchmaking/queue-status")
         .then(setQueueStatus)
-        .catch(() => { });
+        .catch(() => {});
     }
   }, [elapsedMs]);
 
@@ -91,7 +100,8 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
 
   const queueOrMotivationLine = (() => {
     if (queueStatus) {
-      if (!queueStatus.queueSize || queueStatus.queueSize <= 1) return t("firstInLine");
+      if (!queueStatus.queueSize || queueStatus.queueSize <= 1)
+        return t("firstInLine");
       return t("peopleWaiting", { count: queueStatus.queueSize });
     }
     if (!progress) return null;
@@ -181,7 +191,12 @@ export function VideoChatSearchingState({ progress, onEndCall }: VideoChatSearch
                 <Link
                   href="/user/progress"
                   className="text-xs text-primary underline-offset-2 hover:underline"
-                  onClick={() => trackEvent({ name: "matchmaking_alt_action_clicked", properties: { elapsed_ms: elapsedMs } })}
+                  onClick={() =>
+                    trackEvent({
+                      name: "matchmaking_alt_action_clicked",
+                      properties: { elapsed_ms: elapsedMs },
+                    })
+                  }
                 >
                   {t("visitProgressLink")}
                 </Link>

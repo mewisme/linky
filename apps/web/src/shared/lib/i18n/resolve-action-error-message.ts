@@ -1,12 +1,12 @@
 import { coerceApiError } from "@/lib/http/api-error";
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
-import { resolveBackendMessage, type TranslateFn } from "./resolve-backend-message";
+import {
+  resolveBackendMessage,
+  type TranslateFn,
+} from "./resolve-backend-message";
 
-function readableApiErrorText(
-  error: unknown,
-  fallback: string,
-): string | null {
+function readableApiErrorText(error: unknown, fallback: string): string | null {
   const apiError = coerceApiError(error);
   if (!apiError) {
     return null;
@@ -20,7 +20,9 @@ function readableApiErrorText(
   return fallback;
 }
 
-function hasResolvableUserMessage(message: ApiUserMessage | undefined): message is ApiUserMessage {
+function hasResolvableUserMessage(
+  message: ApiUserMessage | undefined,
+): message is ApiUserMessage {
   return !!message?.i18n?.key || !!message?.fallbackMessage;
 }
 
@@ -51,12 +53,19 @@ export function resolveActionSuccessMessage(
   return (t as TranslateFn)(fallbackKey);
 }
 
-export function resolveApiErrorDisplay(error: unknown, fallback: string): string {
+export function resolveApiErrorDisplay(
+  error: unknown,
+  fallback: string,
+): string {
   const fromApi = readableApiErrorText(error, fallback);
   if (fromApi) {
     return fromApi;
   }
-  if (error instanceof Error && error.message && !error.message.trim().startsWith("{")) {
+  if (
+    error instanceof Error &&
+    error.message &&
+    !error.message.trim().startsWith("{")
+  ) {
     return error.message;
   }
   return fallback;

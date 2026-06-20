@@ -1,4 +1,8 @@
-export type FloatingLayoutMode = "dual" | "single-remote" | "single-local" | "avatar";
+export type FloatingLayoutMode =
+  | "dual"
+  | "single-remote"
+  | "single-local"
+  | "avatar";
 
 export interface FloatingVideoState {
   isRemoteCameraOn: boolean;
@@ -8,7 +12,7 @@ export interface FloatingVideoState {
 
 export function deriveFloatingLayoutMode(
   isRemoteCameraOn: boolean,
-  isLocalCameraOn: boolean
+  isLocalCameraOn: boolean,
 ): FloatingLayoutMode {
   if (isRemoteCameraOn && isLocalCameraOn) {
     return "dual";
@@ -22,7 +26,9 @@ export function deriveFloatingLayoutMode(
   return "avatar";
 }
 
-export function deriveGlobalFloatingLayoutMode(isRemoteCameraOn: boolean): FloatingLayoutMode {
+export function deriveGlobalFloatingLayoutMode(
+  isRemoteCameraOn: boolean,
+): FloatingLayoutMode {
   if (isRemoteCameraOn) {
     return "single-remote";
   }
@@ -31,7 +37,7 @@ export function deriveGlobalFloatingLayoutMode(isRemoteCameraOn: boolean): Float
 
 export function getFloatingVideoState(
   isRemoteCameraOn: boolean,
-  isLocalCameraOn: boolean
+  isLocalCameraOn: boolean,
 ): FloatingVideoState {
   return {
     isRemoteCameraOn,

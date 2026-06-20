@@ -10,6 +10,9 @@ export async function POST(request: NextRequest) {
     const data = await importInterestTags(body);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/interest-tags/import");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/interest-tags/import",
+    );
   }
 }

@@ -4,7 +4,9 @@ import * as Sentry from "@sentry/nextjs";
 
 import { useEffect, useState } from "react";
 
-export function useStreamAspectRatio(stream: MediaStream | null): number | null {
+export function useStreamAspectRatio(
+  stream: MediaStream | null,
+): number | null {
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   useEffect(() => {
@@ -41,7 +43,11 @@ export function useStreamAspectRatio(stream: MediaStream | null): number | null 
 
     const handleSettingsChange = () => {
       const updatedSettings = track.getSettings();
-      if (updatedSettings.width && updatedSettings.height && updatedSettings.height > 0) {
+      if (
+        updatedSettings.width &&
+        updatedSettings.height &&
+        updatedSettings.height > 0
+      ) {
         const ratio = updatedSettings.width / updatedSettings.height;
         Sentry.metrics.count("stream_aspect_ratio_set", 1);
         setAspectRatio(ratio);

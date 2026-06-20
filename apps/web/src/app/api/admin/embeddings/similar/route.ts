@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     const data = await findSimilarUsers(body.user_id.trim(), body.limit);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/embeddings/similar");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/embeddings/similar",
+    );
   }
 }

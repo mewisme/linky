@@ -10,7 +10,12 @@ import {
   useCalendarMonth,
   useCalendarYear,
 } from "@ws/ui/components/kibo-ui/calendar";
-import { format, getDay, getDaysInMonth, isToday } from "@ws/ui/internal-lib/date-fns";
+import {
+  format,
+  getDay,
+  getDaysInMonth,
+  isToday,
+} from "@ws/ui/internal-lib/date-fns";
 
 import { IconFlameFilled } from "@tabler/icons-react";
 import { Loading } from "@/shared/ui/common/loading";
@@ -53,15 +58,15 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
 
   const currentMonthDate = useMemo(
     () => new Date(year, month, 1),
-    [year, month]
+    [year, month],
   );
   const daysInMonth = useMemo(
     () => getDaysInMonth(currentMonthDate),
-    [currentMonthDate]
+    [currentMonthDate],
   );
   const firstDay = useMemo(
     () => (getDay(currentMonthDate) - 0 + 7) % 7,
-    [currentMonthDate]
+    [currentMonthDate],
   );
 
   const prevMonthData = useMemo(() => {
@@ -70,7 +75,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
     const prevMonthDays = getDaysInMonth(new Date(prevMonthYear, prevMonth, 1));
     const prevMonthDaysArray = Array.from(
       { length: prevMonthDays },
-      (_, i) => i + 1
+      (_, i) => i + 1,
     );
     return { prevMonthDays, prevMonthDaysArray };
   }, [month, year]);
@@ -81,7 +86,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
     const nextMonthDays = getDaysInMonth(new Date(nextMonthYear, nextMonth, 1));
     const nextMonthDaysArray = Array.from(
       { length: nextMonthDays },
-      (_, i) => i + 1
+      (_, i) => i + 1,
     );
     return { nextMonthDaysArray };
   }, [month, year]);
@@ -97,7 +102,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
   for (let i = 0; i < firstDay; i++) {
     const day =
       prevMonthData.prevMonthDaysArray[
-      prevMonthData.prevMonthDays - firstDay + i
+        prevMonthData.prevMonthDays - firstDay + i
       ];
 
     if (day) {
@@ -107,7 +112,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
           key={`prev-${i}`}
         >
           {day}
-        </div>
+        </div>,
       );
     }
   }
@@ -121,11 +126,16 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
       <div
         className={cn(
           "relative flex h-full w-full flex-col gap-1 p-1 text-xs",
-          isTodayDate && "bg-accent"
+          isTodayDate && "bg-accent",
         )}
         key={day}
       >
-        <span className={cn("text-muted-foreground", isTodayDate && "font-semibold")}>
+        <span
+          className={cn(
+            "text-muted-foreground",
+            isTodayDate && "font-semibold",
+          )}
+        >
           {day}
         </span>
         {dayData && (
@@ -134,10 +144,12 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
               <IconFlameFilled className="h-4 w-4 text-orange-500" />
             ) : dayData.isToday ? (
               <IconFlameFilled className="h-4 w-4 text-muted-foreground" />
-            ) : <></>}
+            ) : (
+              <></>
+            )}
           </div>
         )}
-      </div>
+      </div>,
     );
   }
 
@@ -153,7 +165,7 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
             key={`next-${i}`}
           >
             {day}
-          </div>
+          </div>,
         );
       }
     }
@@ -164,20 +176,28 @@ export function StreakCalendar({ className }: StreakCalendarProps) {
       <CalendarDate>
         <CalendarDatePagination />
         <CalendarMonthPicker />
-        <CalendarYearPicker start={2025} end={new Date().getFullYear() + 5} className="max-w-24" />
+        <CalendarYearPicker
+          start={2025}
+          end={new Date().getFullYear() + 5}
+          className="max-w-24"
+        />
       </CalendarDate>
       <CalendarHeader />
       <div className="grid grow grid-cols-7">
         {isLoading ? (
           <div className="col-span-7 p-8">
-            <Loading height={'full'} width={'full'} title={t("streakCalendarLoading")} />
+            <Loading
+              height={"full"}
+              width={"full"}
+              title={t("streakCalendarLoading")}
+            />
           </div>
         ) : (
           days.map((day, index) => (
             <div
               className={cn(
                 "relative aspect-square overflow-hidden border-t border-r",
-                index % 7 === 6 && "border-r-0"
+                index % 7 === 6 && "border-r-0",
               )}
               key={index}
             >

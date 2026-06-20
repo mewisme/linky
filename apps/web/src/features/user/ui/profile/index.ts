@@ -1,1 +1,1 @@
-export { UserProfileClient } from './user-profile-client'
+export { UserProfileClient } from "./user-profile-client";

@@ -9,11 +9,14 @@ import { useTranslations } from "next-intl";
 export type BroadcastHistoryRow = AdminAPI.Broadcasts.HistoryRow;
 
 export function useBroadcastColumns(): ColumnDef<BroadcastHistoryRow>[] {
-  const t = useTranslations('dataTable')
+  const t = useTranslations("dataTable");
   return useMemo(() => {
     const formatCreator = (row: BroadcastHistoryRow): string => {
-      const name = [row.creator_first_name, row.creator_last_name].filter(Boolean).join(" ").trim();
-      return name || row.creator_email || t('common.emDash');
+      const name = [row.creator_first_name, row.creator_last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      return name || row.creator_email || t("common.emDash");
     };
 
     return [
@@ -22,8 +25,10 @@ export function useBroadcastColumns(): ColumnDef<BroadcastHistoryRow>[] {
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label={t('common.selectAllAria')}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label={t("common.selectAllAria")}
             className="justify-center flex"
           />
         ),
@@ -31,7 +36,7 @@ export function useBroadcastColumns(): ColumnDef<BroadcastHistoryRow>[] {
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label={t('common.selectRowAria')}
+            aria-label={t("common.selectRowAria")}
           />
         ),
         enableSorting: false,
@@ -39,7 +44,7 @@ export function useBroadcastColumns(): ColumnDef<BroadcastHistoryRow>[] {
       },
       {
         accessorKey: "created_at",
-        header: t('broadcasts.date'),
+        header: t("broadcasts.date"),
         cell: ({ row }) => (
           <span className="whitespace-nowrap text-muted-foreground text-sm">
             {new Date(row.original.created_at).toLocaleString(undefined, {
@@ -51,14 +56,16 @@ export function useBroadcastColumns(): ColumnDef<BroadcastHistoryRow>[] {
       },
       {
         accessorKey: "title",
-        header: t('broadcasts.title'),
+        header: t("broadcasts.title"),
         cell: ({ row }) => (
-          <span className="font-medium">{row.original.title || t('common.emDash')}</span>
+          <span className="font-medium">
+            {row.original.title || t("common.emDash")}
+          </span>
         ),
       },
       {
         accessorKey: "message",
-        header: t('broadcasts.message'),
+        header: t("broadcasts.message"),
         cell: ({ row }) => (
           <span className="max-w-[320px] truncate block text-sm text-muted-foreground">
             {row.original.message}
@@ -67,7 +74,7 @@ export function useBroadcastColumns(): ColumnDef<BroadcastHistoryRow>[] {
       },
       {
         id: "created_by",
-        header: t('broadcasts.createdBy'),
+        header: t("broadcasts.createdBy"),
         cell: ({ row }) => (
           <span className="text-sm">{formatCreator(row.original)}</span>
         ),

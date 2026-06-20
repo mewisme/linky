@@ -9,8 +9,11 @@ export function useUnloadEndCall(
   getIsInActiveCall: () => boolean,
   sendEndCall: () => void,
   socketId: string | null,
-  socketRef: RefObject<{ connected: boolean; emit: (event: string, ...args: unknown[]) => void } | null>,
-  releaseOwnership?: () => void
+  socketRef: RefObject<{
+    connected: boolean;
+    emit: (event: string, ...args: unknown[]) => void;
+  } | null>,
+  releaseOwnership?: () => void,
 ): void {
   const hasSentUnloadSignalRef = useRef(false);
 
@@ -26,7 +29,9 @@ export function useUnloadEndCall(
     }
 
     hasSentUnloadSignalRef.current = true;
-    Sentry.logger.info("TRUE EXIT detected during active call - sending end-call signal");
+    Sentry.logger.info(
+      "TRUE EXIT detected during active call - sending end-call signal",
+    );
 
     releaseOwnership?.();
 
@@ -36,7 +41,9 @@ export function useUnloadEndCall(
         Sentry.logger.info("End-call sent via socket emit");
         return;
       } catch (err) {
-        Sentry.logger.warn("Socket emit failed, falling back to sendBeacon", { error: err instanceof Error ? err.message : "Unknown error" });
+        Sentry.logger.warn("Socket emit failed, falling back to sendBeacon", {
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
       }
     }
 
@@ -54,7 +61,9 @@ export function useUnloadEndCall(
           Sentry.logger.warn("sendBeacon failed (queue full or blocked)");
         }
       } catch (err) {
-        Sentry.logger.error("sendBeacon error", { error: err instanceof Error ? err.message : "Unknown error" });
+        Sentry.logger.error("sendBeacon error", {
+          error: err instanceof Error ? err.message : "Unknown error",
+        });
       }
     }
 
@@ -78,10 +87,14 @@ export function useUnloadEndCall(
 
     const handlePageHide = (event: PageTransitionEvent) => {
       if (!event.persisted && getIsInActiveCall()) {
-        Sentry.logger.info("pagehide with persisted=false detected - TRUE EXIT");
+        Sentry.logger.info(
+          "pagehide with persisted=false detected - TRUE EXIT",
+        );
         sendUnloadEndCall();
       } else if (event.persisted) {
-        Sentry.logger.info("pagehide with persisted=true detected - BACKGROUNDING (ignoring)");
+        Sentry.logger.info(
+          "pagehide with persisted=true detected - BACKGROUNDING (ignoring)",
+        );
       }
     };
 

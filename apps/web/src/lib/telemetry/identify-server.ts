@@ -3,7 +3,7 @@ import { op } from "./op";
 
 export async function identifyUser(
   input: User | null,
-  extraProperties?: Record<string, string | number | boolean | null>
+  extraProperties?: Record<string, string | number | boolean | null>,
 ): Promise<void> {
   if (!input) return Promise.resolve();
   await op.identify({

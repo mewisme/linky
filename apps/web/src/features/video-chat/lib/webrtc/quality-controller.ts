@@ -33,7 +33,7 @@ export class QualityController {
     videoHealthTracker: VideoHealthTracker,
     callbacks: QualityControllerCallbacks,
     _isMobile: boolean,
-    streamQuality: StreamVideoQuality = "sd"
+    streamQuality: StreamVideoQuality = "sd",
   ): void {
     if (this.isInitialized) {
       Sentry.logger.warn("[QualityController] Already initialized");
@@ -126,7 +126,11 @@ export class QualityController {
     return this.currentTier;
   }
 
-  private async applyEncoding(params: { maxBitrate: number; maxFramerate: number; scaleResolutionDownBy: number }): Promise<void> {
+  private async applyEncoding(params: {
+    maxBitrate: number;
+    maxFramerate: number;
+    scaleResolutionDownBy: number;
+  }): Promise<void> {
     if (!this.pc) {
       return;
     }
@@ -161,7 +165,10 @@ export class QualityController {
 
   private removeVisibilityListener(): void {
     if (this.visibilityChangeHandler && typeof document !== "undefined") {
-      document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
+      document.removeEventListener(
+        "visibilitychange",
+        this.visibilityChangeHandler,
+      );
       this.visibilityChangeHandler = null;
     }
     this.isBackgrounded = false;

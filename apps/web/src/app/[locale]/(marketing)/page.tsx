@@ -20,7 +20,7 @@ const CONTENT_VARIANTS: Variants = {
   },
   visible: {
     opacity: 1,
-    transition: { type: 'spring', stiffness: 100, damping: 30 },
+    transition: { type: "spring", stiffness: 100, damping: 30 },
   },
 };
 
@@ -40,26 +40,33 @@ export default function Home() {
   return (
     <>
       <main className="relative min-h-dvh">
-
         <Header transition={transition} />
         <div className="w-full flex flex-col items-center pt-0">
           <motion.div
             variants={CONTENT_VARIANTS}
             initial="hidden"
-            animate={transition ? 'visible' : 'hidden'}
+            animate={transition ? "visible" : "hidden"}
             className={cn(
               "w-full relative flex flex-col items-center overflow-hidden",
-              !transition && 'fixed inset-0'
+              !transition && "fixed inset-0",
             )}
           >
-            <ShapeBackground transition={transition} className="hidden sm:block" />
+            <ShapeBackground
+              transition={transition}
+              className="hidden sm:block"
+            />
             <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 mt-8">
-              <Hero startChatHref={startChatHref} isSignedIn={isSignedIn} isLoaded={isLoaded} key={String(transition)} />
+              <Hero
+                startChatHref={startChatHref}
+                isSignedIn={isSignedIn}
+                isLoaded={isLoaded}
+                key={String(transition)}
+              />
               <LandingFooter />
             </div>
           </motion.div>
         </div>
-      </main >
+      </main>
     </>
   );
 }

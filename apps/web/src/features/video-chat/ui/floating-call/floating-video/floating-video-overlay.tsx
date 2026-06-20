@@ -46,7 +46,10 @@ export function FloatingVideoOverlay({
                 : "gap-2 shadow-lg pointer-events-auto bg-black/40 text-white hover:bg-black/55 border border-white/15"
             }
           >
-            <IconMaximize className={isMobile ? "size-5" : "size-5"} aria-hidden />
+            <IconMaximize
+              className={isMobile ? "size-5" : "size-5"}
+              aria-hidden
+            />
           </Button>
         </div>
       )}

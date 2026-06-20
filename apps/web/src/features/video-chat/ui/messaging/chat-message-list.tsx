@@ -1,7 +1,11 @@
 "use client";
 
 import { Activity } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@ws/ui/components/ui/avatar";
 import type { ChatMessage } from "@/features/video-chat/types/chat-message.types";
 import { ChatMessageBubble } from "./chat-message-bubble";
 import { cn } from "@ws/ui/lib/utils";
@@ -10,10 +14,7 @@ import { useTranslations } from "next-intl";
 
 const GROUP_TIME_GAP = 2 * 60 * 1000;
 
-function isSameGroup(
-  a: ChatMessage | undefined,
-  b: ChatMessage | undefined
-) {
+function isSameGroup(a: ChatMessage | undefined, b: ChatMessage | undefined) {
   if (!a || !b) return false;
   return (
     a.sender.socketId === b.sender.socketId &&
@@ -31,7 +32,7 @@ function ownBubbleRadius(isFirst: boolean, isMiddle: boolean, isLast: boolean) {
 function peerBubbleRadius(
   isFirst: boolean,
   isMiddle: boolean,
-  isLast: boolean
+  isLast: boolean,
 ) {
   if (isFirst) return "rounded-xl rounded-bl-sm";
   if (isMiddle) return "rounded-xl rounded-tl-sm rounded-bl-sm";
@@ -55,10 +56,7 @@ export function ChatMessageList({
 }) {
   const t = useTranslations("chat");
   return (
-    <div
-      className="flex flex-col pb-6"
-      data-testid="chat-messages-container"
-    >
+    <div className="flex flex-col pb-6" data-testid="chat-messages-container">
       {chatMessages.map((msg, index) => {
         const prev = chatMessages[index - 1];
         const next = chatMessages[index + 1];
@@ -100,10 +98,7 @@ export function ChatMessageList({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.18 }}
             layout={false}
-            className={cn(
-              "flex gap-2",
-              sameAsPrev ? "mt-0.5" : "mt-4"
-            )}
+            className={cn("flex gap-2", sameAsPrev ? "mt-0.5" : "mt-4")}
           >
             {!msg.isOwn && !sameAsPrev ? (
               <Avatar className="size-8 shrink-0">
@@ -112,7 +107,9 @@ export function ChatMessageList({
                   alt={msg.sender.displayName || "User"}
                 />
                 <AvatarFallback className="text-xs font-medium">
-                  {(msg.sender.displayName || msg.sender.socketId).slice(0, 2).toUpperCase()}
+                  {(msg.sender.displayName || msg.sender.socketId)
+                    .slice(0, 2)
+                    .toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             ) : (
@@ -124,9 +121,7 @@ export function ChatMessageList({
             <div
               className={cn(
                 "flex max-w-[75%] flex-col",
-                msg.isOwn
-                  ? "ml-auto items-end"
-                  : "items-start"
+                msg.isOwn ? "ml-auto items-end" : "items-start",
               )}
               data-testid={`chat-message-${msg.id}`}
             >
@@ -139,7 +134,7 @@ export function ChatMessageList({
                     : "bg-background/60 text-foreground",
                   msg.isOwn
                     ? ownBubbleRadius(isFirst, isMiddle, isLast)
-                    : peerBubbleRadius(isFirst, isMiddle, isLast)
+                    : peerBubbleRadius(isFirst, isMiddle, isLast),
                 )}
               />
 
@@ -147,7 +142,7 @@ export function ChatMessageList({
                 <span
                   className={cn(
                     "mt-1 text-xs text-muted-foreground",
-                    msg.isOwn ? "text-right" : "text-left"
+                    msg.isOwn ? "text-right" : "text-left",
                   )}
                 >
                   {new Date(msg.timestamp).toLocaleTimeString([], {
@@ -176,7 +171,7 @@ export function ChatMessageList({
             <div
               className={cn(
                 "rounded-xl rounded-bl-sm px-3 py-2 text-xs text-muted-foreground",
-                "bg-background/60 text-foreground"
+                "bg-background/60 text-foreground",
               )}
             >
               {t("peerTyping")}

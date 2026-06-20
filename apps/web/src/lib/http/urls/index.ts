@@ -4,9 +4,9 @@ export {
   type BuildUrlQuery,
   type ExtractPathParams,
   type PathParamsFromPath,
-} from './base-api-url';
-export { ResourcesApi } from './resources-api';
-export { UserApi } from './user-api';
-export { MediaApi } from './media-api';
-export { NotificationsApi } from './notifications-api';
-export { PushApi } from './push-api';
+} from "./base-api-url";
+export { ResourcesApi } from "./resources-api";
+export { UserApi } from "./user-api";
+export { MediaApi } from "./media-api";
+export { NotificationsApi } from "./notifications-api";
+export { PushApi } from "./push-api";

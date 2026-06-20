@@ -1,7 +1,11 @@
-'use client'
+"use client";
 
-import { cn } from "@ws/ui/lib/utils"
-import { motion, type Variants, type SVGMotionProps } from "@ws/ui/internal-lib/motion"
+import { cn } from "@ws/ui/lib/utils";
+import {
+  motion,
+  type Variants,
+  type SVGMotionProps,
+} from "@ws/ui/internal-lib/motion";
 
 const logoData = {
   viewBox: "0 0 300 109",
@@ -10,9 +14,9 @@ const logoData = {
     "M199.369 85.3498H186.069V3.54999H199.369V46.218L199.364 46.2863L199.274 47.59L206.873 39.0226L206.885 39.009L206.899 38.9943L217.548 27.4445L218.142 26.8H236.748L213.383 50.1642L213.375 50.1721L213.367 50.1808L209.794 53.6711L212.791 56.4943L212.853 56.5529L212.91 56.6174L235.61 82.0168L238.589 85.3498H220.84L220.242 84.6408L199.266 59.8293L199.365 61.3185L199.369 61.384V85.3498Z",
     "M152.708 25.65C158.241 25.65 162.733 27.4583 165.857 31.2847H165.856C168.955 35.0395 170.358 40.2593 170.358 46.65V85.3502H157.058V49.6998C157.058 45.1613 156.295 42.3071 155.142 40.7291L155.133 40.7154L155.122 40.7007C154.107 39.2569 152.376 38.3502 149.408 38.3502C146.988 38.3502 144.826 39.0384 142.866 40.4302L142.85 40.442C140.974 41.7476 139.419 43.567 138.208 45.9664V85.3502H124.908V26.6998H136.864L136.956 28.6041L137.177 33.2066C137.803 32.3295 138.497 31.5165 139.26 30.7701C142.757 27.3153 147.305 25.65 152.708 25.65Z",
     "M97.8022 26.7998H98.4252L97.7963 29.0742L97.6703 73.7998H113.897V85.3496H66.8471V73.7998H84.6469V43.4502C84.6469 41.9551 84.8598 40.5569 85.3364 39.2998H65.3471V26.7998H95.5336L97.8041 26.1904L97.8022 26.7998ZM90.7973 2C93.3442 2.00005 95.5662 2.91725 97.3432 4.71973H97.3442C97.349 4.72439 97.3531 4.7297 97.3578 4.73438C97.3641 4.74078 97.3711 4.74651 97.3774 4.75293H97.3764C99.2244 6.57572 100.097 8.93859 100.097 11.6504C100.097 14.3543 99.2087 16.7091 97.3442 18.5303C95.538 20.2944 93.3206 21.2001 90.7973 21.2002C88.2504 21.2002 86.0128 20.3012 84.1996 18.5303L84.1909 18.5225L84.183 18.5146C82.3588 16.6904 81.4976 14.3399 81.4975 11.6504C81.4975 8.93672 82.3528 6.56556 84.183 4.73535C85.9927 2.92583 88.2355 2 90.7973 2Z",
-    "M17.0865 8.64996V72.65H52.736V85.3502H3.68616V8.64996H17.0865Z"
-  ]
-}
+    "M17.0865 8.64996V72.65H52.736V85.3502H3.68616V8.64996H17.0865Z",
+  ],
+};
 
 const pathVariants: Variants = {
   hidden: {
@@ -24,33 +28,33 @@ const pathVariants: Variants = {
     fillOpacity: 1,
     transition: {
       duration: 1.5,
-      ease: 'easeInOut',
+      ease: "easeInOut",
     },
   },
-}
+};
 
 const sizes = {
   sm: {
-    svg: 'h-6',
-    betaTag: 'bottom-[2px] left-[calc(100%+6px)] px-1.5 py-0.5 text-[9px]',
+    svg: "h-6",
+    betaTag: "bottom-[2px] left-[calc(100%+6px)] px-1.5 py-0.5 text-[9px]",
   },
   lg: {
-    svg: 'h-12',
-    betaTag: 'bottom-[4px] left-[calc(100%+10px)] px-2 py-0.5 text-base',
+    svg: "h-12",
+    betaTag: "bottom-[4px] left-[calc(100%+10px)] px-2 py-0.5 text-base",
   },
   xl: {
-    svg: 'h-14',
-    betaTag: 'bottom-[7px] left-[calc(100%+15px)] px-2.5 py-1 text-base',
+    svg: "h-14",
+    betaTag: "bottom-[7px] left-[calc(100%+15px)] px-2.5 py-1 text-base",
   },
   xxl: {
-    svg: 'h-20',
-    betaTag: 'bottom-[10px] left-[calc(100%+20px)] px-3 py-1.5 text-lg',
+    svg: "h-20",
+    betaTag: "bottom-[10px] left-[calc(100%+20px)] px-3 py-1.5 text-lg",
   },
 };
 
 export const Logo = ({
   draw = false,
-  size = 'sm',
+  size = "sm",
   className,
   containerClassName,
   ...props
@@ -59,12 +63,11 @@ export const Logo = ({
   draw?: boolean;
   size?: keyof typeof sizes;
 } & SVGMotionProps<SVGSVGElement>) => {
-
   const paths = logoData.paths;
   const viewBox = logoData.viewBox;
 
   return (
-    <div className={cn('relative', containerClassName)}>
+    <div className={cn("relative", containerClassName)}>
       <motion.svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox={viewBox}
@@ -73,8 +76,8 @@ export const Logo = ({
       >
         <motion.path
           variants={draw ? pathVariants : undefined}
-          initial={draw ? 'hidden' : false}
-          animate={draw ? 'visible' : false}
+          initial={draw ? "hidden" : false}
+          animate={draw ? "visible" : false}
           stroke="currentColor"
           strokeWidth={4}
           className="fill-neutral-900 dark:fill-neutral-100"

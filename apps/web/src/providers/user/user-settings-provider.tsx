@@ -4,69 +4,105 @@ import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import type { UserSettings, UserState } from "@/entities/user/model/user-store";
 import type { UsersAPI } from "@/entities/user/types/users.types";
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
 import { useUserAuthContext } from "./user-auth-provider";
 import { useSidebarStore } from "@/shared/model/sidebar-store";
-import { normalizeUserSidebarPreferences } from '@/entities/user/lib'
+import { normalizeUserSidebarPreferences } from "@/entities/user/lib";
 import { useShaderPreferenceStore } from "@/shared/model/shader-preference-store";
 
 type UserSettingsContextValue = {
   fetchUserSettings: () => Promise<void>;
-  updateUserSettings: (data: UsersAPI.UserSettings.PatchMe.Body) => Promise<UserSettings>;
+  updateUserSettings: (
+    data: UsersAPI.UserSettings.PatchMe.Body,
+  ) => Promise<UserSettings>;
 };
 
-const UserSettingsContext = createContext<UserSettingsContextValue | null>(null);
+const UserSettingsContext = createContext<UserSettingsContextValue | null>(
+  null,
+);
 
-export function UserSettingsProvider({ children, store }: { children: ReactNode; store: UserState }) {
+export function UserSettingsProvider({
+  children,
+  store,
+}: {
+  children: ReactNode;
+  store: UserState;
+}) {
   const { auth } = useUserAuthContext();
   const tRoot = useTranslations();
 
-  const applyClientPreferences = useCallback((settings: UsersAPI.UserSettings.GetMe.Response) => {
-    const sidebar = normalizeUserSidebarPreferences(settings.sidebar);
-    const sidebarStore = useSidebarStore.getState();
-    sidebarStore.setVariant(sidebar.variant);
-    sidebarStore.setCollapsible(sidebar.collapsible);
-    useShaderPreferenceStore.getState().setFromUnknown(settings.shader);
-  }, []);
+  const applyClientPreferences = useCallback(
+    (settings: UsersAPI.UserSettings.GetMe.Response) => {
+      const sidebar = normalizeUserSidebarPreferences(settings.sidebar);
+      const sidebarStore = useSidebarStore.getState();
+      sidebarStore.setVariant(sidebar.variant);
+      sidebarStore.setCollapsible(sidebar.collapsible);
+      useShaderPreferenceStore.getState().setFromUnknown(settings.shader);
+    },
+    [],
+  );
 
   const fetchUserSettingsFn = useCallback(async () => {
     if (!auth.isLoaded || !auth.isSignedIn) return;
     store.setError(null);
     try {
-      const settings = await fetchFromActionRoute<UsersAPI.UserSettings.GetMe.Response>("/api/users/settings");
+      const settings =
+        await fetchFromActionRoute<UsersAPI.UserSettings.GetMe.Response>(
+          "/api/users/settings",
+        );
       store.setUserSettings(settings);
       applyClientPreferences(settings);
     } catch (error) {
-      store.setError(resolveActionErrorMessage(error, tRoot, "errors.fetchUserSettings"));
+      store.setError(
+        resolveActionErrorMessage(error, tRoot, "errors.fetchUserSettings"),
+      );
     }
   }, [applyClientPreferences, auth.isLoaded, auth.isSignedIn, store, tRoot]);
 
   const updateUserSettingsFn = useCallback(
     async (data: UsersAPI.UserSettings.PatchMe.Body): Promise<UserSettings> => {
-      const updated = await fetchFromActionRoute<UserSettings>("/api/users/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      const updated = await fetchFromActionRoute<UserSettings>(
+        "/api/users/settings",
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        },
+      );
       store.setUserSettings(updated);
       applyClientPreferences(updated);
       return updated;
     },
-    [applyClientPreferences, store]
+    [applyClientPreferences, store],
   );
 
   const value = useMemo<UserSettingsContextValue>(() => {
-    return { fetchUserSettings: fetchUserSettingsFn, updateUserSettings: updateUserSettingsFn };
+    return {
+      fetchUserSettings: fetchUserSettingsFn,
+      updateUserSettings: updateUserSettingsFn,
+    };
   }, [fetchUserSettingsFn, updateUserSettingsFn]);
 
-  return <UserSettingsContext.Provider value={value}>{children}</UserSettingsContext.Provider>;
+  return (
+    <UserSettingsContext.Provider value={value}>
+      {children}
+    </UserSettingsContext.Provider>
+  );
 }
 
 export function useUserSettingsContext() {
   const context = useContext(UserSettingsContext);
   if (!context) {
-    throw new Error("useUserSettingsContext must be used within a UserSettingsProvider");
+    throw new Error(
+      "useUserSettingsContext must be used within a UserSettingsProvider",
+    );
   }
   return context;
 }

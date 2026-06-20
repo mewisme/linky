@@ -59,6 +59,10 @@ export async function generateMetadata({
   };
 }
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return <MarketingProviders>{children}</MarketingProviders>;
 }

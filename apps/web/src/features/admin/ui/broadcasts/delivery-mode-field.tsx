@@ -29,11 +29,15 @@ export function DeliveryModeField({ tbf, form }: DeliveryModeFieldProps) {
       <RadioGroup
         value={form.watch("deliveryMode")}
         onValueChange={(value) => {
-          form.setValue("deliveryMode", value as "push_only" | "push_and_save", {
-            shouldDirty: true,
-            shouldTouch: true,
-            shouldValidate: true,
-          });
+          form.setValue(
+            "deliveryMode",
+            value as "push_only" | "push_and_save",
+            {
+              shouldDirty: true,
+              shouldTouch: true,
+              shouldValidate: true,
+            },
+          );
         }}
         className="grid grid-cols-1 gap-3 sm:grid-cols-2"
       >
@@ -41,7 +45,9 @@ export function DeliveryModeField({ tbf, form }: DeliveryModeFieldProps) {
           <Field orientation="horizontal">
             <FieldContent>
               <FieldTitle>{tbf("deliveryPushAndSaveTitle")}</FieldTitle>
-              <FieldDescription>{tbf("deliveryPushAndSaveHint")}</FieldDescription>
+              <FieldDescription>
+                {tbf("deliveryPushAndSaveHint")}
+              </FieldDescription>
             </FieldContent>
             <RadioGroupItem value="push_and_save" id="delivery-push-and-save" />
           </Field>

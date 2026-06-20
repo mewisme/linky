@@ -8,7 +8,12 @@ import type { MenuItemId } from "@/shared/ui/layouts/sidebar/menu-items";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import { ShaderCard } from "@ws/ui/components/mew-ui/shader/shader-card";
-import { CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
+import {
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ws/ui/components/ui/card";
 
 interface AppLayoutProps {
   label?: string;
@@ -52,23 +57,36 @@ export function AppLayout({
       <ShaderCard>
         <CardHeader>
           {backHref ? (
-            <Button variant="ghost" size="sm" className="mb-2 -ml-2 w-fit gap-1" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-2 -ml-2 w-fit gap-1"
+              asChild
+            >
               <Link href={backHref}>
                 <ChevronLeft className="size-4" />
                 {backLabel ?? t("notFoundPage.goBack")}
               </Link>
             </Button>
           ) : backButton ? (
-            <Button variant="ghost" size="icon" className="mb-2 -ml-2" onClick={() => router.back()} aria-label={t("notFoundPage.goBack")}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mb-2 -ml-2"
+              onClick={() => router.back()}
+              aria-label={t("notFoundPage.goBack")}
+            >
               <ChevronLeft />
             </Button>
           ) : null}
-          {resolvedLabel ? <CardTitle className="text-xl">{resolvedLabel}</CardTitle> : null}
-          {resolvedDescription ? <CardDescription>{resolvedDescription}</CardDescription> : null}
+          {resolvedLabel ? (
+            <CardTitle className="text-xl">{resolvedLabel}</CardTitle>
+          ) : null}
+          {resolvedDescription ? (
+            <CardDescription>{resolvedDescription}</CardDescription>
+          ) : null}
         </CardHeader>
-        <CardContent className="px-4">
-          {children}
-        </CardContent>
+        <CardContent className="px-4">{children}</CardContent>
       </ShaderCard>
       {render}
     </div>

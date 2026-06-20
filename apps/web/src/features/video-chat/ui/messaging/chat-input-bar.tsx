@@ -1,6 +1,13 @@
 import { GiphyPicker, useGiphyPicker } from "./giphy";
 import { IconArrowUp, IconMoodSmile, IconPhoto } from "@tabler/icons-react";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput, InputGroupText, InputGroupTextarea } from "@ws/ui/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupText,
+  InputGroupTextarea,
+} from "@ws/ui/components/ui/input-group";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { ChatMessageDraft } from "@/features/video-chat/types/chat-message.types";
@@ -44,8 +51,7 @@ export function ChatInputBar({
   }, []);
 
   const isInCall =
-    connectionStatus === "in_call" ||
-    connectionStatus === "reconnecting";
+    connectionStatus === "in_call" || connectionStatus === "reconnecting";
 
   const giphy = useGiphyPicker({
     onSelect: ({ item, type: msgType }) => {
@@ -149,9 +155,7 @@ export function ChatInputBar({
       });
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : t("imagePrepareFailed")
+        error instanceof Error ? error.message : t("imagePrepareFailed"),
       );
     } finally {
       setIsPreparingAttachment(false);
@@ -159,7 +163,7 @@ export function ChatInputBar({
   };
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -198,7 +202,7 @@ export function ChatInputBar({
         />
         <InputGroupAddon align="block-end">
           <InputGroupButton
-            variant={'ghost'}
+            variant={"ghost"}
             className="rounded-full"
             size="icon-sm"
             aria-label={t("sendImageAria")}
@@ -222,7 +226,7 @@ export function ChatInputBar({
             disabled={!isInCall}
           >
             <InputGroupButton
-              variant={'ghost'}
+              variant={"ghost"}
               className="rounded-full"
               size="icon-sm"
               aria-label={t("sendGifAria")}

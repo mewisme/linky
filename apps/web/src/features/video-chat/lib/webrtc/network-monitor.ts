@@ -34,7 +34,7 @@ export class NetworkMonitor {
 
   startMonitoring(
     pc: RTCPeerConnection,
-    callbacks: NetworkMonitorCallbacks
+    callbacks: NetworkMonitorCallbacks,
   ): void {
     if (this.isRunning) {
       Sentry.logger.warn("[NetworkMonitor] Already monitoring");
@@ -95,12 +95,15 @@ export class NetworkMonitor {
       const quality = this.assessQuality(metrics);
       this.handleQualityChange(quality, metrics);
     } catch (err) {
-      Sentry.logger.warn("[NetworkMonitor] Failed to check network conditions", { error: err });
+      Sentry.logger.warn(
+        "[NetworkMonitor] Failed to check network conditions",
+        { error: err },
+      );
     }
   }
 
   private async collectMetrics(
-    pc: RTCPeerConnection
+    pc: RTCPeerConnection,
   ): Promise<NetworkMetrics | null> {
     try {
       const stats = await pc.getStats();
@@ -152,7 +155,9 @@ export class NetworkMonitor {
         timestamp: Date.now(),
       };
     } catch (err) {
-      Sentry.logger.warn("[NetworkMonitor] Failed to collect metrics", { error: err });
+      Sentry.logger.warn("[NetworkMonitor] Failed to collect metrics", {
+        error: err,
+      });
       return null;
     }
   }
@@ -178,7 +183,7 @@ export class NetworkMonitor {
 
   private handleQualityChange(
     newQuality: NetworkQuality,
-    metrics: NetworkMetrics
+    metrics: NetworkMetrics,
   ): void {
     if (!this.callbacks) {
       return;
@@ -199,7 +204,10 @@ export class NetworkMonitor {
       const degradationDuration = Date.now() - this.degradationStartTime;
 
       if (degradationDuration >= DEGRADATION_WINDOW_MS) {
-        Sentry.logger.warn("[NetworkMonitor] Network degraded", { metrics, quality: newQuality });
+        Sentry.logger.warn("[NetworkMonitor] Network degraded", {
+          metrics,
+          quality: newQuality,
+        });
         this.callbacks.onNetworkDegraded();
         this.recoveryStartTime = null;
       }
@@ -211,7 +219,10 @@ export class NetworkMonitor {
       const recoveryDuration = Date.now() - this.recoveryStartTime;
 
       if (recoveryDuration >= RECOVERY_WINDOW_MS) {
-        Sentry.logger.info("[NetworkMonitor] Network recovered", { metrics, quality: newQuality });
+        Sentry.logger.info("[NetworkMonitor] Network recovered", {
+          metrics,
+          quality: newQuality,
+        });
         this.callbacks.onNetworkRecovered();
         this.degradationStartTime = null;
       }

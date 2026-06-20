@@ -1,6 +1,10 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@ws/ui/components/ui/avatar";
 import { IconMicrophoneOff, IconVideoOff } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -48,8 +52,14 @@ interface VideoContainerProps {
   onToggleScreenShare?: () => void;
   isSharingScreen?: boolean;
   onBlockUser?: (userId: string) => void;
-  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
-  onApplyStreamQuality?: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void> | void;
+  sendFavoriteNotification: (
+    action: "added" | "removed",
+    peerUserId: string,
+    userName: string,
+  ) => void;
+  onApplyStreamQuality?: (
+    quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality,
+  ) => Promise<void> | void;
   isPassive?: boolean;
   initialProgress?: UsersAPI.Progress.GetMe.Response;
   initialFavorites?: ResourcesAPI.Favorites.Get.Response;
@@ -57,8 +67,12 @@ interface VideoContainerProps {
 
 interface WebkitPictureInPictureVideo extends HTMLVideoElement {
   webkitPresentationMode?: "inline" | "picture-in-picture" | "fullscreen";
-  webkitSupportsPresentationMode?: (mode: "inline" | "picture-in-picture" | "fullscreen") => boolean;
-  webkitSetPresentationMode?: (mode: "inline" | "picture-in-picture" | "fullscreen") => void;
+  webkitSupportsPresentationMode?: (
+    mode: "inline" | "picture-in-picture" | "fullscreen",
+  ) => boolean;
+  webkitSetPresentationMode?: (
+    mode: "inline" | "picture-in-picture" | "fullscreen",
+  ) => void;
 }
 
 function hasRemoteScreenShareTrack(stream: MediaStream | null): boolean {
@@ -77,7 +91,10 @@ function hasRemoteScreenShareTrack(stream: MediaStream | null): boolean {
 }
 
 function supportsStandardPictureInPicture(video: HTMLVideoElement): boolean {
-  return !!document.pictureInPictureEnabled && typeof video.requestPictureInPicture === "function";
+  return (
+    !!document.pictureInPictureEnabled &&
+    typeof video.requestPictureInPicture === "function"
+  );
 }
 
 function supportsWebkitPictureInPicture(video: HTMLVideoElement): boolean {
@@ -134,18 +151,27 @@ export function VideoContainer({
   const remoteCameraEnabled = useVideoChatStore((s) => s.remoteCameraEnabled);
   const userSettings = useUserStore((s) => s.userSettings);
   const e2eRelaxedCall = useE2eRelaxedCall();
-  const e2eUserSettings = buildE2eUserSettingsAttribute(userSettings, e2eRelaxedCall);
-  const mirrorLocalPreview = useMirrorLocalPreview(localStream, !!isSharingScreen);
+  const e2eUserSettings = buildE2eUserSettingsAttribute(
+    userSettings,
+    e2eRelaxedCall,
+  );
+  const mirrorLocalPreview = useMirrorLocalPreview(
+    localStream,
+    !!isSharingScreen,
+  );
 
   const [isMounted, setIsMounted] = useState(false);
-  const [isPictureInPictureActive, setIsPictureInPictureActive] = useState(false);
+  const [isPictureInPictureActive, setIsPictureInPictureActive] =
+    useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const isRemoteCameraOn = !!remoteStream && remoteCameraEnabled && !isVideoStalled;
+  const isRemoteCameraOn =
+    !!remoteStream && remoteCameraEnabled && !isVideoStalled;
   const isLocalCameraOn = !isVideoOff;
-  const canTogglePictureInPicture = isRemoteCameraOn || hasRemoteScreenShareTrack(remoteStream);
+  const canTogglePictureInPicture =
+    isRemoteCameraOn || hasRemoteScreenShareTrack(remoteStream);
 
   const syncPictureInPictureState = useCallback(() => {
     const video = remoteVideoElementRef.current;
@@ -156,7 +182,8 @@ export function VideoContainer({
 
     const isStandardPiP = document.pictureInPictureElement === video;
     const webkitVideo = video as WebkitPictureInPictureVideo;
-    const isWebkitPiP = webkitVideo.webkitPresentationMode === "picture-in-picture";
+    const isWebkitPiP =
+      webkitVideo.webkitPresentationMode === "picture-in-picture";
     setIsPictureInPictureActive(isStandardPiP || isWebkitPiP);
   }, []);
 
@@ -205,7 +232,7 @@ export function VideoContainer({
       remoteVideoElementRef.current = videoElement;
       syncPictureInPictureState();
     },
-    [syncPictureInPictureState]
+    [syncPictureInPictureState],
   );
 
   const isActive = isInActiveCall;
@@ -220,8 +247,8 @@ export function VideoContainer({
 
       const target = e.target as HTMLElement;
       if (
-        target.closest('[data-reaction-exclude]') ||
-        target.closest('button') ||
+        target.closest("[data-reaction-exclude]") ||
+        target.closest("button") ||
         target.closest('[role="button"]') ||
         target.closest('[role="dialog"]')
       ) {
@@ -235,7 +262,7 @@ export function VideoContainer({
         handleTap(e.clientX, e.clientY);
       }
     },
-    [isActive, handleTap, mousePosition]
+    [isActive, handleTap, mousePosition],
   );
 
   const setContainerRef = useCallback(
@@ -248,31 +275,51 @@ export function VideoContainer({
         mousePositionRef.current = node;
       }
     },
-    [mousePositionRef]
+    [mousePositionRef],
   );
 
   const displayAspectRatio =
     remoteStream && hasPeer ? remoteAspectRatio : localAspectRatio;
 
   useEffect(() => {
-    document.addEventListener("enterpictureinpicture", syncPictureInPictureState);
-    document.addEventListener("leavepictureinpicture", syncPictureInPictureState);
+    document.addEventListener(
+      "enterpictureinpicture",
+      syncPictureInPictureState,
+    );
+    document.addEventListener(
+      "leavepictureinpicture",
+      syncPictureInPictureState,
+    );
     return () => {
-      document.removeEventListener("enterpictureinpicture", syncPictureInPictureState);
-      document.removeEventListener("leavepictureinpicture", syncPictureInPictureState);
+      document.removeEventListener(
+        "enterpictureinpicture",
+        syncPictureInPictureState,
+      );
+      document.removeEventListener(
+        "leavepictureinpicture",
+        syncPictureInPictureState,
+      );
     };
   }, [syncPictureInPictureState]);
 
   useEffect(() => {
-    const video = remoteVideoElementRef.current as (WebkitPictureInPictureVideo | null);
+    const video =
+      remoteVideoElementRef.current as WebkitPictureInPictureVideo | null;
     if (!video) {
       return;
     }
 
-    const handleWebkitPresentationModeChange = () => syncPictureInPictureState();
-    video.addEventListener("webkitpresentationmodechanged", handleWebkitPresentationModeChange as EventListener);
+    const handleWebkitPresentationModeChange = () =>
+      syncPictureInPictureState();
+    video.addEventListener(
+      "webkitpresentationmodechanged",
+      handleWebkitPresentationModeChange as EventListener,
+    );
     return () => {
-      video.removeEventListener("webkitpresentationmodechanged", handleWebkitPresentationModeChange as EventListener);
+      video.removeEventListener(
+        "webkitpresentationmodechanged",
+        handleWebkitPresentationModeChange as EventListener,
+      );
     };
   }, [remoteStream, syncPictureInPictureState]);
 
@@ -288,7 +335,7 @@ export function VideoContainer({
 
     const isStandardPiP = document.pictureInPictureElement === video;
     if (isStandardPiP) {
-      void document.exitPictureInPicture().catch(() => { });
+      void document.exitPictureInPicture().catch(() => {});
       return;
     }
 
@@ -334,10 +381,10 @@ export function VideoContainer({
             ref={remoteVideoContainerRef}
             className="relative flex h-full w-full items-center justify-center"
             style={{
-              minHeight: '100%',
-              minWidth: '100%',
-              maxHeight: '100%',
-              maxWidth: '100%'
+              minHeight: "100%",
+              minWidth: "100%",
+              maxHeight: "100%",
+              maxWidth: "100%",
             }}
             data-testid="chat-remote-video"
           >
@@ -360,12 +407,21 @@ export function VideoContainer({
               >
                 {peerInfo ? (
                   <Avatar className="h-32 w-32 sm:h-40 sm:w-40">
-                    <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || tp("displayNameFallback")} className="object-cover" />
-                    <AvatarFallback className="text-4xl sm:text-5xl">{peerInfo.first_name?.[0]?.toUpperCase() || tp("displayNameInitial")}</AvatarFallback>
+                    <AvatarImage
+                      src={peerInfo.avatar_url || undefined}
+                      alt={peerInfo.first_name || tp("displayNameFallback")}
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="text-4xl sm:text-5xl">
+                      {peerInfo.first_name?.[0]?.toUpperCase() ||
+                        tp("displayNameInitial")}
+                    </AvatarFallback>
                   </Avatar>
                 ) : (
                   <Avatar className="h-32 w-32 sm:h-40 sm:w-40">
-                    <AvatarFallback className="text-4xl sm:text-5xl">{tp("displayNameInitial")}</AvatarFallback>
+                    <AvatarFallback className="text-4xl sm:text-5xl">
+                      {tp("displayNameInitial")}
+                    </AvatarFallback>
                   </Avatar>
                 )}
               </div>
@@ -399,7 +455,10 @@ export function VideoContainer({
           {connectionStatus === "searching" ? (
             <>
               {localStream ? (
-                <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
+                <div
+                  className="relative flex h-full w-full items-center justify-center"
+                  data-testid="chat-local-video"
+                >
                   <VideoPlayer
                     stream={localStream}
                     muted
@@ -411,18 +470,27 @@ export function VideoContainer({
                     mirrored={mirrorLocalPreview}
                   />
                   {isVideoOff && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted" data-testid="chat-camera-off-indicator">
+                    <div
+                      className="absolute inset-0 flex items-center justify-center bg-muted"
+                      data-testid="chat-camera-off-indicator"
+                    >
                       <IconVideoOff className="size-12 text-muted-foreground" />
                     </div>
                   )}
                 </div>
               ) : null}
               <div className="absolute inset-0 z-10">
-                <VideoChatSearchingState progress={initialProgress} onEndCall={onEndCall} />
+                <VideoChatSearchingState
+                  progress={initialProgress}
+                  onEndCall={onEndCall}
+                />
               </div>
             </>
           ) : connectionStatus === "matched" ? (
-            <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
+            <div
+              className="relative flex h-full w-full items-center justify-center"
+              data-testid="chat-local-video"
+            >
               {localStream ? (
                 <>
                   <VideoPlayer
@@ -436,20 +504,29 @@ export function VideoContainer({
                     mirrored={mirrorLocalPreview}
                   />
                   {isVideoOff && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted" data-testid="chat-camera-off-indicator">
+                    <div
+                      className="absolute inset-0 flex items-center justify-center bg-muted"
+                      data-testid="chat-camera-off-indicator"
+                    >
                       <IconVideoOff className="size-12 text-muted-foreground" />
                     </div>
                   )}
                 </>
               ) : null}
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 pointer-events-none" data-testid="chat-matched-connecting">
+              <div
+                className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 pointer-events-none"
+                data-testid="chat-matched-connecting"
+              >
                 <span className="rounded-full bg-black/60 px-4 py-2 text-sm font-medium text-white">
                   {tCall("connectingToPeer")}
                 </span>
               </div>
             </div>
           ) : localStream ? (
-            <div className="relative flex h-full w-full items-center justify-center" data-testid="chat-local-video">
+            <div
+              className="relative flex h-full w-full items-center justify-center"
+              data-testid="chat-local-video"
+            >
               <VideoPlayer
                 stream={localStream}
                 muted
@@ -461,7 +538,10 @@ export function VideoContainer({
                 mirrored={mirrorLocalPreview}
               />
               {isVideoOff && (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted" data-testid="chat-camera-off-indicator">
+                <div
+                  className="absolute inset-0 flex items-center justify-center bg-muted"
+                  data-testid="chat-camera-off-indicator"
+                >
                   <IconVideoOff className="size-12 text-muted-foreground" />
                 </div>
               )}
@@ -483,7 +563,11 @@ export function VideoContainer({
         (connectionStatus === "matched" ||
           connectionStatus === "in_call" ||
           connectionStatus === "reconnecting") && (
-          <div data-reaction-exclude className="relative" style={{ zIndex: 110 }}>
+          <div
+            data-reaction-exclude
+            className="relative"
+            style={{ zIndex: 110 }}
+          >
             <VideoControls
               connectionStatus={connectionStatus}
               isInActiveCall={isInActiveCall}
@@ -515,4 +599,3 @@ export function VideoContainer({
     </div>
   );
 }
-

@@ -3,13 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/shared/types/api.types";
 import type { MediaAPI } from "@/shared/types/media.types";
-import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
+import {
+  bffInternalErrorResponse,
+  bffMissingAuthResponse,
+} from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ uploadId: string; partNumber: string }> }
+  { params }: { params: Promise<{ uploadId: string; partNumber: string }> },
 ) {
   const { uploadId, partNumber } = await params;
   try {
@@ -22,8 +25,11 @@ export async function GET(
 
     if (!uploadId || !partNumber) {
       return NextResponse.json(
-        { error: "Bad Request", message: "Upload ID and part number are required" },
-        { status: 400 }
+        {
+          error: "Bad Request",
+          message: "Upload ID and part number are required",
+        },
+        { status: 400 },
       );
     }
 
@@ -35,10 +41,12 @@ export async function GET(
           Authorization: authHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
-    const data = await response.json() as MediaAPI.S3.GetPartUploadUrl.Response | ApiError;
+    const data = (await response.json()) as
+      | MediaAPI.S3.GetPartUploadUrl.Response
+      | ApiError;
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
@@ -46,7 +54,13 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    Sentry.logger.error("Error in /api/media/s3/multipart/[uploadId]/part/[partNumber]", { error });
-    return bffInternalErrorResponse("failedPartUploadUrl", "Failed to get part upload URL");
+    Sentry.logger.error(
+      "Error in /api/media/s3/multipart/[uploadId]/part/[partNumber]",
+      { error },
+    );
+    return bffInternalErrorResponse(
+      "failedPartUploadUrl",
+      "Failed to get part upload URL",
+    );
   }
 }

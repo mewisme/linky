@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { useAdminConfigColumns, type RowCallbacks } from './define-data';
-import { DataTable } from '../data-table';
-import { cn } from '@ws/ui/lib/utils';
-import { useTranslations } from 'next-intl';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { useAdminConfigColumns, type RowCallbacks } from "./define-data";
+import { DataTable } from "../data-table";
+import { cn } from "@ws/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface AdminConfigDataTableProps {
   initialData: AdminAPI.Config.Item[];
@@ -23,15 +23,15 @@ export function AdminConfigDataTable({
   leftColumnVisibilityContent = null,
   rightColumnVisibilityContent = null,
 }: AdminConfigDataTableProps) {
-  const t = useTranslations('dataTable');
+  const t = useTranslations("dataTable");
   const tableColumns = useAdminConfigColumns(callbacks);
 
   return (
     <DataTable
-      filterColumns='key'
+      filterColumns="key"
       initialData={initialData}
       isLoading={isLoading}
-      loadingTitle={t('adminConfig.loadingTitle')}
+      loadingTitle={t("adminConfig.loadingTitle")}
       initialColumnVisibility={{}}
       columns={tableColumns}
       className={cn(className)}

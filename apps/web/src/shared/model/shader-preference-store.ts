@@ -8,7 +8,7 @@ import type {
 import {
   getDefaultShaderPreferences,
   normalizeUserShaderPreferences,
-} from '@/entities/user/lib'
+} from "@/entities/user/lib";
 
 interface ShaderPreferenceState {
   type: ShaderType;
@@ -33,12 +33,13 @@ export const useShaderPreferenceStore = create<ShaderPreferenceState>()(
       preset: defaults.preset,
       disabled: defaults.disabled,
       props: defaults.props,
-      setShader: (shader) => set({
-        type: shader.type,
-        preset: shader.preset,
-        disabled: shader.disabled,
-        props: shader.props,
-      }),
+      setShader: (shader) =>
+        set({
+          type: shader.type,
+          preset: shader.preset,
+          disabled: shader.disabled,
+          props: shader.props,
+        }),
       setFromUnknown: (value) => {
         const normalized = normalizeUserShaderPreferences(value);
         set({

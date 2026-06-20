@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ws/ui/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@ws/ui/components/ui/dialog";
-import { IconClock, IconFlame, IconSnowflake, IconStar } from "@tabler/icons-react";
+import {
+  IconClock,
+  IconFlame,
+  IconSnowflake,
+  IconStar,
+} from "@tabler/icons-react";
 
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
 import { Badge } from "@ws/ui/components/ui/badge";
@@ -27,7 +38,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 
 interface ProgressClientProps {
-  initialData: UsersAPI.Progress.GetMe.Response
+  initialData: UsersAPI.Progress.GetMe.Response;
 }
 
 export function ProgressClient({ initialData }: ProgressClientProps) {
@@ -48,7 +59,10 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["user-progress"],
-    queryFn: () => fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>("/api/users/progress"),
+    queryFn: () =>
+      fetchFromActionRoute<UsersAPI.Progress.GetMe.Response>(
+        "/api/users/progress",
+      ),
     initialData,
     staleTime: Infinity,
     gcTime: 10 * 60 * 1000,
@@ -77,11 +91,15 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
   }
 
   const isTodayStreakComplete = data.isTodayStreakComplete;
-  const streakDisplayStatus =
-    isTodayStreakComplete ? "active" : data.streakStatus === "frozen" ? "frozen" : "incomplete";
-  const displayLevel = data.expProgress?.totalExpSeconds != null
-    ? calculateLevelFromExp(data.expProgress.totalExpSeconds).level
-    : data.currentLevel;
+  const streakDisplayStatus = isTodayStreakComplete
+    ? "active"
+    : data.streakStatus === "frozen"
+      ? "frozen"
+      : "incomplete";
+  const displayLevel =
+    data.expProgress?.totalExpSeconds != null
+      ? calculateLevelFromExp(data.expProgress.totalExpSeconds).level
+      : data.currentLevel;
 
   return (
     <AppLayout sidebarItem="progress" className="space-y-6">
@@ -102,7 +120,10 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
             <CardContent>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Progress value={data.expProgress.progressPercentage} className="h-2" />
+                  <Progress
+                    value={data.expProgress.progressPercentage}
+                    className="h-2"
+                  />
                   <div className="flex justify-between gap-3 text-sm text-muted-foreground">
                     <span>
                       {t("percentToLevel", {
@@ -120,7 +141,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                 </div>
                 {(data.expEarnedToday ?? 0) > 0 && (
                   <div className="flex justify-between gap-3 border-t pt-4 text-sm">
-                    <span className="text-muted-foreground">{t("expEarnedToday")}</span>
+                    <span className="text-muted-foreground">
+                      {t("expEarnedToday")}
+                    </span>
                     <ExpAmountLabel
                       exp={data.expEarnedToday}
                       className="font-medium tabular-nums"
@@ -140,7 +163,10 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   {streakDisplayStatus === "frozen" ? (
-                    <IconSnowflake className="w-5 h-5 text-sky-500" aria-hidden />
+                    <IconSnowflake
+                      className="w-5 h-5 text-sky-500"
+                      aria-hidden
+                    />
                   ) : (
                     <IconFlame className="w-5 h-5 text-orange-500" />
                   )}
@@ -165,7 +191,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                   ) : (
                     <Badge
                       variant={
-                        streakDisplayStatus === "frozen" ? "secondary" : "outline"
+                        streakDisplayStatus === "frozen"
+                          ? "secondary"
+                          : "outline"
                       }
                       className="text-sm px-3 py-1"
                     >
@@ -188,38 +216,62 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                 <div className="space-y-3">
                   <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">{t("currentStreak")}</span>
-                      <span className="font-medium tabular-nums" data-testid="progress-current-streak">
+                      <span className="text-muted-foreground">
+                        {t("currentStreak")}
+                      </span>
+                      <span
+                        className="font-medium tabular-nums"
+                        data-testid="progress-current-streak"
+                      >
                         {t("days", { count: data.streak.currentStreak })}
                         {streakDisplayStatus === "frozen" && (
-                          <span className="ml-1.5 text-sky-600" title={t("freezeTitle")}>
-                            <IconSnowflake className="inline-block size-3.5" aria-hidden />
+                          <span
+                            className="ml-1.5 text-sky-600"
+                            title={t("freezeTitle")}
+                          >
+                            <IconSnowflake
+                              className="inline-block size-3.5"
+                              aria-hidden
+                            />
                           </span>
                         )}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">{t("longestStreak")}</span>
-                      <span className="font-medium tabular-nums" data-testid="progress-longest-streak">
+                      <span className="text-muted-foreground">
+                        {t("longestStreak")}
+                      </span>
+                      <span
+                        className="font-medium tabular-nums"
+                        data-testid="progress-longest-streak"
+                      >
                         {t("days", { count: data.streak.longestStreak })}
                       </span>
                     </div>
                   </div>
                   {data.freeze && data.freeze.availableCount != null && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{t("freezeAvailable")}</span>
-                      <span className="font-medium">{data.freeze.availableCount}</span>
+                      <span className="text-muted-foreground">
+                        {t("freezeAvailable")}
+                      </span>
+                      <span className="font-medium">
+                        {data.freeze.availableCount}
+                      </span>
                     </div>
                   )}
                   {streakDisplayStatus === "frozen" && (
-                    <p className="text-xs text-muted-foreground">{t("freezeUsedToday")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("freezeUsedToday")}
+                    </p>
                   )}
                 </div>
                 {!isTodayStreakComplete && (
                   <div className="border-t pt-4">
                     <div className="space-y-3">
                       <div className="flex justify-between gap-3 text-sm">
-                        <span className="text-muted-foreground">{t("todayCallDuration")}</span>
+                        <span className="text-muted-foreground">
+                          {t("todayCallDuration")}
+                        </span>
                         <span className="font-medium tabular-nums">
                           {formatDuration(data.todayCallDurationSeconds)}
                         </span>
@@ -228,7 +280,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                         <div className="flex items-center gap-2 text-sm">
                           <IconClock className="size-4 shrink-0 text-muted-foreground" />
                           <span className="text-muted-foreground">
-                            {t("moreNeededToday", { time: formatDuration(data.streakRemainingSeconds) })}
+                            {t("moreNeededToday", {
+                              time: formatDuration(data.streakRemainingSeconds),
+                            })}
                           </span>
                         </div>
                       )}
@@ -237,7 +291,9 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
                 )}
                 <div className="pt-3 border-t">
                   <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">{t("miniCalendarHeading")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("miniCalendarHeading")}
+                    </p>
                     <StreakMiniCalendar progressData={data} />
                   </div>
                 </div>
@@ -247,14 +303,19 @@ export function ProgressClient({ initialData }: ProgressClientProps) {
         </div>
       </div>
 
-      <Dialog open={isCalendarDialogOpen} onOpenChange={setIsCalendarDialogOpen}>
+      <Dialog
+        open={isCalendarDialogOpen}
+        onOpenChange={setIsCalendarDialogOpen}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <IconFlame className="w-5 h-5 text-orange-500" />
               {t("calendarDialogTitle")}
             </DialogTitle>
-            <DialogDescription>{t("calendarDialogDescription")}</DialogDescription>
+            <DialogDescription>
+              {t("calendarDialogDescription")}
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4 overflow-x-auto">
             <StreakCalendar />

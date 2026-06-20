@@ -1,6 +1,9 @@
 "use client";
 
-import type { ChatMessage, ChatMessageDraft } from "@/features/video-chat/types/chat-message.types";
+import type {
+  ChatMessage,
+  ChatMessageDraft,
+} from "@/features/video-chat/types/chat-message.types";
 import { useEffect, useRef } from "react";
 
 import { ChatInputBar } from "./chat-input-bar";
@@ -29,13 +32,16 @@ export function FullPageChatContent({
 
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector(
-      '[data-slot="scroll-area-viewport"]'
+      '[data-slot="scroll-area-viewport"]',
     );
     if (viewport) viewport.scrollTop = viewport.scrollHeight;
   }, [chatMessages, isPeerTyping]);
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-hidden text-base" data-testid="chat-full-page">
+    <div
+      className="flex h-[calc(100dvh-8rem)] min-h-0 flex-col overflow-hidden text-base"
+      data-testid="chat-full-page"
+    >
       <ScrollArea
         ref={scrollAreaRef}
         className="min-h-0 flex-1 bg-muted/30 px-4 py-3 border mx-2 rounded-md h-full"

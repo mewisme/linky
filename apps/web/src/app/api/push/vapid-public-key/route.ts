@@ -1,7 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
+import {
+  bffInternalErrorResponse,
+  bffMissingAuthResponse,
+} from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -13,13 +16,16 @@ export async function GET(request: NextRequest) {
       return bffMissingAuthResponse();
     }
 
-    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/push/vapid-public-key`, {
-      method: "GET",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json",
+    const response = await fetchWithApiFallback(
+      `${publicEnv.API_URL}/api/v1/push/vapid-public-key`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     const data = await response.json();
 
@@ -30,6 +36,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     Sentry.logger.error("Error in GET /api/push/vapid-public-key", { error });
-    return bffInternalErrorResponse("failedFetchVapidKey", "Failed to fetch VAPID public key");
+    return bffInternalErrorResponse(
+      "failedFetchVapidKey",
+      "Failed to fetch VAPID public key",
+    );
   }
 }

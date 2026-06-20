@@ -50,10 +50,16 @@ export function FullChatPageClient() {
         onSendMessage={sendMessage}
         onSendTyping={sendTyping}
         isPeerTyping={isPeerTyping}
-        peerInfo={peerInfo ? {
-          avatarUrl: peerInfo.avatar_url,
-          displayName: `${peerInfo.first_name ?? ""} ${peerInfo.last_name ?? ""}`.trim() || t("peerFallback"),
-        } : null}
+        peerInfo={
+          peerInfo
+            ? {
+                avatarUrl: peerInfo.avatar_url,
+                displayName:
+                  `${peerInfo.first_name ?? ""} ${peerInfo.last_name ?? ""}`.trim() ||
+                  t("peerFallback"),
+              }
+            : null
+        }
       />
     </div>
   );

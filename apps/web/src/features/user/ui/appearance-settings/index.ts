@@ -1,1 +1,1 @@
-export { AppearanceSettingsClient } from './appearance-settings-client'
+export { AppearanceSettingsClient } from "./appearance-settings-client";

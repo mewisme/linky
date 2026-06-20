@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
         const updated = await updateUserCountry(countryHeader);
         return NextResponse.json(updated);
       } catch (updateError) {
-        Sentry.logger.error("Error updating country in GET /api/users/me", { error: updateError });
+        Sentry.logger.error("Error updating country in GET /api/users/me", {
+          error: updateError,
+        });
       }
     }
 

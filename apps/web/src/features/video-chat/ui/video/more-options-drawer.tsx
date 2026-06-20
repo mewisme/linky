@@ -43,7 +43,9 @@ export function MoreOptionsDrawer({
   useEffect(() => {
     if (isOpen) {
       const setOverlayZIndex = () => {
-        const overlay = document.querySelector('[data-slot="drawer-overlay"]') as HTMLElement;
+        const overlay = document.querySelector(
+          '[data-slot="drawer-overlay"]',
+        ) as HTMLElement;
         if (overlay) {
           overlay.style.zIndex = "115";
         } else {
@@ -67,7 +69,10 @@ export function MoreOptionsDrawer({
             >
               <IconDotsVertical className="size-5" />
               {hasUnreadIndicator && (
-                <span className="absolute right-1 top-1 flex h-3 w-3" data-testid="chat-unread-indicator">
+                <span
+                  className="absolute right-1 top-1 flex h-3 w-3"
+                  data-testid="chat-unread-indicator"
+                >
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75"></span>
                   <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
                 </span>
@@ -90,7 +95,7 @@ export function MoreOptionsDrawer({
             const isDisabled =
               typeof control.disabled === "boolean"
                 ? control.disabled
-                : control.disabled?.(context) ?? false;
+                : (control.disabled?.(context) ?? false);
             const testId =
               typeof control.testId === "function"
                 ? control.testId(context)

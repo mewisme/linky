@@ -13,7 +13,10 @@ interface UseReactionTriggerOptions {
 
 const MAX_TAP_COUNT = 8;
 
-export function useReactionTrigger({ isActive, reactionType = "heart" }: UseReactionTriggerOptions) {
+export function useReactionTrigger({
+  isActive,
+  reactionType = "heart",
+}: UseReactionTriggerOptions) {
   const tapCountRef = useRef<number>(0);
   const tapWindowTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { triggerLocalReaction, emitReaction } = useReactionEffectContext();
@@ -59,7 +62,7 @@ export function useReactionTrigger({ isActive, reactionType = "heart" }: UseReac
         tapWindowTimerRef.current = null;
       }, 500);
     },
-    [isActive, triggerLocalReaction, emitReaction, reactionType]
+    [isActive, triggerLocalReaction, emitReaction, reactionType],
   );
 
   return {

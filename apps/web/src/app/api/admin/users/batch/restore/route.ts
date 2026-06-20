@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     const data = await restoreAdminUsers(body.ids);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/users/batch/restore");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/users/batch/restore",
+    );
   }
 }

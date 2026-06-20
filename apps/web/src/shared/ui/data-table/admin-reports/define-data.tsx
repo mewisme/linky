@@ -1,20 +1,29 @@
-'use client'
+"use client";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types'
-import { type ColumnDef } from "@ws/ui/internal-lib/react-table"
-import { Checkbox } from '@ws/ui/components/ui/checkbox'
-import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar'
-import { IconCopy, IconEye, IconCheck, IconAlertCircle } from '@tabler/icons-react'
-import { ActionsButton, type ActionItem } from '@/shared/ui/common/actions-button'
-import { toast } from "@ws/ui/components/ui/sonner"
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { type ColumnDef } from "@ws/ui/internal-lib/react-table";
+import { Checkbox } from "@ws/ui/components/ui/checkbox";
 import {
-  Pill,
-  PillStatus,
-} from "@ws/ui/components/kibo-ui/pill"
-import { useMemo } from 'react'
-import { Badge } from '@ws/ui/components/ui/badge'
-import { useTranslations } from 'next-intl'
-import { SimpleTooltip } from '../../common/simple-tooltip'
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@ws/ui/components/ui/avatar";
+import {
+  IconCopy,
+  IconEye,
+  IconCheck,
+  IconAlertCircle,
+} from "@tabler/icons-react";
+import {
+  ActionsButton,
+  type ActionItem,
+} from "@/shared/ui/common/actions-button";
+import { toast } from "@ws/ui/components/ui/sonner";
+import { Pill, PillStatus } from "@ws/ui/components/kibo-ui/pill";
+import { useMemo } from "react";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { useTranslations } from "next-intl";
+import { SimpleTooltip } from "../../common/simple-tooltip";
 
 interface UserCellProps {
   firstName?: string | null;
@@ -24,12 +33,18 @@ interface UserCellProps {
   fallback: string;
 }
 
-function UserCell({ firstName, lastName, avatarUrl, userId, fallback }: UserCellProps) {
-  const name = `${firstName || ''} ${lastName || ''}`.trim() || fallback;
+function UserCell({
+  firstName,
+  lastName,
+  avatarUrl,
+  userId,
+  fallback,
+}: UserCellProps) {
+  const name = `${firstName || ""} ${lastName || ""}`.trim() || fallback;
   return (
     <div className="flex items-center gap-3 min-w-0">
       <Avatar className="h-9 w-9 shrink-0">
-        <AvatarImage src={avatarUrl || ''} alt={name} />
+        <AvatarImage src={avatarUrl || ""} alt={name} />
         <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
       <SimpleTooltip content={userId}>
@@ -41,202 +56,263 @@ function UserCell({ firstName, lastName, avatarUrl, userId, fallback }: UserCell
 
 export function getIconForStatus(status: AdminAPI.Reports.ReportStatus) {
   switch (status) {
-    case 'pending':
-      return <IconAlertCircle className="size-4 text-amber-500" />
-    case 'reviewed':
-      return <IconCheck className="size-4 text-green-500" />
-    case 'resolved':
-      return <IconCheck className="size-4 text-green-500" />
-    case 'dismissed':
+    case "pending":
+      return <IconAlertCircle className="size-4 text-amber-500" />;
+    case "reviewed":
+      return <IconCheck className="size-4 text-green-500" />;
+    case "resolved":
+      return <IconCheck className="size-4 text-green-500" />;
+    case "dismissed":
   }
-  return <IconAlertCircle className="size-4 text-amber-500" />
+  return <IconAlertCircle className="size-4 text-amber-500" />;
 }
 
-function getAiSeverityVariant(severity: AdminAPI.Reports.AiSummarySeverity | null | undefined) {
+function getAiSeverityVariant(
+  severity: AdminAPI.Reports.AiSummarySeverity | null | undefined,
+) {
   switch (severity) {
-    case "critical": return "destructive";
-    case "high": return "default";
-    case "medium": return "secondary";
-    case "low": return "outline";
-    default: return "outline";
+    case "critical":
+      return "destructive";
+    case "high":
+      return "default";
+    case "medium":
+      return "secondary";
+    case "low":
+      return "outline";
+    default:
+      return "outline";
   }
 }
 
 export interface RowCallbacks {
-  onView?: (report: AdminAPI.Reports.Report) => void
+  onView?: (report: AdminAPI.Reports.Report) => void;
 }
 
-function AdminReportsActionsCell({ row, callbacks }: { row: { original: AdminAPI.Reports.Report }; callbacks?: RowCallbacks }) {
-  const t = useTranslations('dataTable')
+function AdminReportsActionsCell({
+  row,
+  callbacks,
+}: {
+  row: { original: AdminAPI.Reports.Report };
+  callbacks?: RowCallbacks;
+}) {
+  const t = useTranslations("dataTable");
   const report = row.original;
 
   const actions: ActionItem[] = useMemo(() => {
     const items: ActionItem[] = [];
     if (callbacks?.onView) {
       items.push({
-        type: 'item',
-        label: t('adminReports.viewDetails'),
+        type: "item",
+        label: t("adminReports.viewDetails"),
         icon: <IconEye className="size-4" />,
         onClick: () => callbacks.onView?.(report),
       });
     }
     items.push({
-      type: 'item',
-      label: t('adminReports.copyReportId'),
+      type: "item",
+      label: t("adminReports.copyReportId"),
       icon: <IconCopy className="size-4" />,
       onClick: () => {
         navigator.clipboard.writeText(report.id);
-        toast.success(t('adminReports.reportIdCopied'));
+        toast.success(t("adminReports.reportIdCopied"));
       },
     });
     return items;
   }, [report, callbacks, t]);
 
-  return <ActionsButton actions={actions} title={t('common.actions')} className="flex justify-end" />;
+  return (
+    <ActionsButton
+      actions={actions}
+      title={t("common.actions")}
+      className="flex justify-end"
+    />
+  );
 }
 
-export function useAdminReportsColumns(callbacks?: RowCallbacks): ColumnDef<AdminAPI.Reports.Report>[] {
-  const t = useTranslations('dataTable')
-  return useMemo(() => [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label={t('common.selectAllAria')}
-          className='justify-center flex'
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label={t('common.selectRowAria')}
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: 'reporter_user_id',
-      header: t('adminReports.reporterUser'),
-      cell: ({ row }) => (
-        <UserCell
-          firstName={row.original.reporter_first_name}
-          lastName={row.original.reporter_last_name}
-          avatarUrl={row.original.reporter_avatar_url}
-          userId={row.original.reporter_user_id}
-          fallback={t('common.unknownUser')}
-        />
-      ),
-    },
-    {
-      accessorKey: 'reported_user_id',
-      header: t('adminReports.reportedUser'),
-      cell: ({ row }) => (
-        <UserCell
-          firstName={row.original.reported_first_name}
-          lastName={row.original.reported_last_name}
-          avatarUrl={row.original.reported_avatar_url}
-          userId={row.original.reported_user_id}
-          fallback={t('common.unknownUser')}
-        />
-      ),
-    },
-    {
-      accessorKey: 'reason',
-      header: t('adminReports.reason'),
-      cell: ({ row }) => {
-        const reason = row.getValue('reason') as string
-        return (
-          <div className="max-w-[250px] truncate text-muted-foreground">{reason}</div>
-        )
+export function useAdminReportsColumns(
+  callbacks?: RowCallbacks,
+): ColumnDef<AdminAPI.Reports.Report>[] {
+  const t = useTranslations("dataTable");
+  return useMemo(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label={t("common.selectAllAria")}
+            className="justify-center flex"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label={t("common.selectRowAria")}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
       },
-    },
-    {
-      accessorKey: 'status',
-      header: t('adminReports.status'),
-      cell: ({ row }) => {
-        const status = row.getValue('status') as AdminAPI.Reports.ReportStatus
-        return (
-          <Pill>
-            <PillStatus>
-              {getIconForStatus(status)}
-            </PillStatus>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Pill>
-        )
+      {
+        accessorKey: "reporter_user_id",
+        header: t("adminReports.reporterUser"),
+        cell: ({ row }) => (
+          <UserCell
+            firstName={row.original.reporter_first_name}
+            lastName={row.original.reporter_last_name}
+            avatarUrl={row.original.reporter_avatar_url}
+            userId={row.original.reporter_user_id}
+            fallback={t("common.unknownUser")}
+          />
+        ),
       },
-    },
-    {
-      id: "ai_severity",
-      header: t('adminReports.aiSeverity'),
-      cell: ({ row }) => {
-        const ai = row.original.ai_summary
-        const severity = ai?.severity ?? null
-        if (!ai) return <span className="text-muted-foreground/50">{t('common.emDash')}</span>
-        if (ai.status !== "ready") return <span className="text-muted-foreground/70">{ai.status}</span>
-        return (
-          <Badge variant={getAiSeverityVariant(severity)}>
-            {(severity ?? "unknown").toString()}
-          </Badge>
-        )
-      }
-    },
-    {
-      id: "ai_summary",
-      header: t('adminReports.aiSummary'),
-      cell: ({ row }) => {
-        const ai = row.original.ai_summary
-        if (!ai) return <span className="text-muted-foreground/50">{t('common.emDash')}</span>
-        if (ai.status === "failed") {
-          return <div className="max-w-[280px] truncate text-destructive">{ai.error_message ?? t('adminReports.failed')}</div>
-        }
-        if (ai.status !== "ready") {
-          return <div className="max-w-[280px] truncate text-muted-foreground">{ai.status}</div>
-        }
-        return <div className="max-w-[280px] truncate text-muted-foreground">{ai.summary}</div>
-      }
-    },
-    {
-      accessorKey: 'created_at',
-      header: t('adminReports.createdAt'),
-      cell: ({ row }) => {
-        const date = new Date(row.getValue('created_at'))
-        return (
-          <div className="text-sm text-muted-foreground">
-            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </div>
-        )
+      {
+        accessorKey: "reported_user_id",
+        header: t("adminReports.reportedUser"),
+        cell: ({ row }) => (
+          <UserCell
+            firstName={row.original.reported_first_name}
+            lastName={row.original.reported_last_name}
+            avatarUrl={row.original.reported_avatar_url}
+            userId={row.original.reported_user_id}
+            fallback={t("common.unknownUser")}
+          />
+        ),
       },
-    },
-    {
-      accessorKey: 'reviewed_by',
-      header: t('adminReports.reviewedBy'),
-      cell: ({ row }) => {
-        const reviewedBy = row.original.reviewed_by
-        if (!reviewedBy) {
+      {
+        accessorKey: "reason",
+        header: t("adminReports.reason"),
+        cell: ({ row }) => {
+          const reason = row.getValue("reason") as string;
+          return (
+            <div className="max-w-[250px] truncate text-muted-foreground">
+              {reason}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "status",
+        header: t("adminReports.status"),
+        cell: ({ row }) => {
+          const status = row.getValue(
+            "status",
+          ) as AdminAPI.Reports.ReportStatus;
+          return (
+            <Pill>
+              <PillStatus>{getIconForStatus(status)}</PillStatus>
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </Pill>
+          );
+        },
+      },
+      {
+        id: "ai_severity",
+        header: t("adminReports.aiSeverity"),
+        cell: ({ row }) => {
+          const ai = row.original.ai_summary;
+          const severity = ai?.severity ?? null;
+          if (!ai)
+            return (
+              <span className="text-muted-foreground/50">
+                {t("common.emDash")}
+              </span>
+            );
+          if (ai.status !== "ready")
+            return (
+              <span className="text-muted-foreground/70">{ai.status}</span>
+            );
+          return (
+            <Badge variant={getAiSeverityVariant(severity)}>
+              {(severity ?? "unknown").toString()}
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "ai_summary",
+        header: t("adminReports.aiSummary"),
+        cell: ({ row }) => {
+          const ai = row.original.ai_summary;
+          if (!ai)
+            return (
+              <span className="text-muted-foreground/50">
+                {t("common.emDash")}
+              </span>
+            );
+          if (ai.status === "failed") {
+            return (
+              <div className="max-w-[280px] truncate text-destructive">
+                {ai.error_message ?? t("adminReports.failed")}
+              </div>
+            );
+          }
+          if (ai.status !== "ready") {
+            return (
+              <div className="max-w-[280px] truncate text-muted-foreground">
+                {ai.status}
+              </div>
+            );
+          }
+          return (
+            <div className="max-w-[280px] truncate text-muted-foreground">
+              {ai.summary}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "created_at",
+        header: t("adminReports.createdAt"),
+        cell: ({ row }) => {
+          const date = new Date(row.getValue("created_at"));
           return (
             <div className="text-sm text-muted-foreground">
-              <span className="text-muted-foreground/50">{t('common.emDash')}</span>
+              {date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
             </div>
-          )
-        }
-        return (
-          <UserCell
-            firstName={row.original.reviewed_by_first_name}
-            lastName={row.original.reviewed_by_last_name}
-            avatarUrl={row.original.reviewed_by_avatar_url}
-            userId={reviewedBy}
-            fallback={t('common.unknownUser')}
-          />
-        )
+          );
+        },
       },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => <AdminReportsActionsCell row={row} callbacks={callbacks} />,
-    }
-  ], [callbacks, t])
+      {
+        accessorKey: "reviewed_by",
+        header: t("adminReports.reviewedBy"),
+        cell: ({ row }) => {
+          const reviewedBy = row.original.reviewed_by;
+          if (!reviewedBy) {
+            return (
+              <div className="text-sm text-muted-foreground">
+                <span className="text-muted-foreground/50">
+                  {t("common.emDash")}
+                </span>
+              </div>
+            );
+          }
+          return (
+            <UserCell
+              firstName={row.original.reviewed_by_first_name}
+              lastName={row.original.reviewed_by_last_name}
+              avatarUrl={row.original.reviewed_by_avatar_url}
+              userId={reviewedBy}
+              fallback={t("common.unknownUser")}
+            />
+          );
+        },
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => (
+          <AdminReportsActionsCell row={row} callbacks={callbacks} />
+        ),
+      },
+    ],
+    [callbacks, t],
+  );
 }

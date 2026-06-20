@@ -59,7 +59,9 @@ export default async function TermsPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s1Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s1Title")}
+        </h2>
         <p className="text-sm text-muted-foreground sm:text-base">
           {t.rich("legal.terms.s1Body", richStrong)}
         </p>
@@ -68,7 +70,9 @@ export default async function TermsPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s2Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s2Title")}
+        </h2>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s2List.map((line) => (
             <li key={line}>{line}</li>
@@ -79,33 +83,47 @@ export default async function TermsPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s3Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t.rich("legal.terms.s3Intro", richStrong)}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s3Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t.rich("legal.terms.s3Intro", richStrong)}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s3List.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="text-sm text-muted-foreground sm:text-base">{t.rich("legal.terms.s3Footer", richStrong)}</p>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t.rich("legal.terms.s3Footer", richStrong)}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s4Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.terms.s4Intro")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s4Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.terms.s4Intro")}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s4List.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.terms.s4Footer")}</p>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.terms.s4Footer")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s5Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s5Title")}
+        </h2>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           <li>{t("legal.terms.s5Item1")}</li>
           <li>{t("legal.terms.s5Item2")}</li>
@@ -116,35 +134,53 @@ export default async function TermsPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s6Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.terms.s6Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s6Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.terms.s6Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s7Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t.rich("legal.terms.s7Body", richStrong)}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s7Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t.rich("legal.terms.s7Body", richStrong)}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s8Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.terms.s8Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s8Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.terms.s8Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s9Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.terms.s9Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s9Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.terms.s9Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.terms.s10Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.terms.s10Title")}
+        </h2>
         <p className="text-sm text-muted-foreground sm:text-base">
           {t.rich("legal.terms.s10Body", {
             link: (chunks) => (

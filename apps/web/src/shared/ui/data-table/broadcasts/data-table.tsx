@@ -18,20 +18,20 @@ export function BroadcastsDataTable({
   className,
   leftColumnVisibilityContent = null,
 }: BroadcastsDataTableProps) {
-  const t = useTranslations('dataTable')
+  const t = useTranslations("dataTable");
   const tableColumns = useBroadcastColumns();
 
   return (
     <DataTable
       initialData={initialData}
       isLoading={isLoading}
-      loadingTitle={t('broadcasts.loadingTitle')}
+      loadingTitle={t("broadcasts.loadingTitle")}
       initialColumnVisibility={{}}
       columns={tableColumns}
       className={cn(className)}
       leftColumnVisibilityContent={leftColumnVisibilityContent}
       filterColumns="message"
-      filterPlaceholder={t('broadcasts.filterPlaceholder')}
+      filterPlaceholder={t("broadcasts.filterPlaceholder")}
     />
   );
 }

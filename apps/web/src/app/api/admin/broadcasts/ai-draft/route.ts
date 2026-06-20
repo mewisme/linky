@@ -10,6 +10,9 @@ export async function POST(request: NextRequest) {
     const data = await generateBroadcastAiDraft(body);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/broadcasts/ai-draft");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/broadcasts/ai-draft",
+    );
   }
 }

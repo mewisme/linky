@@ -12,6 +12,9 @@ export async function POST(
     const data = await generateAdminReportAiSummary(id);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/reports/[id]/ai-summary");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/reports/[id]/ai-summary",
+    );
   }
 }

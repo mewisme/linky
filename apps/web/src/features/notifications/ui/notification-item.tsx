@@ -1,6 +1,9 @@
 "use client";
 
-import type { Notification, NotificationType } from "@/entities/notification/types/notifications.types";
+import type {
+  Notification,
+  NotificationType,
+} from "@/entities/notification/types/notifications.types";
 
 import { NotificationIcon } from "./notification-icon";
 import { trackEvent } from "@/lib/telemetry/events/client";
@@ -47,10 +50,14 @@ export function NotificationItem({
       });
       break;
     case "level_up":
-      description = t("levelUpBody", { level: (payload.level as number) || "" });
+      description = t("levelUpBody", {
+        level: (payload.level as number) || "",
+      });
       break;
     case "streak_milestone":
-      description = t("streakMilestoneBody", { days: (payload.days as number) || "" });
+      description = t("streakMilestoneBody", {
+        days: (payload.days as number) || "",
+      });
       break;
     case "streak_expiring":
       description = t("streakExpiringSoon");
@@ -81,11 +88,15 @@ export function NotificationItem({
       onClick={() => {
         if (!notification.is_read) {
           onMarkAsRead(notification.id);
-          trackEvent({ name: "notification_clicked", properties: { type: notification.type } });
+          trackEvent({
+            name: "notification_clicked",
+            properties: { type: notification.type },
+          });
         }
       }}
-      className={`flex w-full items-start gap-3 rounded p-3 text-left transition-colors hover:bg-accent ${notification.is_read ? "opacity-60" : ""
-        }`}
+      className={`flex w-full items-start gap-3 rounded p-3 text-left transition-colors hover:bg-accent ${
+        notification.is_read ? "opacity-60" : ""
+      }`}
       data-testid={`notification-item-${notification.id}`}
     >
       <div className="mt-0.5 shrink-0">

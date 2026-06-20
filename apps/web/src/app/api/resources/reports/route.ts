@@ -9,7 +9,10 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as ResourcesAPI.Reports.Create.Body;
     if (!body.reported_user_id?.trim() || !body.reason?.trim()) {
       return NextResponse.json(
-        { error: "Bad Request", message: "reported_user_id and reason are required" },
+        {
+          error: "Bad Request",
+          message: "reported_user_id and reason are required",
+        },
         { status: 400 },
       );
     }

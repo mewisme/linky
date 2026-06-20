@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
-function userMessage(code: string, key: string, fallback: string): ApiUserMessage {
+function userMessage(
+  code: string,
+  key: string,
+  fallback: string,
+): ApiUserMessage {
   return {
     code,
     i18n: { key: `api.${key}` },
@@ -11,7 +15,11 @@ function userMessage(code: string, key: string, fallback: string): ApiUserMessag
 }
 
 export function bffMissingAuthResponse() {
-  const um = userMessage("MISSING_AUTH", "missingAuth", "Missing authentication");
+  const um = userMessage(
+    "MISSING_AUTH",
+    "missingAuth",
+    "Missing authentication",
+  );
   return NextResponse.json(
     { error: "Unauthorized", message: um.fallbackMessage, userMessage: um },
     { status: 401 },

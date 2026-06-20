@@ -1,7 +1,5 @@
 import { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE } from "./video-chat-media-errors";
-import {
-  getCaptureConstraintsForQuality,
-} from "./stream-video-quality";
+import { getCaptureConstraintsForQuality } from "./stream-video-quality";
 import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
 
 function isDeviceNotFoundError(error: unknown): boolean {
@@ -33,7 +31,10 @@ function shouldRetryWithoutVideo(error: unknown): boolean {
   );
 }
 
-export { VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE, isVideoChatNoMicrophoneError } from "./video-chat-media-errors";
+export {
+  VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE,
+  isVideoChatNoMicrophoneError,
+} from "./video-chat-media-errors";
 
 function getMediaErrorMessage(error: unknown): string {
   if (!(error instanceof DOMException)) {
@@ -64,9 +65,11 @@ function getMediaErrorMessage(error: unknown): string {
 export async function getUserMedia(
   video: boolean = true,
   audio: boolean = true,
-  quality: StreamVideoQuality = "sd"
+  quality: StreamVideoQuality = "sd",
 ): Promise<MediaStream> {
-  const videoConstraints = video ? getCaptureConstraintsForQuality(quality) : false;
+  const videoConstraints = video
+    ? getCaptureConstraintsForQuality(quality)
+    : false;
   const audioConstraints: MediaTrackConstraints = {
     echoCancellation: true,
     noiseSuppression: true,

@@ -1,5 +1,7 @@
 function isSafeRelativePath(path: string): boolean {
-  return path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/\\");
+  return (
+    path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/\\")
+  );
 }
 
 export function safeRedirectPath(redirect: string | null | undefined): string {
@@ -7,7 +9,10 @@ export function safeRedirectPath(redirect: string | null | undefined): string {
 
   try {
     const url = new URL(redirect);
-    if (typeof window !== "undefined" && url.origin === window.location.origin) {
+    if (
+      typeof window !== "undefined" &&
+      url.origin === window.location.origin
+    ) {
       return url.pathname + url.search;
     }
     return "/";

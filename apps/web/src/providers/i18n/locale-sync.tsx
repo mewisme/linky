@@ -44,7 +44,11 @@ export function LocaleSync() {
     const stored = useLocalePreferenceStore.getState().locale;
     if (!isAppLocale(stored) || stored === locale) return;
 
-    if (isVideoChatBlockingLocaleChange(useVideoChatStore.getState().connectionStatus)) {
+    if (
+      isVideoChatBlockingLocaleChange(
+        useVideoChatStore.getState().connectionStatus,
+      )
+    ) {
       deferredRedirectLocale.current = stored;
       return;
     }

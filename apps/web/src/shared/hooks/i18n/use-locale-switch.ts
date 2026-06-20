@@ -32,7 +32,9 @@ export function useLocaleSwitch() {
     (next: AppLocale) => {
       if (next === locale) return;
       if (isVideoChatBlockingLocaleChange(connectionStatus)) {
-        useLocaleChangeGuardStore.getState().openDialog(next, () => executeSwitch(next));
+        useLocaleChangeGuardStore
+          .getState()
+          .openDialog(next, () => executeSwitch(next));
         return;
       }
       executeSwitch(next);

@@ -1,14 +1,20 @@
 import { isApiError } from "@/lib/http/api-error";
 
-import type { CloudflareSdpDescription, RealtimeNegotiateResponse } from "./cloudflare-sfu-client";
+import type {
+  CloudflareSdpDescription,
+  RealtimeNegotiateResponse,
+} from "./cloudflare-sfu-client";
 
-export const SESSION_NOT_READY_RETRY_DELAYS_MS = [500, 1000, 2000, 4000, 8000] as const;
+export const SESSION_NOT_READY_RETRY_DELAYS_MS = [
+  500, 1000, 2000, 4000, 8000,
+] as const;
 
 export function isCloudflareSessionNotReady(error: unknown): boolean {
   if (isApiError(error)) {
     if (error.status === 425) return true;
     const code = error.userMessage?.code;
-    if (code === "REALTIME_SESSION_NOT_READY" || code === "session_error") return true;
+    if (code === "REALTIME_SESSION_NOT_READY" || code === "session_error")
+      return true;
     if (error.message.includes("Session is not ready yet")) return true;
     if (error.message.includes("425 Too Early")) return true;
   }
@@ -34,7 +40,9 @@ export interface PeerConnectionStateSnapshot {
   signalingState: RTCSignalingState;
 }
 
-export function snapshotPeerConnectionState(pc: RTCPeerConnection): PeerConnectionStateSnapshot {
+export function snapshotPeerConnectionState(
+  pc: RTCPeerConnection,
+): PeerConnectionStateSnapshot {
   return {
     connectionState: pc.connectionState,
     iceConnectionState: pc.iceConnectionState,
@@ -69,7 +77,11 @@ export async function subscribeWithSessionReadyRetry(
   const delay = deps.delay ?? sleep;
   let lastError: unknown;
 
-  for (let attempt = 0; attempt <= SESSION_NOT_READY_RETRY_DELAYS_MS.length; attempt++) {
+  for (
+    let attempt = 0;
+    attempt <= SESSION_NOT_READY_RETRY_DELAYS_MS.length;
+    attempt++
+  ) {
     deps.onAttempt?.({
       attempt: attempt + 1,
       peerSessionId: meta.peerSessionId,
@@ -97,11 +109,16 @@ export async function subscribeWithSessionReadyRetry(
 
       return response;
     } catch (error) {
-      if (!isCloudflareSessionNotReady(error) || attempt === SESSION_NOT_READY_RETRY_DELAYS_MS.length) {
+      if (
+        !isCloudflareSessionNotReady(error) ||
+        attempt === SESSION_NOT_READY_RETRY_DELAYS_MS.length
+      ) {
         throw error;
       }
       lastError = error;
-      await delay(retryDelayWithJitter(SESSION_NOT_READY_RETRY_DELAYS_MS[attempt]!));
+      await delay(
+        retryDelayWithJitter(SESSION_NOT_READY_RETRY_DELAYS_MS[attempt]!),
+      );
     }
   }
 

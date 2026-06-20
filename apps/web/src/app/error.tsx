@@ -1,10 +1,6 @@
-'use client';
+"use client";
 
-import {
-  IconAlertTriangle,
-  IconHome,
-  IconRefresh
-} from "@tabler/icons-react";
+import { IconAlertTriangle, IconHome, IconRefresh } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -23,18 +19,27 @@ function RootErrorContent({
 }) {
   const t = useTranslations("errorsPage");
   useEffect(() => {
-    trackEvent({ name: "error_occurred", properties: { message: error.message, digest: error.digest ?? null } });
+    trackEvent({
+      name: "error_occurred",
+      properties: { message: error.message, digest: error.digest ?? null },
+    });
   }, [error]);
 
   return (
-    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${beVietnamPro.className}`}>
+    <div
+      className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${beVietnamPro.className}`}
+    >
       <div className="absolute inset-0 -z-10 flex items-center justify-center">
         <div className="h-[400px] w-[400px] rounded-full bg-destructive/5 blur-[120px]" />
       </div>
 
       <div className="mx-auto flex max-w-[540px] flex-col items-center text-center">
         <div className="mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10 ring-8 ring-destructive/5">
-          <IconAlertTriangle size={40} stroke={1.5} className="text-destructive" />
+          <IconAlertTriangle
+            size={40}
+            stroke={1.5}
+            className="text-destructive"
+          />
         </div>
 
         <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
@@ -52,7 +57,10 @@ function RootErrorContent({
             onClick={() => reset()}
             className="group px-8 font-medium border-border hover:bg-secondary"
           >
-            <IconRefresh size={18} className="mr-2 transition-transform group-hover:rotate-180 duration-500" />
+            <IconRefresh
+              size={18}
+              className="mr-2 transition-transform group-hover:rotate-180 duration-500"
+            />
             {t("tryAgain")}
           </Button>
 
@@ -60,7 +68,8 @@ function RootErrorContent({
             variant="default"
             size="lg"
             className="px-8 font-medium shadow-lg shadow-primary/20"
-            asChild>
+            asChild
+          >
             <Link href="/">
               <IconHome size={18} className="mr-2" />
               {t("goHome")}

@@ -38,7 +38,7 @@ export class VideoHealthTracker {
   startTracking(
     pc: RTCPeerConnection,
     callbacks: VideoHealthCallbacks,
-    options?: VideoHealthTrackerOptions
+    options?: VideoHealthTrackerOptions,
   ): void {
     if (this.isRunning) {
       Sentry.logger.warn("[VideoHealthTracker] Already tracking");
@@ -110,12 +110,14 @@ export class VideoHealthTracker {
       this.detectStall(metrics);
       this.updateFrameRate(metrics, prevFramesReceived);
     } catch (err) {
-      Sentry.logger.warn("[VideoHealthTracker] Failed to check video health", { error: err });
+      Sentry.logger.warn("[VideoHealthTracker] Failed to check video health", {
+        error: err,
+      });
     }
   }
 
   private async collectVideoMetrics(
-    pc: RTCPeerConnection
+    pc: RTCPeerConnection,
   ): Promise<VideoHealthMetrics | null> {
     try {
       const stats = await pc.getStats();
@@ -143,7 +145,10 @@ export class VideoHealthTracker {
         hasVideoInbound,
       };
     } catch (err) {
-      Sentry.logger.warn("[VideoHealthTracker] Failed to collect video metrics", { error: err });
+      Sentry.logger.warn(
+        "[VideoHealthTracker] Failed to collect video metrics",
+        { error: err },
+      );
       return null;
     }
   }
@@ -189,7 +194,10 @@ export class VideoHealthTracker {
     this.lastFramesReceived = metrics.framesReceived;
   }
 
-  private updateFrameRate(metrics: VideoHealthMetrics, prevFramesReceived: number): void {
+  private updateFrameRate(
+    metrics: VideoHealthMetrics,
+    prevFramesReceived: number,
+  ): void {
     if (!this.callbacks) {
       return;
     }

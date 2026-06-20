@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { deleteInterestTag, updateInterestTag } from "@/features/admin/api/interest-tags";
+import {
+  deleteInterestTag,
+  updateInterestTag,
+} from "@/features/admin/api/interest-tags";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
@@ -14,7 +17,10 @@ export async function PUT(
     const data = await updateInterestTag(id, body);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "PUT /api/admin/interest-tags/[id]");
+    return nextResponseFromActionError(
+      error,
+      "PUT /api/admin/interest-tags/[id]",
+    );
   }
 }
 
@@ -27,6 +33,9 @@ export async function DELETE(
     const data = await deleteInterestTag(id);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "DELETE /api/admin/interest-tags/[id]");
+    return nextResponseFromActionError(
+      error,
+      "DELETE /api/admin/interest-tags/[id]",
+    );
   }
 }

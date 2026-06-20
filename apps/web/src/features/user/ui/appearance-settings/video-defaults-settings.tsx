@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { IconMicrophone, IconVideo } from '@tabler/icons-react'
-import { useTranslations } from 'next-intl'
-import { Label } from '@ws/ui/components/ui/label'
-import { Switch } from '@ws/ui/components/ui/switch'
-import { Separator } from '@ws/ui/components/ui/separator'
+import { IconMicrophone, IconVideo } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
+import { Label } from "@ws/ui/components/ui/label";
+import { Switch } from "@ws/ui/components/ui/switch";
+import { Separator } from "@ws/ui/components/ui/separator";
 
 type Props = {
-  defaultMuteMic: boolean
-  defaultDisableCamera: boolean
-  onDefaultMuteMicChange: (value: boolean) => void
-  onDefaultDisableCameraChange: (value: boolean) => void
-}
+  defaultMuteMic: boolean;
+  defaultDisableCamera: boolean;
+  onDefaultMuteMicChange: (value: boolean) => void;
+  onDefaultDisableCameraChange: (value: boolean) => void;
+};
 
 export function VideoDefaultsSettings({
   defaultMuteMic,
@@ -19,7 +19,7 @@ export function VideoDefaultsSettings({
   onDefaultMuteMicChange,
   onDefaultDisableCameraChange,
 }: Props) {
-  const t = useTranslations('settings')
+  const t = useTranslations("settings");
 
   return (
     <div className="space-y-4">
@@ -28,10 +28,10 @@ export function VideoDefaultsSettings({
           <div className="space-y-0.5">
             <Label htmlFor="mute-mic" className="flex items-center gap-2">
               <IconMicrophone className="size-4" />
-              {t('appearancePage.defaultMute')}
+              {t("appearancePage.defaultMute")}
             </Label>
             <p className="text-sm text-muted-foreground">
-              {t('appearancePage.defaultMuteHint')}
+              {t("appearancePage.defaultMuteHint")}
             </p>
           </div>
           <Switch
@@ -45,10 +45,10 @@ export function VideoDefaultsSettings({
           <div className="space-y-0.5">
             <Label htmlFor="disable-camera" className="flex items-center gap-2">
               <IconVideo className="size-4" />
-              {t('appearancePage.defaultCameraOff')}
+              {t("appearancePage.defaultCameraOff")}
             </Label>
             <p className="text-sm text-muted-foreground">
-              {t('appearancePage.defaultCameraOffHint')}
+              {t("appearancePage.defaultCameraOffHint")}
             </p>
           </div>
           <Switch
@@ -60,5 +60,5 @@ export function VideoDefaultsSettings({
         </div>
       </div>
     </div>
-  )
+  );
 }

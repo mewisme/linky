@@ -8,6 +8,9 @@ export async function GET() {
     const data = await getUnreadCount();
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "GET /api/notifications/me/unread-count");
+    return nextResponseFromActionError(
+      error,
+      "GET /api/notifications/me/unread-count",
+    );
   }
 }

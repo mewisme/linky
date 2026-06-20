@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import * as Sentry from "@sentry/nextjs";
 
@@ -9,7 +9,7 @@ import {
   IconEdit,
   IconLoader2,
   IconTags,
-} from '@tabler/icons-react'
+} from "@tabler/icons-react";
 import {
   Tags,
   TagsContent,
@@ -20,35 +20,35 @@ import {
   TagsList,
   TagsTrigger,
   TagsValue,
-} from '@ws/ui/components/kibo-ui/tags'
+} from "@ws/ui/components/kibo-ui/tags";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@ws/ui/components/ui/tooltip'
-import { useEffect, useMemo, useState } from 'react'
+} from "@ws/ui/components/ui/tooltip";
+import { useEffect, useMemo, useState } from "react";
 
-import { Badge } from '@ws/ui/components/ui/badge'
-import { Button } from '@ws/ui/components/ui/button'
-import type { ResourcesAPI } from '@/shared/types/resources.types'
-import type { UserDetails } from '@/entities/user/model/user-store'
-import type { UsersAPI } from '@/entities/user/types/users.types'
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Button } from "@ws/ui/components/ui/button";
+import type { ResourcesAPI } from "@/shared/types/resources.types";
+import type { UserDetails } from "@/entities/user/model/user-store";
+import type { UsersAPI } from "@/entities/user/types/users.types";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
-import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useTranslations } from "next-intl";
 import { trackEvent } from "@/lib/telemetry/events/client";
-import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
-import { ProfileSectionSaveActions } from './profile-section-save-actions'
-import { useProfileSectionSave } from './use-profile-section-save'
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
+import { ProfileSectionSaveActions } from "./profile-section-save-actions";
+import { useProfileSectionSave } from "./use-profile-section-save";
 
-const INITIAL_TAGS_VISIBLE = 6
+const INITIAL_TAGS_VISIBLE = 6;
 
 interface InterestTagsSectionProps {
-  userDetails: UserDetails | null
+  userDetails: UserDetails | null;
   updateUserDetails: (data: {
-    interest_tags?: string[] | null
-  }) => Promise<UserDetails>
+    interest_tags?: string[] | null;
+  }) => Promise<UserDetails>;
 }
 
 export function InterestTagsSection({
@@ -58,104 +58,113 @@ export function InterestTagsSection({
   const t = useTranslations("user");
   const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
-  const { play: playSound } = useSoundWithSettings()
-  const { isPending, isDone, runSave } = useProfileSectionSave()
-  const [editingTags, setEditingTags] = useState(false)
-  const [availableTags, setAvailableTags] = useState<ResourcesAPI.InterestTags.InterestTag[]>([])
-  const [catalogLoading, setCatalogLoading] = useState(false)
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showAllTags, setShowAllTags] = useState(false)
+  const { play: playSound } = useSoundWithSettings();
+  const { isPending, isDone, runSave } = useProfileSectionSave();
+  const [editingTags, setEditingTags] = useState(false);
+  const [availableTags, setAvailableTags] = useState<
+    ResourcesAPI.InterestTags.InterestTag[]
+  >([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAllTags, setShowAllTags] = useState(false);
 
   useEffect(() => {
-    if (!editingTags || availableTags.length > 0) return
+    if (!editingTags || availableTags.length > 0) return;
 
-    let cancelled = false
-    setCatalogLoading(true)
+    let cancelled = false;
+    setCatalogLoading(true);
     const run = async () => {
       try {
-        const json = await fetchFromActionRoute<ResourcesAPI.InterestTags.Get.Response>(
-          "/api/resources/interest-tags?limit=200",
-        )
+        const json =
+          await fetchFromActionRoute<ResourcesAPI.InterestTags.Get.Response>(
+            "/api/resources/interest-tags?limit=200",
+          );
         if (!cancelled) {
-          setAvailableTags(json.data)
+          setAvailableTags(json.data);
         }
       } catch (error) {
         Sentry.metrics.count("failed_to_fetch_interest_tags", 1);
-        Sentry.logger.error("Failed to fetch interest tags", { error: error instanceof Error ? error.message : "Unknown error" });
+        Sentry.logger.error("Failed to fetch interest tags", {
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
       } finally {
-        setCatalogLoading(false)
+        setCatalogLoading(false);
       }
-    }
-    void run()
+    };
+    void run();
     return () => {
-      cancelled = true
-    }
-  }, [editingTags, availableTags.length])
+      cancelled = true;
+    };
+  }, [editingTags, availableTags.length]);
 
   useEffect(() => {
     if (userDetails?.interest_tags) {
       setSelectedTagIds(
         userDetails.interest_tags
           .filter((tag) => tag.is_active)
-          .map((tag) => tag.id)
-      )
+          .map((tag) => tag.id),
+      );
     }
-  }, [userDetails])
+  }, [userDetails]);
 
   const handleUpdateTags = () => {
-    runSave(async () => {
-      try {
-        await updateUserDetails({ interest_tags: selectedTagIds })
-        trackEvent({ name: "interest_tags_updated" })
-        playSound('success')
-        toast.success(t('interestTagsUpdated'))
-        return true
-      } catch (error: unknown) {
-        toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
-        return false
-      }
-    }, () => setEditingTags(false))
-  }
+    runSave(
+      async () => {
+        try {
+          await updateUserDetails({ interest_tags: selectedTagIds });
+          trackEvent({ name: "interest_tags_updated" });
+          playSound("success");
+          toast.success(t("interestTagsUpdated"));
+          return true;
+        } catch (error: unknown) {
+          toast.error(
+            resolveActionErrorMessage(error, tRoot, "user.updateFailed"),
+          );
+          return false;
+        }
+      },
+      () => setEditingTags(false),
+    );
+  };
 
   const toggleTag = (tagId: string) => {
     setSelectedTagIds((prev) =>
       prev.includes(tagId)
         ? prev.filter((id) => id !== tagId)
-        : [...prev, tagId]
-    )
-  }
+        : [...prev, tagId],
+    );
+  };
 
   const displayTags = useMemo((): UsersAPI.UserDetails.InterestTag[] => {
-    return userDetails?.interest_tags?.filter((tag) => tag.is_active) ?? []
-  }, [userDetails?.interest_tags])
+    return userDetails?.interest_tags?.filter((tag) => tag.is_active) ?? [];
+  }, [userDetails?.interest_tags]);
 
   const tagsById = useMemo(() => {
-    const map = new Map<string, UsersAPI.UserDetails.InterestTag>()
+    const map = new Map<string, UsersAPI.UserDetails.InterestTag>();
     for (const tag of availableTags) {
-      map.set(tag.id, tag)
+      map.set(tag.id, tag);
     }
     for (const tag of userDetails?.interest_tags ?? []) {
       if (!map.has(tag.id)) {
-        map.set(tag.id, tag)
+        map.set(tag.id, tag);
       }
     }
-    return map
-  }, [availableTags, userDetails?.interest_tags])
+    return map;
+  }, [availableTags, userDetails?.interest_tags]);
 
-  const selectedTagsForEdit = useMemo((): UsersAPI.UserDetails.InterestTag[] => {
-    return selectedTagIds
-      .map((id) => tagsById.get(id))
-      .filter((tag): tag is UsersAPI.UserDetails.InterestTag => tag != null)
-  }, [selectedTagIds, tagsById])
+  const selectedTagsForEdit =
+    useMemo((): UsersAPI.UserDetails.InterestTag[] => {
+      return selectedTagIds
+        .map((id) => tagsById.get(id))
+        .filter((tag): tag is UsersAPI.UserDetails.InterestTag => tag != null);
+    }, [selectedTagIds, tagsById]);
 
   const getTagSearchValue = (tag: ResourcesAPI.InterestTags.InterestTag) => {
-    return `${tag.name} ${tag.description || ''} ${tag.category || ''}`.trim()
-  }
+    return `${tag.name} ${tag.description || ""} ${tag.category || ""}`.trim();
+  };
 
-  const showToggle =
-    !editingTags &&
-    displayTags.length > INITIAL_TAGS_VISIBLE
+  const showToggle = !editingTags && displayTags.length > INITIAL_TAGS_VISIBLE;
 
   return (
     <div className="group/interests space-y-3 rounded-xl transition-colors hover:bg-muted/10">
@@ -193,7 +202,9 @@ export function InterestTagsSection({
               ) : (
                 <>
                   <IconChevronDown className="size-4 mr-1 shrink-0" />
-                  {tp("moreTags", { count: displayTags.length - INITIAL_TAGS_VISIBLE })}
+                  {tp("moreTags", {
+                    count: displayTags.length - INITIAL_TAGS_VISIBLE,
+                  })}
                 </>
               )}
             </Button>
@@ -203,25 +214,22 @@ export function InterestTagsSection({
 
       {editingTags ? (
         <div className="space-y-3">
-          <Tags
-            value={searchQuery}
-            setValue={setSearchQuery}
-          >
+          <Tags value={searchQuery} setValue={setSearchQuery}>
             <TagsTrigger>
-              {selectedTagsForEdit.length > 0 ? (
-                selectedTagsForEdit.map((tag) => (
-                  <TagsValue
-                    key={tag.id}
-                    variant="secondary"
-                    onRemove={() => toggleTag(tag.id)}
-                  >
-                    <span className="text-base" aria-hidden="true">
-                      {tag.icon || '🏷️'}
-                    </span>
-                    {tag.name}
-                  </TagsValue>
-                ))
-              ) : null}
+              {selectedTagsForEdit.length > 0
+                ? selectedTagsForEdit.map((tag) => (
+                    <TagsValue
+                      key={tag.id}
+                      variant="secondary"
+                      onRemove={() => toggleTag(tag.id)}
+                    >
+                      <span className="text-base" aria-hidden="true">
+                        {tag.icon || "🏷️"}
+                      </span>
+                      {tag.name}
+                    </TagsValue>
+                  ))
+                : null}
             </TagsTrigger>
             <TagsContent>
               <TagsInput placeholder={tp("searchTags")} />
@@ -235,7 +243,7 @@ export function InterestTagsSection({
                     <TagsEmpty>{tp("noTagsFound")}</TagsEmpty>
                     <TagsGroup>
                       {availableTags.map((tag) => {
-                        const isSelected = selectedTagIds.includes(tag.id)
+                        const isSelected = selectedTagIds.includes(tag.id);
                         return (
                           <TagsItem
                             key={tag.id}
@@ -244,7 +252,7 @@ export function InterestTagsSection({
                           >
                             <div className="flex items-center gap-2 flex-1">
                               <span className="text-base" aria-hidden="true">
-                                {tag.icon || '🏷️'}
+                                {tag.icon || "🏷️"}
                               </span>
                               <div className="flex-1">
                                 <div className="font-medium">{tag.name}</div>
@@ -264,7 +272,7 @@ export function InterestTagsSection({
                               )}
                             </div>
                           </TagsItem>
-                        )
+                        );
                       })}
                     </TagsGroup>
                   </>
@@ -282,9 +290,9 @@ export function InterestTagsSection({
               setSelectedTagIds(
                 userDetails?.interest_tags
                   ?.filter((tag) => tag.is_active)
-                  .map((tag) => tag.id) || []
-              )
-              setEditingTags(false)
+                  .map((tag) => tag.id) || [],
+              );
+              setEditingTags(false);
             }}
             onSave={handleUpdateTags}
             saveDisabled={catalogLoading}
@@ -306,8 +314,11 @@ export function InterestTagsSection({
                           variant="secondary"
                           className="cursor-default px-2.5 py-1 text-xs font-medium sm:px-3 sm:py-1.5 sm:text-sm"
                         >
-                          <span className="mr-1.5 text-base leading-none" aria-hidden>
-                            {tag.icon || '🏷️'}
+                          <span
+                            className="mr-1.5 text-base leading-none"
+                            aria-hidden
+                          >
+                            {tag.icon || "🏷️"}
                           </span>
                           <span>{tag.name}</span>
                           {tag.category && (
@@ -336,5 +347,5 @@ export function InterestTagsSection({
         </>
       )}
     </div>
-  )
+  );
 }

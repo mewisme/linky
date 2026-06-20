@@ -1,45 +1,68 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { IconRefreshDot, IconTrash, IconUserPlus } from '@tabler/icons-react';
-import { toast } from '@ws/ui/components/ui/sonner';
-import { useTranslations } from 'next-intl';
-import dynamic from 'next/dynamic';
+import { useState } from "react";
+import { IconRefreshDot, IconTrash, IconUserPlus } from "@tabler/icons-react";
+import { toast } from "@ws/ui/components/ui/sonner";
+import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { AppLayout } from '@/shared/ui/layouts/app-layout';
-import { Button } from '@ws/ui/components/ui/button';
-import { useUserContext } from '@/providers/user/user-provider';
-import { ToggleGroup, ToggleGroupItem } from "@ws/ui/components/ui/toggle-group"
-import type { RowCallbacks } from '@/shared/ui/data-table/users/define-data';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
+import { Button } from "@ws/ui/components/ui/button";
+import { useUserContext } from "@/providers/user/user-provider";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@ws/ui/components/ui/toggle-group";
+import type { RowCallbacks } from "@/shared/ui/data-table/users/define-data";
 
 const UsersDataTable = dynamic(
-  () => import('@/shared/ui/data-table/users/data-table').then(mod => ({ default: mod.UsersDataTable })),
-  { ssr: false }
+  () =>
+    import("@/shared/ui/data-table/users/data-table").then((mod) => ({
+      default: mod.UsersDataTable,
+    })),
+  { ssr: false },
 );
 
-import { useUsersQuery, type UsersDeletedFilter } from '@/features/admin/hooks/use-users-query';
-import { useUsersMutations } from '@/features/admin/hooks/use-users-mutations';
-import { useUsersPresence } from '@/features/admin/hooks/use-users-presence';
-import { BulkDeleteDialog } from './bulk-delete-dialog';
-import { SetClerkPasswordDialog } from './set-clerk-password-dialog';
-import { isSuperAdmin } from '@/shared/utils/roles';
-import { BulkActions, type BulkAction } from './bulk-actions';
-import { CompareEmbeddingsModal, FindSimilarUsersModal } from './embedding-actions';
-import { isAdmin } from '@/shared/utils/roles';
-import { SimpleTooltip } from '@/shared/ui/common/simple-tooltip';
-import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button';
+import {
+  useDataTableWithQuery,
+} from "@/shared/ui/data-table/use-data-table-with-query";
+import {
+  useUsersDataTable,
+} from "@/shared/ui/data-table/users/data-table";
+import {
+  dataTableStateToPageParams,
+  dataTableStateToSortParam,
+} from "@/shared/ui/data-table/use-data-table";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { useUsersMutations } from "@/features/admin/hooks/use-users-mutations";
+import { useUsersPresence } from "@/features/admin/hooks/use-users-presence";
+import { BulkDeleteDialog } from "./bulk-delete-dialog";
+import { SetClerkPasswordDialog } from "./set-clerk-password-dialog";
+import { isSuperAdmin } from "@/shared/utils/roles";
+import { BulkActions, type BulkAction } from "./bulk-actions";
+import {
+  CompareEmbeddingsModal,
+  FindSimilarUsersModal,
+} from "./embedding-actions";
+import { isAdmin } from "@/shared/utils/roles";
+import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
+import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
+
+type UsersDeletedFilter = "active" | "deleted";
 
 interface UsersPageContentProps {
   initialData?: AdminAPI.GetUsers.Response;
 }
 
-export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
-  const t = useTranslations('admin');
-  const { store: { user: currentUser } } = useUserContext();
-  const [deletedFilter, setDeletedFilter] = useState<UsersDeletedFilter>('active');
-  const { users, isPending, isFetching, refetch } = useUsersQuery({ initialData, deletedFilter });
-  const dataWithPresence = useUsersPresence(users, deletedFilter === 'active');
+export function UsersPageContent({ initialData: _initialData }: UsersPageContentProps = {}) {
+  const t = useTranslations("admin");
+  const {
+    store: { user: currentUser },
+  } = useUserContext();
+  const [deletedFilter, setDeletedFilter] =
+    useState<UsersDeletedFilter>("active");
+
   const {
     updateMutation,
     setClerkPasswordMutation,
@@ -55,11 +78,17 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
   } = useUsersMutations();
 
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [pendingBulkDelete, setPendingBulkDelete] = useState<AdminAPI.User[]>([]);
+  const [pendingBulkDelete, setPendingBulkDelete] = useState<AdminAPI.User[]>(
+    [],
+  );
   const [selectionResetKey, setSelectionResetKey] = useState(0);
-  const [compareModalUser, setCompareModalUser] = useState<AdminAPI.User | null>(null);
-  const [findSimilarModalUser, setFindSimilarModalUser] = useState<AdminAPI.User | null>(null);
-  const [setPasswordUser, setSetPasswordUser] = useState<AdminAPI.User | null>(null);
+  const [compareModalUser, setCompareModalUser] =
+    useState<AdminAPI.User | null>(null);
+  const [findSimilarModalUser, setFindSimilarModalUser] =
+    useState<AdminAPI.User | null>(null);
+  const [setPasswordUser, setSetPasswordUser] = useState<AdminAPI.User | null>(
+    null,
+  );
 
   const tableCallbacks: RowCallbacks = {
     currentUserRole: currentUser?.role,
@@ -80,13 +109,17 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
       : undefined,
     onSetPasswordCompromised: isSuperAdmin(currentUser?.role)
       ? (user: AdminAPI.User) => {
-          setClerkPasswordCompromisedMutation.mutate({ clerkUserId: user.clerk_user_id });
-        }
+        setClerkPasswordCompromisedMutation.mutate({
+          clerkUserId: user.clerk_user_id,
+        });
+      }
       : undefined,
     onUnsetPasswordCompromised: isSuperAdmin(currentUser?.role)
       ? (user: AdminAPI.User) => {
-          unsetClerkPasswordCompromisedMutation.mutate({ clerkUserId: user.clerk_user_id });
-        }
+        unsetClerkPasswordCompromisedMutation.mutate({
+          clerkUserId: user.clerk_user_id,
+        });
+      }
       : undefined,
     onEmbeddingSync: (user: AdminAPI.User) => {
       embeddingSyncMutation.mutate([user.id]);
@@ -100,7 +133,7 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
     onBulkDelete: (users: AdminAPI.User[]) => {
       const toDelete = users.filter((u) => !u.deleted && !isAdmin(u.role));
       if (toDelete.length === 0) {
-        toast.error(t('noEligibleUsers'));
+        toast.error(t("noEligibleUsers"));
         return;
       }
       setPendingBulkDelete(toDelete);
@@ -109,18 +142,44 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
     onBulkRestore: (users: AdminAPI.User[]) => {
       const toRestore = users.filter((u) => u.deleted);
       if (toRestore.length === 0) {
-        toast.error(t('noDeletedSelected'));
+        toast.error(t("noDeletedSelected"));
         return;
       }
-      restoreManyMutation.mutate(toRestore.map((u) => u.id), {
-        onSuccess: () => setSelectionResetKey((k) => k + 1),
-      });
+      restoreManyMutation.mutate(
+        toRestore.map((u) => u.id),
+        {
+          onSuccess: () => setSelectionResetKey((k) => k + 1),
+        },
+      );
     },
     onBulkEmbeddingSync: (users: AdminAPI.User[]) => {
       if (users.length === 0) return;
       embeddingSyncMutation.mutate(users.map((u) => u.id));
     },
   };
+
+  const { dataTable, tableData, isLoading, isFetching, refetch } =
+    useDataTableWithQuery({
+      useDataTableHook: useUsersDataTable,
+      dataTableOptions: { callbacks: tableCallbacks },
+      queryKey: ["admin", "users", "list", deletedFilter],
+      queryFn: (state) => {
+        const { page, size } = dataTableStateToPageParams(state);
+        const sort = dataTableStateToSortParam(state);
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(size),
+          deleted: deletedFilter === "deleted" ? "true" : "false",
+        });
+        if (sort) params.set("sort", sort);
+        return fetchFromActionRoute<AdminAPI.GetUsers.Response>(
+          `/api/admin/users?${params.toString()}`,
+        );
+      },
+      resetPageWhen: deletedFilter,
+    });
+
+  const dataWithPresence = useUsersPresence(tableData, deletedFilter === "active");
 
   const handleBulkDeleteConfirm = () => {
     const ids = pendingBulkDelete.map((u) => u.id);
@@ -133,17 +192,17 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
 
   const bulkActions: BulkAction[] = [
     {
-      label: t('bulkActionDelete'),
+      label: t("bulkActionDelete"),
       icon: IconTrash,
       onClick: (selected) => tableCallbacks.onBulkDelete?.(selected),
     },
     {
-      label: t('bulkActionRestore'),
+      label: t("bulkActionRestore"),
       icon: IconUserPlus,
       onClick: (selected) => tableCallbacks.onBulkRestore?.(selected),
     },
     {
-      label: t('bulkActionSyncEmbeddings'),
+      label: t("bulkActionSyncEmbeddings"),
       icon: IconRefreshDot,
       onClick: (selected) => tableCallbacks.onBulkEmbeddingSync?.(selected),
     },
@@ -151,7 +210,9 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
 
   return (
     <AppLayout sidebarItem="adminUsers">
-      {!isPending && users.length === 0 && <div data-testid="admin-users-empty-state" />}
+      {!isLoading && tableData.length === 0 && (
+        <div data-testid="admin-users-empty-state" />
+      )}
       <BulkDeleteDialog
         open={bulkDeleteDialogOpen}
         onOpenChange={setBulkDeleteDialogOpen}
@@ -179,7 +240,8 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
         open={!!setPasswordUser}
         onOpenChange={(open) => !open && setSetPasswordUser(null)}
         isPending={
-          setClerkPasswordMutation.isPending || setClerkPasswordCompromisedMutation.isPending
+          setClerkPasswordMutation.isPending ||
+          setClerkPasswordCompromisedMutation.isPending
         }
         onSubmit={(payload) => {
           setClerkPasswordMutation.mutate(payload, {
@@ -200,8 +262,8 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
         }}
       />
       <UsersDataTable
-        initialData={dataWithPresence}
-        isLoading={isPending}
+        dataTable={dataTable}
+        isLoading={isLoading}
         callbacks={tableCallbacks}
         selectionResetKey={selectionResetKey}
         leftColumnVisibilityContent={
@@ -214,8 +276,12 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
                 setDeletedFilter(value as UsersDeletedFilter);
               }}
             >
-              <ToggleGroupItem value="active">{t('usersFilterActive')}</ToggleGroupItem>
-              <ToggleGroupItem value="deleted">{t('usersFilterDeleted')}</ToggleGroupItem>
+              <ToggleGroupItem value="active">
+                {t("usersFilterActive")}
+              </ToggleGroupItem>
+              <ToggleGroupItem value="deleted">
+                {t("usersFilterDeleted")}
+              </ToggleGroupItem>
             </ToggleGroup>
             <DataTableRefreshButton
               onClick={() => refetch()}
@@ -229,8 +295,12 @@ export function UsersPageContent({ initialData }: UsersPageContentProps = {}) {
                 onClick={() => embeddingSyncAllMutation.mutate()}
                 disabled={embeddingSyncAllMutation.isPending}
               >
-                <IconRefreshDot className={`w-4 h-4 ${embeddingSyncAllMutation.isPending ? 'animate-spin' : ''}`} />
-                <span className="hidden lg:inline">{t('syncAllEmbeddings')}</span>
+                <IconRefreshDot
+                  className={`w-4 h-4 ${embeddingSyncAllMutation.isPending ? "animate-spin" : ""}`}
+                />
+                <span className="hidden lg:inline">
+                  {t("syncAllEmbeddings")}
+                </span>
               </Button>
             </SimpleTooltip>
           </>

@@ -125,7 +125,10 @@ export function isApiError(error: unknown): error is ApiError {
   if (typeof error !== "object" || error === null) {
     return false;
   }
-  if ((error as ApiError).name === "ApiError" && typeof (error as ApiError).status === "number") {
+  if (
+    (error as ApiError).name === "ApiError" &&
+    typeof (error as ApiError).status === "number"
+  ) {
     return true;
   }
   return readDuckTypedApiError(error) !== null;
@@ -133,7 +136,10 @@ export function isApiError(error: unknown): error is ApiError {
 
 export function coerceApiError(error: unknown): ApiError | null {
   if (typeof error === "object" && error !== null) {
-    if ((error as ApiError).name === "ApiError" && typeof (error as ApiError).status === "number") {
+    if (
+      (error as ApiError).name === "ApiError" &&
+      typeof (error as ApiError).status === "number"
+    ) {
       return error as ApiError;
     }
 

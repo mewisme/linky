@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { hardDeleteAdminUsers, updateAdminUser } from "@/features/admin/api/users";
+import {
+  hardDeleteAdminUsers,
+  updateAdminUser,
+} from "@/features/admin/api/users";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 

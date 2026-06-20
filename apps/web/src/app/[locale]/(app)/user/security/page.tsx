@@ -1,37 +1,46 @@
-'use client'
+"use client";
 
 import {
   AuthenticationCard,
   SecuritySessionsCard,
 } from "@/features/user/ui/security";
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-import { AppLayout } from '@/shared/ui/layouts/app-layout'
-import { useSession } from '@clerk/nextjs'
-import { useUserContext } from '@/providers/user/user-provider'
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
+import { useSession } from "@clerk/nextjs";
+import { useUserContext } from "@/providers/user/user-provider";
 
 export default function SecurityPage() {
-  const { user: { isLoaded, user }, auth } = useUserContext()
-  const { session } = useSession()
+  const {
+    user: { isLoaded, user },
+    auth,
+  } = useUserContext();
+  const { session } = useSession();
 
-  const [sessions, setSessions] = useState<
-    Awaited<ReturnType<NonNullable<typeof user>['getSessions']>> | null
-  >(null)
-  const [sessionsLoading, setSessionsLoading] = useState(true)
+  const [sessions, setSessions] = useState<Awaited<
+    ReturnType<NonNullable<typeof user>["getSessions"]>
+  > | null>(null);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
 
-  const currentSessionId = session?.id ?? auth.sessionId ?? null
+  const currentSessionId = session?.id ?? auth.sessionId ?? null;
 
   useEffect(() => {
-    if (!user) return
-    let cancelled = false
+    if (!user) return;
+    let cancelled = false;
     user
       .getSessions()
-      .then((s) => { if (!cancelled) setSessions(s) })
-      .finally(() => { if (!cancelled) setSessionsLoading(false) })
-    return () => { cancelled = true }
-  }, [user])
+      .then((s) => {
+        if (!cancelled) setSessions(s);
+      })
+      .finally(() => {
+        if (!cancelled) setSessionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
-  if (!isLoaded || !user) return null
+  if (!isLoaded || !user) return null;
 
   return (
     <AppLayout sidebarItem="security" className="space-y-4">
@@ -44,5 +53,5 @@ export default function SecurityPage() {
         />
       </div>
     </AppLayout>
-  )
+  );
 }

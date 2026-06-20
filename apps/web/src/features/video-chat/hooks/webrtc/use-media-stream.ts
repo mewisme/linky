@@ -1,6 +1,9 @@
 "use client";
 
-import { getUserMedia, stopMediaStream } from "@/features/video-chat/lib/webrtc/webrtc";
+import {
+  getUserMedia,
+  stopMediaStream,
+} from "@/features/video-chat/lib/webrtc/webrtc";
 import { getCaptureConstraintsForQuality } from "@/features/video-chat/lib/webrtc/stream-video-quality";
 import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -63,53 +66,57 @@ export function useMediaStream(): UseMediaStreamReturn {
     };
   }, [refreshCameraDevices]);
 
-  const acquireMedia = useCallback(async (
-    initialMuted?: boolean,
-    initialVideoOff?: boolean,
-    quality?: StreamVideoQuality,
-  ): Promise<MediaStream> => {
-    if (streamRef.current) {
-      stopMediaStream(streamRef.current);
-    }
+  const acquireMedia = useCallback(
+    async (
+      initialMuted?: boolean,
+      initialVideoOff?: boolean,
+      quality?: StreamVideoQuality,
+    ): Promise<MediaStream> => {
+      if (streamRef.current) {
+        stopMediaStream(streamRef.current);
+      }
 
-    if (initialMuted !== undefined) {
-      isMutedRef.current = initialMuted;
-    }
-    if (initialVideoOff !== undefined) {
-      isVideoOffRef.current = initialVideoOff;
-    }
-    if (quality !== undefined) {
-      qualityRef.current = quality;
-    }
+      if (initialMuted !== undefined) {
+        isMutedRef.current = initialMuted;
+      }
+      if (initialVideoOff !== undefined) {
+        isVideoOffRef.current = initialVideoOff;
+      }
+      if (quality !== undefined) {
+        qualityRef.current = quality;
+      }
 
-    const stream = await getUserMedia(true, true, qualityRef.current);
-    streamRef.current = stream;
+      const stream = await getUserMedia(true, true, qualityRef.current);
+      streamRef.current = stream;
 
-    const videoTracks = stream.getVideoTracks();
-    hasCameraRef.current = videoTracks.length > 0;
-    lastCameraDeviceIdRef.current = videoTracks[0]?.getSettings?.().deviceId ?? null;
-    lastCameraLabelRef.current = videoTracks[0]?.label ?? null;
+      const videoTracks = stream.getVideoTracks();
+      hasCameraRef.current = videoTracks.length > 0;
+      lastCameraDeviceIdRef.current =
+        videoTracks[0]?.getSettings?.().deviceId ?? null;
+      lastCameraLabelRef.current = videoTracks[0]?.label ?? null;
 
-    if (!hasCameraRef.current) {
-      isVideoOffRef.current = true;
-    }
+      if (!hasCameraRef.current) {
+        isVideoOffRef.current = true;
+      }
 
-    await refreshCameraDevices();
+      await refreshCameraDevices();
 
-    if (isMutedRef.current) {
-      stream.getAudioTracks().forEach((track) => {
-        track.enabled = false;
-      });
-    }
+      if (isMutedRef.current) {
+        stream.getAudioTracks().forEach((track) => {
+          track.enabled = false;
+        });
+      }
 
-    if (isVideoOffRef.current && videoTracks.length > 0) {
-      videoTracks.forEach((track) => {
-        track.enabled = false;
-      });
-    }
+      if (isVideoOffRef.current && videoTracks.length > 0) {
+        videoTracks.forEach((track) => {
+          track.enabled = false;
+        });
+      }
 
-    return stream;
-  }, [refreshCameraDevices]);
+      return stream;
+    },
+    [refreshCameraDevices],
+  );
 
   const toggleMute = useCallback((): boolean => {
     if (!streamRef.current) return isMutedRef.current;
@@ -183,11 +190,16 @@ export function useMediaStream(): UseMediaStreamReturn {
       }
 
       const currentTrack = stream.getVideoTracks()[0];
-      const currentFacingMode = (currentTrack?.getSettings?.() as { facingMode?: string } | undefined)?.facingMode;
+      const currentFacingMode = (
+        currentTrack?.getSettings?.() as { facingMode?: string } | undefined
+      )?.facingMode;
       if (currentFacingMode === "user" || currentFacingMode === "environment") {
-        const targetFacingMode = currentFacingMode === "user" ? "environment" : "user";
+        const targetFacingMode =
+          currentFacingMode === "user" ? "environment" : "user";
 
-        const captureConstraints = getCaptureConstraintsForQuality(qualityRef.current);
+        const captureConstraints = getCaptureConstraintsForQuality(
+          qualityRef.current,
+        );
         const nextStream = await navigator.mediaDevices.getUserMedia({
           video: {
             ...captureConstraints,
@@ -197,7 +209,9 @@ export function useMediaStream(): UseMediaStreamReturn {
         });
 
         const nextTrack = nextStream.getVideoTracks()[0] ?? null;
-        const nextFacingMode = (nextTrack?.getSettings?.() as { facingMode?: string } | undefined)?.facingMode;
+        const nextFacingMode = (
+          nextTrack?.getSettings?.() as { facingMode?: string } | undefined
+        )?.facingMode;
 
         if (!nextTrack) {
           stopMediaStream(nextStream);
@@ -217,21 +231,29 @@ export function useMediaStream(): UseMediaStreamReturn {
           }
 
           stream.addTrack(nextTrack);
-          lastCameraDeviceIdRef.current = nextTrack.getSettings?.().deviceId ?? lastCameraDeviceIdRef.current;
-          lastCameraLabelRef.current = nextTrack.label || lastCameraLabelRef.current;
+          lastCameraDeviceIdRef.current =
+            nextTrack.getSettings?.().deviceId ?? lastCameraDeviceIdRef.current;
+          lastCameraLabelRef.current =
+            nextTrack.label || lastCameraLabelRef.current;
           hasCameraRef.current = true;
 
           return nextTrack;
         }
       }
 
-      const currentDeviceIdFromTrack = currentTrack?.getSettings?.().deviceId ?? null;
-      const currentDeviceId = currentDeviceIdFromTrack || lastCameraDeviceIdRef.current;
+      const currentDeviceIdFromTrack =
+        currentTrack?.getSettings?.().deviceId ?? null;
+      const currentDeviceId =
+        currentDeviceIdFromTrack || lastCameraDeviceIdRef.current;
       const currentLabel = currentTrack?.label || lastCameraLabelRef.current;
-      const currentGroupId = currentDeviceId ? cameras.find((c) => c.deviceId === currentDeviceId)?.groupId : undefined;
+      const currentGroupId = currentDeviceId
+        ? cameras.find((c) => c.deviceId === currentDeviceId)?.groupId
+        : undefined;
 
       if (currentDeviceId) {
-        const activeIndex = cameras.findIndex((c) => c.deviceId === currentDeviceId);
+        const activeIndex = cameras.findIndex(
+          (c) => c.deviceId === currentDeviceId,
+        );
         if (activeIndex >= 0) {
           currentCameraIndexRef.current = activeIndex;
         }
@@ -265,11 +287,14 @@ export function useMediaStream(): UseMediaStreamReturn {
         const nextActualDeviceId = nextTrack.getSettings?.().deviceId ?? null;
         const nextLabel = nextTrack.label || null;
         const nextGroupId =
-          (nextActualDeviceId ? cameras.find((c) => c.deviceId === nextActualDeviceId)?.groupId : undefined) ??
-          nextDevice?.groupId;
+          (nextActualDeviceId
+            ? cameras.find((c) => c.deviceId === nextActualDeviceId)?.groupId
+            : undefined) ?? nextDevice?.groupId;
 
         const isSameDevice =
-          (!!currentDeviceId && !!nextActualDeviceId && nextActualDeviceId === currentDeviceId) ||
+          (!!currentDeviceId &&
+            !!nextActualDeviceId &&
+            nextActualDeviceId === currentDeviceId) ||
           (!!currentLabel && !!nextLabel && nextLabel === currentLabel) ||
           (!!currentGroupId && !!nextGroupId && nextGroupId === currentGroupId);
 
@@ -289,9 +314,11 @@ export function useMediaStream(): UseMediaStreamReturn {
         }
 
         stream.addTrack(nextTrack);
-        const returnedIndex =
-          (nextActualDeviceId ? cameras.findIndex((c) => c.deviceId === nextActualDeviceId) : -1);
-        currentCameraIndexRef.current = returnedIndex >= 0 ? returnedIndex : nextIndex;
+        const returnedIndex = nextActualDeviceId
+          ? cameras.findIndex((c) => c.deviceId === nextActualDeviceId)
+          : -1;
+        currentCameraIndexRef.current =
+          returnedIndex >= 0 ? returnedIndex : nextIndex;
         lastCameraDeviceIdRef.current = nextActualDeviceId || nextDeviceId;
         lastCameraLabelRef.current = nextLabel;
         hasCameraRef.current = true;
@@ -305,27 +332,30 @@ export function useMediaStream(): UseMediaStreamReturn {
     }
   }, [refreshCameraDevices]);
 
-  const setQuality = useCallback(async (quality: StreamVideoQuality): Promise<void> => {
-    qualityRef.current = quality;
-    const stream = streamRef.current;
-    if (!stream) {
-      return;
-    }
-    const tracks = stream.getVideoTracks();
-    if (tracks.length === 0) {
-      return;
-    }
-    const constraints = getCaptureConstraintsForQuality(quality);
-    await Promise.all(
-      tracks.map(async (track) => {
-        try {
-          await track.applyConstraints(constraints);
-        } catch {
-          // Ignore - device may not support exact dimensions; encoder cap still applies.
-        }
-      }),
-    );
-  }, []);
+  const setQuality = useCallback(
+    async (quality: StreamVideoQuality): Promise<void> => {
+      qualityRef.current = quality;
+      const stream = streamRef.current;
+      if (!stream) {
+        return;
+      }
+      const tracks = stream.getVideoTracks();
+      if (tracks.length === 0) {
+        return;
+      }
+      const constraints = getCaptureConstraintsForQuality(quality);
+      await Promise.all(
+        tracks.map(async (track) => {
+          try {
+            await track.applyConstraints(constraints);
+          } catch {
+            // Ignore - device may not support exact dimensions; encoder cap still applies.
+          }
+        }),
+      );
+    },
+    [],
+  );
 
   return useMemo(
     () => ({
@@ -341,6 +371,6 @@ export function useMediaStream(): UseMediaStreamReturn {
       setQuality,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cameraDeviceCount]
+    [cameraDeviceCount],
   );
 }

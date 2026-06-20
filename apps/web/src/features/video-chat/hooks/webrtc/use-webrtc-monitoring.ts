@@ -3,13 +3,19 @@
 import * as Sentry from "@sentry/nextjs";
 
 import { useCallback, useRef } from "react";
-import { NetworkMonitor, type NetworkQuality } from "@/features/video-chat/lib/webrtc/network-monitor";
+import {
+  NetworkMonitor,
+  type NetworkQuality,
+} from "@/features/video-chat/lib/webrtc/network-monitor";
 import {
   VideoHealthTracker,
   type VideoHealthTrackerOptions,
 } from "@/features/video-chat/lib/webrtc/video-health-tracker";
 import { QualityController } from "@/features/video-chat/lib/webrtc/quality-controller";
-import { applyInitialEncoding, type QualityTier } from "@/features/video-chat/lib/webrtc/adaptive-encoding";
+import {
+  applyInitialEncoding,
+  type QualityTier,
+} from "@/features/video-chat/lib/webrtc/adaptive-encoding";
 import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
 
 export interface MonitoringCallbacks {
@@ -24,7 +30,7 @@ export interface UseWebRTCMonitoringReturn {
     isMobile: boolean,
     callbacks: MonitoringCallbacks,
     options?: VideoHealthTrackerOptions,
-    streamQuality?: StreamVideoQuality
+    streamQuality?: StreamVideoQuality,
   ) => Promise<void>;
   stopMonitoring: () => void;
   getCurrentQuality: () => NetworkQuality;
@@ -44,7 +50,7 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
       isMobile: boolean,
       callbacks: MonitoringCallbacks,
       options?: VideoHealthTrackerOptions,
-      streamQuality: StreamVideoQuality = "sd"
+      streamQuality: StreamVideoQuality = "sd",
     ): Promise<void> => {
       stopMonitoring();
 
@@ -82,7 +88,7 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
             Sentry.logger.info("Frame rate", { fps });
           },
         },
-        options
+        options,
       );
 
       qualityController.initialize(
@@ -104,7 +110,7 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
 
       Sentry.logger.info("Initialized monitoring services");
     },
-    []
+    [],
   );
 
   const stopMonitoring = useCallback(() => {
@@ -138,13 +144,16 @@ export function useWebRTCMonitoring(): UseWebRTCMonitoringReturn {
     return videoHealthTrackerRef.current?.isVideoStalled() ?? false;
   }, []);
 
-  const applyStreamQuality = useCallback(async (quality: StreamVideoQuality): Promise<void> => {
-    const controller = qualityControllerRef.current;
-    if (!controller) {
-      return;
-    }
-    await controller.setStreamQuality(quality);
-  }, []);
+  const applyStreamQuality = useCallback(
+    async (quality: StreamVideoQuality): Promise<void> => {
+      const controller = qualityControllerRef.current;
+      if (!controller) {
+        return;
+      }
+      await controller.setStreamQuality(quality);
+    },
+    [],
+  );
 
   return {
     initializeMonitoring,

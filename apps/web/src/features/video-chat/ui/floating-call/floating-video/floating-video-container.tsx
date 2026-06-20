@@ -7,7 +7,11 @@ import { FloatingVideoLayout } from "./floating-video-layout";
 import { FloatingVideoOverlay } from "./floating-video-overlay";
 import { getFloatingVideoMetrics } from "./floating-video-metrics";
 import { deriveGlobalFloatingLayoutMode } from "./floating-video-state";
-import { useVideoChatStore, type OverlayCorner, type OverlayPosition } from "@/features/video-chat/model/video-chat-store";
+import {
+  useVideoChatStore,
+  type OverlayCorner,
+  type OverlayPosition,
+} from "@/features/video-chat/model/video-chat-store";
 import { useIsMobile } from "@ws/ui/hooks/use-mobile";
 import type { UsersAPI } from "@/entities/user/types/users.types";
 
@@ -24,7 +28,7 @@ function getCornerPosition(
   containerWidth: number,
   containerHeight: number,
   overlayWidth: number,
-  overlayHeight: number
+  overlayHeight: number,
 ): OverlayPosition {
   switch (corner) {
     case "top-left":
@@ -47,13 +51,24 @@ function getNearestCorner(
   containerWidth: number,
   containerHeight: number,
   overlayWidth: number,
-  overlayHeight: number
+  overlayHeight: number,
 ): OverlayCorner {
-  const corners: OverlayCorner[] = ["top-left", "top-right", "bottom-left", "bottom-right"];
+  const corners: OverlayCorner[] = [
+    "top-left",
+    "top-right",
+    "bottom-left",
+    "bottom-right",
+  ];
   let best: OverlayCorner = "bottom-right";
   let bestDistSq = Infinity;
   for (const c of corners) {
-    const p = getCornerPosition(c, containerWidth, containerHeight, overlayWidth, overlayHeight);
+    const p = getCornerPosition(
+      c,
+      containerWidth,
+      containerHeight,
+      overlayWidth,
+      overlayHeight,
+    );
     const cx = p.x + overlayWidth / 2;
     const cy = p.y + overlayHeight / 2;
     const dSq = (overlayCenterX - cx) ** 2 + (overlayCenterY - cy) ** 2;
@@ -113,7 +128,9 @@ export function FloatingVideoContainer({
   const [isInteracting, setIsInteracting] = useState(false);
   const [expandOverlayOpen, setExpandOverlayOpen] = useState(false);
   const [hoverReveal, setHoverReveal] = useState(false);
-  const [dragPosition, setDragPosition] = useState<OverlayPosition | null>(null);
+  const [dragPosition, setDragPosition] = useState<OverlayPosition | null>(
+    null,
+  );
   const dragPositionRef = useRef<OverlayPosition | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const isMobile = useIsMobile();
@@ -128,12 +145,12 @@ export function FloatingVideoContainer({
 
   const layoutMode = useMemo(
     () => deriveGlobalFloatingLayoutMode(isRemoteCameraOn),
-    [isRemoteCameraOn]
+    [isRemoteCameraOn],
   );
 
   const metrics = useMemo(
     () => getFloatingVideoMetrics({ isMobile, layoutMode }),
-    [isMobile, layoutMode]
+    [isMobile, layoutMode],
   );
 
   const { width, maxHeightVh } = metrics;
@@ -168,7 +185,7 @@ export function FloatingVideoContainer({
       containerWidth,
       containerHeight,
       actualWidth,
-      actualHeight
+      actualHeight,
     );
 
     hasInitializedPositionRef.current = true;
@@ -214,10 +231,16 @@ export function FloatingVideoContainer({
         containerWidth,
         containerHeight,
         actualWidth,
-        actualHeight
+        actualHeight,
       );
 
-      const next = getCornerPosition(corner, containerWidth, containerHeight, actualWidth, actualHeight);
+      const next = getCornerPosition(
+        corner,
+        containerWidth,
+        containerHeight,
+        actualWidth,
+        actualHeight,
+      );
       useVideoChatStore.getState().setFloatingPosition(next);
       useVideoChatStore.getState().setFloatingCorner(corner);
     };
@@ -244,10 +267,16 @@ export function FloatingVideoContainer({
       containerWidth,
       containerHeight,
       actualWidth,
-      actualHeight
+      actualHeight,
     );
 
-    const cornerPos = getCornerPosition(corner, containerWidth, containerHeight, actualWidth, actualHeight);
+    const cornerPos = getCornerPosition(
+      corner,
+      containerWidth,
+      containerHeight,
+      actualWidth,
+      actualHeight,
+    );
     useVideoChatStore.getState().setFloatingPosition(cornerPos);
     useVideoChatStore.getState().setFloatingCorner(corner);
   };
@@ -285,7 +314,8 @@ export function FloatingVideoContainer({
       dragDistanceRef.current = distance;
 
       const timeSinceStart = Date.now() - dragStartTimeRef.current;
-      const shouldStartDrag = distance > DRAG_THRESHOLD || timeSinceStart > DRAG_TIME_THRESHOLD;
+      const shouldStartDrag =
+        distance > DRAG_THRESHOLD || timeSinceStart > DRAG_TIME_THRESHOLD;
 
       if (shouldStartDrag && !dragStartedRef.current) {
         dragStartedRef.current = true;
@@ -330,7 +360,8 @@ export function FloatingVideoContainer({
         rafIdRef.current = null;
       }
 
-      const wasDrag = dragStartedRef.current || dragDistanceRef.current > DRAG_THRESHOLD;
+      const wasDrag =
+        dragStartedRef.current || dragDistanceRef.current > DRAG_THRESHOLD;
 
       if (wasDrag) {
         const finalPos = latestPositionRef.current ?? dragPosition;
@@ -368,8 +399,11 @@ export function FloatingVideoContainer({
   return (
     <motion.div
       ref={overlayRef}
-      className={`fixed left-0 top-0 overflow-hidden rounded-lg border-2 bg-transparent shadow-2xl touch-none select-none ${hasAudioActivity ? "border-green-500 shadow-green-500/50 shadow-lg" : "border-border"
-        } ${position === null ? "invisible" : ""} ${aspectRatioClass}`}
+      className={`fixed left-0 top-0 overflow-hidden rounded-lg border-2 bg-transparent shadow-2xl touch-none select-none ${
+        hasAudioActivity
+          ? "border-green-500 shadow-green-500/50 shadow-lg"
+          : "border-border"
+      } ${position === null ? "invisible" : ""} ${aspectRatioClass}`}
       style={{
         zIndex: 40,
         width,
@@ -380,10 +414,10 @@ export function FloatingVideoContainer({
       animate={
         dragPosition || position
           ? {
-            x: (dragPosition ?? position)!.x,
-            y: (dragPosition ?? position)!.y,
-            scale: isDragging ? 1.05 : 1,
-          }
+              x: (dragPosition ?? position)!.x,
+              y: (dragPosition ?? position)!.y,
+              scale: isDragging ? 1.05 : 1,
+            }
           : { x: 0, y: 0, scale: 1 }
       }
       transition={isDragging ? { duration: 0 } : transition}

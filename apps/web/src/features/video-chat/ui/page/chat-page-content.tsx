@@ -31,7 +31,9 @@ export function ChatPageContent() {
 
     const params = new URLSearchParams(searchParams.toString());
     params.delete("open_chat_panel");
-    const nextUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    const nextUrl = params.toString()
+      ? `${pathname}?${params.toString()}`
+      : pathname;
     router.replace(nextUrl);
   }, [openChatPanel, pathname, router, searchParams]);
 
@@ -42,9 +44,16 @@ export function ChatPageContent() {
   return (
     <>
       {isFloatingMode && isInActiveCall && (
-        <div className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4" data-testid="chat-minimized-state">
+        <div
+          className="flex h-[calc(100dvh-16rem)] w-full flex-col items-center justify-center gap-4"
+          data-testid="chat-minimized-state"
+        >
           <p className="text-lg text-muted-foreground">{t("callMinimized")}</p>
-          <Button onClick={handleRestoreFullUI} size="lg" data-testid="chat-restore-full-view-button">
+          <Button
+            onClick={handleRestoreFullUI}
+            size="lg"
+            data-testid="chat-restore-full-view-button"
+          >
             {t("restoreFullView")}
           </Button>
         </div>

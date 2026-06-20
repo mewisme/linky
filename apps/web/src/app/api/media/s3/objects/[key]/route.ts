@@ -3,13 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/shared/types/api.types";
 import type { MediaAPI } from "@/shared/types/media.types";
-import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
+import {
+  bffInternalErrorResponse,
+  bffMissingAuthResponse,
+} from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ key: string }> }
+  { params }: { params: Promise<{ key: string }> },
 ) {
   const { key } = await params;
   try {
@@ -22,20 +25,25 @@ export async function DELETE(
     if (!key) {
       return NextResponse.json(
         { error: "Bad Request", message: "Object key is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const encodedKey = encodeURIComponent(key);
-    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/admin/s3/objects/${encodedKey}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json",
+    const response = await fetchWithApiFallback(
+      `${publicEnv.API_URL}/api/v1/admin/s3/objects/${encodedKey}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
-    const data = await response.json() as MediaAPI.S3.DeleteObject.Response | ApiError;
+    const data = (await response.json()) as
+      | MediaAPI.S3.DeleteObject.Response
+      | ApiError;
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
@@ -44,6 +52,9 @@ export async function DELETE(
     return NextResponse.json(data);
   } catch (error) {
     Sentry.logger.error("Error in /api/media/s3/objects/[key]", { error });
-    return bffInternalErrorResponse("failedDeleteObject", "Failed to delete object");
+    return bffInternalErrorResponse(
+      "failedDeleteObject",
+      "Failed to delete object",
+    );
   }
 }

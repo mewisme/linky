@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
-import { motion, type SVGMotionProps } from '@ws/ui/internal-lib/motion';
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { motion, type SVGMotionProps } from "@ws/ui/internal-lib/motion";
 
 export const HeroBackground = (props: SVGMotionProps<SVGSVGElement>) => {
   const { resolvedTheme } = useTheme();
 
   const [isMounted, setIsMounted] = useState(false);
 
-  const color = resolvedTheme === 'dark' ? '#fff' : '#000';
-  const opacity = resolvedTheme === 'dark' ? 0.2 : 0.15;
+  const color = resolvedTheme === "dark" ? "#fff" : "#000";
+  const opacity = resolvedTheme === "dark" ? 0.2 : 0.15;
 
   useEffect(() => {
     setIsMounted(true);
@@ -25,7 +25,7 @@ export const HeroBackground = (props: SVGMotionProps<SVGSVGElement>) => {
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0 }}
-      transition={{ duration: 1, ease: 'easeInOut' }}
+      transition={{ duration: 1, ease: "easeInOut" }}
       {...props}
     >
       <defs>

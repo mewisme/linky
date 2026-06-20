@@ -1,6 +1,6 @@
 export async function fetchWithApiFallback(
   input: string | URL,
-  init?: RequestInit
+  init?: RequestInit,
 ): Promise<Response> {
   return fetch(input, init);
 }

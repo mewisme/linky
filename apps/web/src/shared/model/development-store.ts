@@ -16,12 +16,13 @@ export const useDevelopmentStore = create<DevelopmentStoreState>()(
     (set) => ({
       isDevelopmentModeEnabled: false,
       overlayPosition: null,
-      setDevelopmentModeEnabled: (enabled) => set({ isDevelopmentModeEnabled: enabled }),
+      setDevelopmentModeEnabled: (enabled) =>
+        set({ isDevelopmentModeEnabled: enabled }),
       setOverlayPosition: (position) => set({ overlayPosition: position }),
       resetOverlayPosition: () => set({ overlayPosition: null }),
     }),
     {
       name: "development-settings",
-    }
-  )
+    },
+  ),
 );

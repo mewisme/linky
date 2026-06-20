@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
-import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message';
-import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
+import { useMutation, useQueryClient } from "@ws/ui/internal-lib/react-query";
 
-import { toast } from '@ws/ui/components/ui/sonner';
-import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings';
-import { useTranslations } from 'next-intl';
+import { toast } from "@ws/ui/components/ui/sonner";
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
+import { useTranslations } from "next-intl";
 
 export interface SetClerkPasswordPayload {
   clerkUserId: string;
@@ -27,33 +27,41 @@ export interface UnsetClerkPasswordCompromisedPayload {
 }
 
 export function useUsersMutations() {
-  const t = useTranslations('admin');
+  const t = useTranslations("admin");
   const tRoot = useTranslations();
   const queryClient = useQueryClient();
   const { play: playSound } = useSoundWithSettings();
 
   const toastApiError = (error: unknown, fallbackKey: string) => {
-    toast.error(resolveActionErrorMessage(error, tRoot, `admin.${fallbackKey}`));
+    toast.error(
+      resolveActionErrorMessage(error, tRoot, `admin.${fallbackKey}`),
+    );
   };
 
   const invalidateAndRefetch = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['users'], refetchType: 'active' });
-    playSound('success');
+    await queryClient.invalidateQueries({
+      queryKey: ["users"],
+      refetchType: "active",
+    });
+    playSound("success");
   };
 
   const updateMutation = useMutation({
-    mutationFn: (payload: Pick<AdminAPI.User, 'id' | 'role'>) =>
-      fetchFromActionRoute<AdminAPI.UpdateUser.Response>(`/api/admin/users/${encodeURIComponent(payload.id)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: payload.role }),
-      }),
+    mutationFn: (payload: Pick<AdminAPI.User, "id" | "role">) =>
+      fetchFromActionRoute<AdminAPI.UpdateUser.Response>(
+        `/api/admin/users/${encodeURIComponent(payload.id)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: payload.role }),
+        },
+      ),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success(t('userUpdated'));
+      toast.success(t("userUpdated"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringUpdate');
+      toastApiError(error, "errorDuringUpdate");
     },
   });
 
@@ -62,8 +70,8 @@ export function useUsersMutations() {
       fetchFromActionRoute<AdminAPI.UpdateClerkUser.Response>(
         `/api/admin/users/clerk/${encodeURIComponent(payload.clerkUserId)}`,
         {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             password: payload.password,
             skip_password_checks: payload.skipPasswordChecks ?? false,
@@ -73,10 +81,10 @@ export function useUsersMutations() {
       ),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success(t('clerkPasswordUpdated'));
+      toast.success(t("clerkPasswordUpdated"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringClerkPasswordUpdate');
+      toastApiError(error, "errorDuringClerkPasswordUpdate");
     },
   });
 
@@ -85,8 +93,8 @@ export function useUsersMutations() {
       fetchFromActionRoute<AdminAPI.SetClerkPasswordCompromised.Response>(
         `/api/admin/users/clerk/${encodeURIComponent(payload.clerkUserId)}/password/set-compromised`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             revoke_all_sessions: payload.revokeAllSessions ?? true,
           }),
@@ -94,10 +102,10 @@ export function useUsersMutations() {
       ),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success(t('clerkPasswordCompromisedSet'));
+      toast.success(t("clerkPasswordCompromisedSet"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringClerkPasswordCompromised');
+      toastApiError(error, "errorDuringClerkPasswordCompromised");
     },
   });
 
@@ -105,14 +113,14 @@ export function useUsersMutations() {
     mutationFn: (payload: UnsetClerkPasswordCompromisedPayload) =>
       fetchFromActionRoute<AdminAPI.UnsetClerkPasswordCompromised.Response>(
         `/api/admin/users/clerk/${encodeURIComponent(payload.clerkUserId)}/password/unset-compromised`,
-        { method: 'POST' },
+        { method: "POST" },
       ),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success(t('clerkPasswordCompromisedUnset'));
+      toast.success(t("clerkPasswordCompromisedUnset"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringClerkPasswordCompromisedUnset');
+      toastApiError(error, "errorDuringClerkPasswordCompromisedUnset");
     },
   });
 
@@ -120,53 +128,55 @@ export function useUsersMutations() {
     mutationFn: (id: string) =>
       fetchFromActionRoute<AdminAPI.PatchUser.Response>(
         `/api/admin/users/${encodeURIComponent(id)}/soft-delete`,
-        { method: 'POST' },
+        { method: "POST" },
       ),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success(t('userSoftDeleted'));
+      toast.success(t("userSoftDeleted"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringSoftDelete');
+      toastApiError(error, "errorDuringSoftDelete");
     },
   });
 
   const softDeleteManyMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      await fetchFromActionRoute<AdminAPI.PatchUsersBatch.Response>('/api/admin/users/batch/soft-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
-      });
+      await fetchFromActionRoute<AdminAPI.PatchUsersBatch.Response>(
+        "/api/admin/users/batch/soft-delete",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids }),
+        },
+      );
       return ids.length;
     },
     onSuccess: async (count) => {
       await invalidateAndRefetch();
       toast.success(
-        count === 1 ? t('userSoftDeleted') : t('usersSoftDeletedCount', { count })
+        count === 1
+          ? t("userSoftDeleted")
+          : t("usersSoftDeletedCount", { count }),
       );
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringBulkSoftDelete');
+      toastApiError(error, "errorDuringBulkSoftDelete");
     },
   });
 
   const hardDeleteMutation = useMutation({
     mutationFn: (id: string) =>
-      fetchFromActionRoute<{ deleted: number }>(
-        '/api/admin/users/batch',
-        {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: [id] }),
-        },
-      ),
+      fetchFromActionRoute<{ deleted: number }>("/api/admin/users/batch", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [id] }),
+      }),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success(t('userPermDeleted'));
+      toast.success(t("userPermDeleted"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringHardDelete');
+      toastApiError(error, "errorDuringHardDelete");
     },
   });
 
@@ -174,66 +184,70 @@ export function useUsersMutations() {
     mutationFn: (id: string) =>
       fetchFromActionRoute<AdminAPI.PatchUser.Response>(
         `/api/admin/users/${encodeURIComponent(id)}/restore`,
-        { method: 'POST' },
+        { method: "POST" },
       ),
     onSuccess: async () => {
       await invalidateAndRefetch();
-      toast.success(t('userRestored'));
+      toast.success(t("userRestored"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringRestore');
+      toastApiError(error, "errorDuringRestore");
     },
   });
 
   const restoreManyMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      await fetchFromActionRoute<AdminAPI.PatchUsersBatch.Response>('/api/admin/users/batch/restore', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
-      });
+      await fetchFromActionRoute<AdminAPI.PatchUsersBatch.Response>(
+        "/api/admin/users/batch/restore",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids }),
+        },
+      );
       return ids.length;
     },
     onSuccess: async (count) => {
       await invalidateAndRefetch();
       toast.success(
-        count === 1 ? t('userRestored') : t('usersRestoredCount', { count })
+        count === 1 ? t("userRestored") : t("usersRestoredCount", { count }),
       );
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringBulkRestore');
+      toastApiError(error, "errorDuringBulkRestore");
     },
   });
 
   const embeddingSyncMutation = useMutation({
     mutationFn: (userIds: string[]) =>
-      fetchFromActionRoute<{ enqueued: number }>(
-        '/api/admin/embeddings/sync',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_ids: userIds }),
-        },
-      ),
+      fetchFromActionRoute<{ enqueued: number }>("/api/admin/embeddings/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_ids: userIds }),
+      }),
     onSuccess: async (data: { enqueued: number }) => {
       await invalidateAndRefetch();
       const enqueued = data.enqueued ?? 0;
-      if (enqueued > 0) toast.success(t('embeddingSyncScheduled', { count: enqueued }));
+      if (enqueued > 0)
+        toast.success(t("embeddingSyncScheduled", { count: enqueued }));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringEmbeddingSync');
+      toastApiError(error, "errorDuringEmbeddingSync");
     },
   });
 
   const embeddingSyncAllMutation = useMutation({
     mutationFn: () =>
-      fetchFromActionRoute<{ scheduled: number }>('/api/admin/embeddings/sync-all', { method: 'POST' }),
+      fetchFromActionRoute<{ scheduled: number }>(
+        "/api/admin/embeddings/sync-all",
+        { method: "POST" },
+      ),
     onSuccess: async (data: { scheduled: number }) => {
       await invalidateAndRefetch();
-      toast.success(t('embeddingSyncAllDefault'));
+      toast.success(t("embeddingSyncAllDefault"));
     },
     onError: (error) => {
-      toastApiError(error, 'errorDuringEmbeddingSyncAll');
+      toastApiError(error, "errorDuringEmbeddingSyncAll");
     },
   });
 

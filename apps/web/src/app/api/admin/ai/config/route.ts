@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAdminAIConfig, saveAdminAIConfig } from "@/features/admin/api/ai-config";
+import {
+  getAdminAIConfig,
+  saveAdminAIConfig,
+} from "@/features/admin/api/ai-config";
 import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 

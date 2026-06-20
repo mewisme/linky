@@ -23,7 +23,11 @@ interface FloatingVideoControlsProps {
   onToggleMute: () => void;
   onToggleVideo: () => void;
   onToggleChat: () => void;
-  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
+  sendFavoriteNotification: (
+    action: "added" | "removed",
+    peerUserId: string,
+    userName: string,
+  ) => void;
   isVisible: boolean;
   isMobile: boolean;
 }

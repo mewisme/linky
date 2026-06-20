@@ -34,7 +34,7 @@ function getCornerPosition(
   containerWidth: number,
   containerHeight: number,
   overlayWidth: number,
-  overlayHeight: number
+  overlayHeight: number,
 ): OverlayPosition {
   switch (corner) {
     case "top-left":
@@ -57,7 +57,7 @@ function getNearestCorner(
   containerWidth: number,
   containerHeight: number,
   overlayWidth: number,
-  overlayHeight: number
+  overlayHeight: number,
 ): OverlayCorner {
   const corners: OverlayCorner[] = [
     "top-left",
@@ -73,7 +73,7 @@ function getNearestCorner(
       containerWidth,
       containerHeight,
       overlayWidth,
-      overlayHeight
+      overlayHeight,
     );
     const cx = p.x + overlayWidth / 2;
     const cy = p.y + overlayHeight / 2;
@@ -125,7 +125,7 @@ export function DraggableVideoOverlay({
       containerRect.width,
       containerRect.height,
       overlayRect.width,
-      overlayRect.height
+      overlayRect.height,
     );
     hasInitializedPositionRef.current = true;
     useVideoChatStore.getState().setOverlayPosition(cornerPos);
@@ -134,7 +134,11 @@ export function DraggableVideoOverlay({
 
   useLayoutEffect(() => {
     if (!hasInitializedPositionRef.current || hasUserDraggedRef.current) return;
-    if (positionRef.current === null || !containerRef.current || !overlayRef.current)
+    if (
+      positionRef.current === null ||
+      !containerRef.current ||
+      !overlayRef.current
+    )
       return;
     const containerRect = containerRef.current.getBoundingClientRect();
     const overlayRect = overlayRef.current.getBoundingClientRect();
@@ -144,7 +148,7 @@ export function DraggableVideoOverlay({
       containerRect.width,
       containerRect.height,
       overlayRect.width,
-      overlayRect.height
+      overlayRect.height,
     );
     useVideoChatStore.getState().setOverlayPosition(cornerPos);
     useVideoChatStore.getState().setOverlayCorner(defaultCorner);
@@ -160,20 +164,20 @@ export function DraggableVideoOverlay({
       const overlayRect = overlayRef.current.getBoundingClientRect();
       const corner = hasUserDraggedRef.current
         ? getNearestCorner(
-          pos.x + overlayRect.width / 2,
-          pos.y + overlayRect.height / 2,
-          containerRect.width,
-          containerRect.height,
-          overlayRect.width,
-          overlayRect.height
-        )
+            pos.x + overlayRect.width / 2,
+            pos.y + overlayRect.height / 2,
+            containerRect.width,
+            containerRect.height,
+            overlayRect.width,
+            overlayRect.height,
+          )
         : getDefaultCorner(isMobile);
       const next = getCornerPosition(
         corner,
         containerRect.width,
         containerRect.height,
         overlayRect.width,
-        overlayRect.height
+        overlayRect.height,
       );
       useVideoChatStore.getState().setOverlayPosition(next);
       useVideoChatStore.getState().setOverlayCorner(corner);
@@ -195,14 +199,14 @@ export function DraggableVideoOverlay({
       containerRect.width,
       containerRect.height,
       overlayRect.width,
-      overlayRect.height
+      overlayRect.height,
     );
     const cornerPos = getCornerPosition(
       corner,
       containerRect.width,
       containerRect.height,
       overlayRect.width,
-      overlayRect.height
+      overlayRect.height,
     );
     useVideoChatStore.getState().setOverlayPosition(cornerPos);
     useVideoChatStore.getState().setOverlayCorner(corner);
@@ -257,20 +261,23 @@ export function DraggableVideoOverlay({
       ref={overlayRef}
       data-reaction-exclude
       data-testid="chat-local-video-overlay"
-      className={`absolute left-0 top-0 z-10 ${isMobile ? "aspect-square" : "w-[200px] aspect-4/3"} cursor-move overflow-hidden rounded-lg border-2 border-background bg-black outline-none ring-0 touch-none select-none ${position === null ? "invisible" : ""
-        }`}
+      className={`absolute left-0 top-0 z-10 ${isMobile ? "aspect-square" : "w-[200px] aspect-4/3"} cursor-move overflow-hidden rounded-lg border-2 border-background bg-black outline-none ring-0 touch-none select-none ${
+        position === null ? "invisible" : ""
+      }`}
       style={
         isMobile
-          ? { width: `min(${MOBILE_OVERLAY_WIDTH_VW}vw, ${MOBILE_OVERLAY_MAX_PX}px)` }
+          ? {
+              width: `min(${MOBILE_OVERLAY_WIDTH_VW}vw, ${MOBILE_OVERLAY_MAX_PX}px)`,
+            }
           : undefined
       }
       animate={
         position
           ? {
-            x: position.x,
-            y: position.y,
-            scale: isDragging ? 1.05 : 1,
-          }
+              x: position.x,
+              y: position.y,
+              scale: isDragging ? 1.05 : 1,
+            }
           : { x: 0, y: 0, scale: 1 }
       }
       transition={transition}

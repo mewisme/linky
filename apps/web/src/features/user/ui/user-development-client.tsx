@@ -41,7 +41,7 @@ export function UserDevelopmentClient() {
   const router = useRouter();
   const { getToken } = useAuth();
   const isDevelopmentModeEnabled = useDevelopmentStore(
-    (state) => state.isDevelopmentModeEnabled
+    (state) => state.isDevelopmentModeEnabled,
   );
   const [isHydrated, setIsHydrated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
@@ -128,9 +128,7 @@ export function UserDevelopmentClient() {
             <IconFlask className="size-5" />
             {t("sensitiveToolsTitle")}
           </CardTitle>
-          <CardDescription>
-            {t("sensitiveToolsDescription")}
-          </CardDescription>
+          <CardDescription>{t("sensitiveToolsDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="rounded-lg border bg-muted/30 p-4">
@@ -147,25 +145,38 @@ export function UserDevelopmentClient() {
               <Badge variant="secondary">{t("restricted")}</Badge>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button onClick={() => setIsGetTokenDialogOpen(true)} disabled={isFetchingToken}>
+              <Button
+                onClick={() => setIsGetTokenDialogOpen(true)}
+                disabled={isFetchingToken}
+              >
                 {t("getClerkToken")}
               </Button>
-              <Button variant="outline" onClick={handleCopyToken} disabled={!token}>
+              <Button
+                variant="outline"
+                onClick={handleCopyToken}
+                disabled={!token}
+              >
                 {t("copyToken")}
               </Button>
             </div>
             {tokenPreview ? (
               <div className="mt-4 rounded-md border bg-background p-3">
-                <p className="text-xs text-muted-foreground">{t("tokenPreviewLabel")}</p>
-                <p className="mt-1 break-all font-mono text-xs">{tokenPreview}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("tokenPreviewLabel")}
+                </p>
+                <p className="mt-1 break-all font-mono text-xs">
+                  {tokenPreview}
+                </p>
               </div>
             ) : null}
           </div>
-
         </CardContent>
       </Card>
 
-      <AlertDialog open={isGetTokenDialogOpen} onOpenChange={setIsGetTokenDialogOpen}>
+      <AlertDialog
+        open={isGetTokenDialogOpen}
+        onOpenChange={setIsGetTokenDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -173,12 +184,8 @@ export function UserDevelopmentClient() {
               {t("securityConfirmTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <span className="block">
-                {t("securityConfirmLine1")}
-              </span>
-              <span className="block">
-                {t("securityConfirmLine2")}
-              </span>
+              <span className="block">{t("securityConfirmLine1")}</span>
+              <span className="block">{t("securityConfirmLine2")}</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

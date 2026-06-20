@@ -22,7 +22,7 @@ export function useSoundWithSettings() {
         volume?: number;
         loop?: boolean;
         ignoreSettings?: boolean;
-      }
+      },
     ) => {
       const soundEnabled = options?.ignoreSettings || notificationSoundEnabled;
 
@@ -35,7 +35,7 @@ export function useSoundWithSettings() {
         loop: options?.loop,
       });
     },
-    [basePlay, notificationSoundEnabled]
+    [basePlay, notificationSoundEnabled],
   );
 
   return {

@@ -1,4 +1,4 @@
-import type { UsersAPI } from '@/entities/user/types/users.types';
+import type { UsersAPI } from "@/entities/user/types/users.types";
 
 export type ExpBonusActive = UsersAPI.Progress.GetMe.ExpBonusActive;
 
@@ -16,11 +16,11 @@ export function formatExpBonusRange(
     favoriteOneWay?: () => string;
   },
 ): string {
-  if (bonus.type === 'favorite' && bonus.relation) {
-    if (bonus.relation === 'mutual' && labels.favoriteMutual) {
+  if (bonus.type === "favorite" && bonus.relation) {
+    if (bonus.relation === "mutual" && labels.favoriteMutual) {
       return labels.favoriteMutual();
     }
-    if (bonus.relation === 'one_way' && labels.favoriteOneWay) {
+    if (bonus.relation === "one_way" && labels.favoriteOneWay) {
       return labels.favoriteOneWay();
     }
   }
@@ -35,5 +35,5 @@ export function formatExpBonusRange(
   if (hasMax) {
     return labels.maxOnly(bonus.max!);
   }
-  return '';
+  return "";
 }

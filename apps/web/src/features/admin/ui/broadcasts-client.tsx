@@ -17,13 +17,17 @@ import dynamic from "next/dynamic";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 import { useTranslations } from "next-intl";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ws/ui/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@ws/ui/components/ui/tabs";
 
-const BroadcastsDataTable = dynamic(
-  () =>
-    import("@/shared/ui/data-table/broadcasts/data-table").then((mod) => ({
-      default: mod.BroadcastsDataTable,
-    }))
+const BroadcastsDataTable = dynamic(() =>
+  import("@/shared/ui/data-table/broadcasts/data-table").then((mod) => ({
+    default: mod.BroadcastsDataTable,
+  })),
 );
 
 interface BroadcastsClientProps {
@@ -45,12 +49,9 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
   const history = data?.data ?? [];
 
   return (
-    <AppLayout
-      sidebarItem="adminBroadcasts"
-      className="space-y-4"
-    >
-      <Tabs defaultValue="history" >
-        <TabsList variant={'line'} className="w-full">
+    <AppLayout sidebarItem="adminBroadcasts" className="space-y-4">
+      <Tabs defaultValue="history">
+        <TabsList variant={"line"} className="w-full">
           <TabsTrigger value="history">History</TabsTrigger>
           <TabsTrigger value="create">Create</TabsTrigger>
         </TabsList>
@@ -67,7 +68,10 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
                 initialData={history}
                 isLoading={isPending}
                 leftColumnVisibilityContent={
-                  <DataTableRefreshButton onClick={() => void refetch()} isFetching={isFetching} />
+                  <DataTableRefreshButton
+                    onClick={() => void refetch()}
+                    isFetching={isFetching}
+                  />
                 }
               />
             </CardContent>
@@ -77,6 +81,6 @@ export function BroadcastsClient({ initialData }: BroadcastsClientProps) {
           <FormCreateBroadcast onSuccess={() => void refetch()} />
         </TabsContent>
       </Tabs>
-    </AppLayout >
+    </AppLayout>
   );
 }

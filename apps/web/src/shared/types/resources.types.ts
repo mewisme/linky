@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
-import type { CallHistoryRecord, CallHistoryResponse } from "@/entities/call-history/types/call-history.types";
+import type {
+  CallHistoryRecord,
+  CallHistoryResponse,
+} from "@/entities/call-history/types/call-history.types";
 
 export namespace ResourcesAPI {
   export namespace CallHistory {
@@ -66,7 +69,11 @@ export namespace ResourcesAPI {
   }
 
   export namespace Reports {
-    export type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
+    export type ReportStatus =
+      | "pending"
+      | "reviewed"
+      | "resolved"
+      | "dismissed";
 
     export interface ReportContext {
       id: string;

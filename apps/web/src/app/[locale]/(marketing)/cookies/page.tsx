@@ -57,15 +57,23 @@ export default async function CookiePage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s1Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s1Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s1Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.cookies.s1Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s2Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s2Intro")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s2Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.cookies.s2Intro")}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s2List.map((line) => (
             <li key={line}>{line}</li>
@@ -76,60 +84,92 @@ export default async function CookiePage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s3Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s3Title")}
+        </h2>
 
         <div className="space-y-3">
-          <h3 className="text-base font-medium sm:text-lg">{t("legal.cookies.s3aTitle")}</h3>
-          <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s3aBody")}</p>
+          <h3 className="text-base font-medium sm:text-lg">
+            {t("legal.cookies.s3aTitle")}
+          </h3>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            {t("legal.cookies.s3aBody")}
+          </p>
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-base font-medium sm:text-lg">{t("legal.cookies.s3bTitle")}</h3>
-          <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s3bBody")}</p>
+          <h3 className="text-base font-medium sm:text-lg">
+            {t("legal.cookies.s3bTitle")}
+          </h3>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            {t("legal.cookies.s3bBody")}
+          </p>
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-base font-medium sm:text-lg">{t("legal.cookies.s3cTitle")}</h3>
-          <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s3cBody")}</p>
+          <h3 className="text-base font-medium sm:text-lg">
+            {t("legal.cookies.s3cTitle")}
+          </h3>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            {t("legal.cookies.s3cBody")}
+          </p>
         </div>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s4Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s4Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s4Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.cookies.s4Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s5Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s5Title")}
+        </h2>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           <li>{t.rich("legal.cookies.s5L1", richStrong)}</li>
           <li>{t.rich("legal.cookies.s5L2", richStrong)}</li>
         </ul>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s5Body")}</p>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.cookies.s5Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s6Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s6Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s6Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.cookies.s6Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s7Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.cookies.s7Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s7Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.cookies.s7Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.cookies.s8Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.cookies.s8Title")}
+        </h2>
         <p className="text-sm text-muted-foreground sm:text-base">
           {t.rich("legal.cookies.s8Body", {
             link: (chunks) => (

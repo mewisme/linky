@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import type { ApiError } from "@/shared/types/api.types";
 import type { MediaAPI } from "@/shared/types/media.types";
-import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
+import {
+  bffInternalErrorResponse,
+  bffMissingAuthResponse,
+} from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -24,10 +27,12 @@ export async function GET(request: NextRequest) {
           Authorization: authHeader,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
-    const data = await response.json() as MediaAPI.S3.GetDownloadUrl.Response | ApiError;
+    const data = (await response.json()) as
+      | MediaAPI.S3.GetDownloadUrl.Response
+      | ApiError;
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });
@@ -36,6 +41,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     Sentry.logger.error("Error in /api/media/s3/presigned/download", { error });
-    return bffInternalErrorResponse("failedDownloadUrl", "Failed to generate download URL");
+    return bffInternalErrorResponse(
+      "failedDownloadUrl",
+      "Failed to generate download URL",
+    );
   }
 }

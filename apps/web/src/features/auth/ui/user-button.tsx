@@ -11,10 +11,16 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@ws/ui/components/animate-ui/components/radix/dropdown-menu";
 import { CountryFlag } from "@/shared/ui/common/country-flag";
-import { LogOutIcon, ShieldIcon, UserIcon, Sun, Moon } from "@ws/ui/internal-lib/icons";
+import {
+  LogOutIcon,
+  ShieldIcon,
+  UserIcon,
+  Sun,
+  Moon,
+} from "@ws/ui/internal-lib/icons";
 
 import { Kbd } from "@ws/ui/components/ui/kbd";
 import { Link } from "@/i18n/navigation";
@@ -25,17 +31,24 @@ import { useEffect, useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useUserContext } from "@/providers/user/user-provider";
 import { useUserStore } from "@/entities/user/model/user-store";
-import { useTheme } from "next-themes"
+import { useTheme } from "next-themes";
 import { IconDeviceDesktop } from "@tabler/icons-react";
 import { useLocaleSwitch } from "@/shared/hooks/i18n/use-locale-switch";
 import type { AppLocale } from "@/shared/types/app-locale.types";
 import { absoluteLocalePrefixedUrl } from "@/i18n/locale-path";
-import { ShaderAvatar, AvatarFallback, AvatarImage } from "@ws/ui/components/mew-ui/shader";
+import {
+  ShaderAvatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@ws/ui/components/mew-ui/shader";
 
 export function UserButton() {
   const t = useTranslations("sidebarHeader");
   const tCommon = useTranslations("common");
-  const { user, auth: { signOut } } = useUserContext();
+  const {
+    user,
+    auth: { signOut },
+  } = useUserContext();
   const { user: userStore } = useUserStore();
   const locale = useLocale() as AppLocale;
   const { switchLocale } = useLocaleSwitch();
@@ -47,25 +60,32 @@ export function UserButton() {
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "q" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
+      if (
+        e.key.toLowerCase() === "q" &&
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey
+      ) {
         e.preventDefault();
         trackEvent({ name: "sign_out" });
         void signOut({ redirectUrl: signOutRedirectUrl });
       }
-    }
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
-  }, [signOut, signOutRedirectUrl])
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [signOut, signOutRedirectUrl]);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <ShaderAvatar className="size-8 cursor-pointer">
-          <AvatarImage src={user.user?.imageUrl} alt={`${user.user?.firstName} ${user.user?.lastName}`} />
+          <AvatarImage
+            src={user.user?.imageUrl}
+            alt={`${user.user?.firstName} ${user.user?.lastName}`}
+          />
           <AvatarFallback>
             {user.user?.firstName?.charAt(0) ||
               user.user?.lastName?.charAt(0) ||
-              '?'}
+              "?"}
           </AvatarFallback>
         </ShaderAvatar>
       </DropdownMenuTrigger>
@@ -75,21 +95,23 @@ export function UserButton() {
         side="bottom"
         sideOffset={4}
       >
-        <DropdownMenuLabel className='text-xs text-muted-foreground'>{t("myAccount")}</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
+          {t("myAccount")}
+        </DropdownMenuLabel>
         <DropdownMenuGroup>
-          <Link href='/user/profile'>
-            <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
+          <Link href="/user/profile">
+            <DropdownMenuItem className="cursor-pointer gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-sm border">
-                <UserIcon className='size-4 shrink-0' />
+                <UserIcon className="size-4 shrink-0" />
               </div>
               <span>{t("manageAccount")}</span>
             </DropdownMenuItem>
           </Link>
           {isAdmin(userStore?.role) && (
-            <Link href='/admin'>
-              <DropdownMenuItem className='cursor-pointer gap-2 p-2'>
+            <Link href="/admin">
+              <DropdownMenuItem className="cursor-pointer gap-2 p-2">
                 <div className="flex size-6 items-center justify-center rounded-sm border">
-                  <ShieldIcon className='size-4 shrink-0' />
+                  <ShieldIcon className="size-4 shrink-0" />
                 </div>
                 <span>{t("adminDashboard")}</span>
               </DropdownMenuItem>
@@ -97,10 +119,12 @@ export function UserButton() {
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className='text-xs text-muted-foreground'>{t("preferences")}</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
+          {t("preferences")}
+        </DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className='cursor-pointer gap-2 p-2'>
+            <DropdownMenuSubTrigger className="cursor-pointer gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-sm border">
                 <Sun className="size-4 shrink-0 dark:hidden text-muted-foreground" />
                 <Moon className="size-4 shrink-0 hidden dark:block text-muted-foreground" />
@@ -108,19 +132,28 @@ export function UserButton() {
               <span>{t("theme")}</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("light")}>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 p-2"
+                onClick={() => setTheme("light")}
+              >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Sun className="size-4 shrink-0" />
                 </div>
                 <span>{t("themeLight")}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("dark")}>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 p-2"
+                onClick={() => setTheme("dark")}
+              >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <Moon className="size-4 shrink-0 " />
                 </div>
                 <span>{t("themeDark")}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className='cursor-pointer gap-2 p-2' onClick={() => setTheme("system")}>
+              <DropdownMenuItem
+                className="cursor-pointer gap-2 p-2"
+                onClick={() => setTheme("system")}
+              >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <IconDeviceDesktop className="size-4 shrink-0" />
                 </div>
@@ -129,7 +162,7 @@ export function UserButton() {
             </DropdownMenuSubContent>
           </DropdownMenuSub>
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className='cursor-pointer gap-2 p-2'>
+            <DropdownMenuSubTrigger className="cursor-pointer gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-sm border">
                 <CountryFlag countryCode={locale === "en" ? "US" : "VN"} />
               </div>
@@ -137,7 +170,7 @@ export function UserButton() {
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
               <DropdownMenuItem
-                className='cursor-pointer gap-2 p-2'
+                className="cursor-pointer gap-2 p-2"
                 onClick={() => switchLocale("en")}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
@@ -146,7 +179,7 @@ export function UserButton() {
                 <span>{tCommon("english")}</span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className='cursor-pointer gap-2 p-2'
+                className="cursor-pointer gap-2 p-2"
                 onClick={() => switchLocale("vi")}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
@@ -161,13 +194,13 @@ export function UserButton() {
         <SignOutButton redirectUrl={signOutRedirectUrl}>
           <DropdownMenuItem
             variant="destructive"
-            className='cursor-pointer gap-2 p-2'
+            className="cursor-pointer gap-2 p-2"
             onClick={() => trackEvent({ name: "sign_out" })}
           >
             <div className="flex size-6 items-center justify-center rounded-sm border">
-              <LogOutIcon className='size-4 shrink-0 dark:text-red-400 text-red-500' />
+              <LogOutIcon className="size-4 shrink-0 dark:text-red-400 text-red-500" />
             </div>
-            <span className='dark:text-red-400'>{t("logout")}</span>
+            <span className="dark:text-red-400">{t("logout")}</span>
             <DropdownMenuShortcut>
               <Kbd>⇧⌘Q</Kbd>
             </DropdownMenuShortcut>
@@ -175,5 +208,5 @@ export function UserButton() {
         </SignOutButton>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

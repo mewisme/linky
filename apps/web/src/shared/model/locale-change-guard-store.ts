@@ -10,16 +10,19 @@ type LocaleChangeGuardState = {
   takePendingRun: () => (() => void | Promise<void>) | null;
 };
 
-export const useLocaleChangeGuardStore = create<LocaleChangeGuardState>((set, get) => ({
-  dialogOpen: false,
-  pendingLocale: null,
-  pendingRun: null,
-  openDialog: (locale, run) =>
-    set({ dialogOpen: true, pendingLocale: locale, pendingRun: run }),
-  closeDialog: () => set({ dialogOpen: false, pendingLocale: null, pendingRun: null }),
-  takePendingRun: () => {
-    const run = get().pendingRun;
-    set({ dialogOpen: false, pendingLocale: null, pendingRun: null });
-    return run;
-  },
-}));
+export const useLocaleChangeGuardStore = create<LocaleChangeGuardState>(
+  (set, get) => ({
+    dialogOpen: false,
+    pendingLocale: null,
+    pendingRun: null,
+    openDialog: (locale, run) =>
+      set({ dialogOpen: true, pendingLocale: locale, pendingRun: run }),
+    closeDialog: () =>
+      set({ dialogOpen: false, pendingLocale: null, pendingRun: null }),
+    takePendingRun: () => {
+      const run = get().pendingRun;
+      set({ dialogOpen: false, pendingLocale: null, pendingRun: null });
+      return run;
+    },
+  }),
+);

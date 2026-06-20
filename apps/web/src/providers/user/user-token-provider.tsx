@@ -1,7 +1,13 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import { createContext, useCallback, useContext, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  type ReactNode,
+} from "react";
 import { useUserAuthContext } from "./user-auth-provider";
 
 type GetTokenOptions = { skipCache?: boolean };
@@ -18,7 +24,8 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
 
   const getToken = useCallback(
     async (options?: GetTokenOptions) => {
-      if (!options?.skipCache && inFlightRef.current) return inFlightRef.current;
+      if (!options?.skipCache && inFlightRef.current)
+        return inFlightRef.current;
 
       const promise = getClerkToken(options).finally(() => {
         inFlightRef.current = null;
@@ -28,7 +35,7 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
       Sentry.logger.info("Getting token", { options });
       return promise;
     },
-    [getClerkToken]
+    [getClerkToken],
   );
 
   return (
@@ -41,7 +48,9 @@ export function UserTokenProvider({ children }: { children: ReactNode }) {
 export function useUserTokenContext() {
   const context = useContext(UserTokenContext);
   if (!context) {
-    throw new Error("useUserTokenContext must be used within a UserTokenProvider");
+    throw new Error(
+      "useUserTokenContext must be used within a UserTokenProvider",
+    );
   }
   return context;
 }

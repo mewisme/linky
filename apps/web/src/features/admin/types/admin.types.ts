@@ -4,7 +4,13 @@ import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
 export namespace AdminAPI {
   export type UserRole = "admin" | "member" | "superadmin";
-  export type PresenceState = "offline" | "online" | "available" | "matching" | "in_call" | "idle";
+  export type PresenceState =
+    | "offline"
+    | "online"
+    | "available"
+    | "matching"
+    | "in_call"
+    | "idle";
 
   export interface UserDetails {
     bio: string | null;
@@ -370,7 +376,11 @@ export namespace AdminAPI {
   }
 
   export namespace Reports {
-    export type ReportStatus = "pending" | "reviewed" | "resolved" | "dismissed";
+    export type ReportStatus =
+      | "pending"
+      | "reviewed"
+      | "resolved"
+      | "dismissed";
 
     export type AiSummaryStatus = "pending" | "ready" | "failed";
     export type AiSummarySeverity = "low" | "medium" | "high" | "critical";
@@ -596,9 +606,10 @@ export namespace AdminAPI {
 
     export interface Effective extends Settings {
       base_url: string;
-      models: Required<Pick<ModelsConfig, "chat">> & ModelsConfig & {
-        chat: Required<ChatModels>;
-      };
+      models: Required<Pick<ModelsConfig, "chat">> &
+        ModelsConfig & {
+          chat: Required<ChatModels>;
+        };
     }
 
     export interface ModelEntry {
@@ -650,10 +661,7 @@ export namespace AdminAPI {
       }
 
       export interface AllResponse {
-        capabilities: Record<
-          string,
-          { object: string; data: ModelEntry[] }
-        >;
+        capabilities: Record<string, { object: string; data: ModelEntry[] }>;
       }
     }
   }
@@ -661,7 +669,13 @@ export namespace AdminAPI {
   export namespace Config {
     export interface Item {
       key: string;
-      value: string | number | boolean | null | Record<string, unknown> | unknown[];
+      value:
+        | string
+        | number
+        | boolean
+        | null
+        | Record<string, unknown>
+        | unknown[];
     }
 
     export namespace Get {
@@ -677,7 +691,13 @@ export namespace AdminAPI {
     export namespace Set {
       export interface Body {
         key: string;
-        value: string | number | boolean | null | Record<string, unknown> | unknown[];
+        value:
+          | string
+          | number
+          | boolean
+          | null
+          | Record<string, unknown>
+          | unknown[];
       }
       export type Response = Item;
     }

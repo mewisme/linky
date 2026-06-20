@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { useQuery } from "@ws/ui/internal-lib/react-query";
 
-export type UsersDeletedFilter = 'active' | 'deleted';
+export type UsersDeletedFilter = "active" | "deleted";
 
 interface UseUsersQueryOptions {
   initialData?: AdminAPI.GetUsers.Response;
@@ -12,14 +12,14 @@ interface UseUsersQueryOptions {
 }
 
 export function useUsersQuery(options?: UseUsersQueryOptions) {
-  const deletedFilter = options?.deletedFilter ?? 'active';
+  const deletedFilter = options?.deletedFilter ?? "active";
   const query = useQuery({
-    queryKey: ['users', deletedFilter],
+    queryKey: ["users", deletedFilter],
     queryFn: () =>
       fetchFromActionRoute<AdminAPI.GetUsers.Response>(
-        `/api/admin/users?deleted=${deletedFilter === 'deleted' ? 'true' : 'false'}`,
+        `/api/admin/users?deleted=${deletedFilter === "deleted" ? "true" : "false"}`,
       ),
-    initialData: deletedFilter === 'active' ? options?.initialData : undefined,
+    initialData: deletedFilter === "active" ? options?.initialData : undefined,
     staleTime: Infinity,
   });
 

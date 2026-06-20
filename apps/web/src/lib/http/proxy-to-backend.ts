@@ -30,11 +30,15 @@ export async function proxyToBackend({
         const { getToken } = await auth({ acceptsToken: "any" });
         authToken = await getToken();
       } catch {
-        Sentry.logger.warn("proxyToBackend: failed to retrieve Clerk token", { logLabel });
+        Sentry.logger.warn("proxyToBackend: failed to retrieve Clerk token", {
+          logLabel,
+        });
       }
     }
 
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
     if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
     const init: RequestInit = { method, headers, cache: "no-store" };

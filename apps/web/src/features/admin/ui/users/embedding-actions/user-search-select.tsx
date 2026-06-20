@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Command,
@@ -7,35 +7,37 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@ws/ui/components/ui/command';
+} from "@ws/ui/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@ws/ui/components/ui/popover';
+} from "@ws/ui/components/ui/popover";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { Button } from '@ws/ui/components/ui/button';
-import { IconChevronDown } from '@tabler/icons-react';
-import { cn } from '@ws/ui/lib/utils';
-import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { Button } from "@ws/ui/components/ui/button";
+import { IconChevronDown } from "@tabler/icons-react";
+import { cn } from "@ws/ui/lib/utils";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 
 function formatUserLabel(
   user: AdminAPI.User,
   labels: { noEmail: string; unknown: string },
 ): string {
   const email = user.email ?? labels.noEmail;
-  const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || labels.unknown;
+  const name =
+    [user.first_name, user.last_name].filter(Boolean).join(" ") ||
+    labels.unknown;
   return `${name} (${email})`;
 }
 
 function matchUser(query: string, user: AdminAPI.User): boolean {
   const q = query.toLowerCase().trim();
   if (!q) return true;
-  const email = (user.email ?? '').toLowerCase();
-  const firstName = (user.first_name ?? '').toLowerCase();
-  const lastName = (user.last_name ?? '').toLowerCase();
+  const email = (user.email ?? "").toLowerCase();
+  const firstName = (user.first_name ?? "").toLowerCase();
+  const lastName = (user.last_name ?? "").toLowerCase();
   const id = user.id.toLowerCase();
   return (
     email.includes(q) ||
@@ -64,11 +66,14 @@ export function UserSearchSelect({
   disabled,
   className,
 }: UserSearchSelectProps) {
-  const t = useTranslations('admin');
-  const resolvedPlaceholder = placeholder ?? t('userSearchSelectUser');
-  const labelFmt = { noEmail: t('userLabelNoEmail'), unknown: t('userLabelUnknown') };
+  const t = useTranslations("admin");
+  const resolvedPlaceholder = placeholder ?? t("userSearchSelectUser");
+  const labelFmt = {
+    noEmail: t("userLabelNoEmail"),
+    unknown: t("userLabelUnknown"),
+  };
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const filtered = users.filter((u) => {
     if (excludeUserId && u.id === excludeUserId) return false;
@@ -83,21 +88,24 @@ export function UserSearchSelect({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn('w-full justify-between font-normal', className)}
+          className={cn("w-full justify-between font-normal", className)}
         >
           {value ? formatUserLabel(value, labelFmt) : resolvedPlaceholder}
           <IconChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+      <PopoverContent
+        className="w-(--radix-popover-trigger-width) p-0"
+        align="start"
+      >
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder={t('userSearchCommandPlaceholder')}
+            placeholder={t("userSearchCommandPlaceholder")}
             value={search}
             onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>{t('userSearchEmpty')}</CommandEmpty>
+            <CommandEmpty>{t("userSearchEmpty")}</CommandEmpty>
             <CommandGroup>
               {filtered.map((user) => (
                 <CommandItem
@@ -106,7 +114,7 @@ export function UserSearchSelect({
                   onSelect={() => {
                     onChange(user);
                     setOpen(false);
-                    setSearch('');
+                    setSearch("");
                   }}
                 >
                   {formatUserLabel(user, labelFmt)}

@@ -1,10 +1,13 @@
-import type { BlockRecord, BlockedUsersResponse } from "@/entities/notification/types/notifications.types";
+import type {
+  BlockRecord,
+  BlockedUsersResponse,
+} from "@/entities/notification/types/notifications.types";
 import { apiUrl } from "@/lib/http/api-url";
 import { deleteData, fetchData, postData } from "@/lib/http/client-api";
 
 export async function blockUser(
   userId: string,
-  token: string
+  token: string,
 ): Promise<BlockRecord> {
   return postData<BlockRecord>(apiUrl.users.blocks(), {
     token,
@@ -14,13 +17,13 @@ export async function blockUser(
 
 export async function unblockUser(
   userId: string,
-  token: string
+  token: string,
 ): Promise<void> {
   return deleteData<void>(apiUrl.users.blockByUserId(userId), { token });
 }
 
 export async function getBlockedUsers(
-  token: string
+  token: string,
 ): Promise<BlockedUsersResponse> {
   return fetchData<BlockedUsersResponse>(apiUrl.users.blocksMe(), { token });
 }

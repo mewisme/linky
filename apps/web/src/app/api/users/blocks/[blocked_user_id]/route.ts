@@ -18,6 +18,9 @@ export async function DELETE(
     await unblockUser(blocked_user_id.trim());
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    return nextResponseFromActionError(error, "DELETE /api/users/blocks/[blocked_user_id]");
+    return nextResponseFromActionError(
+      error,
+      "DELETE /api/users/blocks/[blocked_user_id]",
+    );
   }
 }

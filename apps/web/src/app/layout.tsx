@@ -1,11 +1,11 @@
 import "@/shared/styles/globals.css";
 
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
 import { HideDevelopmentMode } from "@/shared/ui/clerk/hide-development-mode";
 import type { Metadata, Viewport } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { beVietnamPro } from "@/shared/fonts/be-vietnam-pro";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { RootNextIntlProvider } from "@/providers/i18n/root-next-intl-provider";
 import { ThemeProvider } from "@/providers/ui/theme-provider";
 import { ToasterProvider } from "@/providers/ui/toaster-provider";
@@ -32,21 +32,21 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(appUrl),
     icons: [
       {
-        rel: 'icon',
-        type: 'image/png',
-        sizes: '32x32',
-        url: '/favicon-32x32.png',
+        rel: "icon",
+        type: "image/png",
+        sizes: "32x32",
+        url: "/favicon-32x32.png",
       },
       {
-        rel: 'icon',
-        type: 'image/png',
-        sizes: '16x16',
-        url: '/favicon-16x16.png',
+        rel: "icon",
+        type: "image/png",
+        sizes: "16x16",
+        url: "/favicon-16x16.png",
       },
       {
-        rel: 'apple-touch-icon',
-        sizes: '180x180',
-        url: '/apple-touch-icon.png',
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        url: "/apple-touch-icon.png",
       },
     ],
     creator: "Mew",
@@ -57,7 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: appUrl,
       images: [
         {
-          url: '/og',
+          url: "/og",
           width: 192,
           height: 192,
         },
@@ -91,9 +91,7 @@ export default async function RootLayout({
   return (
     <HideDevelopmentMode>
       <html lang={locale} suppressHydrationWarning>
-        <body
-          className={`${beVietnamPro.className} antialiased`}
-        >
+        <body className={`${beVietnamPro.className} antialiased`}>
           <RootNextIntlProvider>
             <ThemeProvider
               attribute="class"

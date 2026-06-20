@@ -33,14 +33,26 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Call",
         description: "Start or join a video call",
         url: "/call",
-        icons: [{ src: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" }],
+        icons: [
+          {
+            src: "/android-chrome-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
       },
       {
         name: "Settings",
         short_name: "Settings",
         description: "Account and app settings",
         url: "/settings",
-        icons: [{ src: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" }],
+        icons: [
+          {
+            src: "/android-chrome-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
       },
     ],
   };

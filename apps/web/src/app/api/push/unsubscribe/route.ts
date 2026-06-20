@@ -1,7 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
+import {
+  bffInternalErrorResponse,
+  bffMissingAuthResponse,
+} from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -15,14 +18,17 @@ export async function DELETE(request: NextRequest) {
 
     const body = await request.json();
 
-    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/push/unsubscribe`, {
-      method: "DELETE",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json",
+    const response = await fetchWithApiFallback(
+      `${publicEnv.API_URL}/api/v1/push/unsubscribe`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+    );
 
     if (response.status === 204) {
       return new NextResponse(null, { status: 204 });
@@ -37,6 +43,9 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(data);
   } catch (error) {
     Sentry.logger.error("Error in DELETE /api/push/unsubscribe", { error });
-    return bffInternalErrorResponse("failedUnsubscribePush", "Failed to unsubscribe from push notifications");
+    return bffInternalErrorResponse(
+      "failedUnsubscribePush",
+      "Failed to unsubscribe from push notifications",
+    );
   }
 }

@@ -1,4 +1,4 @@
-import { ExpBonusesClient } from '@/features/admin/ui/exp-bonuses-client';
+import { ExpBonusesClient } from "@/features/admin/ui/exp-bonuses-client";
 import { getAdminExpBonuses } from "@/features/admin/api/exp-bonuses";
 
 export default async function ExpBonusesPage() {

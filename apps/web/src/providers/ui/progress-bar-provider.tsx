@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { ProgressProvider } from '@bprogress/next/app';
+import { ProgressProvider } from "@bprogress/next/app";
 
 const ProgressBarProvider = ({ children }: { children: React.ReactNode }) => {
   return (

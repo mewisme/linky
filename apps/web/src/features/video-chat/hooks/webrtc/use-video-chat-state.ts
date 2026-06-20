@@ -23,7 +23,10 @@ export interface VideoChatActions {
   setRemoteMuted: (muted: boolean) => void;
   setRemoteCameraEnabled: (enabled: boolean) => void;
   addChatMessage: (message: ChatMessage) => void;
-  updateChatMessageStatus: (id: string, status: "sending" | "sent" | "failed") => void;
+  updateChatMessageStatus: (
+    id: string,
+    status: "sending" | "sent" | "failed",
+  ) => void;
   clearChatMessages: () => void;
   setError: (error: string | null) => void;
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
@@ -90,7 +93,7 @@ export function useVideoChatState() {
       isPeerTyping,
       error,
       peerInfo,
-    ]
+    ],
   );
 
   const actions = useMemo(
@@ -103,7 +106,8 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setConnectionStatus(status),
       setCallStartedAt: (timestamp: number | null) =>
         useVideoChatStore.getState().setCallStartedAt(timestamp),
-      setMuted: (muted: boolean) => useVideoChatStore.getState().setMuted(muted),
+      setMuted: (muted: boolean) =>
+        useVideoChatStore.getState().setMuted(muted),
       setVideoOff: (videoOff: boolean) =>
         useVideoChatStore.getState().setVideoOff(videoOff),
       setRemoteMuted: (muted: boolean) =>
@@ -112,10 +116,11 @@ export function useVideoChatState() {
         useVideoChatStore.getState().setRemoteCameraEnabled(enabled),
       addChatMessage: (message: ChatMessage) =>
         useVideoChatStore.getState().addChatMessage(message),
-      updateChatMessageStatus: (id: string, status: "sending" | "sent" | "failed") =>
-        useVideoChatStore.getState().updateChatMessageStatus(id, status),
-      clearChatMessages: () =>
-        useVideoChatStore.getState().clearChatMessages(),
+      updateChatMessageStatus: (
+        id: string,
+        status: "sending" | "sent" | "failed",
+      ) => useVideoChatStore.getState().updateChatMessageStatus(id, status),
+      clearChatMessages: () => useVideoChatStore.getState().clearChatMessages(),
       setError: (error: string | null) =>
         useVideoChatStore.getState().setError(error),
       setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) =>
@@ -138,7 +143,7 @@ export function useVideoChatState() {
       resetPeerState: () => useVideoChatStore.getState().resetPeerState(),
       resetRuntimeState: () => useVideoChatStore.getState().resetRuntimeState(),
     }),
-    []
+    [],
   );
 
   return {

@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
     fetches: {
       fullUrl: true,
     },
-  }
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {

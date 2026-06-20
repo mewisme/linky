@@ -18,7 +18,9 @@ export function ConnectionQualityIndicator({
 }: ConnectionQualityIndicatorProps) {
   const t = useTranslations("chat");
   const [visible, setVisible] = useState(false);
-  const [displayState, setDisplayState] = useState<"warning" | "critical" | "hidden">("hidden");
+  const [displayState, setDisplayState] = useState<
+    "warning" | "critical" | "hidden"
+  >("hidden");
 
   useEffect(() => {
     const isGood = networkQuality === "excellent" || networkQuality === "good";
@@ -46,20 +48,24 @@ export function ConnectionQualityIndicator({
 
   const positionClasses = isMobile ? "top-4 left-4" : "top-4 right-4";
 
-  const iconClasses = displayState === "critical" ? "text-red-500" : "text-yellow-500";
+  const iconClasses =
+    displayState === "critical" ? "text-red-500" : "text-yellow-500";
   const bgClasses =
     displayState === "critical"
       ? "bg-red-500/10 border-red-500/20"
       : "bg-yellow-500/10 border-yellow-500/20";
 
-  const message = displayState === "critical" ? t("connectionPoor") : t("connectionUnstable");
+  const message =
+    displayState === "critical" ? t("connectionPoor") : t("connectionUnstable");
 
-  const Icon = displayState === "critical" ? IconAlertCircle : IconAlertTriangle;
+  const Icon =
+    displayState === "critical" ? IconAlertCircle : IconAlertTriangle;
 
   return (
     <div
-      className={`absolute z-20 ${positionClasses} pointer-events-none transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"
-        }`}
+      className={`absolute z-20 ${positionClasses} pointer-events-none transition-opacity duration-300 ${
+        visible ? "opacity-100" : "opacity-0"
+      }`}
       data-testid="chat-connection-quality-indicator"
       data-quality-state={displayState}
     >

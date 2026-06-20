@@ -26,16 +26,19 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
   const title = t("hero.title");
   const features = t.raw("hero.features") as { title: string; desc: string }[];
   return (
-    <div className={cn(beVietnamPro.className, 'min-h-dvh')}>
+    <div className={cn(beVietnamPro.className, "min-h-dvh")}>
       <div className="h-[calc(100dvh-8rem)]">
-
         {/* Header */}
         <div className="space-y-4 text-center py-6 sm:space-y-5 sm:py-8 md:space-y-6">
           <MotionEffect slide={{ direction: "down" }} fade zoom inView>
             <motion.div
               initial={{ opacity: 0, y: 15, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
+              transition={{
+                duration: 0.8,
+                delay: 0.3,
+                ease: [0.23, 1, 0.32, 1],
+              }}
               className="relative inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-100/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-100 mb-8 backdrop-blur-sm shadow-sm overflow-hidden"
             >
               <BorderBeamSimple
@@ -62,7 +65,13 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
             </motion.div>
           </MotionEffect>
 
-          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.05}>
+          <MotionEffect
+            slide={{ direction: "down" }}
+            fade
+            zoom
+            inView
+            delay={0.05}
+          >
             <div className="relative z-10 pointer-events-none">
               <h1 className="mx-auto pointer-events-none">
                 <SplittingText
@@ -87,7 +96,13 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
             </div>
           </MotionEffect>
 
-          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.15}>
+          <MotionEffect
+            slide={{ direction: "down" }}
+            fade
+            zoom
+            inView
+            delay={0.15}
+          >
             <p className="mx-auto max-w-2xl text-sm leading-relaxed sm:text-base md:text-xl text-muted-foreground">
               {t("hero.subtitle")}
             </p>
@@ -96,10 +111,27 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
 
         {/* Content */}
         <div className="flex flex-col gap-6 px-4 sm:gap-7 sm:px-6 md:gap-8 md:px-8">
-          <MotionEffect slide={{ direction: "down" }} fade zoom inView delay={0.25}>
+          <MotionEffect
+            slide={{ direction: "down" }}
+            fade
+            zoom
+            inView
+            delay={0.25}
+          >
             <div className="w-full flex justify-center">
-              <ShaderButton nativeButton={false} render={<Link href={startChatHref} prefetch data-testid="start-chat-button" />}>
-                {isSignedIn && isLoaded ? t("hero.ctaSignedIn") : t("hero.ctaSignedOut")}
+              <ShaderButton
+                nativeButton={false}
+                render={
+                  <Link
+                    href={startChatHref}
+                    prefetch
+                    data-testid="start-chat-button"
+                  />
+                }
+              >
+                {isSignedIn && isLoaded
+                  ? t("hero.ctaSignedIn")
+                  : t("hero.ctaSignedOut")}
               </ShaderButton>
             </div>
           </MotionEffect>
@@ -109,14 +141,24 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
               const Icon = ICONS[index];
               if (!Icon) return null;
               return (
-                <MotionEffect key={item.title} slide={{ direction: "down" }} fade zoom delay={0.35}>
+                <MotionEffect
+                  key={item.title}
+                  slide={{ direction: "down" }}
+                  fade
+                  zoom
+                  delay={0.35}
+                >
                   <div className="flex flex-col items-center gap-2.5 text-center sm:gap-3">
                     <div className="rounded-full bg-primary/10 p-2.5 sm:p-3">
                       <Icon className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
                     </div>
                     <div>
-                      <span className="text-sm font-semibold sm:text-base text-foreground opacity-70">{item.title}</span>
-                      <p className="text-xs text-muted-foreground sm:text-sm opacity-80">{item.desc}</p>
+                      <span className="text-sm font-semibold sm:text-base text-foreground opacity-70">
+                        {item.title}
+                      </span>
+                      <p className="text-xs text-muted-foreground sm:text-sm opacity-80">
+                        {item.desc}
+                      </p>
                     </div>
                   </div>
                 </MotionEffect>
@@ -132,7 +174,9 @@ export function Hero({ startChatHref, isSignedIn, isLoaded }: HeroProps) {
               <p className="text-xs text-muted-foreground sm:text-sm">
                 {t.rich("hero.joinLine", {
                   strong: (chunks) => (
-                    <span className="font-semibold text-foreground">{chunks}</span>
+                    <span className="font-semibold text-foreground">
+                      {chunks}
+                    </span>
                   ),
                 })}
               </p>

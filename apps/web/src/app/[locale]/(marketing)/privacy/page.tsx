@@ -63,10 +63,14 @@ export default async function PrivacyPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s1Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s1Title")}
+        </h2>
 
         <div className="space-y-3">
-          <h3 className="text-base font-medium sm:text-lg">{t("legal.privacy.s1aTitle")}</h3>
+          <h3 className="text-base font-medium sm:text-lg">
+            {t("legal.privacy.s1aTitle")}
+          </h3>
           <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
             {s1aList.map((line) => (
               <li key={line}>{line}</li>
@@ -75,7 +79,9 @@ export default async function PrivacyPage({
         </div>
 
         <div className="space-y-3">
-          <h3 className="text-base font-medium sm:text-lg">{t("legal.privacy.s1bTitle")}</h3>
+          <h3 className="text-base font-medium sm:text-lg">
+            {t("legal.privacy.s1bTitle")}
+          </h3>
           <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
             {s1bList.map((line) => (
               <li key={line}>{line}</li>
@@ -87,8 +93,12 @@ export default async function PrivacyPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s2Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s2Intro")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s2Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s2Intro")}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s2List.map((line) => (
             <li key={line}>{line}</li>
@@ -99,7 +109,9 @@ export default async function PrivacyPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s3Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s3Title")}
+        </h2>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           <li>{t.rich("legal.privacy.s3Item1", richStrong)}</li>
           <li>{t("legal.privacy.s3Item2")}</li>
@@ -110,22 +122,34 @@ export default async function PrivacyPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s4Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s4Intro")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s4Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s4Intro")}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s4List.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s4Footer")}</p>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s4Footer")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s5Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t.rich("legal.privacy.s5P1", richStrong)}</p>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s5P2")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s5Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t.rich("legal.privacy.s5P1", richStrong)}
+        </p>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s5P2")}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s5List.map((line) => (
             <li key={line}>{line}</li>
@@ -136,54 +160,80 @@ export default async function PrivacyPage({
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s6Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s6Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s6Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s6Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s7Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s7Intro")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s7Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s7Intro")}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s7List.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s7Footer")}</p>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s7Footer")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s8Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s8Intro")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s8Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s8Intro")}
+        </p>
         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground sm:text-base ml-4">
           {s8List.map((line) => (
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s8Footer")}</p>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s8Footer")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s9Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t.rich("legal.privacy.s9Body", richStrong)}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s9Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t.rich("legal.privacy.s9Body", richStrong)}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s10Title")}</h2>
-        <p className="text-sm text-muted-foreground sm:text-base">{t("legal.privacy.s10Body")}</p>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s10Title")}
+        </h2>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {t("legal.privacy.s10Body")}
+        </p>
       </section>
 
       <Separator />
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold sm:text-2xl">{t("legal.privacy.s11Title")}</h2>
+        <h2 className="text-xl font-semibold sm:text-2xl">
+          {t("legal.privacy.s11Title")}
+        </h2>
         <p className="text-sm text-muted-foreground sm:text-base">
           {t.rich("legal.privacy.s11Body", {
             link: (chunks) => (

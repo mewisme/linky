@@ -28,10 +28,7 @@ export function NotificationsPanel({
 }: NotificationsPanelProps) {
   const t = useTranslations("notifications");
   return (
-    <div
-      className="flex flex-col w-full"
-      data-testid="notifications-panel"
-    >
+    <div className="flex flex-col w-full" data-testid="notifications-panel">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <h3 className="text-sm font-semibold">{t("panelTitle")}</h3>
         {unreadCount > 0 && (
@@ -54,9 +51,7 @@ export function NotificationsPanel({
             data-testid="notifications-empty"
           >
             <IconBellOff className="size-8 text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground">
-              {t("emptyState")}
-            </p>
+            <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
           </div>
         )}
 

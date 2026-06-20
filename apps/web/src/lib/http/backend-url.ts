@@ -4,9 +4,9 @@ const V1 = `${publicEnv.API_URL}/api/v1`;
 const API = `${publicEnv.API_URL}/api`;
 
 function qs(params?: URLSearchParams): string {
-  if (!params) return '';
+  if (!params) return "";
   const s = params.toString();
-  return s ? `?${s}` : '';
+  return s ? `?${s}` : "";
 }
 
 export const backendUrl = {
@@ -20,8 +20,10 @@ export const backendUrl = {
     level: () => `${V1}/users/level/me`,
     progress: () => `${V1}/users/progress/me`,
     streak: () => `${V1}/users/streak/me`,
-    streakHistory: (params?: URLSearchParams) => `${V1}/users/streak/me/history${qs(params)}`,
-    streakCalendar: (params?: URLSearchParams) => `${V1}/users/streak/calendar${qs(params)}`,
+    streakHistory: (params?: URLSearchParams) =>
+      `${V1}/users/streak/me/history${qs(params)}`,
+    streakCalendar: (params?: URLSearchParams) =>
+      `${V1}/users/streak/calendar${qs(params)}`,
     interestTags: () => `${V1}/users/details/me/interest-tags`,
     interestTagsAll: () => `${V1}/users/details/me/interest-tags/all`,
     blocks: () => `${V1}/users/blocks`,
@@ -45,11 +47,13 @@ export const backendUrl = {
   },
 
   resources: {
-    callHistory: (params?: URLSearchParams) => `${V1}/call-history${qs(params)}`,
+    callHistory: (params?: URLSearchParams) =>
+      `${V1}/call-history${qs(params)}`,
     callHistoryById: (id: string) => `${V1}/call-history/${id}`,
     favorites: (params?: URLSearchParams) => `${V1}/favorites${qs(params)}`,
     favoriteByUserId: (userId: string) => `${V1}/favorites/${userId}`,
-    interestTags: (params?: URLSearchParams) => `${V1}/interest-tags${qs(params)}`,
+    interestTags: (params?: URLSearchParams) =>
+      `${V1}/interest-tags${qs(params)}`,
     interestTagById: (id: string) => `${V1}/interest-tags/${id}`,
     reports: (params?: URLSearchParams) => `${V1}/reports${qs(params)}`,
     reportsMe: (params?: URLSearchParams) => `${V1}/reports/me${qs(params)}`,
@@ -57,23 +61,30 @@ export const backendUrl = {
 
   admin: {
     config: () => `${V1}/admin/config`,
-    configByKey: (key: string) => `${V1}/admin/config/${encodeURIComponent(key)}`,
+    configByKey: (key: string) =>
+      `${V1}/admin/config/${encodeURIComponent(key)}`,
     aiConfig: () => `${V1}/admin/ai/config`,
-    aiModels: (params?: URLSearchParams) => `${V1}/admin/ai/models${qs(params)}`,
-    broadcasts: (params?: URLSearchParams) => `${V1}/admin/broadcasts${qs(params)}`,
+    aiModels: (params?: URLSearchParams) =>
+      `${V1}/admin/ai/models${qs(params)}`,
+    broadcasts: (params?: URLSearchParams) =>
+      `${V1}/admin/broadcasts${qs(params)}`,
     broadcastsAiGenerate: () => `${V1}/admin/broadcasts/ai-generate`,
-    interestTags: (params?: URLSearchParams) => `${V1}/admin/interest-tags${qs(params)}`,
+    interestTags: (params?: URLSearchParams) =>
+      `${V1}/admin/interest-tags${qs(params)}`,
     interestTagById: (id: string) => `${V1}/admin/interest-tags/${id}`,
-    interestTagHardDelete: (id: string) => `${V1}/admin/interest-tags/${id}/hard`,
+    interestTagHardDelete: (id: string) =>
+      `${V1}/admin/interest-tags/${id}/hard`,
     interestTagsImport: () => `${V1}/admin/interest-tags/import`,
-    expBonuses: (params?: URLSearchParams) => `${V1}/admin/exp-bonuses${qs(params)}`,
+    expBonuses: (params?: URLSearchParams) =>
+      `${V1}/admin/exp-bonuses${qs(params)}`,
     expBonusById: (id: string) => `${V1}/admin/exp-bonuses/${id}`,
     reports: (params?: URLSearchParams) => `${V1}/admin/reports${qs(params)}`,
     reportById: (id: string) => `${V1}/admin/reports/${id}`,
     users: (params?: URLSearchParams) => `${V1}/admin/users${qs(params)}`,
     usersBatch: () => `${V1}/admin/users/batch`,
     userById: (id: string) => `${V1}/admin/users/${id}`,
-    clerkUsers: (params?: URLSearchParams) => `${V1}/admin/users/clerk${qs(params)}`,
+    clerkUsers: (params?: URLSearchParams) =>
+      `${V1}/admin/users/clerk${qs(params)}`,
     clerkUsersBatch: () => `${V1}/admin/users/clerk/batch`,
     clerkUserById: (id: string) => `${V1}/admin/users/clerk/${id}`,
     clerkUserSetPasswordCompromised: (id: string) =>
@@ -84,12 +95,20 @@ export const backendUrl = {
     embeddingsSimilar: () => `${V1}/admin/embeddings/similar`,
     embeddingsSync: () => `${V1}/admin/embeddings/sync`,
     embeddingsSyncAll: () => `${V1}/admin/embeddings/sync-all`,
-    s3PresignedUpload: (params?: URLSearchParams) => `${V1}/admin/s3/presigned/upload${qs(params)}`,
-    s3PresignedDownload: (params?: URLSearchParams) => `${V1}/admin/s3/presigned/download${qs(params)}`,
-    s3Objects: (params?: URLSearchParams) => `${V1}/admin/s3/objects${qs(params)}`,
-    s3ObjectByKey: (key: string) => `${V1}/admin/s3/objects/${encodeURIComponent(key)}`,
+    s3PresignedUpload: (params?: URLSearchParams) =>
+      `${V1}/admin/s3/presigned/upload${qs(params)}`,
+    s3PresignedDownload: (params?: URLSearchParams) =>
+      `${V1}/admin/s3/presigned/download${qs(params)}`,
+    s3Objects: (params?: URLSearchParams) =>
+      `${V1}/admin/s3/objects${qs(params)}`,
+    s3ObjectByKey: (key: string) =>
+      `${V1}/admin/s3/objects/${encodeURIComponent(key)}`,
     s3MultipartStart: () => `${V1}/admin/s3/multipart/start`,
-    s3MultipartPart: (uploadId: string, partNumber: number, params?: URLSearchParams) =>
+    s3MultipartPart: (
+      uploadId: string,
+      partNumber: number,
+      params?: URLSearchParams,
+    ) =>
       `${V1}/admin/s3/multipart/${encodeURIComponent(uploadId)}/part/${partNumber}${qs(params)}`,
     s3MultipartComplete: () => `${V1}/admin/s3/multipart/complete`,
     s3MultipartAbort: () => `${V1}/admin/s3/multipart/abort`,
@@ -115,5 +134,4 @@ export const backendUrl = {
     unsubscribe: () => `${V1}/push/unsubscribe`,
     vapidPublicKey: () => `${V1}/push/vapid-public-key`,
   },
-
 } as const;

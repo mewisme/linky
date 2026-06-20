@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@ws/ui/components/ui/dialog';
-import { Button } from '@ws/ui/components/ui/button';
-import { Input } from '@ws/ui/components/ui/input';
-import { Label } from '@ws/ui/components/ui/label';
-import { Checkbox } from '@ws/ui/components/ui/checkbox';
-import { useTranslations } from 'next-intl';
+} from "@ws/ui/components/ui/dialog";
+import { Button } from "@ws/ui/components/ui/button";
+import { Input } from "@ws/ui/components/ui/input";
+import { Label } from "@ws/ui/components/ui/label";
+import { Checkbox } from "@ws/ui/components/ui/checkbox";
+import { useTranslations } from "next-intl";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import type { SetClerkPasswordPayload } from '@/features/admin/hooks/use-users-mutations';
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import type { SetClerkPasswordPayload } from "@/features/admin/hooks/use-users-mutations";
 
 interface SetClerkPasswordDialogProps {
   user: AdminAPI.User | null;
@@ -33,16 +33,16 @@ export function SetClerkPasswordDialog({
   onSubmit,
   isPending,
 }: SetClerkPasswordDialogProps) {
-  const t = useTranslations('admin');
-  const tc = useTranslations('common');
-  const [password, setPassword] = useState('');
+  const t = useTranslations("admin");
+  const tc = useTranslations("common");
+  const [password, setPassword] = useState("");
   const [skipPasswordChecks, setSkipPasswordChecks] = useState(false);
   const [signOutOfOtherSessions, setSignOutOfOtherSessions] = useState(true);
   const [setPasswordCompromised, setSetPasswordCompromised] = useState(false);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setPassword('');
+      setPassword("");
       setSkipPasswordChecks(false);
       setSignOutOfOtherSessions(true);
       setSetPasswordCompromised(false);
@@ -62,23 +62,25 @@ export function SetClerkPasswordDialog({
   };
 
   const displayName =
-    [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
     user?.email ||
     user?.clerk_user_id ||
-    '';
+    "";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('setClerkPasswordTitle')}</DialogTitle>
+          <DialogTitle>{t("setClerkPasswordTitle")}</DialogTitle>
           <DialogDescription>
-            {t('setClerkPasswordDescription', { name: displayName })}
+            {t("setClerkPasswordDescription", { name: displayName })}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
-            <Label htmlFor="admin-clerk-password">{t('setClerkPasswordLabel')}</Label>
+            <Label htmlFor="admin-clerk-password">
+              {t("setClerkPasswordLabel")}
+            </Label>
             <Input
               id="admin-clerk-password"
               type="password"
@@ -95,7 +97,7 @@ export function SetClerkPasswordDialog({
               onCheckedChange={(v) => setSkipPasswordChecks(v === true)}
             />
             <Label htmlFor="admin-skip-password-checks" className="font-normal">
-              {t('setClerkPasswordSkipChecks')}
+              {t("setClerkPasswordSkipChecks")}
             </Label>
           </div>
           <div className="flex items-center gap-2">
@@ -105,7 +107,7 @@ export function SetClerkPasswordDialog({
               onCheckedChange={(v) => setSignOutOfOtherSessions(v === true)}
             />
             <Label htmlFor="admin-sign-out-sessions" className="font-normal">
-              {t('setClerkPasswordSignOutSessions')}
+              {t("setClerkPasswordSignOutSessions")}
             </Label>
           </div>
           <div className="flex items-center gap-2">
@@ -114,20 +116,29 @@ export function SetClerkPasswordDialog({
               checked={setPasswordCompromised}
               onCheckedChange={(v) => setSetPasswordCompromised(v === true)}
             />
-            <Label htmlFor="admin-set-password-compromised" className="font-normal">
-              {t('setClerkPasswordMarkCompromised')}
+            <Label
+              htmlFor="admin-set-password-compromised"
+              className="font-normal"
+            >
+              {t("setClerkPasswordMarkCompromised")}
             </Label>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isPending}>
-            {tc('cancel')}
+          <Button
+            variant="outline"
+            onClick={() => handleOpenChange(false)}
+            disabled={isPending}
+          >
+            {tc("cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={isPending || password.length < 8 || !user}
           >
-            {isPending ? t('setClerkPasswordSaving') : t('setClerkPasswordConfirm')}
+            {isPending
+              ? t("setClerkPasswordSaving")
+              : t("setClerkPasswordConfirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

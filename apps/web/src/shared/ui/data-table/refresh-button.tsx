@@ -34,7 +34,9 @@ export function DataTableRefreshButton({
         aria-label={tooltip ?? t("refreshTooltip")}
         data-testid={testId}
       >
-        <IconRefresh className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+        <IconRefresh
+          className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+        />
       </Button>
     </SimpleTooltip>
   );

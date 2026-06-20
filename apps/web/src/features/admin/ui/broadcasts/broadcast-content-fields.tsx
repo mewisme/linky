@@ -30,7 +30,9 @@ export function BroadcastContentFields({
     <FieldGroup>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field data-invalid={Boolean(titleError)}>
-          <FieldLabel htmlFor="broadcast-title">{tbf("titleOptional")}</FieldLabel>
+          <FieldLabel htmlFor="broadcast-title">
+            {tbf("titleOptional")}
+          </FieldLabel>
           <Input
             id="broadcast-title"
             placeholder={tbf("titlePlaceholder")}
@@ -41,7 +43,9 @@ export function BroadcastContentFields({
           <FieldError errors={[{ message: titleError }]} />
         </Field>
         <Field data-invalid={Boolean(pushUrlError)}>
-          <FieldLabel htmlFor="broadcast-url">{tbf("pushUrlOptional")}</FieldLabel>
+          <FieldLabel htmlFor="broadcast-url">
+            {tbf("pushUrlOptional")}
+          </FieldLabel>
           <Input
             id="broadcast-url"
             placeholder={tbf("pushUrlPlaceholder")}

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getAdminReport, updateAdminReport } from "@/features/admin/api/reports";
+import {
+  getAdminReport,
+  updateAdminReport,
+} from "@/features/admin/api/reports";
 import type { AdminAPI } from "@/features/admin/types/admin.types";
 import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 

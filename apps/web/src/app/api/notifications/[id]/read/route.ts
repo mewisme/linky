@@ -12,6 +12,9 @@ export async function PATCH(
     await markNotificationRead(id);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    return nextResponseFromActionError(error, "PATCH /api/notifications/[id]/read");
+    return nextResponseFromActionError(
+      error,
+      "PATCH /api/notifications/[id]/read",
+    );
   }
 }

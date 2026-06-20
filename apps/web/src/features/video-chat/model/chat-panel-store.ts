@@ -15,4 +15,3 @@ export const useChatPanelStore = create<ChatPanelState>((set) => ({
   toggleChatPanel: () => set((s) => ({ isChatPanelOpen: !s.isChatPanelOpen })),
   setChatPanelOpen: (open) => set({ isChatPanelOpen: open }),
 }));
-

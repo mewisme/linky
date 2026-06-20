@@ -1,11 +1,18 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@ws/ui/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@ws/ui/components/ui/avatar";
 
 import type { FloatingLayoutMode } from "./floating-video-state";
 import { IconMicrophoneOff } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
-import { useMirrorLocalPreview, VideoPlayer } from "@/features/video-chat/ui/video/video-player";
+import {
+  useMirrorLocalPreview,
+  VideoPlayer,
+} from "@/features/video-chat/ui/video/video-player";
 import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 import { Shader } from "@ws/ui/components/mew-ui/shader";
 
@@ -33,7 +40,10 @@ export function FloatingVideoLayout({
 }: FloatingVideoLayoutProps) {
   const tp = useTranslations("user.profile");
   const isSharingScreen = useVideoChatStore((s) => s.isSharingScreen);
-  const mirrorLocalPreview = useMirrorLocalPreview(localStream, isSharingScreen);
+  const mirrorLocalPreview = useMirrorLocalPreview(
+    localStream,
+    isSharingScreen,
+  );
   const iconSize = isMobile ? "size-3" : "size-4";
   const padding = isMobile ? "p-1" : "p-1.5";
   let content: React.ReactNode = null;
@@ -41,7 +51,10 @@ export function FloatingVideoLayout({
   if (layoutMode === "dual") {
     content = (
       <div className="flex h-full w-full flex-col pointer-events-none rounded-[4px]">
-        <div className="relative w-full overflow-hidden bg-black" style={{ flex: "0 0 60%" }}>
+        <div
+          className="relative w-full overflow-hidden bg-black"
+          style={{ flex: "0 0 60%" }}
+        >
           <VideoPlayer
             stream={remoteStream}
             playsInline
@@ -50,12 +63,17 @@ export function FloatingVideoLayout({
             objectPosition="center center"
           />
           {remoteMuted && (
-            <div className={`absolute left-2 top-2 flex items-center justify-center rounded-full bg-black/60 ${padding}`}>
+            <div
+              className={`absolute left-2 top-2 flex items-center justify-center rounded-full bg-black/60 ${padding}`}
+            >
               <IconMicrophoneOff className={iconSize} />
             </div>
           )}
         </div>
-        <div className="relative w-full overflow-hidden bg-black" style={{ flex: "0 0 40%" }}>
+        <div
+          className="relative w-full overflow-hidden bg-black"
+          style={{ flex: "0 0 40%" }}
+        >
           <VideoPlayer
             stream={localStream}
             muted
@@ -81,7 +99,9 @@ export function FloatingVideoLayout({
           objectPosition="center center"
         />
         {remoteMuted && (
-          <div className={`absolute left-2 top-2 flex items-center justify-center rounded-full bg-black/60 ${padding}`}>
+          <div
+            className={`absolute left-2 top-2 flex items-center justify-center rounded-full bg-black/60 ${padding}`}
+          >
             <IconMicrophoneOff className={iconSize} />
           </div>
         )}
@@ -110,16 +130,27 @@ export function FloatingVideoLayout({
       <div className="relative flex h-full w-full items-center justify-center rounded-[4px] bg-muted pointer-events-none">
         {peerInfo ? (
           <Avatar className="h-full w-full rounded-none">
-            <AvatarImage src={peerInfo.avatar_url || undefined} alt={peerInfo.first_name || tp("displayNameFallback")} className="object-cover" />
-            <AvatarFallback className="h-full w-full text-4xl">{peerInfo.first_name?.[0]?.toUpperCase() || tp("displayNameInitial")}</AvatarFallback>
+            <AvatarImage
+              src={peerInfo.avatar_url || undefined}
+              alt={peerInfo.first_name || tp("displayNameFallback")}
+              className="object-cover"
+            />
+            <AvatarFallback className="h-full w-full text-4xl">
+              {peerInfo.first_name?.[0]?.toUpperCase() ||
+                tp("displayNameInitial")}
+            </AvatarFallback>
           </Avatar>
         ) : (
           <Avatar className="h-full w-full rounded-none">
-            <AvatarFallback className="h-full w-full text-4xl">{tp("displayNameInitial")}</AvatarFallback>
+            <AvatarFallback className="h-full w-full text-4xl">
+              {tp("displayNameInitial")}
+            </AvatarFallback>
           </Avatar>
         )}
         {remoteMuted && (
-          <div className={`absolute left-2 top-2 flex items-center justify-center rounded-full bg-black/60 ${padding}`}>
+          <div
+            className={`absolute left-2 top-2 flex items-center justify-center rounded-full bg-black/60 ${padding}`}
+          >
             <IconMicrophoneOff className={iconSize} />
           </div>
         )}

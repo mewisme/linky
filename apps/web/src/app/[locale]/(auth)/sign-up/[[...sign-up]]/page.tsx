@@ -9,7 +9,10 @@ import { localePrefixedPath } from "@/i18n/locale-path";
 export default function SignUpPage() {
   const { isLoaded, isSignedIn } = useAuth();
   const locale = useLocale();
-  const signUpPath = useMemo(() => localePrefixedPath(locale, "/sign-up"), [locale]);
+  const signUpPath = useMemo(
+    () => localePrefixedPath(locale, "/sign-up"),
+    [locale],
+  );
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
@@ -19,4 +22,3 @@ export default function SignUpPage() {
     </div>
   );
 }
-

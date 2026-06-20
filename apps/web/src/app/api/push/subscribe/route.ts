@@ -1,7 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
-import { bffInternalErrorResponse, bffMissingAuthResponse } from "@/lib/http/bff-response";
+import {
+  bffInternalErrorResponse,
+  bffMissingAuthResponse,
+} from "@/lib/http/bff-response";
 import { fetchWithApiFallback } from "@/lib/http/fetch-with-api-fallback";
 import { publicEnv } from "@/shared/env/public-env";
 
@@ -15,14 +18,17 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const response = await fetchWithApiFallback(`${publicEnv.API_URL}/api/v1/push/subscribe`, {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/json",
+    const response = await fetchWithApiFallback(
+      `${publicEnv.API_URL}/api/v1/push/subscribe`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: authHeader,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+    );
 
     if (response.status === 204) {
       return new NextResponse(null, { status: 204 });
@@ -37,6 +43,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
     Sentry.logger.error("Error in POST /api/push/subscribe", { error });
-    return bffInternalErrorResponse("failedSubscribePush", "Failed to subscribe to push notifications");
+    return bffInternalErrorResponse(
+      "failedSubscribePush",
+      "Failed to subscribe to push notifications",
+    );
   }
 }

@@ -1,8 +1,17 @@
 import { getTranslations } from "next-intl/server";
 
-import { getMenuItems, type MenuItem } from "@/shared/ui/layouts/sidebar/menu-items";
+import {
+  getMenuItems,
+  type MenuItem,
+} from "@/shared/ui/layouts/sidebar/menu-items";
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ws/ui/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@ws/ui/lib/utils";
 

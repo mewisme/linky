@@ -51,7 +51,9 @@ export interface UseCloudflareSfuConnectionOptions {
   getToken: () => Promise<string | null>;
 }
 
-function isVideoSource(source: RealtimePeerSnapshot["tracks"][number]["source"]): boolean {
+function isVideoSource(
+  source: RealtimePeerSnapshot["tracks"][number]["source"],
+): boolean {
   return source === "camera" || source === "screen" || source === "unknown";
 }
 
@@ -63,7 +65,10 @@ function isPeerReady(pc: RTCPeerConnection): boolean {
   );
 }
 
-function waitForPeerReady(pc: RTCPeerConnection, timeoutMs: number): Promise<void> {
+function waitForPeerReady(
+  pc: RTCPeerConnection,
+  timeoutMs: number,
+): Promise<void> {
   if (isPeerReady(pc)) {
     return Promise.resolve();
   }
@@ -106,14 +111,18 @@ function waitForPeerReady(pc: RTCPeerConnection, timeoutMs: number): Promise<voi
 async function applyRemoteOfferAndAnswer(
   pc: RTCPeerConnection,
   offer: CloudflareSdpDescription,
-  renegotiate: (answer: CloudflareSdpDescription) => Promise<{ ok: boolean; errorCode?: string; errorDescription?: string }>,
+  renegotiate: (
+    answer: CloudflareSdpDescription,
+  ) => Promise<{ ok: boolean; errorCode?: string; errorDescription?: string }>,
 ): Promise<void> {
   await pc.setRemoteDescription(offer);
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
   const result = await renegotiate({ type: "answer", sdp: answer.sdp ?? "" });
   if (!result.ok) {
-    throw new Error(result.errorDescription ?? result.errorCode ?? "Renegotiation failed");
+    throw new Error(
+      result.errorDescription ?? result.errorCode ?? "Renegotiation failed",
+    );
   }
 }
 
@@ -160,9 +169,12 @@ export function useCloudflareSfuConnection(
     [ensureRemoteStream],
   );
 
-  const logRealtime = useCallback((event: string, data: Record<string, unknown>) => {
-    Sentry.logger.info(`realtime.sfu.${event}`, data);
-  }, []);
+  const logRealtime = useCallback(
+    (event: string, data: Record<string, unknown>) => {
+      Sentry.logger.info(`realtime.sfu.${event}`, data);
+    },
+    [],
+  );
 
   const subscribePeerTracks = useCallback(
     async (peerSessionId: string) => {
@@ -178,10 +190,16 @@ export function useCloudflareSfuConnection(
         const response = await subscribeWithSessionReadyRetry(
           {
             waitForPeerReady: () => waitForPeerReady(pc, PEER_READY_TIMEOUT_MS),
-            subscribe: () => subscribeRealtimeTracks(token, { roomId, socketId, sessionId }),
+            subscribe: () =>
+              subscribeRealtimeTracks(token, { roomId, socketId, sessionId }),
             applySubscribeOffer: async (offer) => {
               const renegotiate = (answer: CloudflareSdpDescription) =>
-                renegotiateRealtimeSession(token, { roomId, socketId, sessionId, sdp: answer });
+                renegotiateRealtimeSession(token, {
+                  roomId,
+                  socketId,
+                  sessionId,
+                  sdp: answer,
+                });
               await applyRemoteOfferAndAnswer(pc, offer, renegotiate);
             },
             onAttempt: ({ attempt }) => {
@@ -264,11 +282,14 @@ export function useCloudflareSfuConnection(
           return;
         }
         if (isCloudflareSessionNotReady(error)) {
-          console.error("[realtime-sfu] subscribe failed after session-ready retries", {
-            error,
-            peerSessionId: data.peerSessionId,
-            localSessionId: sessionIdRef.current,
-          });
+          console.error(
+            "[realtime-sfu] subscribe failed after session-ready retries",
+            {
+              error,
+              peerSessionId: data.peerSessionId,
+              localSessionId: sessionIdRef.current,
+            },
+          );
           Sentry.logger.warn("Subscribe failed after session-ready retries", {
             peerSessionId: data.peerSessionId,
             localSessionId: sessionIdRef.current,
@@ -365,13 +386,19 @@ export function useCloudflareSfuConnection(
 
       try {
         const token = await getTokenRef.current();
-        const sessionResponse = await createRealtimeSession(token, { roomId, socketId });
+        const sessionResponse = await createRealtimeSession(token, {
+          roomId,
+          socketId,
+        });
 
         if (!sessionResponse.sessionId) {
           throw new Error("Realtime session API did not return a sessionId");
         }
 
-        if (realtimeSessionId && sessionResponse.sessionId !== realtimeSessionId) {
+        if (
+          realtimeSessionId &&
+          sessionResponse.sessionId !== realtimeSessionId
+        ) {
           Sentry.logger.warn("Realtime sessionId mismatch after matched", {
             expected: realtimeSessionId,
             actual: sessionResponse.sessionId,
@@ -436,27 +463,36 @@ export function useCloudflareSfuConnection(
             return {
               mid,
               trackName: track.id,
-              kind: track.kind === "audio" ? ("audio" as const) : ("video" as const),
+              kind:
+                track.kind === "audio"
+                  ? ("audio" as const)
+                  : ("video" as const),
             };
           })
           .filter((entry): entry is RealtimePublishTrack => entry !== null);
 
         if (publishTracks.length === 0) {
-          throw new Error("Transceivers missing mid or track after setLocalDescription");
+          throw new Error(
+            "Transceivers missing mid or track after setLocalDescription",
+          );
         }
 
         const publishResponse = await publishRealtimeTracks(token, {
           roomId,
           socketId,
           sessionId: sessionResponse.sessionId,
-          sdp: { type: "offer", sdp: pc.localDescription?.sdp ?? offer.sdp ?? "" },
+          sdp: {
+            type: "offer",
+            sdp: pc.localDescription?.sdp ?? offer.sdp ?? "",
+          },
           tracks: publishTracks,
         });
 
         logRealtime("publish_response", {
           localSessionId: sessionResponse.sessionId,
           hasSessionDescription: Boolean(publishResponse.sessionDescription),
-          requiresImmediateRenegotiation: publishResponse.requiresImmediateRenegotiation ?? false,
+          requiresImmediateRenegotiation:
+            publishResponse.requiresImmediateRenegotiation ?? false,
           ...snapshotPeerConnectionState(pc),
         });
 
@@ -476,15 +512,24 @@ export function useCloudflareSfuConnection(
           publishResponse.requiresImmediateRenegotiation &&
           publishResponse.sessionDescription?.type === "offer"
         ) {
-          await applyRemoteOfferAndAnswer(pc, publishResponse.sessionDescription, publishRenegotiate);
+          await applyRemoteOfferAndAnswer(
+            pc,
+            publishResponse.sessionDescription,
+            publishRenegotiate,
+          );
         } else {
-          throw new Error("Cloudflare publish did not return a session description");
+          throw new Error(
+            "Cloudflare publish did not return a session description",
+          );
         }
 
         await iceConnected;
 
         const initialSnapshot = initialPeerSnapshotRef.current;
-        if (initialSnapshot?.peerSessionId && initialSnapshot.tracks.length > 0) {
+        if (
+          initialSnapshot?.peerSessionId &&
+          initialSnapshot.tracks.length > 0
+        ) {
           const hasAnyTracks = initialSnapshot.tracks.some(
             (t) => isVideoSource(t.source) || t.kind === "audio",
           );
@@ -518,7 +563,13 @@ export function useCloudflareSfuConnection(
         connectInFlightRef.current = false;
       }
     },
-    [cleanup, subscribePeerTracks, wireRemoteTrack, flushPendingPeerTracks, logRealtime],
+    [
+      cleanup,
+      subscribePeerTracks,
+      wireRemoteTrack,
+      flushPendingPeerTracks,
+      logRealtime,
+    ],
   );
 
   const getPeerConnection = useCallback(() => pcRef.current, []);

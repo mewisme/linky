@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import {
-  getNotifications,
-} from "@/features/notifications/api";
+import { getNotifications } from "@/features/notifications/api";
 import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 import type { ServerActionQueryParams } from "@/lib/http/query-params";
 

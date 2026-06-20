@@ -1,4 +1,4 @@
-export { };
+export {};
 
 export type UserRole = "admin" | "member" | "superadmin";
 
@@ -9,4 +9,3 @@ declare global {
     };
   }
 }
-

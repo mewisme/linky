@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { IconCode, IconConfetti, IconHandClick, IconMessageCircleCode, IconTrophy } from "@tabler/icons-react";
+import {
+  IconCode,
+  IconConfetti,
+  IconHandClick,
+  IconMessageCircleCode,
+  IconTrophy,
+} from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 
-import { LEVEL_UP_BURST_REACTIONS, STREAK_BURST_REACTION } from "@/shared/lib/reaction-display-type";
+import {
+  LEVEL_UP_BURST_REACTIONS,
+  STREAK_BURST_REACTION,
+} from "@/shared/lib/reaction-display-type";
 import { useDevelopmentStore } from "@/shared/model/development-store";
 import { useReactionEffectContext } from "@/providers/realtime/reaction-effect-provider";
 import { Button } from "@ws/ui/components/ui/button";
@@ -29,8 +38,14 @@ function clampPosition(x: number, y: number) {
   if (typeof window === "undefined") {
     return { x, y };
   }
-  const maxX = Math.max(VIEWPORT_PADDING, window.innerWidth - OVERLAY_SIZE - VIEWPORT_PADDING);
-  const maxY = Math.max(VIEWPORT_PADDING, window.innerHeight - OVERLAY_SIZE - VIEWPORT_PADDING);
+  const maxX = Math.max(
+    VIEWPORT_PADDING,
+    window.innerWidth - OVERLAY_SIZE - VIEWPORT_PADDING,
+  );
+  const maxY = Math.max(
+    VIEWPORT_PADDING,
+    window.innerHeight - OVERLAY_SIZE - VIEWPORT_PADDING,
+  );
   return {
     x: Math.min(Math.max(VIEWPORT_PADDING, x), maxX),
     y: Math.min(Math.max(VIEWPORT_PADDING, y), maxY),
@@ -41,7 +56,10 @@ function getDefaultPosition() {
   if (typeof window === "undefined") {
     return { x: VIEWPORT_PADDING, y: VIEWPORT_PADDING };
   }
-  return clampPosition(window.innerWidth - OVERLAY_SIZE - 24, window.innerHeight - OVERLAY_SIZE - 24);
+  return clampPosition(
+    window.innerWidth - OVERLAY_SIZE - 24,
+    window.innerHeight - OVERLAY_SIZE - 24,
+  );
 }
 
 export function DevOverlay() {
@@ -54,11 +72,18 @@ export function DevOverlay() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  const isDevelopmentModeEnabled = useDevelopmentStore((state) => state.isDevelopmentModeEnabled);
+  const isDevelopmentModeEnabled = useDevelopmentStore(
+    (state) => state.isDevelopmentModeEnabled,
+  );
   const overlayPosition = useDevelopmentStore((state) => state.overlayPosition);
-  const setOverlayPosition = useDevelopmentStore((state) => state.setOverlayPosition);
-  const resetOverlayPosition = useDevelopmentStore((state) => state.resetOverlayPosition);
-  const { triggerLocalReaction, emitReaction, triggerRemoteReactions } = useReactionEffectContext();
+  const setOverlayPosition = useDevelopmentStore(
+    (state) => state.setOverlayPosition,
+  );
+  const resetOverlayPosition = useDevelopmentStore(
+    (state) => state.resetOverlayPosition,
+  );
+  const { triggerLocalReaction, emitReaction, triggerRemoteReactions } =
+    useReactionEffectContext();
 
   const setVisualPosition = (position: { x: number; y: number }) => {
     const node = overlayRef.current;
@@ -135,8 +160,14 @@ export function DevOverlay() {
       if (!draggingRef.current) {
         return;
       }
-      const next = clampPosition(moveEvent.clientX - offsetX, moveEvent.clientY - offsetY);
-      if (!hasMoved && (Math.abs(next.x - start.x) > 1 || Math.abs(next.y - start.y) > 1)) {
+      const next = clampPosition(
+        moveEvent.clientX - offsetX,
+        moveEvent.clientY - offsetY,
+      );
+      if (
+        !hasMoved &&
+        (Math.abs(next.x - start.x) > 1 || Math.abs(next.y - start.y) > 1)
+      ) {
         hasMoved = true;
       }
       dragPositionRef.current = next;
@@ -222,7 +253,11 @@ export function DevOverlay() {
               <IconCode className="size-5" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="z-170 w-80 p-3" align="start" sideOffset={12}>
+          <PopoverContent
+            className="z-170 w-80 p-3"
+            align="start"
+            sideOffset={12}
+          >
             <div className="space-y-3">
               <div className="space-y-1">
                 <p className="text-sm font-medium">{t("title")}</p>
@@ -234,23 +269,48 @@ export function DevOverlay() {
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <Button type="button" variant="outline" className="justify-start gap-2" onClick={triggerStreakBurst}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="justify-start gap-2"
+                  onClick={triggerStreakBurst}
+                >
                   <IconConfetti className="size-4" />
                   {t("triggerStreakBurst")}
                 </Button>
-                <Button type="button" variant="outline" className="justify-start gap-2" onClick={triggerLevelUpBurst}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="justify-start gap-2"
+                  onClick={triggerLevelUpBurst}
+                >
                   <IconTrophy className="size-4" />
                   {t("triggerLevelUpBurst")}
                 </Button>
-                <Button type="button" variant="outline" className="justify-start gap-2" onClick={triggerDoubleTapReaction}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="justify-start gap-2"
+                  onClick={triggerDoubleTapReaction}
+                >
                   <IconHandClick className="size-4" />
                   {t("triggerDoubleTap")}
                 </Button>
-                <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => setIsDialogOpen(true)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="justify-start gap-2"
+                  onClick={() => setIsDialogOpen(true)}
+                >
                   <IconMessageCircleCode className="size-4" />
                   {t("openDialog")}
                 </Button>
-                <Button type="button" variant="ghost" className="justify-start" onClick={resetOverlayPosition}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="justify-start"
+                  onClick={resetOverlayPosition}
+                >
                   {t("resetPosition")}
                 </Button>
               </div>

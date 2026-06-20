@@ -1,41 +1,51 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-import { AppLayout } from '@/shared/ui/layouts/app-layout'
-import type { ResourcesAPI } from '@/shared/types/resources.types'
-import dynamic from 'next/dynamic'
-import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
-import { useQuery } from "@ws/ui/internal-lib/react-query"
-import { DataTableRefreshButton } from '@/shared/ui/data-table/refresh-button'
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
+import type { ResourcesAPI } from "@/shared/types/resources.types";
+import dynamic from "next/dynamic";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { useQuery } from "@ws/ui/internal-lib/react-query";
+import { DataTableRefreshButton } from "@/shared/ui/data-table/refresh-button";
 
 const ReportsDataTable = dynamic(
-  () => import('@/shared/ui/data-table/reports/data-table').then(mod => ({ default: mod.ReportsDataTable })),
-  { ssr: false }
-)
+  () =>
+    import("@/shared/ui/data-table/reports/data-table").then((mod) => ({
+      default: mod.ReportsDataTable,
+    })),
+  { ssr: false },
+);
 
 interface ReportsClientProps {
-  initialData: ResourcesAPI.Reports.GetMe.Response
+  initialData: ResourcesAPI.Reports.GetMe.Response;
 }
 
 export function ReportsClient({ initialData }: ReportsClientProps) {
-  const [data, setData] = useState<ResourcesAPI.Reports.Report[]>(initialData.data)
+  const [data, setData] = useState<ResourcesAPI.Reports.Report[]>(
+    initialData.data,
+  );
 
-  const { data: reports, isPending, isFetching, refetch } = useQuery({
-    queryKey: ['user-reports'],
+  const {
+    data: reports,
+    isPending,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["user-reports"],
     queryFn: () =>
       fetchFromActionRoute<ResourcesAPI.Reports.GetMe.Response>(
-        '/api/resources/reports/me?limit=50&offset=0',
+        "/api/resources/reports/me?limit=50&offset=0",
       ),
     initialData,
     staleTime: Infinity,
-  })
+  });
 
   useEffect(() => {
     if (reports) {
-      setData(reports.data)
+      setData(reports.data);
     }
-  }, [reports])
+  }, [reports]);
 
   return (
     <AppLayout sidebarItem="userReports">
@@ -43,9 +53,12 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
         initialData={data}
         isLoading={isPending}
         leftColumnVisibilityContent={
-          <DataTableRefreshButton onClick={() => refetch()} isFetching={isFetching} />
+          <DataTableRefreshButton
+            onClick={() => refetch()}
+            isFetching={isFetching}
+          />
         }
       />
     </AppLayout>
-  )
+  );
 }

@@ -1,1 +1,1 @@
-export * from './user-settings-preferences'
+export * from "./user-settings-preferences";

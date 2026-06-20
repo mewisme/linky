@@ -1,10 +1,6 @@
-'use client';
+"use client";
 
-import {
-  IconArrowLeft,
-  IconError404,
-  IconHomeLink,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconError404, IconHomeLink } from "@tabler/icons-react";
 
 import { Button } from "@ws/ui/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -16,7 +12,9 @@ function RootNotFoundContent() {
   const router = useRouter();
   const t = useTranslations("notFoundPage");
   return (
-    <div className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${beVietnamPro.className}`}>
+    <div
+      className={`relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 ${beVietnamPro.className}`}
+    >
       <div className="absolute top-0 left-0 -z-10 h-full w-full">
         <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-primary/10 blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-primary/10 blur-[120px]" />
@@ -42,7 +40,10 @@ function RootNotFoundContent() {
             className="group px-6 font-medium transition-all hover:bg-secondary"
             onClick={() => router.back()}
           >
-            <IconArrowLeft size={18} className="mr-2 transition-transform group-hover:-translate-x-1" />
+            <IconArrowLeft
+              size={18}
+              className="mr-2 transition-transform group-hover:-translate-x-1"
+            />
             {t("goBack")}
           </Button>
 
@@ -50,7 +51,8 @@ function RootNotFoundContent() {
             variant="default"
             size="lg"
             className="px-6 font-medium shadow-lg shadow-primary/20"
-            asChild>
+            asChild
+          >
             <Link href="/">
               <IconHomeLink size={18} className="mr-2" />
               {t("backToDashboard")}

@@ -32,13 +32,13 @@ Dependency direction is **inward**:
 app → features → entities → shared → lib
 ```
 
-| Layer | Role | Must not import |
-| --- | --- | --- |
-| `app/` | Routes, layouts, RSC pages, Next.js route handlers under `app/api/` | — |
-| `features/` | Use-case UI, hooks, API clients per feature | Other features (except allowed e.g. `realtime`) |
-| `entities/` | Core models/types shared across features | `features/` |
-| `shared/` | Generic UI, hooks, utils, env wrappers | `features/`, `entities/` |
-| `lib/` | HTTP, auth token, realtime, telemetry, push | `entities/`, `features/` |
+| Layer       | Role                                                                | Must not import                                 |
+| ----------- | ------------------------------------------------------------------- | ----------------------------------------------- |
+| `app/`      | Routes, layouts, RSC pages, Next.js route handlers under `app/api/` | —                                               |
+| `features/` | Use-case UI, hooks, API clients per feature                         | Other features (except allowed e.g. `realtime`) |
+| `entities/` | Core models/types shared across features                            | `features/`                                     |
+| `shared/`   | Generic UI, hooks, utils, env wrappers                              | `features/`, `entities/`                        |
+| `lib/`      | HTTP, auth token, realtime, telemetry, push                         | `entities/`, `features/`                        |
 
 **Server vs client pages:** `page.tsx` fetches on the server (`serverFetch`, `withSentryQuery`); interactive UI lives in a sibling `*-client.tsx`. Server actions use `withSentryAction` from `lib/monitoring/with-action.ts`.
 
@@ -51,13 +51,13 @@ app → features → entities → shared → lib
 
 ## Data access
 
-| Concern | Location |
-| --- | --- |
-| API base URLs | `lib/http/backend-url.ts` — never hardcode backend paths |
-| Server fetch | `lib/http/server-api.ts` + `{ token: true }` or `preloadedToken` |
-| Client fetch | `lib/http/client-api.ts` (native `fetch`, `ApiError`) |
-| BFF proxies | `app/api/**/route.ts` forward to backend where needed |
-| Auth token | `lib/auth/token.ts` (Clerk) |
+| Concern       | Location                                                         |
+| ------------- | ---------------------------------------------------------------- |
+| API base URLs | `lib/http/backend-url.ts` — never hardcode backend paths         |
+| Server fetch  | `lib/http/server-api.ts` + `{ token: true }` or `preloadedToken` |
+| Client fetch  | `lib/http/client-api.ts` (native `fetch`, `ApiError`)            |
+| BFF proxies   | `app/api/**/route.ts` forward to backend where needed            |
+| Auth token    | `lib/auth/token.ts` (Clerk)                                      |
 
 Example server page:
 
@@ -76,9 +76,9 @@ export default async function Page() {
 
 Validated modules — **do not read `process.env` directly in app code.**
 
-| Module | Import | Use in |
-| --- | --- | --- |
-| `@/shared/env/public-env` | `publicEnv` | Client, shared code |
+| Module                    | Import      | Use in                                     |
+| ------------------------- | ----------- | ------------------------------------------ |
+| `@/shared/env/public-env` | `publicEnv` | Client, shared code                        |
 | `@/shared/env/server-env` | `serverEnv` | Server Components, route handlers, actions |
 
 **Public (required):** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_GIPHY_API_KEY` (optional: Sentry, dev origins).
@@ -95,15 +95,15 @@ Clerk dashboard tips:
 
 ## Features (high level)
 
-| Feature | Path / notes |
-| --- | --- |
-| `video-chat` | WebRTC (`features/video-chat/hooks/webrtc/`), in-call messaging (`ui/messaging/`), video surface (`ui/video/`), floating PiP (`ui/floating-call/`) |
-| `realtime` | Socket store, `use-socket`, signaling integration |
-| `user` | Profile, settings, progress, security, appearance |
-| `admin` | Dashboard, users, reports, broadcasts, interest tags, rewards |
-| `auth` | Clerk flows |
-| `marketing` | Landing, legal pages |
-| `notifications` | Toasts, push-related UI |
+| Feature         | Path / notes                                                                                                                                       |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `video-chat`    | WebRTC (`features/video-chat/hooks/webrtc/`), in-call messaging (`ui/messaging/`), video surface (`ui/video/`), floating PiP (`ui/floating-call/`) |
+| `realtime`      | Socket store, `use-socket`, signaling integration                                                                                                  |
+| `user`          | Profile, settings, progress, security, appearance                                                                                                  |
+| `admin`         | Dashboard, users, reports, broadcasts, interest tags, rewards                                                                                      |
+| `auth`          | Clerk flows                                                                                                                                        |
+| `marketing`     | Landing, legal pages                                                                                                                               |
+| `notifications` | Toasts, push-related UI                                                                                                                            |
 
 ## Video chat and realtime
 
@@ -116,11 +116,11 @@ Clerk dashboard tips:
 
 **Socket events** (representative)
 
-| Client → server | Server → client |
-| --- | --- |
-| `join`, `skip`, `end-call`, `signal` | `joined-queue`, `matched`, `signal` |
-| `chat:send`, `chat:attachment:send` | `chat:message`, `peer-left`, `peer-skipped` |
-| `mute-toggle`, `video-toggle`, … | Control sync, favorites notifications |
+| Client → server                      | Server → client                             |
+| ------------------------------------ | ------------------------------------------- |
+| `join`, `skip`, `end-call`, `signal` | `joined-queue`, `matched`, `signal`         |
+| `chat:send`, `chat:attachment:send`  | `chat:message`, `peer-left`, `peer-skipped` |
+| `mute-toggle`, `video-toggle`, …     | Control sync, favorites notifications       |
 
 Socket client: `lib/realtime/socket.ts`; providers under `providers/` and `features/realtime/`.
 
@@ -128,11 +128,11 @@ Socket client: `lib/realtime/socket.ts`; providers under `providers/` and `featu
 
 ## State management
 
-| Kind | Where |
-| --- | --- |
-| Client UI / call | Zustand in `features/*/model/`, `shared/model/` (e.g. `socket-store`, sidebar, locale preference) |
-| Server data | TanStack React Query in feature hooks |
-| Locale preference | `shared/model/locale-preference-store.ts` (`localStorage`) + `providers/i18n/locale-sync.tsx` |
+| Kind              | Where                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| Client UI / call  | Zustand in `features/*/model/`, `shared/model/` (e.g. `socket-store`, sidebar, locale preference) |
+| Server data       | TanStack React Query in feature hooks                                                             |
+| Locale preference | `shared/model/locale-preference-store.ts` (`localStorage`) + `providers/i18n/locale-sync.tsx`     |
 
 ## Conventions
 
@@ -147,15 +147,15 @@ Socket client: `lib/realtime/socket.ts`; providers under `providers/` and `featu
 
 Routes live under `src/app/[locale]/`:
 
-| Group | Examples |
-| --- | --- |
-| `(marketing)/` | `/`, `/privacy`, `/terms` |
-| `(auth)/` | `/sign-in`, `/sign-up`, `/reset-password` |
-| `(app)/call/` | `/call`, `/call/chat`, `/call/history` |
-| `(app)/user/` | `/user`, `/user/profile`, `/user/progress`, `/user/reports` |
-| `(app)/settings/` | `/settings`, appearance, notifications |
-| `(app)/connections/` | favorites, blocked users |
-| `(app)/admin/` | users, reports, broadcasts, interest tags, config, rewards |
+| Group                | Examples                                                    |
+| -------------------- | ----------------------------------------------------------- |
+| `(marketing)/`       | `/`, `/privacy`, `/terms`                                   |
+| `(auth)/`            | `/sign-in`, `/sign-up`, `/reset-password`                   |
+| `(app)/call/`        | `/call`, `/call/chat`, `/call/history`                      |
+| `(app)/user/`        | `/user`, `/user/profile`, `/user/progress`, `/user/reports` |
+| `(app)/settings/`    | `/settings`, appearance, notifications                      |
+| `(app)/connections/` | favorites, blocked users                                    |
+| `(app)/admin/`       | users, reports, broadcasts, interest tags, config, rewards  |
 
 Vietnamese URLs prefix with `/vi` (e.g. `/vi/call`).
 

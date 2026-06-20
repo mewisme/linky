@@ -33,21 +33,31 @@ export function useNotifications() {
     try {
       const params = {
         limit: String(PAGE_SIZE),
-        offset: '0',
-        unread_only: 'false',
+        offset: "0",
+        unread_only: "false",
       };
       const meQuery = new URLSearchParams(params).toString();
       const [notifData, countData] = await Promise.all([
-        fetchFromActionRoute<NotificationsResponse>(`/api/notifications/me?${meQuery}`),
-        fetchFromActionRoute<UnreadCountResponse>("/api/notifications/me/unread-count"),
+        fetchFromActionRoute<NotificationsResponse>(
+          `/api/notifications/me?${meQuery}`,
+        ),
+        fetchFromActionRoute<UnreadCountResponse>(
+          "/api/notifications/me/unread-count",
+        ),
       ]);
 
-      useNotificationsStore.getState().setNotifications(notifData.notifications);
+      useNotificationsStore
+        .getState()
+        .setNotifications(notifData.notifications);
       useNotificationsStore.getState().setUnreadCount(countData.count);
-      useNotificationsStore.getState().setHasMore(notifData.notifications.length >= PAGE_SIZE);
+      useNotificationsStore
+        .getState()
+        .setHasMore(notifData.notifications.length >= PAGE_SIZE);
     } catch (error) {
       Sentry.metrics.count("fetch_notifications_failed", 1);
-      Sentry.logger.error("Failed to fetch notifications", { error: error instanceof Error ? error.message : "Unknown error" });
+      Sentry.logger.error("Failed to fetch notifications", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
       Sentry.metrics.count("fetch_notifications_completed", 1);
       useNotificationsStore.getState().setLoading(false);
@@ -63,7 +73,7 @@ export function useNotifications() {
       const params = {
         limit: String(PAGE_SIZE),
         offset: String(state.notifications.length),
-        unread_only: 'false',
+        unread_only: "false",
       };
       const meQuery = new URLSearchParams(params).toString();
       const data = await fetchFromActionRoute<NotificationsResponse>(
@@ -71,10 +81,14 @@ export function useNotifications() {
       );
 
       useNotificationsStore.getState().appendNotifications(data.notifications);
-      useNotificationsStore.getState().setHasMore(data.notifications.length >= PAGE_SIZE);
+      useNotificationsStore
+        .getState()
+        .setHasMore(data.notifications.length >= PAGE_SIZE);
     } catch (error) {
       Sentry.metrics.count("load_more_notifications_failed", 1);
-      Sentry.logger.error("Failed to load more notifications", { error: error instanceof Error ? error.message : "Unknown error" });
+      Sentry.logger.error("Failed to load more notifications", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
       // silent
     } finally {
       Sentry.metrics.count("load_more_notifications_completed", 1);
@@ -85,12 +99,17 @@ export function useNotifications() {
   const markAsRead = useCallback(async (id: string) => {
     useNotificationsStore.getState().markAsRead(id);
     try {
-      await fetchFromActionRoute<void>(`/api/notifications/${encodeURIComponent(id)}/read`, {
-        method: "PATCH",
-      });
+      await fetchFromActionRoute<void>(
+        `/api/notifications/${encodeURIComponent(id)}/read`,
+        {
+          method: "PATCH",
+        },
+      );
     } catch (error) {
       Sentry.metrics.count("mark_notification_read_failed", 1);
-      Sentry.logger.error("Failed to mark notification read", { error: error instanceof Error ? error.message : "Unknown error" });
+      Sentry.logger.error("Failed to mark notification read", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
       // silent - optimistic update already applied
     }
   }, []);
@@ -98,10 +117,14 @@ export function useNotifications() {
   const markAllAsRead = useCallback(async () => {
     useNotificationsStore.getState().markAllAsRead();
     try {
-      await fetchFromActionRoute<void>("/api/notifications/read-all", { method: "PATCH" });
+      await fetchFromActionRoute<void>("/api/notifications/read-all", {
+        method: "PATCH",
+      });
     } catch (error) {
       Sentry.metrics.count("mark_all_notifications_read_failed", 1);
-      Sentry.logger.error("Failed to mark all notifications read", { error: error instanceof Error ? error.message : "Unknown error" });
+      Sentry.logger.error("Failed to mark all notifications read", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
       // silent - optimistic update already applied
     }
   }, []);
@@ -131,7 +154,10 @@ export function useNotifications() {
     const handleNewNotification = (notification: Notification) => {
       Sentry.metrics.count("notification_received", 1);
       useNotificationsStore.getState().addNotification(notification);
-      trackEvent({ name: "notification_received", properties: { type: notification.type } });
+      trackEvent({
+        name: "notification_received",
+        properties: { type: notification.type },
+      });
     };
 
     const handleNotificationRead = (data: { notificationId: string }) => {

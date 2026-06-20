@@ -12,6 +12,9 @@ export async function POST(
     const data = await softDeleteAdminUser(id);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/users/[id]/soft-delete");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/users/[id]/soft-delete",
+    );
   }
 }

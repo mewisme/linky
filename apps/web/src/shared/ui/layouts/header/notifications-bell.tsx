@@ -69,7 +69,7 @@ export function NotificationsBell() {
 
   if (isMobile) {
     return (
-      <Drawer >
+      <Drawer>
         <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         <DrawerContent className="z-150!">
           <DrawerHeader className="sr-only">

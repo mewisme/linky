@@ -10,7 +10,7 @@ const DEFAULT_PARAMS: LevelCalculationParams = {
 
 export function calculateLevelFromExp(
   totalExpSeconds: number,
-  params: LevelCalculationParams = DEFAULT_PARAMS
+  params: LevelCalculationParams = DEFAULT_PARAMS,
 ): { level: number; expToNextLevel: number } {
   const { base, step } = params;
 

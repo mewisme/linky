@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { IconCalendar, IconEdit, IconUser } from '@tabler/icons-react'
+import { IconCalendar, IconEdit, IconUser } from "@tabler/icons-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@ws/ui/components/ui/select'
-import { useEffect, useMemo, useState } from 'react'
+} from "@ws/ui/components/ui/select";
+import { useEffect, useMemo, useState } from "react";
 
-import { Button } from '@ws/ui/components/ui/button'
-import { DatePicker } from '@/shared/ui/common/date-picker'
-import type { UserDetails } from '@/entities/user/model/user-store'
-import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
+import { Button } from "@ws/ui/components/ui/button";
+import { DatePicker } from "@/shared/ui/common/date-picker";
+import type { UserDetails } from "@/entities/user/model/user-store";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { toast } from "@ws/ui/components/ui/sonner";
 import { useLocale, useTranslations } from "next-intl";
-import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
-import { ProfileSectionSaveActions } from './profile-section-save-actions'
-import { useProfileSectionSave } from './use-profile-section-save'
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
+import { ProfileSectionSaveActions } from "./profile-section-save-actions";
+import { useProfileSectionSave } from "./use-profile-section-save";
 
 interface PersonalInfoSectionProps {
-  userDetails: UserDetails | null
+  userDetails: UserDetails | null;
   updateUserDetails: (data: {
-    date_of_birth?: string | null
-    gender?: string | null
-  }) => Promise<UserDetails>
+    date_of_birth?: string | null;
+    gender?: string | null;
+  }) => Promise<UserDetails>;
 }
 
 export function PersonalInfoSection({
@@ -36,83 +36,91 @@ export function PersonalInfoSection({
   const tRoot = useTranslations();
   const tp = useTranslations("user.profile");
   const locale = useLocale();
-  const { play: playSound } = useSoundWithSettings()
-  const { isPending, isDone, runSave } = useProfileSectionSave()
-  const [isEditing, setIsEditing] = useState(false)
-  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined)
-  const [gender, setGender] = useState('')
+  const { play: playSound } = useSoundWithSettings();
+  const { isPending, isDone, runSave } = useProfileSectionSave();
+  const [isEditing, setIsEditing] = useState(false);
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
+  const [gender, setGender] = useState("");
 
   const genderOptions = useMemo(
     () => [
-      { value: 'male', label: tp('genderMale') },
-      { value: 'female', label: tp('genderFemale') },
-      { value: 'other', label: tp('genderOther') },
-      { value: 'prefer_not_to_say', label: tp('genderPreferNotToSay') },
+      { value: "male", label: tp("genderMale") },
+      { value: "female", label: tp("genderFemale") },
+      { value: "other", label: tp("genderOther") },
+      { value: "prefer_not_to_say", label: tp("genderPreferNotToSay") },
     ],
     [tp],
-  )
+  );
 
   const parseDateString = (dateString: string): Date => {
-    const [year, month, day] = dateString.split('-').map(Number)
-    return new Date(year ?? 0, (month ?? 0) - 1, day ?? 0)
-  }
+    const [year, month, day] = dateString.split("-").map(Number);
+    return new Date(year ?? 0, (month ?? 0) - 1, day ?? 0);
+  };
 
   const formatDateString = (date: Date): string => {
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   useEffect(() => {
     setDateOfBirth(
       userDetails?.date_of_birth
-        ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
-        : undefined
-    )
-    setGender(userDetails?.gender || '')
-  }, [userDetails])
+        ? parseDateString(userDetails.date_of_birth?.split("T")[0] ?? "")
+        : undefined,
+    );
+    setGender(userDetails?.gender || "");
+  }, [userDetails]);
 
   const handleStartEdit = () => {
     setDateOfBirth(
       userDetails?.date_of_birth
-        ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
-        : undefined
-    )
-    setGender(userDetails?.gender || '')
-    setIsEditing(true)
-  }
+        ? parseDateString(userDetails.date_of_birth?.split("T")[0] ?? "")
+        : undefined,
+    );
+    setGender(userDetails?.gender || "");
+    setIsEditing(true);
+  };
 
   const handleCancel = () => {
     setDateOfBirth(
       userDetails?.date_of_birth
-        ? parseDateString(userDetails.date_of_birth?.split('T')[0] ?? '')
-        : undefined
-    )
-    setGender(userDetails?.gender || '')
-    setIsEditing(false)
-  }
+        ? parseDateString(userDetails.date_of_birth?.split("T")[0] ?? "")
+        : undefined,
+    );
+    setGender(userDetails?.gender || "");
+    setIsEditing(false);
+  };
 
   const handleSave = () => {
-    runSave(async () => {
-      try {
-        const dateString = dateOfBirth ? formatDateString(dateOfBirth) : null
-        await updateUserDetails({
-          date_of_birth: dateString,
-          gender: gender || null,
-        })
-        playSound('success')
-        toast.success(t('personalInfoUpdated'))
-        return true
-      } catch (error: unknown) {
-        toast.error(resolveActionErrorMessage(error, tRoot, 'user.updateFailed'))
-        return false
-      }
-    }, () => setIsEditing(false))
-  }
+    runSave(
+      async () => {
+        try {
+          const dateString = dateOfBirth ? formatDateString(dateOfBirth) : null;
+          await updateUserDetails({
+            date_of_birth: dateString,
+            gender: gender || null,
+          });
+          playSound("success");
+          toast.success(t("personalInfoUpdated"));
+          return true;
+        } catch (error: unknown) {
+          toast.error(
+            resolveActionErrorMessage(error, tRoot, "user.updateFailed"),
+          );
+          return false;
+        }
+      },
+      () => setIsEditing(false),
+    );
+  };
 
   return (
-    <div data-section="personal" className="group/personal space-y-3 rounded-xl transition-colors hover:bg-muted/10">
+    <div
+      data-section="personal"
+      className="group/personal space-y-3 rounded-xl transition-colors hover:bg-muted/10"
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <IconUser className="size-4 shrink-0" aria-hidden />
@@ -137,26 +145,31 @@ export function PersonalInfoSection({
           <div className="min-w-56 flex-1">
             <div className="flex items-start gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                <IconCalendar className="size-4 text-muted-foreground" aria-hidden />
+                <IconCalendar
+                  className="size-4 text-muted-foreground"
+                  aria-hidden
+                />
               </div>
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">{tp("dateOfBirth")}</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {tp("dateOfBirth")}
+                </p>
                 {isEditing ? (
                   <div className="flex flex-wrap items-center gap-2">
-                    <DatePicker
-                      value={dateOfBirth}
-                      onChange={setDateOfBirth}
-                    />
+                    <DatePicker value={dateOfBirth} onChange={setDateOfBirth} />
                   </div>
                 ) : (
                   <p className="text-sm text-foreground">
                     {userDetails?.date_of_birth
-                      ? new Date(userDetails.date_of_birth).toLocaleDateString(locale, {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })
-                      : tp('notProvided')}
+                      ? new Date(userDetails.date_of_birth).toLocaleDateString(
+                          locale,
+                          {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )
+                      : tp("notProvided")}
                   </p>
                 )}
               </div>
@@ -166,15 +179,20 @@ export function PersonalInfoSection({
           <div className="min-w-56 flex-1">
             <div className="flex items-start gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                <IconUser className="size-4 text-muted-foreground" aria-hidden />
+                <IconUser
+                  className="size-4 text-muted-foreground"
+                  aria-hidden
+                />
               </div>
               <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">{tp("genderLabel")}</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {tp("genderLabel")}
+                </p>
                 {isEditing ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <Select
                       value={gender}
-                      onValueChange={(value) => setGender(value || '')}
+                      onValueChange={(value) => setGender(value || "")}
                     >
                       <SelectTrigger className="w-48 min-w-0">
                         <SelectValue placeholder={tp("selectGender")} />
@@ -191,9 +209,10 @@ export function PersonalInfoSection({
                 ) : (
                   <p className="text-sm capitalize text-foreground">
                     {userDetails?.gender
-                      ? genderOptions.find((g) => g.value === userDetails.gender)?.label ||
-                      userDetails.gender
-                      : tp('notProvided')}
+                      ? genderOptions.find(
+                          (g) => g.value === userDetails.gender,
+                        )?.label || userDetails.gender
+                      : tp("notProvided")}
                   </p>
                 )}
               </div>
@@ -212,5 +231,5 @@ export function PersonalInfoSection({
         />
       )}
     </div>
-  )
+  );
 }

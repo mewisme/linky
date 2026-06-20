@@ -4,7 +4,10 @@ import * as Sentry from "@sentry/nextjs";
 
 import { useCallback, useEffect, useRef } from "react";
 
-import type { BlockRecord, BlockedUsersResponse } from "@/entities/notification/types/notifications.types";
+import type {
+  BlockRecord,
+  BlockedUsersResponse,
+} from "@/entities/notification/types/notifications.types";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { toast } from "@ws/ui/components/ui/sonner";
@@ -26,16 +29,22 @@ export function useBlockUser() {
     Sentry.metrics.count("fetch_blocked_users", 1);
     useBlockedUsersStore.getState().setLoading(true);
     try {
-      const data = await fetchFromActionRoute<BlockedUsersResponse>("/api/users/blocks/me");
-      useBlockedUsersStore.getState().setBlockedUsers(
-        data.blocked_users.map((u) => u.blocked_user_id)
+      const data = await fetchFromActionRoute<BlockedUsersResponse>(
+        "/api/users/blocks/me",
       );
+      useBlockedUsersStore
+        .getState()
+        .setBlockedUsers(data.blocked_users.map((u) => u.blocked_user_id));
     } catch (error) {
       Sentry.metrics.count("fetch_blocked_users_failed", 1);
-      Sentry.logger.error("Failed to fetch blocked users", { error: error instanceof Error ? error.message : "Unknown error" });
-      useBlockedUsersStore.getState().setError(
-        resolveActionErrorMessage(error, tRoot, "user.blockedLoadFailed"),
-      );
+      Sentry.logger.error("Failed to fetch blocked users", {
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      useBlockedUsersStore
+        .getState()
+        .setError(
+          resolveActionErrorMessage(error, tRoot, "user.blockedLoadFailed"),
+        );
     } finally {
       Sentry.metrics.count("fetch_blocked_users_completed", 1);
       useBlockedUsersStore.getState().setLoading(false);
@@ -50,41 +59,58 @@ export function useBlockUser() {
     }
   }, [authReady, fetchBlockedUsers]);
 
-  const blockUser = useCallback(async (userId: string) => {
-    try {
-      Sentry.metrics.count("block_user", 1);
-      await fetchFromActionRoute<BlockRecord>("/api/users/blocks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocked_user_id: userId }),
-      });
-      useBlockedUsersStore.getState().blockUser(userId);
-      trackEvent({ name: "user_blocked" });
-      toast.success(t("userBlocked"));
-    } catch (error) {
-      Sentry.metrics.count("block_user_failed", 1);
-      Sentry.logger.error("Failed to block user", { error: error instanceof Error ? error.message : "Unknown error" });
-      toast.error(resolveActionErrorMessage(error, tRoot, "user.blockFailed"));
-      throw error;
-    }
-  }, [tRoot]);
+  const blockUser = useCallback(
+    async (userId: string) => {
+      try {
+        Sentry.metrics.count("block_user", 1);
+        await fetchFromActionRoute<BlockRecord>("/api/users/blocks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ blocked_user_id: userId }),
+        });
+        useBlockedUsersStore.getState().blockUser(userId);
+        trackEvent({ name: "user_blocked" });
+        toast.success(t("userBlocked"));
+      } catch (error) {
+        Sentry.metrics.count("block_user_failed", 1);
+        Sentry.logger.error("Failed to block user", {
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+        toast.error(
+          resolveActionErrorMessage(error, tRoot, "user.blockFailed"),
+        );
+        throw error;
+      }
+    },
+    [tRoot],
+  );
 
-  const unblockUser = useCallback(async (userId: string) => {
-    try {
-      Sentry.metrics.count("unblock_user", 1);
-      await fetchFromActionRoute<void>(`/api/users/blocks/${encodeURIComponent(userId)}`, {
-        method: "DELETE",
-      });
-      useBlockedUsersStore.getState().unblockUser(userId);
-      trackEvent({ name: "user_unblocked" });
-      toast.success(t("userUnblocked"));
-    } catch (error) {
-      Sentry.metrics.count("unblock_user_failed", 1);
-      Sentry.logger.error("Failed to unblock user", { error: error instanceof Error ? error.message : "Unknown error" });
-      toast.error(resolveActionErrorMessage(error, tRoot, "user.unblockFailed"));
-      throw error;
-    }
-  }, [tRoot]);
+  const unblockUser = useCallback(
+    async (userId: string) => {
+      try {
+        Sentry.metrics.count("unblock_user", 1);
+        await fetchFromActionRoute<void>(
+          `/api/users/blocks/${encodeURIComponent(userId)}`,
+          {
+            method: "DELETE",
+          },
+        );
+        useBlockedUsersStore.getState().unblockUser(userId);
+        trackEvent({ name: "user_unblocked" });
+        toast.success(t("userUnblocked"));
+      } catch (error) {
+        Sentry.metrics.count("unblock_user_failed", 1);
+        Sentry.logger.error("Failed to unblock user", {
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+        toast.error(
+          resolveActionErrorMessage(error, tRoot, "user.unblockFailed"),
+        );
+        throw error;
+      }
+    },
+    [tRoot],
+  );
 
   return {
     blockUser,

@@ -37,8 +37,11 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
   const tRoot = useTranslations();
   const tbf = useTranslations("admin.broadcastForm");
   const { play: playSound } = useSoundWithSettings();
-  const [aiDraft, setAiDraft] = useState<AdminAPI.Broadcasts.AiBroadcastDraft | null>(null);
-  const [selectedTone, setSelectedTone] = useState<"primary" | AdminAPI.Broadcasts.AiBroadcastTone>("primary");
+  const [aiDraft, setAiDraft] =
+    useState<AdminAPI.Broadcasts.AiBroadcastDraft | null>(null);
+  const [selectedTone, setSelectedTone] = useState<
+    "primary" | AdminAPI.Broadcasts.AiBroadcastTone
+  >("primary");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAiDialogOpen, setIsAiDialogOpen] = useState(false);
 
@@ -80,16 +83,19 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
   async function onSubmit(values: BroadcastFormValues) {
     try {
-      const res = await fetchFromActionRoute<AdminAPI.Broadcasts.Post.Response>("/api/admin/broadcasts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: values.message.trim(),
-          title: values.title?.trim() || undefined,
-          deliveryMode: values.deliveryMode,
-          url: values.pushUrl?.trim() || undefined,
-        } satisfies AdminAPI.Broadcasts.Post.Body),
-      });
+      const res = await fetchFromActionRoute<AdminAPI.Broadcasts.Post.Response>(
+        "/api/admin/broadcasts",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: values.message.trim(),
+            title: values.title?.trim() || undefined,
+            deliveryMode: values.deliveryMode,
+            url: values.pushUrl?.trim() || undefined,
+          } satisfies AdminAPI.Broadcasts.Post.Body),
+        },
+      );
 
       playSound("success");
       toast.success(
@@ -101,16 +107,20 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       clearAiWriterState();
       onSuccess?.();
     } catch (error) {
-      toast.error(resolveActionErrorMessage(error, tRoot, "admin.broadcastSendFailed"));
+      toast.error(
+        resolveActionErrorMessage(error, tRoot, "admin.broadcastSendFailed"),
+      );
     }
   }
 
   const selectedDraft = useMemo((): SelectedAiDraft => {
-    if (!aiDraft) return null
-    if (selectedTone === "primary") return aiDraft.primary
-    const toneVariant = aiDraft.tone_variants.find((v) => v.tone === selectedTone)
-    if (!toneVariant) return null
-    return toneVariant
+    if (!aiDraft) return null;
+    if (selectedTone === "primary") return aiDraft.primary;
+    const toneVariant = aiDraft.tone_variants.find(
+      (v) => v.tone === selectedTone,
+    );
+    if (!toneVariant) return null;
+    return toneVariant;
   }, [aiDraft, selectedTone]);
 
   async function onGenerateAiDraft() {
@@ -128,17 +138,18 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
 
     try {
       setIsGenerating(true);
-      const res = await fetchFromActionRoute<AdminAPI.Broadcasts.AiGenerate.Response>(
-        "/api/admin/broadcasts/ai-draft",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            audience,
-            key_points: keyPoints,
-          }),
-        },
-      );
+      const res =
+        await fetchFromActionRoute<AdminAPI.Broadcasts.AiGenerate.Response>(
+          "/api/admin/broadcasts/ai-draft",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              audience,
+              key_points: keyPoints,
+            }),
+          },
+        );
       if (!res.draft?.primary) {
         toast.error(t("aiDraftFailed"));
         return;
@@ -148,7 +159,9 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
       setIsAiDialogOpen(false);
       toast.success(t("aiDraftGenerated"));
     } catch (error) {
-      toast.error(resolveActionErrorMessage(error, tRoot, "admin.aiDraftFailed"));
+      toast.error(
+        resolveActionErrorMessage(error, tRoot, "admin.aiDraftFailed"),
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -157,14 +170,18 @@ export function FormCreateBroadcast({ onSuccess }: FormCreateBroadcastProps) {
   function onUseAiDraft() {
     if (!selectedDraft) return;
     form.setValue("title", selectedDraft.title, { shouldDirty: true });
-    form.setValue("message", `${selectedDraft.body}\n\n${selectedDraft.cta}`, { shouldDirty: true });
+    form.setValue("message", `${selectedDraft.body}\n\n${selectedDraft.cta}`, {
+      shouldDirty: true,
+    });
     toast.success(t("draftApplied"));
   }
 
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-4 pb-4 sm:px-6">
-        <CardTitle className="text-base sm:text-lg">{tbf("newBroadcast")}</CardTitle>
+        <CardTitle className="text-base sm:text-lg">
+          {tbf("newBroadcast")}
+        </CardTitle>
         <CardDescription className="text-sm">
           {tbf("cardDescription")}
         </CardDescription>

@@ -36,10 +36,10 @@ export function DevelopmentSettingsClient() {
   const router = useRouter();
   const { user: userStore } = useUserStore();
   const isDevelopmentModeEnabled = useDevelopmentStore(
-    (state) => state.isDevelopmentModeEnabled
+    (state) => state.isDevelopmentModeEnabled,
   );
   const setDevelopmentModeEnabled = useDevelopmentStore(
-    (state) => state.setDevelopmentModeEnabled
+    (state) => state.setDevelopmentModeEnabled,
   );
   const [isHydrated, setIsHydrated] = useState(false);
   const [isEnableDialogOpen, setIsEnableDialogOpen] = useState(false);
@@ -79,7 +79,10 @@ export function DevelopmentSettingsClient() {
       label={t("label")}
       description={t("description")}
       render={
-        <AlertDialog open={isEnableDialogOpen} onOpenChange={setIsEnableDialogOpen}>
+        <AlertDialog
+          open={isEnableDialogOpen}
+          onOpenChange={setIsEnableDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{t("dialogTitle")}</AlertDialogTitle>
@@ -103,9 +106,7 @@ export function DevelopmentSettingsClient() {
             <IconCode className="size-4" />
             {t("enableLabel")}
           </Label>
-          <p className="text-sm text-muted-foreground">
-            {t("enableHint")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("enableHint")}</p>
         </div>
         <Switch
           id="development-mode"
@@ -114,7 +115,6 @@ export function DevelopmentSettingsClient() {
           disabled={!isHydrated}
         />
       </div>
-
     </AppLayout>
   );
 }

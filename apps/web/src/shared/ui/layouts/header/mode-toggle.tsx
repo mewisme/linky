@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@ws/ui/components/ui/dropdown-menu"
-import { Moon, Sun } from "@ws/ui/internal-lib/icons"
+} from "@ws/ui/components/ui/dropdown-menu";
+import { Moon, Sun } from "@ws/ui/internal-lib/icons";
 
-import { Button } from "@ws/ui/components/ui/button"
-import { useTranslations } from "next-intl"
-import { useTheme } from "next-themes"
+import { Button } from "@ws/ui/components/ui/button";
+import { useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 
 export function ModeToggle() {
-  const t = useTranslations("common")
-  const { setTheme } = useTheme()
+  const t = useTranslations("common");
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>
@@ -39,5 +39,5 @@ export function ModeToggle() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

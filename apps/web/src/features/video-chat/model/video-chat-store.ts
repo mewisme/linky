@@ -1,6 +1,9 @@
 "use client";
 
-import type { ChatMessage, ChatMessageDeliveryStatus } from "@/features/video-chat/types/chat-message.types";
+import type {
+  ChatMessage,
+  ChatMessageDeliveryStatus,
+} from "@/features/video-chat/types/chat-message.types";
 
 import type { NetworkQuality } from "@/features/video-chat/lib/webrtc/network-monitor";
 import type { QualityTier } from "@/features/video-chat/lib/webrtc/adaptive-encoding";
@@ -16,7 +19,11 @@ export type ConnectionStatus =
   | "reconnecting"
   | "ended";
 
-export type OverlayCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+export type OverlayCorner =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
 
 export interface OverlayPosition {
   x: number;
@@ -59,7 +66,10 @@ interface VideoChatStore {
   setConnectionStatus: (status: ConnectionStatus) => void;
   setCallStartedAt: (timestamp: number | null) => void;
   addChatMessage: (message: ChatMessage) => void;
-  updateChatMessageStatus: (id: string, status: ChatMessageDeliveryStatus) => void;
+  updateChatMessageStatus: (
+    id: string,
+    status: ChatMessageDeliveryStatus,
+  ) => void;
   clearChatMessages: () => void;
   setError: (error: string | null) => void;
   setPeerInfo: (peerInfo: UsersAPI.PublicUserInfo | null) => void;
@@ -77,7 +87,7 @@ interface VideoChatStore {
   setPeerTyping: (isTyping: boolean) => void;
   setCallInitialData: (
     progress: UsersAPI.Progress.GetMe.Response | null,
-    favorites: ResourcesAPI.Favorites.Get.Response | null
+    favorites: ResourcesAPI.Favorites.Get.Response | null,
   ) => void;
 
   resetState: () => void;
@@ -136,7 +146,7 @@ export const useVideoChatStore = create<VideoChatStore>((set) => ({
   updateChatMessageStatus: (id, status) =>
     set((s) => ({
       chatMessages: s.chatMessages.map((message) =>
-        message.id === id ? { ...message, localStatus: status } : message
+        message.id === id ? { ...message, localStatus: status } : message,
       ),
     })),
   clearChatMessages: () => set({ chatMessages: [] }),

@@ -31,7 +31,11 @@ interface StreamVideoQualityDialogProps {
   onApply: (quality: StreamVideoQuality) => Promise<void> | void;
 }
 
-export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: StreamVideoQualityDialogProps) {
+export function StreamVideoQualityDialog({
+  open,
+  onOpenChange,
+  onApply,
+}: StreamVideoQualityDialogProps) {
   const t = useTranslations("call.dialogs.streamQuality");
   const tRoot = useTranslations();
   const tCommon = useTranslations("common");
@@ -70,7 +74,13 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
       onOpenChange(false);
     } catch (err) {
       Sentry.logger.error("Failed to update stream quality", { error: err });
-      toast.error(resolveActionErrorMessage(err, tRoot, "call.dialogs.streamQuality.updateFailed"));
+      toast.error(
+        resolveActionErrorMessage(
+          err,
+          tRoot,
+          "call.dialogs.streamQuality.updateFailed",
+        ),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -78,7 +88,10 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" data-testid="chat-stream-quality-dialog">
+      <DialogContent
+        className="max-w-md"
+        data-testid="chat-stream-quality-dialog"
+      >
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
@@ -100,7 +113,9 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
               >
                 <RadioGroupItem id={id} value={quality} className="mt-1" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{t(`options.${quality}.label`)}</span>
+                  <span className="text-sm font-medium">
+                    {t(`options.${quality}.label`)}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {t(`options.${quality}.description`)}
                   </span>
@@ -118,7 +133,11 @@ export function StreamVideoQualityDialog({ open, onOpenChange, onApply }: Stream
           >
             {tCommon("cancel")}
           </Button>
-          <Button onClick={handleSave} disabled={isSaving} data-testid="chat-stream-quality-save-button">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            data-testid="chat-stream-quality-save-button"
+          >
             {isSaving ? t("saving") : tCommon("save")}
           </Button>
         </DialogFooter>

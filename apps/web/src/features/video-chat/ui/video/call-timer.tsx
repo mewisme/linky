@@ -20,9 +20,13 @@ interface CallTimerProps {
   overrideStartTime?: number | null;
 }
 
-export function CallTimer({ isInActiveCall, overrideStartTime }: CallTimerProps) {
+export function CallTimer({
+  isInActiveCall,
+  overrideStartTime,
+}: CallTimerProps) {
   const storeCallStartedAt = useVideoChatStore((s) => s.callStartedAt);
-  const callStartedAt = overrideStartTime !== undefined ? overrideStartTime : storeCallStartedAt;
+  const callStartedAt =
+    overrideStartTime !== undefined ? overrideStartTime : storeCallStartedAt;
 
   const shouldShowTimer = isInActiveCall && callStartedAt != null;
 

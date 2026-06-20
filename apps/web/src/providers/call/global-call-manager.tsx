@@ -32,8 +32,14 @@ interface GlobalCallContextValue {
   swapCamera: () => Promise<void>;
   toggleScreenShare: () => Promise<void>;
   isSharingScreen: boolean;
-  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
-  applyStreamQuality: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void>;
+  sendFavoriteNotification: (
+    action: "added" | "removed",
+    peerUserId: string,
+    userName: string,
+  ) => void;
+  applyStreamQuality: (
+    quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality,
+  ) => Promise<void>;
   clearError: () => void;
   isPassive: boolean;
 }
@@ -88,39 +94,42 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
   const error = useVideoChatStore((s) => s.error);
   const isNoMicrophoneError = error === VIDEO_CHAT_NO_MICROPHONE_ERROR_MESSAGE;
 
-  const contextValue = useMemo<GlobalCallContextValue>(() => ({
-    isInActiveCall: videoChat.isInActiveCall,
-    sendMessage: videoChat.sendMessage,
-    sendTyping: videoChat.sendTyping,
-    start: videoChat.start,
-    skip: videoChat.skip,
-    endCall: videoChat.endCall,
-    toggleMute: videoChat.toggleMute,
-    toggleVideo: videoChat.toggleVideo,
-    swapCamera: videoChat.swapCamera,
-    toggleScreenShare: videoChat.toggleScreenShare,
-    isSharingScreen: videoChat.isSharingScreen,
-    sendFavoriteNotification: videoChat.sendFavoriteNotification,
-    applyStreamQuality: videoChat.applyStreamQuality,
-    clearError: videoChat.clearError,
-    isPassive: videoChat.isPassive,
-  }), [
-    videoChat.isInActiveCall,
-    videoChat.sendMessage,
-    videoChat.sendTyping,
-    videoChat.start,
-    videoChat.skip,
-    videoChat.endCall,
-    videoChat.toggleMute,
-    videoChat.toggleVideo,
-    videoChat.swapCamera,
-    videoChat.toggleScreenShare,
-    videoChat.isSharingScreen,
-    videoChat.sendFavoriteNotification,
-    videoChat.applyStreamQuality,
-    videoChat.clearError,
-    videoChat.isPassive,
-  ]);
+  const contextValue = useMemo<GlobalCallContextValue>(
+    () => ({
+      isInActiveCall: videoChat.isInActiveCall,
+      sendMessage: videoChat.sendMessage,
+      sendTyping: videoChat.sendTyping,
+      start: videoChat.start,
+      skip: videoChat.skip,
+      endCall: videoChat.endCall,
+      toggleMute: videoChat.toggleMute,
+      toggleVideo: videoChat.toggleVideo,
+      swapCamera: videoChat.swapCamera,
+      toggleScreenShare: videoChat.toggleScreenShare,
+      isSharingScreen: videoChat.isSharingScreen,
+      sendFavoriteNotification: videoChat.sendFavoriteNotification,
+      applyStreamQuality: videoChat.applyStreamQuality,
+      clearError: videoChat.clearError,
+      isPassive: videoChat.isPassive,
+    }),
+    [
+      videoChat.isInActiveCall,
+      videoChat.sendMessage,
+      videoChat.sendTyping,
+      videoChat.start,
+      videoChat.skip,
+      videoChat.endCall,
+      videoChat.toggleMute,
+      videoChat.toggleVideo,
+      videoChat.swapCamera,
+      videoChat.toggleScreenShare,
+      videoChat.isSharingScreen,
+      videoChat.sendFavoriteNotification,
+      videoChat.applyStreamQuality,
+      videoChat.clearError,
+      videoChat.isPassive,
+    ],
+  );
 
   return (
     <GlobalCallContext.Provider value={contextValue}>
@@ -142,10 +151,14 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             {isNoMicrophoneError ? (
-              <AlertDialogAction onClick={videoChat.clearError}>{tCommon("ok")}</AlertDialogAction>
+              <AlertDialogAction onClick={videoChat.clearError}>
+                {tCommon("ok")}
+              </AlertDialogAction>
             ) : (
               <>
-                <AlertDialogCancel onClick={videoChat.clearError}>{t("dismiss")}</AlertDialogCancel>
+                <AlertDialogCancel onClick={videoChat.clearError}>
+                  {t("dismiss")}
+                </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => {
                     videoChat.clearError();
@@ -167,7 +180,9 @@ export function GlobalCallManager({ children }: GlobalCallManagerProps) {
 export function useGlobalCallContext(): GlobalCallContextValue {
   const context = useContext(GlobalCallContext);
   if (!context) {
-    throw new Error("useGlobalCallContext must be used within GlobalCallManager");
+    throw new Error(
+      "useGlobalCallContext must be used within GlobalCallManager",
+    );
   }
   return context;
 }

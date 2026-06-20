@@ -1,7 +1,10 @@
 import * as Sentry from "@sentry/nextjs";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { callTabCoordinator, type CallTabState } from "@/features/video-chat/lib/call-coordination/call-tab-coordinator";
+import {
+  callTabCoordinator,
+  type CallTabState,
+} from "@/features/video-chat/lib/call-coordination/call-tab-coordinator";
 
 interface UseCallTabCoordinationOptions {
   scopeId?: string | null;
@@ -10,9 +13,14 @@ interface UseCallTabCoordinationOptions {
   onSwitchApproved?: () => void;
 }
 
-export function useCallTabCoordination(options: UseCallTabCoordinationOptions = {}) {
-  const { scopeId, onOwnershipLost, onOwnershipGained, onSwitchApproved } = options;
-  const [state, setState] = useState<CallTabState>(() => callTabCoordinator.getState());
+export function useCallTabCoordination(
+  options: UseCallTabCoordinationOptions = {},
+) {
+  const { scopeId, onOwnershipLost, onOwnershipGained, onSwitchApproved } =
+    options;
+  const [state, setState] = useState<CallTabState>(() =>
+    callTabCoordinator.getState(),
+  );
   const previousOwnershipRef = useRef(state.isCallOwner);
   const initializationAttemptedRef = useRef(false);
 
@@ -50,11 +58,20 @@ export function useCallTabCoordination(options: UseCallTabCoordinationOptions = 
     }
 
     previousOwnershipRef.current = isOwner;
-  }, [state.isCallOwner, state.tabId, onOwnershipLost, onOwnershipGained, onSwitchApproved]);
+  }, [
+    state.isCallOwner,
+    state.tabId,
+    onOwnershipLost,
+    onOwnershipGained,
+    onSwitchApproved,
+  ]);
 
-  const claimOwnership = useCallback((roomId: string | null = null, callStartedAt?: number) => {
-    return callTabCoordinator.claimOwnership(roomId, callStartedAt);
-  }, []);
+  const claimOwnership = useCallback(
+    (roomId: string | null = null, callStartedAt?: number) => {
+      return callTabCoordinator.claimOwnership(roomId, callStartedAt);
+    },
+    [],
+  );
 
   const releaseOwnership = useCallback(() => {
     callTabCoordinator.releaseOwnership();

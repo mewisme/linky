@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   AlertDialog,
@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@ws/ui/components/animate-ui/components/radix/alert-dialog'
+} from "@ws/ui/components/animate-ui/components/radix/alert-dialog";
 import {
   Drawer,
   DrawerClose,
@@ -17,7 +17,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@ws/ui/components/ui/drawer'
+} from "@ws/ui/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -31,14 +31,14 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@ws/ui/components/animate-ui/components/radix/dropdown-menu'
-import { Fragment, useMemo, useState } from 'react'
+} from "@ws/ui/components/animate-ui/components/radix/dropdown-menu";
+import { Fragment, useMemo, useState } from "react";
 
-import { Button } from '@ws/ui/components/ui/button'
-import { IconDotsVertical } from '@tabler/icons-react'
-import { cn } from '@ws/ui/lib/utils'
-import { useIsMobile } from '@ws/ui/hooks/use-mobile'
-import { useTranslations } from 'next-intl'
+import { Button } from "@ws/ui/components/ui/button";
+import { IconDotsVertical } from "@tabler/icons-react";
+import { cn } from "@ws/ui/lib/utils";
+import { useIsMobile } from "@ws/ui/hooks/use-mobile";
+import { useTranslations } from "next-intl";
 
 export type ActionItem =
   | ActionItemSimple
@@ -46,101 +46,101 @@ export type ActionItem =
   | ActionItemRadioGroup
   | ActionItemSub
   | ActionItemLabel
-  | ActionItemSeparator
+  | ActionItemSeparator;
 
 export interface ConfirmActionConfig {
-  title: string
-  description?: string
-  confirmLabel?: string
-  cancelLabel?: string
-  variant?: 'default' | 'destructive'
+  title: string;
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: "default" | "destructive";
 }
 
 export interface ActionItemSimple {
-  type: 'item'
-  label: string
-  drawerItemLabel?: string
-  dropdownItemLabel?: string
-  icon?: React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-  variant?: 'default' | 'destructive'
-  testId?: string
-  preventCloseOnClick?: boolean
-  preventDrawerClose?: boolean
-  confirmAction?: ConfirmActionConfig
+  type: "item";
+  label: string;
+  drawerItemLabel?: string;
+  dropdownItemLabel?: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  variant?: "default" | "destructive";
+  testId?: string;
+  preventCloseOnClick?: boolean;
+  preventDrawerClose?: boolean;
+  confirmAction?: ConfirmActionConfig;
 }
 
 export interface ActionItemCheckbox {
-  type: 'checkbox'
-  label: string
-  drawerItemLabel?: string
-  dropdownItemLabel?: string
-  icon?: React.ReactNode
-  checked: boolean
-  onCheckedChange: (checked: boolean) => void
-  disabled?: boolean
-  testId?: string
+  type: "checkbox";
+  label: string;
+  drawerItemLabel?: string;
+  dropdownItemLabel?: string;
+  icon?: React.ReactNode;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+  testId?: string;
 }
 
 export interface ActionItemRadioGroupOption {
-  value: string
-  label: string
-  drawerItemLabel?: string
-  dropdownItemLabel?: string
-  icon?: React.ReactNode
-  disabled?: boolean
+  value: string;
+  label: string;
+  drawerItemLabel?: string;
+  dropdownItemLabel?: string;
+  icon?: React.ReactNode;
+  disabled?: boolean;
 }
 
 export interface ActionItemRadioGroup {
-  type: 'radio-group'
-  label: string
-  drawerItemLabel?: string
-  dropdownItemLabel?: string
-  icon?: React.ReactNode
-  value: string
-  onValueChange: (value: string) => void
-  options: ActionItemRadioGroupOption[]
-  disabled?: boolean
-  testId?: string
+  type: "radio-group";
+  label: string;
+  drawerItemLabel?: string;
+  dropdownItemLabel?: string;
+  icon?: React.ReactNode;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: ActionItemRadioGroupOption[];
+  disabled?: boolean;
+  testId?: string;
 }
 
 export interface ActionItemSub {
-  type: 'sub'
-  label: string
-  drawerItemLabel?: string
-  dropdownItemLabel?: string
-  icon?: React.ReactNode
-  children: ActionItem[]
-  disabled?: boolean
+  type: "sub";
+  label: string;
+  drawerItemLabel?: string;
+  dropdownItemLabel?: string;
+  icon?: React.ReactNode;
+  children: ActionItem[];
+  disabled?: boolean;
 }
 
 export interface ActionItemLabel {
-  type: 'label'
-  label: string
-  dropdownItemLabel?: string
+  type: "label";
+  label: string;
+  dropdownItemLabel?: string;
 }
 
 export interface ActionItemSeparator {
-  type: 'separator'
+  type: "separator";
 }
 
-type DrawerIntent = 'default' | 'destructive'
+type DrawerIntent = "default" | "destructive";
 
 interface NormalizedDrawerItem {
-  label: string
-  drawerItemLabel?: string
-  icon?: React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-  intent: DrawerIntent
-  testId?: string
-  preventDrawerClose?: boolean
-  confirmAction?: ConfirmActionConfig
+  label: string;
+  drawerItemLabel?: string;
+  icon?: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  intent: DrawerIntent;
+  testId?: string;
+  preventDrawerClose?: boolean;
+  confirmAction?: ConfirmActionConfig;
 }
 
 function normalizeToDrawerItem(action: ActionItem): NormalizedDrawerItem[] {
-  if (action.type === 'item') {
+  if (action.type === "item") {
     return [
       {
         label: action.label,
@@ -148,14 +148,17 @@ function normalizeToDrawerItem(action: ActionItem): NormalizedDrawerItem[] {
         icon: action.icon,
         onClick: action.onClick,
         disabled: action.disabled,
-        intent: (action.variant ?? 'default') === 'destructive' ? 'destructive' : 'default',
+        intent:
+          (action.variant ?? "default") === "destructive"
+            ? "destructive"
+            : "default",
         testId: action.testId,
         preventDrawerClose: action.preventDrawerClose,
         confirmAction: action.confirmAction,
       },
-    ]
+    ];
   }
-  if (action.type === 'checkbox') {
+  if (action.type === "checkbox") {
     return [
       {
         label: action.label,
@@ -163,65 +166,65 @@ function normalizeToDrawerItem(action: ActionItem): NormalizedDrawerItem[] {
         icon: action.icon,
         onClick: () => action.onCheckedChange(!action.checked),
         disabled: action.disabled,
-        intent: 'default',
+        intent: "default",
         testId: action.testId,
         preventDrawerClose: false,
       },
-    ]
+    ];
   }
-  if (action.type === 'radio-group') {
+  if (action.type === "radio-group") {
     return action.options.map((opt) => ({
       label: opt.label,
       drawerItemLabel: opt.drawerItemLabel,
       icon: opt.icon,
       onClick: () => action.onValueChange(opt.value),
       disabled: action.disabled ?? opt.disabled,
-      intent: 'default' as DrawerIntent,
+      intent: "default" as DrawerIntent,
       testId: action.testId ? `${action.testId}-${opt.value}` : undefined,
       preventDrawerClose: false as boolean | undefined,
-    }))
+    }));
   }
-  if (action.type === 'sub') {
-    return flattenDrawerItems(action.children)
+  if (action.type === "sub") {
+    return flattenDrawerItems(action.children);
   }
-  if (action.type === 'label' || action.type === 'separator') {
-    return []
+  if (action.type === "label" || action.type === "separator") {
+    return [];
   }
-  return []
+  return [];
 }
 
 function flattenDrawerItems(items: ActionItem[]): NormalizedDrawerItem[] {
-  return items.flatMap((item) => normalizeToDrawerItem(item))
+  return items.flatMap((item) => normalizeToDrawerItem(item));
 }
 
 interface ConfirmActionHandlers {
-  onConfirmAction: (item: ActionItemSimple) => void
+  onConfirmAction: (item: ActionItemSimple) => void;
 }
 
 function renderDropdownItem(
   item: ActionItem,
   key: string | number,
-  handlers?: ConfirmActionHandlers
+  handlers?: ConfirmActionHandlers,
 ) {
   switch (item.type) {
-    case 'item':
+    case "item":
       if (item.confirmAction && handlers) {
         return (
           <DropdownMenuItem
             key={key}
             onSelect={(e) => {
-              e.preventDefault()
-              handlers.onConfirmAction(item)
+              e.preventDefault();
+              handlers.onConfirmAction(item);
             }}
             disabled={item.disabled}
             variant={item.variant}
             data-testid={item.testId}
-            className='flex items-center gap-2'
+            className="flex items-center gap-2"
           >
             {item.icon}
             {item.dropdownItemLabel ?? item.label}
           </DropdownMenuItem>
-        )
+        );
       }
       return (
         <DropdownMenuItem
@@ -230,21 +233,21 @@ function renderDropdownItem(
           onSelect={
             item.preventCloseOnClick
               ? (e) => {
-                e.preventDefault()
-                item.onClick()
-              }
+                  e.preventDefault();
+                  item.onClick();
+                }
               : undefined
           }
           disabled={item.disabled}
           variant={item.variant}
           data-testid={item.testId}
-          className='flex items-center gap-2'
+          className="flex items-center gap-2"
         >
           {item.icon}
           {item.dropdownItemLabel ?? item.label}
         </DropdownMenuItem>
-      )
-    case 'checkbox':
+      );
+    case "checkbox":
       return (
         <DropdownMenuCheckboxItem
           key={key}
@@ -252,16 +255,19 @@ function renderDropdownItem(
           onCheckedChange={item.onCheckedChange}
           disabled={item.disabled}
           data-testid={item.testId}
-          className='flex items-center gap-2'
+          className="flex items-center gap-2"
         >
           {item.icon}
           {item.dropdownItemLabel ?? item.label}
         </DropdownMenuCheckboxItem>
-      )
-    case 'radio-group':
+      );
+    case "radio-group":
       return (
         <DropdownMenuSub key={key}>
-          <DropdownMenuSubTrigger disabled={item.disabled} className='flex items-center gap-2'>
+          <DropdownMenuSubTrigger
+            disabled={item.disabled}
+            className="flex items-center gap-2"
+          >
             {item.icon}
             {item.dropdownItemLabel ?? item.label}
           </DropdownMenuSubTrigger>
@@ -274,7 +280,9 @@ function renderDropdownItem(
                 <DropdownMenuRadioItem
                   key={opt.value}
                   value={opt.value}
-                  data-testid={item.testId ? `${item.testId}-${opt.value}` : undefined}
+                  data-testid={
+                    item.testId ? `${item.testId}-${opt.value}` : undefined
+                  }
                   disabled={opt.disabled}
                 >
                   {opt.icon}
@@ -284,42 +292,49 @@ function renderDropdownItem(
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-      )
-    case 'sub':
+      );
+    case "sub":
       return (
         <DropdownMenuSub key={key}>
-          <DropdownMenuSubTrigger disabled={item.disabled} className='flex items-center gap-2'>
+          <DropdownMenuSubTrigger
+            disabled={item.disabled}
+            className="flex items-center gap-2"
+          >
             {item.icon}
             {item.dropdownItemLabel ?? item.label}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             {item.children.map((child, i) =>
-              renderDropdownItem(child, `${key}-${i}`, handlers)
+              renderDropdownItem(child, `${key}-${i}`, handlers),
             )}
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-      )
-    case 'label':
-      return <DropdownMenuLabel key={key}>{item.dropdownItemLabel ?? item.label}</DropdownMenuLabel>
-    case 'separator':
-      return <DropdownMenuSeparator key={key} />
+      );
+    case "label":
+      return (
+        <DropdownMenuLabel key={key}>
+          {item.dropdownItemLabel ?? item.label}
+        </DropdownMenuLabel>
+      );
+    case "separator":
+      return <DropdownMenuSeparator key={key} />;
     default:
-      return null
+      return null;
   }
 }
 
 export interface ActionsButtonProps {
-  actions: ActionItem[]
-  trigger?: React.ReactNode
-  title?: string
-  className?: string
+  actions: ActionItem[];
+  trigger?: React.ReactNode;
+  title?: string;
+  className?: string;
 }
 
 interface PendingConfirm {
-  onClick: () => void
-  confirmAction: ConfirmActionConfig
-  preventCloseOnClick?: boolean
-  preventDrawerClose?: boolean
+  onClick: () => void;
+  confirmAction: ConfirmActionConfig;
+  preventCloseOnClick?: boolean;
+  preventDrawerClose?: boolean;
 }
 
 export function ActionsButton({
@@ -328,58 +343,55 @@ export function ActionsButton({
   title,
   className,
 }: ActionsButtonProps) {
-  const t = useTranslations('common')
-  const resolvedTitle = title ?? t('actionsMenu')
-  const isMobile = useIsMobile()
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const t = useTranslations("common");
+  const resolvedTitle = title ?? t("actionsMenu");
+  const isMobile = useIsMobile();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(
-    null
-  )
+    null,
+  );
 
-  const flatItems = useMemo(
-    () => flattenDrawerItems(actions),
-    [actions]
-  )
+  const flatItems = useMemo(() => flattenDrawerItems(actions), [actions]);
 
-  const confirmOpen = pendingConfirm !== null
+  const confirmOpen = pendingConfirm !== null;
 
   const handleConfirmAction = (item: ActionItemSimple) => {
-    if (!item.confirmAction) return
+    if (!item.confirmAction) return;
     setPendingConfirm({
       onClick: item.onClick,
       confirmAction: item.confirmAction,
       preventCloseOnClick: item.preventCloseOnClick,
       preventDrawerClose: item.preventDrawerClose,
-    })
-    if (!item.preventCloseOnClick) setDropdownOpen(false)
-    if (!item.preventDrawerClose) setDrawerOpen(false)
-  }
+    });
+    if (!item.preventCloseOnClick) setDropdownOpen(false);
+    if (!item.preventDrawerClose) setDrawerOpen(false);
+  };
 
   const handleConfirmDialogConfirm = () => {
-    if (!pendingConfirm) return
-    pendingConfirm.onClick()
-    setPendingConfirm(null)
-  }
+    if (!pendingConfirm) return;
+    pendingConfirm.onClick();
+    setPendingConfirm(null);
+  };
 
   const handleConfirmDialogCancel = () => {
-    setPendingConfirm(null)
-  }
+    setPendingConfirm(null);
+  };
 
   const handleConfirmDrawerAction = (item: NormalizedDrawerItem) => {
-    if (!item.confirmAction) return
+    if (!item.confirmAction) return;
     setPendingConfirm({
       onClick: item.onClick,
       confirmAction: item.confirmAction,
       preventCloseOnClick: false,
       preventDrawerClose: item.preventDrawerClose,
-    })
-    if (!item.preventDrawerClose) setDrawerOpen(false)
-  }
+    });
+    if (!item.preventDrawerClose) setDrawerOpen(false);
+  };
 
   const confirmHandlers: ConfirmActionHandlers = {
     onConfirmAction: handleConfirmAction,
-  }
+  };
 
   const defaultTrigger = (
     <Button
@@ -387,17 +399,20 @@ export function ActionsButton({
       className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
       size="icon"
     >
-      <span className="sr-only">{t('openMenu')}</span>
+      <span className="sr-only">{t("openMenu")}</span>
       <IconDotsVertical />
     </Button>
-  )
+  );
 
-  const triggerButton = trigger ?? defaultTrigger
+  const triggerButton = trigger ?? defaultTrigger;
 
   if (isMobile) {
     return (
-      <AlertDialog open={confirmOpen} onOpenChange={(open) => !open && handleConfirmDialogCancel()}>
-        <div className={cn('flex justify-center opacity-100', className)}>
+      <AlertDialog
+        open={confirmOpen}
+        onOpenChange={(open) => !open && handleConfirmDialogCancel()}
+      >
+        <div className={cn("flex justify-center opacity-100", className)}>
           <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
             <DrawerTrigger asChild>{triggerButton}</DrawerTrigger>
             <DrawerContent>
@@ -408,14 +423,14 @@ export function ActionsButton({
                 {flatItems.map((item, i) => {
                   const handleClick = item.confirmAction
                     ? () => handleConfirmDrawerAction(item)
-                    : item.onClick
+                    : item.onClick;
                   const button = (
                     <Button
                       variant="ghost"
                       className={cn(
-                        'h-12 w-full justify-start gap-3',
-                        item.intent === 'destructive' &&
-                        'text-destructive hover:bg-destructive/10 hover:text-destructive'
+                        "h-12 w-full justify-start gap-3",
+                        item.intent === "destructive" &&
+                          "text-destructive hover:bg-destructive/10 hover:text-destructive",
                       )}
                       onClick={handleClick}
                       disabled={item.disabled}
@@ -424,21 +439,23 @@ export function ActionsButton({
                       {item.icon}
                       {item.drawerItemLabel ?? item.label}
                     </Button>
-                  )
+                  );
                   return item.preventDrawerClose || item.confirmAction ? (
                     <Fragment key={i}>{button}</Fragment>
                   ) : (
                     <DrawerClose key={i} asChild>
                       {button}
                     </DrawerClose>
-                  )
+                  );
                 })}
               </div>
             </DrawerContent>
           </Drawer>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{pendingConfirm?.confirmAction.title}</AlertDialogTitle>
+              <AlertDialogTitle>
+                {pendingConfirm?.confirmAction.title}
+              </AlertDialogTitle>
               {pendingConfirm?.confirmAction.description && (
                 <AlertDialogDescription>
                   {pendingConfirm.confirmAction.description}
@@ -447,23 +464,24 @@ export function ActionsButton({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>
-                {pendingConfirm?.confirmAction.cancelLabel ?? t('cancel')}
+                {pendingConfirm?.confirmAction.cancelLabel ?? t("cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmDialogConfirm}
                 className={
-                  pendingConfirm?.confirmAction.variant === 'destructive'
-                    ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:hover:bg-destructive/80'
+                  pendingConfirm?.confirmAction.variant === "destructive"
+                    ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:hover:bg-destructive/80"
                     : undefined
                 }
               >
-                {pendingConfirm?.confirmAction.confirmLabel ?? t('confirmAction')}
+                {pendingConfirm?.confirmAction.confirmLabel ??
+                  t("confirmAction")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </div>
       </AlertDialog>
-    )
+    );
   }
 
   return (
@@ -473,9 +491,9 @@ export function ActionsButton({
     >
       <div
         className={cn(
-          'flex justify-center transition-opacity',
-          'opacity-0 group-hover:opacity-100',
-          className
+          "flex justify-center transition-opacity",
+          "opacity-0 group-hover:opacity-100",
+          className,
         )}
       >
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -483,7 +501,7 @@ export function ActionsButton({
           <DropdownMenuContent align="end" className="overflow-hidden">
             <DropdownMenuLabel>{resolvedTitle}</DropdownMenuLabel>
             {actions.map((item, i) =>
-              renderDropdownItem(item, i, confirmHandlers)
+              renderDropdownItem(item, i, confirmHandlers),
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -500,21 +518,21 @@ export function ActionsButton({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {pendingConfirm?.confirmAction.cancelLabel ?? t('cancel')}
+              {pendingConfirm?.confirmAction.cancelLabel ?? t("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDialogConfirm}
               className={
-                pendingConfirm?.confirmAction.variant === 'destructive'
-                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:hover:bg-destructive/80 dark:text-white/80'
+                pendingConfirm?.confirmAction.variant === "destructive"
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:hover:bg-destructive/80 dark:text-white/80"
                   : undefined
               }
             >
-              {pendingConfirm?.confirmAction.confirmLabel ?? t('confirmAction')}
+              {pendingConfirm?.confirmAction.confirmLabel ?? t("confirmAction")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </div>
     </AlertDialog>
-  )
+  );
 }

@@ -27,7 +27,7 @@ export function useSound() {
       options?: {
         volume?: number;
         loop?: boolean;
-      }
+      },
     ) => {
       const audio = getAudio(soundName);
 
@@ -35,9 +35,9 @@ export function useSound() {
       audio.volume = options?.volume ?? 0.7;
       audio.loop = options?.loop ?? false;
 
-      audio.play().catch(() => { });
+      audio.play().catch(() => {});
     },
-    []
+    [],
   );
 
   const stop = useCallback((soundName: SoundName) => {

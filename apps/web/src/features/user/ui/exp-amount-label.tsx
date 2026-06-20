@@ -1,11 +1,15 @@
-'use client';
+"use client";
 
-import { formatExpAbbrev, formatExpDetail, isExpAbbreviated } from '@/features/user/lib/format-exp';
-import { SimpleTooltip } from '@/shared/ui/common/simple-tooltip';
-import { cn } from '@ws/ui/lib/utils';
-import { useTranslations } from 'next-intl';
+import {
+  formatExpAbbrev,
+  formatExpDetail,
+  isExpAbbreviated,
+} from "@/features/user/lib/format-exp";
+import { SimpleTooltip } from "@/shared/ui/common/simple-tooltip";
+import { cn } from "@ws/ui/lib/utils";
+import { useTranslations } from "next-intl";
 
-type ExpAmountMessageKey = 'expAmount' | 'expAmountRemaining';
+type ExpAmountMessageKey = "expAmount" | "expAmountRemaining";
 
 interface ExpAmountLabelProps {
   exp: number;
@@ -16,11 +20,11 @@ interface ExpAmountLabelProps {
 
 export function ExpAmountLabel({
   exp,
-  messageKey = 'expAmount',
+  messageKey = "expAmount",
   className,
   testId,
 }: ExpAmountLabelProps) {
-  const t = useTranslations('user.progress');
+  const t = useTranslations("user.progress");
   const abbreviated = formatExpAbbrev(exp);
   const label = t(messageKey, { amount: abbreviated });
 
@@ -37,7 +41,7 @@ export function ExpAmountLabel({
       <span
         className={cn(
           className,
-          'cursor-default underline decoration-dotted decoration-muted-foreground/60 underline-offset-2',
+          "cursor-default underline decoration-dotted decoration-muted-foreground/60 underline-offset-2",
         )}
         data-testid={testId}
         tabIndex={0}

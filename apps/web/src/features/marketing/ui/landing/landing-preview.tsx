@@ -15,7 +15,7 @@ export function LandingPreview() {
     <section className="w-full py-12 sm:py-16 md:py-20">
       <div className="space-y-8 sm:space-y-10 md:space-y-12">
         <MotionEffect
-          slide={{ direction: 'up' }}
+          slide={{ direction: "up" }}
           fade
           inView
           className="text-center space-y-3 sm:space-y-4"
@@ -28,7 +28,7 @@ export function LandingPreview() {
           </p>
         </MotionEffect>
 
-        <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.1}>
+        <MotionEffect slide={{ direction: "up" }} fade inView delay={0.1}>
           <Card className="overflow-hidden border-input bg-linear-to-br from-primary/10 to-transparent">
             <AspectRatio ratio={16 / 6}>
               <div className="relative w-full h-full flex items-center justify-center p-8 sm:p-12 md:p-16">
@@ -36,13 +36,17 @@ export function LandingPreview() {
                   <div className="aspect-video rounded-lg bg-linear-to-br from-primary/20 to-primary/5 border-2 border-primary/30 flex items-center justify-center">
                     <div className="text-center space-y-2">
                       <IconVideo className="h-8 w-8 sm:h-12 sm:w-12 mx-auto text-primary/60" />
-                      <p className="text-xs sm:text-sm text-muted-foreground">{t("yourVideo")}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t("yourVideo")}
+                      </p>
                     </div>
                   </div>
                   <div className="aspect-video rounded-lg bg-linear-to-br from-blue-500/20 to-blue-500/5 border-2 border-blue-500/30 flex items-center justify-center">
                     <div className="text-center space-y-2">
                       <IconVideo className="h-8 w-8 sm:h-12 sm:w-12 mx-auto text-blue-500/60" />
-                      <p className="text-xs sm:text-sm text-muted-foreground">{t("peerVideo")}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {t("peerVideo")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -51,7 +55,11 @@ export function LandingPreview() {
             <div className="p-4 sm:p-5 md:p-6 bg-muted/30 border-t border-input">
               <div className="flex flex-wrap gap-2 justify-center">
                 {badges.map((label) => (
-                  <Badge key={label} variant="secondary" className="text-xs sm:text-sm">
+                  <Badge
+                    key={label}
+                    variant="secondary"
+                    className="text-xs sm:text-sm"
+                  >
                     {label}
                   </Badge>
                 ))}
@@ -60,7 +68,7 @@ export function LandingPreview() {
           </Card>
         </MotionEffect>
 
-        <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.2}>
+        <MotionEffect slide={{ direction: "up" }} fade inView delay={0.2}>
           <p className="text-center text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
             {t("footnote")}
           </p>

@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
     );
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "GET /api/resources/call-history");
+    return nextResponseFromActionError(
+      error,
+      "GET /api/resources/call-history",
+    );
   }
 }

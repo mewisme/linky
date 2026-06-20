@@ -18,6 +18,9 @@ export async function DELETE(
     const data = await removeFavorite(favorite_user_id.trim());
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "DELETE /api/resources/favorites/[favorite_user_id]");
+    return nextResponseFromActionError(
+      error,
+      "DELETE /api/resources/favorites/[favorite_user_id]",
+    );
   }
 }

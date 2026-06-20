@@ -1,10 +1,16 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 
-import { bffInternalErrorResponse, bffUnauthorizedResponse } from "@/lib/http/bff-response";
+import {
+  bffInternalErrorResponse,
+  bffUnauthorizedResponse,
+} from "@/lib/http/bff-response";
 import { coerceApiError } from "@/lib/http/api-error";
 
-export function nextResponseFromActionError(error: unknown, logLabel: string): NextResponse {
+export function nextResponseFromActionError(
+  error: unknown,
+  logLabel: string,
+): NextResponse {
   const apiError = coerceApiError(error);
   if (apiError) {
     return NextResponse.json(
@@ -22,5 +28,8 @@ export function nextResponseFromActionError(error: unknown, logLabel: string): N
   }
 
   Sentry.logger.error(logLabel, { error });
-  return bffInternalErrorResponse("unexpectedError", "An unexpected error occurred");
+  return bffInternalErrorResponse(
+    "unexpectedError",
+    "An unexpected error occurred",
+  );
 }

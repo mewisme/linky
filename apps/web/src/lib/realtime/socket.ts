@@ -2,7 +2,11 @@ import * as Sentry from "@sentry/nextjs";
 
 import type { ApiUserMessage } from "@/shared/types/api-message.types";
 
-import type { ChatErrorPayload, ChatMessagePayload, ChatTypingPayload } from "@/features/video-chat/types/chat-message.types";
+import type {
+  ChatErrorPayload,
+  ChatMessagePayload,
+  ChatTypingPayload,
+} from "@/features/video-chat/types/chat-message.types";
 import { Manager, Socket } from "socket.io-client";
 
 import type { UsersAPI } from "@/entities/user/types/users.types";
@@ -39,15 +43,17 @@ function getSocketManager(baseUrl: string): Manager {
   return manager;
 }
 
-export async function createNamespaceSockets(token?: string | null): Promise<NamespaceSockets> {
+export async function createNamespaceSockets(
+  token?: string | null,
+): Promise<NamespaceSockets> {
   const baseUrl = publicEnv.API_URL;
 
   if (chatSocket && adminSocket) {
     if (chatSocket.connected || chatSocket.active) {
-      if (token && chatSocket.auth && typeof chatSocket.auth === 'object') {
+      if (token && chatSocket.auth && typeof chatSocket.auth === "object") {
         chatSocket.auth.token = token;
       }
-      if (token && adminSocket.auth && typeof adminSocket.auth === 'object') {
+      if (token && adminSocket.auth && typeof adminSocket.auth === "object") {
         adminSocket.auth.token = token;
       }
       return { chat: chatSocket, admin: adminSocket };
@@ -69,7 +75,7 @@ export async function createNamespaceSockets(token?: string | null): Promise<Nam
       auth: { token },
     });
   } else {
-    if (token && chatSocket.auth && typeof chatSocket.auth === 'object') {
+    if (token && chatSocket.auth && typeof chatSocket.auth === "object") {
       chatSocket.auth.token = token;
     }
     if (!chatSocket.connected && !chatSocket.active) {
@@ -82,7 +88,7 @@ export async function createNamespaceSockets(token?: string | null): Promise<Nam
       auth: { token },
     });
   } else {
-    if (token && adminSocket.auth && typeof adminSocket.auth === 'object') {
+    if (token && adminSocket.auth && typeof adminSocket.auth === "object") {
       adminSocket.auth.token = token;
     }
     if (!adminSocket.connected && !adminSocket.active) {
@@ -103,7 +109,7 @@ export function updateToken(socket: Socket, token: string | null): void {
     return;
   }
 
-  if (socket.auth && typeof socket.auth === 'object') {
+  if (socket.auth && typeof socket.auth === "object") {
     socket.auth.token = token;
   } else {
     socket.auth = { token };
@@ -158,20 +164,37 @@ export interface SocketEvents {
   join: () => void;
   skip: () => void;
   disconnect: () => void;
-  "joined-queue": (data: UserFacingSocketPayload & { queueSize: number }) => void;
-  matched: (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => void;
+  "joined-queue": (
+    data: UserFacingSocketPayload & { queueSize: number },
+  ) => void;
+  matched: (data: {
+    roomId: string;
+    peerId: string;
+    socketId: string;
+    isOfferer: boolean;
+    peerInfo: UsersAPI.PublicUserInfo | null;
+    myInfo: UsersAPI.PublicUserInfo | null;
+    mediaProvider: VideoMediaProvider;
+    realtimeSessionId?: string;
+  }) => void;
   "realtime:peer-tracks": (data: RealtimePeerTracksPayload) => void;
   "chat:message": (data: ChatMessagePayload) => void;
   "chat:typing": (data: ChatTypingPayload) => void;
   "chat:error": (data: ChatErrorPayload) => void;
   "peer-left": (data: UserFacingSocketPayload) => void;
-  "peer-skipped": (data: UserFacingSocketPayload & { queueSize: number }) => void;
+  "peer-skipped": (
+    data: UserFacingSocketPayload & { queueSize: number },
+  ) => void;
   "end-call": (data: UserFacingSocketPayload) => void;
   skipped: (data: UserFacingSocketPayload & { queueSize: number }) => void;
   "video-chat:error": (data: UserFacingSocketPayload) => void;
   "queue-timeout": (data: UserFacingSocketPayload) => void;
   "user:progress:update": (data: UsersAPI.Progress.GetMe.Response) => void;
-  "user:progress:applied": (data: { roomId: string; ok: boolean; timestamp: number }) => void;
+  "user:progress:applied": (data: {
+    roomId: string;
+    ok: boolean;
+    timestamp: number;
+  }) => void;
   "level:up": (data: {
     eventKey?: string;
     leveledUserId?: string;

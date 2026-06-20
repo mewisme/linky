@@ -48,7 +48,9 @@ export class BackendRestartDetector {
       return false;
     }
 
-    if (BACKEND_RESTART_DISCONNECT_REASONS.includes(this.lastDisconnectReason)) {
+    if (
+      BACKEND_RESTART_DISCONNECT_REASONS.includes(this.lastDisconnectReason)
+    ) {
       return true;
     }
 

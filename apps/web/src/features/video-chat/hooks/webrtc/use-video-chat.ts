@@ -25,7 +25,10 @@ import { useUserContext } from "@/providers/user/user-provider";
 import { useMediaStream } from "./use-media-stream";
 import { useScreenShare } from "./use-screen-share";
 import { useSocketSignaling } from "@/features/realtime/hooks/use-socket-signaling";
-import { useVideoChatState, type ConnectionStatus } from "./use-video-chat-state";
+import {
+  useVideoChatState,
+  type ConnectionStatus,
+} from "./use-video-chat-state";
 import { useVideoChatStore } from "@/features/video-chat/model/video-chat-store";
 import { useUnloadEndCall } from "./use-unload-end-call";
 import { useSocket } from "@/features/realtime/hooks/use-socket";
@@ -33,7 +36,10 @@ import { useWebRTCMonitoring } from "./use-webrtc-monitoring";
 import { useCloudflareSfuConnection } from "./use-cloudflare-sfu-connection";
 import { useCallTabCoordination } from "../call-coordination/use-call-tab-coordination";
 
-import type { RealtimePeerTracksPayload, VideoMediaProvider } from "@/lib/realtime/socket";
+import type {
+  RealtimePeerTracksPayload,
+  VideoMediaProvider,
+} from "@/lib/realtime/socket";
 import { trackEvent } from "@/lib/telemetry/events/client";
 import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
@@ -66,8 +72,14 @@ export interface UseVideoChatReturn {
   toggleScreenShare: () => Promise<void>;
   isSharingScreen: boolean;
   isPeerSharingScreen: boolean;
-  sendFavoriteNotification: (action: "added" | "removed", peerUserId: string, userName: string) => void;
-  applyStreamQuality: (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => Promise<void>;
+  sendFavoriteNotification: (
+    action: "added" | "removed",
+    peerUserId: string,
+    userName: string,
+  ) => void;
+  applyStreamQuality: (
+    quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality,
+  ) => Promise<void>;
   error: string | null;
   clearError: () => void;
   isPassive: boolean;
@@ -80,7 +92,7 @@ export function useVideoChat(): UseVideoChatReturn {
     user: { user },
     store: { userSettings },
     authReady,
-    authLoading
+    authLoading,
   } = useUserContext();
   const { isHealthy: isSocketHealthy } = useSocket();
   const queryClient = useQueryClient();
@@ -92,7 +104,10 @@ export function useVideoChat(): UseVideoChatReturn {
   const t = useTranslations();
   const resolveUserMessage = useCallback(
     (msg: ApiUserMessage) =>
-      resolveBackendMessage(msg, t as (key: string, values?: Record<string, unknown>) => string),
+      resolveBackendMessage(
+        msg,
+        t as (key: string, values?: Record<string, unknown>) => string,
+      ),
     [t],
   );
 
@@ -109,27 +124,35 @@ export function useVideoChat(): UseVideoChatReturn {
   const isPeerSharingScreen = useVideoChatStore((s) => s.isPeerSharingScreen);
 
   const refreshUserProgress = useCallback(async () => {
-    await queryClient.refetchQueries({ queryKey: ["user-progress"], type: "active" });
+    await queryClient.refetchQueries({
+      queryKey: ["user-progress"],
+      type: "active",
+    });
   }, [queryClient]);
 
   const progressRefetchInFlightRef = useRef(false);
-  const progressRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressRetryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
-  const scheduleProgressRefetch = useCallback((retryOnFailure: boolean) => {
-    if (progressRefetchInFlightRef.current) return;
-    progressRefetchInFlightRef.current = true;
-    void refreshUserProgress().finally(() => {
-      progressRefetchInFlightRef.current = false;
-    });
-    if (!retryOnFailure) return;
-    if (progressRetryTimerRef.current) {
-      clearTimeout(progressRetryTimerRef.current);
-    }
-    progressRetryTimerRef.current = setTimeout(() => {
-      progressRetryTimerRef.current = null;
-      void refreshUserProgress();
-    }, 3000);
-  }, [refreshUserProgress]);
+  const scheduleProgressRefetch = useCallback(
+    (retryOnFailure: boolean) => {
+      if (progressRefetchInFlightRef.current) return;
+      progressRefetchInFlightRef.current = true;
+      void refreshUserProgress().finally(() => {
+        progressRefetchInFlightRef.current = false;
+      });
+      if (!retryOnFailure) return;
+      if (progressRetryTimerRef.current) {
+        clearTimeout(progressRetryTimerRef.current);
+      }
+      progressRetryTimerRef.current = setTimeout(() => {
+        progressRetryTimerRef.current = null;
+        void refreshUserProgress();
+      }, 3000);
+    },
+    [refreshUserProgress],
+  );
 
   // Backend emits `user:progress:applied` once the post-call EXP/streak
   // pipeline has finished writing to Postgres for this user. Refetch
@@ -172,7 +195,10 @@ export function useVideoChat(): UseVideoChatReturn {
       actionsRef.current.setVideoOff(false);
     },
     onSwitchApproved: () => {
-      if (state.connectionStatus === "in_call" || state.connectionStatus === "reconnecting") {
+      if (
+        state.connectionStatus === "in_call" ||
+        state.connectionStatus === "reconnecting"
+      ) {
         void start();
       }
     },
@@ -191,7 +217,8 @@ export function useVideoChat(): UseVideoChatReturn {
   const isInActiveCall = useMemo(() => {
     return (
       state.callStartedAt !== null &&
-      (state.connectionStatus === "in_call" || state.connectionStatus === "reconnecting")
+      (state.connectionStatus === "in_call" ||
+        state.connectionStatus === "reconnecting")
     );
   }, [state.callStartedAt, state.connectionStatus]);
 
@@ -206,7 +233,9 @@ export function useVideoChat(): UseVideoChatReturn {
   }, []);
 
   const isActiveCallStatus = useCallback((status: ConnectionStatus) => {
-    return status === "matched" || status === "in_call" || status === "reconnecting";
+    return (
+      status === "matched" || status === "in_call" || status === "reconnecting"
+    );
   }, []);
 
   const hasActiveCallMedia = useCallback(() => {
@@ -335,7 +364,7 @@ export function useVideoChat(): UseVideoChatReturn {
         socketSignaling.joinQueue();
       };
     },
-    [socketSignaling]
+    [socketSignaling],
   );
 
   const socketCallbacks = useMemo(
@@ -365,7 +394,8 @@ export function useVideoChat(): UseVideoChatReturn {
           currentStatus === "reconnecting";
 
         if (currentStatus === "searching") {
-          const isTransportClose = reason === "transport close" || reason === "transport error";
+          const isTransportClose =
+            reason === "transport close" || reason === "transport error";
           if (isTransportClose) {
             return;
           }
@@ -376,7 +406,9 @@ export function useVideoChat(): UseVideoChatReturn {
       },
 
       onBackendRestart: () => {
-        Sentry.logger.warn("[BackendRestart] Resetting runtime state due to backend restart");
+        Sentry.logger.warn(
+          "[BackendRestart] Resetting runtime state due to backend restart",
+        );
         const currentStatus = connectionStatusRef.current;
         const isInCall =
           currentStatus === "matched" ||
@@ -417,12 +449,23 @@ export function useVideoChat(): UseVideoChatReturn {
         resetPeerState();
       },
 
-      onJoinedQueue: (_data: UserFacingSocketPayload & { queueSize: number }) => {
+      onJoinedQueue: (
+        _data: UserFacingSocketPayload & { queueSize: number },
+      ) => {
         actionsRef.current.setConnectionStatus("searching");
         trackEvent({ name: "matchmaking_started" });
       },
 
-      onMatched: async (data: { roomId: string; peerId: string; socketId: string; isOfferer: boolean; peerInfo: UsersAPI.PublicUserInfo | null; myInfo: UsersAPI.PublicUserInfo | null; mediaProvider: VideoMediaProvider; realtimeSessionId?: string }) => {
+      onMatched: async (data: {
+        roomId: string;
+        peerId: string;
+        socketId: string;
+        isOfferer: boolean;
+        peerInfo: UsersAPI.PublicUserInfo | null;
+        myInfo: UsersAPI.PublicUserInfo | null;
+        mediaProvider: VideoMediaProvider;
+        realtimeSessionId?: string;
+      }) => {
         isReconnectingRef.current = false;
         hasShownConnectedToastRef.current = false;
 
@@ -442,17 +485,25 @@ export function useVideoChat(): UseVideoChatReturn {
         }
 
         const socketId =
-          data.socketId ?? socketSignaling.getSocket()?.id ?? socketSignaling.getSocketId();
+          data.socketId ??
+          socketSignaling.getSocket()?.id ??
+          socketSignaling.getSocketId();
         if (!socketId) {
-          console.error("[video-chat] No socketId available for SFU match", { roomId: data.roomId });
+          console.error("[video-chat] No socketId available for SFU match", {
+            roomId: data.roomId,
+          });
           Sentry.logger.error("No socketId available for SFU match");
           actionsRef.current.setError(t("call.failedEstablishConnection"));
           return;
         }
-        socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
+        socketSignaling.sendVideoToggle(
+          useVideoChatStore.getState().isVideoOff,
+        );
 
         if (e2eRelaxedCallRef.current) {
-          actionsRef.current.setRemoteStream(createSyntheticRemoteStream(localStream));
+          actionsRef.current.setRemoteStream(
+            createSyntheticRemoteStream(localStream),
+          );
           transportReadyRef.current = true;
           hasEnteredInCallRef.current = true;
           actionsRef.current.setCallStartedAt(Date.now());
@@ -485,7 +536,10 @@ export function useVideoChat(): UseVideoChatReturn {
                   } else {
                     tryEnterInCall();
                   }
-                } else if (connectionState === "failed" || connectionState === "disconnected") {
+                } else if (
+                  connectionState === "failed" ||
+                  connectionState === "disconnected"
+                ) {
                   actionsRef.current.setConnectionStatus("reconnecting");
                   hasShownConnectedToastRef.current = false;
                   startReconnecting();
@@ -509,7 +563,8 @@ export function useVideoChat(): UseVideoChatReturn {
               },
             },
             {
-              isRemoteVideoExpected: () => useVideoChatStore.getState().remoteCameraEnabled,
+              isRemoteVideoExpected: () =>
+                useVideoChatStore.getState().remoteCameraEnabled,
             },
             callPrefs.quality,
           );
@@ -543,7 +598,9 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       },
 
-      onPeerSkipped: (data: UserFacingSocketPayload & { queueSize: number }) => {
+      onPeerSkipped: (
+        data: UserFacingSocketPayload & { queueSize: number },
+      ) => {
         monitoring.stopMonitoring();
         void sfuConnection.cleanup();
         actionsRef.current.setConnectionStatus("searching");
@@ -664,19 +721,27 @@ export function useVideoChat(): UseVideoChatReturn {
         toast.error(t("call.errorToast", { message: text }));
       },
 
-      onFavoriteAdded: (data: { from_user_id: string; from_user_name: string }) => {
-        toast.success(t("call.addedToFavorites", { name: data.from_user_name }));
+      onFavoriteAdded: (data: {
+        from_user_id: string;
+        from_user_name: string;
+      }) => {
+        toast.success(
+          t("call.addedToFavorites", { name: data.from_user_name }),
+        );
       },
 
-      onFavoriteAddedSelf: () => {
+      onFavoriteAddedSelf: () => {},
+
+      onFavoriteRemoved: (data: {
+        from_user_id: string;
+        from_user_name: string;
+      }) => {
+        toast.info(
+          t("call.removedFromFavorites", { name: data.from_user_name }),
+        );
       },
 
-      onFavoriteRemoved: (data: { from_user_id: string; from_user_name: string }) => {
-        toast.info(t("call.removedFromFavorites", { name: data.from_user_name }));
-      },
-
-      onFavoriteRemovedSelf: () => {
-      },
+      onFavoriteRemovedSelf: () => {},
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -697,7 +762,7 @@ export function useVideoChat(): UseVideoChatReturn {
       hasActiveCallMedia,
       tryEnterInCall,
       resetCallEntryGate,
-    ]
+    ],
   );
 
   const start = useCallback(async () => {
@@ -740,7 +805,11 @@ export function useVideoChat(): UseVideoChatReturn {
       actionsRef.current.setMuted(initialMuted);
       actionsRef.current.setVideoOff(initialVideoOff);
 
-      const stream = await mediaStream.acquireMedia(initialMuted, initialVideoOff, callPrefs.quality);
+      const stream = await mediaStream.acquireMedia(
+        initialMuted,
+        initialVideoOff,
+        callPrefs.quality,
+      );
 
       if (!mediaStream.hasCamera()) {
         actionsRef.current.setVideoOff(true);
@@ -748,10 +817,14 @@ export function useVideoChat(): UseVideoChatReturn {
 
       actionsRef.current.setLocalStream(stream);
 
-      const initialize = initializeConnectionRef(socketCallbacks as Record<string, (...args: unknown[]) => void>);
+      const initialize = initializeConnectionRef(
+        socketCallbacks as Record<string, (...args: unknown[]) => void>,
+      );
       await initialize();
     } catch (err) {
-      Sentry.logger.error("Error starting video chat", { error: err instanceof Error ? err.message : "Unknown error" });
+      Sentry.logger.error("Error starting video chat", {
+        error: err instanceof Error ? err.message : "Unknown error",
+      });
       const message = resolveActionErrorMessage(err, t, "call.failedToStart");
       actionsRef.current.setConnectionStatus("idle");
       tabCoordination.releaseOwnership();
@@ -806,7 +879,7 @@ export function useVideoChat(): UseVideoChatReturn {
         state.connectionStatus === "matched" ||
         state.connectionStatus === "in_call" ||
         state.connectionStatus === "reconnecting",
-    }
+    },
   );
 
   const toggleMute = useCallback(() => {
@@ -838,7 +911,9 @@ export function useVideoChat(): UseVideoChatReturn {
       try {
         await sender.replaceTrack(nextTrack);
       } catch (err) {
-        Sentry.logger.warn("Failed to replace video track on SFU sender", { error: err });
+        Sentry.logger.warn("Failed to replace video track on SFU sender", {
+          error: err,
+        });
       }
     }
   }, [mediaStream, sfuConnection]);
@@ -875,14 +950,16 @@ export function useVideoChat(): UseVideoChatReturn {
         draft.type === "text" && messageText
           ? splitMessageText(messageText)
           : [messageText];
-      const payloads: ChatMessageInputPayload[] = messageParts.map((part, index) => ({
-        id: createMessageId(),
-        type: draft.type,
-        message: part,
-        attachment: draft.attachment || null,
-        metadata: draft.metadata || null,
-        timestamp: baseTimestamp + index,
-      }));
+      const payloads: ChatMessageInputPayload[] = messageParts.map(
+        (part, index) => ({
+          id: createMessageId(),
+          type: draft.type,
+          message: part,
+          attachment: draft.attachment || null,
+          metadata: draft.metadata || null,
+          timestamp: baseTimestamp + index,
+        }),
+      );
 
       for (const payload of payloads) {
         const localMessage: ChatMessage = {
@@ -904,7 +981,10 @@ export function useVideoChat(): UseVideoChatReturn {
         actionsRef.current.addChatMessage(localMessage);
       }
 
-      trackEvent({ name: draft.type === "text" ? "chat_message_sent" : "chat_attachment_sent" });
+      trackEvent({
+        name:
+          draft.type === "text" ? "chat_message_sent" : "chat_attachment_sent",
+      });
 
       void (async () => {
         for (const payload of payloads) {
@@ -928,14 +1008,14 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       })();
     },
-    [socketSignaling, user, createMessageId, splitMessageText]
+    [socketSignaling, user, createMessageId, splitMessageText],
   );
 
   const sendTyping = useCallback(
     (isTyping: boolean) => {
       socketSignaling.sendChatTyping(isTyping);
     },
-    [socketSignaling]
+    [socketSignaling],
   );
 
   const clearError = useCallback(() => {
@@ -973,7 +1053,10 @@ export function useVideoChat(): UseVideoChatReturn {
           try {
             await replaceSenderVideoTrack(cameraTrack);
           } catch (err) {
-            Sentry.logger.error("Failed to swap camera track back after screen share", { error: err });
+            Sentry.logger.error(
+              "Failed to swap camera track back after screen share",
+              { error: err },
+            );
           }
         }
       }
@@ -1009,7 +1092,8 @@ export function useVideoChat(): UseVideoChatReturn {
         }
       } catch (error) {
         actionsRef.current.setSharingScreen(false);
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
         if (errorMessage !== "Screen sharing cancelled or failed") {
           toast.error(t("call.screenShareFailed"));
         }
@@ -1030,11 +1114,13 @@ export function useVideoChat(): UseVideoChatReturn {
     () => socketSignaling.sendEndCall(),
     socketSignaling.getSocketId(),
     socketSignaling.socketRef,
-    () => tabCoordination.releaseOwnership()
+    () => tabCoordination.releaseOwnership(),
   );
 
   const applyStreamQuality = useCallback(
-    async (quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality) => {
+    async (
+      quality: import("@/entities/user/lib/user-settings-preferences").StreamVideoQuality,
+    ) => {
       await monitoring.applyStreamQuality(quality);
       await mediaStream.setQuality(quality);
     },

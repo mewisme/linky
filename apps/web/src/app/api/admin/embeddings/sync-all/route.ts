@@ -8,6 +8,9 @@ export async function POST() {
     const data = await syncAllEmbeddings();
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/embeddings/sync-all");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/embeddings/sync-all",
+    );
   }
 }

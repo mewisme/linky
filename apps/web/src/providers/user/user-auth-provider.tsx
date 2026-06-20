@@ -1,7 +1,14 @@
 "use client";
 
 import { useAuth, useUser } from "@clerk/nextjs";
-import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 
 type UserAuthContextValue = {
   auth: ReturnType<typeof useAuth>;
@@ -20,27 +27,34 @@ export function UserAuthProvider({ children }: { children: ReactNode }) {
 
   const getClerkToken = useCallback((options?: { skipCache?: boolean }) => {
     const skipCache = options?.skipCache ?? false;
-    return authRef.current.getToken({
-      template: "client",
-      skipCache,
-    }).then((token) => {
-      if (token) return token;
-      return authRef.current.getToken({ skipCache });
-    });
+    return authRef.current
+      .getToken({
+        template: "client",
+        skipCache,
+      })
+      .then((token) => {
+        if (token) return token;
+        return authRef.current.getToken({ skipCache });
+      });
   }, []);
 
   const value = useMemo<UserAuthContextValue>(() => {
     return { auth, user, getClerkToken };
   }, [auth, getClerkToken, user]);
 
-  return <UserAuthContext.Provider value={value}>{children}</UserAuthContext.Provider>;
+  return (
+    <UserAuthContext.Provider value={value}>
+      {children}
+    </UserAuthContext.Provider>
+  );
 }
 
 export function useUserAuthContext() {
   const context = useContext(UserAuthContext);
   if (!context) {
-    throw new Error("useUserAuthContext must be used within a UserAuthProvider");
+    throw new Error(
+      "useUserAuthContext must be used within a UserAuthProvider",
+    );
   }
   return context;
 }
-

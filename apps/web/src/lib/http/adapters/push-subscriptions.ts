@@ -4,7 +4,7 @@ import { deleteData, fetchData, postData } from "@/lib/http/client-api";
 
 export async function subscribeToPush(
   subscription: PushSubscriptionJSON,
-  token: string
+  token: string,
 ): Promise<void> {
   return postData<void>(apiUrl.push.subscribe(), {
     token,
@@ -19,7 +19,7 @@ export async function subscribeToPush(
 
 export async function unsubscribeFromPush(
   endpoint: string,
-  token: string
+  token: string,
 ): Promise<void> {
   return deleteData<void>(apiUrl.push.unsubscribe(), {
     token,
@@ -27,9 +27,11 @@ export async function unsubscribeFromPush(
   });
 }
 
-export async function getVapidPublicKey(token?: string): Promise<VapidPublicKeyResponse> {
+export async function getVapidPublicKey(
+  token?: string,
+): Promise<VapidPublicKeyResponse> {
   return fetchData<VapidPublicKeyResponse>(
     apiUrl.push.vapidPublicKey(),
-    token ? { token } : {}
+    token ? { token } : {},
   );
 }

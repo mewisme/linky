@@ -1,9 +1,25 @@
 "use client";
 
 import { Alert, AlertDescription } from "@ws/ui/components/ui/alert";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ws/ui/components/ui/collapsible";
-import { IconAlertCircle, IconChevronDown, IconLock, IconShieldCheck, IconUserX } from "@tabler/icons-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ws/ui/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@ws/ui/components/ui/collapsible";
+import {
+  IconAlertCircle,
+  IconChevronDown,
+  IconLock,
+  IconShieldCheck,
+  IconUserX,
+} from "@tabler/icons-react";
 
 import { MotionEffect } from "@/shared/ui/effects/motion-effect";
 import { useTranslations } from "next-intl";
@@ -22,7 +38,7 @@ export function LandingSafety() {
     <section className="w-full py-12 sm:py-16 md:py-20">
       <div className="space-y-8 sm:space-y-10 md:space-y-12">
         <MotionEffect
-          slide={{ direction: 'up' }}
+          slide={{ direction: "up" }}
           fade
           inView
           className="text-center space-y-3 sm:space-y-4"
@@ -35,7 +51,7 @@ export function LandingSafety() {
           </p>
         </MotionEffect>
 
-        <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.1}>
+        <MotionEffect slide={{ direction: "up" }} fade inView delay={0.1}>
           <Alert className="border-blue-500/50 bg-blue-500/5">
             <IconAlertCircle className="h-4 w-4 text-blue-500" />
             <AlertDescription className="text-sm sm:text-base">
@@ -51,7 +67,7 @@ export function LandingSafety() {
             return (
               <MotionEffect
                 key={feature.title}
-                slide={{ direction: 'up' }}
+                slide={{ direction: "up" }}
                 fade
                 inView
                 delay={0.15 + 0.1 * index}
@@ -76,20 +92,23 @@ export function LandingSafety() {
           })}
         </div>
 
-        <MotionEffect slide={{ direction: 'up' }} fade inView delay={0.45}>
+        <MotionEffect slide={{ direction: "up" }} fade inView delay={0.45}>
           <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
             <Card className="border-input bg-linear-to-br from-primary/5 to-transparent">
               <CardHeader>
                 <CollapsibleTrigger className="flex items-center justify-between w-full hover:opacity-80 transition-opacity">
                   <div className="text-left">
-                    <CardTitle className="text-base sm:text-lg">{t("detailsTitle")}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">
+                      {t("detailsTitle")}
+                    </CardTitle>
                     <CardDescription className="text-sm">
                       {t("detailsDescription")}
                     </CardDescription>
                   </div>
                   <IconChevronDown
-                    className={`h-5 w-5 text-muted-foreground transition-transform ${detailsOpen ? "rotate-180" : ""
-                      }`}
+                    className={`h-5 w-5 text-muted-foreground transition-transform ${
+                      detailsOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </CollapsibleTrigger>
               </CardHeader>
@@ -104,7 +123,9 @@ export function LandingSafety() {
                     </ul>
                   </div>
                   <div>
-                    <strong className="text-foreground">{t("whatWeDont")}</strong>
+                    <strong className="text-foreground">
+                      {t("whatWeDont")}
+                    </strong>
                     <ul className="list-disc list-inside mt-2 space-y-1">
                       {whatWeDontList.map((line) => (
                         <li key={line}>{line}</li>

@@ -17,6 +17,6 @@ export type BroadcastFormInstance = UseFormReturn<BroadcastFormValues>;
 
 export type SelectedAiDraft =
   | (AdminAPI.Broadcasts.AiBroadcastDraftPrimary & {
-    tone?: AdminAPI.Broadcasts.AiBroadcastTone;
-  })
+      tone?: AdminAPI.Broadcasts.AiBroadcastTone;
+    })
   | null;

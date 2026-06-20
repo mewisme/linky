@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-import { updateClerkAdminUser } from '@/features/admin/api/clerk-users';
-import type { AdminAPI } from '@/features/admin/types/admin.types';
-import { nextResponseFromActionError } from '@/lib/http/action-route-response';
+import { updateClerkAdminUser } from "@/features/admin/api/clerk-users";
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { nextResponseFromActionError } from "@/lib/http/action-route-response";
 
 export async function PUT(
   request: NextRequest,
@@ -14,6 +14,9 @@ export async function PUT(
     const data = await updateClerkAdminUser(id, body);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, 'PUT /api/admin/users/clerk/[id]');
+    return nextResponseFromActionError(
+      error,
+      "PUT /api/admin/users/clerk/[id]",
+    );
   }
 }

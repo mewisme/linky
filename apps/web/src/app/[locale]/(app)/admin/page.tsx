@@ -3,9 +3,18 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 
-import { useMenuItems, type MenuItem } from "@/shared/ui/layouts/sidebar/menu-items";
+import {
+  useMenuItems,
+  type MenuItem,
+} from "@/shared/ui/layouts/sidebar/menu-items";
 import { AppLayout } from "@/shared/ui/layouts/app-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ws/ui/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ws/ui/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@ws/ui/lib/utils";
 import { useUserStore } from "@/entities/user/model/user-store";
@@ -17,7 +26,8 @@ export default function AdminPage() {
   const menuItems = useMenuItems();
 
   const adminMenuItems = useMemo(() => {
-    const subItems = menuItems.find((item) => item.id === "adminPanel")?.subItems ?? [];
+    const subItems =
+      menuItems.find((item) => item.id === "adminPanel")?.subItems ?? [];
     return subItems.filter((sub) => {
       if (sub.isSuperAdminOnly && !isSuperAdmin(userStore?.role)) return false;
       return true;

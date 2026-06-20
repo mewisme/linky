@@ -49,7 +49,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 
 export async function subscribeToPushNotifications(
   registration: ServiceWorkerRegistration,
-  publicKey: string
+  publicKey: string,
 ): Promise<PushSubscription> {
   const keyArray = urlBase64ToUint8Array(publicKey);
   const subscription = await registration.pushManager.subscribe({
@@ -61,7 +61,7 @@ export async function subscribeToPushNotifications(
 }
 
 export async function unsubscribeFromPushNotifications(
-  subscription: PushSubscription
+  subscription: PushSubscription,
 ): Promise<void> {
   await subscription.unsubscribe();
 }

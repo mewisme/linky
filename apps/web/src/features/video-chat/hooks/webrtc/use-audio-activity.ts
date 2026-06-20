@@ -39,7 +39,9 @@ export function useAudioActivity(stream: MediaStream | null): boolean {
       source.connect(analyser);
 
       const bufferLength = analyser.frequencyBinCount;
-      const dataArray: Uint8Array<ArrayBuffer> = new Uint8Array(bufferLength) as Uint8Array<ArrayBuffer>;
+      const dataArray: Uint8Array<ArrayBuffer> = new Uint8Array(
+        bufferLength,
+      ) as Uint8Array<ArrayBuffer>;
 
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;

@@ -1,6 +1,11 @@
 "use client";
 
-import { IconHeart, IconSparkles, IconTrophy, IconUserCheck } from "@tabler/icons-react";
+import {
+  IconHeart,
+  IconSparkles,
+  IconTrophy,
+  IconUserCheck,
+} from "@tabler/icons-react";
 
 import { Card } from "@ws/ui/components/ui/card";
 import { MotionEffect } from "@/shared/ui/effects/motion-effect";
@@ -16,7 +21,7 @@ export function LandingDifferentiation() {
     <section className="w-full py-12 sm:py-16 md:py-20">
       <div className="space-y-8 sm:space-y-10 md:space-y-12">
         <MotionEffect
-          slide={{ direction: 'up' }}
+          slide={{ direction: "up" }}
           fade
           inView
           className="text-center space-y-3 sm:space-y-4"
@@ -36,7 +41,7 @@ export function LandingDifferentiation() {
             return (
               <MotionEffect
                 key={feature.title}
-                slide={{ direction: 'up' }}
+                slide={{ direction: "up" }}
                 fade
                 inView
                 delay={0.1 * index}

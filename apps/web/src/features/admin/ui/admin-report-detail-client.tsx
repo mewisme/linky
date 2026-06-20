@@ -1,64 +1,95 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@ws/ui/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ws/ui/components/ui/select'
-import { useEffect, useMemo, useState } from 'react'
-import { useMutation, useQueryClient } from '@ws/ui/internal-lib/react-query'
-import { useRouter } from '@/i18n/navigation'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ws/ui/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ws/ui/components/ui/select";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQueryClient } from "@ws/ui/internal-lib/react-query";
+import { useRouter } from "@/i18n/navigation";
 
-import type { AdminAPI } from '@/features/admin/types/admin.types'
-import { AppLayout } from '@/shared/ui/layouts/app-layout'
-import { Avatar, AvatarFallback, AvatarImage } from '@ws/ui/components/ui/avatar'
-import { Badge } from '@ws/ui/components/ui/badge'
-import { Button } from '@ws/ui/components/ui/button'
-import { Label } from '@ws/ui/components/ui/label'
-import { Separator } from '@ws/ui/components/ui/separator'
-import { Textarea } from '@ws/ui/components/ui/textarea'
-import { formatDuration } from '@/entities/call-history/utils/call-history'
-import { toast } from '@ws/ui/components/ui/sonner'
-import { useLocale, useTranslations } from 'next-intl'
-import { fetchFromActionRoute } from '@/shared/lib/fetch-action-route'
-import { resolveActionErrorMessage } from '@/shared/lib/i18n/resolve-action-error-message'
-import { useSoundWithSettings } from '@/shared/hooks/audio/use-sound-with-settings'
+import type { AdminAPI } from "@/features/admin/types/admin.types";
+import { AppLayout } from "@/shared/ui/layouts/app-layout";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@ws/ui/components/ui/avatar";
+import { Badge } from "@ws/ui/components/ui/badge";
+import { Button } from "@ws/ui/components/ui/button";
+import { Label } from "@ws/ui/components/ui/label";
+import { Separator } from "@ws/ui/components/ui/separator";
+import { Textarea } from "@ws/ui/components/ui/textarea";
+import { formatDuration } from "@/entities/call-history/utils/call-history";
+import { toast } from "@ws/ui/components/ui/sonner";
+import { useLocale, useTranslations } from "next-intl";
+import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
+import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
+import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settings";
 
 const DATE_FMT: Intl.DateTimeFormatOptions = {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-}
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+};
 
 const getStatusBadgeVariant = (status: AdminAPI.Reports.ReportStatus) => {
   switch (status) {
-    case 'pending': return 'secondary'
-    case 'reviewed': return 'default'
-    case 'resolved': return 'outline'
-    case 'dismissed': return 'outline'
-    default: return 'secondary'
+    case "pending":
+      return "secondary";
+    case "reviewed":
+      return "default";
+    case "resolved":
+      return "outline";
+    case "dismissed":
+      return "outline";
+    default:
+      return "secondary";
   }
-}
+};
 
 const getStatusColor = (status: AdminAPI.Reports.ReportStatus) => {
   switch (status) {
-    case 'pending': return 'text-amber-600 dark:text-amber-400'
-    case 'reviewed': return 'text-blue-600 dark:text-blue-400'
-    case 'resolved': return 'text-green-600 dark:text-green-400'
-    case 'dismissed': return 'text-muted-foreground'
-    default: return 'text-muted-foreground'
+    case "pending":
+      return "text-amber-600 dark:text-amber-400";
+    case "reviewed":
+      return "text-blue-600 dark:text-blue-400";
+    case "resolved":
+      return "text-green-600 dark:text-green-400";
+    case "dismissed":
+      return "text-muted-foreground";
+    default:
+      return "text-muted-foreground";
   }
-}
+};
 
 function reportStatusLabel(
   status: AdminAPI.Reports.ReportStatus,
   t: (key: string) => string,
 ) {
   switch (status) {
-    case 'pending': return t('reportDetail.statusPending')
-    case 'reviewed': return t('reportDetail.statusReviewed')
-    case 'resolved': return t('reportDetail.statusResolved')
-    case 'dismissed': return t('reportDetail.statusDismissed')
-    default: return status
+    case "pending":
+      return t("reportDetail.statusPending");
+    case "reviewed":
+      return t("reportDetail.statusReviewed");
+    case "resolved":
+      return t("reportDetail.statusResolved");
+    case "dismissed":
+      return t("reportDetail.statusDismissed");
+    default:
+      return status;
   }
 }
 
@@ -71,21 +102,32 @@ interface UserBlockProps {
   fallback: string;
 }
 
-function UserBlock({ firstName, lastName, avatarUrl, email, userId, fallback }: UserBlockProps) {
-  const name = `${firstName || ''} ${lastName || ''}`.trim() || fallback;
+function UserBlock({
+  firstName,
+  lastName,
+  avatarUrl,
+  email,
+  userId,
+  fallback,
+}: UserBlockProps) {
+  const name = `${firstName || ""} ${lastName || ""}`.trim() || fallback;
   return (
     <div className="flex items-center gap-3 mt-1 min-w-0">
       <Avatar className="h-9 w-9 shrink-0">
-        <AvatarImage src={avatarUrl || ''} alt={name} />
+        <AvatarImage src={avatarUrl || ""} alt={name} />
         <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="flex flex-col min-w-0">
         <span className="font-medium text-sm truncate">{name}</span>
         {email ? (
-          <span className="text-xs text-muted-foreground truncate">{email}</span>
+          <span className="text-xs text-muted-foreground truncate">
+            {email}
+          </span>
         ) : null}
         {userId ? (
-          <span className="text-xs text-muted-foreground font-mono truncate">{userId}</span>
+          <span className="text-xs text-muted-foreground font-mono truncate">
+            {userId}
+          </span>
         ) : null}
       </div>
     </div>
@@ -93,109 +135,129 @@ function UserBlock({ firstName, lastName, avatarUrl, email, userId, fallback }: 
 }
 
 interface Props {
-  report: AdminAPI.Reports.GetById.Response
+  report: AdminAPI.Reports.GetById.Response;
 }
 
 export function AdminReportDetailClient({ report }: Props) {
-  const t = useTranslations('admin')
-  const tRoot = useTranslations()
-  const tc = useTranslations('common')
-  const locale = useLocale()
-  const { play: playSound } = useSoundWithSettings()
-  const router = useRouter()
-  const queryClient = useQueryClient()
+  const t = useTranslations("admin");
+  const tRoot = useTranslations();
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const { play: playSound } = useSoundWithSettings();
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const [status, setStatus] = useState<AdminAPI.Reports.ReportStatus>(report.status)
-  const [adminNotes, setAdminNotes] = useState<string>(report.admin_notes || '')
+  const [status, setStatus] = useState<AdminAPI.Reports.ReportStatus>(
+    report.status,
+  );
+  const [adminNotes, setAdminNotes] = useState<string>(
+    report.admin_notes || "",
+  );
 
   useEffect(() => {
-    setStatus(report.status)
-    setAdminNotes(report.admin_notes || '')
-  }, [report])
+    setStatus(report.status);
+    setAdminNotes(report.admin_notes || "");
+  }, [report]);
 
   const updateMutation = useMutation({
     mutationFn: (body: AdminAPI.Reports.Update.Body) =>
       fetchFromActionRoute<AdminAPI.Reports.Update.Response>(
         `/api/admin/reports/${encodeURIComponent(report.id)}`,
         {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         },
       ),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['admin-report', report.id] })
-      await queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
-      playSound('success')
-      toast.success(t('reportUpdated'))
+      await queryClient.invalidateQueries({
+        queryKey: ["admin-report", report.id],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
+      playSound("success");
+      toast.success(t("reportUpdated"));
     },
     onError: (error) => {
-      toast.error(resolveActionErrorMessage(error, tRoot, 'admin.reportUpdateFailed'))
-    }
-  })
+      toast.error(
+        resolveActionErrorMessage(error, tRoot, "admin.reportUpdateFailed"),
+      );
+    },
+  });
 
   const generateAiMutation = useMutation({
     mutationFn: () =>
       fetchFromActionRoute<{ queued: true }>(
         `/api/admin/reports/${encodeURIComponent(report.id)}/ai-summary`,
-        { method: 'POST' },
+        { method: "POST" },
       ),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['admin-report', report.id] })
-      await queryClient.invalidateQueries({ queryKey: ['admin-reports'] })
-      toast.success(t('aiSummaryStarted'))
-      router.refresh()
+      await queryClient.invalidateQueries({
+        queryKey: ["admin-report", report.id],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["admin-reports"] });
+      toast.success(t("aiSummaryStarted"));
+      router.refresh();
     },
     onError: (error) => {
-      toast.error(resolveActionErrorMessage(error, tRoot, 'admin.aiSummaryFailed'))
-    }
-  })
+      toast.error(
+        resolveActionErrorMessage(error, tRoot, "admin.aiSummaryFailed"),
+      );
+    },
+  });
 
   const handleSave = () => {
-    updateMutation.mutate({ status, admin_notes: adminNotes || null })
-  }
+    updateMutation.mutate({ status, admin_notes: adminNotes || null });
+  };
 
-  const context = report.context
-  const ai = report.ai_summary
+  const context = report.context;
+  const ai = report.ai_summary;
 
   const shouldPollAi = useMemo(() => {
-    return ai?.status === 'pending'
-  }, [ai?.status])
+    return ai?.status === "pending";
+  }, [ai?.status]);
 
   useEffect(() => {
-    if (!shouldPollAi) return
+    if (!shouldPollAi) return;
 
-    let active = true
-    let attempts = 0
-    const maxAttempts = 20
-    const intervalMs = 1500
+    let active = true;
+    let attempts = 0;
+    const maxAttempts = 20;
+    const intervalMs = 1500;
 
     const tick = () => {
-      if (!active) return
-      attempts += 1
-      router.refresh()
-      if (attempts >= maxAttempts) return
-      setTimeout(tick, intervalMs)
-    }
+      if (!active) return;
+      attempts += 1;
+      router.refresh();
+      if (attempts >= maxAttempts) return;
+      setTimeout(tick, intervalMs);
+    };
 
-    const pollTimer = setTimeout(tick, intervalMs)
+    const pollTimer = setTimeout(tick, intervalMs);
     return () => {
-      active = false
-      clearTimeout(pollTimer)
-    }
-  }, [router, shouldPollAi])
+      active = false;
+      clearTimeout(pollTimer);
+    };
+  }, [router, shouldPollAi]);
 
-  const fmtDate = (iso: string) => new Date(iso).toLocaleString(locale, DATE_FMT)
+  const fmtDate = (iso: string) =>
+    new Date(iso).toLocaleString(locale, DATE_FMT);
 
   return (
-    <AppLayout label={t('reportDetailTitle')} description={t('reportDetailDescription')} backButton className="space-y-4">
+    <AppLayout
+      label={t("reportDetailTitle")}
+      description={t("reportDetailDescription")}
+      backButton
+      className="space-y-4"
+    >
       <div className="space-y-6">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between gap-3">
               <div>
-                <CardTitle>{t('reportDetail.aiSummaryTitle')}</CardTitle>
-                <CardDescription>{t('reportDetail.aiSummaryDescription')}</CardDescription>
+                <CardTitle>{t("reportDetail.aiSummaryTitle")}</CardTitle>
+                <CardDescription>
+                  {t("reportDetail.aiSummaryDescription")}
+                </CardDescription>
               </div>
               <Button
                 variant="outline"
@@ -203,37 +265,54 @@ export function AdminReportDetailClient({ report }: Props) {
                 onClick={() => generateAiMutation.mutate()}
                 disabled={generateAiMutation.isPending}
               >
-                {generateAiMutation.isPending ? t('reportDetail.starting') : t('reportDetail.regenerate')}
+                {generateAiMutation.isPending
+                  ? t("reportDetail.starting")
+                  : t("reportDetail.regenerate")}
               </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
             {!ai && (
               <div className="text-sm text-muted-foreground">
-                {t('reportDetail.noAiSummary')}
+                {t("reportDetail.noAiSummary")}
               </div>
             )}
-            {ai && ai.status !== 'ready' && (
+            {ai && ai.status !== "ready" && (
               <div className="text-sm text-muted-foreground">
-                {t('reportDetail.statusLabel')} <span className="font-mono">{ai.status}</span>
-                {ai.status === 'failed' && ai.error_message ? (
-                  <div className="mt-2 text-destructive">{ai.error_message}</div>
+                {t("reportDetail.statusLabel")}{" "}
+                <span className="font-mono">{ai.status}</span>
+                {ai.status === "failed" && ai.error_message ? (
+                  <div className="mt-2 text-destructive">
+                    {ai.error_message}
+                  </div>
                 ) : null}
               </div>
             )}
-            {ai && ai.status === 'ready' && (
+            {ai && ai.status === "ready" && (
               <div className="space-y-3">
                 <div>
-                  <Label className="text-muted-foreground">{t('reportDetail.severity')}</Label>
-                  <div className="mt-1 text-sm bg-muted p-2 rounded-md">{ai.severity ?? t('reportDetail.unknown')}</div>
+                  <Label className="text-muted-foreground">
+                    {t("reportDetail.severity")}
+                  </Label>
+                  <div className="mt-1 text-sm bg-muted p-2 rounded-md">
+                    {ai.severity ?? t("reportDetail.unknown")}
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">{t('reportDetail.summary')}</Label>
-                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">{ai.summary}</div>
+                  <Label className="text-muted-foreground">
+                    {t("reportDetail.summary")}
+                  </Label>
+                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">
+                    {ai.summary}
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">{t('reportDetail.suggestedAction')}</Label>
-                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">{ai.suggested_action}</div>
+                  <Label className="text-muted-foreground">
+                    {t("reportDetail.suggestedAction")}
+                  </Label>
+                  <div className="mt-2 p-3 bg-muted rounded-md text-sm">
+                    {ai.suggested_action}
+                  </div>
                 </div>
               </div>
             )}
@@ -244,65 +323,82 @@ export function AdminReportDetailClient({ report }: Props) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>{t('reportDetail.reportInfoTitle')}</CardTitle>
-                <CardDescription>{t('reportDetail.reportIdLabel')} <span className="font-mono text-xs">{report.id}</span></CardDescription>
+                <CardTitle>{t("reportDetail.reportInfoTitle")}</CardTitle>
+                <CardDescription>
+                  {t("reportDetail.reportIdLabel")}{" "}
+                  <span className="font-mono text-xs">{report.id}</span>
+                </CardDescription>
               </div>
-              <Badge variant={getStatusBadgeVariant(report.status)} className={getStatusColor(report.status)}>
-                {reportStatusLabel(report.status, t as unknown as (key: string) => string)}
+              <Badge
+                variant={getStatusBadgeVariant(report.status)}
+                className={getStatusColor(report.status)}
+              >
+                {reportStatusLabel(
+                  report.status,
+                  t as unknown as (key: string) => string,
+                )}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-muted-foreground">{t('reportDetail.reporterUserId')}</Label>
+                <Label className="text-muted-foreground">
+                  {t("reportDetail.reporterUserId")}
+                </Label>
                 <UserBlock
                   firstName={report.reporter_first_name}
                   lastName={report.reporter_last_name}
                   avatarUrl={report.reporter_avatar_url}
                   email={report.reporter_email}
                   userId={report.reporter_user_id}
-                  fallback={tc('unknownUser')}
+                  fallback={tc("unknownUser")}
                 />
               </div>
               <div>
-                <Label className="text-muted-foreground">{t('reportDetail.reportedUserId')}</Label>
+                <Label className="text-muted-foreground">
+                  {t("reportDetail.reportedUserId")}
+                </Label>
                 <UserBlock
                   firstName={report.reported_first_name}
                   lastName={report.reported_last_name}
                   avatarUrl={report.reported_avatar_url}
                   email={report.reported_email}
                   userId={report.reported_user_id}
-                  fallback={tc('unknownUser')}
+                  fallback={tc("unknownUser")}
                 />
               </div>
               <div>
-                <Label className="text-muted-foreground">{t('reportDetail.createdAt')}</Label>
-                <div className="text-sm mt-1">
-                  {fmtDate(report.created_at)}
-                </div>
+                <Label className="text-muted-foreground">
+                  {t("reportDetail.createdAt")}
+                </Label>
+                <div className="text-sm mt-1">{fmtDate(report.created_at)}</div>
               </div>
               <div>
-                <Label className="text-muted-foreground">{t('reportDetail.updatedAt')}</Label>
-                <div className="text-sm mt-1">
-                  {fmtDate(report.updated_at)}
-                </div>
+                <Label className="text-muted-foreground">
+                  {t("reportDetail.updatedAt")}
+                </Label>
+                <div className="text-sm mt-1">{fmtDate(report.updated_at)}</div>
               </div>
               {report.reviewed_by && (
                 <div>
-                  <Label className="text-muted-foreground">{t('reportDetail.reviewedBy')}</Label>
+                  <Label className="text-muted-foreground">
+                    {t("reportDetail.reviewedBy")}
+                  </Label>
                   <UserBlock
                     firstName={report.reviewed_by_first_name}
                     lastName={report.reviewed_by_last_name}
                     avatarUrl={report.reviewed_by_avatar_url}
                     userId={report.reviewed_by}
-                    fallback={tc('unknownUser')}
+                    fallback={tc("unknownUser")}
                   />
                 </div>
               )}
               {report.reviewed_at && (
                 <div>
-                  <Label className="text-muted-foreground">{t('reportDetail.reviewedAt')}</Label>
+                  <Label className="text-muted-foreground">
+                    {t("reportDetail.reviewedAt")}
+                  </Label>
                   <div className="text-sm mt-1">
                     {fmtDate(report.reviewed_at)}
                   </div>
@@ -311,8 +407,12 @@ export function AdminReportDetailClient({ report }: Props) {
             </div>
             <Separator />
             <div>
-              <Label className="text-muted-foreground">{t('reportDetail.reason')}</Label>
-              <div className="mt-2 p-3 bg-muted rounded-md text-sm">{report.reason}</div>
+              <Label className="text-muted-foreground">
+                {t("reportDetail.reason")}
+              </Label>
+              <div className="mt-2 p-3 bg-muted rounded-md text-sm">
+                {report.reason}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -320,50 +420,72 @@ export function AdminReportDetailClient({ report }: Props) {
         {context && (
           <Card>
             <CardHeader>
-              <CardTitle>{t('reportDetail.contextSnapshotTitle')}</CardTitle>
-              <CardDescription>{t('reportDetail.contextSnapshotDescription')}</CardDescription>
+              <CardTitle>{t("reportDetail.contextSnapshotTitle")}</CardTitle>
+              <CardDescription>
+                {t("reportDetail.contextSnapshotDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {context.call_id && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.callId')}</Label>
-                    <div className="font-mono text-sm mt-1">{context.call_id}</div>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.callId")}
+                    </Label>
+                    <div className="font-mono text-sm mt-1">
+                      {context.call_id}
+                    </div>
                   </div>
                 )}
                 {context.room_id && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.roomId')}</Label>
-                    <div className="font-mono text-sm mt-1">{context.room_id}</div>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.roomId")}
+                    </Label>
+                    <div className="font-mono text-sm mt-1">
+                      {context.room_id}
+                    </div>
                   </div>
                 )}
                 {context.duration_seconds !== null && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.duration')}</Label>
-                    <div className="text-sm mt-1">{formatDuration(context.duration_seconds)}</div>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.duration")}
+                    </Label>
+                    <div className="text-sm mt-1">
+                      {formatDuration(context.duration_seconds)}
+                    </div>
                   </div>
                 )}
                 {context.ended_by && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.endedBy')}</Label>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.endedBy")}
+                    </Label>
                     <div className="text-sm mt-1">{context.ended_by}</div>
                   </div>
                 )}
                 {context.reporter_role && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.reporterRole')}</Label>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.reporterRole")}
+                    </Label>
                     <div className="text-sm mt-1">{context.reporter_role}</div>
                   </div>
                 )}
                 {context.reported_role && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.reportedRole')}</Label>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.reportedRole")}
+                    </Label>
                     <div className="text-sm mt-1">{context.reported_role}</div>
                   </div>
                 )}
                 {context.call_started_at && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.callStartedAt')}</Label>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.callStartedAt")}
+                    </Label>
                     <div className="text-sm mt-1">
                       {fmtDate(context.call_started_at)}
                     </div>
@@ -371,7 +493,9 @@ export function AdminReportDetailClient({ report }: Props) {
                 )}
                 {context.call_ended_at && (
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.callEndedAt')}</Label>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.callEndedAt")}
+                    </Label>
                     <div className="text-sm mt-1">
                       {fmtDate(context.call_ended_at)}
                     </div>
@@ -382,7 +506,9 @@ export function AdminReportDetailClient({ report }: Props) {
                 <>
                   <Separator />
                   <div>
-                    <Label className="text-muted-foreground">{t('reportDetail.behaviorFlags')}</Label>
+                    <Label className="text-muted-foreground">
+                      {t("reportDetail.behaviorFlags")}
+                    </Label>
                     <div className="mt-2 p-3 bg-muted rounded-md">
                       <pre className="text-xs overflow-auto">
                         {JSON.stringify(context.behavior_flags, null, 2)}
@@ -397,29 +523,46 @@ export function AdminReportDetailClient({ report }: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('reportDetail.adminActionsTitle')}</CardTitle>
-            <CardDescription>{t('reportDetail.adminActionsDescription')}</CardDescription>
+            <CardTitle>{t("reportDetail.adminActionsTitle")}</CardTitle>
+            <CardDescription>
+              {t("reportDetail.adminActionsDescription")}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="status">{t('reportDetail.statusField')}</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as AdminAPI.Reports.ReportStatus)}>
+              <Label htmlFor="status">{t("reportDetail.statusField")}</Label>
+              <Select
+                value={status}
+                onValueChange={(value) =>
+                  setStatus(value as AdminAPI.Reports.ReportStatus)
+                }
+              >
                 <SelectTrigger id="status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">{t('reportDetail.statusPending')}</SelectItem>
-                  <SelectItem value="reviewed">{t('reportDetail.statusReviewed')}</SelectItem>
-                  <SelectItem value="resolved">{t('reportDetail.statusResolved')}</SelectItem>
-                  <SelectItem value="dismissed">{t('reportDetail.statusDismissed')}</SelectItem>
+                  <SelectItem value="pending">
+                    {t("reportDetail.statusPending")}
+                  </SelectItem>
+                  <SelectItem value="reviewed">
+                    {t("reportDetail.statusReviewed")}
+                  </SelectItem>
+                  <SelectItem value="resolved">
+                    {t("reportDetail.statusResolved")}
+                  </SelectItem>
+                  <SelectItem value="dismissed">
+                    {t("reportDetail.statusDismissed")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-notes">{t('reportDetail.adminNotes')}</Label>
+              <Label htmlFor="admin-notes">
+                {t("reportDetail.adminNotes")}
+              </Label>
               <Textarea
                 id="admin-notes"
-                placeholder={t('reportDetail.adminNotesPlaceholder')}
+                placeholder={t("reportDetail.adminNotesPlaceholder")}
                 value={adminNotes}
                 onChange={(e) => setAdminNotes(e.target.value)}
                 rows={6}
@@ -427,15 +570,17 @@ export function AdminReportDetailClient({ report }: Props) {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => router.back()}>
-                {tc('cancel')}
+                {tc("cancel")}
               </Button>
               <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? t('reportDetail.saving') : t('reportDetail.saveChanges')}
+                {updateMutation.isPending
+                  ? t("reportDetail.saving")
+                  : t("reportDetail.saveChanges")}
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
     </AppLayout>
-  )
+  );
 }

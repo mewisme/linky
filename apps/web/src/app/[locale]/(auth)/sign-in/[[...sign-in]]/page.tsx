@@ -19,10 +19,10 @@ function SignedInRedirect({ href }: { href: string }) {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <p className="text-muted-foreground text-center text-sm">{t("redirecting")}</p>
-      <Button onClick={() => router.push(href)}>
-        {t("proceedToUrl")}
-      </Button>
+      <p className="text-muted-foreground text-center text-sm">
+        {t("redirecting")}
+      </p>
+      <Button onClick={() => router.push(href)}>{t("proceedToUrl")}</Button>
     </div>
   );
 }
@@ -31,7 +31,10 @@ export default function SignInPage() {
   const { isLoaded, isSignedIn } = useAuth();
   const locale = useLocale();
   const searchParams = useSearchParams();
-  const signInPath = useMemo(() => localePrefixedPath(locale, "/sign-in"), [locale]);
+  const signInPath = useMemo(
+    () => localePrefixedPath(locale, "/sign-in"),
+    [locale],
+  );
 
   const redirectUrl = useMemo(
     () => safeRedirectPath(searchParams.get("redirect_url")),

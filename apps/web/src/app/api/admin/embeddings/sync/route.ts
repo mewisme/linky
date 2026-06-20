@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     const data = await syncEmbeddings(body.user_ids);
     return NextResponse.json(data);
   } catch (error) {
-    return nextResponseFromActionError(error, "POST /api/admin/embeddings/sync");
+    return nextResponseFromActionError(
+      error,
+      "POST /api/admin/embeddings/sync",
+    );
   }
 }

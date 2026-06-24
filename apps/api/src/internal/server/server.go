@@ -13,8 +13,8 @@ import (
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/lib/corsorigin"
 	"linky-api/src/internal/logger"
+	routes "linky-api/src/internal/transport/http"
 	"linky-api/src/internal/transport/http/middleware"
-	"linky-api/src/internal/transport/http"
 )
 
 var serverLog = logger.New("api:server")
@@ -118,8 +118,13 @@ func StartPublic(cfg *config.Config, handler http.Handler) (*ListenerHandle, err
 		return nil, err
 	}
 	srv := &http.Server{Handler: handler}
-	go func() { _ = srv.Serve(l) }()
-	serverLog.Info().Int("port", cfg.Port).Str("env", cfg.NodeEnv).Msg("Server started")
+	if cfg.TLSCert != "" && cfg.TLSKey != "" {
+		go func() { _ = srv.ServeTLS(l, cfg.TLSCert, cfg.TLSKey) }()
+		serverLog.Info().Int("port", cfg.Port).Str("cert", cfg.TLSCert).Str("key", cfg.TLSKey).Msg("Server started (TLS)")
+	} else {
+		go func() { _ = srv.Serve(l) }()
+		serverLog.Info().Int("port", cfg.Port).Str("env", cfg.NodeEnv).Msg("Server started")
+	}
 	return &ListenerHandle{Listener: l, Server: srv}, nil
 }
 

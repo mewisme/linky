@@ -52,6 +52,8 @@ e2e/pytest/.pytest_cache/
 e2e/pytest/reports/
 e2e/pytest/.auth/
 
+docs/api/
+
 # Playwright
 /e2e/playwright/test-results/
 /e2e/playwright/playwright-report/

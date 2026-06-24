@@ -14,8 +14,10 @@ import (
 )
 
 type Config struct {
-	Port      int
-	NodeEnv   string
+	Port       int
+	TLSCert    string
+	TLSKey     string
+	NodeEnv    string
 	CorsOrigin []string
 
 	// Cloudflare Realtime SFU
@@ -63,18 +65,18 @@ type Config struct {
 	OpenAIRequestTimeoutMs   int
 	OpenAIEmbeddingTimeoutMs int
 
-	EmbedMaxContextTokens         int
-	EmbedMaxChunkTokens           int
-	EmbedChunkOverlapTokens       int
-	EmbedTiktokenModel            string
-	EmbedBatchSize                int
-	EmbedUserAPIBatchSize         int
-	EmbedMaxChunksPerJob          int
+	EmbedMaxContextTokens          int
+	EmbedMaxChunkTokens            int
+	EmbedChunkOverlapTokens        int
+	EmbedTiktokenModel             string
+	EmbedBatchSize                 int
+	EmbedUserAPIBatchSize          int
+	EmbedMaxChunksPerJob           int
 	EmbedMaxTotalInputTokensPerJob int
-	EmbedExpectedDimension        int
-	EmbedRetryCount               int
-	EmbedRetryBaseDelayMs         int
-	EmbedMaxBatchTotalTokens      int
+	EmbedExpectedDimension         int
+	EmbedRetryCount                int
+	EmbedRetryBaseDelayMs          int
+	EmbedMaxBatchTotalTokens       int
 
 	VAPIDSubject    string
 	VAPIDPublicKey  string
@@ -96,8 +98,17 @@ func Load() *Config {
 	}
 
 	port := envInt("PORT", 7270)
-	if argPort := parsePortArg(); argPort > 0 {
+	tlsCert := os.Getenv("TLS_CERT")
+	tlsKey := os.Getenv("TLS_KEY")
+	argPort, argCert, argKey := parseCliArgs()
+	if argPort > 0 {
 		port = argPort
+	}
+	if argCert != "" {
+		tlsCert = argCert
+	}
+	if argKey != "" {
+		tlsKey = argKey
 	}
 
 	embedCtxLimit := clampInt(envInt("EMBED_MAX_CONTEXT_TOKENS", 8192), 256, 1<<20)
@@ -127,38 +138,40 @@ func Load() *Config {
 	}
 
 	c := &Config{
-		Port:                          port,
-		NodeEnv:                       nodeEnv,
-		CorsOrigin:                    corsOrigin,
-		CloudflareRealtimeAppID:       os.Getenv("CLOUDFLARE_REALTIME_APP_ID"),
-		CloudflareRealtimeAppSecret:   os.Getenv("CLOUDFLARE_REALTIME_APP_SECRET"),
-		CloudflareRealtimeBaseURL:     envStr("CLOUDFLARE_REALTIME_BASE_URL", "https://rtc.live.cloudflare.com/v1"),
-		CloudflareAccountID:           os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
-		ClerkSecretKey:                os.Getenv("CLERK_SECRET_KEY"),
-		ClerkWebhookSecret:            os.Getenv("CLERK_WEBHOOK_SECRET"),
-		S3Bucket:                      os.Getenv("S3_BUCKET"),
-		S3Region:                      os.Getenv("S3_REGION"),
-		S3Endpoint:                    os.Getenv("S3_ENDPOINT"),
-		S3AccessKeyID:                 os.Getenv("S3_ACCESS_KEY_ID"),
-		S3SecretAccessKey:             os.Getenv("S3_SECRET_ACCESS_KEY"),
-		SupabaseURL:                   os.Getenv("SUPABASE_URL"),
-		SupabaseServiceRoleKey:        os.Getenv("SUPABASE_SERVICE_ROLE_KEY"),
-		RedisURL:                      os.Getenv("REDIS_URL"),
-		RedisPort:                     os.Getenv("REDIS_PORT"),
-		RedisUsername:                 os.Getenv("REDIS_USERNAME"),
-		RedisPassword:                 os.Getenv("REDIS_PASSWORD"),
-		ShutdownTimeoutMs:             envInt("SHUTDOWN_TIMEOUT", 30000),
-		JSONBodySizeLimit:             envStr("JSON_BODY_SIZE_LIMIT", "500kb"),
-		SocketMaxHTTPBufferSize:       envInt("SOCKET_MAX_HTTP_BUFFER_SIZE", 8*1024*1024),
-		SupabaseTimeoutMs:             envInt("SUPABASE_TIMEOUT", 10000),
-		RateLimitWindowMs:             envInt("RATE_LIMIT_WINDOW_MS", 30000),
-		RateLimitMaxRequests:          envInt("RATE_LIMIT_MAX_REQUESTS", 100),
-		JobWorkerConcurrency:          envInt("JOB_WORKER_CONCURRENCY", 4),
-		OpenAIBaseURL:                 mustEnv("OPENAI_BASE_URL"),
-		OpenAIAPIKey:                  mustEnv("OPENAI_API_KEY"),
-		OpenAIEmbeddingModel:          os.Getenv("OPENAI_EMBEDDING_MODEL"),
-		OpenAIBroadcastModel:          os.Getenv("OPENAI_BROADCAST_MODEL"),
-		OpenAIReportSummaryModel:      os.Getenv("OPENAI_REPORT_SUMMARY_MODEL"),
+		Port:                           port,
+		TLSCert:                        tlsCert,
+		TLSKey:                         tlsKey,
+		NodeEnv:                        nodeEnv,
+		CorsOrigin:                     corsOrigin,
+		CloudflareRealtimeAppID:        os.Getenv("CLOUDFLARE_REALTIME_APP_ID"),
+		CloudflareRealtimeAppSecret:    os.Getenv("CLOUDFLARE_REALTIME_APP_SECRET"),
+		CloudflareRealtimeBaseURL:      envStr("CLOUDFLARE_REALTIME_BASE_URL", "https://rtc.live.cloudflare.com/v1"),
+		CloudflareAccountID:            os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
+		ClerkSecretKey:                 os.Getenv("CLERK_SECRET_KEY"),
+		ClerkWebhookSecret:             os.Getenv("CLERK_WEBHOOK_SECRET"),
+		S3Bucket:                       os.Getenv("S3_BUCKET"),
+		S3Region:                       os.Getenv("S3_REGION"),
+		S3Endpoint:                     os.Getenv("S3_ENDPOINT"),
+		S3AccessKeyID:                  os.Getenv("S3_ACCESS_KEY_ID"),
+		S3SecretAccessKey:              os.Getenv("S3_SECRET_ACCESS_KEY"),
+		SupabaseURL:                    os.Getenv("SUPABASE_URL"),
+		SupabaseServiceRoleKey:         os.Getenv("SUPABASE_SERVICE_ROLE_KEY"),
+		RedisURL:                       os.Getenv("REDIS_URL"),
+		RedisPort:                      os.Getenv("REDIS_PORT"),
+		RedisUsername:                  os.Getenv("REDIS_USERNAME"),
+		RedisPassword:                  os.Getenv("REDIS_PASSWORD"),
+		ShutdownTimeoutMs:              envInt("SHUTDOWN_TIMEOUT", 30000),
+		JSONBodySizeLimit:              envStr("JSON_BODY_SIZE_LIMIT", "500kb"),
+		SocketMaxHTTPBufferSize:        envInt("SOCKET_MAX_HTTP_BUFFER_SIZE", 8*1024*1024),
+		SupabaseTimeoutMs:              envInt("SUPABASE_TIMEOUT", 10000),
+		RateLimitWindowMs:              envInt("RATE_LIMIT_WINDOW_MS", 30000),
+		RateLimitMaxRequests:           envInt("RATE_LIMIT_MAX_REQUESTS", 100),
+		JobWorkerConcurrency:           envInt("JOB_WORKER_CONCURRENCY", 4),
+		OpenAIBaseURL:                  mustEnv("OPENAI_BASE_URL"),
+		OpenAIAPIKey:                   mustEnv("OPENAI_API_KEY"),
+		OpenAIEmbeddingModel:           os.Getenv("OPENAI_EMBEDDING_MODEL"),
+		OpenAIBroadcastModel:           os.Getenv("OPENAI_BROADCAST_MODEL"),
+		OpenAIReportSummaryModel:       os.Getenv("OPENAI_REPORT_SUMMARY_MODEL"),
 		OpenAIRequestTimeoutMs:         envInt("OPENAI_REQUEST_TIMEOUT_MS", 60000),
 		OpenAIEmbeddingTimeoutMs:       envInt("OPENAI_EMBEDDING_TIMEOUT_MS", 60000),
 		EmbedMaxContextTokens:          embedCtxLimit,
@@ -173,9 +186,9 @@ func Load() *Config {
 		EmbedRetryCount:                clampInt(envInt("EMBED_RETRY_COUNT", 2), 0, 5),
 		EmbedRetryBaseDelayMs:          maxInt(envInt("EMBED_RETRY_BASE_DELAY_MS", 400), 50),
 		EmbedMaxBatchTotalTokens:       maxInt(envInt("EMBED_MAX_BATCH_TOTAL_TOKENS", 131072), 1024),
-		VAPIDSubject:                  os.Getenv("VAPID_SUBJECT"),
-		VAPIDPublicKey:                os.Getenv("VAPID_PUBLIC_KEY"),
-		VAPIDPrivateKey:               os.Getenv("VAPID_PRIVATE_KEY"),
+		VAPIDSubject:                   os.Getenv("VAPID_SUBJECT"),
+		VAPIDPublicKey:                 os.Getenv("VAPID_PUBLIC_KEY"),
+		VAPIDPrivateKey:                os.Getenv("VAPID_PRIVATE_KEY"),
 	}
 	loaded = c
 	return c
@@ -229,21 +242,20 @@ func isRepoRoot(dir string) bool {
 	return false
 }
 
-// parsePortArg parses --port / -p from os.Args. Returns 0 if absent or
-// invalid. Mirrors the Node API's `--port|-p <n>` behaviour.
-func parsePortArg() int {
+func parseCliArgs() (port int, tlsCert, tlsKey string) {
 	fs := flag.NewFlagSet("api", flag.ContinueOnError)
 	fs.SetOutput(noopWriter{})
-	port := fs.Int("port", 0, "")
+	p := fs.Int("port", 0, "")
 	short := fs.Int("p", 0, "")
+	cert := fs.String("tls-cert", "", "")
+	key := fs.String("tls-key", "", "")
 	_ = fs.Parse(os.Args[1:])
-	if *port > 0 && *port < 65536 {
-		return *port
+	if *p > 0 && *p < 65536 {
+		port = *p
+	} else if *short > 0 && *short < 65536 {
+		port = *short
 	}
-	if *short > 0 && *short < 65536 {
-		return *short
-	}
-	return 0
+	return port, *cert, *key
 }
 
 type noopWriter struct{}

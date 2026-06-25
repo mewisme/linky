@@ -75,6 +75,7 @@ func GetUserStreakData(ctx context.Context, userID string) (*UserStreakData, err
 	}, nil
 }
 
+// Deprecated: use InternalIDFromClerk instead.
 func GetUserInternalIDByClerk(ctx context.Context, clerkUserID string) (string, error) {
 	return supax.GetUserInternalID(ctx, clerkUserID)
 }

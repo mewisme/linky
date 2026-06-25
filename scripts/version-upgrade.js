@@ -3,6 +3,7 @@
 import { dirname, join, relative } from 'path';
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs';
 
+import { config as loadEnv } from 'dotenv';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
@@ -12,17 +13,50 @@ const __dirname = dirname(__filename);
 const rootPackageJsonPath = join(process.cwd(), 'package.json');
 const versionLockPath = join(process.cwd(), '.version-lock');
 
+loadEnv({ path: join(process.cwd(), '.env') });
+
 const rootPackageJson = process.env.CURRENT_VERSION
   ? { version: process.env.CURRENT_VERSION }
   : JSON.parse(readFileSync(rootPackageJsonPath, 'utf8'));
-let [major, minor, patch] = rootPackageJson.version.split('.').map(Number);
+
+function isDevelopmentEnv() {
+  return (process.env.NODE_ENV ?? 'production') === 'development';
+}
+
+function parseVersion(versionStr) {
+  const match = versionStr.match(/^(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?$/);
+  if (!match) {
+    throw new Error(`Invalid version format: ${versionStr}`);
+  }
+
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3]),
+    beta: match[4] !== undefined ? Number(match[4]) : null,
+  };
+}
+
+function formatVersion({ major, minor, patch, beta }) {
+  const base = `${major}.${minor}.${patch}`;
+  return beta !== null ? `${base}-beta.${beta}` : base;
+}
+
+function getNextBetaVersion(currentVersionStr) {
+  const parsed = parseVersion(currentVersionStr);
+  const nextBeta = parsed.beta !== null ? parsed.beta + 1 : 1;
+  return formatVersion({ ...parsed, beta: nextBeta });
+}
+
+const parsedRootVersion = parseVersion(rootPackageJson.version);
+let { major, minor, patch } = parsedRootVersion;
 
 function findAllPackageJsonFiles(rootDir = process.cwd(), packageJsonFiles = []) {
   try {
     const items = readdirSync(rootDir);
 
     for (const item of items) {
-      if (item === 'node_modules' || item === '.git' || item === 'dist' || item === 'build' || item === '.next') {
+      if (item === 'node_modules' || item === '.git' || item === 'dist' || item === 'build' || item === '.next' || item === 'e2e') {
         continue;
       }
 
@@ -47,12 +81,16 @@ function findAllPackageJsonFiles(rootDir = process.cwd(), packageJsonFiles = [])
 }
 
 function compareVersions(version1, version2) {
-  const [major1, minor1, patch1] = version1.split('.').map(Number);
-  const [major2, minor2, patch2] = version2.split('.').map(Number);
+  const v1 = parseVersion(version1);
+  const v2 = parseVersion(version2);
 
-  if (major1 !== major2) return major1 - major2;
-  if (minor1 !== minor2) return minor1 - minor2;
-  return patch1 - patch2;
+  if (v1.major !== v2.major) return v1.major - v2.major;
+  if (v1.minor !== v2.minor) return v1.minor - v2.minor;
+  if (v1.patch !== v2.patch) return v1.patch - v2.patch;
+
+  const beta1 = v1.beta ?? Number.MAX_SAFE_INTEGER;
+  const beta2 = v2.beta ?? Number.MAX_SAFE_INTEGER;
+  return beta1 - beta2;
 }
 
 function updateAllPackageJsonFiles(version) {
@@ -357,6 +395,21 @@ function analyzeCommits(commits) {
   };
 }
 
+function updateBetaVersion() {
+  const currentVersion = rootPackageJson.version;
+  console.log(`\nDevelopment mode (NODE_ENV=development from .env)`);
+  console.log(`Starting version: ${currentVersion}`);
+
+  const newVersion = getNextBetaVersion(currentVersion);
+  console.log(`\n✓ Final version: ${currentVersion} → ${newVersion}`);
+
+  if (newVersion === currentVersion) {
+    return null;
+  }
+
+  return newVersion;
+}
+
 function updateVersion() {
   const commits = getNewCommits();
 
@@ -365,12 +418,12 @@ function updateVersion() {
     return null;
   }
 
-  const currentVersion = `${major}.${minor}.${patch}`;
+  const currentVersion = rootPackageJson.version;
   console.log(`\nStarting version: ${currentVersion}`);
 
   const { major: newMajor, minor: newMinor, patch: newPatch } = analyzeCommits(commits);
 
-  const newVersion = `${newMajor}.${newMinor}.${newPatch}`;
+  const newVersion = formatVersion({ major: newMajor, minor: newMinor, patch: newPatch, beta: null });
   console.log(`\n✓ Final version: ${currentVersion} → ${newVersion}`);
   if (newVersion === currentVersion) {
     return null;
@@ -378,7 +431,9 @@ function updateVersion() {
   return newVersion;
 }
 
-const changedFiles = getChangedFiles();
+const changedFiles = getChangedFiles().filter(
+  (file) => !file.replace(/\\/g, '/').startsWith('e2e/')
+);
 
 if (changedFiles.length === 0) {
   console.log('\nNo changed files detected, skipping version update...');
@@ -392,7 +447,7 @@ if (affectedWorkspaces.length === 0) {
   process.exit(0);
 }
 
-let newVersion = updateVersion();
+let newVersion = isDevelopmentEnv() ? updateBetaVersion() : updateVersion();
 
 if (!newVersion) {
   console.log('\nNo version bump detected from commit messages, skipping version update...');

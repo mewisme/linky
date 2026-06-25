@@ -399,11 +399,9 @@ export function FloatingVideoContainer({
   return (
     <motion.div
       ref={overlayRef}
-      className={`fixed left-0 top-0 overflow-hidden rounded-lg border-2 bg-transparent shadow-2xl touch-none select-none ${
-        hasAudioActivity
-          ? "border-green-500 shadow-green-500/50 shadow-lg"
-          : "border-border"
-      } ${position === null ? "invisible" : ""} ${aspectRatioClass}`}
+      data-testid="chat-floating-video-overlay"
+      className={`fixed left-0 top-0 overflow-hidden rounded-lg border-2 bg-transparent shadow-2xl touch-none select-none ${hasAudioActivity ? "border-green-500 shadow-green-500/50 shadow-lg" : "border-border"
+        } ${position === null ? "invisible" : ""} ${aspectRatioClass}`}
       style={{
         zIndex: 40,
         width,

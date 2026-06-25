@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 
+	apppush "linky-api/src/internal/app/push"
+	"linky-api/src/internal/app/user"
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/httpx"
-	"linky-api/src/internal/infra/supax"
-	"linky-api/src/internal/lib/pushendpoint"
 )
 
 type subscribeBody struct {
@@ -31,23 +30,14 @@ func registerPushRoutes(g *echo.Group, cfg *config.Config) {
 		var input subscribeBody
 		_ = json.Unmarshal(body, &input)
 		s := input.Subscription
-		if s.Endpoint == "" || s.Keys.P256dh == "" || s.Keys.Auth == "" {
-			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UM("VALID_SUBSCRIPTION_REQUIRED", "validSubscriptionRequired", "Valid subscription object is required"))
-		}
-		if !pushendpoint.IsAllowed(s.Endpoint) {
-			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UM("INVALID_PUSH_ENDPOINT", "invalidPushEndpoint", "Push subscription endpoint is not from an allowed push service"))
-		}
-		uid, _ := supax.GetUserInternalID(c.Request().Context(), clerkID)
+		uid, _ := user.InternalIDFromClerk(c.Request().Context(), clerkID)
 		if uid == "" {
 			return httpx.SendError(c, 404, "Not Found",
 				httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
 		}
-		row, err := supax.UpsertPushSubscription(c.Request().Context(), uid, s.Endpoint, s.Keys.P256dh, s.Keys.Auth)
+		row, err := apppush.Subscribe(c.Request().Context(), uid, s.Endpoint, s.Keys.P256dh, s.Keys.Auth)
 		if err != nil {
-			return httpx.SendError(c, 500, "Internal Server Error",
-				httpx.UM("FAILED_SUBSCRIBE_PUSH", "failedSubscribePush", "Failed to subscribe to push notifications"))
+			return sendPushStatusError(c, err)
 		}
 		return c.JSON(http.StatusCreated, row)
 	})
@@ -59,23 +49,13 @@ func registerPushRoutes(g *echo.Group, cfg *config.Config) {
 			Endpoint string `json:"endpoint"`
 		}
 		_ = json.Unmarshal(body, &input)
-		ep := strings.TrimSpace(input.Endpoint)
-		if ep == "" {
-			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UM("ENDPOINT_REQUIRED", "endpointRequired", "endpoint is required"))
-		}
-		if !pushendpoint.IsAllowed(ep) {
-			return httpx.SendError(c, 400, "Bad Request",
-				httpx.UM("INVALID_PUSH_ENDPOINT", "invalidPushEndpoint", "Push subscription endpoint is not from an allowed push service"))
-		}
-		uid, _ := supax.GetUserInternalID(c.Request().Context(), clerkID)
+		uid, _ := user.InternalIDFromClerk(c.Request().Context(), clerkID)
 		if uid == "" {
 			return httpx.SendError(c, 404, "Not Found",
 				httpx.UM("USER_NOT_IN_DB", "userNotInDatabase", "User not found in database"))
 		}
-		if err := supax.DeletePushSubscription(c.Request().Context(), uid, ep); err != nil {
-			return httpx.SendError(c, 500, "Internal Server Error",
-				httpx.UM("FAILED_UNSUBSCRIBE_PUSH", "failedUnsubscribePush", "Failed to unsubscribe from push notifications"))
+		if err := apppush.Unsubscribe(c.Request().Context(), uid, input.Endpoint); err != nil {
+			return sendPushStatusError(c, err)
 		}
 		return c.NoContent(http.StatusNoContent)
 	})

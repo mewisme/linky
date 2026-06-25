@@ -6,6 +6,7 @@ import {
   type QualityTier,
 } from "./adaptive-encoding";
 import type { StreamVideoQuality } from "@/entities/user/lib/user-settings-preferences";
+import { isPageBackgrounded } from "@/shared/utils/automation-context";
 import { NetworkMonitor, type NetworkQuality } from "./network-monitor";
 import { VideoHealthTracker } from "./video-health-tracker";
 
@@ -147,11 +148,11 @@ export class QualityController {
       return;
     }
 
-    this.isBackgrounded = document.hidden;
+    this.isBackgrounded = isPageBackgrounded();
 
     this.visibilityChangeHandler = () => {
       const wasBackgrounded = this.isBackgrounded;
-      this.isBackgrounded = document.hidden;
+      this.isBackgrounded = isPageBackgrounded();
 
       if (wasBackgrounded && !this.isBackgrounded) {
         Sentry.logger.info("[QualityController] App foregrounded");

@@ -31,6 +31,7 @@ func UpdateCountry(ctx context.Context, clerkUserID, country string) (*supax.Use
 	return supax.UpdateUserCountry(ctx, clerkUserID, country)
 }
 
+// Deprecated: stub only; timezone persistence not implemented.
 func SetTimezoneOnce(ctx context.Context, clerkID, timezone string) (string, error) {
 	uid, err := supax.GetUserInternalID(ctx, clerkID)
 	if err != nil || uid == "" {

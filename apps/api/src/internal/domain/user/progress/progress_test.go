@@ -140,3 +140,13 @@ func TestApplyRealtimeCallProjectionAppliesExpBonus(t *testing.T) {
 		t.Errorf("expEarnedToday = %d want 170", projected.ExpEarnedToday)
 	}
 }
+
+func TestLongestConsecutiveValidDays(t *testing.T) {
+	if got := LongestConsecutiveValidDays(nil); got != 0 {
+		t.Fatalf("got %d want 0", got)
+	}
+	dates := []string{"2026-01-01", "2026-01-02", "2026-01-03", "2026-01-05"}
+	if got := LongestConsecutiveValidDays(dates); got != 3 {
+		t.Fatalf("got %d want 3", got)
+	}
+}

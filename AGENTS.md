@@ -1,6 +1,6 @@
-# AGENTS.md
+# CLAUDE.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -9,8 +9,6 @@ Linky is a real-time 1-to-1 video chat platform. The repo is a Turborepo / pnpm 
 - `apps/web` — Next.js 16 frontend (`@ws/web`)
 - `apps/api` — Go API (module `linky-api`); single binary that serves HTTP, Socket.IO, and an in-process Redis-backed worker pool
 - `packages/ui`, `packages/eslint-config`, `packages/typescript-config`
-- `e2e/playwright` — Playwright E2E tests (`@ws/playwright-e2e`)
-- `e2e/pytest` — Python Selenium E2E tests (standalone uv project)
 
 `zod` is pinned to `4.3.6` via `pnpm.overrides`. Don't bump it without coordination.
 
@@ -20,7 +18,7 @@ Linky is a real-time 1-to-1 video chat platform. The repo is a Turborepo / pnpm 
 # Dev
 pnpm dev          # all (turbo)
 pnpm dev:web      # Next.js, port 3000
-pnpm dev:api      # Go API with Air (live reload); default PORT 7270 (override via env)
+pnpm dev:api      # Go API; default PORT 7270 (override via env)
 
 # Build
 pnpm build:web
@@ -40,20 +38,6 @@ pnpm check-types
 pnpm check-types:web
 pnpm format
 
-# E2E — Playwright (from root)
-pnpm test
-pnpm test:ui
-pnpm test:debug
-pnpm test:trace
-pnpm test:report
-pnpm exec playwright test --config e2e/playwright/playwright.config.ts tests/user-profile.spec.ts
-pnpm exec playwright test --config e2e/playwright/playwright.config.ts -g "should update avatar"
-
-# E2E — Python (pytest + Selenium + CloakBrowser, from e2e/pytest/)
-cd e2e/pytest && uv sync && uv run ensure-cloak   # one-time setup; downloads ~200MB
-cd e2e/pytest && uv run pytest                    # all
-cd e2e/pytest && uv run pytest tests/video_chat   # serial — never use -n auto for video_chat
-
 # Single-package Turbo
 pnpm exec turbo run check-types --filter=@ws/ui
 
@@ -67,9 +51,6 @@ pnpm upver
 apps/
   api/            Go API (module linky-api). Source in src/. Migrations in migrations/.
   web/            Next.js 16 frontend (App Router)
-e2e/
-  playwright/     Playwright E2E tests (@ws/playwright-e2e)
-  pytest/         Python Selenium E2E tests (standalone uv project)
 packages/
   eslint-config/      Shared ESLint configs
   typescript-config/  Shared TS configs
@@ -290,7 +271,6 @@ Single root [`.env`](.env) is the source of truth for local dev, Docker Compose,
 
 - [`apps/api/README.md`](apps/api/README.md) — deeper API layout, env, jobs
 - [`README.md`](README.md) — quick start, prerequisites, full env var list
-- [`e2e/pytest/README.md`](e2e/pytest/README.md) — Python E2E suite (Clerk test accounts, fixtures)
 
 <!-- CODEGRAPH_START -->
 ## CodeGraph

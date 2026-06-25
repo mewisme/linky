@@ -87,7 +87,7 @@ func (s *Service) EnsureSession(ctx context.Context, room *rooms.Room, socketID 
 		}
 	}
 
-	created, err := cloudflarerealtime.CreateSession(ctx, nil)
+	created, err := cloudflarerealtime.CreateSession(ctx, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +154,7 @@ func (s *Service) Publish(ctx context.Context, room *rooms.Room, socketID, sessi
 	req := &cloudflarerealtime.TracksRequest{
 		SessionDescription: sdp,
 		Tracks:             make([]cloudflarerealtime.TrackRequest, 0, len(tracks)),
+		AutoDiscover:       boolPtr(true),
 	}
 	kindByName := map[string]string{}
 	for _, t := range tracks {
@@ -227,27 +228,15 @@ func (s *Service) Subscribe(ctx context.Context, room *rooms.Room, socketID, ses
 			TrackName: t.TrackName,
 		}
 		if t.Kind == "video" {
-			req.Simulcast = map[string]interface{}{
-				"preferredRid":     "h",
-				"priorityOrdering": "asciibetical",
-				"ridNotAvailable":  "asciibetical",
+			req.Simulcast = &cloudflarerealtime.SimulcastConfig{
+				PreferredRid:     "h",
+				PriorityOrdering: "asciibetical",
+				RidNotAvailable:  "asciibetical",
 			}
 		}
 		tracks = append(tracks, req)
 	}
-	log.Info().
-		Str("operation", cloudflarerealtime.OperationSubscribe).
-		Str("roomId", room.ID).
-		Str("socketId", socketID).
-		Str("sessionId", sessionID).
-		Str("peerSessionId", peer.SessionID).
-		Int("trackCount", len(tracks)).
-		Msg("Cloudflare tracks/new")
-	resp, err := cloudflarerealtime.AddTracks(
-		cloudflarerealtime.ContextWithOperation(ctx, cloudflarerealtime.OperationSubscribe),
-		sessionID,
-		&cloudflarerealtime.TracksRequest{Tracks: tracks},
-	)
+	resp, err := cloudflarerealtime.AddTracksWhenSessionReady(ctx, sessionID, &cloudflarerealtime.TracksRequest{Tracks: tracks})
 	if err != nil {
 		return nil, cloudflarerealtime.NormalizeSessionNotReady(err)
 	}
@@ -326,25 +315,20 @@ func (s *Service) cleanupParticipantSession(ctx context.Context, p *rooms.Realti
 	if p == nil {
 		return
 	}
-	if len(p.SubscribedMids) == 0 {
-		return
-	}
-	tracks := make([]cloudflarerealtime.TrackRequest, 0, len(p.SubscribedMids)+len(p.PublishedTracks))
+	tracks := make([]cloudflarerealtime.CloseTrackObject, 0, len(p.SubscribedMids)+len(p.PublishedTracks))
 	for _, mid := range p.SubscribedMids {
-		tracks = append(tracks, cloudflarerealtime.TrackRequest{MID: mid})
+		tracks = append(tracks, cloudflarerealtime.CloseTrackObject{MID: mid})
 	}
 	for _, t := range p.PublishedTracks {
 		if t.MID != "" {
-			tracks = append(tracks, cloudflarerealtime.TrackRequest{MID: t.MID})
+			tracks = append(tracks, cloudflarerealtime.CloseTrackObject{MID: t.MID})
 		}
 	}
 	if len(tracks) == 0 {
 		return
 	}
-	cctx, cancel := context.WithTimeout(ctx, 15*time.Second)
-	defer cancel()
-	if _, err := cloudflarerealtime.CloseTracks(cctx, p.SessionID, &cloudflarerealtime.CloseTracksRequest{Tracks: tracks, Force: true}); err != nil {
-		if cloudflarerealtime.IsBenignCloseError(err) {
+	if _, err := cloudflarerealtime.CloseTracks(ctx, p.SessionID, &cloudflarerealtime.CloseTracksRequest{Tracks: tracks, Force: true}); err != nil {
+		if cloudflarerealtime.IsStaleSession(err) {
 			return
 		}
 		log.Debug().Err(err).Str("sessionId", p.SessionID).Msg("Failed to close Cloudflare tracks (best-effort)")
@@ -411,6 +395,10 @@ func mergeTracks(existing, incoming []rooms.RealtimeTrack) []rooms.RealtimeTrack
 		}
 	}
 	return existing
+}
+
+func boolPtr(v bool) *bool {
+	return &v
 }
 
 func uniqueStrings(in []string) []string {

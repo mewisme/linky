@@ -7,8 +7,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"linky-api/src/internal/domain/rooms"
 	"linky-api/src/internal/app/videochat/realtime"
+	"linky-api/src/internal/domain/rooms"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/cloudflarerealtime"
 	"linky-api/src/internal/logger"
@@ -268,26 +268,12 @@ func realtimeError(c echo.Context, err error) error {
 		if message == "" {
 			message = "Realtime error"
 		}
-		if cloudflarerealtime.IsSessionNotReady(err) {
-			code = "REALTIME_SESSION_NOT_READY"
-			if message == "" || message == "Realtime error" {
-				message = "Cloudflare session is not ready yet. Retry after peer connection is connected."
-			}
-			status = http.StatusTooEarly
-			realtimeRouteLog.Warn().
-				Err(err).
-				Int("status", status).
-				Str("code", code).
-				Bool("retryable", true).
-				Msg("Cloudflare realtime session not ready")
-			return httpx.SendErrorExtra(c, status, http.StatusText(status),
-				httpx.UM(code, "api.realtime.sessionNotReady", message),
-				map[string]interface{}{
-					"code":      code,
-					"retryable": true,
-				})
-		}
-		realtimeRouteLog.Warn().Err(err).Int("status", status).Str("code", code).Msg("Cloudflare realtime error")
+		realtimeRouteLog.Warn().
+			Err(err).
+			Int("status", status).
+			Str("errorCode", code).
+			Str("message", message).
+			Msg("Cloudflare realtime error")
 		return httpx.SendError(c, status, http.StatusText(status),
 			httpx.UM(code, "api.realtime.upstreamError", message))
 	}

@@ -26,11 +26,11 @@ func handleAdminAIConfigGet(c echo.Context) error {
 		adminValue = aiconfig.RedactSettingsMap(adminValue)
 	}
 	return c.JSON(http.StatusOK, map[string]any{
-		"key":              aiconfig.AdminConfigKey,
-		"admin":            adminValue,
-		"effective":        aiconfig.EffectiveToPublicMap(),
-		"env_defaults":     aiconfig.DefaultSettingsPublicFromEnv(),
-		"has_admin_config": aiconfig.HasAdminOverlay(),
+		"key":                aiconfig.AdminConfigKey,
+		"admin":              adminValue,
+		"effective":          aiconfig.EffectiveToPublicMap(),
+		"env_defaults":       aiconfig.DefaultSettingsPublicFromEnv(),
+		"has_admin_config":   aiconfig.HasAdminOverlay(),
 		"api_key_configured": aiconfig.APIKeyConfigured(),
 	})
 }

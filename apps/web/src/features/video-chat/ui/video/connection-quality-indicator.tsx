@@ -63,11 +63,9 @@ export function ConnectionQualityIndicator({
 
   return (
     <div
-      className={`absolute z-20 ${positionClasses} pointer-events-none transition-opacity duration-300 ${
-        visible ? "opacity-100" : "opacity-0"
-      }`}
       data-testid="chat-connection-quality-indicator"
-      data-quality-state={displayState}
+      className={`absolute z-20 ${positionClasses} pointer-events-none transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"
+        }`}
     >
       <div
         className={`flex items-center gap-2 rounded-lg border ${bgClasses} px-3 py-2 backdrop-blur-sm`}

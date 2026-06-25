@@ -24,13 +24,13 @@ type EndCallInput struct {
 }
 
 type EndCallOutput struct {
-	Result       *Result
-	ApplyFailed  bool
-	CallerID     string
-	CalleeID     string
-	CallerTZ     string
-	CalleeTZ     string
-	ProgressOK   map[string]bool
+	Result      *Result
+	ApplyFailed bool
+	CallerID    string
+	CalleeID    string
+	CallerTZ    string
+	CalleeTZ    string
+	ProgressOK  map[string]bool
 }
 
 func EndCall(ctx context.Context, in EndCallInput) EndCallOutput {

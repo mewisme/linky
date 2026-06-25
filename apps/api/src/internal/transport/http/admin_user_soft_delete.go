@@ -7,12 +7,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"linky-api/src/internal/app/admin"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/infra/clerkadmin"
 	"linky-api/src/internal/infra/supax"
 )
 
-var errAdminUserNotFound = errors.New("user not found in database")
+var errAdminUserNotFound = admin.ErrUserNotFound
 
 func adminSoftDeleteUser(
 	ctx context.Context,
@@ -20,30 +21,7 @@ func adminSoftDeleteUser(
 	userID string,
 	patchBody map[string]any,
 ) (*supax.UserRow, error) {
-	user, err := supax.GetUserByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, errAdminUserNotFound
-	}
-
-	clerkUserID, _ := user["clerk_user_id"].(string)
-	if clerkUserID != "" {
-		if err := clerkadmin.DeleteUser(ctx, actorClerkID, clerkUserID); err != nil {
-			if clerkadmin.HTTPStatus(err) != http.StatusNotFound {
-				return nil, err
-			}
-		}
-	}
-
-	if patchBody == nil {
-		patchBody = map[string]any{
-			"deleted":    true,
-			"deleted_at": supax.NowRFC3339(),
-		}
-	}
-	return supax.PatchUser(ctx, userID, patchBody)
+	return admin.SoftDeleteUser(ctx, actorClerkID, userID, patchBody)
 }
 
 func sendAdminSoftDeleteError(c echo.Context, err error) error {

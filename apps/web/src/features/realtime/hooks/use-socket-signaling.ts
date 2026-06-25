@@ -90,6 +90,9 @@ export interface UseSocketSignalingReturn {
   ) => void;
   removeAllListeners: () => void;
   disconnectSocket: () => void;
+  reloadSocket: () => Socket | null;
+  ensureSocketConnected: (timeoutMs?: number) => Promise<boolean>;
+  resolveSocketId: (preferredId?: string | null, timeoutMs?: number) => Promise<string | null>;
   getSocket: () => Socket | null;
   getSocketId: () => string | null;
   isSocketHealthy: () => boolean;
@@ -115,9 +118,21 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
 
   useEffect(() => {
     socketRef.current = globalSocket;
-    if (globalSocket) {
-      currentSocketIdRef.current = globalSocket.id || null;
+    if (!globalSocket) {
+      return;
     }
+
+    const syncSocketId = () => {
+      if (globalSocket.id) {
+        currentSocketIdRef.current = globalSocket.id;
+      }
+    };
+
+    syncSocketId();
+    globalSocket.on("connect", syncSocketId);
+    return () => {
+      globalSocket.off("connect", syncSocketId);
+    };
   }, [globalSocket]);
 
   const unregisterSocketListeners = useCallback((socket: Socket) => {
@@ -163,15 +178,10 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
         },
       );
 
-      register("realtime:peer-tracks", (data: RealtimePeerTracksPayload) => {
-        // eslint-disable-next-line no-console
-        console.info("[debug] realtime:peer-tracks received", {
-          peerSessionId: data?.peerSessionId,
-          trackCount: data?.tracks?.length ?? 0,
-        });
-        publishPresence("in_call");
-        socketHealthMonitor.markEventReceived();
-        callbacks.onRealtimePeerTracks(data);
+    register("realtime:peer-tracks", (data: RealtimePeerTracksPayload) => {
+      console.info("[debug] realtime:peer-tracks received", {
+        peerSessionId: data?.peerSessionId,
+        trackCount: data?.tracks?.length ?? 0,
       });
 
       register("peer-left", (data: UserFacingSocketPayload) => {
@@ -476,6 +486,110 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
     unregisterCallbacks("socket-signaling");
   }, [removeAllListeners, unregisterCallbacks]);
 
+  const reloadSocket = useCallback(() => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current.connect();
+    }
+    return socketRef.current;
+  }, []);
+
+  const ensureSocketConnected = useCallback(async (timeoutMs = 15_000): Promise<boolean> => {
+    const deadline = Date.now() + timeoutMs;
+
+    const remainingMs = () => Math.max(0, deadline - Date.now());
+
+    while (remainingMs() > 0) {
+      const socket = socketRef.current;
+      if (!socket) {
+        await new Promise((resolve) => setTimeout(resolve, Math.min(100, remainingMs())));
+        continue;
+      }
+
+      if (socket.connected) {
+        return true;
+      }
+
+      if (!socket.active) {
+        socket.connect();
+      }
+
+      const connected = await new Promise<boolean>((resolve) => {
+        const waitMs = remainingMs();
+        if (waitMs === 0) {
+          resolve(socket.connected);
+          return;
+        }
+
+        const timer = setTimeout(() => {
+          socket.off("connect", onConnect);
+          resolve(socket.connected);
+        }, waitMs);
+
+        const onConnect = () => {
+          clearTimeout(timer);
+          resolve(true);
+        };
+
+        socket.once("connect", onConnect);
+      });
+
+      if (connected) {
+        return true;
+      }
+
+      return false;
+    }
+
+    return socketRef.current?.connected ?? false;
+  }, []);
+
+  const readSocketId = useCallback((): string | null => {
+    const socket = socketRef.current ?? globalSocket;
+    if (socket) {
+      socketRef.current = socket;
+    }
+    const id = socket?.id ?? currentSocketIdRef.current;
+    if (id) {
+      currentSocketIdRef.current = id;
+    }
+    return id;
+  }, [globalSocket]);
+
+  const resolveSocketId = useCallback(
+    async (preferredId?: string | null, timeoutMs = 15_000): Promise<string | null> => {
+      const normalizedPreferred =
+        typeof preferredId === "string" && preferredId.length > 0 ? preferredId : null;
+
+      if (normalizedPreferred) {
+        currentSocketIdRef.current = normalizedPreferred;
+        return normalizedPreferred;
+      }
+
+      const immediate = readSocketId();
+      if (immediate) {
+        return immediate;
+      }
+
+      const connected = await ensureSocketConnected(timeoutMs);
+      if (!connected) {
+        return readSocketId();
+      }
+
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        const id = readSocketId();
+        if (id) {
+          return id;
+        }
+        await new Promise((resolve) => setTimeout(resolve, Math.min(50, deadline - Date.now())));
+      }
+
+      return readSocketId();
+    },
+    [ensureSocketConnected, readSocketId],
+  );
+
   const getSocket = useCallback((): Socket | null => {
     return socketRef.current;
   }, []);
@@ -512,6 +626,9 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,
+      reloadSocket,
+      ensureSocketConnected,
+      resolveSocketId,
       getSocket,
       getSocketId,
       isSocketHealthy,
@@ -534,6 +651,9 @@ export function useSocketSignaling(): UseSocketSignalingReturn {
       sendFavoriteNotification,
       removeAllListeners,
       disconnectSocket,
+      reloadSocket,
+      ensureSocketConnected,
+      resolveSocketId,
       getSocket,
       getSocketId,
       isSocketHealthy,

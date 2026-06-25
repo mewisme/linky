@@ -1,0 +1,21 @@
+{
+  "name": "@ws/playwright-e2e",
+  "version": "2.4.3-beta.3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test --config playwright.config.ts",
+    "test:ui": "playwright test --config playwright.config.ts --ui",
+    "test:debug": "playwright test --config playwright.config.ts --debug",
+    "test:trace": "playwright test --config playwright.config.ts --trace",
+    "test:report": "playwright show-report",
+    "test:codegen": "playwright codegen"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "playwright-core": "^1.59.1",
+    "cloakbrowser": "^0.3.28",
+    "dotenv": "^17.4.2",
+    "xlsx": "^0.18.5"
+  }
+}

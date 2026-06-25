@@ -13,16 +13,7 @@ pnpm start:api
 pnpm docker:build:api
 ```
 
-`pnpm dev:api` runs [Air](https://github.com/air-verse/air) via `go run github.com/air-verse/air@v1.65.2` (no global install). Config: `.air.toml`. Rebuilds on changes under `src/`.
-
-Optional global CLI:
-
-```bash
-go install github.com/air-verse/air@v1.65.2
-cd apps/api && air
-```
-
-From `apps/api` without Air:
+`pnpm dev:api` runs `go run ./src/cmd/api` from `apps/api`. Restart manually after code changes.
 
 ```bash
 go run ./src/cmd/api

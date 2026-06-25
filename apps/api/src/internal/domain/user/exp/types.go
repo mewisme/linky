@@ -1,8 +1,8 @@
 package exp
 
 const (
-	TypeStreak = "streak"
-	TypeLevel  = "level"
+	TypeStreak   = "streak"
+	TypeLevel    = "level"
 	TypeFavorite = "favorite"
 
 	RelationMutual = "mutual"

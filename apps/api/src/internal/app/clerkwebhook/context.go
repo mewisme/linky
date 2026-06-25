@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/lib/jsonx"
 	"linky-api/src/internal/logger"
 )
 
@@ -71,9 +72,9 @@ func handleUserCreated(ctx context.Context, data map[string]any) error {
 	payload := map[string]any{
 		"clerk_user_id": clerkID,
 		"email":         nullable(email),
-		"first_name":    nullable(asString(data["first_name"])),
-		"last_name":     nullable(asString(data["last_name"])),
-		"avatar_url":    nullable(asString(data["image_url"])),
+		"first_name":    nullable(jsonx.AsString(data["first_name"])),
+		"last_name":     nullable(jsonx.AsString(data["last_name"])),
+		"avatar_url":    nullable(jsonx.AsString(data["image_url"])),
 	}
 	if email != "" {
 		existing, _ := supax.GetUserByEmail(ctx, email)
@@ -86,9 +87,9 @@ func handleUserCreated(ctx context.Context, data map[string]any) error {
 				body := map[string]any{
 					"clerk_user_id": clerkID,
 					"email":         nullable(email),
-					"first_name":    nullable(asString(data["first_name"])),
-					"last_name":     nullable(asString(data["last_name"])),
-					"avatar_url":    nullable(asString(data["image_url"])),
+					"first_name":    nullable(jsonx.AsString(data["first_name"])),
+					"last_name":     nullable(jsonx.AsString(data["last_name"])),
+					"avatar_url":    nullable(jsonx.AsString(data["image_url"])),
 					"deleted":       false,
 					"deleted_at":    nil,
 				}
@@ -102,9 +103,9 @@ func handleUserCreated(ctx context.Context, data map[string]any) error {
 				body := map[string]any{
 					"clerk_user_id": clerkID,
 					"email":         nullable(email),
-					"first_name":    nullable(asString(data["first_name"])),
-					"last_name":     nullable(asString(data["last_name"])),
-					"avatar_url":    nullable(asString(data["image_url"])),
+					"first_name":    nullable(jsonx.AsString(data["first_name"])),
+					"last_name":     nullable(jsonx.AsString(data["last_name"])),
+					"avatar_url":    nullable(jsonx.AsString(data["image_url"])),
 				}
 				if _, err := supax.PatchUser(ctx, existing.ID, body); err != nil {
 					log.Error().Err(err).Msg("Error patching existing user with new clerk id")
@@ -137,10 +138,10 @@ func handleUserUpdated(ctx context.Context, data map[string]any) error {
 		return nil
 	}
 	body := map[string]any{
-		"email":      nullable(asString(firstEmail(data))),
-		"first_name": nullable(asString(data["first_name"])),
-		"last_name":  nullable(asString(data["last_name"])),
-		"avatar_url": nullable(asString(data["image_url"])),
+		"email":      nullable(jsonx.AsString(firstEmail(data))),
+		"first_name": nullable(jsonx.AsString(data["first_name"])),
+		"last_name":  nullable(jsonx.AsString(data["last_name"])),
+		"avatar_url": nullable(jsonx.AsString(data["image_url"])),
 	}
 	if _, err := supax.PatchUser(ctx, existing.ID, body); err != nil {
 		log.Error().Err(err).Msg("Error updating user in Supabase")
@@ -171,14 +172,6 @@ func firstEmail(data map[string]any) string {
 		return ""
 	}
 	s, _ := first["email_address"].(string)
-	return s
-}
-
-func asString(v any) string {
-	if v == nil {
-		return ""
-	}
-	s, _ := v.(string)
 	return s
 }
 

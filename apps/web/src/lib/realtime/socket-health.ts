@@ -2,6 +2,8 @@ import * as Sentry from "@sentry/nextjs";
 
 import type { Socket } from "socket.io-client";
 
+import { isPageBackgrounded } from "@/shared/utils/automation-context";
+
 const SOCKET_SILENCE_THRESHOLD_MS = 8000;
 const SOCKET_RESYNC_TIMEOUT_MS = 6000;
 const HEALTH_CHECK_INTERVAL_MS = 3000;
@@ -114,13 +116,13 @@ class SocketHealthMonitor {
     this.isMonitoring = true;
     this.lastEventTimestamp = Date.now();
     this.reconnectDetected = false;
-    this.isBackgrounded = typeof document !== "undefined" && document.hidden;
+    this.isBackgrounded = isPageBackgrounded();
 
     const socket = context.socket;
 
     this.visibilityChangeHandler = () => {
       const wasBackgrounded = this.isBackgrounded;
-      this.isBackgrounded = document.hidden;
+      this.isBackgrounded = isPageBackgrounded();
 
       if (wasBackgrounded && !this.isBackgrounded) {
         Sentry.logger.info(

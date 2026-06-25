@@ -9,12 +9,12 @@ import (
 	socket "github.com/zishang520/socket.io/servers/socket/v3"
 	"github.com/zishang520/socket.io/v3/pkg/types"
 
-	"linky-api/src/internal/config"
-	"linky-api/src/internal/lib/corsorigin"
-	"linky-api/src/internal/domain/rooms"
 	"linky-api/src/internal/app/videochat/realtime"
+	"linky-api/src/internal/config"
+	"linky-api/src/internal/domain/rooms"
 	"linky-api/src/internal/infra/admincache"
 	"linky-api/src/internal/infra/clerkx"
+	"linky-api/src/internal/lib/corsorigin"
 	"linky-api/src/internal/logger"
 )
 
@@ -189,39 +189,24 @@ func authMiddleware(requireAdmin bool) socket.NamespaceMiddleware {
 
 		verifyCtx, verifyCancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer verifyCancel()
-		payload, err := clerkx.VerifyToken(verifyCtx, token)
+		profile, err := clerkx.AuthenticateSocketToken(verifyCtx, token)
 		if err != nil {
 			log.Error().Err(err).Str("socketId", string(sock.Id())).Msg("Socket authentication failed")
 			next(socket.NewExtendedError("Authentication failed", nil))
 			return
 		}
 
-		userName := "Anonymous"
-		var userImage string
-		profileCtx, profileCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		if u, err := clerkx.GetUser(profileCtx, payload.Sub); err == nil && u != nil {
-			if u.FirstName != "" {
-				userName = u.FirstName
-			} else if u.Username != "" {
-				userName = u.Username
-			}
-			userImage = u.ImageURL
-		} else if err != nil {
-			log.Warn().Err(err).Str("userId", payload.Sub).Msg("Failed to fetch user profile from Clerk")
-		}
-		profileCancel()
-
 		data := map[string]any{
-			dataKeyUserID:       payload.Sub,
-			dataKeyUserName:     userName,
-			dataKeyUserImageURL: userImage,
-			dataKeyAuth:         payload.Raw,
+			dataKeyUserID:       profile.Sub,
+			dataKeyUserName:     profile.UserName,
+			dataKeyUserImageURL: profile.UserImage,
+			dataKeyAuth:         profile.Raw,
 		}
 		sock.SetData(data)
 
 		if requireAdmin {
 			adminCtx, adminCancel := context.WithTimeout(context.Background(), 5*time.Second)
-			ok, err := admincache.IsAdmin(adminCtx, payload.Sub)
+			ok, err := admincache.IsAdmin(adminCtx, profile.Sub)
 			adminCancel()
 			if err != nil {
 				log.Error().Err(err).Msg("Admin namespace auth failed")

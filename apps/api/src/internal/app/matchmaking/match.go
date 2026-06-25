@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	appuser "linky-api/src/internal/app/user"
 	domain "linky-api/src/internal/domain/matchmaking"
 	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/supax"
@@ -84,14 +85,14 @@ func FindMatch(ctx context.Context, store *domain.MemoryStore, live []LivePartic
 	infoCtx, infoCancel := context.WithTimeout(ctx, 3*time.Second)
 	defer infoCancel()
 
+	peerA, myA := appuser.MatchPublicInfo(infoCtx, pair.UserBID, pair.UserAID)
+	peerB, myB := appuser.MatchPublicInfo(infoCtx, pair.UserAID, pair.UserBID)
 	publicInfo := map[string]map[string]any{
-		pair.UserAID: supax.PublicUserInfoByUserID(infoCtx, pair.UserBID),
-		pair.UserBID: supax.PublicUserInfoByUserID(infoCtx, pair.UserAID),
+		pair.UserAID:         peerA,
+		pair.UserBID:         peerB,
+		"my:" + pair.UserAID: myA,
+		"my:" + pair.UserBID: myB,
 	}
-	myA := supax.PublicUserInfoByUserID(infoCtx, pair.UserAID)
-	myB := supax.PublicUserInfoByUserID(infoCtx, pair.UserBID)
-	publicInfo["my:"+pair.UserAID] = myA
-	publicInfo["my:"+pair.UserBID] = myB
 
 	timezones := make(map[string]string)
 	if tz, err := supax.GetUserTimezone(infoCtx, pair.UserAID); err == nil && tz != "" {

@@ -45,9 +45,8 @@ import { useSoundWithSettings } from "@/shared/hooks/audio/use-sound-with-settin
 import { resolveActionErrorMessage } from "@/shared/lib/i18n/resolve-action-error-message";
 import { resolveBackendMessage } from "@/shared/lib/i18n/resolve-backend-message";
 import { normalizeUserCallPreferences } from "@/entities/user/lib/user-settings-preferences";
-import { isCallMediaReadyForInCall } from "@/features/video-chat/lib/webrtc/call-media-readiness";
-import { createSyntheticRemoteStream } from "@/features/video-chat/lib/webrtc/synthetic-remote-stream";
-import { useE2eRelaxedCall } from "@/features/video-chat/hooks/use-e2e-relaxed-call";
+import { isCallMediaReadyForInCall } from "@/features/call/lib/webrtc/call-media-readiness";
+import { isAutomationContext } from "@/shared/utils/automation-context";
 
 export interface UseVideoChatReturn {
   localStream: MediaStream | null;
@@ -475,7 +474,7 @@ export function useVideoChat(): UseVideoChatReturn {
         transportReadyRef.current = false;
         actionsRef.current.setConnectionStatus("matched");
         actionsRef.current.setPeerInfo(normalizePublicUserInfo(data.peerInfo));
-        actionsRef.current.setRemoteCameraEnabled(true);
+        actionsRef.current.setRemoteCameraEnabled(false);
         trackEvent({ name: "matchmaking_matched" });
 
         const localStream = mediaStream.getStream();
@@ -484,68 +483,63 @@ export function useVideoChat(): UseVideoChatReturn {
           return;
         }
 
-        const socketId =
-          data.socketId ??
-          socketSignaling.getSocket()?.id ??
-          socketSignaling.getSocketId();
+        const matchedSocketId =
+          typeof data.socketId === "string" && data.socketId.length > 0 ? data.socketId : null;
+        let socketId = await socketSignaling.resolveSocketId(matchedSocketId);
         if (!socketId) {
-          console.error("[video-chat] No socketId available for SFU match", {
-            roomId: data.roomId,
+          const socketReady = await socketSignaling.ensureSocketConnected(15_000);
+          if (socketReady) {
+            socketId = await socketSignaling.resolveSocketId(null, 5_000);
+          }
+        }
+        if (!socketId) {
+          Sentry.logger.error("No socketId available for SFU match", {
+            matchedSocketId,
+            liveSocketId: socketSignaling.getSocket()?.id ?? null,
           });
-          Sentry.logger.error("No socketId available for SFU match");
           actionsRef.current.setError(t("call.failedEstablishConnection"));
           return;
         }
-        socketSignaling.sendVideoToggle(
-          useVideoChatStore.getState().isVideoOff,
-        );
 
-        if (e2eRelaxedCallRef.current) {
-          actionsRef.current.setRemoteStream(
-            createSyntheticRemoteStream(localStream),
-          );
-          transportReadyRef.current = true;
-          hasEnteredInCallRef.current = true;
-          actionsRef.current.setCallStartedAt(Date.now());
-          actionsRef.current.setConnectionStatus("in_call");
-          return;
-        }
+        const sfuCallbacks = {
+          onTrack: (stream: MediaStream) => {
+            actionsRef.current.setRemoteStream(stream);
+            tryEnterInCall();
+          },
+          onRemoteMediaUpdated: () => {
+            const stream = useVideoChatStore.getState().remoteStream;
+            if (stream?.getVideoTracks().some((track) => track.readyState === "live")) {
+              actionsRef.current.setRemoteCameraEnabled(true);
+            }
+            tryEnterInCall();
+          },
+          onConnectionStateChange: (connectionState: RTCPeerConnectionState) => {
+            if (connectionState === "connected") {
+              transportReadyRef.current = true;
+              if (hasEnteredInCallRef.current) {
+                actionsRef.current.setConnectionStatus("in_call");
+                if (isReconnectingRef.current) {
+                  completeReconnection();
+                }
+              } else {
+                tryEnterInCall();
+              }
+            } else if (connectionState === "failed" || connectionState === "disconnected") {
+              actionsRef.current.setConnectionStatus("reconnecting");
+              hasShownConnectedToastRef.current = false;
+              startReconnecting();
+            }
+          },
+        };
 
-        try {
+        const runSfuConnect = async () => {
+          socketSignaling.sendVideoToggle(useVideoChatStore.getState().isVideoOff);
           const pc = await sfuConnection.connect({
             roomId: data.roomId,
             socketId,
             localStream,
             realtimeSessionId: data.realtimeSessionId,
-            callbacks: {
-              onTrack: (stream) => {
-                actionsRef.current.setRemoteStream(stream);
-                tryEnterInCall();
-              },
-              onRemoteMediaUpdated: () => {
-                tryEnterInCall();
-              },
-              onConnectionStateChange: (connectionState) => {
-                if (connectionState === "connected") {
-                  transportReadyRef.current = true;
-                  if (hasEnteredInCallRef.current) {
-                    actionsRef.current.setConnectionStatus("in_call");
-                    if (isReconnectingRef.current) {
-                      completeReconnection();
-                    }
-                  } else {
-                    tryEnterInCall();
-                  }
-                } else if (
-                  connectionState === "failed" ||
-                  connectionState === "disconnected"
-                ) {
-                  actionsRef.current.setConnectionStatus("reconnecting");
-                  hasShownConnectedToastRef.current = false;
-                  startReconnecting();
-                }
-              },
-            },
+            callbacks: sfuCallbacks,
           });
           const callPrefs = normalizeUserCallPreferences(userSettings?.call);
           monitoring.initializeMonitoring(
@@ -570,8 +564,36 @@ export function useVideoChat(): UseVideoChatReturn {
           );
           transportReadyRef.current = true;
           tryEnterInCall();
+        };
+
+        try {
+          await runSfuConnect();
         } catch (err) {
-          console.error("[video-chat] Cloudflare SFU connect failed", err);
+          const iceTimedOut =
+            err instanceof Error && err.message.includes("ICE connection timed out");
+          const maxIceRetries = isAutomationContext() ? 2 : 1;
+          if (iceTimedOut) {
+            let lastRetryErr: unknown = err;
+            for (let attempt = 0; attempt < maxIceRetries; attempt++) {
+              await sfuConnection.cleanup();
+              try {
+                await runSfuConnect();
+                return;
+              } catch (retryErr) {
+                lastRetryErr = retryErr;
+                const retryIceTimedOut =
+                  retryErr instanceof Error && retryErr.message.includes("ICE connection timed out");
+                if (!retryIceTimedOut || attempt === maxIceRetries - 1) {
+                  break;
+                }
+              }
+            }
+            Sentry.logger.error("Cloudflare SFU connect failed after ICE retries", { error: lastRetryErr });
+            actionsRef.current.setError(t("call.failedEstablishConnection"));
+            actionsRef.current.setConnectionStatus("ended");
+            resetCallEntryGate();
+            return;
+          }
           Sentry.logger.error("Cloudflare SFU connect failed", { error: err });
           actionsRef.current.setError(t("call.failedEstablishConnection"));
           actionsRef.current.setConnectionStatus("ended");
@@ -645,6 +667,7 @@ export function useVideoChat(): UseVideoChatReturn {
       onRealtimePeerTracks: async (data: RealtimePeerTracksPayload) => {
         try {
           await sfuConnection.handlePeerTracks(data);
+          tryEnterInCall();
         } catch (err) {
           Sentry.logger.error("Failed to handle peer tracks", { error: err });
         }
@@ -678,6 +701,7 @@ export function useVideoChat(): UseVideoChatReturn {
 
       onVideoToggle: (data: { videoOff: boolean }) => {
         actionsRef.current.setRemoteCameraEnabled(!data.videoOff);
+        tryEnterInCall();
       },
 
       onScreenShareToggle: (data: { sharing: boolean; streamId?: string }) => {
@@ -784,8 +808,8 @@ export function useVideoChat(): UseVideoChatReturn {
         return;
       }
 
-      const socket = socketSignaling.getSocket();
-      if (!socket?.connected) {
+      const socketReady = await socketSignaling.ensureSocketConnected();
+      if (!socketReady) {
         actionsRef.current.setError(t("call.connectionNotReady"));
         toast.error(t("call.connectionNotReadyToast"));
         return;

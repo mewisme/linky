@@ -18,7 +18,7 @@ Linky is a real-time 1-to-1 video chat platform. The repo is a Turborepo / pnpm 
 # Dev
 pnpm dev          # all (turbo)
 pnpm dev:web      # Next.js, port 3000
-pnpm dev:api      # Go API with Air (live reload); default PORT 7270 (override via env)
+pnpm dev:api      # Go API; default PORT 7270 (override via env)
 
 # Build
 pnpm build:web

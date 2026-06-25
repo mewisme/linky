@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
+export default serverEnv.isDev ? withNextIntl(nextConfig) : withSentryConfig(withNextIntl(nextConfig), {
   org: serverEnv.SENTRY_ORG,
   project: serverEnv.SENTRY_PROJECT,
   authToken: serverEnv.SENTRY_AUTH_TOKEN,

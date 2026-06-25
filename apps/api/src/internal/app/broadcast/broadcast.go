@@ -11,6 +11,7 @@ import (
 
 var log = logger.New("app:broadcast")
 
+// Deprecated: broadcast fan-out is not wired; admin create returns sent 0.
 func FanOutBroadcast(ctx context.Context, broadcastID, title, body string, audienceUserIDs []string) {
 	if broadcastID == "" {
 		return

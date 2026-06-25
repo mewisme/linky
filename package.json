@@ -1,6 +1,6 @@
 {
   "name": "linky",
-  "version": "2.5.0",
+  "version": "2.4.3-beta.6",
   "private": true,
   "type": "module",
   "exports": {
@@ -15,7 +15,7 @@
     "build:api": "cd apps/api && go build -ldflags=\"-s -w\" -o bin/api ./src/cmd/api",
     "build:web": "turbo run build --filter=@ws/web",
     "dev": "turbo run dev",
-    "dev:api": "cd apps/api && go run github.com/air-verse/air@v1.65.2",
+    "dev:api": "cd apps/api && go run ./src/cmd/api",
     "dev:web": "turbo run dev --filter=@ws/web",
     "start": "turbo run start",
     "start:api": "./apps/api/bin/api",
@@ -39,9 +39,10 @@
     "test:codegen": "pnpm exec playwright codegen",
     "upver": "node scripts/generate-changelog.js && node scripts/version-upgrade.js"
   },
-  "packageManager": "pnpm@11.8.0+sha512.c1f5e7c4cb241c8f174b743851d82f42b802324afc8b0f116b96adb15aa06664948dde36960a3ba1079ba5b4b29dd0140135b94b5b5f5263592249d68e555f26",
+  "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1",
   "devDependencies": {
     "@types/node": "25.6.0",
+    "dotenv": "^17.4.2",
     "prettier": "^3.8.3",
     "turbo": "^2.9.14",
     "typescript": "catalog:"

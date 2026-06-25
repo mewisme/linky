@@ -16,7 +16,6 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"linky-api/src/internal/config"
-	"linky-api/src/internal/lib/staleproc"
 	"linky-api/src/internal/logger"
 )
 
@@ -28,13 +27,13 @@ const (
 )
 
 var (
-	cfg            *config.Config
-	client         *redis.Client
-	clientReady    bool
-	clientMu       sync.RWMutex
-	lastReconnect  time.Time
-	reconnectMu    sync.Mutex
-	log            = logger.New("infra:redis")
+	cfg           *config.Config
+	client        *redis.Client
+	clientReady   bool
+	clientMu      sync.RWMutex
+	lastReconnect time.Time
+	reconnectMu   sync.Mutex
+	log           = logger.New("infra:redis")
 )
 
 func Init(c *config.Config) {
@@ -148,7 +147,7 @@ func wrapConnectError(opts *redis.Options, err error) error {
 		return nil
 	}
 	if isMaxClientsError(opts, err) {
-		return fmt.Errorf("%w: %s", err, staleproc.FormatMaxClientsHint())
+		return fmt.Errorf("%w: redis max clients reached (stop duplicate dev:api instances)", err)
 	}
 	return err
 }

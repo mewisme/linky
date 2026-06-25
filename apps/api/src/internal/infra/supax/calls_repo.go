@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"linky-api/src/internal/infra/supax/codec"
 )
 
 type CallHistoryRow struct {
@@ -45,7 +47,7 @@ func GetCallHistoryByUserID(ctx context.Context, userID string, limit, offset in
 	if err != nil {
 		return nil, 0, err
 	}
-	rows, err := decodeMany[CallHistoryRow](raw)
+	rows, err := codec.DecodeMany[CallHistoryRow](raw)
 	return rows, count, err
 }
 
@@ -61,7 +63,7 @@ func GetCallHistoryByID(ctx context.Context, id string) (*CallHistoryRow, error)
 	if err != nil {
 		return nil, err
 	}
-	return decodeOne[CallHistoryRow](raw)
+	return codec.DecodeOne[CallHistoryRow](raw)
 }
 
 func CreateCallHistory(ctx context.Context, p CreateCallHistoryParams) (*CallHistoryRow, error) {
@@ -90,5 +92,5 @@ func CreateCallHistory(ctx context.Context, p CreateCallHistoryParams) (*CallHis
 	if err != nil {
 		return nil, err
 	}
-	return decodeOne[CallHistoryRow](raw)
+	return codec.DecodeOne[CallHistoryRow](raw)
 }

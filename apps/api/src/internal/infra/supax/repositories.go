@@ -9,6 +9,7 @@ import (
 
 	"github.com/supabase-community/postgrest-go"
 
+	"linky-api/src/internal/infra/supax/codec"
 	"linky-api/src/internal/logger"
 )
 
@@ -16,36 +17,6 @@ var repoLog = logger.New("infra:supabase:repositories")
 
 var orderDesc = &postgrest.OrderOpts{Ascending: false}
 var orderAsc = &postgrest.OrderOpts{Ascending: true}
-
-func decodeOne[T any](raw []byte) (*T, error) {
-	if len(raw) == 0 {
-		return nil, nil
-	}
-	var arr []T
-	if err := json.Unmarshal(raw, &arr); err == nil {
-		if len(arr) == 0 {
-			return nil, nil
-		}
-		v := arr[0]
-		return &v, nil
-	}
-	var single T
-	if err := json.Unmarshal(raw, &single); err != nil {
-		return nil, err
-	}
-	return &single, nil
-}
-
-func decodeMany[T any](raw []byte) ([]T, error) {
-	if len(raw) == 0 {
-		return nil, nil
-	}
-	var arr []T
-	if err := json.Unmarshal(raw, &arr); err != nil {
-		return nil, err
-	}
-	return arr, nil
-}
 
 type UserRow struct {
 	ID          string  `json:"id"`
@@ -75,7 +46,7 @@ func GetUserByClerkID(ctx context.Context, clerkUserID string) (*UserRow, error)
 		repoLog.Error().Err(err).Msg("Error fetching user by clerk id")
 		return nil, err
 	}
-	return decodeOne[UserRow](raw)
+	return codec.DecodeOne[UserRow](raw)
 }
 
 func GetUserInternalID(ctx context.Context, clerkUserID string) (string, error) {
@@ -106,7 +77,7 @@ func UpdateUserCountry(ctx context.Context, clerkUserID, country string) (*UserR
 		repoLog.Error().Err(err).Msg("Error updating user country")
 		return nil, err
 	}
-	return decodeOne[UserRow](raw)
+	return codec.DecodeOne[UserRow](raw)
 }
 
 type BlockedUserRow struct {
@@ -128,7 +99,7 @@ func GetBlockedUserIDs(ctx context.Context, userID string) ([]string, error) {
 		repoLog.Error().Err(err).Msg("Error fetching blocked users")
 		return nil, err
 	}
-	rows, err := decodeMany[BlockedUserRow](raw)
+	rows, err := codec.DecodeMany[BlockedUserRow](raw)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +147,7 @@ func CreateBlock(ctx context.Context, blockerID, blockedID string) (map[string]a
 		repoLog.Error().Err(err).Msg("Error creating block")
 		return nil, err
 	}
-	res, err := decodeOne[map[string]any](raw)
+	res, err := codec.DecodeOne[map[string]any](raw)
 	if err != nil || res == nil {
 		return nil, err
 	}
@@ -213,7 +184,7 @@ func CheckBlockExists(ctx context.Context, blockerID, blockedID string) (bool, e
 	if err != nil {
 		return false, err
 	}
-	rows, _ := decodeMany[map[string]any](raw)
+	rows, _ := codec.DecodeMany[map[string]any](raw)
 	return len(rows) > 0, nil
 }
 
@@ -232,7 +203,7 @@ func GetUserCountry(ctx context.Context, userID string) (*string, error) {
 	type row struct {
 		Country *string `json:"country"`
 	}
-	r, err := decodeOne[row](raw)
+	r, err := codec.DecodeOne[row](raw)
 	if err != nil || r == nil {
 		return nil, err
 	}
@@ -271,7 +242,7 @@ func GetInterestTags(ctx context.Context, category, search string, isActiveOnly 
 	if err != nil {
 		return nil, 0, err
 	}
-	rows, err := decodeMany[InterestTagRow](raw)
+	rows, err := codec.DecodeMany[InterestTagRow](raw)
 	return rows, count, err
 }
 
@@ -287,7 +258,7 @@ func GetInterestTagByID(ctx context.Context, id string) (*InterestTagRow, error)
 	if err != nil {
 		return nil, err
 	}
-	return decodeOne[InterestTagRow](raw)
+	return codec.DecodeOne[InterestTagRow](raw)
 }
 
 type UserLevelRow struct {
@@ -310,7 +281,7 @@ func GetUserLevel(ctx context.Context, userID string) (*UserLevelRow, error) {
 	if err != nil {
 		return nil, err
 	}
-	return decodeOne[UserLevelRow](raw)
+	return codec.DecodeOne[UserLevelRow](raw)
 }
 
 func IncrementUserExp(ctx context.Context, userID string, seconds int) error {
@@ -335,13 +306,13 @@ func IncrementUserExpDaily(ctx context.Context, userID, localDate string, second
 	if seconds <= 0 || userID == "" || localDate == "" {
 		return nil
 	}
-	if !dateRegex.MatchString(localDate) {
+	if !codec.DateRegex.MatchString(localDate) {
 		return nil
 	}
 	body := map[string]any{
-		"p_user_id":      userID,
-		"p_date":         localDate,
-		"p_exp_seconds":  seconds,
+		"p_user_id":     userID,
+		"p_date":        localDate,
+		"p_exp_seconds": seconds,
 	}
 	if _, err := RPC(ctx, "increment_user_exp_daily", body); err != nil {
 		repoLog.Error().Err(err).Str("userId", userID).Str("date", localDate).Int("seconds", seconds).Msg("increment_user_exp_daily RPC failed")
@@ -372,7 +343,7 @@ func GetUserStreak(ctx context.Context, userID string) (*UserStreakRow, error) {
 	if err != nil {
 		return nil, err
 	}
-	return decodeOne[UserStreakRow](raw)
+	return codec.DecodeOne[UserStreakRow](raw)
 }
 
 type PushSubscriptionRow struct {
@@ -401,7 +372,7 @@ func UpsertPushSubscription(ctx context.Context, userID, endpoint, p256dh, auth 
 	if err != nil {
 		return nil, err
 	}
-	return decodeOne[PushSubscriptionRow](raw)
+	return codec.DecodeOne[PushSubscriptionRow](raw)
 }
 
 func DeletePushSubscription(ctx context.Context, userID, endpoint string) error {
@@ -445,7 +416,7 @@ func GetUserNotifications(ctx context.Context, userID string, limit, offset int,
 	if err != nil {
 		return nil, 0, err
 	}
-	rows, err := decodeMany[NotificationRow](raw)
+	rows, err := codec.DecodeMany[NotificationRow](raw)
 	return rows, count, err
 }
 

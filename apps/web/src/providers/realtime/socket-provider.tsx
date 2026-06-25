@@ -19,6 +19,7 @@ import {
   setPresencePublisher,
 } from "@/lib/realtime/presence";
 import { getUserTimezone } from "@/shared/utils/timezone";
+import { isAutomationContext, pageVisibilityForSocket } from "@/shared/utils/automation-context";
 import { fetchFromActionRoute } from "@/shared/lib/fetch-action-route";
 
 import { useUserContext } from "@/providers/user/user-provider";
@@ -137,7 +138,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
         adminNamespaceSocket.on("connect", () => {});
 
-        adminNamespaceSocket.on("disconnect", () => {});
+          const visibility = pageVisibilityForSocket();
+          chatSocket.emit(`client:visibility:${visibility}`);
 
         adminNamespaceSocket.on("connect_error", () => {
           setAdminSocket(adminNamespaceSocket);
@@ -187,25 +189,94 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
             callbacksRef.current.forEach((cb) => cb.onConnect?.());
           });
+          publishPresence('online');
+          if (document.visibilityState === "hidden" && !isAutomationContext()) {
+            publishPresence("idle");
+          }
+          socketHealthMonitor.markEventReceived();
+
+          if (isBackendRestart) {
+            callbacksRef.current.forEach(cb => cb.onBackendRestart?.());
+          }
+
+          callbacksRef.current.forEach(cb => cb.onConnect?.());
+        });
+      }
+
+      const existingDisconnectListeners = chatSocket.listeners("disconnect").length;
+      if (existingDisconnectListeners === 0) {
+        chatSocket.on("disconnect", (reason) => {
+          const wasConnected = socketIdRef.current !== null;
+          backendRestartDetector.recordDisconnect(reason, wasConnected);
+          useSocketStore.getState().setConnectionState("disconnected");
+          setPresencePublisher(null);
+          publishPresence('offline');
+
+          if (healthCheckIntervalRef.current) {
+            clearInterval(healthCheckIntervalRef.current);
+            healthCheckIntervalRef.current = null;
+          }
+
+          callbacksRef.current.forEach(cb => cb.onDisconnect?.(reason));
+        });
+      }
+
+      const existingConnectErrorListeners = chatSocket.listeners("connect_error").length;
+      if (existingConnectErrorListeners === 0) {
+        chatSocket.on("connect_error", (error) => {
+          Sentry.logger.error("[SocketProvider] Connection error", { error });
+          useSocketStore.getState().setConnectionState("disconnected");
+          setPresencePublisher(null);
+          publishPresence('offline');
+          callbacksRef.current.forEach(cb => cb.onConnectError?.(error));
+        });
+      }
+
+      const existingReconnectAttemptListeners = chatSocket.listeners("reconnect_attempt").length;
+      if (existingReconnectAttemptListeners === 0) {
+        chatSocket.on("reconnect_attempt", () => {
+          useSocketStore.getState().setConnectionState("reconnecting");
+        });
+      }
+
+
+      socketHealthMonitor.stop();
+      socketHealthMonitor.start({
+        socket: chatSocket,
+        isInActiveCall: () => {
+          const status = useVideoChatStore.getState().connectionStatus;
+          return status === "matched" || status === "in_call" || status === "reconnecting";
+        },
+        getRoomInfo: () => null,
+        onHalfDeadDetected: () => {
+          useSocketStore.getState().setIsHealthy(false);
+        },
+        onResyncRequired: () => {
+          callbacksRef.current.forEach(cb => cb.onResyncRequired?.());
+        },
+        onForcedTeardown: () => {
+          callbacksRef.current.forEach(cb => cb.onForcedTeardown?.());
+        },
+      });
+
+      if (healthCheckIntervalRef.current) {
+        clearInterval(healthCheckIntervalRef.current);
+        healthCheckIntervalRef.current = null;
+      }
+
+      healthCheckIntervalRef.current = setInterval(() => {
+        useSocketStore.getState().setIsHealthy(socketHealthMonitor.isHealthy());
+      }, 1000);
+
+      const handleVisibilityChange = () => {
+        if (!chatSocket || !chatSocket.connected) {
+          return;
         }
-
-        const existingDisconnectListeners =
-          chatSocket.listeners("disconnect").length;
-        if (existingDisconnectListeners === 0) {
-          chatSocket.on("disconnect", (reason) => {
-            const wasConnected = socketIdRef.current !== null;
-            backendRestartDetector.recordDisconnect(reason, wasConnected);
-            useSocketStore.getState().setConnectionState("disconnected");
-            setPresencePublisher(null);
-            publishPresence("offline");
-
-            if (healthCheckIntervalRef.current) {
-              clearInterval(healthCheckIntervalRef.current);
-              healthCheckIntervalRef.current = null;
-            }
-
-            callbacksRef.current.forEach((cb) => cb.onDisconnect?.(reason));
-          });
+        const visibility = pageVisibilityForSocket();
+        chatSocket.emit(`client:visibility:${visibility}`);
+        const currentPresence = getLastPresenceState();
+        if (currentPresence === "online" || currentPresence === "idle") {
+          publishPresence(visibility === "foreground" ? "online" : "idle");
         }
 
         const existingConnectErrorListeners =

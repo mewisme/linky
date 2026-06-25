@@ -15,8 +15,6 @@ import (
 
 type Config struct {
 	Port       int
-	TLSCert    string
-	TLSKey     string
 	NodeEnv    string
 	CorsOrigin []string
 
@@ -24,6 +22,7 @@ type Config struct {
 	CloudflareRealtimeAppID     string
 	CloudflareRealtimeAppSecret string
 	CloudflareRealtimeBaseURL   string
+	CloudflareRealtimeTimeoutMs int
 	CloudflareAccountID         string
 
 	ClerkSecretKey     string
@@ -139,13 +138,12 @@ func Load() *Config {
 
 	c := &Config{
 		Port:                           port,
-		TLSCert:                        tlsCert,
-		TLSKey:                         tlsKey,
 		NodeEnv:                        nodeEnv,
 		CorsOrigin:                     corsOrigin,
 		CloudflareRealtimeAppID:        os.Getenv("CLOUDFLARE_REALTIME_APP_ID"),
 		CloudflareRealtimeAppSecret:    os.Getenv("CLOUDFLARE_REALTIME_APP_SECRET"),
 		CloudflareRealtimeBaseURL:      envStr("CLOUDFLARE_REALTIME_BASE_URL", "https://rtc.live.cloudflare.com/v1"),
+		CloudflareRealtimeTimeoutMs:    envInt("CLOUDFLARE_REALTIME_TIMEOUT_MS", 30000),
 		CloudflareAccountID:            os.Getenv("CLOUDFLARE_ACCOUNT_ID"),
 		ClerkSecretKey:                 os.Getenv("CLERK_SECRET_KEY"),
 		ClerkWebhookSecret:             os.Getenv("CLERK_WEBHOOK_SECRET"),

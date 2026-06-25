@@ -16,9 +16,9 @@ type ChatMessage struct {
 }
 
 type chatCompletionRequest struct {
-	Model    string              `json:"model"`
-	Messages []chatMessageWire   `json:"messages"`
-	Stream   bool                `json:"stream"`
+	Model    string            `json:"model"`
+	Messages []chatMessageWire `json:"messages"`
+	Stream   bool              `json:"stream"`
 }
 
 type chatMessageWire struct {

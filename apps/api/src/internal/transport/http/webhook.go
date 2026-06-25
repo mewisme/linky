@@ -8,8 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 	svix "github.com/svix/svix-webhooks/go"
 
-	"linky-api/src/internal/config"
 	"linky-api/src/internal/app/clerkwebhook"
+	"linky-api/src/internal/config"
 	"linky-api/src/internal/httpx"
 	"linky-api/src/internal/logger"
 )

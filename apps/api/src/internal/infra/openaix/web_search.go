@@ -3,8 +3,8 @@ package openaix
 import "context"
 
 type WebSearchParams struct {
-	Model  string
-	Query  string
+	Model string
+	Query string
 }
 
 type WebSearchResult struct {

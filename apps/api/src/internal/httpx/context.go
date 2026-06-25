@@ -35,6 +35,15 @@ func MustClerkUserID(c echo.Context) string {
 	return a.Sub
 }
 
+func RequireClerkUser(c echo.Context) (string, error) {
+	clerkID := MustClerkUserID(c)
+	if clerkID == "" {
+		return "", SendError(c, 401, "Unauthorized",
+			UM("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"))
+	}
+	return clerkID, nil
+}
+
 func SetRequestID(c echo.Context, id string) {
 	c.Set(ctxRequestIDKey, id)
 }

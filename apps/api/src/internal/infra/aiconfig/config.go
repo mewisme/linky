@@ -57,26 +57,26 @@ type EmbeddingJobSettings struct {
 }
 
 type Settings struct {
-	BaseURL    string               `json:"base_url,omitempty"`
-	APIKey     string               `json:"api_key,omitempty"`
-	Models     ModelsSettings       `json:"models,omitempty"`
-	Timeouts   TimeoutsSettings     `json:"timeouts,omitempty"`
-	Embedding  EmbeddingJobSettings `json:"embedding,omitempty"`
+	BaseURL   string               `json:"base_url,omitempty"`
+	APIKey    string               `json:"api_key,omitempty"`
+	Models    ModelsSettings       `json:"models,omitempty"`
+	Timeouts  TimeoutsSettings     `json:"timeouts,omitempty"`
+	Embedding EmbeddingJobSettings `json:"embedding,omitempty"`
 }
 
 type Effective struct {
-	BaseURL              string
-	APIKey               string
-	ChatBroadcast        string
-	ChatReportSummary    string
-	EmbeddingModel       string
-	ImageModel           string
-	TTSModel             string
-	STTModel             string
-	WebSearchModel       string
-	WebFetchModel        string
-	RequestTimeoutMs     int
-	EmbeddingTimeoutMs   int
+	BaseURL               string
+	APIKey                string
+	ChatBroadcast         string
+	ChatReportSummary     string
+	EmbeddingModel        string
+	ImageModel            string
+	TTSModel              string
+	STTModel              string
+	WebSearchModel        string
+	WebFetchModel         string
+	RequestTimeoutMs      int
+	EmbeddingTimeoutMs    int
 	EmbedUserAPIBatchSize int
 	EmbeddingDimension    int
 }

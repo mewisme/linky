@@ -10,6 +10,7 @@ import (
 
 var ErrCallHistoryForbidden = errors.New("call history forbidden")
 
+// Deprecated: use user.InternalIDFromClerk instead.
 func GetUserIDByClerkID(ctx context.Context, clerkUserID string) (string, error) {
 	return supax.GetUserInternalID(ctx, clerkUserID)
 }

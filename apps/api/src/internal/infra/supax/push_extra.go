@@ -3,6 +3,8 @@ package supax
 import (
 	"context"
 	"errors"
+
+	"linky-api/src/internal/infra/supax/codec"
 )
 
 func GetUserPushSubscriptions(ctx context.Context, userID string) ([]PushSubscriptionRow, error) {
@@ -17,7 +19,7 @@ func GetUserPushSubscriptions(ctx context.Context, userID string) ([]PushSubscri
 	if err != nil {
 		return nil, err
 	}
-	return decodeMany[PushSubscriptionRow](raw)
+	return codec.DecodeMany[PushSubscriptionRow](raw)
 }
 
 func DeletePushSubscriptionByEndpoint(ctx context.Context, endpoint string) error {

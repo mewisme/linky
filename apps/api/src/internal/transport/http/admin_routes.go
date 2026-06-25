@@ -11,6 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	"linky-api/src/internal/app/admin"
 	"linky-api/src/internal/app/presence"
 	"linky-api/src/internal/domain/user/leveling"
 	"linky-api/src/internal/httpx"
@@ -175,12 +176,11 @@ func handleAdminUserList(c echo.Context) error {
 		v := deletedQ == "true"
 		deleted = &v
 	}
-	rows, count, err := supax.ListAdminUsersUnified(c.Request().Context(), supax.AdminUsersOptions{
+	rows, count, err := admin.ListUsers(c.Request().Context(), supax.AdminUsersOptions{
 		Page: page, Limit: limit, Role: role, Search: search, Deleted: deleted,
 	})
 	if err != nil {
-		return httpx.SendError(c, 500, "Internal Server Error",
-			httpx.UM("FAILED_FETCH_USERS", "failedFetchUsers", "Failed to fetch users"))
+		return sendAdminStatusError(c, err)
 	}
 	out := make([]map[string]any, 0, len(rows))
 	presenceSnap := presence.SnapshotPresence()
@@ -391,7 +391,7 @@ func registerAdminCRUD(g *echo.Group, prefix, table string, afterMutate ...func(
 		runAfterMutate(c)
 		return c.JSON(http.StatusCreated, row)
 	})
-	sub.PUT("/:id", func(c echo.Context) error {
+	patchByID := func(c echo.Context) error {
 		rawBody, _ := io.ReadAll(c.Request().Body)
 		var body map[string]any
 		_ = json.Unmarshal(rawBody, &body)
@@ -402,19 +402,9 @@ func registerAdminCRUD(g *echo.Group, prefix, table string, afterMutate ...func(
 		}
 		runAfterMutate(c)
 		return c.JSON(http.StatusOK, row)
-	})
-	sub.PATCH("/:id", func(c echo.Context) error {
-		rawBody, _ := io.ReadAll(c.Request().Body)
-		var body map[string]any
-		_ = json.Unmarshal(rawBody, &body)
-		row, err := supax.PatchGeneric(c.Request().Context(), table, c.Param("id"), body)
-		if err != nil {
-			return httpx.SendError(c, 500, "Internal Server Error",
-				httpx.UM("FAILED_PATCH_RECORD", "failedPatchRecord", "Failed to update record"))
-		}
-		runAfterMutate(c)
-		return c.JSON(http.StatusOK, row)
-	})
+	}
+	sub.PUT("/:id", patchByID)
+	sub.PATCH("/:id", patchByID)
 	sub.DELETE("/:id", func(c echo.Context) error {
 		if err := supax.DeleteGeneric(c.Request().Context(), table, c.Param("id")); err != nil {
 			return httpx.SendError(c, 500, "Internal Server Error",

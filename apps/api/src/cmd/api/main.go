@@ -11,10 +11,10 @@ import (
 
 	"linky-api/src/internal/config"
 	"linky-api/src/internal/infra/admincache"
+	"linky-api/src/internal/infra/aiconfig"
 	"linky-api/src/internal/infra/clerkapi"
 	"linky-api/src/internal/infra/clerkx"
 	"linky-api/src/internal/infra/cloudflarerealtime"
-	"linky-api/src/internal/infra/aiconfig"
 	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/preload"
@@ -22,10 +22,9 @@ import (
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/infra/webpush"
 	"linky-api/src/internal/jobs/pool"
-	"linky-api/src/internal/lib/staleproc"
 	"linky-api/src/internal/logger"
-	"linky-api/src/internal/transport/http"
 	"linky-api/src/internal/server"
+	routes "linky-api/src/internal/transport/http"
 	"linky-api/src/internal/transport/socketio"
 	"linky-api/src/internal/transport/worker"
 )
@@ -51,7 +50,6 @@ func main() {
 	if err := supax.Init(cfg); err != nil {
 		log.Error().Err(err).Msg("Failed to init Supabase client")
 	}
-	supax.InitRPC(cfg)
 	redisx.Init(cfg)
 	webpush.Init(cfg)
 	aiconfig.Init(cfg)
@@ -78,12 +76,6 @@ func main() {
 	expbonus.StartRefresher(rootCtx)
 	openaix.StartModelsRefresher(rootCtx)
 	openaix.LogConfigured()
-
-	if killed, err := staleproc.KillOthers("tmp/main", os.Getpid()); err != nil {
-		log.Warn().Err(err).Msg("Failed to scan for stale API processes")
-	} else if killed > 0 {
-		log.Warn().Int("count", killed).Msg("Killed stale API processes from prior Air restarts")
-	}
 
 	connectCtx, connectCancel := context.WithTimeout(rootCtx, 10*time.Second)
 	if err := redisx.Connect(connectCtx); err != nil {

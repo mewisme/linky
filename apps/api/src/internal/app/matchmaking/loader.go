@@ -10,11 +10,16 @@ import (
 
 var loaderLog = logger.New("app:matchmaking")
 
+// ponytail: 2s timeout shared by all match loaders; per-user locks if tick contends.
+func loaderCtx() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), 2*time.Second)
+}
+
 func UserInterests(userID string) []string {
 	if userID == "" {
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := loaderCtx()
 	defer cancel()
 	row, err := supax.GetUserDetailsByUserID(ctx, userID)
 	if err != nil {
@@ -37,7 +42,7 @@ func UserFavorites(userID string) []string {
 	if userID == "" {
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := loaderCtx()
 	defer cancel()
 	rows, err := supax.GetFavoritesWithStats(ctx, userID)
 	if err != nil {
@@ -60,7 +65,7 @@ func UserBlocks(userID string) []string {
 	if userID == "" {
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := loaderCtx()
 	defer cancel()
 	ids, err := supax.GetBlockedUserIDs(ctx, userID)
 	if err != nil {

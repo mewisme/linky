@@ -44,8 +44,8 @@ func SettingsMapFromRaw(raw json.RawMessage) (Settings, error) {
 func EffectiveToPublicMap() map[string]any {
 	e := EffectiveConfig()
 	return map[string]any{
-		"base_url":            e.BaseURL,
-		"api_key_configured":  APIKeyConfigured(),
+		"base_url":           e.BaseURL,
+		"api_key_configured": APIKeyConfigured(),
 		"models": map[string]any{
 			"chat": map[string]any{
 				"broadcast":      e.ChatBroadcast,

@@ -15,7 +15,7 @@
     "build:api": "cd apps/api && go build -ldflags=\"-s -w\" -o bin/api ./src/cmd/api",
     "build:web": "turbo run build --filter=@ws/web",
     "dev": "turbo run dev",
-    "dev:api": "cd apps/api && go run github.com/air-verse/air@v1.65.2",
+    "dev:api": "cd apps/api && go run ./src/cmd/api",
     "dev:web": "turbo run dev --filter=@ws/web",
     "start": "turbo run start",
     "start:api": "./apps/api/bin/api",

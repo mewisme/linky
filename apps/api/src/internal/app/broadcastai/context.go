@@ -12,6 +12,7 @@ import (
 
 	"linky-api/src/internal/infra/openaix"
 	"linky-api/src/internal/infra/supax"
+	"linky-api/src/internal/lib/jsonx"
 )
 
 const (
@@ -262,8 +263,6 @@ func normalize(input string, max int) string {
 	return trimmed[:max] + "…"
 }
 
-
-
 func buildPrompt(audience, keyPoints string) string {
 	return strings.Join([]string{
 		"Generate a structured broadcast message in JSON.",
@@ -303,9 +302,9 @@ func validateOutput(in map[string]any) (*Output, error) {
 	}
 	out := &Output{
 		Primary: Primary{
-			Title: asString(primary["title"]),
-			Body:  asString(primary["body"]),
-			CTA:   asString(primary["cta"]),
+			Title: jsonx.AsString(primary["title"]),
+			Body:  jsonx.AsString(primary["body"]),
+			CTA:   jsonx.AsString(primary["cta"]),
 		},
 	}
 	if out.Primary.Title == "" || out.Primary.Body == "" || out.Primary.CTA == "" {
@@ -321,7 +320,7 @@ func validateOutput(in map[string]any) (*Output, error) {
 		if v == nil {
 			return nil, errors.New("invalid tone variant")
 		}
-		tone := asString(v["tone"])
+		tone := jsonx.AsString(v["tone"])
 		if tone != "friendly" && tone != "professional" && tone != "direct" {
 			return nil, errors.New("tone must be friendly|professional|direct")
 		}
@@ -331,18 +330,13 @@ func validateOutput(in map[string]any) (*Output, error) {
 		tones[tone] = true
 		out.ToneVariants = append(out.ToneVariants, ToneVariant{
 			Tone:  tone,
-			Title: asString(v["title"]),
-			Body:  asString(v["body"]),
-			CTA:   asString(v["cta"]),
+			Title: jsonx.AsString(v["title"]),
+			Body:  jsonx.AsString(v["body"]),
+			CTA:   jsonx.AsString(v["cta"]),
 		})
 	}
 	if len(tones) != 3 {
 		return nil, errors.New("tone_variants must cover all three tones")
 	}
 	return out, nil
-}
-
-func asString(v any) string {
-	s, _ := v.(string)
-	return s
 }

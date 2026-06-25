@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 
+	"linky-api/src/internal/app/embeddings"
 	"linky-api/src/internal/app/report"
 	"linky-api/src/internal/app/user"
 	"linky-api/src/internal/config"
@@ -14,7 +15,10 @@ var (
 	cfg *config.Config
 )
 
-func Init(c *config.Config) { cfg = c }
+func Init(c *config.Config) {
+	cfg = c
+	embeddings.Init(c)
+}
 
 type ApplyCallExpPayload struct {
 	UserID            string `json:"userId"`

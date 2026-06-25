@@ -64,14 +64,14 @@ func TestMultiplierForValueOutOfRange(t *testing.T) {
 func TestParseRows(t *testing.T) {
 	streak, level, favorite := ParseRows([]map[string]any{
 		{
-			"type":              "streak",
-			"bonus_multiplier":  1.25,
-			"config":            map[string]any{"min": float64(1), "max": float64(7)},
+			"type":             "streak",
+			"bonus_multiplier": 1.25,
+			"config":           map[string]any{"min": float64(1), "max": float64(7)},
 		},
 		{
-			"type":              "level",
-			"bonus_multiplier":  "2.5",
-			"config":            map[string]any{"min": 10, "max": 20},
+			"type":             "level",
+			"bonus_multiplier": "2.5",
+			"config":           map[string]any{"min": 10, "max": 20},
 		},
 		{
 			"type":             "unknown",

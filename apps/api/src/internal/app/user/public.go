@@ -6,6 +6,7 @@ import (
 	"linky-api/src/internal/infra/supax"
 )
 
+// Deprecated: use MatchPublicInfo instead.
 func PublicInfo(ctx context.Context, userID string) map[string]any {
 	return supax.PublicUserInfoByUserID(ctx, userID)
 }

@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"sort"
 	"time"
 
 	"linky-api/src/internal/domain/user/exp"
@@ -68,7 +67,7 @@ func GetProgressInsights(ctx context.Context, userID, timezone string) (*progres
 	}
 
 	now := time.Now()
-	todayStr := progressToLocalDate(now, loc)
+	todayStr := progress.LocalDate(now, loc)
 
 	historyByDate := make(map[string]bool, len(historyRows))
 	validDates := make([]string, 0, len(historyRows))
@@ -97,13 +96,13 @@ func GetProgressInsights(ctx context.Context, userID, timezone string) (*progres
 
 	currentStreak := 0
 	if todayIsValid {
-		yesterday := progressToLocalDate(now.AddDate(0, 0, -1), loc)
+		yesterday := progress.LocalDate(now.AddDate(0, 0, -1), loc)
 		if v, ok := historyByDate[yesterday]; !ok || !v {
 			currentStreak = 1
 		} else {
 			count := 2
 			for i := 2; i < progressMaxStreakDaysToFetch; i++ {
-				prev := progressToLocalDate(now.AddDate(0, 0, -i), loc)
+				prev := progress.LocalDate(now.AddDate(0, 0, -i), loc)
 				if v, ok := historyByDate[prev]; !ok || !v {
 					break
 				}
@@ -115,13 +114,13 @@ func GetProgressInsights(ctx context.Context, userID, timezone string) (*progres
 
 	streakIfTodayCompleted := currentStreak
 	if !todayIsValid {
-		yesterday := progressToLocalDate(now.AddDate(0, 0, -1), loc)
+		yesterday := progress.LocalDate(now.AddDate(0, 0, -1), loc)
 		if v, ok := historyByDate[yesterday]; !ok || !v {
 			streakIfTodayCompleted = 1
 		} else {
 			count := 2
 			for i := 2; i < progressMaxStreakDaysToFetch; i++ {
-				prev := progressToLocalDate(now.AddDate(0, 0, -i), loc)
+				prev := progress.LocalDate(now.AddDate(0, 0, -i), loc)
 				if v, ok := historyByDate[prev]; !ok || !v {
 					break
 				}
@@ -133,14 +132,14 @@ func GetProgressInsights(ctx context.Context, userID, timezone string) (*progres
 
 	recent := make([]progress.RecentStreakDay, 0, progressRecentStreakDays)
 	for i := 0; i < progressRecentStreakDays; i++ {
-		d := progressToLocalDate(now.AddDate(0, 0, -i), loc)
+		d := progress.LocalDate(now.AddDate(0, 0, -i), loc)
 		recent = append(recent, progress.RecentStreakDay{
 			Date:    d,
 			IsValid: currentStreak > 0 && i < currentStreak,
 		})
 	}
 
-	longestFromHistory := progressLongestConsecutiveValidDays(validDates)
+	longestFromHistory := progress.LongestConsecutiveValidDays(validDates)
 	longestFromRow := 0
 	if streakRow != nil {
 		longestFromRow = streakRow.LongestStreak
@@ -235,41 +234,6 @@ func ProjectedCallInsights(ctx context.Context, userID string, timezoneByUserID 
 		return nil, nil
 	}
 	return insights, progress.ApplyRealtimeCallProjection(insights, durationSeconds, durationSeconds, favoriteRelation, cfg)
-}
-
-func progressToLocalDate(t time.Time, loc *time.Location) string {
-	return t.In(loc).Format("2006-01-02")
-}
-
-func progressLongestConsecutiveValidDays(dates []string) int {
-	if len(dates) == 0 {
-		return 0
-	}
-	uniq := make(map[string]struct{}, len(dates))
-	out := make([]string, 0, len(dates))
-	for _, d := range dates {
-		if _, ok := uniq[d]; ok {
-			continue
-		}
-		uniq[d] = struct{}{}
-		out = append(out, d)
-	}
-	sort.Strings(out)
-	maxRun := 1
-	run := 1
-	for i := 1; i < len(out); i++ {
-		prev, _ := time.Parse("2006-01-02", out[i-1])
-		next := prev.AddDate(0, 0, 1).Format("2006-01-02")
-		if out[i] == next {
-			run++
-			if run > maxRun {
-				maxRun = run
-			}
-		} else {
-			run = 1
-		}
-	}
-	return maxRun
 }
 
 func progressStreakCountForExpBonus(ins *progress.Insights, unpersistedElapsedSeconds int) int {

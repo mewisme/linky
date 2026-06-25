@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"linky-api/src/internal/infra/supax/codec"
 )
 
 type userExpDailyRow struct {
@@ -11,7 +13,7 @@ type userExpDailyRow struct {
 }
 
 func GetUserExpDaily(ctx context.Context, userID, date string) (int, error) {
-	if !dateRegex.MatchString(date) {
+	if !codec.DateRegex.MatchString(date) {
 		return 0, nil
 	}
 	c := Client()
@@ -26,7 +28,7 @@ func GetUserExpDaily(ctx context.Context, userID, date string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	row, err := decodeOne[userExpDailyRow](raw)
+	row, err := codec.DecodeOne[userExpDailyRow](raw)
 	if err != nil || row == nil {
 		return 0, err
 	}
@@ -39,7 +41,7 @@ type callDurationRow struct {
 }
 
 func GetCallDurationsForUserOnLocalDate(ctx context.Context, userID, localDateStr, tz string) (int, error) {
-	if !dateRegex.MatchString(localDateStr) {
+	if !codec.DateRegex.MatchString(localDateStr) {
 		return 0, nil
 	}
 	c := Client()
@@ -69,7 +71,7 @@ func GetCallDurationsForUserOnLocalDate(ctx context.Context, userID, localDateSt
 	if err != nil {
 		return 0, err
 	}
-	rows, err := decodeMany[callDurationRow](raw)
+	rows, err := codec.DecodeMany[callDurationRow](raw)
 	if err != nil {
 		return 0, err
 	}

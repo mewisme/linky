@@ -7,6 +7,7 @@ import (
 
 	"linky-api/src/internal/app/user"
 	"linky-api/src/internal/domain/user/leveling"
+	"linky-api/src/internal/domain/user/progress"
 	"linky-api/src/internal/infra/expbonus"
 	"linky-api/src/internal/infra/supax"
 	"linky-api/src/internal/jobs"
@@ -111,6 +112,7 @@ func Apply(ctx context.Context, p ApplyParams) (*Result, error) {
 			userLevel = leveling.CalculateLevelFromExp(levelRow.TotalExpSeconds, leveling.Default).Level
 		}
 		expSeconds := expbonus.EffectiveSeconds(p.DurationSecs, streakCount, userLevel, p.FavoriteRelation)
+		// ponytail: pre-compute exp seconds here so user.AddCallExp skips favorite re-lookup via expSecondsPtr.
 		expSecondsPtr := &expSeconds
 		expOutcome := ExpOutcome{UserID: side.userID}
 		level, err := user.AddCallExp(ctx, side.userID, p.DurationSecs, expSecondsPtr, dateStr, side.counterpartID)
@@ -144,9 +146,5 @@ func Apply(ctx context.Context, p ApplyParams) (*Result, error) {
 }
 
 func LocalDateString(t time.Time, timezone string) string {
-	loc, err := time.LoadLocation(timezone)
-	if err != nil {
-		loc = time.UTC
-	}
-	return t.In(loc).Format("2006-01-02")
+	return progress.LocalDateInTimezone(t, timezone)
 }

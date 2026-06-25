@@ -44,10 +44,9 @@ func handleEmptyHistory(c echo.Context) error {
 }
 
 func handleUserMe(c echo.Context) error {
-	clerkID := httpx.MustClerkUserID(c)
-	if clerkID == "" {
-		return httpx.SendError(c, 401, "Unauthorized",
-			httpx.UM("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"))
+	clerkID, err := httpx.RequireClerkUser(c)
+	if err != nil {
+		return err
 	}
 	cfCountry := strings.TrimSpace(c.Request().Header.Get("cf-ipcountry"))
 	if cfCountry == "" {
@@ -94,10 +93,9 @@ func handleUpdateMeCountry(c echo.Context) error {
 }
 
 func handleUpdateTimezone(c echo.Context) error {
-	clerkID := httpx.MustClerkUserID(c)
-	if clerkID == "" {
-		return httpx.SendError(c, 401, "Unauthorized",
-			httpx.UM("USER_ID_NOT_IN_TOKEN", "userIdNotInToken", "User ID not found in authentication token"))
+	clerkID, err := httpx.RequireClerkUser(c)
+	if err != nil {
+		return err
 	}
 	uid, _ := user.InternalIDFromClerk(c.Request().Context(), clerkID)
 	if uid == "" {

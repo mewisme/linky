@@ -48,7 +48,7 @@
     "react-markdown": "^10.1.0",
     "recharts": "3.6.0",
     "remark-gfm": "^4.0.1",
-    "sanitize-html": "^2.17.4",
+    "sanitize-html": "^2.17.5",
     "server-only": "^0.0.1",
     "socket.io-client": "catalog:",
     "styled-jsx": "^5.1.7",
